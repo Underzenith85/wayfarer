@@ -1,11 +1,5 @@
-"""Closed, GURPS-inspired prototype rules. Not a complete GURPS implementation."""
-import secrets
-
-VERSION = 'wayfarer-lite-1'
-BUDGET = 100
-ATTR_COST = {'ST': 10, 'DX': 20, 'IQ': 20, 'HT': 10}
-SKILLS = {'Stealth': ('DX', -1), 'Observation': ('IQ', -1), 'Diplomacy': ('IQ', -2), 'Survival': ('IQ', -1)}
-TRAITS = {'Keen senses': 5, 'Fit': 5, 'Curious': -5, 'Code of honor': -10}
+"""Preserved demo character construction; full compiler is tracked separately."""
+from wayfarer.rules.catalog import ATTR_COST, BUDGET, SKILLS, TRAITS
 
 def validate(c):
     errors = []
@@ -56,15 +50,6 @@ def validate(c):
     if spent > BUDGET:
         errors.append(f'Character exceeds the {BUDGET}-point budget by {spent - BUDGET}')
     return {'valid': not errors, 'errors': errors, 'spent': spent, 'remaining': BUDGET-spent, 'levels': levels}
-
-def roll(target):
-    dice = [secrets.randbelow(6) + 1 for _ in range(3)]
-    total = sum(dice)
-    critical_success = total <= 4 or (total == 5 and target >= 15) or (total == 6 and target >= 16)
-    critical_failure = total == 18 or (total == 17 and target <= 15) or total-target >= 10
-    success = critical_success or (not critical_failure and total != 17 and total <= target)
-    return {'dice': dice, 'total': total, 'target': target, 'success': success,
-            'critical': 'success' if critical_success else 'failure' if critical_failure else None}
 
 def character():
     return {'name': 'Mira Voss', 'concept': 'A curious investigator with a debt to repay.',

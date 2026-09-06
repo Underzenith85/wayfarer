@@ -4,10 +4,14 @@ A local-first, service-backed roleplaying prototype with an LLM game master, con
 
 ## Run
 
-Python 3.12+; no third-party runtime dependencies.
+Python 3.12+ with [uv](https://docs.astral.sh/uv/). CI targets CPython 3.12–3.14. No third-party runtime dependencies.
 
 ```bash
-python server.py
+uv sync --frozen
+```
+
+```bash
+uv run --frozen wayfarer
 ```
 
 Open http://127.0.0.1:8000. Click **Begin the demo adventure**, or use the Character workshop and Scenario studio to create a campaign. SQLite saves state under `data/`; browser storage holds only the selected campaign ID. Back up the SQLite database to preserve campaigns.
@@ -17,7 +21,7 @@ The default **Offline demo** uses preset generation and a small keyword action c
 ```bash
 export OPENAI_API_KEY='your-key'
 export OPENAI_MODEL='your-structured-output-capable-model'
-python server.py
+uv run --frozen wayfarer
 ```
 
 Choose a model your API account can access that supports Responses API structured outputs. No API credentials are exposed to the client or saved in Git. API calls incur usage charges. Optional integration uses [Responses structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs). Provider integration is covered with mocks; live provider access requires your credentials.
@@ -48,7 +52,9 @@ Point legality does not guarantee balance for a full ruleset. Expanding the cata
 
 ## Architecture
 
-`server.py` → `engine.py` → `rules.py` / SQLite. `llm.py` is the only outbound model adapter. Vanilla HTML/CSS/JS lives in `static/`.
+The installed `wayfarer` command starts the packaged demo. Code lives under `src/wayfarer`, with rules, character, simulation, persistence, orchestration and transport boundaries. Vanilla HTML/CSS/JS ships inside the wheel. See [architecture](docs/architecture.md), [contributing](CONTRIBUTING.md), and [existing campaign migration](docs/migration.md).
+
+`uv run server.py` remains a compatibility launcher. From another directory, use an installed `wayfarer --db /absolute/path/to/campaigns.sqlite3`; relative database paths are relative to the launch directory.
 
 The LLM proposes, the engine validates/resolves, and committed facts drive narration. Narration is presentation only and cannot become canonical state. The UI exposes committed outcomes alongside generated prose. Initial hidden clues/secrets are removed from play responses and intent context until discovered; the scenario studio is deliberately an author view with spoilers.
 
@@ -57,8 +63,10 @@ Campaigns have a revision and pinned rules version. Turn events have a per-campa
 ## Test
 
 ```bash
-python -m unittest discover -s tests -v
-node --check static/app.js
+uv run --frozen python -m unittest discover -s tests -v
+uv lock --check
+uv build
+node --check src/wayfarer/transport/static/app.js
 ```
 
 Tests cover character abuse, critical roll edges, secret filtering, stale state, retries, persistent state, progression/reward duplication, invalid activation and provider failures.
