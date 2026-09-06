@@ -58,7 +58,7 @@ The installed `wayfarer` command starts the packaged demo. Code lives under `src
 
 The LLM proposes, the engine validates/resolves, and committed facts drive narration. Narration is presentation only and cannot become canonical state. The UI exposes committed outcomes alongside generated prose. Initial hidden clues/secrets are removed from play responses and intent context until discovered; the scenario studio is deliberately an author view with spoilers.
 
-Campaigns have a revision and pinned rules version. Turn events have a per-campaign unique request ID. Retrying an ID returns current state without executing again; reusing it with different input is rejected. A failed intent call applies nothing; a failed narration call leaves the mechanical outcome saved and visible.
+Campaigns have a revision and pinned rules version. Turn events have a per-campaign unique request ID. Retrying an ID returns its original committed result without executing again; reusing it with different input is rejected. PostgreSQL is selected with `WAYFARER_DATABASE_URL`; SQLite remains the local default. See [rules catalog](docs/rules-catalog.md) and [persistence](docs/persistence.md). A failed intent call applies nothing; a failed narration call leaves the mechanical outcome saved and visible.
 
 ## Test
 

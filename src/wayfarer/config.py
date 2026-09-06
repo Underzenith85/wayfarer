@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     host: str = "127.0.0.1"
     port: int = Field(default=8000, ge=0, le=65535)
     db: Path = Path("data/wayfarer.sqlite3")
+    database_url: SecretStr | None = None
     log_level: str = "INFO"
     openai_api_key: SecretStr | None = None
     openai_model: str | None = None

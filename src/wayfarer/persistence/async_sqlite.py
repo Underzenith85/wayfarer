@@ -10,6 +10,9 @@ import aiosqlite
 from wayfarer import validation
 from wayfarer.errors import ConflictError, NotFoundError, StorageError
 from wayfarer.models import Campaign, Event, TurnResult
+from wayfarer.persistence.events import EVENT_SCHEMA_VERSION, StoredEvent, payload_digest
+
+SNAPSHOT_INTERVAL = 10
 
 
 class AsyncSQLiteStore:
@@ -26,6 +29,29 @@ class AsyncSQLiteStore:
         )
         await db.execute(
             "CREATE TABLE IF NOT EXISTS events (campaign TEXT, request_id TEXT, payload TEXT, PRIMARY KEY(campaign, request_id))"
+        )
+        await db.execute(
+            """CREATE TABLE IF NOT EXISTS command_log (
+                campaign TEXT NOT NULL,
+                command_id TEXT NOT NULL,
+                actor_id TEXT NOT NULL,
+                expected_revision INTEGER NOT NULL,
+                resulting_revision INTEGER NOT NULL,
+                payload_hash TEXT NOT NULL,
+                rules_version TEXT NOT NULL,
+                schema_version INTEGER NOT NULL,
+                event TEXT NOT NULL,
+                state_after TEXT NOT NULL,
+                PRIMARY KEY(campaign, command_id)
+            )"""
+        )
+        await db.execute(
+            """CREATE TABLE IF NOT EXISTS snapshots (
+                campaign TEXT NOT NULL,
+                revision INTEGER NOT NULL,
+                state TEXT NOT NULL,
+                PRIMARY KEY(campaign, revision)
+            )"""
         )
         await db.commit()
         return db
@@ -44,6 +70,10 @@ class AsyncSQLiteStore:
         try:
             await db.execute(
                 "INSERT INTO campaigns VALUES (?, ?)", (state["id"], json.dumps(state))
+            )
+            await db.execute(
+                "INSERT INTO snapshots VALUES (?, ?, ?)",
+                (state["id"], state["revision"], json.dumps(state)),
             )
             await db.commit()
         except aiosqlite.Error as exc:
@@ -74,19 +104,32 @@ class AsyncSQLiteStore:
             await db.close()
 
     @staticmethod
-    async def _duplicate(db: aiosqlite.Connection, cid: str, request_id: str, text: str) -> bool:
+    async def _duplicate(
+        db: aiosqlite.Connection, cid: str, request_id: str, text: str
+    ) -> Campaign | None:
+        digest = payload_digest({"input": text})
+        cursor = await db.execute(
+            "SELECT payload_hash, state_after FROM command_log WHERE campaign=? AND command_id=?",
+            (cid, request_id),
+        )
+        row = await cursor.fetchone()
+        await cursor.close()
+        if row is not None:
+            if row[0] != digest:
+                raise ConflictError("Request ID already used for different input")
+            return validation.campaign(validation.decode(row[1]))
         cursor = await db.execute(
             "SELECT payload FROM events WHERE campaign=? AND request_id=?", (cid, request_id)
         )
         row = await cursor.fetchone()
         await cursor.close()
         if row is None:
-            return False
+            return None
         if validation.mapping(validation.decode(row[0])).get("input") != text:
             raise ConflictError("Request ID already used for different input")
-        return True
+        return await AsyncSQLiteStore._read(db, cid)
 
-    async def duplicate(self, cid: str, request_id: str, text: str) -> bool:
+    async def duplicate(self, cid: str, request_id: str, text: str) -> Campaign | None:
         db = await self._connect()
         try:
             return await self._duplicate(db, cid, request_id, text)
@@ -105,9 +148,10 @@ class AsyncSQLiteStore:
         try:
             await db.execute("BEGIN IMMEDIATE")
             state = await self._read(db, cid)
-            if await self._duplicate(db, cid, request_id, text):
+            duplicate = await self._duplicate(db, cid, request_id, text)
+            if duplicate is not None:
                 await db.rollback()
-                return {"kind": "replayed", "state": state}
+                return {"kind": "replayed", "state": duplicate}
             if state["revision"] != revision:
                 raise ConflictError("Campaign changed. Refresh before retrying.")
             event = resolve(state)
@@ -115,6 +159,31 @@ class AsyncSQLiteStore:
             await db.execute(
                 "INSERT INTO events VALUES (?,?,?)", (cid, request_id, json.dumps(event))
             )
+            digest = payload_digest({"input": text})
+            await db.execute(
+                """INSERT INTO command_log (
+                    campaign, command_id, actor_id, expected_revision,
+                    resulting_revision, payload_hash, rules_version,
+                    schema_version, event, state_after
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    cid,
+                    request_id,
+                    "player",
+                    revision,
+                    state["revision"],
+                    digest,
+                    state["rules"],
+                    EVENT_SCHEMA_VERSION,
+                    json.dumps(event),
+                    json.dumps(state),
+                ),
+            )
+            if state["revision"] % SNAPSHOT_INTERVAL == 0:
+                await db.execute(
+                    "INSERT INTO snapshots VALUES (?, ?, ?)",
+                    (cid, state["revision"], json.dumps(state)),
+                )
             await db.commit()
             return {"kind": "committed", "state": state, "event": event}
         except (ConflictError, NotFoundError):
@@ -123,6 +192,75 @@ class AsyncSQLiteStore:
         except aiosqlite.Error as exc:
             await db.rollback()
             raise StorageError("Unable to commit turn") from exc
+        finally:
+            await db.close()
+
+    async def history(self, cid: str) -> list[StoredEvent]:
+        db = await self._connect()
+        try:
+            cursor = await db.execute(
+                """SELECT command_id, actor_id, expected_revision, resulting_revision,
+                          payload_hash, rules_version, schema_version, event, state_after
+                   FROM command_log WHERE campaign=? ORDER BY resulting_revision""",
+                (cid,),
+            )
+            rows = await cursor.fetchall()
+            await cursor.close()
+            return [
+                StoredEvent(
+                    campaign_id=cid,
+                    command_id=row[0],
+                    actor_id=row[1],
+                    expected_revision=row[2],
+                    resulting_revision=row[3],
+                    payload_hash=row[4],
+                    rules_version=row[5],
+                    schema_version=row[6],
+                    event=self._event(row[7]),
+                    state_after=validation.campaign(validation.decode(row[8])),
+                )
+                for row in rows
+            ]
+        finally:
+            await db.close()
+
+    @staticmethod
+    def _event(raw: str) -> Event:
+        data = validation.mapping(validation.decode(raw))
+        return Event(
+            input=validation.string(data["input"]),
+            action=validation.action(data["action"]),
+            outcome=validation.string(data["outcome"]),
+            roll=None if data["roll"] is None else validation.roll(data["roll"]),
+        )
+
+    async def replay(self, cid: str, revision: int | None = None) -> Campaign:
+        """Rebuild a projection from the latest snapshot and immutable events."""
+
+        db = await self._connect()
+        try:
+            maximum = revision if revision is not None else 2**63 - 1
+            cursor = await db.execute(
+                """SELECT revision, state FROM snapshots
+                   WHERE campaign=? AND revision<=? ORDER BY revision DESC LIMIT 1""",
+                (cid, maximum),
+            )
+            snapshot = await cursor.fetchone()
+            await cursor.close()
+            if snapshot is None:
+                raise NotFoundError("Campaign snapshot not found")
+            state = validation.campaign(validation.decode(snapshot[1]))
+            cursor = await db.execute(
+                """SELECT state_after FROM command_log
+                   WHERE campaign=? AND resulting_revision>? AND resulting_revision<=?
+                   ORDER BY resulting_revision""",
+                (cid, snapshot[0], maximum),
+            )
+            rows = await cursor.fetchall()
+            await cursor.close()
+            for row in rows:
+                state = validation.campaign(validation.decode(row[0]))
+            return state
         finally:
             await db.close()
 

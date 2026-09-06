@@ -22,6 +22,7 @@ def main() -> None:
             host=base.host,
             port=args.port if args.port is not None else base.port,
             db=args.db.expanduser().resolve() if args.db is not None else base.db,
+            database_url=base.database_url,
             log_level=base.log_level,
             openai_api_key=base.openai_api_key,
             openai_model=base.openai_model,

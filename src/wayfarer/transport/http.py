@@ -71,7 +71,7 @@ async def bootstrap(request: web.Request) -> web.Response:
             "rules": {
                 "version": catalog.VERSION,
                 "budget": catalog.BUDGET,
-                "traits": catalog.TRAITS,
+                "traits": dict(catalog.TRAITS),
             },
         }
     )
@@ -117,8 +117,8 @@ async def generate_character(request: web.Request) -> web.Response:
             {
                 "concept": prompt,
                 "current": data.get("current"),
-                "traits": catalog.TRAITS,
-                "skills": catalog.SKILLS,
+                "traits": dict(catalog.TRAITS),
+                "skills": dict(catalog.SKILLS),
             },
             CHARACTER_SCHEMA,
         )
