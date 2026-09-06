@@ -1,8 +1,8 @@
-# Wave 8 implementation checkpoint
+# Wave 8 gameplay foundations
 
-This branch is **not the completed Wave 8**. Do not merge it or start Wave 9
-until every issue below meets its acceptance criteria and all applicable checks
-have completed successfully on the exact PR head.
+Wave 8 provides the service-authoritative foundations required by the complete-game
+roadmap. Generated or client-authored values remain proposals; only typed commands
+executed against canonical campaign state may change mechanics.
 
 Baseline: main `ff29d5c994fcff8e18ea18abeb5b425f8423f498`, whose tree
 `f2207ce4f8e51b0c15a1a102fc8abf259f5b478b` matched the local baseline exactly.
@@ -14,16 +14,16 @@ Roadmap issue #1 remains authoritative.
   social-check subset, including feature-level SQLite/PostgreSQL contracts.
 - [x] #16: encounter lifecycle, action economy, tactical position, maneuvers,
   reactions, posture/facing/readiness, and persisted defense-choice pauses.
-- [ ] #18: advancement ledger, compiler-backed purchases/refunds, migration
+- [x] #18: advancement ledger, compiler-backed purchases/refunds, migration
   previews/diffs, approved atomic ruleset migrations, and recovery/replay.
-- [ ] #19: campaign membership, every-read/write authorization, typed transport,
+- [x] #19: campaign membership, every-read/write authorization, typed transport,
   resumable perspective-safe streams, request/rate limits, health/correlation.
-- [ ] #34: versioned scene/exit/obstacle/discovery contracts, travel/investigation,
+- [x] #34: versioned scene/exit/obstacle/discovery contracts, travel/investigation,
   automatic observations, once-only triggers, perspective journals and revisits.
 
-Resume this branch and its existing PR; do not create a second Wave 8 PR. Add
-issue-closing references for the remaining issues only when their implementation
-is complete. Keep all existing quality gates and PostgreSQL CI services intact.
+The follow-up completion branch closes the scope that was absent when the initial
+Wave 8 checkpoint PR was merged. PostgreSQL CI and all existing quality gates remain
+required on the exact follow-up PR head.
 
 ## Bounded adjudication (#15)
 
@@ -148,3 +148,48 @@ across a snapshot. Strict mypy, Ruff, no-explicit-Any, injected gate probes and
 the frozen lock pass. Branch-aware suite coverage is 82.23% against the unchanged
 65% requirement (82.48% at this checkpoint). The sdist/wheel build and isolated installed-wheel HTTP smoke
 also pass. Local verification does not substitute for the completed CI matrix.
+
+## Advancement and rules migrations (#18)
+
+`AdvancementService` records point awards and purchases in an immutable ledger.
+Every purchase is recompiled from the complete proposed draft against the campaign's
+pinned catalog and power policy. Preview and commit use the same legality rules;
+the commit rechecks the canonical build revision and earned-point balance under the
+campaign revision lock. Exact retries return the original entry and cannot spend
+points twice. Runtime owners and HP/FP maxima are updated in the same transaction.
+
+`MigrationService` compares every active character under a target engine and returns
+purchase-cost and derived-value diffs. Only a configured GM may approve the exact
+source and target digests. The target rules reference, approvals, character state,
+migration ledger and checkpoint change atomically. Failed validation leaves the old
+campaign untouched, while historical event snapshots remain replayable.
+
+## Authenticated campaign API (#19)
+
+Campaign state persists principals, roles and player-to-character control. The
+authenticated facade checks membership on every query and verifies actor ownership
+before forwarding a typed command. Unknown and inaccessible campaign IDs share the
+same not-found response. Player projections contain only their actors' perspectives;
+GM projections contain canonical state. Stream outcomes from other actors are
+redacted rather than leaking facts.
+
+The HTTP adapter accepts server-configured bearer credentials, applies a 32 KB body
+limit and per-principal request limit, returns structured error codes, and attaches a
+safe correlation ID. Revision cursors return immutable events after the requested
+revision, so reconnects resume without reissuing commands or duplicating results.
+Credentials never appear in projections, logs or event records.
+
+## Scenes, exploration and discoveries (#34)
+
+`SceneRules` pins versioned scenes, exits, obstacles, discoveries and entry/exit
+triggers to authoritative world locations, entities and facts. Each actor has its own
+scene cursor over the single canonical world, providing the prerequisite for Wave 9
+split-party play without forking state. Travel validates the current exit, known-fact
+requirements and obstacle bypasses, then changes world location and game time in one
+revision-checked transaction.
+
+Automatic observations are learned on entry without a roll. Checked discoveries use
+the existing authored check rules and record successful facts in an actor-private
+journal. Entry and exit triggers have stable IDs and execute at most once. Alternate
+routes and revisits retain world knowledge, journals, resources and fired-trigger
+history; exact retries and replay cannot duplicate them.

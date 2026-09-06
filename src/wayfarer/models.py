@@ -73,6 +73,9 @@ EventAction = (
         "execute_ruling",
         "evaluate_ruling",
         "combat",
+        "advancement",
+        "rules-migration",
+        "scene",
     ]
 )
 

@@ -227,6 +227,9 @@ def event_action(value: object) -> EventAction:
             | "execute_ruling"
             | "evaluate_ruling"
             | "combat"
+            | "advancement"
+            | "rules-migration"
+            | "scene"
         ):
             return value
         case _:

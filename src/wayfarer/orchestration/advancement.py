@@ -1,0 +1,368 @@
+"""Transactional advancement ledger and explicitly approved rules migrations."""
+
+from __future__ import annotations
+
+import json
+
+from pydantic import Field
+from pydantic import ValidationError as SchemaError
+
+from wayfarer.character.compiler import CharacterDraft, ValidatedBuild
+from wayfarer.character.power import CharacterProposal
+from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Campaign, Event
+from wayfarer.orchestration.play import PlayService
+from wayfarer.rules.catalog import reference
+from wayfarer.simulation.actions import PlayState
+from wayfarer.simulation.adjudication import expire_rulings
+from wayfarer.simulation.advancement import (
+    AdvancementEntry,
+    AdvancementPreview,
+    BuildDiff,
+    MigrationEntry,
+    MigrationPreview,
+)
+from wayfarer.simulation.resources import Id, Record
+
+
+class GrantPoints(Record):
+    id: Id
+    actor_id: Id
+    target_actor_id: Id
+    expected_revision: int = Field(ge=0)
+    points: int = Field(ge=1, le=10000)
+    reason: str = Field(min_length=1, max_length=2000)
+
+
+class AdvanceCharacter(Record):
+    id: Id
+    actor_id: Id
+    expected_revision: int = Field(ge=0)
+    expected_build_revision: str
+    draft: CharacterDraft
+    reason: str = Field(min_length=1, max_length=2000)
+
+
+class ApplyMigration(Record):
+    id: Id
+    actor_id: Id
+    expected_revision: int = Field(ge=0)
+    expected_from_digest: str
+    reason: str = Field(min_length=1, max_length=2000)
+
+
+def _build(play: PlayService, state: PlayState, actor_id: str) -> ValidatedBuild:
+    actor = next((candidate for candidate in state.actors if candidate.actor_id == actor_id), None)
+    if actor is None:
+        raise ValidationError("Unknown character")
+    build = play.engine.reviewer.review(actor.proposal).compilation.build
+    if build is None:
+        raise ValidationError("Canonical character no longer compiles")
+    return build
+
+
+def _diff(actor_id: str, before: ValidatedBuild, after: ValidatedBuild) -> BuildDiff:
+    old = {entry.definition_id: entry for entry in before.purchases}
+    new = {entry.definition_id: entry for entry in after.purchases}
+    old_values = {value.target: str(value.value) for value in before.sheet.values}
+    new_values = {value.target: str(value.value) for value in after.sheet.values}
+    changed = tuple(
+        (key, old_values.get(key, ""), new_values.get(key, ""))
+        for key in sorted(old_values.keys() | new_values.keys())
+        if old_values.get(key) != new_values.get(key)
+    )
+    return BuildDiff(
+        actor_id=actor_id,
+        old_revision=before.revision,
+        new_revision=after.revision,
+        old_spent=before.spent,
+        new_spent=after.spent,
+        added=tuple(sorted(new.keys() - old.keys())),
+        removed=tuple(sorted(old.keys() - new.keys())),
+        changed_values=changed,
+    )
+
+
+def _balance(state: PlayState, actor_id: str) -> int:
+    return sum(entry.points for entry in state.advancement if entry.actor_id == actor_id)
+
+
+class AdvancementService:
+    def __init__(self, play: PlayService) -> None:
+        self.play = play
+
+    async def preview(
+        self, cid: str, value: object, *, authenticated_actor_id: str
+    ) -> AdvancementPreview:
+        command = self._advance(value, authenticated_actor_id)
+        state = self.play._load(await self.play.store.read(cid))
+        before = _build(self.play, state, command.actor_id)
+        review = self.play.engine.reviewer.review(CharacterProposal(draft=command.draft))
+        after = review.compilation.build
+        if after is None or review.status in ("illegal", "blocked"):
+            raise ValidationError("Advancement is not legal under campaign rules")
+        delta = after.spent - before.spent
+        if delta < 0:
+            raise ValidationError("Refunds require GM authorization")
+        available = _balance(state, command.actor_id)
+        if delta > available:
+            raise ValidationError("Advancement overspends earned points")
+        return AdvancementPreview(
+            actor_id=command.actor_id,
+            draft=command.draft,
+            points_available=available,
+            points_delta=delta,
+            diff=_diff(command.actor_id, before, after),
+        )
+
+    async def grant(self, cid: str, value: object, *, authenticated_gm_id: str) -> AdvancementEntry:
+        try:
+            command = GrantPoints.model_validate(value)
+        except SchemaError as exc:
+            raise ValidationError("Invalid point grant") from exc
+        if (
+            command.actor_id != authenticated_gm_id
+            or authenticated_gm_id not in self.play.engine.reviewer.gm_ids
+        ):
+            raise ValidationError("Point grants require GM authority")
+        payload = self._payload("grant", command.model_dump(mode="json"))
+
+        def resolve(campaign: Campaign) -> Event:
+            state = self.play._load(campaign)
+            build = _build(self.play, state, command.target_actor_id)
+            entry = AdvancementEntry(
+                id=command.id,
+                actor_id=command.target_actor_id,
+                kind="earned",
+                points=command.points,
+                revision=state.revision + 1,
+                build_before=build.revision,
+                build_after=build.revision,
+                reason=command.reason,
+            )
+            updated = self._revision(state, advancement=state.advancement + (entry,))
+            self.play.engine.validate(updated)
+            campaign["revision"], campaign["play_json"] = (
+                updated.revision,
+                updated.model_dump_json(),
+            )
+            return Event(
+                input=payload, action="advancement", outcome=entry.model_dump_json(), roll=None
+            )
+
+        committed = await self.play.store.commit_turn(
+            cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+        )
+        return PlayState.model_validate_json(committed["state"]["play_json"]).advancement[-1]
+
+    async def advance(
+        self, cid: str, value: object, *, authenticated_actor_id: str
+    ) -> AdvancementEntry:
+        command = self._advance(value, authenticated_actor_id)
+        await self.preview(cid, command, authenticated_actor_id=authenticated_actor_id)
+        payload = self._payload("advance", command.model_dump(mode="json"))
+
+        def resolve(campaign: Campaign) -> Event:
+            state = self.play._load(campaign)
+            before = _build(self.play, state, command.actor_id)
+            if before.revision != command.expected_build_revision:
+                raise ConflictError("Character build changed")
+            current = _balance(state, command.actor_id)
+            review = self.play.engine.reviewer.review(CharacterProposal(draft=command.draft))
+            after = review.compilation.build
+            if after is None or review.status != "automatic":
+                raise ValidationError("Advancement requires a legal automatically approved build")
+            cost = after.spent - before.spent
+            if cost < 0 or cost > current:
+                raise ValidationError("Advancement point balance is invalid")
+            approval = self.play.engine.reviewer.approve(
+                CharacterProposal(draft=command.draft),
+                campaign_id=cid,
+                actor_id=command.actor_id,
+                revision=state.revision + 1,
+            )
+            entry = AdvancementEntry(
+                id=command.id,
+                actor_id=command.actor_id,
+                kind="purchase",
+                points=-cost,
+                revision=state.revision + 1,
+                build_before=before.revision,
+                build_after=after.revision,
+                reason=command.reason,
+            )
+            actors = tuple(
+                actor.model_copy(
+                    update={
+                        "proposal": CharacterProposal(draft=command.draft),
+                        "approval": approval,
+                    }
+                )
+                if actor.actor_id == command.actor_id
+                else actor
+                for actor in state.actors
+            )
+            owners = tuple(
+                owner.model_copy(
+                    update={"definitions": tuple(p.definition_id for p in after.purchases)}
+                )
+                if owner.actor_id == command.actor_id
+                else owner
+                for owner in state.resources.owners
+            )
+            maxima = {
+                "hp": int(next(v.value for v in after.sheet.values if v.target == "attribute:st")),
+                "fp": int(next(v.value for v in after.sheet.values if v.target == "attribute:ht")),
+            }
+            pools = tuple(
+                pool.model_copy(
+                    update={
+                        "maximum": maxima[pool.id.split(":", 1)[0]],
+                        "current": min(pool.current, maxima[pool.id.split(":", 1)[0]]),
+                    }
+                )
+                if pool.id in (f"hp:{command.actor_id}", f"fp:{command.actor_id}")
+                else pool
+                for pool in state.resources.pools
+            )
+            updated = self._revision(
+                state,
+                actors=actors,
+                approvals=state.approvals + (approval,),
+                advancement=state.advancement + (entry,),
+                resources=state.resources.model_copy(update={"owners": owners, "pools": pools}),
+            )
+            self.play.engine.validate(updated)
+            campaign["revision"], campaign["play_json"] = (
+                updated.revision,
+                updated.model_dump_json(),
+            )
+            return Event(
+                input=payload, action="advancement", outcome=entry.model_dump_json(), roll=None
+            )
+
+        committed = await self.play.store.commit_turn(
+            cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+        )
+        result = PlayState.model_validate_json(committed["state"]["play_json"]).advancement[-1]
+        if result.id != command.id:
+            raise ConflictError("Command ID belongs to another ledger entry")
+        return result
+
+    @staticmethod
+    def _advance(value: object, identity: str) -> AdvanceCharacter:
+        try:
+            command = AdvanceCharacter.model_validate(value)
+        except SchemaError as exc:
+            raise ValidationError("Invalid advancement") from exc
+        if command.actor_id != identity:
+            raise ValidationError("Advancement actor is not authorized")
+        return command
+
+    @staticmethod
+    def _payload(operation: str, command: object) -> str:
+        return json.dumps(
+            {"operation": operation, "command": command}, sort_keys=True, separators=(",", ":")
+        )
+
+    @staticmethod
+    def _revision(state: PlayState, **changes: object) -> PlayState:
+        revision = state.revision + 1
+        resources = changes.pop("resources", state.resources)
+        assert hasattr(resources, "model_copy")
+        changes.update(
+            revision=revision,
+            resources=resources.model_copy(update={"revision": revision}),
+            rulings=expire_rulings(state.rulings, revision, state.resources.game_time),
+        )
+        return state.model_copy(update=changes)
+
+
+class MigrationService:
+    def __init__(self, current: PlayService, target: PlayService) -> None:
+        if current.store is not target.store:
+            raise ValidationError("Migration services must share a store")
+        self.current, self.target = current, target
+
+    async def preview(self, cid: str) -> MigrationPreview:
+        state = self.current._load(await self.current.store.read(cid))
+        diffs: list[BuildDiff] = []
+        for actor in state.actors:
+            before = _build(self.current, state, actor.actor_id)
+            review = self.target.engine.reviewer.review(actor.proposal)
+            after = review.compilation.build
+            if after is None or review.status in ("illegal", "blocked"):
+                raise ValidationError("Target rules invalidate a character")
+            diffs.append(_diff(actor.actor_id, before, after))
+        return MigrationPreview(
+            from_digest=self.current.engine.digest,
+            to_digest=self.target.engine.digest,
+            actor_diffs=tuple(diffs),
+        )
+
+    async def apply(self, cid: str, value: object, *, authenticated_gm_id: str) -> MigrationEntry:
+        try:
+            command = ApplyMigration.model_validate(value)
+        except SchemaError as exc:
+            raise ValidationError("Invalid migration approval") from exc
+        if (
+            command.actor_id != authenticated_gm_id
+            or authenticated_gm_id not in self.current.engine.reviewer.gm_ids
+        ):
+            raise ValidationError("Rules migration requires GM authority")
+        if command.expected_from_digest != self.current.engine.digest:
+            raise ConflictError("Migration source configuration changed")
+        payload = AdvancementService._payload("rules-migration", command.model_dump(mode="json"))
+        duplicate = await self.current.store.duplicate(cid, command.id, payload)
+        if duplicate is not None:
+            state = PlayState.model_validate_json(duplicate["play_json"])
+            entry = next((value for value in state.migrations if value.id == command.id), None)
+            if entry is None:
+                raise ConflictError("Command ID belongs to another operation")
+            return entry
+        preview = await self.preview(cid)
+
+        def resolve(campaign: Campaign) -> Event:
+            state = self.current._load(campaign)
+            approvals = []
+            actors = []
+            for actor in state.actors:
+                approval = self.target.engine.reviewer.approve(
+                    actor.proposal,
+                    campaign_id=cid,
+                    actor_id=actor.actor_id,
+                    revision=state.revision + 1,
+                    approver_id=authenticated_gm_id,
+                    reason=command.reason,
+                )
+                approvals.append(approval)
+                actors.append(actor.model_copy(update={"approval": approval}))
+            entry = MigrationEntry(
+                id=command.id,
+                actor_id=command.actor_id,
+                revision=state.revision + 1,
+                from_digest=preview.from_digest,
+                to_digest=preview.to_digest,
+                reason=command.reason,
+            )
+            updated = AdvancementService._revision(
+                state,
+                configuration_digest=self.target.engine.digest,
+                actors=tuple(actors),
+                approvals=state.approvals + tuple(approvals),
+                migrations=state.migrations + (entry,),
+            )
+            campaign["rules_ref"] = reference(self.target.engine.resources.rules)
+            campaign["revision"], campaign["play_json"] = (
+                updated.revision,
+                updated.model_dump_json(),
+            )
+            self.target.engine.validate(updated)
+            return Event(
+                input=payload, action="rules-migration", outcome=entry.model_dump_json(), roll=None
+            )
+
+        committed = await self.current.store.commit_turn(
+            cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+        )
+        return PlayState.model_validate_json(committed["state"]["play_json"]).migrations[-1]
