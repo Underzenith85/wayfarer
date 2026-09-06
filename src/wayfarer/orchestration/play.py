@@ -24,6 +24,7 @@ from wayfarer.simulation.actions import (
     PlayState,
     TypedAction,
 )
+from wayfarer.simulation.adjudication import expire_rulings
 from wayfarer.simulation.resources import Pool, Record, ResourceState
 from wayfarer.world import World
 
@@ -238,6 +239,9 @@ class PlayService:
                         for a in state.actors
                     ),
                     "approvals": state.approvals + (approval,),
+                    "rulings": expire_rulings(
+                        state.rulings, state.revision + 1, state.resources.game_time
+                    ),
                 }
             )
             self.engine.validate(updated)

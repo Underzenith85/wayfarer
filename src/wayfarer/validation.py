@@ -218,7 +218,16 @@ def rules_reference(value: object) -> RulesReference:
 
 def event_action(value: object) -> EventAction:
     match value:
-        case "resource" | "typed-action" | "power-approval":
+        case (
+            "resource"
+            | "typed-action"
+            | "power-approval"
+            | "request_ruling"
+            | "decide_ruling"
+            | "execute_ruling"
+            | "evaluate_ruling"
+            | "combat"
+        ):
             return value
         case _:
             return action(value)

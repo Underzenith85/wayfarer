@@ -62,7 +62,19 @@ class RulesReference(TypedDict):
     policy_version: int
 
 
-EventAction = Action | Literal["resource", "typed-action", "power-approval"]
+EventAction = (
+    Action
+    | Literal[
+        "resource",
+        "typed-action",
+        "power-approval",
+        "request_ruling",
+        "decide_ruling",
+        "execute_ruling",
+        "evaluate_ruling",
+        "combat",
+    ]
+)
 
 
 class Event(TypedDict):
