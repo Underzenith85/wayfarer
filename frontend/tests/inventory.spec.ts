@@ -6,6 +6,9 @@ async function open(page: Page, journey = "inventory") {
     .filter({ has: page.getByRole("heading", { name: "The Missing Courier" }) })
     .getByRole("button", { name: "Open campaign" })
     .click();
+  await expect(
+    page.getByRole("heading", { name: "The courier’s cellar" }),
+  ).toBeVisible();
   await page
     .getByRole("navigation")
     .getByRole("link", { name: "Inventory", exact: true })
