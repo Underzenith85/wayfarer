@@ -1,2 +1,6 @@
 allowBuilds:
   esbuild: true
+peerDependencyRules:
+  allowedVersions:
+    # Codegen CLI is exercised by contracts:check; its peer range predates TS6.
+    openapi-typescript>typescript: "6"
