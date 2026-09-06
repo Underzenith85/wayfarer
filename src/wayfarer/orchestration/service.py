@@ -12,6 +12,7 @@ from wayfarer.errors import ConflictError, ProviderError, ValidationError
 from wayfarer.models import Action, Campaign, PublicCampaign
 from wayfarer.orchestration.llm import ACTION_SCHEMA, NARRATION_SCHEMA, LLMClient
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
+from wayfarer.persistence.postgres import AsyncPostgresStore
 from wayfarer.rules import catalog
 from wayfarer.simulation.resolution import resolve
 from wayfarer.simulation.scenario import validate_scenario
@@ -21,7 +22,13 @@ log = structlog.get_logger()
 
 class GameService:
     def __init__(self, settings: Settings, llm: LLMClient) -> None:
-        self.store = AsyncSQLiteStore(settings.db, settings.db_timeout_seconds)
+        self.store: AsyncSQLiteStore | AsyncPostgresStore
+        if settings.database_url is None:
+            self.store = AsyncSQLiteStore(settings.db, settings.db_timeout_seconds)
+        else:
+            self.store = AsyncPostgresStore(
+                settings.database_url.get_secret_value(), settings.db_timeout_seconds
+            )
         self.llm = llm
 
     async def create(self, character: object, scenario: object) -> PublicCampaign:
@@ -36,6 +43,7 @@ class GameService:
             "id": cid,
             "revision": 0,
             "rules": catalog.VERSION,
+            "rules_ref": catalog.reference(catalog.DEFAULT_RULES),
             "character": c,
             "scenario": s,
             "hp": c["attributes"]["ST"],
@@ -91,8 +99,9 @@ class GameService:
             or not 1 <= len(text.strip()) <= 2000
         ):
             raise ValidationError("Invalid turn")
-        if await self.store.duplicate(cid, request_id, text):
-            return public(await self.store.read(cid))
+        duplicate = await self.store.duplicate(cid, request_id, text)
+        if duplicate is not None:
+            return public(duplicate)
         initial = await self.store.read(cid)
         if initial["revision"] != revision:
             raise ConflictError("Campaign changed. Refresh before retrying.")

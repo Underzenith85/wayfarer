@@ -14,7 +14,7 @@ class ArchitectureTests(unittest.TestCase):
     def test_domain_imports_are_independent(self) -> None:
         package = Path(wayfarer.__file__).parent
         allowed = {
-            "rules": {"rules", "models", "validation"},
+            "rules": {"rules", "models", "validation", "errors"},
             "character": {"rules", "character", "models", "validation"},
             "simulation": {"rules", "character", "simulation", "models", "validation"},
         }

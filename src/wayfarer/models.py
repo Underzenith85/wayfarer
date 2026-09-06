@@ -33,6 +33,7 @@ class Campaign(TypedDict):
     id: str
     revision: int
     rules: str
+    rules_ref: NotRequired["RulesReference"]
     character: Character
     scenario: dict[str, str]
     hp: int
@@ -44,6 +45,19 @@ class Campaign(TypedDict):
     flags: list[str]
     complete: bool
     messages: list[Message]
+
+
+class RulesPackagePin(TypedDict):
+    id: str
+    version: str
+    digest: str
+
+
+class RulesReference(TypedDict):
+    edition: str
+    packages: list[RulesPackagePin]
+    policy_id: str
+    policy_version: int
 
 
 class Event(TypedDict):

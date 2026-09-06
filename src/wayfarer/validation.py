@@ -6,7 +6,15 @@ builder owns costs and campaign policy. JSON decoding itself returns object.
 
 import json
 
-from wayfarer.models import Action, Campaign, Character, Message, Roll
+from wayfarer.models import (
+    Action,
+    Campaign,
+    Character,
+    Message,
+    Roll,
+    RulesPackagePin,
+    RulesReference,
+)
 
 
 def decode(raw: str | bytes) -> object:
@@ -159,8 +167,9 @@ def campaign(value: object) -> Campaign:
             "complete",
             "messages",
         },
+        {"rules_ref"},
     )
-    return Campaign(
+    result = Campaign(
         id=string(d["id"]),
         revision=integer(d["revision"]),
         rules=string(d["rules"]),
@@ -175,4 +184,28 @@ def campaign(value: object) -> Campaign:
         flags=strings(d["flags"]),
         complete=boolean(d["complete"]),
         messages=[message(m) for m in sequence(d["messages"])],
+    )
+    if "rules_ref" in d:
+        result["rules_ref"] = rules_reference(d["rules_ref"])
+    return result
+
+
+def rules_reference(value: object) -> RulesReference:
+    data = mapping(value)
+    fields(data, {"edition", "packages", "policy_id", "policy_version"})
+    pins: list[RulesPackagePin] = []
+    for value_pin in sequence(data["packages"]):
+        pin = mapping(value_pin)
+        fields(pin, {"id", "version", "digest"})
+        digest = string(pin["digest"])
+        if len(digest) != 64:
+            raise ValueError("Invalid rules package digest")
+        pins.append(
+            RulesPackagePin(id=string(pin["id"]), version=string(pin["version"]), digest=digest)
+        )
+    return RulesReference(
+        edition=string(data["edition"]),
+        packages=pins,
+        policy_id=string(data["policy_id"]),
+        policy_version=integer(data["policy_version"]),
     )

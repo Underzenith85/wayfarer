@@ -1,9 +1,23 @@
+import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
 from wayfarer import validation
 from wayfarer.character import builder
+from wayfarer.errors import ValidationError
 from wayfarer.rules import checks
+from wayfarer.rules.catalog import (
+    DEFAULT_CATALOG,
+    DEFAULT_POLICY,
+    DEFAULT_RULES,
+    DefinitionKind,
+    ImplementationStatus,
+    PackagePin,
+    RuleDefinition,
+    RulesCatalog,
+    RulesPackage,
+    SourceReference,
+)
 
 
 def test_default_character_is_legal() -> None:
@@ -40,3 +54,52 @@ def test_roll_uses_injected_randomness() -> None:
             return 0
 
     assert checks.roll(2, Lowest())["critical"] == "success"
+
+
+def test_default_rules_pin_is_reproducible_and_activates() -> None:
+    DEFAULT_CATALOG.activate(DEFAULT_RULES, DEFAULT_POLICY)
+    pin = DEFAULT_RULES.packages[0]
+    assert len(pin.digest) == 64
+    assert DEFAULT_CATALOG.package(pin).digest == pin.digest
+
+
+def test_tampered_pin_and_missing_reference_are_rejected() -> None:
+    pin = DEFAULT_RULES.packages[0]
+    with pytest.raises(ValidationError):
+        DEFAULT_CATALOG.package(PackagePin(pin.id, pin.version, "0" * 64))
+    source = SourceReference("source:test", "Test", "original")
+    definition = RuleDefinition(
+        "skill:test",
+        DefinitionKind.SKILL,
+        "Test",
+        source.id,
+        1,
+        ImplementationStatus.IMPLEMENTED,
+        prerequisites=("skill:missing",),
+    )
+    with pytest.raises(ValidationError, match="missing reference"):
+        RulesCatalog((RulesPackage("test", "1", "test", (source,), (definition,)),))
+
+
+def test_prerequisite_cycles_and_unsupported_activation_are_rejected() -> None:
+    source = SourceReference("source:test", "Test", "original")
+    first = RuleDefinition(
+        "trait:first",
+        DefinitionKind.TRAIT,
+        "First",
+        source.id,
+        1,
+        ImplementationStatus.IMPLEMENTED,
+        prerequisites=("trait:second",),
+    )
+    second = RuleDefinition(
+        "trait:second",
+        DefinitionKind.TRAIT,
+        "Second",
+        source.id,
+        1,
+        ImplementationStatus.IMPLEMENTED,
+        prerequisites=("trait:first",),
+    )
+    with pytest.raises(ValidationError, match="cycle"):
+        RulesCatalog((RulesPackage("test", "1", "test", (source,), (first, second)),))
