@@ -15,6 +15,7 @@ from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.rules.catalog import SKILLS, DefinitionKind, ImplementationStatus
 from wayfarer.rules.checks import CheckTrace, Modifier, Outcome, RandomSource, success_check
 from wayfarer.rules.effects import DerivedValue, EffectEvaluator, MechanicalTarget
+from wayfarer.simulation.adjudication import Ruling, RulingPolicy, expire_rulings
 from wayfarer.simulation.resources import Advance, Consume, Record, ResourceEngine, ResourceState
 from wayfarer.world import Entity, EntityKind, World
 
@@ -109,6 +110,7 @@ class ActionRules(Record):
     fatigue_cost: int = Field(default=0, ge=0, le=100)
     checks: tuple[CheckRule, ...] = ()
     consumables: tuple[str, ...] = ()
+    adjudication: RulingPolicy | None = None
 
 
 class ActionResult(Record):
@@ -129,6 +131,7 @@ class ActionResult(Record):
     dependencies: tuple[DerivedValue, ...] = ()
     revealed_fact_ids: tuple[str, ...] = ()
     rules_digest: str = ""
+    ruling_id: str | None = None
 
 
 class PlayState(Record):
@@ -140,12 +143,14 @@ class PlayState(Record):
     actors: tuple[PlayActor, ...]
     approvals: tuple[Approval, ...] = ()
     last_result: ActionResult | None = None
+    rulings: tuple[Ruling, ...] = ()
 
 
 class ActionEngine:
     def __init__(
         self, reviewer: PowerReviewer, resources: ResourceEngine, rules: ActionRules
     ) -> None:
+        rules = ActionRules.model_validate(rules)
         if reviewer.compiler.rules != resources.rules:
             raise ValidationError("Character and resource rules differ")
         self.reviewer, self.resources, self.rules = reviewer, resources, rules
@@ -176,8 +181,21 @@ class ActionEngine:
                 raise ValidationError("Unknown required equipment")
         if any(key not in resources.specs for key in rules.consumables):
             raise ValidationError("Unknown consumable definition")
+        if rules.adjudication is not None:
+            by_id = {r.id: r for r in rules.checks}
+            for alternative in rules.adjudication.alternatives:
+                check = by_id.get(alternative.check_rule_id)
+                if check is None or check.action != "social":
+                    raise ValidationError("Ruling requires an existing social check")
+                if not -20 <= check.modifier + alternative.modifier <= 20:
+                    raise ValidationError("Combined ruling modifier exceeds engine bounds")
+        # Preserve the exact Wave 7 digest for campaigns that have not enabled
+        # adjudication. Enabling or changing policy requires explicit migration.
+        encoded_rules = rules.model_dump_json(
+            exclude={"adjudication"} if rules.adjudication is None else set()
+        )
         payload = (
-            rules.model_dump_json()
+            encoded_rules
             + reviewer.policy.digest
             + repr(resources.rules)
             + repr(reviewer.compiler.effects)
@@ -190,6 +208,7 @@ class ActionEngine:
             raise ValidationError("Play configuration changed; explicit migration required")
         if state.revision != state.resources.revision:
             raise ValidationError("Play and resource revisions diverged")
+        self.validate_rulings(state)
         state.world.validate()
         self.resources.validate(state.resources)
         entities = {e.id: e for e in state.world.entities}
@@ -241,6 +260,79 @@ class ActionEngine:
                 raise ValidationError("Invalid scenario check references")
             if rule.action == "social" and entities[rule.target_id].kind is not EntityKind.ACTOR:
                 raise ValidationError("Social target must be an actor")
+
+    def validate_rulings(self, state: PlayState) -> None:
+        if len({r.id for r in state.rulings}) != len(state.rulings):
+            raise ValidationError("Duplicate ruling ID")
+        policy = self.rules.adjudication
+        for ruling in state.rulings:
+            if (
+                policy is None
+                or ruling.campaign_id != state.campaign_id
+                or ruling.configuration_digest != self.digest
+                or ruling.policy_digest != policy.digest
+                or ruling.opened_revision > ruling.valid_revision
+                or ruling.valid_revision > state.revision
+                or ruling.expires_at != ruling.opened_at + policy.lifetime_ticks
+                or ruling.opened_at > state.resources.game_time
+                or ruling.actor_id not in {a.actor_id for a in state.actors}
+            ):
+                raise ValidationError("Invalid ruling pins or revision")
+            original = ACTION_ADAPTER.validate_json(ruling.original_action_json)
+            if (
+                not isinstance(original, Social)
+                or original.approach == "diplomacy"
+                or original.hypothetical
+                or original.actor_id != ruling.actor_id
+                or original.expected_revision + 1 != ruling.opened_revision
+            ):
+                raise ValidationError("Invalid original ruling action")
+            check = self.checks.get(("social", original.target_id or ""))
+            expected = tuple(
+                a for a in policy.alternatives if check is not None and a.check_rule_id == check.id
+            )
+            if not expected or ruling.alternatives != expected:
+                raise ValidationError("Ruling alternatives do not match server policy")
+            if ruling.status == "pending" and (
+                ruling.valid_revision != ruling.opened_revision
+                or ruling.selected_id is not None
+                or ruling.authority is not None
+                or ruling.approver_id is not None
+                or ruling.decided_revision is not None
+            ):
+                raise ValidationError("Pending ruling cannot contain a decision")
+            if (
+                ruling.decided_revision is not None
+                and ruling.valid_revision != ruling.decided_revision
+            ):
+                raise ValidationError("Ruling consent revision cannot be renewed")
+            if ruling.status in ("approved", "executed") or ruling.selected_id is not None:
+                selected = next((a for a in expected if a.id == ruling.selected_id), None)
+                if selected is None or not ruling.reason or ruling.decided_revision is None:
+                    raise ValidationError("Ruling has no recorded approval")
+                if not ruling.opened_revision < ruling.decided_revision <= state.revision:
+                    raise ValidationError("Invalid ruling decision revision")
+                if ruling.authority == "gm":
+                    valid = ruling.approver_id in self.reviewer.gm_ids
+                elif ruling.authority == "player":
+                    valid = policy.player_approval and ruling.approver_id == ruling.actor_id
+                else:
+                    valid = (
+                        ruling.authority == "policy"
+                        and ruling.approver_id == "system:adjudication"
+                        and policy.automatic
+                        and policy.automatic_minimum
+                        <= selected.modifier
+                        <= policy.automatic_maximum
+                    )
+                if not valid:
+                    raise ValidationError("Invalid ruling approval authority")
+            if ruling.status == "executed" and (
+                ruling.executed_revision is None
+                or ruling.decided_revision is None
+                or not ruling.decided_revision < ruling.executed_revision <= state.revision
+            ):
+                raise ValidationError("Invalid ruling execution revision")
 
     @staticmethod
     def _location(entity: Entity) -> str | None:
@@ -409,8 +501,46 @@ class ActionEngine:
         return skill, (attribute_value,)
 
     def resolve(
-        self, state: PlayState, command: TypedAction, *, rng: RandomSource = secrets
+        self,
+        state: PlayState,
+        command: TypedAction,
+        *,
+        rng: RandomSource = secrets,
+        ruling_id: str | None = None,
     ) -> tuple[PlayState, ActionResult]:
+        ruling = None
+        extra_modifiers: tuple[Modifier, ...] = ()
+        if ruling_id is not None:
+            # Consent is loaded from canonical state, never accepted as an input
+            # approval object. The ordinary engine gates still apply below.
+            self.validate(state)
+            ruling = next((r for r in state.rulings if r.id == ruling_id), None)
+            if (
+                ruling is None
+                or ruling.current_status(state.revision, state.resources.game_time) != "approved"
+            ):
+                raise ConflictError("Ruling is not approved at the current revision")
+            original = ACTION_ADAPTER.validate_json(ruling.original_action_json)
+            if not isinstance(original, Social):
+                raise ValidationError("Unsupported ruling action")
+            expected = original.model_copy(
+                update={
+                    "approach": "diplomacy",
+                    "id": command.id,
+                    "expected_revision": state.revision,
+                }
+            )
+            if command != expected:
+                raise ValidationError("Command does not match the approved ruling")
+            selected = next(a for a in ruling.alternatives if a.id == ruling.selected_id)
+            extra_modifiers = (
+                Modifier(
+                    selected.modifier,
+                    f"ruling:{ruling.id}:{selected.id}",
+                    ruling.policy_digest,
+                    ruling.configuration_digest,
+                ),
+            )
         feasible = self.assess(state, command)
         if feasible.status != "feasible":
             return state, feasible
@@ -472,7 +602,8 @@ class ActionEngine:
                 raise ValidationError("Check target must be a finite integer")
             trace = success_check(
                 int(derived.value),
-                (Modifier(rule.modifier, rule.id, rule.definition_id, rule.package_version),),
+                (Modifier(rule.modifier, rule.id, rule.definition_id, rule.package_version),)
+                + extra_modifiers,
                 rng=rng,
                 rules_package=rule.package_id,
                 rules_version=rule.package_version,
@@ -506,6 +637,7 @@ class ActionEngine:
             dependencies=dependencies,
             revealed_fact_ids=revealed,
             rules_digest=self.digest,
+            ruling_id=ruling_id,
         )
         updated = state.model_copy(
             update={
@@ -513,6 +645,18 @@ class ActionEngine:
                 "resources": resources,
                 "revision": state.revision + 1,
                 "last_result": result,
+                "rulings": expire_rulings(
+                    tuple(
+                        r.model_copy(
+                            update={"status": "executed", "executed_revision": state.revision + 1}
+                        )
+                        if ruling is not None and r.id == ruling.id
+                        else r
+                        for r in state.rulings
+                    ),
+                    state.revision + 1,
+                    resources.game_time,
+                ),
             }
         )
         self.validate(updated)
