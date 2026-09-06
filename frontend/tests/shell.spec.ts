@@ -77,7 +77,9 @@ test("skip link reaches main with reduced motion and enlarged text", async ({
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  await page.locator("body").click({ position: { x: 1, y: 1 } });
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Play" }),
+  ).toBeVisible();
   await page.keyboard.press("Tab");
   await expect(
     page.getByRole("link", { name: "Skip to content" }),
