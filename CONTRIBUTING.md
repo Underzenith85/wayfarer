@@ -11,7 +11,7 @@ uv run --frozen ruff check .
 uv run --frozen ruff format --check .
 uv run --frozen mypy
 uv run --frozen python scripts/check_quality_gates.py
-uv run --frozen python -m unittest discover -s tests -v
+uv run --frozen pytest
 uv lock --check
 uv build
 ```
@@ -27,7 +27,7 @@ smoke test from a temporary working directory. To reproduce that last step:
 
 ```bash
 uv venv /tmp/wayfarer-wheel --python 3.12
-uv pip install --python /tmp/wayfarer-wheel/bin/python --no-deps dist/wayfarer-0.2.0-py3-none-any.whl
+uv pip install --python /tmp/wayfarer-wheel/bin/python dist/wayfarer-0.2.0-py3-none-any.whl
 uv run --frozen python scripts/smoke_installed.py /tmp/wayfarer-wheel/bin/wayfarer
 ```
 
@@ -38,4 +38,4 @@ Mypy strict and Ruff apply to source, tests and scripts. Install local checks wi
 `uv run --frozen pre-commit run --all-files`. Hooks use the exact CI commands and
 locked tools. See [the quality contract](docs/quality.md) for typing policy,
 runtime validation, repair commands and the pending required-check setting.
-Pytest/Hypothesis migration remains tracked in #4.
+Pytest, pytest-asyncio, Hypothesis and branch coverage are documented in docs/testing.md.

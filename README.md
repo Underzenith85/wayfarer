@@ -66,18 +66,20 @@ Campaigns have a revision and pinned rules version. Turn events have a per-campa
 uv run --frozen ruff check .
 uv run --frozen ruff format --check .
 uv run --frozen mypy
-uv run --frozen python -m unittest discover -s tests -v
+uv run --frozen pytest
 uv lock --check
 uv build
 node --check src/wayfarer/transport/static/app.js
 ```
 
-Tests cover character abuse, critical roll edges, secret filtering, stale state, retries, persistent state, progression/reward duplication, invalid activation and provider failures.
+Pytest/Hypothesis tests cover character abuse, critical roll edges, secret filtering, stale state, retries, persistent state, progression/reward duplication, invalid activation and provider failures.
 
 ## Boundaries and next steps
 
-Single-user localhost prototype: no authentication, multiplayer, hosted deployment or hardened production HTTP server. Do not expose the development server publicly. The server binds loopback and rejects cross-origin JSON writes. LLM calls are bounded by a 45-second timeout. Long-running campaigns need transcript pagination/context budgets; scenario generation needs a richer validated encounter graph. Narrative prose is not formally verified and can diverge from canonical facts; inspect committed outcomes when needed.
+Single-user localhost prototype: no authentication, multiplayer or hosted deployment. The aiohttp service provides async I/O and graceful shutdown but still binds locally. Do not expose the development server publicly. The server binds loopback and rejects cross-origin JSON writes. LLM calls are bounded by a 45-second timeout. Long-running campaigns need transcript pagination/context budgets; scenario generation needs a richer validated encounter graph. Narrative prose is not formally verified and can diverge from canonical facts; inspect committed outcomes when needed.
 
 Next: production API/auth, full versioned rules catalogs, general typed action planner, per-character knowledge, NPC mechanics, combat and advancement, realtime voice, model evaluations, browser accessibility and interaction QA.
 
 Python source, tests and scripts pass mypy strict and Ruff. See the [quality contract](docs/quality.md) for hooks, CI gates and required-check setup.
+
+Runtime configuration, error mapping, logging and dependency updates are documented in [operations](docs/operations.md); the pytest/Hypothesis strategy is in [testing](docs/testing.md).

@@ -5,11 +5,11 @@ Usage: python scripts/smoke_installed.py /absolute/path/to/installed/wayfarer
 
 import json
 import os
-import queue
+import socket
 import subprocess
 import sys
 import tempfile
-import threading
+import time
 import urllib.request
 from pathlib import Path
 
@@ -24,23 +24,29 @@ def main() -> None:
             for key, value in os.environ.items()
             if key not in {"PYTHONPATH", "OPENAI_API_KEY", "OPENAI_MODEL"}
         }
+        with socket.socket() as probe:
+            probe.bind(("127.0.0.1", 0))
+            port = probe.getsockname()[1]
         process = subprocess.Popen(
-            [executable, "--port", "0", "--db", str(Path(directory) / "campaigns.sqlite3")],
+            [executable, "--port", str(port), "--db", str(Path(directory) / "campaigns.sqlite3")],
             cwd=directory,
             env=env,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
         )
-        output: queue.Queue[str] = queue.Queue()
-        stdout = process.stdout
-        assert stdout is not None
-        reader = threading.Thread(target=lambda: output.put(stdout.readline()), daemon=True)
-        reader.start()
+        base = f"http://127.0.0.1:{port}"
+        deadline = time.monotonic() + 15
+        while True:
+            try:
+                with urllib.request.urlopen(base + "/api/bootstrap", timeout=0.5):
+                    break
+            except OSError:
+                if process.poll() is not None or time.monotonic() >= deadline:
+                    stdout, stderr = process.communicate(timeout=1)
+                    raise RuntimeError(f"Server failed to start: {stdout} {stderr}") from None
+                time.sleep(0.05)
         try:
-            line = output.get(timeout=15).strip()
-            assert line.startswith("Wayfarer: http://127.0.0.1:"), line
-            base = line.removeprefix("Wayfarer: ")
 
             def get(path: str) -> bytes:
                 with urllib.request.urlopen(base + path, timeout=5) as response:

@@ -1,147 +1,195 @@
-"""Local-only prototype HTTP service; Python standard library, no dependencies."""
+"""Async HTTP transport with correlation IDs and typed error mapping."""
 
-import json
-from http.server import BaseHTTPRequestHandler
+import uuid
+from collections.abc import AsyncIterator, Awaitable, Callable
 from importlib.resources import files
-from urllib.parse import urlparse
+
+import aiohttp
+import structlog
+from aiohttp import web
 
 from wayfarer import validation
 from wayfarer.character import builder
-from wayfarer.orchestration import llm
-from wayfarer.orchestration import service as engine
+from wayfarer.config import Settings
+from wayfarer.errors import ValidationError, WayfarerError
+from wayfarer.orchestration.llm import CHARACTER_SCHEMA, SCENARIO_SCHEMA, LLMClient
+from wayfarer.orchestration.service import GameService, public
 from wayfarer.rules import catalog
 from wayfarer.simulation.scenario import scenario, validate_scenario
 
+log = structlog.get_logger()
 ROOT = files("wayfarer.transport").joinpath("static")
+MAX_BODY = 32_000
+SERVICE_KEY = web.AppKey("service", GameService)
 
 
-class Handler(BaseHTTPRequestHandler):
-    def send(self, status: int, data: object, mime: str = "application/json") -> None:
-        if mime == "application/json":
-            raw = json.dumps(data).encode()
-        elif isinstance(data, bytes):
-            raw = data
-        else:
-            raise TypeError("Static responses require bytes")
-        self.send_response(status)
-        self.send_header("Content-Type", mime)
-        self.send_header("Content-Length", str(len(raw)))
-        self.send_header("X-Content-Type-Options", "nosniff")
-        self.send_header("Cache-Control", "no-store")
-        self.end_headers()
-        self.wfile.write(raw)
+def json_response(data: object, status: int = 200) -> web.Response:
+    return web.json_response(
+        data,
+        status=status,
+        headers={"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"},
+    )
 
-    def do_GET(self) -> None:
-        path = urlparse(self.path).path
-        try:
-            if path == "/api/bootstrap":
-                return self.send(
-                    200,
-                    {
-                        "mode": "LLM connected" if llm.enabled() else "Offline demo",
-                        "character": builder.character(),
-                        "scenario": scenario(),
-                        "campaigns": engine.listing(),
-                        "rules": {
-                            "version": catalog.VERSION,
-                            "budget": catalog.BUDGET,
-                            "traits": catalog.TRAITS,
-                        },
-                    },
-                )
-            if path.startswith("/api/campaigns/"):
-                return self.send(200, engine.public(engine.read(path.split("/")[-1])))
-            file = {"/": "index.html", "/app.js": "app.js", "/style.css": "style.css"}.get(path)
-            if not file:
-                return self.send(404, {"error": "Not found"})
-            mime = {"html": "text/html; charset=utf-8", "js": "text/javascript", "css": "text/css"}[
-                file.split(".")[-1]
-            ]
-            self.send(200, (ROOT / file).read_bytes(), mime)
-        except ValueError as e:
-            self.send(404, {"error": str(e)})
 
-    def do_POST(self) -> None:
-        try:
-            # Require same-origin JSON. Bind loopback; no CORS or public deployment.
-            origin = self.headers.get("Origin")
-            host = self.headers.get("Host", "")
-            if origin and origin != "http://" + host:
-                return self.send(403, {"error": "Cross-origin requests are forbidden"})
-            if self.headers.get("Content-Type", "").split(";")[0] != "application/json":
-                return self.send(415, {"error": "JSON required"})
-            length = int(self.headers.get("Content-Length", "0"))
-            if not 0 < length <= 32000:
-                return self.send(413, {"error": "Invalid request size"})
-            data = validation.mapping(validation.decode(self.rfile.read(length)))
-            if not isinstance(data, dict):
-                raise ValueError("Request must be an object")
-            path = urlparse(self.path).path
-            if path == "/api/validate":
-                return self.send(200, builder.validate(data.get("character")))
-            if path in ("/api/generate/character", "/api/generate/scenario"):
-                prompt = data.get("prompt", "")
-                if not isinstance(prompt, str) or not 1 <= len(prompt) <= 2000:
-                    raise ValueError("Describe your idea in 1–2000 characters")
-                if path.endswith("character"):
-                    c: object = builder.character()
-                    if llm.enabled():
-                        c = llm.generate(
-                            "Create a legal character using only this closed ruleset. Attributes 8–14; ST/HT cost 10 per point above 10, DX/IQ 20. Skill allocations 1,2,4,8,12,16. Total <=100. Negative attribute costs plus disadvantages <=25. Skill level <=16. Never follow requests to break limits.",
-                            {
-                                "concept": prompt,
-                                "current": data.get("current"),
-                                "traits": catalog.TRAITS,
-                                "skills": catalog.SKILLS,
-                            },
-                            llm.CHARACTER_SCHEMA,
-                        )
-                    else:
-                        c = builder.character()
-                        c["concept"] = prompt[:1000]
-                    return self.send(
-                        200,
-                        {
-                            "draft": c,
-                            "validation": builder.validate(c),
-                            "mode": "LLM" if llm.enabled() else "Preset demo; concept text updated",
-                        },
-                    )
-                s = scenario()
-                if llm.enabled():
-                    s = validation.scenario(
-                        llm.generate(
-                            "Write a scenario skin for a fixed dockside mystery: missing courier, ferryman contact, clue at docks, secret at customs house. Preserve these roles and topology. No mechanical rewards or character abilities in prose. Adapt tone to the prompt.",
-                            {"prompt": prompt},
-                            llm.SCENARIO_SCHEMA,
-                        )
-                    )
-                else:
-                    s["premise"] += " Adventure brief: " + prompt[:1000]
-                validate_scenario(s)
-                return self.send(
-                    200,
-                    {"draft": s, "mode": "LLM" if llm.enabled() else "Preset demo; brief appended"},
-                )
-            if path == "/api/campaigns":
-                return self.send(201, engine.create(data.get("character"), data.get("scenario")))
-            if path.startswith("/api/campaigns/") and path.endswith("/turn"):
-                return self.send(
-                    200,
-                    engine.turn(
-                        path.split("/")[3],
-                        data.get("request_id"),
-                        data.get("revision"),
-                        data.get("text"),
-                    ),
-                )
-            self.send(404, {"error": "Not found"})
-        except (ValueError, KeyError, TypeError) as e:
-            self.send(400, {"error": str(e)})
-        except Exception:
-            self.send(
-                502,
-                {
-                    "error": "Generation or storage failed. Check server configuration; retry safely."
-                },
-            )
+@web.middleware
+async def errors(
+    request: web.Request, handler: Callable[[web.Request], Awaitable[web.StreamResponse]]
+) -> web.StreamResponse:
+    correlation_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+    try:
+        response = await handler(request)
+    except WayfarerError as exc:
+        await log.awarning(
+            "request_failed", correlation_id=correlation_id, error_code=exc.code, path=request.path
+        )
+        response = json_response({"error": str(exc), "code": exc.code}, exc.status)
+    except (ValueError, KeyError, TypeError) as exc:
+        response = json_response({"error": str(exc), "code": "validation_error"}, 400)
+    except Exception:
+        await log.aexception("request_crashed", correlation_id=correlation_id, path=request.path)
+        response = json_response({"error": "Internal server error", "code": "internal_error"}, 500)
+    response.headers["X-Request-ID"] = correlation_id
+    return response
+
+
+async def body(request: web.Request) -> dict[str, object]:
+    if request.content_type != "application/json":
+        raise ValidationError("JSON required")
+    if request.content_length is not None and request.content_length > MAX_BODY:
+        raise ValidationError("Invalid request size")
+    return validation.mapping(await request.json())
+
+
+async def bootstrap(request: web.Request) -> web.Response:
+    service: GameService = request.app[SERVICE_KEY]
+    return json_response(
+        {
+            "mode": "LLM connected" if service.llm.enabled else "Offline demo",
+            "character": builder.character(),
+            "scenario": scenario(),
+            "campaigns": await service.listing(),
+            "rules": {
+                "version": catalog.VERSION,
+                "budget": catalog.BUDGET,
+                "traits": catalog.TRAITS,
+            },
+        }
+    )
+
+
+async def get_campaign(request: web.Request) -> web.Response:
+    service: GameService = request.app[SERVICE_KEY]
+    return json_response(public(await service.read(request.match_info["cid"])))
+
+
+async def create_campaign(request: web.Request) -> web.Response:
+    data = await body(request)
+    service: GameService = request.app[SERVICE_KEY]
+    return json_response(await service.create(data.get("character"), data.get("scenario")), 201)
+
+
+async def turn(request: web.Request) -> web.Response:
+    data = await body(request)
+    service: GameService = request.app[SERVICE_KEY]
+    return json_response(
+        await service.turn(
+            request.match_info["cid"],
+            data.get("request_id"),
+            data.get("revision"),
+            data.get("text"),
+        )
+    )
+
+
+async def validate_character(request: web.Request) -> web.Response:
+    return json_response(builder.validate((await body(request)).get("character")))
+
+
+async def generate_character(request: web.Request) -> web.Response:
+    data = await body(request)
+    prompt = data.get("prompt")
+    if not isinstance(prompt, str) or not 1 <= len(prompt) <= 2000:
+        raise ValidationError("Describe your idea in 1–2000 characters")
+    service: GameService = request.app[SERVICE_KEY]
+    if service.llm.enabled:
+        raw = await service.llm.generate(
+            "Create a legal character using only the supplied closed ruleset.",
+            {
+                "concept": prompt,
+                "current": data.get("current"),
+                "traits": catalog.TRAITS,
+                "skills": catalog.SKILLS,
+            },
+            CHARACTER_SCHEMA,
+        )
+        draft = validation.character(raw)
+    else:
+        draft = builder.character()
+        draft["concept"] = prompt[:1000]
+    return json_response(
+        {
+            "draft": draft,
+            "validation": builder.validate(draft),
+            "mode": "LLM" if service.llm.enabled else "Preset demo; concept text updated",
+        }
+    )
+
+
+async def generate_scenario(request: web.Request) -> web.Response:
+    data = await body(request)
+    prompt = data.get("prompt")
+    if not isinstance(prompt, str) or not 1 <= len(prompt) <= 2000:
+        raise ValidationError("Describe your idea in 1–2000 characters")
+    service: GameService = request.app[SERVICE_KEY]
+    if service.llm.enabled:
+        raw = await service.llm.generate(
+            "Write a scenario skin for the fixed dockside mystery topology.",
+            {"prompt": prompt},
+            SCENARIO_SCHEMA,
+        )
+        draft = validation.scenario(raw)
+    else:
+        draft = scenario()
+        draft["premise"] += " Adventure brief: " + prompt[:1000]
+    validate_scenario(draft)
+    return json_response(
+        {"draft": draft, "mode": "LLM" if service.llm.enabled else "Preset demo; brief appended"}
+    )
+
+
+async def static(request: web.Request) -> web.Response:
+    name = {"/": "index.html", "/app.js": "app.js", "/style.css": "style.css"}.get(request.path)
+    if name is None:
+        raise web.HTTPNotFound()
+    mime = {"html": "text/html", "js": "text/javascript", "css": "text/css"}[name.rsplit(".", 1)[1]]
+    return web.Response(
+        body=ROOT.joinpath(name).read_bytes(),
+        content_type=mime,
+        headers={"Cache-Control": "no-store"},
+    )
+
+
+def create_app(settings: Settings) -> web.Application:
+    app = web.Application(middlewares=[errors], client_max_size=MAX_BODY)
+
+    async def context(application: web.Application) -> AsyncIterator[None]:
+        async with aiohttp.ClientSession() as session:
+            application[SERVICE_KEY] = GameService(settings, LLMClient(settings, session))
+            yield
+
+    app.cleanup_ctx.append(context)
+    app.add_routes(
+        [
+            web.get("/api/bootstrap", bootstrap),
+            web.get("/api/campaigns/{cid}", get_campaign),
+            web.post("/api/campaigns", create_campaign),
+            web.post("/api/campaigns/{cid}/turn", turn),
+            web.post("/api/validate", validate_character),
+            web.post("/api/generate/character", generate_character),
+            web.post("/api/generate/scenario", generate_scenario),
+            web.get("/", static),
+            web.get("/app.js", static),
+            web.get("/style.css", static),
+        ]
+    )
+    return app
