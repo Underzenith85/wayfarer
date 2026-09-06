@@ -19,3 +19,15 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+      - id: no-explicit-any
+        name: no explicit Any
+        entry: uv run --frozen python scripts/check_no_any.py
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: pytest
+        name: pytest
+        entry: uv run --frozen pytest -q
+        language: system
+        pass_filenames: false
+        always_run: true

@@ -55,6 +55,6 @@ replaced with explicit package imports. No full GURPS implementation is implied.
 
 Strict typing/Ruff gates are implemented in wave 2 (#3); see docs/quality.md.
 Pytest/Hypothesis belongs to #4, and production
-configuration, async I/O and error handling to #5. Existing demo limitations
+configuration, async I/O and error handling are implemented in wave 3 (#5). Existing demo limitations
 remain documented, including the synchronous local HTTP server and narration
 fallback. This wave introduces no authentication or production deployment.

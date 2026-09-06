@@ -1,30 +1,40 @@
-"""Installed composition root for the local demo."""
+"""Installed composition root."""
 
 import argparse
-import os
-from http.server import ThreadingHTTPServer
 from pathlib import Path
+
+from aiohttp import web
+from pydantic import ValidationError as SettingsValidationError
+
+from wayfarer.config import Settings
+from wayfarer.logging import configure
+from wayfarer.transport.http import create_app
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run the Wayfarer local roleplaying demo.")
-    parser.add_argument("--port", type=int, default=int(os.getenv("PORT", "8000")))
-    parser.add_argument(
-        "--db",
-        type=Path,
-        default=Path(os.getenv("WAYFARER_DB", "data/wayfarer.sqlite3")),
-        help="SQLite path; relative paths are resolved from the current working directory",
-    )
+    parser = argparse.ArgumentParser(description="Run Wayfarer.")
+    parser.add_argument("--port", type=int)
+    parser.add_argument("--db", type=Path)
     args = parser.parse_args()
-    if not 0 <= args.port <= 65535:
-        parser.error("--port must be between 0 and 65535")
-    from wayfarer.orchestration import service
-    from wayfarer.transport.http import Handler
-
-    service.DB = args.db.expanduser().resolve()
-    with ThreadingHTTPServer(("127.0.0.1", args.port), Handler) as server:
-        print(f"Wayfarer: http://127.0.0.1:{server.server_port}", flush=True)
-        try:
-            server.serve_forever()
-        except KeyboardInterrupt:
-            pass
+    try:
+        base = Settings()
+        settings = Settings(
+            host=base.host,
+            port=args.port if args.port is not None else base.port,
+            db=args.db.expanduser().resolve() if args.db is not None else base.db,
+            log_level=base.log_level,
+            openai_api_key=base.openai_api_key,
+            openai_model=base.openai_model,
+            model_timeout_seconds=base.model_timeout_seconds,
+            db_timeout_seconds=base.db_timeout_seconds,
+        )
+    except SettingsValidationError as exc:
+        parser.error(str(exc))
+    configure(settings.log_level)
+    web.run_app(
+        create_app(settings),
+        host=settings.host,
+        port=settings.port,
+        print=lambda line: print(line, flush=True),
+        handle_signals=True,
+    )

@@ -11,7 +11,7 @@ and domain functions require full annotations. Use TypedDicts for serialized
 contracts, Literal-tagged unions for variant results, and Protocols for injectable
 behavior. The package ships `py.typed` for downstream users.
 
-Explicit `Any` and unfollowed-import `Any` are disallowed. Do not hide errors with
+Explicit `Any` is rejected by `scripts/check_no_any.py`; mypy rejects unfollowed-import Any. The separate source gate avoids a false positive from Pydantic Settings’ generated constructor while retaining the project rule. Do not hide errors with
 casts, blanket ignores, missing-import ignores, excluded modules or per-file
 checker overrides. An unavoidable targeted suppression requires its error code,
 an explanation and review; unused suppressions fail. None are currently needed.

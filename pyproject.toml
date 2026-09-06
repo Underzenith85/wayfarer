@@ -8,7 +8,12 @@ version = "0.2.0"
 description = "Persistent roleplaying engine and local GURPS-inspired demo"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "aiohttp>=3.14.3",
+    "aiosqlite>=0.22.1",
+    "pydantic-settings>=2.15.0",
+    "structlog>=26.1.0",
+]
 
 [project.scripts]
 wayfarer = "wayfarer.cli:main"
@@ -16,8 +21,12 @@ wayfarer = "wayfarer.cli:main"
 [dependency-groups]
 # Existing tests use unittest; pytest/Hypothesis arrive in roadmap issue #4.
 dev = [
+    "hypothesis>=6.167.1",
     "mypy>=2.3.1",
     "pre-commit>=4.6.2",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "pytest-cov>=7.1.0",
     "ruff>=0.16.6",
 ]
 
@@ -25,10 +34,15 @@ dev = [
 python_version = "3.12"
 files = ["src", "tests", "scripts", "server.py"]
 strict = true
-disallow_any_explicit = true
 disallow_any_unimported = true
 warn_unreachable = true
 enable_error_code = ["ignore-without-code"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+addopts = "--strict-markers --cov=wayfarer --cov-report=term-missing --cov-fail-under=65"
+markers = ["integration: exercises storage or HTTP boundaries", "e2e: exercises an installed application"]
+
 
 [tool.ruff]
 target-version = "py312"
@@ -36,3 +50,10 @@ line-length = 100
 
 [tool.ruff.lint]
 select = ["E4", "E7", "E9", "F", "I", "UP", "B", "RUF100"]
+
+[tool.coverage.run]
+branch = true
+omit = ["src/wayfarer/__main__.py"]
+
+[tool.coverage.report]
+exclude_also = ["if __name__ == .__main__.:"]
