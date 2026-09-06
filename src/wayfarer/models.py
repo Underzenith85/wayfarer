@@ -1,7 +1,9 @@
 """Shared demo contracts. Runtime validation remains at the service boundary."""
+
 from typing import Literal, NotRequired, TypedDict
 
-Action = Literal['observe', 'talk', 'sneak', 'rest', 'ask']
+Action = Literal["observe", "talk", "sneak", "rest", "ask"]
+
 
 class Character(TypedDict):
     name: str
@@ -10,12 +12,14 @@ class Character(TypedDict):
     skills: dict[str, int]
     traits: list[str]
 
+
 class Roll(TypedDict):
     dice: list[int]
     total: int
     target: int
     success: bool
-    critical: Literal['success', 'failure'] | None
+    critical: Literal["success", "failure"] | None
+
 
 class Message(TypedDict):
     role: str
@@ -23,6 +27,7 @@ class Message(TypedDict):
     roll: NotRequired[Roll | None]
     action: NotRequired[Action]
     flavor: NotRequired[str]
+
 
 class Campaign(TypedDict):
     id: str
@@ -40,8 +45,35 @@ class Campaign(TypedDict):
     complete: bool
     messages: list[Message]
 
+
 class Event(TypedDict):
     input: str
     action: Action
     outcome: str
     roll: Roll | None
+
+
+class ValidationResult(TypedDict):
+    valid: bool
+    errors: list[str]
+    spent: int
+    remaining: int
+    levels: dict[str, int]
+
+
+class PublicCampaign(Campaign):
+    validation: ValidationResult
+
+
+class CommittedTurn(TypedDict):
+    kind: Literal["committed"]
+    state: Campaign
+    event: Event
+
+
+class ReplayedTurn(TypedDict):
+    kind: Literal["replayed"]
+    state: Campaign
+
+
+type TurnResult = CommittedTurn | ReplayedTurn

@@ -15,4 +15,24 @@ wayfarer = "wayfarer.cli:main"
 
 [dependency-groups]
 # Existing tests use unittest; pytest/Hypothesis arrive in roadmap issue #4.
-dev = []
+dev = [
+    "mypy>=2.3.1",
+    "pre-commit>=4.6.2",
+    "ruff>=0.16.6",
+]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["src", "tests", "scripts", "server.py"]
+strict = true
+disallow_any_explicit = true
+disallow_any_unimported = true
+warn_unreachable = true
+enable_error_code = ["ignore-without-code"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "UP", "B", "RUF100"]

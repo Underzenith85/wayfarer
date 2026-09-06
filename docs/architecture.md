@@ -11,11 +11,11 @@ implicit checkout imports, or global pip dependencies are required.
 
 | Package | Owns | Permitted internal dependencies |
 | --- | --- | --- |
-| `models` | Shared typed demo contracts | None |
-| `rules` | Closed demo catalog and checks | Models, rules |
-| `character` | Character draft validation and preset | Models, rules, character |
-| `simulation` | Scenario validation and state transitions | Models, rules, character, simulation |
-| `persistence` | SQLite schema, transactions and storage | Models |
+| `models`, `validation` | Shared typed contracts and runtime structural schemas | Models |
+| `rules` | Closed demo catalog and checks | Models, validation, rules |
+| `character` | Character draft validation and preset | Models, validation, rules, character |
+| `simulation` | Scenario validation and state transitions | Models, validation, rules, character, simulation |
+| `persistence` | SQLite schema, transactions and storage | Models, validation |
 | `orchestration` | LLM adapter, intent, application use cases | Domain packages, persistence |
 | `transport` | HTTP routes and bundled static UI | Orchestration and read-only domain APIs |
 | `cli` | Configuration and server composition | Orchestration, transport |
@@ -23,9 +23,9 @@ implicit checkout imports, or global pip dependencies are required.
 The simulation resolver mutates the supplied state and returns an event. The
 SQLite adapter invokes it only after locking and checking the expected revision,
 then atomically saves both state and event. The callback must not perform external
-I/O. LLM calls occur before or after this transaction, never inside it. Typed
-contracts establish the seams without claiming that the migrated demo has already
-passed a strict type checker.
+I/O. LLM calls occur before or after this transaction, never inside it. Typed contracts establish the seams. Mypy strict now checks the whole Python
+repository, including tests and scripts; shared runtime schemas validate
+untrusted data before domain use.
 
 Domain boundary tests inspect imports and verify that importing the resolver does
 not load HTTP, storage or provider adapters. New dependencies must follow the
@@ -34,10 +34,8 @@ than issuing SQL itself.
 
 ## Package and dependency workflow
 
-`pyproject.toml` is authoritative; `uv.lock` is committed. Runtime dependencies
-and the development group are deliberately empty: the preserved demo and current
-unittest suite use the standard library. Add tools to the development group when
-their implementation issue lands. The exact uv build backend version is pinned
+`pyproject.toml` is authoritative; `uv.lock` is committed. Runtime dependencies remain empty. The development group contains locked mypy,
+Ruff and pre-commit tooling; the existing unittest suite uses the standard library. The exact uv build backend version is pinned
 for repeatable builds and bundled by the documented uv CLI version.
 
 CPython 3.12 is the default development interpreter. CI tests 3.12, 3.13 and 3.14;
@@ -55,7 +53,8 @@ are preserved. `uv run server.py` remains a compatibility launcher after syncing
 The old root-level Python modules are internal implementation details and are
 replaced with explicit package imports. No full GURPS implementation is implied.
 
-Strict typing/Ruff gates belong to #3, pytest/Hypothesis to #4, and production
+Strict typing/Ruff gates are implemented in wave 2 (#3); see docs/quality.md.
+Pytest/Hypothesis belongs to #4, and production
 configuration, async I/O and error handling to #5. Existing demo limitations
 remain documented, including the synchronous local HTTP server and narration
 fallback. This wave introduces no authentication or production deployment.
