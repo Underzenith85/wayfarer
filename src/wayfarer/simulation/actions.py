@@ -16,6 +16,7 @@ from wayfarer.rules.catalog import SKILLS, DefinitionKind, ImplementationStatus
 from wayfarer.rules.checks import CheckTrace, Modifier, Outcome, RandomSource, success_check
 from wayfarer.rules.effects import DerivedValue, EffectEvaluator, MechanicalTarget
 from wayfarer.simulation.adjudication import Ruling, RulingPolicy, expire_rulings
+from wayfarer.simulation.combat import CombatEngine, CombatResult, CombatRules, Encounter
 from wayfarer.simulation.resources import Advance, Consume, Record, ResourceEngine, ResourceState
 from wayfarer.world import Entity, EntityKind, World
 
@@ -111,6 +112,7 @@ class ActionRules(Record):
     checks: tuple[CheckRule, ...] = ()
     consumables: tuple[str, ...] = ()
     adjudication: RulingPolicy | None = None
+    combat: CombatRules | None = None
 
 
 class ActionResult(Record):
@@ -144,6 +146,8 @@ class PlayState(Record):
     approvals: tuple[Approval, ...] = ()
     last_result: ActionResult | None = None
     rulings: tuple[Ruling, ...] = ()
+    encounters: tuple[Encounter, ...] = ()
+    last_combat_result: CombatResult | None = None
 
 
 class ActionEngine:
@@ -189,11 +193,18 @@ class ActionEngine:
                     raise ValidationError("Ruling requires an existing social check")
                 if not -20 <= check.modifier + alternative.modifier <= 20:
                     raise ValidationError("Combined ruling modifier exceeds engine bounds")
+        self.combat = CombatEngine(rules.combat, resources) if rules.combat is not None else None
         # Preserve the exact Wave 7 digest for campaigns that have not enabled
         # adjudication. Enabling or changing policy requires explicit migration.
-        encoded_rules = rules.model_dump_json(
-            exclude={"adjudication"} if rules.adjudication is None else set()
-        )
+        excluded = {
+            field
+            for field, disabled in (
+                ("adjudication", rules.adjudication is None),
+                ("combat", rules.combat is None),
+            )
+            if disabled
+        }
+        encoded_rules = rules.model_dump_json(exclude=excluded)
         payload = (
             encoded_rules
             + reviewer.policy.digest
@@ -211,12 +222,30 @@ class ActionEngine:
         self.validate_rulings(state)
         state.world.validate()
         self.resources.validate(state.resources)
+        if len({e.id for e in state.encounters}) != len(state.encounters):
+            raise ValidationError("Duplicate encounter ID")
+        active_actors: set[str] = set()
+        for encounter in state.encounters:
+            if self.combat is None:
+                raise ValidationError("Campaign has encounters without combat rules")
+            self.combat.validate(
+                encounter,
+                state.world,
+                state.resources,
+                frozenset(actor.actor_id for actor in state.actors),
+            )
+            if encounter.status == "active":
+                participants = {p.actor_id for p in encounter.participants}
+                if active_actors & participants:
+                    raise ValidationError("Actor participates in multiple active encounters")
+                active_actors |= participants
         entities = {e.id: e for e in state.world.entities}
         actors = {a.actor_id: a for a in state.actors}
         if len(actors) != len(state.actors) or not set(actors) <= self.resources.actors:
             raise ValidationError("Invalid play actor IDs")
         owners = {o.actor_id: o for o in state.resources.owners}
         pools = {p.id: p for p in state.resources.pools}
+        initiatives: dict[str, int] = {}
         for actor in state.actors:
             build = self.reviewer.compiler.compile(actor.proposal.draft).build
             if build is None:
@@ -227,6 +256,7 @@ class ActionEngine:
             }:
                 raise ValidationError("Resource prerequisites do not match the compiled build")
             values = {v.target: v.value for v in build.sheet.values}
+            initiatives[actor.actor_id] = int(values["attribute:dx"])
             for kind, attribute in (("hp", "attribute:st"), ("fp", "attribute:ht")):
                 pool = pools.get(f"{kind}:{actor.actor_id}")
                 if pool is None or pool.maximum != values.get(attribute):
@@ -248,6 +278,12 @@ class ActionEngine:
                     campaign_id=state.campaign_id,
                     actor_id=actor.actor_id,
                 )
+        if any(
+            participant.initiative != initiatives[participant.actor_id]
+            for encounter in state.encounters
+            for participant in encounter.participants
+        ):
+            raise ValidationError("Combat initiative disagrees with compiled character")
         for entity in state.world.entities:
             if (
                 entity.location_id is not None
@@ -365,6 +401,11 @@ class ActionEngine:
             return result("rejected", "actor.unavailable")
         if command.expected_revision != state.revision:
             raise ConflictError("Play revision changed")
+        if any(
+            encounter.status == "active" and command.actor_id in encounter.turn_order
+            for encounter in state.encounters
+        ):
+            return result("rejected", "combat.command_required")
         if isinstance(command, Question) or command.hypothetical:
             return result("question", "action.no_effect")
         if actor.approval is None:

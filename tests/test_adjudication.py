@@ -97,7 +97,7 @@ async def setup(
 
 def test_disabled_policy_preserves_wave7_configuration_digest() -> None:
     base = engine()
-    encoded = base.rules.model_dump_json(exclude={"adjudication"})
+    encoded = base.rules.model_dump_json(exclude={"adjudication", "combat"})
     payload = (
         encoded
         + base.reviewer.policy.digest

@@ -12,7 +12,7 @@ Roadmap issue #1 remains authoritative.
 
 - [x] #15: bounded, persisted adjudication and approval workflow for the supported
   social-check subset, including feature-level SQLite/PostgreSQL contracts.
-- [ ] #16: encounter lifecycle, action economy, tactical position, maneuvers,
+- [x] #16: encounter lifecycle, action economy, tactical position, maneuvers,
   reactions, posture/facing/readiness, and persisted defense-choice pauses.
 - [ ] #18: advancement ledger, compiler-backed purchases/refunds, migration
   previews/diffs, approved atomic ruleset migrations, and recovery/replay.
@@ -99,9 +99,46 @@ identity boundary as Wave 7. Authenticated HTTP routing and perspective-safe
 query/stream exposure belong to #19 **in this same Wave 8 PR**. Do not expose
 `play_json` or raw ruling checkpoints through legacy public projections.
 
+## Combat encounter lifecycle (#16)
+
+`ActionRules.combat` optionally pins a typed `CombatRules` package containing
+server-authored battlefields and bounded movement/reach defaults for this original
+prototype subset. Existing configurations omit the field from their digest and
+load with no encounters, preserving Wave 7 and the earlier Wave 8 checkpoint.
+
+`CombatService` persists `StartEncounter`, `TakeCombatTurn`, `ChooseDefense` and
+`EndEncounter` commands through the same campaign revision lock and immutable
+event log. Start/end require a configured GM identity; participant maneuvers and
+defenses require the independently authenticated participant identity. Client
+commands cannot supply initiative, reach, movement allowance, ready-item state,
+turn order or available defenses.
+
+Initiative is calculated from each approved, compiler-produced DX value with a
+stable actor-ID tie-breaker. A configured battlefield pins the canonical world
+location, dimensions and blocked cells. Starts require unique play actors located
+there; positions must be unique, in bounds and unblocked. Cardinal pathfinding
+prevents movement through blocked or occupied cells. The supported maneuver set
+is deliberately bounded to do-nothing, move, ready, posture change, attack intent
+and wait. Each consumes exactly one active-actor turn; prone movement uses its
+smaller authored allowance. Movement records position and optional facing. Ready
+uses the inventory reducer and updates encounter readiness atomically.
+
+Attack intent requires a ready owned item and a target within authored reach. It
+does not roll or resolve an attack in this wave. Instead, it persists a
+`PendingDefense` with server-selected choices, holds the current turn, and closes
+the database transaction. Only the named defender can resume it. Their choice and
+reaction consumption are recorded in immutable defense history, after which the
+turn/round advances. Restart and exact retry return the same pause/choice without
+duplicate turns. Attack, defense, damage and injury mechanics remain #17.
+
+While an actor belongs to an active encounter, the ordinary typed-action route
+returns `combat.command_required`; it cannot evade action economy. A GM cannot
+end an encounter during a pending defense. Completed encounters retain their
+tactical audit snapshot while later world movement and inventory changes proceed.
+
 ### Validation at this checkpoint
 
-Python 3.12: 107 tests pass, with five PostgreSQL contracts skipped locally because
+Python 3.12: 113 tests pass, with six PostgreSQL contracts skipped locally because
 there is no PostgreSQL daemon. CI's existing Python 3.12/3.13/3.14 matrix provisions
 PostgreSQL 17 and executes those contracts, including the new adjudication test.
 The new suite covers bounds, forged fields/identities/checkpoints, stale consent,
@@ -109,5 +146,5 @@ policy/player/GM authority, nonmechanical narrative, competing decisions, restar
 eight concurrent exact retries, actual dice, immutable event history, and replay
 across a snapshot. Strict mypy, Ruff, no-explicit-Any, injected gate probes and
 the frozen lock pass. Branch-aware suite coverage is 82.23% against the unchanged
-65% requirement. The sdist/wheel build and isolated installed-wheel HTTP smoke
+65% requirement (82.48% at this checkpoint). The sdist/wheel build and isolated installed-wheel HTTP smoke
 also pass. Local verification does not substitute for the completed CI matrix.

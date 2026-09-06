@@ -72,6 +72,7 @@ EventAction = (
         "decide_ruling",
         "execute_ruling",
         "evaluate_ruling",
+        "combat",
     ]
 )
 
