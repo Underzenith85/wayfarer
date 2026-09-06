@@ -1,0 +1,2244 @@
+[
+  {
+    "name": "snapshot_atomic_handoff",
+    "initial": {
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "scope": {
+        "campaign_id": "campaign-1",
+        "scene_id": "cellar-1",
+        "actor_id": "hero-1"
+      },
+      "visibility_epoch": "epoch_one",
+      "cursor": null,
+      "resources": []
+    },
+    "steps": [
+      {
+        "message": {
+          "type": "snapshot.begin",
+          "protocol_version": "1.0.0",
+          "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+          "scope": {
+            "campaign_id": "campaign-1",
+            "scene_id": "cellar-1",
+            "actor_id": "hero-1"
+          },
+          "visibility_epoch": "epoch_one",
+          "snapshot_id": "30d54cfd-e026-5c07-90ca-8478ab372215",
+          "cursor": "cursor_0________________________________",
+          "resource_count": 4
+        },
+        "expect": "staged",
+        "injected": false
+      },
+      {
+        "message": {
+          "type": "snapshot.resource",
+          "protocol_version": "1.0.0",
+          "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+          "scope": {
+            "campaign_id": "campaign-1",
+            "scene_id": "cellar-1",
+            "actor_id": "hero-1"
+          },
+          "visibility_epoch": "epoch_one",
+          "snapshot_id": "30d54cfd-e026-5c07-90ca-8478ab372215",
+          "index": 0,
+          "resource": {
+            "kind": "campaign",
+            "value": {
+              "id": "campaign-1",
+              "name": "The Missing Courier",
+              "premise": "Find the courier before dawn.",
+              "status": "active",
+              "version": "c1",
+              "game_time": {
+                "ticks": 12,
+                "tick_duration_ms": 1000
+              },
+              "membership": {
+                "principal_id": "player-1",
+                "role": "player",
+                "actor_ids": [
+                  "hero-1"
+                ],
+                "version": "m1",
+                "campaign_id": "campaign-1"
+              },
+              "capabilities": [
+                "actions.text",
+                "actions.inspect",
+                "actions.use_item"
+              ],
+              "updated_at": "2026-09-06T22:00:00Z"
+            }
+          }
+        },
+        "expect": "staged",
+        "injected": false
+      },
+      {
+        "message": {
+          "type": "snapshot.resource",
+          "protocol_version": "1.0.0",
+          "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+          "scope": {
+            "campaign_id": "campaign-1",
+            "scene_id": "cellar-1",
+            "actor_id": "hero-1"
+          },
+          "visibility_epoch": "epoch_one",
+          "snapshot_id": "30d54cfd-e026-5c07-90ca-8478ab372215",
+          "index": 1,
+          "resource": {
+            "kind": "scene",
+            "value": {
+              "id": "cellar-1",
+              "version": "s1",
+              "title": "Cellar",
+              "description": "A locked door and a narrow window.",
+              "game_time": {
+                "ticks": 12,
+                "tick_duration_ms": 1000
+              },
+              "observations": [
+                {
+                  "id": "door-1",
+                  "label": "Door",
+                  "description": "Locked."
+                }
+              ],
+              "visible_actor_ids": [
+                "hero-1"
+              ]
+            }
+          }
+        },
+        "expect": "staged",
+        "injected": false
+      },
+      {
+        "message": {
+          "type": "snapshot.resource",
+          "protocol_version": "1.0.0",
+          "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+          "scope": {
+            "campaign_id": "campaign-1",
+            "scene_id": "cellar-1",
+            "actor_id": "hero-1"
+          },
+          "visibility_epoch": "epoch_one",
+          "snapshot_id": "30d54cfd-e026-5c07-90ca-8478ab372215",
+          "index": 2,
+          "resource": {
+            "kind": "character",
+            "value": {
+              "id": "hero-1",
+              "campaign_id": "campaign-1",
+              "name": "Mara",
+              "version": "h1",
+              "hp": {
+                "current": 8,
+                "maximum": 10
+              },
+              "fp": {
+                "current": 9,
+                "maximum": 10
+              },
+              "attributes": [
+                {
+                  "id": "dx",
+                  "label": "DX",
+                  "value": 12
+                }
+              ],
+              "skills": [],
+              "defenses": [],
+              "movement": [],
+              "conditions": [],
+              "equipped_item_ids": []
+            }
+          }
+        },
+        "expect": "staged",
+        "injected": false
+      },
+      {
+        "message": {
+          "type": "snapshot.resource",
+          "protocol_version": "1.0.0",
+          "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+          "scope": {
+            "campaign_id": "campaign-1",
+            "scene_id": "cellar-1",
+            "actor_id": "hero-1"
+          },
+          "visibility_epoch": "epoch_one",
+          "snapshot_id": "30d54cfd-e026-5c07-90ca-8478ab372215",
+          "index": 3,
+          "resource": {
+            "kind": "inventory",
+            "value": {
+              "actor_id": "hero-1",
+              "version": "i1",
+              "items": [
+                {
+                  "id": "bandage-1",
+                  "name": "Bandage",
+                  "description": "Clean linen",
+                  "quantity": 2,
+                  "unit_weight_grams": 50,
+                  "location": "carried",
+                  "container_id": null,
+                  "allowed_actions": [
+                    "inspect",
+                    "use_item"
+                  ]
+                }
+              ],
+              "total_weight_grams": 100,
+              "encumbrance": "none"
+            }
+          }
+        },
+        "expect": "staged",
+        "injected": false
+      },
+      {
+        "message": {
+          "type": "snapshot.end",
+          "protocol_version": "1.0.0",
+          "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+          "scope": {
+            "campaign_id": "campaign-1",
+            "scene_id": "cellar-1",
+            "actor_id": "hero-1"
+          },
+          "visibility_epoch": "epoch_one",
+          "snapshot_id": "30d54cfd-e026-5c07-90ca-8478ab372215",
+          "cursor": "cursor_0________________________________",
+          "resource_count": 4
+        },
+        "expect": "applied",
+        "injected": false
+      },
+      {
+        "message": {
+          "type": "action.updated",
+          "protocol_version": "1.0.0",
+          "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+          "scope": {
+            "campaign_id": "campaign-1",
+            "scene_id": "cellar-1",
+            "actor_id": "hero-1"
+          },
+          "visibility_epoch": "epoch_one",
+          "event_id": "dcaa0121-6b6c-53b9-8fd2-7513c70b1e6a",
+          "cursor": "cursor_1________________________________",
+          "previous_cursor": "cursor_0________________________________",
+          "occurred_at": "2026-09-06T22:00:00Z",
+          "correlation_id": "11111111-1111-4111-8111-111111111111",
+          "causation_id": null,
+          "action": {
+            "id": "action-1",
+            "command_id": "11111111-1111-4111-8111-111111111111",
+            "actor_id": "hero-1",
+            "scene_id": "cellar-1",
+            "version": "a1",
+            "created_at": "2026-09-06T22:00:00Z",
+            "updated_at": "2026-09-06T22:00:00Z",
+            "status": "succeeded",
+            "resolution": {
+              "summary": "The bandage is used.",
+              "checks": [],
+              "changed_resources": [
+                {
+                  "resource_type": "inventory",
+                  "resource_id": "hero-1",
+                  "version": "i2"
+                }
+              ],
+              "game_time": {
+                "ticks": 12,
+                "tick_duration_ms": 1000
+              }
+            }
+          }
+        },
+        "expect": "applied",
+        "injected": false
+      },
+      {
+        "message": {
+          "type": "stream.ready",
+          "protocol_version": "1.0.0",
+          "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+          "scope": {
+            "campaign_id": "campaign-1",
+            "scene_id": "cellar-1",
+            "actor_id": "hero-1"
+          },
+          "visibility_epoch": "epoch_one",
+          "cursor": "cursor_1________________________________"
+        },
+        "expect": "ready",
+        "injected": false
+      }
+    ],
+    "expected": {
+      "cursor": "cursor_1________________________________",
+      "cache_valid": true,
+      "active": true,
+      "action_statuses": {
+        "action-1": "succeeded"
+      },
+      "dirty_resources": [
+        "inventory:hero-1"
+      ],
+      "active_narrations": 0
+    }
+  },
+  {
+    "name": "partial_snapshot_never_publishes",
+    "initial": {
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "scope": {
+        "campaign_id": "campaign-1",
+        "scene_id": "cellar-1",
+        "actor_id": "hero-1"
+      },
+      "visibility_epoch": "epoch_one",
+      "cursor": null,
+      "resources": []
+    },
+    "steps": [
+      {
+        "message": {
+          "type": "snapshot.begin",
+          "protocol_version": "1.0.0",
+          "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+          "scope": {
+            "campaign_id": "campaign-1",
+            "scene_id": "cellar-1",
+            "actor_id": "hero-1"
+          },
+          "visibility_epoch": "epoch_one",
+          "snapshot_id": "30d54cfd-e026-5c07-90ca-8478ab372215",
+          "cursor": "cursor_0________________________________",
+          "resource_count": 4
+        },
+        "expect": "staged",
+        "injected": false
+      },
+      {
+        "message": {
+          "type": "snapshot.resource",
+          "protocol_version": "1.0.0",
+          "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+          "scope": {
+            "campaign_id": "campaign-1",
+            "scene_id": "cellar-1",
+            "actor_id": "hero-1"
+          },
+          "visibility_epoch": "epoch_one",
+          "snapshot_id": "30d54cfd-e026-5c07-90ca-8478ab372215",
+          "index": 0,
+          "resource": {
+            "kind": "campaign",
+            "value": {
+              "id": "campaign-1",
+              "name": "The Missing Courier",
+              "premise": "Find the courier before dawn.",
+              "status": "active",
+              "version": "c1",
+              "game_time": {
+                "ticks": 12,
+                "tick_duration_ms": 1000
+              },
+              "membership": {
+                "principal_id": "player-1",
+                "role": "player",
+                "actor_ids": [
+                  "hero-1"
+                ],
+                "version": "m1",
+                "campaign_id": "campaign-1"
+              },
+              "capabilities": [
+                "actions.text",
+                "actions.inspect",
+                "actions.use_item"
+              ],
+              "updated_at": "2026-09-06T22:00:00Z"
+            }
+          }
+        },
+        "expect": "staged",
+        "injected": false
+      }
+    ],
+    "expected": {
+      "cursor": null,
+      "cache_valid": false,
+      "active": true,
+      "action_statuses": {},
+      "dirty_resources": [],
+      "active_narrations": 0
+    }
+  },
+  {
+    "name": "duplicate_event_is_idempotent",
+    "initial": {
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "scope": {
+        "campaign_id": "campaign-1",
+        "scene_id": "cellar-1",
+        "actor_id": "hero-1"
+      },
+      "visibility_epoch": "epoch_one",
+      "cursor": "cursor_0________________________________",
+      "resources": [
+        {
+          "kind": "campaign",
+          "value": {
+            "id": "campaign-1",
+            "name": "The Missing Courier",
+            "premise": "Find the courier before dawn.",
+            "status": "active",
+            "version": "c1",
+            "game_time": {
+              "ticks": 12,
+              "tick_duration_ms": 1000
+            },
+            "membership": {
+              "principal_id": "player-1",
+              "role": "player",
+              "actor_ids": [
+                "hero-1"
+              ],
+              "version": "m1",
+              "campaign_id": "campaign-1"
+            },
+            "capabilities": [
+              "actions.text",
+              "actions.inspect",
+              "actions.use_item"
+            ],
+            "updated_at": "2026-09-06T22:00:00Z"
+          }
+        },
+        {
+          "kind": "scene",
+          "value": {
+            "id": "cellar-1",
+            "version": "s1",
+            "title": "Cellar",
+            "description": "A locked door and a narrow window.",
+            "game_time": {
+              "ticks": 12,
+              "tick_duration_ms": 1000
+            },
+            "observations": [
+              {
+                "id": "door-1",
+                "label": "Door",
+                "description": "Locked."
+              }
+            ],
+            "visible_actor_ids": [
+              "hero-1"
+            ]
+          }
+        },
+        {
+          "kind": "character",
+          "value": {
+            "id": "hero-1",
+            "campaign_id": "campaign-1",
+            "name": "Mara",
+            "version": "h1",
+            "hp": {
+              "current": 8,
+              "maximum": 10
+            },
+            "fp": {
+              "current": 9,
+              "maximum": 10
+            },
+            "attributes": [
+              {
+                "id": "dx",
+                "label": "DX",
+                "value": 12
+              }
+            ],
+            "skills": [],
+            "defenses": [],
+            "movement": [],
+            "conditions": [],
+            "equipped_item_ids": []
+          }
+        },
+        {
+          "kind": "inventory",
+          "value": {
+            "actor_id": "hero-1",
+            "version": "i1",
+            "items": [
+              {
+                "id": "bandage-1",
+                "name": "Bandage",
+                "description": "Clean linen",
+                "quantity": 2,
+                "unit_weight_grams": 50,
+                "location": "carried",
+                "container_id": null,
+                "allowed_actions": [
+                  "inspect",
+                  "use_item"
+                ]
+              }
+            ],
+            "total_weight_grams": 100,
+            "encumbrance": "none"
+          }
+        }
+      ]
+    },
+    "steps": [
+      {
+        "message": {
+          "type": "action.updated",
+          "protocol_version": "1.0.0",
+          "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+          "scope": {
+            "campaign_id": "campaign-1",
+            "scene_id": "cellar-1",
+            "actor_id": "hero-1"
+          },
+          "visibility_epoch": "epoch_one",
+          "event_id": "dcaa0121-6b6c-53b9-8fd2-7513c70b1e6a",
+          "cursor": "cursor_1________________________________",
+          "previous_cursor": "cursor_0________________________________",
+          "occurred_at": "2026-09-06T22:00:00Z",
+          "correlation_id": "11111111-1111-4111-8111-111111111111",
+          "causation_id": null,
+          "action": {
+            "id": "action-1",
+            "command_id": "11111111-1111-4111-8111-111111111111",
+            "actor_id": "hero-1",
+            "scene_id": "cellar-1",
+            "version": "a1",
+            "created_at": "2026-09-06T22:00:00Z",
+            "updated_at": "2026-09-06T22:00:00Z",
+            "status": "succeeded",
+            "resolution": {
+              "summary": "The bandage is used.",
+              "checks": [],
+              "changed_resources": [
+                {
+                  "resource_type": "inventory",
+                  "resource_id": "hero-1",
+                  "version": "i2"
+                }
+              ],
+              "game_time": {
+                "ticks": 12,
+                "tick_duration_ms": 1000
+              }
+            }
+          }
+        },
+        "expect": "applied",
+        "injected": false
+      },
+      {
+        "message": {
+          "type": "action.updated",
+          "protocol_version": "1.0.0",
+          "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+          "scope": {
+            "campaign_id": "campaign-1",
+            "scene_id": "cellar-1",
+            "actor_id": "hero-1"
+          },
+          "visibility_epoch": "epoch_one",
+          "event_id": "dcaa0121-6b6c-53b9-8fd2-7513c70b1e6a",
+          "cursor": "cursor_1________________________________",
+          "previous_cursor": "cursor_0________________________________",
+          "occurred_at": "2026-09-06T22:00:00Z",
+          "correlation_id": "11111111-1111-4111-8111-111111111111",
+          "causation_id": null,
+          "action": {
+            "id": "action-1",
+            "command_id": "11111111-1111-4111-8111-111111111111",
+            "actor_id": "hero-1",
+            "scene_id": "cellar-1",
+            "version": "a1",
+            "created_at": "2026-09-06T22:00:00Z",
+            "updated_at": "2026-09-06T22:00:00Z",
+            "status": "succeeded",
+            "resolution": {
+              "summary": "The bandage is used.",
+              "checks": [],
+              "changed_resources": [
+                {
+                  "resource_type": "inventory",
+                  "resource_id": "hero-1",
+                  "version": "i2"
+                }
+              ],
+              "game_time": {
+                "ticks": 12,
+                "tick_duration_ms": 1000
+              }
+            }
+          }
+        },
+        "expect": "ignored",
+        "injected": true
+      }
+    ],
+    "expected": {
+      "cursor": "cursor_1________________________________",
+      "cache_valid": true,
+      "active": true,
+      "action_statuses": {
+        "action-1": "succeeded"
+      },
+      "dirty_resources": [
+        "inventory:hero-1"
+      ],
+      "active_narrations": 0
+    }
+  },
+  {
+    "name": "out_of_order_requires_resync",
+    "initial": {
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "scope": {
+        "campaign_id": "campaign-1",
+        "scene_id": "cellar-1",
+        "actor_id": "hero-1"
+      },
+      "visibility_epoch": "epoch_one",
+      "cursor": "cursor_0________________________________",
+      "resources": [
+        {
+          "kind": "campaign",
+          "value": {
+            "id": "campaign-1",
+            "name": "The Missing Courier",
+            "premise": "Find the courier before dawn.",
+            "status": "active",
+            "version": "c1",
+            "game_time": {
+              "ticks": 12,
+              "tick_duration_ms": 1000
+            },
+            "membership": {
+              "principal_id": "player-1",
+              "role": "player",
+              "actor_ids": [
+                "hero-1"
+              ],
+              "version": "m1",
+              "campaign_id": "campaign-1"
+            },
+            "capabilities": [
+              "actions.text",
+              "actions.inspect",
+              "actions.use_item"
+            ],
+            "updated_at": "2026-09-06T22:00:00Z"
+          }
+        },
+        {
+          "kind": "scene",
+          "value": {
+            "id": "cellar-1",
+            "version": "s1",
+            "title": "Cellar",
+            "description": "A locked door and a narrow window.",
+            "game_time": {
+              "ticks": 12,
+              "tick_duration_ms": 1000
+            },
+            "observations": [
+              {
+                "id": "door-1",
+                "label": "Door",
+                "description": "Locked."
+              }
+            ],
+            "visible_actor_ids": [
+              "hero-1"
+            ]
+          }
+        },
+        {
+          "kind": "character",
+          "value": {
+            "id": "hero-1",
+            "campaign_id": "campaign-1",
+            "name": "Mara",
+            "version": "h1",
+            "hp": {
+              "current": 8,
+              "maximum": 10
+            },
+            "fp": {
+              "current": 9,
+              "maximum": 10
+            },
+            "attributes": [
+              {
+                "id": "dx",
+                "label": "DX",
+                "value": 12
+              }
+            ],
+            "skills": [],
+            "defenses": [],
+            "movement": [],
+            "conditions": [],
+            "equipped_item_ids": []
+          }
+        },
+        {
+          "kind": "inventory",
+          "value": {
+            "actor_id": "hero-1",
+            "version": "i1",
+            "items": [
+              {
+                "id": "bandage-1",
+                "name": "Bandage",
+                "description": "Clean linen",
+                "quantity": 2,
+                "unit_weight_grams": 50,
+                "location": "carried",
+                "container_id": null,
+                "allowed_actions": [
+                  "inspect",
+                  "use_item"
+                ]
+              }
+            ],
+            "total_weight_grams": 100,
+            "encumbrance": "none"
+          }
+        }
+      ]
+    },
+    "steps": [
+      {
+        "message": {
+          "type": "projection.invalidated",
+          "protocol_version": "1.0.0",
+          "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+          "scope": {
+            "campaign_id": "campaign-1",
+            "scene_id": "cellar-1",
+            "actor_id": "hero-1"
+          },
+          "visibility_epoch": "epoch_one",
+          "event_id": "dcaa0121-6b6c-53b9-8fd2-7513c70b1e6a",
+          "cursor": "cursor_later____________________________",
+          "previous_cursor": "cursor_missing__________________________",
+          "occurred_at": "2026-09-06T22:00:00Z",
+          "correlation_id": "11111111-1111-4111-8111-111111111111",
+          "causation_id": null,
+          "resources": [
+            {
+              "resource_type": "inventory",
+              "resource_id": "hero-1",
+              "version": "i2"
+            }
+          ]
+        },
+        "expect": "resync",
+        "injected": true
+      }
+    ],
+    "expected": {
+      "cursor": "cursor_0________________________________",
+      "cache_valid": true,
+      "active": false,
+      "action_statuses": {},
+      "dirty_resources": [],
+      "active_narrations": 0
+    }
+  },
+  {
+    "name": "interruption_after_commit",
+    "initial": {
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "scope": {
+        "campaign_id": "campaign-1",
+        "scene_id": "cellar-1",
+        "actor_id": "hero-1"
+      },
+      "visibility_epoch": "epoch_one",
+      "cursor": "cursor_0________________________________",
+      "resources": [
+        {
+          "kind": "campaign",
+          "value": {
+            "id": "campaign-1",
+            "name": "The Missing Courier",
+            "premise": "Find the courier before dawn.",
+            "status": "active",
+            "version": "c1",
+            "game_time": {
+              "ticks": 12,
+              "tick_duration_ms": 1000
+            },
+            "membership": {
+              "principal_id": "player-1",
+              "role": "player",
+              "actor_ids": [
+                "hero-1"
+              ],
+              "version": "m1",
+              "campaign_id": "campaign-1"
+            },
+            "capabilities": [
+              "actions.text",
+              "actions.inspect",
+              "actions.use_item"
+            ],
+            "updated_at": "2026-09-06T22:00:00Z"
+          }
+        },
+        {
+          "kind": "scene",
+          "value": {
+            "id": "cellar-1",
+            "version": "s1",
+            "title": "Cellar",
+            "description": "A locked door and a narrow window.",
+            "game_time": {
+              "ticks": 12,
+              "tick_duration_ms": 1000
+            },
+            "observations": [
+              {
+                "id": "door-1",
+                "label": "Door",
+                "description": "Locked."
+              }
+            ],
+            "visible_actor_ids": [
+              "hero-1"
+            ]
+          }
+        },
+        {
+          "kind": "character",
+          "value": {
+            "id": "hero-1",
+            "campaign_id": "campaign-1",
+            "name": "Mara",
+            "version": "h1",
+            "hp": {
+              "current": 8,
+              "maximum": 10
+            },
+            "fp": {
+              "current": 9,
+              "maximum": 10
+            },
+            "attributes": [
+              {
+                "id": "dx",
+                "label": "DX",
+                "value": 12
+              }
+            ],
+            "skills": [],
+            "defenses": [],
+            "movement": [],
+            "conditions": [],
+            "equipped_item_ids": []
+          }
+        },
+        {
+          "kind": "inventory",
+          "value": {
+            "actor_id": "hero-1",
+            "version": "i1",
+            "items": [
+              {
+                "id": "bandage-1",
+                "name": "Bandage",
+                "description": "Clean linen",
+                "quantity": 2,
+                "unit_weight_grams": 50,
+                "location": "carried",
+                "container_id": null,
+                "allowed_actions": [
+                  "inspect",
+                  "use_item"
+                ]
+              }
+            ],
+            "total_weight_grams": 100,
+            "encumbrance": "none"
+          }
+        }
+      ]
+    },
+    "steps": [
+      {
+        "message": {
+          "type": "action.updated",
+          "protocol_version": "1.0.0",
+          "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+          "scope": {
+            "campaign_id": "campaign-1",
+            "scene_id": "cellar-1",
+            "actor_id": "hero-1"
+          },
+          "visibility_epoch": "epoch_one",
+          "event_id": "dcaa0121-6b6c-53b9-8fd2-7513c70b1e6a",
+          "cursor": "cursor_1________________________________",
+          "previous_cursor": "cursor_0________________________________",
+          "occurred_at": "2026-09-06T22:00:00Z",
+          "correlation_id": "11111111-1111-4111-8111-111111111111",
+          "causation_id": null,
+          "action": {
+            "id": "action-1",
+            "command_id": "11111111-1111-4111-8111-111111111111",
+            "actor_id": "hero-1",
+            "scene_id": "cellar-1",
+            "version": "a1",
+            "created_at": "2026-09-06T22:00:00Z",
+            "updated_at": "2026-09-06T22:00:00Z",
+            "status": "succeeded",
+            "resolution": {
+              "summary": "The bandage is used.",
+              "checks": [],
+              "changed_resources": [
+                {
+                  "resource_type": "inventory",
+                  "resource_id": "hero-1",
+                  "version": "i2"
+                }
+              ],
+              "game_time": {
+                "ticks": 12,
+                "tick_duration_ms": 1000
+              }
+            }
+          }
+        },
+        "expect": "applied",
+        "injected": false
+      },
+      {
+        "message": {
+          "type": "narration.started",
+          "protocol_version": "1.0.0",
+          "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+          "scope": {
+            "campaign_id": "campaign-1",
+            "scene_id": "cellar-1",
+            "actor_id": "hero-1"
+          },
+          "visibility_epoch": "epoch_one",
+          "narration_id": "1b0273c1-6d01-5df8-9989-c405988a8687",
+          "action_id": "action-1",
+          "command_id": "11111111-1111-4111-8111-111111111111",
+          "basis": "committed",
+          "voice_session_id": "voice-1"
+        },
+        "expect": "narration",
+        "injected": false
+      },
+      {
+        "message": {
+          "type": "narration.delta",
+          "protocol_version": "1.0.0",
+          "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+          "scope": {
+            "campaign_id": "campaign-1",
+            "scene_id": "cellar-1",
+            "actor_id": "hero-1"
+          },
+          "visibility_epoch": "epoch_one",
+          "narration_id": "1b0273c1-6d01-5df8-9989-c405988a8687",
+          "index": 0,
+          "text": "You bind the wound."
+        },
+        "expect": "narration",
+        "injected": false
+      },
+      {
+        "message": {
+          "type": "voice.segment",
+          "protocol_version": "1.0.0",
+          "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+          "scope": {
+            "campaign_id": "campaign-1",
+            "scene_id": "cellar-1",
+            "actor_id": "hero-1"
+          },
+          "visibility_epoch": "epoch_one",
+          "narration_id": "1b0273c1-6d01-5df8-9989-c405988a8687",
+          "voice_session_id": "voice-1",
+          "segment_index": 0,
+          "duration_ms": 800,
+          "media_type": "audio/opus",
+          "sample_rate_hz": 48000
+        },
+        "expect": "narration",
+        "injected": false
+      },
+      {
+        "message": {
+          "type": "narration.ended",
+          "protocol_version": "1.0.0",
+          "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+          "scope": {
+            "campaign_id": "campaign-1",
+            "scene_id": "cellar-1",
+            "actor_id": "hero-1"
+          },
+          "visibility_epoch": "epoch_one",
+          "narration_id": "1b0273c1-6d01-5df8-9989-c405988a8687",
+          "status": "interrupted",
+          "chunk_count": 1,
+          "request_id": "63ce9878-b00c-5d43-bff8-c0f820d2cf02"
+        },
+        "expect": "narration",
+        "injected": false
+      }
+    ],
+    "expected": {
+      "cursor": "cursor_1________________________________",
+      "cache_valid": true,
+      "active": true,
+      "action_statuses": {
+        "action-1": "succeeded"
+      },
+      "dirty_resources": [
+        "inventory:hero-1"
+      ],
+      "active_narrations": 0
+    }
+  },
+  {
+    "name": "expired_cursor_requires_snapshot",
+    "initial": {
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "scope": {
+        "campaign_id": "campaign-1",
+        "scene_id": "cellar-1",
+        "actor_id": "hero-1"
+      },
+      "visibility_epoch": "epoch_one",
+      "cursor": "cursor_0________________________________",
+      "resources": [
+        {
+          "kind": "campaign",
+          "value": {
+            "id": "campaign-1",
+            "name": "The Missing Courier",
+            "premise": "Find the courier before dawn.",
+            "status": "active",
+            "version": "c1",
+            "game_time": {
+              "ticks": 12,
+              "tick_duration_ms": 1000
+            },
+            "membership": {
+              "principal_id": "player-1",
+              "role": "player",
+              "actor_ids": [
+                "hero-1"
+              ],
+              "version": "m1",
+              "campaign_id": "campaign-1"
+            },
+            "capabilities": [
+              "actions.text",
+              "actions.inspect",
+              "actions.use_item"
+            ],
+            "updated_at": "2026-09-06T22:00:00Z"
+          }
+        },
+        {
+          "kind": "scene",
+          "value": {
+            "id": "cellar-1",
+            "version": "s1",
+            "title": "Cellar",
+            "description": "A locked door and a narrow window.",
+            "game_time": {
+              "ticks": 12,
+              "tick_duration_ms": 1000
+            },
+            "observations": [
+              {
+                "id": "door-1",
+                "label": "Door",
+                "description": "Locked."
+              }
+            ],
+            "visible_actor_ids": [
+              "hero-1"
+            ]
+          }
+        },
+        {
+          "kind": "character",
+          "value": {
+            "id": "hero-1",
+            "campaign_id": "campaign-1",
+            "name": "Mara",
+            "version": "h1",
+            "hp": {
+              "current": 8,
+              "maximum": 10
+            },
+            "fp": {
+              "current": 9,
+              "maximum": 10
+            },
+            "attributes": [
+              {
+                "id": "dx",
+                "label": "DX",
+                "value": 12
+              }
+            ],
+            "skills": [],
+            "defenses": [],
+            "movement": [],
+            "conditions": [],
+            "equipped_item_ids": []
+          }
+        },
+        {
+          "kind": "inventory",
+          "value": {
+            "actor_id": "hero-1",
+            "version": "i1",
+            "items": [
+              {
+                "id": "bandage-1",
+                "name": "Bandage",
+                "description": "Clean linen",
+                "quantity": 2,
+                "unit_weight_grams": 50,
+                "location": "carried",
+                "container_id": null,
+                "allowed_actions": [
+                  "inspect",
+                  "use_item"
+                ]
+              }
+            ],
+            "total_weight_grams": 100,
+            "encumbrance": "none"
+          }
+        }
+      ]
+    },
+    "steps": [
+      {
+        "message": {
+          "type": "stream.reset",
+          "protocol_version": "1.0.0",
+          "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+          "reason": "cursor_expired",
+          "retry_after_ms": 0
+        },
+        "expect": "purged",
+        "injected": false
+      }
+    ],
+    "expected": {
+      "cursor": null,
+      "cache_valid": false,
+      "active": false,
+      "action_statuses": {},
+      "dirty_resources": [],
+      "active_narrations": 0
+    }
+  },
+  {
+    "name": "revocation_discards_queued_events",
+    "initial": {
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "scope": {
+        "campaign_id": "campaign-1",
+        "scene_id": "cellar-1",
+        "actor_id": "hero-1"
+      },
+      "visibility_epoch": "epoch_one",
+      "cursor": "cursor_0________________________________",
+      "resources": [
+        {
+          "kind": "campaign",
+          "value": {
+            "id": "campaign-1",
+            "name": "The Missing Courier",
+            "premise": "Find the courier before dawn.",
+            "status": "active",
+            "version": "c1",
+            "game_time": {
+              "ticks": 12,
+              "tick_duration_ms": 1000
+            },
+            "membership": {
+              "principal_id": "player-1",
+              "role": "player",
+              "actor_ids": [
+                "hero-1"
+              ],
+              "version": "m1",
+              "campaign_id": "campaign-1"
+            },
+            "capabilities": [
+              "actions.text",
+              "actions.inspect",
+              "actions.use_item"
+            ],
+            "updated_at": "2026-09-06T22:00:00Z"
+          }
+        },
+        {
+          "kind": "scene",
+          "value": {
+            "id": "cellar-1",
+            "version": "s1",
+            "title": "Cellar",
+            "description": "A locked door and a narrow window.",
+            "game_time": {
+              "ticks": 12,
+              "tick_duration_ms": 1000
+            },
+            "observations": [
+              {
+                "id": "door-1",
+                "label": "Door",
+                "description": "Locked."
+              }
+            ],
+            "visible_actor_ids": [
+              "hero-1"
+            ]
+          }
+        },
+        {
+          "kind": "character",
+          "value": {
+            "id": "hero-1",
+            "campaign_id": "campaign-1",
+            "name": "Mara",
+            "version": "h1",
+            "hp": {
+              "current": 8,
+              "maximum": 10
+            },
+            "fp": {
+              "current": 9,
+              "maximum": 10
+            },
+            "attributes": [
+              {
+                "id": "dx",
+                "label": "DX",
+                "value": 12
+              }
+            ],
+            "skills": [],
+            "defenses": [],
+            "movement": [],
+            "conditions": [],
+            "equipped_item_ids": []
+          }
+        },
+        {
+          "kind": "inventory",
+          "value": {
+            "actor_id": "hero-1",
+            "version": "i1",
+            "items": [
+              {
+                "id": "bandage-1",
+                "name": "Bandage",
+                "description": "Clean linen",
+                "quantity": 2,
+                "unit_weight_grams": 50,
+                "location": "carried",
+                "container_id": null,
+                "allowed_actions": [
+                  "inspect",
+                  "use_item"
+                ]
+              }
+            ],
+            "total_weight_grams": 100,
+            "encumbrance": "none"
+          }
+        }
+      ]
+    },
+    "steps": [
+      {
+        "message": {
+          "type": "subscription.revoked",
+          "protocol_version": "1.0.0",
+          "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9"
+        },
+        "expect": "purged",
+        "injected": false
+      },
+      {
+        "message": {
+          "type": "action.updated",
+          "protocol_version": "1.0.0",
+          "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+          "scope": {
+            "campaign_id": "campaign-1",
+            "scene_id": "cellar-1",
+            "actor_id": "hero-1"
+          },
+          "visibility_epoch": "epoch_one",
+          "event_id": "dcaa0121-6b6c-53b9-8fd2-7513c70b1e6a",
+          "cursor": "cursor_1________________________________",
+          "previous_cursor": "cursor_0________________________________",
+          "occurred_at": "2026-09-06T22:00:00Z",
+          "correlation_id": "11111111-1111-4111-8111-111111111111",
+          "causation_id": null,
+          "action": {
+            "id": "action-1",
+            "command_id": "11111111-1111-4111-8111-111111111111",
+            "actor_id": "hero-1",
+            "scene_id": "cellar-1",
+            "version": "a1",
+            "created_at": "2026-09-06T22:00:00Z",
+            "updated_at": "2026-09-06T22:00:00Z",
+            "status": "succeeded",
+            "resolution": {
+              "summary": "The bandage is used.",
+              "checks": [],
+              "changed_resources": [
+                {
+                  "resource_type": "inventory",
+                  "resource_id": "hero-1",
+                  "version": "i2"
+                }
+              ],
+              "game_time": {
+                "ticks": 12,
+                "tick_duration_ms": 1000
+              }
+            }
+          }
+        },
+        "expect": "ignored",
+        "injected": true
+      }
+    ],
+    "expected": {
+      "cursor": null,
+      "cache_valid": false,
+      "active": false,
+      "action_statuses": {},
+      "dirty_resources": [],
+      "active_narrations": 0
+    }
+  },
+  {
+    "name": "scene_switch_ignores_old_subscription",
+    "initial": {
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "scope": {
+        "campaign_id": "campaign-1",
+        "scene_id": "cellar-1",
+        "actor_id": "hero-1"
+      },
+      "visibility_epoch": "epoch_one",
+      "cursor": "cursor_0________________________________",
+      "resources": [
+        {
+          "kind": "campaign",
+          "value": {
+            "id": "campaign-1",
+            "name": "The Missing Courier",
+            "premise": "Find the courier before dawn.",
+            "status": "active",
+            "version": "c1",
+            "game_time": {
+              "ticks": 12,
+              "tick_duration_ms": 1000
+            },
+            "membership": {
+              "principal_id": "player-1",
+              "role": "player",
+              "actor_ids": [
+                "hero-1"
+              ],
+              "version": "m1",
+              "campaign_id": "campaign-1"
+            },
+            "capabilities": [
+              "actions.text",
+              "actions.inspect",
+              "actions.use_item"
+            ],
+            "updated_at": "2026-09-06T22:00:00Z"
+          }
+        },
+        {
+          "kind": "scene",
+          "value": {
+            "id": "cellar-1",
+            "version": "s1",
+            "title": "Cellar",
+            "description": "A locked door and a narrow window.",
+            "game_time": {
+              "ticks": 12,
+              "tick_duration_ms": 1000
+            },
+            "observations": [
+              {
+                "id": "door-1",
+                "label": "Door",
+                "description": "Locked."
+              }
+            ],
+            "visible_actor_ids": [
+              "hero-1"
+            ]
+          }
+        },
+        {
+          "kind": "character",
+          "value": {
+            "id": "hero-1",
+            "campaign_id": "campaign-1",
+            "name": "Mara",
+            "version": "h1",
+            "hp": {
+              "current": 8,
+              "maximum": 10
+            },
+            "fp": {
+              "current": 9,
+              "maximum": 10
+            },
+            "attributes": [
+              {
+                "id": "dx",
+                "label": "DX",
+                "value": 12
+              }
+            ],
+            "skills": [],
+            "defenses": [],
+            "movement": [],
+            "conditions": [],
+            "equipped_item_ids": []
+          }
+        },
+        {
+          "kind": "inventory",
+          "value": {
+            "actor_id": "hero-1",
+            "version": "i1",
+            "items": [
+              {
+                "id": "bandage-1",
+                "name": "Bandage",
+                "description": "Clean linen",
+                "quantity": 2,
+                "unit_weight_grams": 50,
+                "location": "carried",
+                "container_id": null,
+                "allowed_actions": [
+                  "inspect",
+                  "use_item"
+                ]
+              }
+            ],
+            "total_weight_grams": 100,
+            "encumbrance": "none"
+          }
+        }
+      ]
+    },
+    "steps": [
+      {
+        "message": {
+          "type": "unsubscribed",
+          "protocol_version": "1.0.0",
+          "request_id": "d7906dfd-48ed-598b-b090-0958da305528",
+          "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9"
+        },
+        "expect": "purged",
+        "injected": false
+      },
+      {
+        "message": {
+          "type": "narration.delta",
+          "protocol_version": "1.0.0",
+          "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+          "scope": {
+            "campaign_id": "campaign-1",
+            "scene_id": "cellar-1",
+            "actor_id": "hero-1"
+          },
+          "visibility_epoch": "epoch_one",
+          "narration_id": "1b0273c1-6d01-5df8-9989-c405988a8687",
+          "index": 0,
+          "text": "You bind the wound."
+        },
+        "expect": "ignored",
+        "injected": true
+      }
+    ],
+    "expected": {
+      "cursor": null,
+      "cache_valid": false,
+      "active": false,
+      "action_statuses": {},
+      "dirty_resources": [],
+      "active_narrations": 0
+    }
+  },
+  {
+    "name": "reunion_rotates_perspective",
+    "initial": {
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "scope": {
+        "campaign_id": "campaign-1",
+        "scene_id": "cellar-1",
+        "actor_id": "hero-1"
+      },
+      "visibility_epoch": "epoch_one",
+      "cursor": "cursor_0________________________________",
+      "resources": [
+        {
+          "kind": "campaign",
+          "value": {
+            "id": "campaign-1",
+            "name": "The Missing Courier",
+            "premise": "Find the courier before dawn.",
+            "status": "active",
+            "version": "c1",
+            "game_time": {
+              "ticks": 12,
+              "tick_duration_ms": 1000
+            },
+            "membership": {
+              "principal_id": "player-1",
+              "role": "player",
+              "actor_ids": [
+                "hero-1"
+              ],
+              "version": "m1",
+              "campaign_id": "campaign-1"
+            },
+            "capabilities": [
+              "actions.text",
+              "actions.inspect",
+              "actions.use_item"
+            ],
+            "updated_at": "2026-09-06T22:00:00Z"
+          }
+        },
+        {
+          "kind": "scene",
+          "value": {
+            "id": "cellar-1",
+            "version": "s1",
+            "title": "Cellar",
+            "description": "A locked door and a narrow window.",
+            "game_time": {
+              "ticks": 12,
+              "tick_duration_ms": 1000
+            },
+            "observations": [
+              {
+                "id": "door-1",
+                "label": "Door",
+                "description": "Locked."
+              }
+            ],
+            "visible_actor_ids": [
+              "hero-1"
+            ]
+          }
+        },
+        {
+          "kind": "character",
+          "value": {
+            "id": "hero-1",
+            "campaign_id": "campaign-1",
+            "name": "Mara",
+            "version": "h1",
+            "hp": {
+              "current": 8,
+              "maximum": 10
+            },
+            "fp": {
+              "current": 9,
+              "maximum": 10
+            },
+            "attributes": [
+              {
+                "id": "dx",
+                "label": "DX",
+                "value": 12
+              }
+            ],
+            "skills": [],
+            "defenses": [],
+            "movement": [],
+            "conditions": [],
+            "equipped_item_ids": []
+          }
+        },
+        {
+          "kind": "inventory",
+          "value": {
+            "actor_id": "hero-1",
+            "version": "i1",
+            "items": [
+              {
+                "id": "bandage-1",
+                "name": "Bandage",
+                "description": "Clean linen",
+                "quantity": 2,
+                "unit_weight_grams": 50,
+                "location": "carried",
+                "container_id": null,
+                "allowed_actions": [
+                  "inspect",
+                  "use_item"
+                ]
+              }
+            ],
+            "total_weight_grams": 100,
+            "encumbrance": "none"
+          }
+        }
+      ]
+    },
+    "steps": [
+      {
+        "message": {
+          "type": "stream.reset",
+          "protocol_version": "1.0.0",
+          "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+          "reason": "visibility_changed",
+          "retry_after_ms": 0
+        },
+        "expect": "purged",
+        "injected": false
+      },
+      {
+        "message": {
+          "type": "action.updated",
+          "protocol_version": "1.0.0",
+          "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+          "scope": {
+            "campaign_id": "campaign-1",
+            "scene_id": "cellar-1",
+            "actor_id": "hero-1"
+          },
+          "visibility_epoch": "epoch_one",
+          "event_id": "dcaa0121-6b6c-53b9-8fd2-7513c70b1e6a",
+          "cursor": "cursor_1________________________________",
+          "previous_cursor": "cursor_0________________________________",
+          "occurred_at": "2026-09-06T22:00:00Z",
+          "correlation_id": "11111111-1111-4111-8111-111111111111",
+          "causation_id": null,
+          "action": {
+            "id": "action-1",
+            "command_id": "11111111-1111-4111-8111-111111111111",
+            "actor_id": "hero-1",
+            "scene_id": "cellar-1",
+            "version": "a1",
+            "created_at": "2026-09-06T22:00:00Z",
+            "updated_at": "2026-09-06T22:00:00Z",
+            "status": "succeeded",
+            "resolution": {
+              "summary": "The bandage is used.",
+              "checks": [],
+              "changed_resources": [
+                {
+                  "resource_type": "inventory",
+                  "resource_id": "hero-1",
+                  "version": "i2"
+                }
+              ],
+              "game_time": {
+                "ticks": 12,
+                "tick_duration_ms": 1000
+              }
+            }
+          }
+        },
+        "expect": "ignored",
+        "injected": true
+      }
+    ],
+    "expected": {
+      "cursor": null,
+      "cache_valid": false,
+      "active": false,
+      "action_statuses": {},
+      "dirty_resources": [],
+      "active_narrations": 0
+    }
+  },
+  {
+    "name": "independent_captive_view",
+    "initial": {
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "scope": {
+        "campaign_id": "campaign-1",
+        "scene_id": "cellar-1",
+        "actor_id": "hero-1"
+      },
+      "visibility_epoch": "epoch_one",
+      "cursor": "cursor_0________________________________",
+      "resources": [
+        {
+          "kind": "campaign",
+          "value": {
+            "id": "campaign-1",
+            "name": "The Missing Courier",
+            "premise": "Find the courier before dawn.",
+            "status": "active",
+            "version": "c1",
+            "game_time": {
+              "ticks": 12,
+              "tick_duration_ms": 1000
+            },
+            "membership": {
+              "principal_id": "player-1",
+              "role": "player",
+              "actor_ids": [
+                "hero-1"
+              ],
+              "version": "m1",
+              "campaign_id": "campaign-1"
+            },
+            "capabilities": [
+              "actions.text",
+              "actions.inspect",
+              "actions.use_item"
+            ],
+            "updated_at": "2026-09-06T22:00:00Z"
+          }
+        },
+        {
+          "kind": "scene",
+          "value": {
+            "id": "cellar-1",
+            "version": "s1",
+            "title": "Cellar",
+            "description": "A locked door and a narrow window.",
+            "game_time": {
+              "ticks": 12,
+              "tick_duration_ms": 1000
+            },
+            "observations": [
+              {
+                "id": "door-1",
+                "label": "Door",
+                "description": "Locked."
+              }
+            ],
+            "visible_actor_ids": [
+              "hero-1"
+            ]
+          }
+        },
+        {
+          "kind": "character",
+          "value": {
+            "id": "hero-1",
+            "campaign_id": "campaign-1",
+            "name": "Mara",
+            "version": "h1",
+            "hp": {
+              "current": 8,
+              "maximum": 10
+            },
+            "fp": {
+              "current": 9,
+              "maximum": 10
+            },
+            "attributes": [
+              {
+                "id": "dx",
+                "label": "DX",
+                "value": 12
+              }
+            ],
+            "skills": [],
+            "defenses": [],
+            "movement": [],
+            "conditions": [],
+            "equipped_item_ids": []
+          }
+        },
+        {
+          "kind": "inventory",
+          "value": {
+            "actor_id": "hero-1",
+            "version": "i1",
+            "items": [
+              {
+                "id": "bandage-1",
+                "name": "Bandage",
+                "description": "Clean linen",
+                "quantity": 2,
+                "unit_weight_grams": 50,
+                "location": "carried",
+                "container_id": null,
+                "allowed_actions": [
+                  "inspect",
+                  "use_item"
+                ]
+              }
+            ],
+            "total_weight_grams": 100,
+            "encumbrance": "none"
+          }
+        }
+      ]
+    },
+    "steps": [
+      {
+        "message": {
+          "type": "action.updated",
+          "protocol_version": "1.0.0",
+          "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+          "scope": {
+            "campaign_id": "campaign-1",
+            "scene_id": "cellar-1",
+            "actor_id": "hero-1"
+          },
+          "visibility_epoch": "epoch_one",
+          "event_id": "dcaa0121-6b6c-53b9-8fd2-7513c70b1e6a",
+          "cursor": "cursor_1________________________________",
+          "previous_cursor": "cursor_0________________________________",
+          "occurred_at": "2026-09-06T22:00:00Z",
+          "correlation_id": "11111111-1111-4111-8111-111111111111",
+          "causation_id": null,
+          "action": {
+            "id": "action-1",
+            "command_id": "11111111-1111-4111-8111-111111111111",
+            "actor_id": "hero-1",
+            "scene_id": "cellar-1",
+            "version": "a1",
+            "created_at": "2026-09-06T22:00:00Z",
+            "updated_at": "2026-09-06T22:00:00Z",
+            "status": "succeeded",
+            "resolution": {
+              "summary": "The bandage is used.",
+              "checks": [],
+              "changed_resources": [
+                {
+                  "resource_type": "inventory",
+                  "resource_id": "hero-1",
+                  "version": "i2"
+                }
+              ],
+              "game_time": {
+                "ticks": 12,
+                "tick_duration_ms": 1000
+              }
+            }
+          }
+        },
+        "expect": "applied",
+        "injected": false
+      }
+    ],
+    "expected": {
+      "cursor": "cursor_1________________________________",
+      "cache_valid": true,
+      "active": true,
+      "action_statuses": {
+        "action-1": "succeeded"
+      },
+      "dirty_resources": [
+        "inventory:hero-1"
+      ],
+      "active_narrations": 0
+    }
+  },
+  {
+    "name": "independent_rescuer_view",
+    "initial": {
+      "subscription_id": "f48b625b-0e11-53c1-ac10-b80ca1a731c9",
+      "scope": {
+        "campaign_id": "campaign-1",
+        "scene_id": "forest-1",
+        "actor_id": "hero-2"
+      },
+      "visibility_epoch": "epoch_one",
+      "cursor": "cursor_rescuer0_________________________",
+      "resources": [
+        {
+          "kind": "campaign",
+          "value": {
+            "id": "campaign-1",
+            "name": "The Missing Courier",
+            "premise": "Find the courier before dawn.",
+            "status": "active",
+            "version": "c1",
+            "game_time": {
+              "ticks": 12,
+              "tick_duration_ms": 1000
+            },
+            "membership": {
+              "principal_id": "player-2",
+              "role": "player",
+              "actor_ids": [
+                "hero-2"
+              ],
+              "version": "m1",
+              "campaign_id": "campaign-1"
+            },
+            "capabilities": [
+              "actions.text",
+              "actions.inspect",
+              "actions.use_item"
+            ],
+            "updated_at": "2026-09-06T22:00:00Z"
+          }
+        },
+        {
+          "kind": "scene",
+          "value": {
+            "id": "forest-1",
+            "version": "s1",
+            "title": "Forest",
+            "description": "Tracks lead north.",
+            "game_time": {
+              "ticks": 12,
+              "tick_duration_ms": 1000
+            },
+            "observations": [],
+            "visible_actor_ids": [
+              "hero-2"
+            ]
+          }
+        },
+        {
+          "kind": "character",
+          "value": {
+            "id": "hero-2",
+            "campaign_id": "campaign-1",
+            "name": "Orin",
+            "version": "h1",
+            "hp": {
+              "current": 8,
+              "maximum": 10
+            },
+            "fp": {
+              "current": 9,
+              "maximum": 10
+            },
+            "attributes": [
+              {
+                "id": "dx",
+                "label": "DX",
+                "value": 12
+              }
+            ],
+            "skills": [],
+            "defenses": [],
+            "movement": [],
+            "conditions": [],
+            "equipped_item_ids": []
+          }
+        },
+        {
+          "kind": "inventory",
+          "value": {
+            "actor_id": "hero-2",
+            "version": "i1",
+            "items": [],
+            "total_weight_grams": 100,
+            "encumbrance": "none"
+          }
+        }
+      ]
+    },
+    "steps": [
+      {
+        "message": {
+          "type": "projection.invalidated",
+          "protocol_version": "1.0.0",
+          "subscription_id": "f48b625b-0e11-53c1-ac10-b80ca1a731c9",
+          "scope": {
+            "campaign_id": "campaign-1",
+            "scene_id": "forest-1",
+            "actor_id": "hero-2"
+          },
+          "visibility_epoch": "epoch_one",
+          "event_id": "dcaa0121-6b6c-53b9-8fd2-7513c70b1e6a",
+          "cursor": "cursor_rescuer1_________________________",
+          "previous_cursor": "cursor_rescuer0_________________________",
+          "occurred_at": "2026-09-06T22:00:00Z",
+          "correlation_id": "11111111-1111-4111-8111-111111111111",
+          "causation_id": null,
+          "resources": [
+            {
+              "resource_type": "scene",
+              "resource_id": "forest-1",
+              "version": "forest2"
+            }
+          ]
+        },
+        "expect": "applied",
+        "injected": false
+      },
+      {
+        "message": {
+          "type": "action.updated",
+          "protocol_version": "1.0.0",
+          "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+          "scope": {
+            "campaign_id": "campaign-1",
+            "scene_id": "cellar-1",
+            "actor_id": "hero-1"
+          },
+          "visibility_epoch": "epoch_one",
+          "event_id": "dcaa0121-6b6c-53b9-8fd2-7513c70b1e6a",
+          "cursor": "cursor_1________________________________",
+          "previous_cursor": "cursor_0________________________________",
+          "occurred_at": "2026-09-06T22:00:00Z",
+          "correlation_id": "11111111-1111-4111-8111-111111111111",
+          "causation_id": null,
+          "action": {
+            "id": "action-1",
+            "command_id": "11111111-1111-4111-8111-111111111111",
+            "actor_id": "hero-1",
+            "scene_id": "cellar-1",
+            "version": "a1",
+            "created_at": "2026-09-06T22:00:00Z",
+            "updated_at": "2026-09-06T22:00:00Z",
+            "status": "succeeded",
+            "resolution": {
+              "summary": "The bandage is used.",
+              "checks": [],
+              "changed_resources": [
+                {
+                  "resource_type": "inventory",
+                  "resource_id": "hero-1",
+                  "version": "i2"
+                }
+              ],
+              "game_time": {
+                "ticks": 12,
+                "tick_duration_ms": 1000
+              }
+            }
+          }
+        },
+        "expect": "ignored",
+        "injected": true
+      }
+    ],
+    "expected": {
+      "cursor": "cursor_rescuer1_________________________",
+      "cache_valid": true,
+      "active": true,
+      "action_statuses": {},
+      "dirty_resources": [
+        "scene:forest-1"
+      ],
+      "active_narrations": 0
+    }
+  },
+  {
+    "name": "replay_from_persisted_checkpoint",
+    "initial": {
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "scope": {
+        "campaign_id": "campaign-1",
+        "scene_id": "cellar-1",
+        "actor_id": "hero-1"
+      },
+      "visibility_epoch": "epoch_one",
+      "cursor": "cursor_0________________________________",
+      "resources": [
+        {
+          "kind": "campaign",
+          "value": {
+            "id": "campaign-1",
+            "name": "The Missing Courier",
+            "premise": "Find the courier before dawn.",
+            "status": "active",
+            "version": "c1",
+            "game_time": {
+              "ticks": 12,
+              "tick_duration_ms": 1000
+            },
+            "membership": {
+              "principal_id": "player-1",
+              "role": "player",
+              "actor_ids": [
+                "hero-1"
+              ],
+              "version": "m1",
+              "campaign_id": "campaign-1"
+            },
+            "capabilities": [
+              "actions.text",
+              "actions.inspect",
+              "actions.use_item"
+            ],
+            "updated_at": "2026-09-06T22:00:00Z"
+          }
+        },
+        {
+          "kind": "scene",
+          "value": {
+            "id": "cellar-1",
+            "version": "s1",
+            "title": "Cellar",
+            "description": "A locked door and a narrow window.",
+            "game_time": {
+              "ticks": 12,
+              "tick_duration_ms": 1000
+            },
+            "observations": [
+              {
+                "id": "door-1",
+                "label": "Door",
+                "description": "Locked."
+              }
+            ],
+            "visible_actor_ids": [
+              "hero-1"
+            ]
+          }
+        },
+        {
+          "kind": "character",
+          "value": {
+            "id": "hero-1",
+            "campaign_id": "campaign-1",
+            "name": "Mara",
+            "version": "h1",
+            "hp": {
+              "current": 8,
+              "maximum": 10
+            },
+            "fp": {
+              "current": 9,
+              "maximum": 10
+            },
+            "attributes": [
+              {
+                "id": "dx",
+                "label": "DX",
+                "value": 12
+              }
+            ],
+            "skills": [],
+            "defenses": [],
+            "movement": [],
+            "conditions": [],
+            "equipped_item_ids": []
+          }
+        },
+        {
+          "kind": "inventory",
+          "value": {
+            "actor_id": "hero-1",
+            "version": "i1",
+            "items": [
+              {
+                "id": "bandage-1",
+                "name": "Bandage",
+                "description": "Clean linen",
+                "quantity": 2,
+                "unit_weight_grams": 50,
+                "location": "carried",
+                "container_id": null,
+                "allowed_actions": [
+                  "inspect",
+                  "use_item"
+                ]
+              }
+            ],
+            "total_weight_grams": 100,
+            "encumbrance": "none"
+          }
+        }
+      ]
+    },
+    "steps": [
+      {
+        "message": {
+          "type": "projection.invalidated",
+          "protocol_version": "1.0.0",
+          "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+          "scope": {
+            "campaign_id": "campaign-1",
+            "scene_id": "cellar-1",
+            "actor_id": "hero-1"
+          },
+          "visibility_epoch": "epoch_one",
+          "event_id": "dcaa0121-6b6c-53b9-8fd2-7513c70b1e6a",
+          "cursor": "cursor_1________________________________",
+          "previous_cursor": "cursor_0________________________________",
+          "occurred_at": "2026-09-06T22:00:00Z",
+          "correlation_id": "11111111-1111-4111-8111-111111111111",
+          "causation_id": null,
+          "resources": [
+            {
+              "resource_type": "inventory",
+              "resource_id": "hero-1",
+              "version": "i2"
+            }
+          ]
+        },
+        "expect": "applied",
+        "injected": false
+      },
+      {
+        "message": {
+          "type": "stream.ready",
+          "protocol_version": "1.0.0",
+          "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+          "scope": {
+            "campaign_id": "campaign-1",
+            "scene_id": "cellar-1",
+            "actor_id": "hero-1"
+          },
+          "visibility_epoch": "epoch_one",
+          "cursor": "cursor_1________________________________"
+        },
+        "expect": "ready",
+        "injected": false
+      }
+    ],
+    "expected": {
+      "cursor": "cursor_1________________________________",
+      "cache_valid": true,
+      "active": true,
+      "action_statuses": {},
+      "dirty_resources": [
+        "inventory:hero-1"
+      ],
+      "active_narrations": 0
+    }
+  }
+]

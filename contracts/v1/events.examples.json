@@ -1,0 +1,556 @@
+[
+  {
+    "name": "Authenticate",
+    "direction": "client",
+    "message": {
+      "type": "authenticate",
+      "request_id": "46cb916c-9d38-5aca-a23b-c78b4970def8",
+      "credential": "fixture-only-not-a-real-credential"
+    }
+  },
+  {
+    "name": "Subscribe",
+    "direction": "client",
+    "message": {
+      "type": "subscribe",
+      "request_id": "16709d6c-ebfd-552c-ba3d-5b11033bc5a1",
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "scope": {
+        "campaign_id": "campaign-1",
+        "scene_id": "cellar-1",
+        "actor_id": "hero-1"
+      },
+      "resume": null
+    }
+  },
+  {
+    "name": "Resume",
+    "direction": "client",
+    "message": {
+      "type": "subscribe",
+      "request_id": "16709d6c-ebfd-552c-ba3d-5b11033bc5a1",
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "scope": {
+        "campaign_id": "campaign-1",
+        "scene_id": "cellar-1",
+        "actor_id": "hero-1"
+      },
+      "resume": {
+        "cursor": "cursor_0________________________________",
+        "visibility_epoch": "epoch_one"
+      }
+    }
+  },
+  {
+    "name": "Acknowledge",
+    "direction": "client",
+    "message": {
+      "type": "ack",
+      "request_id": "2a7ec81e-c48e-5d57-8c70-fad6c5f7b861",
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "cursor": "cursor_1________________________________"
+    }
+  },
+  {
+    "name": "Unsubscribe",
+    "direction": "client",
+    "message": {
+      "type": "unsubscribe",
+      "request_id": "d7906dfd-48ed-598b-b090-0958da305528",
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9"
+    }
+  },
+  {
+    "name": "Pong",
+    "direction": "client",
+    "message": {
+      "type": "heartbeat.pong",
+      "request_id": "80de52cf-17d7-566f-bf8d-f62b9f7f4970",
+      "nonce": "cc8641e1-222f-577e-8c0d-aca06ebdcc8b"
+    }
+  },
+  {
+    "name": "InterruptNarration",
+    "direction": "client",
+    "message": {
+      "type": "narration.interrupt",
+      "request_id": "63ce9878-b00c-5d43-bff8-c0f820d2cf02",
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "narration_id": "1b0273c1-6d01-5df8-9989-c405988a8687"
+    }
+  },
+  {
+    "name": "Authenticated",
+    "direction": "server",
+    "message": {
+      "type": "authenticated",
+      "protocol_version": "1.0.0",
+      "request_id": "46cb916c-9d38-5aca-a23b-c78b4970def8",
+      "connection_id": "f2db122e-e590-5e6e-a4a0-f0c016afe1ad",
+      "principal_id": "player-1",
+      "expires_at": "2026-09-06T23:00:00Z"
+    }
+  },
+  {
+    "name": "Subscribed",
+    "direction": "server",
+    "message": {
+      "type": "subscribed",
+      "protocol_version": "1.0.0",
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "scope": {
+        "campaign_id": "campaign-1",
+        "scene_id": "cellar-1",
+        "actor_id": "hero-1"
+      },
+      "visibility_epoch": "epoch_one",
+      "request_id": "16709d6c-ebfd-552c-ba3d-5b11033bc5a1",
+      "mode": "snapshot"
+    }
+  },
+  {
+    "name": "ReplaySubscribed",
+    "direction": "server",
+    "message": {
+      "type": "subscribed",
+      "protocol_version": "1.0.0",
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "scope": {
+        "campaign_id": "campaign-1",
+        "scene_id": "cellar-1",
+        "actor_id": "hero-1"
+      },
+      "visibility_epoch": "epoch_one",
+      "request_id": "16709d6c-ebfd-552c-ba3d-5b11033bc5a1",
+      "mode": "replay"
+    }
+  },
+  {
+    "name": "SnapshotBegin",
+    "direction": "server",
+    "message": {
+      "type": "snapshot.begin",
+      "protocol_version": "1.0.0",
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "scope": {
+        "campaign_id": "campaign-1",
+        "scene_id": "cellar-1",
+        "actor_id": "hero-1"
+      },
+      "visibility_epoch": "epoch_one",
+      "snapshot_id": "30d54cfd-e026-5c07-90ca-8478ab372215",
+      "cursor": "cursor_0________________________________",
+      "resource_count": 4
+    }
+  },
+  {
+    "name": "SnapshotCampaign",
+    "direction": "server",
+    "message": {
+      "type": "snapshot.resource",
+      "protocol_version": "1.0.0",
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "scope": {
+        "campaign_id": "campaign-1",
+        "scene_id": "cellar-1",
+        "actor_id": "hero-1"
+      },
+      "visibility_epoch": "epoch_one",
+      "snapshot_id": "30d54cfd-e026-5c07-90ca-8478ab372215",
+      "index": 0,
+      "resource": {
+        "kind": "campaign",
+        "value": {
+          "id": "campaign-1",
+          "name": "The Missing Courier",
+          "premise": "Find the courier before dawn.",
+          "status": "active",
+          "version": "c1",
+          "game_time": {
+            "ticks": 12,
+            "tick_duration_ms": 1000
+          },
+          "membership": {
+            "principal_id": "player-1",
+            "role": "player",
+            "actor_ids": [
+              "hero-1"
+            ],
+            "version": "m1",
+            "campaign_id": "campaign-1"
+          },
+          "capabilities": [
+            "actions.text",
+            "actions.inspect",
+            "actions.use_item"
+          ],
+          "updated_at": "2026-09-06T22:00:00Z"
+        }
+      }
+    }
+  },
+  {
+    "name": "SnapshotScene",
+    "direction": "server",
+    "message": {
+      "type": "snapshot.resource",
+      "protocol_version": "1.0.0",
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "scope": {
+        "campaign_id": "campaign-1",
+        "scene_id": "cellar-1",
+        "actor_id": "hero-1"
+      },
+      "visibility_epoch": "epoch_one",
+      "snapshot_id": "30d54cfd-e026-5c07-90ca-8478ab372215",
+      "index": 1,
+      "resource": {
+        "kind": "scene",
+        "value": {
+          "id": "cellar-1",
+          "version": "s1",
+          "title": "Cellar",
+          "description": "A locked door and a narrow window.",
+          "game_time": {
+            "ticks": 12,
+            "tick_duration_ms": 1000
+          },
+          "observations": [
+            {
+              "id": "door-1",
+              "label": "Door",
+              "description": "Locked."
+            }
+          ],
+          "visible_actor_ids": [
+            "hero-1"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "SnapshotCharacter",
+    "direction": "server",
+    "message": {
+      "type": "snapshot.resource",
+      "protocol_version": "1.0.0",
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "scope": {
+        "campaign_id": "campaign-1",
+        "scene_id": "cellar-1",
+        "actor_id": "hero-1"
+      },
+      "visibility_epoch": "epoch_one",
+      "snapshot_id": "30d54cfd-e026-5c07-90ca-8478ab372215",
+      "index": 2,
+      "resource": {
+        "kind": "character",
+        "value": {
+          "id": "hero-1",
+          "campaign_id": "campaign-1",
+          "name": "Mara",
+          "version": "h1",
+          "hp": {
+            "current": 8,
+            "maximum": 10
+          },
+          "fp": {
+            "current": 9,
+            "maximum": 10
+          },
+          "attributes": [
+            {
+              "id": "dx",
+              "label": "DX",
+              "value": 12
+            }
+          ],
+          "skills": [],
+          "defenses": [],
+          "movement": [],
+          "conditions": [],
+          "equipped_item_ids": []
+        }
+      }
+    }
+  },
+  {
+    "name": "SnapshotInventory",
+    "direction": "server",
+    "message": {
+      "type": "snapshot.resource",
+      "protocol_version": "1.0.0",
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "scope": {
+        "campaign_id": "campaign-1",
+        "scene_id": "cellar-1",
+        "actor_id": "hero-1"
+      },
+      "visibility_epoch": "epoch_one",
+      "snapshot_id": "30d54cfd-e026-5c07-90ca-8478ab372215",
+      "index": 3,
+      "resource": {
+        "kind": "inventory",
+        "value": {
+          "actor_id": "hero-1",
+          "version": "i1",
+          "items": [
+            {
+              "id": "bandage-1",
+              "name": "Bandage",
+              "description": "Clean linen",
+              "quantity": 2,
+              "unit_weight_grams": 50,
+              "location": "carried",
+              "container_id": null,
+              "allowed_actions": [
+                "inspect",
+                "use_item"
+              ]
+            }
+          ],
+          "total_weight_grams": 100,
+          "encumbrance": "none"
+        }
+      }
+    }
+  },
+  {
+    "name": "SnapshotEnd",
+    "direction": "server",
+    "message": {
+      "type": "snapshot.end",
+      "protocol_version": "1.0.0",
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "scope": {
+        "campaign_id": "campaign-1",
+        "scene_id": "cellar-1",
+        "actor_id": "hero-1"
+      },
+      "visibility_epoch": "epoch_one",
+      "snapshot_id": "30d54cfd-e026-5c07-90ca-8478ab372215",
+      "cursor": "cursor_0________________________________",
+      "resource_count": 4
+    }
+  },
+  {
+    "name": "Ready",
+    "direction": "server",
+    "message": {
+      "type": "stream.ready",
+      "protocol_version": "1.0.0",
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "scope": {
+        "campaign_id": "campaign-1",
+        "scene_id": "cellar-1",
+        "actor_id": "hero-1"
+      },
+      "visibility_epoch": "epoch_one",
+      "cursor": "cursor_0________________________________"
+    }
+  },
+  {
+    "name": "ActionUpdated",
+    "direction": "server",
+    "message": {
+      "type": "action.updated",
+      "protocol_version": "1.0.0",
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "scope": {
+        "campaign_id": "campaign-1",
+        "scene_id": "cellar-1",
+        "actor_id": "hero-1"
+      },
+      "visibility_epoch": "epoch_one",
+      "event_id": "dcaa0121-6b6c-53b9-8fd2-7513c70b1e6a",
+      "cursor": "cursor_1________________________________",
+      "previous_cursor": "cursor_0________________________________",
+      "occurred_at": "2026-09-06T22:00:00Z",
+      "correlation_id": "11111111-1111-4111-8111-111111111111",
+      "causation_id": null,
+      "action": {
+        "id": "action-1",
+        "command_id": "11111111-1111-4111-8111-111111111111",
+        "actor_id": "hero-1",
+        "scene_id": "cellar-1",
+        "version": "a1",
+        "created_at": "2026-09-06T22:00:00Z",
+        "updated_at": "2026-09-06T22:00:00Z",
+        "status": "succeeded",
+        "resolution": {
+          "summary": "The bandage is used.",
+          "checks": [],
+          "changed_resources": [
+            {
+              "resource_type": "inventory",
+              "resource_id": "hero-1",
+              "version": "i2"
+            }
+          ],
+          "game_time": {
+            "ticks": 12,
+            "tick_duration_ms": 1000
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "ProjectionInvalidated",
+    "direction": "server",
+    "message": {
+      "type": "projection.invalidated",
+      "protocol_version": "1.0.0",
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "scope": {
+        "campaign_id": "campaign-1",
+        "scene_id": "cellar-1",
+        "actor_id": "hero-1"
+      },
+      "visibility_epoch": "epoch_one",
+      "event_id": "dcaa0121-6b6c-53b9-8fd2-7513c70b1e6a",
+      "cursor": "cursor_1________________________________",
+      "previous_cursor": "cursor_0________________________________",
+      "occurred_at": "2026-09-06T22:00:00Z",
+      "correlation_id": "11111111-1111-4111-8111-111111111111",
+      "causation_id": null,
+      "resources": [
+        {
+          "resource_type": "inventory",
+          "resource_id": "hero-1",
+          "version": "i2"
+        }
+      ]
+    }
+  },
+  {
+    "name": "Reset",
+    "direction": "server",
+    "message": {
+      "type": "stream.reset",
+      "protocol_version": "1.0.0",
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "reason": "cursor_expired",
+      "retry_after_ms": 0
+    }
+  },
+  {
+    "name": "Revoked",
+    "direction": "server",
+    "message": {
+      "type": "subscription.revoked",
+      "protocol_version": "1.0.0",
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9"
+    }
+  },
+  {
+    "name": "Unsubscribed",
+    "direction": "server",
+    "message": {
+      "type": "unsubscribed",
+      "protocol_version": "1.0.0",
+      "request_id": "d7906dfd-48ed-598b-b090-0958da305528",
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9"
+    }
+  },
+  {
+    "name": "Ping",
+    "direction": "server",
+    "message": {
+      "type": "heartbeat.ping",
+      "protocol_version": "1.0.0",
+      "nonce": "cc8641e1-222f-577e-8c0d-aca06ebdcc8b"
+    }
+  },
+  {
+    "name": "StreamError",
+    "direction": "server",
+    "message": {
+      "type": "error",
+      "protocol_version": "1.0.0",
+      "request_id": "16709d6c-ebfd-552c-ba3d-5b11033bc5a1",
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "code": "not_found",
+      "retry_after_ms": null
+    }
+  },
+  {
+    "name": "NarrationStarted",
+    "direction": "server",
+    "message": {
+      "type": "narration.started",
+      "protocol_version": "1.0.0",
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "scope": {
+        "campaign_id": "campaign-1",
+        "scene_id": "cellar-1",
+        "actor_id": "hero-1"
+      },
+      "visibility_epoch": "epoch_one",
+      "narration_id": "1b0273c1-6d01-5df8-9989-c405988a8687",
+      "action_id": "action-1",
+      "command_id": "11111111-1111-4111-8111-111111111111",
+      "basis": "committed",
+      "voice_session_id": "voice-1"
+    }
+  },
+  {
+    "name": "NarrationDelta",
+    "direction": "server",
+    "message": {
+      "type": "narration.delta",
+      "protocol_version": "1.0.0",
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "scope": {
+        "campaign_id": "campaign-1",
+        "scene_id": "cellar-1",
+        "actor_id": "hero-1"
+      },
+      "visibility_epoch": "epoch_one",
+      "narration_id": "1b0273c1-6d01-5df8-9989-c405988a8687",
+      "index": 0,
+      "text": "You bind the wound."
+    }
+  },
+  {
+    "name": "NarrationEnded",
+    "direction": "server",
+    "message": {
+      "type": "narration.ended",
+      "protocol_version": "1.0.0",
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "scope": {
+        "campaign_id": "campaign-1",
+        "scene_id": "cellar-1",
+        "actor_id": "hero-1"
+      },
+      "visibility_epoch": "epoch_one",
+      "narration_id": "1b0273c1-6d01-5df8-9989-c405988a8687",
+      "status": "interrupted",
+      "chunk_count": 1,
+      "request_id": "63ce9878-b00c-5d43-bff8-c0f820d2cf02"
+    }
+  },
+  {
+    "name": "VoiceSegment",
+    "direction": "server",
+    "message": {
+      "type": "voice.segment",
+      "protocol_version": "1.0.0",
+      "subscription_id": "14be7edb-bbb2-5bb7-8667-fe8231edf1e9",
+      "scope": {
+        "campaign_id": "campaign-1",
+        "scene_id": "cellar-1",
+        "actor_id": "hero-1"
+      },
+      "visibility_epoch": "epoch_one",
+      "narration_id": "1b0273c1-6d01-5df8-9989-c405988a8687",
+      "voice_session_id": "voice-1",
+      "segment_index": 0,
+      "duration_ms": 800,
+      "media_type": "audio/opus",
+      "sample_rate_hz": 48000
+    }
+  }
+]

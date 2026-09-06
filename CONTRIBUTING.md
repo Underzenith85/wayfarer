@@ -12,6 +12,7 @@ uv run --frozen ruff format --check .
 uv run --frozen mypy
 uv run --frozen python scripts/check_quality_gates.py
 uv run --frozen python scripts/validate_contracts.py
+uv run --frozen python -m scripts.validate_live_contracts
 uv run --frozen pytest
 uv lock --check
 uv build
