@@ -1,0 +1,18 @@
+[build-system]
+requires = ["uv_build==0.11.33"]
+build-backend = "uv_build"
+
+[project]
+name = "wayfarer"
+version = "0.2.0"
+description = "Persistent roleplaying engine and local GURPS-inspired demo"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+wayfarer = "wayfarer.cli:main"
+
+[dependency-groups]
+# Existing tests use unittest; pytest/Hypothesis arrive in roadmap issue #4.
+dev = []
