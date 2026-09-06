@@ -20,6 +20,12 @@ pnpm test:e2e
 
 Vite serves localhost:5173. Production static files are in `dist/`; configure the serving host to fall back to `index.html` for client routes. No backend or credentials are needed to build or navigate. Run `pnpm format` before committing. Frontend CI runs alongside the existing Python workflow, including three browser viewport projects.
 
+## Compiler
+
+Type checks and builds use the stable TypeScript 7 native compiler (`pnpm exec tsc --version`). `@typescript/native` aliases `typescript@~7.0.2`, which supplies `tsc`. The `typescript` dependency aliases `@typescript/typescript6` solely for tools such as typescript-eslint that require the JavaScript compiler API; its executable is `tsc6` and is not used by build or typecheck scripts. This follows [Microsoft’s side-by-side setup](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/#running-side-by-side-with-typescript-6-0).
+
+Path aliases are relative to the config without the removed `baseUrl` option. Node ambient types are explicit for Vite and Playwright configuration. Strictness checks remain enabled.
+
 ## Boundaries
 
 `src/api/adapter.ts` defines an injected, abortable, read-only presentation adapter. The default returns no selected campaign. Production integration must map validated, authorized versioned API responses into this view model; this interface is not an HTTP DTO or an invented endpoint. Pass an adapter once when mounting `App`. TanStack Query owns asynchronous server state. The shell includes pending, empty, retryable error and paused/offline presentation. No game rules, dice, character calculations, fake inventory, or simulated GM are implemented. API contract work and feature issues #52/#53 will extend this seam. Never put provider secrets in Vite environment variables.
