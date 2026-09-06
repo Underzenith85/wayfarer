@@ -7,6 +7,10 @@ installation of project packages or test tools is needed.
 ```bash
 uv sync --frozen
 uv run --frozen wayfarer --help
+uv run --frozen ruff check .
+uv run --frozen ruff format --check .
+uv run --frozen mypy
+uv run --frozen python scripts/check_quality_gates.py
 uv run --frozen python -m unittest discover -s tests -v
 uv lock --check
 uv build
@@ -29,6 +33,9 @@ uv run --frozen python scripts/smoke_installed.py /tmp/wayfarer-wheel/bin/wayfar
 
 Keep pure domain imports independent of persistence, providers and HTTP. Add
 behavioral tests for changes and follow [the architecture boundaries](docs/architecture.md).
-Repository-wide strict typing and Ruff enforcement are the next wave (#3);
-pytest/Hypothesis arrive in #4. Typed public contracts are introduced now, but
-this wave does not claim the inherited demo code is fully typed.
+Mypy strict and Ruff apply to source, tests and scripts. Install local checks with
+`uv run --frozen pre-commit install`; run them with
+`uv run --frozen pre-commit run --all-files`. Hooks use the exact CI commands and
+locked tools. See [the quality contract](docs/quality.md) for typing policy,
+runtime validation, repair commands and the pending required-check setting.
+Pytest/Hypothesis migration remains tracked in #4.
