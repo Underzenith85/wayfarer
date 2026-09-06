@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   createRootRoute,
   createRoute,
@@ -41,6 +41,7 @@ function ContextDetails() {
 }
 function Shell() {
   const pathname = useLocation({ select: (location) => location.pathname });
+  const previousPathname = useRef(pathname);
   const [dark, setDark] = useState(() => {
     try {
       const value = localStorage.getItem("wayfarer-theme");
@@ -71,7 +72,11 @@ function Shell() {
   }, [dark]);
   useEffect(() => {
     document.title = `Wayfarer — ${destinations.find((item) => item.path === pathname)?.name ?? "Page not found"}`;
-    document.getElementById("page-title")?.focus();
+    // Preserve the initial tab order; announce only client-side navigation.
+    if (previousPathname.current !== pathname) {
+      document.getElementById("page-title")?.focus();
+      previousPathname.current = pathname;
+    }
   }, [pathname]);
   return (
     <>
