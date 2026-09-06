@@ -141,6 +141,7 @@ class AdvancementService:
                 reason=command.reason,
             )
             updated = self._revision(state, advancement=state.advancement + (entry,))
+            updated = self.play.checkpoint(updated)
             self.play.engine.validate(updated)
             campaign["revision"], campaign["play_json"] = (
                 updated.revision,
@@ -232,6 +233,7 @@ class AdvancementService:
                 advancement=state.advancement + (entry,),
                 resources=state.resources.model_copy(update={"owners": owners, "pools": pools}),
             )
+            updated = self.play.checkpoint(updated)
             self.play.engine.validate(updated)
             campaign["revision"], campaign["play_json"] = (
                 updated.revision,

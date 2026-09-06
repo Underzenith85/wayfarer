@@ -206,6 +206,9 @@ class AdjudicationService:
         reframed = original.model_copy(
             update={"id": command.id, "expected_revision": state.revision, "approach": "diplomacy"}
         )
+        from wayfarer.simulation.party import synchronous
+
+        synchronous(state, command.actor_id)
         updated, result = self.play.engine.resolve(
             state, reframed, rng=self.play.rng, ruling_id=ruling.id
         )
@@ -261,6 +264,7 @@ class AdjudicationService:
                 )
                 ruling_id = command.id if isinstance(command, RequestRuling) else command.ruling_id
                 result = next(r for r in updated.rulings if r.id == ruling_id)
+            updated = self.play.checkpoint(updated, before=state)
             self.play.engine.validate(updated)
             campaign["revision"], campaign["play_json"] = (
                 updated.revision,

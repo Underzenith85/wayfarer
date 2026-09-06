@@ -230,6 +230,9 @@ def event_action(value: object) -> EventAction:
             | "advancement"
             | "rules-migration"
             | "scene"
+            | "objectives"
+            | "noncombat"
+            | "party"
         ):
             return value
         case _:
