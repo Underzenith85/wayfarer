@@ -212,3 +212,11 @@ can bypass the structured domain error path; incoming request IDs are trusted.
 actor IDs/action kinds and projects historical states using current membership;
 outcome redaction alone is not the v1 visibility guarantee. This contract does not
 certify those paths as safe for split-party production play.
+
+## Scoped live updates
+
+The [live protocol](live-protocol.md) and `events.schema.json` define the companion
+WebSocket message contract, including snapshots, replay, authorization changes and
+provisional narration. Its executable fixtures supplement these HTTP examples;
+runtime conformance remains #50/#45. Validate with
+`uv run --frozen python -m scripts.validate_live_contracts`.
