@@ -83,3 +83,6 @@ Next: production API/auth, full versioned rules catalogs, general typed action p
 Python source, tests and scripts pass mypy strict and Ruff. See the [quality contract](docs/quality.md) for hooks, CI gates and required-check setup.
 
 Runtime configuration, error mapping, logging and dependency updates are documented in [operations](docs/operations.md); the pytest/Hypothesis strategy is in [testing](docs/testing.md).
+
+Wave 6 adds the server-owned character compiler and transactional inventory/game-time
+engine. See [the Wave 6 contracts and integration guide](docs/wave-6.md).

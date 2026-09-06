@@ -105,6 +105,8 @@ class GameService:
         initial = await self.store.read(cid)
         if initial["revision"] != revision:
             raise ConflictError("Campaign changed. Refresh before retrying.")
+        if "resources_json" in initial:
+            raise ValidationError("Use typed resource commands for this campaign")
         action = await self.interpret(text, initial)
         committed = await self.store.commit_turn(
             cid, request_id, revision, text, lambda state: resolve(state, action, text)
@@ -128,6 +130,7 @@ class GameService:
 
 def public(state: Campaign) -> PublicCampaign:
     result = PublicCampaign(**copy.deepcopy(state), validation=builder.validate(state["character"]))
+    result.pop("resources_json", None)
     result["scenario"].pop("secret", None)
     result["scenario"].pop("clue", None)
     return result

@@ -10,6 +10,7 @@ from wayfarer.models import (
     Action,
     Campaign,
     Character,
+    EventAction,
     Message,
     Roll,
     RulesPackagePin,
@@ -167,7 +168,7 @@ def campaign(value: object) -> Campaign:
             "complete",
             "messages",
         },
-        {"rules_ref"},
+        {"rules_ref", "resources_json"},
     )
     result = Campaign(
         id=string(d["id"]),
@@ -185,6 +186,8 @@ def campaign(value: object) -> Campaign:
         complete=boolean(d["complete"]),
         messages=[message(m) for m in sequence(d["messages"])],
     )
+    if "resources_json" in d:
+        result["resources_json"] = string(d["resources_json"])
     if "rules_ref" in d:
         result["rules_ref"] = rules_reference(d["rules_ref"])
     return result
@@ -209,3 +212,7 @@ def rules_reference(value: object) -> RulesReference:
         policy_id=string(data["policy_id"]),
         policy_version=integer(data["policy_version"]),
     )
+
+
+def event_action(value: object) -> EventAction:
+    return "resource" if value == "resource" else action(value)
