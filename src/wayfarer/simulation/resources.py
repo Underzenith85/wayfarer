@@ -28,7 +28,9 @@ Tick = Annotated[int, Field(ge=0)]
 
 
 class Record(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+    model_config = ConfigDict(
+        extra="forbid", frozen=True, strict=True, revalidate_instances="always"
+    )
 
 
 class EquipmentSpec(Record):

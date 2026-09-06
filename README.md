@@ -86,3 +86,6 @@ Runtime configuration, error mapping, logging and dependency updates are documen
 
 Wave 6 adds the server-owned character compiler and transactional inventory/game-time
 engine. See [the Wave 6 contracts and integration guide](docs/wave-6.md).
+
+Wave 7 adds campaign power approval and a transactional typed action pipeline.
+See [the Wave 7 contracts and supported mechanics](docs/wave-7.md).

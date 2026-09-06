@@ -23,9 +23,10 @@ Attribute effects feed skill levels before skill effects and ceiling checks.
 Backstory is retained but supplies no mechanics. `dry_run=True` runs the same
 checks without issuing a build. Duplicate-removal repair proposals are returned
 only if the complete candidate passes dry-run validation. `activate()` recompiles
-the draft and returns the build plus separate initial HP/FP runtime state; it does
-not accept a client-provided build as authority. Campaign power approval remains
-#9, and revision history/advancement remains #18.
+the draft and returns the build plus separate initial HP/FP runtime state; Wave 7
+requires a trusted power-review authorization callback before activation; it does
+not accept a client-provided build as authority. Campaign power approval is implemented by [Wave 7](wave-7.md); revision
+history/advancement remains #18.
 
 ## Inventory and game time (#12)
 

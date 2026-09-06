@@ -168,7 +168,7 @@ def campaign(value: object) -> Campaign:
             "complete",
             "messages",
         },
-        {"rules_ref", "resources_json"},
+        {"rules_ref", "resources_json", "play_json"},
     )
     result = Campaign(
         id=string(d["id"]),
@@ -186,6 +186,8 @@ def campaign(value: object) -> Campaign:
         complete=boolean(d["complete"]),
         messages=[message(m) for m in sequence(d["messages"])],
     )
+    if "play_json" in d:
+        result["play_json"] = string(d["play_json"])
     if "resources_json" in d:
         result["resources_json"] = string(d["resources_json"])
     if "rules_ref" in d:
@@ -215,4 +217,8 @@ def rules_reference(value: object) -> RulesReference:
 
 
 def event_action(value: object) -> EventAction:
-    return "resource" if value == "resource" else action(value)
+    match value:
+        case "resource" | "typed-action" | "power-approval":
+            return value
+        case _:
+            return action(value)

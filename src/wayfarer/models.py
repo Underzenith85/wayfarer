@@ -35,6 +35,7 @@ class Campaign(TypedDict):
     rules: str
     rules_ref: NotRequired["RulesReference"]
     resources_json: NotRequired[str]
+    play_json: NotRequired[str]
     character: Character
     scenario: dict[str, str]
     hp: int
@@ -61,7 +62,7 @@ class RulesReference(TypedDict):
     policy_version: int
 
 
-EventAction = Action | Literal["resource"]
+EventAction = Action | Literal["resource", "typed-action", "power-approval"]
 
 
 class Event(TypedDict):
