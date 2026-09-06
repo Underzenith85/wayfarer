@@ -4,7 +4,7 @@ Issue #51 establishes the independent player shell. It does not replace the Pyth
 
 ## Local workflow
 
-Use Node 22+ and pnpm 11.19.0 (`npm install -g pnpm@11.19.0`). From `frontend/`:
+Use Node 22.22.2+, 24.15+ or 26+ and pnpm 11.19.0 (`npm install -g pnpm@11.19.0`). From `frontend/`:
 
 ```sh
 pnpm install --frozen-lockfile
