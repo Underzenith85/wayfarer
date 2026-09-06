@@ -16,8 +16,11 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "contracts:generate": "openapi-typescript ../contracts/v1/openapi.json -o src/api/contracts.generated.ts && prettier --write src/api/contracts.generated.ts",
-    "contracts:check": "node scripts/check-contracts.mjs"
+    "contracts:generate": "node scripts/generate-contracts.mjs",
+    "contracts:check": "node scripts/check-contracts.mjs",
+    "fixtures:check": "vitest run src/mocks/fixtures.test.ts",
+    "contracts:compat": "node scripts/check-compatibility.mjs",
+    "contracts:gate-test": "node --test scripts/check-compatibility.test.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.23",
@@ -27,6 +30,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.41.0",
+    "openapi-fetch": "^0.17.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "tailwind-merge": "^3.6.0"
@@ -50,6 +54,7 @@
     "eslint-plugin-react-refresh": "^0.5.6",
     "globals": "^17.12.0",
     "jsdom": "^30.0.1",
+    "msw": "^2.15.0",
     "openapi-typescript": "^7.13.0",
     "prettier": "^3.9.6",
     "tailwindcss": "^4.3.3",
@@ -57,5 +62,10 @@
     "typescript-eslint": "^8.69.0",
     "vite": "^8.2.2",
     "vitest": "^5.0.0"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }

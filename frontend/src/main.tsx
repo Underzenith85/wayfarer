@@ -5,18 +5,10 @@ import "./styles.css";
 async function start() {
   let transport: PlayTransport = disconnectedTransport;
   if (import.meta.env.VITE_PLAY_FIXTURES === "true") {
-    const { FixtureTransport } = await import("./play/fixtures");
+    const { startMockPlay } = await import("./mocks/browser");
+    const { isScenario } = await import("./mocks/catalog");
     const journey = new URLSearchParams(location.search).get("journey");
-    transport = new FixtureTransport(
-      journey === "clarify" ||
-        journey === "reject" ||
-        journey === "retry" ||
-        journey === "narration-failure" ||
-        journey === "expired" ||
-        journey === "stale"
-        ? journey
-        : "resolve",
-    );
+    transport = await startMockPlay(isScenario(journey) ? journey : "resolve");
   }
   createRoot(document.getElementById("root")!).render(
     <App transport={transport} />,
