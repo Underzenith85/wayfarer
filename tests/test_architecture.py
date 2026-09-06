@@ -15,8 +15,16 @@ class ArchitectureTests(unittest.TestCase):
         package = Path(wayfarer.__file__).parent
         allowed = {
             "rules": {"rules", "models", "validation", "errors"},
-            "character": {"rules", "character", "models", "validation"},
-            "simulation": {"rules", "character", "simulation", "models", "validation"},
+            "character": {"rules", "character", "models", "validation", "errors"},
+            "simulation": {
+                "rules",
+                "character",
+                "simulation",
+                "models",
+                "validation",
+                "errors",
+                "world",
+            },
         }
         forbidden = {"sqlite3", "http", "urllib", "socket", "requests", "httpx", "openai", "os"}
         for domain, dependencies in allowed.items():

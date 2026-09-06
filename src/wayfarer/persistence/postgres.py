@@ -142,6 +142,8 @@ class AsyncPostgresStore:
         revision: int,
         text: str,
         resolve: Callable[[Campaign], Event],
+        *,
+        actor_id: str = "player",
     ) -> TurnResult:
         db = await self._connect()
         try:
@@ -166,7 +168,7 @@ class AsyncPostgresStore:
                     (
                         cid,
                         request_id,
-                        "player",
+                        actor_id,
                         revision,
                         state["revision"],
                         payload_digest({"input": text}),
@@ -222,7 +224,7 @@ class AsyncPostgresStore:
         event_data = validation.mapping(row[7])
         event = Event(
             input=validation.string(event_data["input"]),
-            action=validation.action(event_data["action"]),
+            action=validation.event_action(event_data["action"]),
             outcome=validation.string(event_data["outcome"]),
             roll=None if event_data["roll"] is None else validation.roll(event_data["roll"]),
         )

@@ -143,6 +143,8 @@ class AsyncSQLiteStore:
         revision: int,
         text: str,
         resolve: Callable[[Campaign], Event],
+        *,
+        actor_id: str = "player",
     ) -> TurnResult:
         db = await self._connect()
         try:
@@ -169,7 +171,7 @@ class AsyncSQLiteStore:
                 (
                     cid,
                     request_id,
-                    "player",
+                    actor_id,
                     revision,
                     state["revision"],
                     digest,
@@ -229,7 +231,7 @@ class AsyncSQLiteStore:
         data = validation.mapping(validation.decode(raw))
         return Event(
             input=validation.string(data["input"]),
-            action=validation.action(data["action"]),
+            action=validation.event_action(data["action"]),
             outcome=validation.string(data["outcome"]),
             roll=None if data["roll"] is None else validation.roll(data["roll"]),
         )
