@@ -102,3 +102,8 @@ and backend work, including frozen OpenAPI/shared schemas, validated examples,
 authorization, retries and current implementation gaps. It does not claim that
 the existing demo or authenticated facade already conforms. Backend adaptation
 is tracked in #50; proposed extensions remain outside the frozen specification.
+
+Wave 9 adds combat outcomes, objectives/rewards, noncombat encounters, subgroup
+time coordination and bounded provider-independent orchestration. See the
+[Wave 9 contracts and supported subset](docs/wave-9.md).
+

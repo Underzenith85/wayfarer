@@ -19,6 +19,10 @@ from wayfarer.simulation.access import CampaignMember
 from wayfarer.simulation.adjudication import Ruling, RulingPolicy, expire_rulings
 from wayfarer.simulation.advancement import AdvancementEntry, MigrationEntry
 from wayfarer.simulation.combat import CombatEngine, CombatResult, CombatRules, Encounter
+from wayfarer.simulation.noncombat import NoncombatEncounter, NoncombatRules
+from wayfarer.simulation.objectives import ObjectiveRules, ObjectiveState
+from wayfarer.simulation.party import PartyRules, PartyState
+from wayfarer.simulation.party import validate as validate_party
 from wayfarer.simulation.resources import Advance, Consume, Record, ResourceEngine, ResourceState
 from wayfarer.simulation.scenes import ActorScene, JournalEntry, SceneEvent, SceneRules
 from wayfarer.world import Entity, EntityKind, World
@@ -119,6 +123,9 @@ class ActionRules(Record):
     # Kept out of the legacy ActionRules encoding so disabled scenes preserve
     # existing campaign digests; enabled scene rules are appended explicitly.
     scenes: SceneRules | None = Field(default=None, exclude=True)
+    objectives: ObjectiveRules | None = Field(default=None, exclude=True)
+    noncombat: NoncombatRules | None = Field(default=None, exclude=True)
+    party: PartyRules | None = Field(default=None, exclude=True)
 
 
 class ActionResult(Record):
@@ -161,6 +168,9 @@ class PlayState(Record):
     scene_events: tuple[SceneEvent, ...] = ()
     journal: tuple[JournalEntry, ...] = ()
     fired_scene_triggers: tuple[str, ...] = ()
+    objectives: ObjectiveState = ObjectiveState()
+    noncombat: tuple[NoncombatEncounter, ...] = ()
+    party: PartyState = PartyState()
 
 
 class ActionEngine:
@@ -222,6 +232,16 @@ class ActionEngine:
         payload = (
             encoded_rules
             + (rules.scenes.model_dump_json() if rules.scenes is not None else "")
+            + (
+                "".join(
+                    p.model_dump_json() for p in (*rules.combat.attacks, *rules.combat.protection)
+                )
+                if rules.combat is not None
+                else ""
+            )
+            + (rules.objectives.model_dump_json() if rules.objectives else "")
+            + (rules.noncombat.model_dump_json() if rules.noncombat else "")
+            + (rules.party.model_dump_json() if rules.party else "")
             + reviewer.policy.digest
             + repr(resources.rules)
             + repr(reviewer.compiler.effects)
@@ -234,6 +254,53 @@ class ActionEngine:
             raise ValidationError("Play configuration changed; explicit migration required")
         if state.revision != state.resources.revision:
             raise ValidationError("Play and resource revisions diverged")
+        if self.rules.objectives is not None:
+            self.rules.objectives.validate_state(state, frozenset(self.resources.specs))
+        if self.rules.noncombat is not None:
+            scenes = {s.id for s in self.rules.scenes.scenes} if self.rules.scenes else set()
+            facts = {f.id for f in state.world.facts}
+            for encounter_rule in self.rules.noncombat.encounters:
+                if encounter_rule.scene_id not in scenes:
+                    raise ValidationError("Noncombat encounter requires a scene")
+                for approach in encounter_rule.approaches:
+                    if approach.check_rule_id not in {c.id for c in self.rules.checks}:
+                        raise ValidationError("Unknown noncombat check")
+                    if not set((*approach.success_fact_ids, *approach.failure_fact_ids)) <= facts:
+                        raise ValidationError("Unknown approach consequence")
+                if (
+                    not set(
+                        (
+                            *encounter_rule.completion_fact_ids,
+                            *encounter_rule.defeat_fact_ids,
+                            *encounter_rule.withdrawal_fact_ids,
+                        )
+                    )
+                    <= facts
+                ):
+                    raise ValidationError("Unknown encounter consequence")
+            if len({e.id for e in state.noncombat}) != len(state.noncombat):
+                raise ValidationError("Duplicate noncombat instance")
+            for encounter_state in state.noncombat:
+                if encounter_state.rule_id not in {
+                    r.id for r in self.rules.noncombat.encounters
+                } or encounter_state.actor_id not in {a.actor_id for a in state.actors}:
+                    raise ValidationError("Invalid noncombat instance")
+        elif state.noncombat:
+            raise ValidationError("Noncombat state requires rules")
+        if self.rules.party is not None:
+            effects = self.rules.party.effects
+            if len({e.id for e in effects}) != len(effects):
+                raise ValidationError("Duplicate cross-scene effect")
+            scenes = {s.id for s in self.rules.scenes.scenes} if self.rules.scenes else set()
+            party_actors = {a.actor_id for a in state.actors}
+            if any(
+                e.source_scene_id not in scenes
+                or e.fact_id not in {f.id for f in state.world.facts}
+                or not set(e.recipient_actor_ids) <= party_actors
+                for e in effects
+            ):
+                raise ValidationError("Invalid cross-scene effect references")
+        validate_party(state)
         self.validate_rulings(state)
         state.world.validate()
         self.resources.validate(state.resources)
@@ -514,6 +581,8 @@ class ActionEngine:
                 else result("rejected", "wait.limit")
             )
         if isinstance(command, Move):
+            if self.rules.scenes is not None:
+                return result("rejected", "scene.command_required")
             if command.destination_id is None:
                 return result("clarification", "move.destination_required")
             destination = entities.get(command.destination_id)
@@ -626,6 +695,7 @@ class ActionEngine:
         *,
         rng: RandomSource = secrets,
         ruling_id: str | None = None,
+        advance_time: bool = True,
     ) -> tuple[PlayState, ActionResult]:
         ruling = None
         extra_modifiers: tuple[Modifier, ...] = ()
@@ -734,16 +804,17 @@ class ActionEngine:
             duration = rule.duration
         else:
             raise ValidationError("No implemented resolver")
-        resources = self.resources.apply(
-            resources,
-            Advance(
-                id=f"{command.id}:time",
-                actor_id=command.actor_id,
-                expected_revision=resources.revision,
-                to=resources.game_time + duration,
-            ),
-            system=True,
-        )
+        if advance_time:
+            resources = self.resources.apply(
+                resources,
+                Advance(
+                    id=f"{command.id}:time",
+                    actor_id=command.actor_id,
+                    expected_revision=resources.revision,
+                    to=resources.game_time + duration,
+                ),
+                system=True,
+            )
         # Subcommands execute atomically within one campaign command/revision.
         resources = resources.model_copy(update={"revision": state.revision + 1})
         result = ActionResult(
@@ -820,5 +891,18 @@ class ActionEngine:
                 ),
             }
         )
+        if advance_time and updated.party.groups:
+            updated = updated.model_copy(
+                update={
+                    "party": updated.party.model_copy(
+                        update={
+                            "groups": tuple(
+                                g.model_copy(update={"ready_through": resources.game_time})
+                                for g in updated.party.groups
+                            )
+                        }
+                    )
+                }
+            )
         self.validate(updated)
         return updated, result

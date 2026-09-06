@@ -76,6 +76,9 @@ EventAction = (
         "advancement",
         "rules-migration",
         "scene",
+        "objectives",
+        "noncombat",
+        "party",
     ]
 )
 

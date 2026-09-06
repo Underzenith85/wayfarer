@@ -1,7 +1,7 @@
 """Explicit combat lifecycle and action economy for the supported prototype subset.
 
-This module deliberately stops before attack/defense/damage resolution. An attack
-intent persists a defense-choice pause; Wave 9 owns the mechanical outcome.
+Attack intent persists a defense-choice pause. Configured original prototype
+profiles resolve checks, protection and injury atomically when that choice resumes.
 """
 
 from __future__ import annotations
@@ -11,6 +11,8 @@ from typing import Literal
 from pydantic import Field, model_validator
 
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.rules.checks import CheckTrace
+from wayfarer.rules.effects import DerivedValue
 from wayfarer.simulation.resources import Equip, Id, Record, ResourceEngine, ResourceState
 from wayfarer.world import EntityKind, World
 
@@ -41,6 +43,42 @@ class Battlefield(Record):
         return self
 
 
+class AttackProfile(Record):
+    """Server-authored original subset, bound to an implemented equipment entry."""
+
+    definition_id: Id
+    mode: Literal["melee"] = "melee"
+    target: Literal["torso"] = "torso"
+    attack_target: Literal["attribute:dx"] = "attribute:dx"
+    attack_modifier: int = Field(default=0, ge=-20, le=20)
+    damage_dice: int = Field(default=1, ge=1, le=10)
+    damage_bonus: int = Field(default=0, ge=-10, le=100)
+    injury_multiplier: int = Field(default=1, ge=1, le=4)
+    stun_ticks: int = Field(default=1, ge=0, le=100)
+
+
+class ProtectionProfile(Record):
+    definition_id: Id
+    resistance: int = Field(ge=0, le=100)
+
+
+class InjuryTrace(Record):
+    attack: CheckTrace
+    defense: CheckTrace | None = None
+    attack_value: DerivedValue
+    defense_value: DerivedValue | None = None
+    damage_dice: tuple[int, ...] = ()
+    basic_damage: int = Field(default=0, ge=0)
+    resistance: int = Field(default=0, ge=0)
+    injury: int = Field(default=0, ge=0)
+    hp_before: int = Field(ge=0)
+    hp_after: int = Field(ge=0)
+    incapacitated: bool = False
+    stunned_until: int | None = None
+    profile_id: Id
+    rules_version: str
+
+
 class CombatRules(Record):
     id: Id
     version: int = Field(ge=1)
@@ -50,10 +88,17 @@ class CombatRules(Record):
     max_combatants: int = Field(default=30, ge=2, le=100)
     battlefields: tuple[Battlefield, ...] = Field(min_length=1, max_length=100)
 
+    attacks: tuple[AttackProfile, ...] = Field(default=(), exclude=True)
+    protection: tuple[ProtectionProfile, ...] = Field(default=(), exclude=True)
+
     @model_validator(mode="after")
     def validate_unique(self) -> CombatRules:
         if len({b.id for b in self.battlefields}) != len(self.battlefields):
             raise ValueError("Duplicate battlefield ID")
+        if len({p.definition_id for p in self.attacks}) != len(self.attacks) or len(
+            {p.definition_id for p in self.protection}
+        ) != len(self.protection):
+            raise ValueError("Duplicate combat profile")
         return self
 
 
@@ -103,6 +148,7 @@ class Encounter(Record):
     pending_defense: PendingDefense | None = None
     defense_history: tuple[DefenseChoice, ...] = ()
     completion_reason: str | None = None
+    wounds: tuple[InjuryTrace, ...] = ()
 
     @property
     def current_actor_id(self) -> str:
@@ -116,12 +162,17 @@ class CombatResult(Record):
     current_actor_id: Id
     pending_defense_id: str | None = None
     available: tuple[str, ...] = ()
+    injury: InjuryTrace | None = None
 
 
 class CombatEngine:
     def __init__(self, rules: CombatRules, resources: ResourceEngine) -> None:
         self.rules = CombatRules.model_validate(rules)
         self.resources = resources
+        if any(p.definition_id not in resources.specs for p in rules.attacks) or any(
+            p.definition_id not in resources.specs for p in rules.protection
+        ):
+            raise ValidationError("Combat profile requires implemented catalog equipment")
         self.battlefields = {b.id: b for b in self.rules.battlefields}
 
     @staticmethod
@@ -490,7 +541,9 @@ class CombatEngine:
         if not defender.reaction_available and selected != "none":
             raise ValidationError("Defender has no reaction available")
         defender = defender.model_copy(
-            update={"reaction_available": False if selected != "none" else True}
+            update={
+                "reaction_available": False if selected != "none" else defender.reaction_available
+            }
         )
         choice = DefenseChoice(pending=pending, selected=selected, chosen_by=actor_id)
         encounter = self._replace(encounter, defender).model_copy(

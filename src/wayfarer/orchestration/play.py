@@ -176,6 +176,10 @@ class PlayService:
             journal=journal,
             fired_scene_triggers=fired_scene_triggers,
         )
+        if self.engine.rules.party is not None:
+            from wayfarer.simulation.party import migrate
+
+            state = migrate(state)
         self.engine.validate(state)
         stored = campaign.copy()
         stored["play_json"] = state.model_dump_json()
@@ -191,8 +195,17 @@ class PlayService:
         state = PlayState.model_validate_json(raw)
         if state.campaign_id != campaign["id"] or state.revision != campaign["revision"]:
             raise ValidationError("Campaign and play checkpoint disagree")
+        if self.engine.rules.party is not None:
+            from wayfarer.simulation.party import migrate
+
+            state = migrate(state)
         self.engine.validate(state)
         return state
+
+    def checkpoint(self, state: PlayState, *, before: PlayState | None = None) -> PlayState:
+        from wayfarer.orchestration.objectives import checkpoint
+
+        return checkpoint(self, state, before=before)
 
     @staticmethod
     def propose(value: object) -> TypedAction:
@@ -234,9 +247,15 @@ class PlayService:
             return feasible
 
         def resolve(campaign: Campaign) -> Event:
-            state, result = self.engine.resolve(self._load(campaign), command, rng=self.rng)
+            from wayfarer.simulation.party import synchronous
+
+            current = self._load(campaign)
+            synchronous(current, command.actor_id)
+            state, result = self.engine.resolve(current, command, rng=self.rng)
             if result.status != "committed":
                 raise ValidationError("Action is no longer feasible")
+            state = self.checkpoint(state, before=current)
+            self.engine.validate(state)
             campaign["play_json"] = state.model_dump_json()
             campaign["revision"] = state.revision
             roll: Roll | None = None

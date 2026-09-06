@@ -24,6 +24,12 @@ class LLMClient:
     async def generate(
         self, instructions: str, context: object, schema: dict[str, object]
     ) -> dict[str, object]:
+        payload, _, _ = await self.generate_with_usage(instructions, context, schema)
+        return payload
+
+    async def generate_with_usage(
+        self, instructions: str, context: object, schema: dict[str, object]
+    ) -> tuple[dict[str, object], int | None, int | None]:
         if not self.enabled:
             raise ProviderError("Model provider is not configured")
         key = self.settings.openai_api_key
@@ -66,7 +72,21 @@ class LLMClient:
             for raw_content in validation.sequence(item.get("content", [])):
                 content = validation.mapping(raw_content)
                 if content.get("type") == "output_text":
-                    return validation.mapping(validation.decode(validation.string(content["text"])))
+                    payload = validation.mapping(
+                        validation.decode(validation.string(content["text"]))
+                    )
+                    usage = validation.mapping(result.get("usage", {}))
+                    input_tokens = (
+                        validation.integer(usage["input_tokens"])
+                        if "input_tokens" in usage
+                        else None
+                    )
+                    output_tokens = (
+                        validation.integer(usage["output_tokens"])
+                        if "output_tokens" in usage
+                        else None
+                    )
+                    return payload, input_tokens, output_tokens
         raise ProviderError("Model returned no structured proposal")
 
 
