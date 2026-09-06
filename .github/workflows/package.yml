@@ -39,6 +39,7 @@ jobs:
       - run: uv run --frozen mypy
       - run: uv run --frozen python scripts/check_no_any.py
       - run: uv run --frozen python scripts/check_quality_gates.py
+      - run: uv run --frozen python scripts/validate_contracts.py
       - run: uv run --frozen pytest
       - run: uv build
       - name: Install wheel into a separate environment
@@ -47,3 +48,4 @@ jobs:
           uv pip install --python /tmp/wayfarer-wheel/bin/python dist/*.whl
       - name: Exercise wheel outside checkout
         run: uv run --frozen python scripts/smoke_installed.py /tmp/wayfarer-wheel/bin/wayfarer
+

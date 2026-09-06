@@ -11,6 +11,7 @@ uv run --frozen ruff check .
 uv run --frozen ruff format --check .
 uv run --frozen mypy
 uv run --frozen python scripts/check_quality_gates.py
+uv run --frozen python scripts/validate_contracts.py
 uv run --frozen pytest
 uv lock --check
 uv build
@@ -39,3 +40,8 @@ Mypy strict and Ruff apply to source, tests and scripts. Install local checks wi
 locked tools. See [the quality contract](docs/quality.md) for typing policy,
 runtime validation, repair commands and the pending required-check setting.
 Pytest, pytest-asyncio, Hypothesis and branch coverage are documented in docs/testing.md.
+
+
+Changes to the frozen player API must update contracts/v1 schemas, operation-bound
+examples and documentation together. Run the offline contract validator and its
+pytest regression cases; keep proposed endpoints separate until reviewed.

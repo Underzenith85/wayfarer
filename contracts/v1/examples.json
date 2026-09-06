@@ -1,0 +1,804 @@
+[
+  {
+    "name": "getMeResponse",
+    "operation_id": "getMe",
+    "direction": "response",
+    "status": "200",
+    "value": {
+      "id": "player-1",
+      "display_name": "Player One"
+    }
+  },
+  {
+    "name": "listCampaignsResponse",
+    "operation_id": "listCampaigns",
+    "direction": "response",
+    "status": "200",
+    "value": {
+      "items": [
+        {
+          "id": "campaign-1",
+          "name": "The Missing Courier",
+          "premise": "Find the courier before dawn.",
+          "status": "active",
+          "version": "c1",
+          "game_time": {
+            "ticks": 12,
+            "tick_duration_ms": 1000
+          },
+          "membership": {
+            "principal_id": "player-1",
+            "role": "player",
+            "actor_ids": [
+              "hero-1"
+            ],
+            "version": "m1",
+            "campaign_id": "campaign-1"
+          },
+          "capabilities": [
+            "actions.text",
+            "actions.inspect",
+            "actions.use_item"
+          ],
+          "updated_at": "2026-09-06T22:00:00Z"
+        }
+      ],
+      "next_cursor": null
+    }
+  },
+  {
+    "name": "getCampaignResponse",
+    "operation_id": "getCampaign",
+    "direction": "response",
+    "status": "200",
+    "value": {
+      "id": "campaign-1",
+      "name": "The Missing Courier",
+      "premise": "Find the courier before dawn.",
+      "status": "active",
+      "version": "c1",
+      "game_time": {
+        "ticks": 12,
+        "tick_duration_ms": 1000
+      },
+      "membership": {
+        "principal_id": "player-1",
+        "role": "player",
+        "actor_ids": [
+          "hero-1"
+        ],
+        "version": "m1",
+        "campaign_id": "campaign-1"
+      },
+      "capabilities": [
+        "actions.text",
+        "actions.inspect",
+        "actions.use_item"
+      ],
+      "updated_at": "2026-09-06T22:00:00Z"
+    }
+  },
+  {
+    "name": "listMembersResponse",
+    "operation_id": "listMembers",
+    "direction": "response",
+    "status": "200",
+    "value": {
+      "items": [
+        {
+          "principal_id": "player-1",
+          "role": "player",
+          "actor_ids": [
+            "hero-1"
+          ],
+          "version": "m1",
+          "campaign_id": "campaign-1"
+        }
+      ],
+      "next_cursor": null
+    }
+  },
+  {
+    "name": "getCurrentSessionResponse",
+    "operation_id": "getCurrentSession",
+    "direction": "response",
+    "status": "200",
+    "value": {
+      "id": "session-1",
+      "campaign_id": "campaign-1",
+      "status": "active",
+      "summary": null,
+      "started_at": "2026-09-06T22:00:00Z",
+      "ended_at": null
+    }
+  },
+  {
+    "name": "listCharactersResponse",
+    "operation_id": "listCharacters",
+    "direction": "response",
+    "status": "200",
+    "value": {
+      "items": [
+        {
+          "id": "hero-1",
+          "campaign_id": "campaign-1",
+          "name": "Mara",
+          "version": "h1",
+          "hp": {
+            "current": 8,
+            "maximum": 10
+          },
+          "fp": {
+            "current": 9,
+            "maximum": 10
+          },
+          "attributes": [
+            {
+              "id": "dx",
+              "label": "DX",
+              "value": 12
+            }
+          ],
+          "skills": [],
+          "defenses": [],
+          "movement": [],
+          "conditions": [],
+          "equipped_item_ids": []
+        }
+      ],
+      "next_cursor": null
+    }
+  },
+  {
+    "name": "getCharacterResponse",
+    "operation_id": "getCharacter",
+    "direction": "response",
+    "status": "200",
+    "value": {
+      "id": "hero-1",
+      "campaign_id": "campaign-1",
+      "name": "Mara",
+      "version": "h1",
+      "hp": {
+        "current": 8,
+        "maximum": 10
+      },
+      "fp": {
+        "current": 9,
+        "maximum": 10
+      },
+      "attributes": [
+        {
+          "id": "dx",
+          "label": "DX",
+          "value": 12
+        }
+      ],
+      "skills": [],
+      "defenses": [],
+      "movement": [],
+      "conditions": [],
+      "equipped_item_ids": []
+    }
+  },
+  {
+    "name": "getInventoryResponse",
+    "operation_id": "getInventory",
+    "direction": "response",
+    "status": "200",
+    "value": {
+      "actor_id": "hero-1",
+      "version": "i1",
+      "items": [
+        {
+          "id": "bandage-1",
+          "name": "Bandage",
+          "description": "Clean linen",
+          "quantity": 2,
+          "unit_weight_grams": 50,
+          "location": "carried",
+          "container_id": null,
+          "allowed_actions": [
+            "inspect",
+            "use_item"
+          ]
+        }
+      ],
+      "total_weight_grams": 100,
+      "encumbrance": "none"
+    }
+  },
+  {
+    "name": "listScenesResponse",
+    "operation_id": "listScenes",
+    "direction": "response",
+    "status": "200",
+    "value": {
+      "items": [
+        {
+          "id": "cellar-1",
+          "version": "s1",
+          "title": "Cellar",
+          "description": "A locked door and a narrow window.",
+          "game_time": {
+            "ticks": 12,
+            "tick_duration_ms": 1000
+          },
+          "observations": [
+            {
+              "id": "door-1",
+              "label": "Door",
+              "description": "Locked."
+            }
+          ],
+          "visible_actor_ids": [
+            "hero-1"
+          ]
+        }
+      ],
+      "next_cursor": null
+    }
+  },
+  {
+    "name": "getSceneResponse",
+    "operation_id": "getScene",
+    "direction": "response",
+    "status": "200",
+    "value": {
+      "id": "cellar-1",
+      "version": "s1",
+      "title": "Cellar",
+      "description": "A locked door and a narrow window.",
+      "game_time": {
+        "ticks": 12,
+        "tick_duration_ms": 1000
+      },
+      "observations": [
+        {
+          "id": "door-1",
+          "label": "Door",
+          "description": "Locked."
+        }
+      ],
+      "visible_actor_ids": [
+        "hero-1"
+      ]
+    }
+  },
+  {
+    "name": "submitActionRequest",
+    "operation_id": "submitAction",
+    "direction": "request",
+    "value": {
+      "command_id": "11111111-1111-4111-8111-111111111111",
+      "actor_id": "hero-1",
+      "scene_id": "cellar-1",
+      "expected_versions": {
+        "scene": "s1",
+        "character": "h1",
+        "inventory": "i1"
+      },
+      "intent": {
+        "kind": "use_item",
+        "item_id": "bandage-1",
+        "quantity": 1
+      }
+    }
+  },
+  {
+    "name": "submitActionResponse",
+    "operation_id": "submitAction",
+    "direction": "response",
+    "status": "202",
+    "value": {
+      "id": "action-1",
+      "command_id": "11111111-1111-4111-8111-111111111111",
+      "actor_id": "hero-1",
+      "scene_id": "cellar-1",
+      "version": "a1",
+      "created_at": "2026-09-06T22:00:00Z",
+      "updated_at": "2026-09-06T22:00:00Z",
+      "status": "submitted"
+    }
+  },
+  {
+    "name": "listActionsResponse",
+    "operation_id": "listActions",
+    "direction": "response",
+    "status": "200",
+    "value": {
+      "items": [
+        {
+          "id": "action-1",
+          "command_id": "11111111-1111-4111-8111-111111111111",
+          "actor_id": "hero-1",
+          "scene_id": "cellar-1",
+          "version": "a1",
+          "created_at": "2026-09-06T22:00:00Z",
+          "updated_at": "2026-09-06T22:00:00Z",
+          "status": "submitted"
+        }
+      ],
+      "next_cursor": null
+    }
+  },
+  {
+    "name": "getActionResponse",
+    "operation_id": "getAction",
+    "direction": "response",
+    "status": "200",
+    "value": {
+      "id": "action-1",
+      "command_id": "11111111-1111-4111-8111-111111111111",
+      "actor_id": "hero-1",
+      "scene_id": "cellar-1",
+      "version": "a1",
+      "created_at": "2026-09-06T22:00:00Z",
+      "updated_at": "2026-09-06T22:00:00Z",
+      "status": "submitted"
+    }
+  },
+  {
+    "name": "clarifyActionRequest",
+    "operation_id": "clarifyAction",
+    "direction": "request",
+    "value": {
+      "command_id": "11111111-1111-4111-8111-111111111111",
+      "expected_action_version": "a2",
+      "expected_versions": {
+        "scene": "s1",
+        "character": "h1",
+        "inventory": "i1"
+      },
+      "clarification_id": "clarification-1",
+      "answer": {
+        "choice_id": "door-1"
+      }
+    }
+  },
+  {
+    "name": "clarifyActionResponse",
+    "operation_id": "clarifyAction",
+    "direction": "response",
+    "status": "202",
+    "value": {
+      "id": "action-1",
+      "command_id": "11111111-1111-4111-8111-111111111111",
+      "actor_id": "hero-1",
+      "scene_id": "cellar-1",
+      "version": "a1",
+      "created_at": "2026-09-06T22:00:00Z",
+      "updated_at": "2026-09-06T22:00:00Z",
+      "status": "submitted"
+    }
+  },
+  {
+    "name": "cancelActionRequest",
+    "operation_id": "cancelAction",
+    "direction": "request",
+    "value": {
+      "command_id": "11111111-1111-4111-8111-111111111111",
+      "expected_action_version": "a1"
+    }
+  },
+  {
+    "name": "cancelActionResponse",
+    "operation_id": "cancelAction",
+    "direction": "response",
+    "status": "200",
+    "value": {
+      "id": "action-1",
+      "command_id": "11111111-1111-4111-8111-111111111111",
+      "actor_id": "hero-1",
+      "scene_id": "cellar-1",
+      "version": "a1",
+      "created_at": "2026-09-06T22:00:00Z",
+      "updated_at": "2026-09-06T22:00:00Z",
+      "status": "submitted"
+    }
+  },
+  {
+    "name": "createInvitationRequest",
+    "operation_id": "createInvitation",
+    "direction": "request",
+    "value": {
+      "command_id": "11111111-1111-4111-8111-111111111111",
+      "expected_membership_version": "m1",
+      "role": "player",
+      "expires_in_seconds": 3600
+    }
+  },
+  {
+    "name": "createInvitationResponse",
+    "operation_id": "createInvitation",
+    "direction": "response",
+    "status": "201",
+    "value": {
+      "id": "invite-1",
+      "campaign_id": "campaign-1",
+      "token": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "role": "player",
+      "expires_at": "2026-09-07T22:00:00Z"
+    }
+  },
+  {
+    "name": "redeemInvitationRequest",
+    "operation_id": "redeemInvitation",
+    "direction": "request",
+    "value": {
+      "command_id": "11111111-1111-4111-8111-111111111111",
+      "token": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    }
+  },
+  {
+    "name": "redeemInvitationResponse",
+    "operation_id": "redeemInvitation",
+    "direction": "response",
+    "status": "200",
+    "value": {
+      "principal_id": "player-1",
+      "role": "player",
+      "actor_ids": [
+        "hero-1"
+      ],
+      "version": "m1",
+      "campaign_id": "campaign-1"
+    }
+  },
+  {
+    "name": "invalid_request",
+    "operation_id": "submitAction",
+    "direction": "response",
+    "status": "400",
+    "value": {
+      "code": "invalid_request",
+      "message": "invalid request",
+      "request_id": "11111111-1111-4111-8111-111111111111",
+      "retryable": false,
+      "field_errors": []
+    }
+  },
+  {
+    "name": "invalid_cursor",
+    "operation_id": "listCampaigns",
+    "direction": "response",
+    "status": "400",
+    "value": {
+      "code": "invalid_cursor",
+      "message": "invalid cursor",
+      "request_id": "11111111-1111-4111-8111-111111111111",
+      "retryable": false,
+      "field_errors": []
+    }
+  },
+  {
+    "name": "unauthenticated",
+    "operation_id": "submitAction",
+    "direction": "response",
+    "status": "401",
+    "value": {
+      "code": "unauthenticated",
+      "message": "unauthenticated",
+      "request_id": "11111111-1111-4111-8111-111111111111",
+      "retryable": false,
+      "field_errors": []
+    }
+  },
+  {
+    "name": "forbidden",
+    "operation_id": "submitAction",
+    "direction": "response",
+    "status": "403",
+    "value": {
+      "code": "forbidden",
+      "message": "forbidden",
+      "request_id": "11111111-1111-4111-8111-111111111111",
+      "retryable": false,
+      "field_errors": []
+    }
+  },
+  {
+    "name": "not_found",
+    "operation_id": "submitAction",
+    "direction": "response",
+    "status": "404",
+    "value": {
+      "code": "not_found",
+      "message": "not found",
+      "request_id": "11111111-1111-4111-8111-111111111111",
+      "retryable": false,
+      "field_errors": []
+    }
+  },
+  {
+    "name": "stale_version",
+    "operation_id": "submitAction",
+    "direction": "response",
+    "status": "409",
+    "value": {
+      "code": "stale_version",
+      "message": "stale version",
+      "request_id": "11111111-1111-4111-8111-111111111111",
+      "retryable": false,
+      "field_errors": []
+    }
+  },
+  {
+    "name": "idempotency_conflict",
+    "operation_id": "submitAction",
+    "direction": "response",
+    "status": "409",
+    "value": {
+      "code": "idempotency_conflict",
+      "message": "idempotency conflict",
+      "request_id": "11111111-1111-4111-8111-111111111111",
+      "retryable": false,
+      "field_errors": []
+    }
+  },
+  {
+    "name": "invalid_transition",
+    "operation_id": "submitAction",
+    "direction": "response",
+    "status": "409",
+    "value": {
+      "code": "invalid_transition",
+      "message": "invalid transition",
+      "request_id": "11111111-1111-4111-8111-111111111111",
+      "retryable": false,
+      "field_errors": []
+    }
+  },
+  {
+    "name": "cursor_expired",
+    "operation_id": "listCampaigns",
+    "direction": "response",
+    "status": "410",
+    "value": {
+      "code": "cursor_expired",
+      "message": "cursor expired",
+      "request_id": "11111111-1111-4111-8111-111111111111",
+      "retryable": false,
+      "field_errors": []
+    }
+  },
+  {
+    "name": "payload_too_large",
+    "operation_id": "submitAction",
+    "direction": "response",
+    "status": "413",
+    "value": {
+      "code": "payload_too_large",
+      "message": "payload too large",
+      "request_id": "11111111-1111-4111-8111-111111111111",
+      "retryable": false,
+      "field_errors": []
+    }
+  },
+  {
+    "name": "unsupported_media_type",
+    "operation_id": "submitAction",
+    "direction": "response",
+    "status": "415",
+    "value": {
+      "code": "unsupported_media_type",
+      "message": "unsupported media type",
+      "request_id": "11111111-1111-4111-8111-111111111111",
+      "retryable": false,
+      "field_errors": []
+    }
+  },
+  {
+    "name": "unsupported_action",
+    "operation_id": "submitAction",
+    "direction": "response",
+    "status": "422",
+    "value": {
+      "code": "unsupported_action",
+      "message": "unsupported action",
+      "request_id": "11111111-1111-4111-8111-111111111111",
+      "retryable": false,
+      "field_errors": []
+    }
+  },
+  {
+    "name": "illegal_action",
+    "operation_id": "submitAction",
+    "direction": "response",
+    "status": "422",
+    "value": {
+      "code": "illegal_action",
+      "message": "illegal action",
+      "request_id": "11111111-1111-4111-8111-111111111111",
+      "retryable": false,
+      "field_errors": []
+    }
+  },
+  {
+    "name": "rate_limited",
+    "operation_id": "submitAction",
+    "direction": "response",
+    "status": "429",
+    "value": {
+      "code": "rate_limited",
+      "message": "rate limited",
+      "request_id": "11111111-1111-4111-8111-111111111111",
+      "retryable": true,
+      "field_errors": []
+    }
+  },
+  {
+    "name": "internal_error",
+    "operation_id": "submitAction",
+    "direction": "response",
+    "status": "500",
+    "value": {
+      "code": "internal_error",
+      "message": "internal error",
+      "request_id": "11111111-1111-4111-8111-111111111111",
+      "retryable": false,
+      "field_errors": []
+    }
+  },
+  {
+    "name": "service_unavailable",
+    "operation_id": "submitAction",
+    "direction": "response",
+    "status": "503",
+    "value": {
+      "code": "service_unavailable",
+      "message": "service unavailable",
+      "request_id": "11111111-1111-4111-8111-111111111111",
+      "retryable": true,
+      "field_errors": []
+    }
+  },
+  {
+    "name": "action_needs_clarification",
+    "operation_id": "getAction",
+    "direction": "response",
+    "status": "200",
+    "value": {
+      "id": "action-1",
+      "command_id": "11111111-1111-4111-8111-111111111111",
+      "actor_id": "hero-1",
+      "scene_id": "cellar-1",
+      "version": "a1",
+      "created_at": "2026-09-06T22:00:00Z",
+      "updated_at": "2026-09-06T22:00:00Z",
+      "status": "needs_clarification",
+      "clarification": {
+        "id": "clarification-1",
+        "prompt": "Which target?",
+        "choices": [
+          {
+            "id": "door-1",
+            "label": "The locked door"
+          }
+        ],
+        "allows_text": true
+      }
+    }
+  },
+  {
+    "name": "action_resolving",
+    "operation_id": "getAction",
+    "direction": "response",
+    "status": "200",
+    "value": {
+      "id": "action-1",
+      "command_id": "11111111-1111-4111-8111-111111111111",
+      "actor_id": "hero-1",
+      "scene_id": "cellar-1",
+      "version": "a1",
+      "created_at": "2026-09-06T22:00:00Z",
+      "updated_at": "2026-09-06T22:00:00Z",
+      "status": "resolving"
+    }
+  },
+  {
+    "name": "action_succeeded",
+    "operation_id": "getAction",
+    "direction": "response",
+    "status": "200",
+    "value": {
+      "id": "action-1",
+      "command_id": "11111111-1111-4111-8111-111111111111",
+      "actor_id": "hero-1",
+      "scene_id": "cellar-1",
+      "version": "a1",
+      "created_at": "2026-09-06T22:00:00Z",
+      "updated_at": "2026-09-06T22:00:00Z",
+      "status": "succeeded",
+      "resolution": {
+        "summary": "The bandage is used.",
+        "checks": [],
+        "changed_resources": [
+          {
+            "resource_type": "inventory",
+            "resource_id": "hero-1",
+            "version": "i2"
+          }
+        ],
+        "game_time": {
+          "ticks": 12,
+          "tick_duration_ms": 1000
+        }
+      }
+    }
+  },
+  {
+    "name": "action_rejected",
+    "operation_id": "getAction",
+    "direction": "response",
+    "status": "200",
+    "value": {
+      "id": "action-1",
+      "command_id": "11111111-1111-4111-8111-111111111111",
+      "actor_id": "hero-1",
+      "scene_id": "cellar-1",
+      "version": "a1",
+      "created_at": "2026-09-06T22:00:00Z",
+      "updated_at": "2026-09-06T22:00:00Z",
+      "status": "rejected",
+      "error": {
+        "code": "illegal_action",
+        "message": "Item is not accessible.",
+        "request_id": "11111111-1111-4111-8111-111111111111",
+        "retryable": false,
+        "field_errors": []
+      }
+    }
+  },
+  {
+    "name": "action_cancelled",
+    "operation_id": "getAction",
+    "direction": "response",
+    "status": "200",
+    "value": {
+      "id": "action-1",
+      "command_id": "11111111-1111-4111-8111-111111111111",
+      "actor_id": "hero-1",
+      "scene_id": "cellar-1",
+      "version": "a1",
+      "created_at": "2026-09-06T22:00:00Z",
+      "updated_at": "2026-09-06T22:00:00Z",
+      "status": "cancelled"
+    }
+  },
+  {
+    "name": "exactRetryReturnsSameAction",
+    "operation_id": "submitAction",
+    "direction": "response",
+    "status": "202",
+    "value": {
+      "id": "action-1",
+      "command_id": "11111111-1111-4111-8111-111111111111",
+      "actor_id": "hero-1",
+      "scene_id": "cellar-1",
+      "version": "a1",
+      "created_at": "2026-09-06T22:00:00Z",
+      "updated_at": "2026-09-06T22:00:00Z",
+      "status": "submitted"
+    }
+  },
+  {
+    "name": "naturalLanguageRequest",
+    "operation_id": "submitAction",
+    "direction": "request",
+    "value": {
+      "command_id": "11111111-1111-4111-8111-111111111111",
+      "actor_id": "hero-1",
+      "scene_id": "cellar-1",
+      "expected_versions": {
+        "scene": "s1",
+        "character": "h1",
+        "inventory": "i1"
+      },
+      "intent": {
+        "kind": "text",
+        "text": "Use a bandage."
+      }
+    }
+  }
+]

@@ -93,3 +93,12 @@ See [the Wave 7 contracts and supported mechanics](docs/wave-7.md).
 Wave 8 completes the gameplay foundations: bounded adjudication, combat lifecycle,
 advancement and rules migrations, authenticated campaign transport, and versioned
 scene/exploration progression. See [the Wave 8 contracts](docs/wave-8.md).
+
+
+## Versioned player API contract
+
+The [v1 HTTP contract](contracts/v1/README.md) defines the target for parallel UI
+and backend work, including frozen OpenAPI/shared schemas, validated examples,
+authorization, retries and current implementation gaps. It does not claim that
+the existing demo or authenticated facade already conforms. Backend adaptation
+is tracked in #50; proposed extensions remain outside the frozen specification.

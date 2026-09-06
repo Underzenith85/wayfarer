@@ -1,0 +1,1550 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wayfarer.invalid/contracts/v1/schemas.json",
+  "title": "Wayfarer v1 shared HTTP and future event payload schemas",
+  "$defs": {
+    "Id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,99}$"
+    },
+    "Version": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{1,128}$"
+    },
+    "Timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "GameTime": {
+      "type": "object",
+      "properties": {
+        "ticks": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "tick_duration_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        }
+      },
+      "required": [
+        "ticks",
+        "tick_duration_ms"
+      ],
+      "additionalProperties": false
+    },
+    "FieldError": {
+      "type": "object",
+      "properties": {
+        "pointer": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,99}$"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      },
+      "required": [
+        "pointer",
+        "code",
+        "message"
+      ],
+      "additionalProperties": false
+    },
+    "Error": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "enum": [
+            "unauthenticated",
+            "forbidden",
+            "not_found",
+            "invalid_request",
+            "invalid_cursor",
+            "cursor_expired",
+            "stale_version",
+            "idempotency_conflict",
+            "invalid_transition",
+            "unsupported_action",
+            "illegal_action",
+            "payload_too_large",
+            "unsupported_media_type",
+            "rate_limited",
+            "service_unavailable",
+            "internal_error"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "request_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "retryable": {
+          "type": "boolean"
+        },
+        "field_errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FieldError"
+          },
+          "maxItems": 100
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "request_id",
+        "retryable",
+        "field_errors"
+      ],
+      "additionalProperties": false
+    },
+    "Principal": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      },
+      "required": [
+        "id",
+        "display_name"
+      ],
+      "additionalProperties": false
+    },
+    "Membership": {
+      "type": "object",
+      "properties": {
+        "principal_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "gm",
+            "player",
+            "spectator"
+          ]
+        },
+        "actor_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Id"
+          },
+          "maxItems": 100
+        },
+        "version": {
+          "$ref": "#/$defs/Version"
+        },
+        "campaign_id": {
+          "$ref": "#/$defs/Id"
+        }
+      },
+      "required": [
+        "principal_id",
+        "role",
+        "actor_ids",
+        "version",
+        "campaign_id"
+      ],
+      "additionalProperties": false
+    },
+    "Campaign": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "premise": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "ready",
+            "active",
+            "paused",
+            "completed",
+            "archived"
+          ]
+        },
+        "version": {
+          "$ref": "#/$defs/Version"
+        },
+        "game_time": {
+          "$ref": "#/$defs/GameTime"
+        },
+        "membership": {
+          "$ref": "#/$defs/Membership"
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,99}$"
+          },
+          "maxItems": 100
+        },
+        "updated_at": {
+          "$ref": "#/$defs/Timestamp"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "premise",
+        "status",
+        "version",
+        "game_time",
+        "membership",
+        "capabilities",
+        "updated_at"
+      ],
+      "additionalProperties": false
+    },
+    "Pool": {
+      "type": "object",
+      "properties": {
+        "current": {
+          "type": "integer",
+          "minimum": -1000000,
+          "maximum": 1000000
+        },
+        "maximum": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        }
+      },
+      "required": [
+        "current",
+        "maximum"
+      ],
+      "additionalProperties": false
+    },
+    "Stat": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "value": {
+          "type": "number",
+          "minimum": -1000000,
+          "maximum": 1000000
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "value"
+      ],
+      "additionalProperties": false
+    },
+    "Condition": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "description"
+      ],
+      "additionalProperties": false
+    },
+    "Character": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "campaign_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "version": {
+          "$ref": "#/$defs/Version"
+        },
+        "hp": {
+          "$ref": "#/$defs/Pool"
+        },
+        "fp": {
+          "$ref": "#/$defs/Pool"
+        },
+        "attributes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Stat"
+          },
+          "maxItems": 100
+        },
+        "skills": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Stat"
+          },
+          "maxItems": 100
+        },
+        "defenses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Stat"
+          },
+          "maxItems": 100
+        },
+        "movement": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Stat"
+          },
+          "maxItems": 100
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Condition"
+          },
+          "maxItems": 100
+        },
+        "equipped_item_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Id"
+          },
+          "maxItems": 100
+        }
+      },
+      "required": [
+        "id",
+        "campaign_id",
+        "name",
+        "version",
+        "hp",
+        "fp",
+        "attributes",
+        "skills",
+        "defenses",
+        "movement",
+        "conditions",
+        "equipped_item_ids"
+      ],
+      "additionalProperties": false
+    },
+    "Item": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "quantity": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "unit_weight_grams": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "location": {
+          "type": "string",
+          "enum": [
+            "carried",
+            "equipped",
+            "stored",
+            "confiscated"
+          ]
+        },
+        "container_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "allowed_actions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "inspect",
+              "use_item"
+            ]
+          },
+          "maxItems": 100
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description",
+        "quantity",
+        "unit_weight_grams",
+        "location",
+        "container_id",
+        "allowed_actions"
+      ],
+      "additionalProperties": false
+    },
+    "Inventory": {
+      "type": "object",
+      "properties": {
+        "actor_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "version": {
+          "$ref": "#/$defs/Version"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Item"
+          },
+          "maxItems": 1000
+        },
+        "total_weight_grams": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "encumbrance": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      },
+      "required": [
+        "actor_id",
+        "version",
+        "items",
+        "total_weight_grams",
+        "encumbrance"
+      ],
+      "additionalProperties": false
+    },
+    "Observation": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "description"
+      ],
+      "additionalProperties": false
+    },
+    "Scene": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "version": {
+          "$ref": "#/$defs/Version"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "game_time": {
+          "$ref": "#/$defs/GameTime"
+        },
+        "observations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Observation"
+          },
+          "maxItems": 100
+        },
+        "visible_actor_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Id"
+          },
+          "maxItems": 100
+        }
+      },
+      "required": [
+        "id",
+        "version",
+        "title",
+        "description",
+        "game_time",
+        "observations",
+        "visible_actor_ids"
+      ],
+      "additionalProperties": false
+    },
+    "Clarification": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "prompt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/Id"
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000
+              }
+            },
+            "required": [
+              "id",
+              "label"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 100
+        },
+        "allows_text": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "prompt",
+        "choices",
+        "allows_text"
+      ],
+      "additionalProperties": false
+    },
+    "Check": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "dice": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 6
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "target": {
+          "type": "integer",
+          "minimum": -1000000,
+          "maximum": 1000000
+        },
+        "margin": {
+          "type": "integer",
+          "minimum": -1000000,
+          "maximum": 1000000
+        },
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "success",
+            "failure",
+            "critical_success",
+            "critical_failure"
+          ]
+        }
+      },
+      "required": [
+        "label",
+        "dice",
+        "target",
+        "margin",
+        "outcome"
+      ],
+      "additionalProperties": false
+    },
+    "ResourceVersion": {
+      "type": "object",
+      "properties": {
+        "resource_type": {
+          "type": "string",
+          "enum": [
+            "campaign",
+            "scene",
+            "character",
+            "inventory",
+            "action"
+          ]
+        },
+        "resource_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "version": {
+          "$ref": "#/$defs/Version"
+        }
+      },
+      "required": [
+        "resource_type",
+        "resource_id",
+        "version"
+      ],
+      "additionalProperties": false
+    },
+    "Resolution": {
+      "type": "object",
+      "properties": {
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Check"
+          },
+          "maxItems": 100
+        },
+        "changed_resources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ResourceVersion"
+          },
+          "maxItems": 100
+        },
+        "game_time": {
+          "$ref": "#/$defs/GameTime"
+        }
+      },
+      "required": [
+        "summary",
+        "checks",
+        "changed_resources",
+        "game_time"
+      ],
+      "additionalProperties": false
+    },
+    "ExpectedVersions": {
+      "type": "object",
+      "properties": {
+        "scene": {
+          "$ref": "#/$defs/Version"
+        },
+        "character": {
+          "$ref": "#/$defs/Version"
+        },
+        "inventory": {
+          "$ref": "#/$defs/Version"
+        }
+      },
+      "required": [
+        "scene",
+        "character"
+      ],
+      "additionalProperties": false
+    },
+    "TextIntent": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "text"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      },
+      "required": [
+        "kind",
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "InspectIntent": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "inspect"
+        },
+        "target_id": {
+          "$ref": "#/$defs/Id"
+        }
+      },
+      "required": [
+        "kind",
+        "target_id"
+      ],
+      "additionalProperties": false
+    },
+    "MoveIntent": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "move"
+        },
+        "destination_id": {
+          "$ref": "#/$defs/Id"
+        }
+      },
+      "required": [
+        "kind",
+        "destination_id"
+      ],
+      "additionalProperties": false
+    },
+    "UseItemIntent": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "use_item"
+        },
+        "item_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "quantity": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        }
+      },
+      "required": [
+        "kind",
+        "item_id",
+        "quantity"
+      ],
+      "additionalProperties": false
+    },
+    "WaitIntent": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "wait"
+        },
+        "ticks": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        }
+      },
+      "required": [
+        "kind",
+        "ticks"
+      ],
+      "additionalProperties": false
+    },
+    "QuestionIntent": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "question"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      },
+      "required": [
+        "kind",
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "Intent": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/TextIntent"
+        },
+        {
+          "$ref": "#/$defs/InspectIntent"
+        },
+        {
+          "$ref": "#/$defs/MoveIntent"
+        },
+        {
+          "$ref": "#/$defs/UseItemIntent"
+        },
+        {
+          "$ref": "#/$defs/WaitIntent"
+        },
+        {
+          "$ref": "#/$defs/QuestionIntent"
+        }
+      ]
+    },
+    "SubmitAction": {
+      "type": "object",
+      "properties": {
+        "command_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "actor_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "scene_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "expected_versions": {
+          "$ref": "#/$defs/ExpectedVersions"
+        },
+        "intent": {
+          "$ref": "#/$defs/Intent"
+        }
+      },
+      "required": [
+        "command_id",
+        "actor_id",
+        "scene_id",
+        "expected_versions",
+        "intent"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "intent": {
+                "properties": {
+                  "kind": {
+                    "const": "use_item"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "expected_versions": {
+                "required": [
+                  "inventory"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ClarifyAction": {
+      "type": "object",
+      "properties": {
+        "command_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "expected_action_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "expected_versions": {
+          "$ref": "#/$defs/ExpectedVersions"
+        },
+        "clarification_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "answer": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "choice_id": {
+                  "$ref": "#/$defs/Id"
+                }
+              },
+              "required": [
+                "choice_id"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000
+                }
+              },
+              "required": [
+                "text"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "required": [
+        "command_id",
+        "expected_action_version",
+        "expected_versions",
+        "clarification_id",
+        "answer"
+      ],
+      "additionalProperties": false
+    },
+    "CancelAction": {
+      "type": "object",
+      "properties": {
+        "command_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "expected_action_version": {
+          "$ref": "#/$defs/Version"
+        }
+      },
+      "required": [
+        "command_id",
+        "expected_action_version"
+      ],
+      "additionalProperties": false
+    },
+    "ActionSubmitted": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "command_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "actor_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "scene_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "version": {
+          "$ref": "#/$defs/Version"
+        },
+        "created_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "updated_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "status": {
+          "const": "submitted"
+        }
+      },
+      "required": [
+        "id",
+        "command_id",
+        "actor_id",
+        "scene_id",
+        "version",
+        "created_at",
+        "updated_at",
+        "status"
+      ],
+      "additionalProperties": false
+    },
+    "ActionNeedsClarification": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "command_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "actor_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "scene_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "version": {
+          "$ref": "#/$defs/Version"
+        },
+        "created_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "updated_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "status": {
+          "const": "needs_clarification"
+        },
+        "clarification": {
+          "$ref": "#/$defs/Clarification"
+        }
+      },
+      "required": [
+        "id",
+        "command_id",
+        "actor_id",
+        "scene_id",
+        "version",
+        "created_at",
+        "updated_at",
+        "status",
+        "clarification"
+      ],
+      "additionalProperties": false
+    },
+    "ActionResolving": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "command_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "actor_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "scene_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "version": {
+          "$ref": "#/$defs/Version"
+        },
+        "created_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "updated_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "status": {
+          "const": "resolving"
+        }
+      },
+      "required": [
+        "id",
+        "command_id",
+        "actor_id",
+        "scene_id",
+        "version",
+        "created_at",
+        "updated_at",
+        "status"
+      ],
+      "additionalProperties": false
+    },
+    "ActionSucceeded": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "command_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "actor_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "scene_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "version": {
+          "$ref": "#/$defs/Version"
+        },
+        "created_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "updated_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "status": {
+          "const": "succeeded"
+        },
+        "resolution": {
+          "$ref": "#/$defs/Resolution"
+        }
+      },
+      "required": [
+        "id",
+        "command_id",
+        "actor_id",
+        "scene_id",
+        "version",
+        "created_at",
+        "updated_at",
+        "status",
+        "resolution"
+      ],
+      "additionalProperties": false
+    },
+    "ActionRejected": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "command_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "actor_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "scene_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "version": {
+          "$ref": "#/$defs/Version"
+        },
+        "created_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "updated_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "status": {
+          "const": "rejected"
+        },
+        "error": {
+          "$ref": "#/$defs/Error"
+        }
+      },
+      "required": [
+        "id",
+        "command_id",
+        "actor_id",
+        "scene_id",
+        "version",
+        "created_at",
+        "updated_at",
+        "status",
+        "error"
+      ],
+      "additionalProperties": false
+    },
+    "ActionCancelled": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "command_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "actor_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "scene_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "version": {
+          "$ref": "#/$defs/Version"
+        },
+        "created_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "updated_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "status": {
+          "const": "cancelled"
+        }
+      },
+      "required": [
+        "id",
+        "command_id",
+        "actor_id",
+        "scene_id",
+        "version",
+        "created_at",
+        "updated_at",
+        "status"
+      ],
+      "additionalProperties": false
+    },
+    "Action": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ActionSubmitted"
+        },
+        {
+          "$ref": "#/$defs/ActionNeedsClarification"
+        },
+        {
+          "$ref": "#/$defs/ActionResolving"
+        },
+        {
+          "$ref": "#/$defs/ActionSucceeded"
+        },
+        {
+          "$ref": "#/$defs/ActionRejected"
+        },
+        {
+          "$ref": "#/$defs/ActionCancelled"
+        }
+      ]
+    },
+    "InvitationRequest": {
+      "type": "object",
+      "properties": {
+        "command_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "expected_membership_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "player",
+            "spectator"
+          ]
+        },
+        "expires_in_seconds": {
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 604800
+        }
+      },
+      "required": [
+        "command_id",
+        "expected_membership_version",
+        "role",
+        "expires_in_seconds"
+      ],
+      "additionalProperties": false
+    },
+    "Invitation": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "campaign_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "token": {
+          "type": "string",
+          "minLength": 32,
+          "maxLength": 256
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "player",
+            "spectator"
+          ]
+        },
+        "expires_at": {
+          "$ref": "#/$defs/Timestamp"
+        }
+      },
+      "required": [
+        "id",
+        "campaign_id",
+        "token",
+        "role",
+        "expires_at"
+      ],
+      "additionalProperties": false
+    },
+    "RedeemInvitation": {
+      "type": "object",
+      "properties": {
+        "command_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "token": {
+          "type": "string",
+          "minLength": 32,
+          "maxLength": 256
+        }
+      },
+      "required": [
+        "command_id",
+        "token"
+      ],
+      "additionalProperties": false
+    },
+    "Session": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "campaign_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "paused",
+            "completed"
+          ]
+        },
+        "summary": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "started_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "ended_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "campaign_id",
+        "status",
+        "summary",
+        "started_at",
+        "ended_at"
+      ],
+      "additionalProperties": false
+    },
+    "CampaignPage": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Campaign"
+          },
+          "maxItems": 100
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "next_cursor"
+      ],
+      "additionalProperties": false
+    },
+    "CharacterPage": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Character"
+          },
+          "maxItems": 100
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "next_cursor"
+      ],
+      "additionalProperties": false
+    },
+    "ScenePage": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Scene"
+          },
+          "maxItems": 100
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "next_cursor"
+      ],
+      "additionalProperties": false
+    },
+    "ActionPage": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Action"
+          },
+          "maxItems": 100
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "next_cursor"
+      ],
+      "additionalProperties": false
+    },
+    "MembershipPage": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Membership"
+          },
+          "maxItems": 100
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "next_cursor"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
