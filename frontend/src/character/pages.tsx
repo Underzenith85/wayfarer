@@ -397,6 +397,7 @@ function ItemOperations({ itemId }: { itemId: string }) {
           <label>
             Operation
             <select
+              aria-label="Operation"
               value={kind}
               onChange={(e) => {
                 setKind(e.target.value as InventoryOperation);
@@ -432,6 +433,13 @@ function ItemOperations({ itemId }: { itemId: string }) {
                   ? "Destination container"
                   : "Recipient"}
               <select
+                aria-label={
+                  kind === "equip"
+                    ? "Equipment slot"
+                    : kind === "store"
+                      ? "Destination container"
+                      : "Recipient"
+                }
                 value={selectedTarget}
                 onChange={(e) => setTarget(e.target.value)}
                 required
@@ -559,7 +567,11 @@ export function InventoryPage() {
         </label>
         <label>
           Location
-          <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+          <select
+            aria-label="Location"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          >
             {["all", "carried", "equipped", "stored", "confiscated"].map(
               (location) => (
                 <option key={location} value={location}>
