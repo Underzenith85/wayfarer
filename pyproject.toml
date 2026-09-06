@@ -23,12 +23,15 @@ wayfarer = "wayfarer.cli:main"
 # Existing tests use unittest; pytest/Hypothesis arrive in roadmap issue #4.
 dev = [
     "hypothesis>=6.167.1",
+    "jsonschema==4.26.0",
     "mypy>=2.3.1",
+    "openapi-spec-validator==0.9.0",
     "pre-commit>=4.6.2",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
     "pytest-cov>=7.1.0",
     "ruff>=0.16.6",
+    "types-jsonschema==4.26.0.20260518",
 ]
 
 [tool.mypy]
@@ -40,6 +43,7 @@ warn_unreachable = true
 enable_error_code = ["ignore-without-code"]
 
 [tool.pytest.ini_options]
+pythonpath = ["."]
 asyncio_mode = "auto"
 addopts = "--strict-markers --cov=wayfarer --cov-report=term-missing --cov-fail-under=65"
 markers = ["integration: exercises storage or HTTP boundaries", "e2e: exercises an installed application"]
@@ -58,3 +62,4 @@ omit = ["src/wayfarer/__main__.py"]
 
 [tool.coverage.report]
 exclude_also = ["if __name__ == .__main__.:"]
+
