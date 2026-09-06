@@ -192,11 +192,12 @@ def test_activation_recompiles_and_attributes_feed_skills() -> None:
     effect = Effect("gift-dx", "attribute:dx", Operation.ADD, Decimal(2), "gift", "1.0.0")
     engine = compiler(trait("gift"), effects=(("gift", effect),))
     build, runtime = engine.activate(
-        draft(Purchase(definition_id="gift"), Purchase(definition_id="skill:stealth", amount=4))
+        draft(Purchase(definition_id="gift"), Purchase(definition_id="skill:stealth", amount=4)),
+        authorize=lambda _: None,
     )
     assert runtime.build_revision == build.revision and runtime.hp == 10
     assert next(v.value for v in build.sheet.values if v.target == "skill:stealth") == 13
     with pytest.raises(ValidationError):
-        engine.activate(draft(Purchase(definition_id="unknown")))
+        engine.activate(draft(Purchase(definition_id="unknown")), authorize=lambda _: None)
     with pytest.raises(ValidationError):
-        engine.activate(build)
+        engine.activate(build, authorize=lambda _: None)

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from decimal import Decimal
 
@@ -23,13 +24,17 @@ from wayfarer.rules.effects import DerivedValue, Effect, EffectEvaluator, Mechan
 
 
 class Purchase(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+    model_config = ConfigDict(
+        extra="forbid", frozen=True, strict=True, revalidate_instances="always"
+    )
     definition_id: str = Field(min_length=1, max_length=200)
     amount: int = Field(default=1, ge=1, le=10000)
 
 
 class CharacterDraft(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+    model_config = ConfigDict(
+        extra="forbid", frozen=True, strict=True, revalidate_instances="always"
+    )
     name: str = Field(min_length=1, max_length=200)
     backstory: str = Field(default="", max_length=10000)
     purchases: tuple[Purchase, ...] = Field(default=(), strict=False, max_length=1000)
@@ -119,6 +124,9 @@ class CharacterCompiler:
             raise ValidationError("Missing pinned package dependency")
         definitions = tuple(d for p in packages for d in p.definitions)
         self.definitions = {d.id: d for d in definitions}
+        self.definition_packages = {
+            d.id: (p.id, p.version) for p in packages for d in p.definitions
+        }
         if len(self.definitions) != len(definitions):
             raise ValidationError("Ambiguous definition IDs")
         if any(
@@ -310,11 +318,14 @@ class CharacterCompiler:
             )
         return Compilation(tuple(diagnostics), spent, self.policy.point_budget - spent, build)
 
-    def activate(self, value: object) -> tuple[ValidatedBuild, RuntimeState]:
+    def activate(
+        self, value: object, *, authorize: Callable[[ValidatedBuild], None]
+    ) -> tuple[ValidatedBuild, RuntimeState]:
         """Recompile drafts at activation; never accept a client-provided build."""
         result = self.compile(value)
         if result.build is None:
             raise ValidationError("; ".join(d.code for d in result.diagnostics))
+        authorize(result.build)
         values = {v.target: v.value for v in result.build.sheet.values}
         if not {"attribute:st", "attribute:ht"} <= values.keys():
             raise ValidationError("No implemented runtime resource initialization")
