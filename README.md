@@ -90,5 +90,6 @@ engine. See [the Wave 6 contracts and integration guide](docs/wave-6.md).
 Wave 7 adds campaign power approval and a transactional typed action pipeline.
 See [the Wave 7 contracts and supported mechanics](docs/wave-7.md).
 
-Wave 8 is in progress. Its bounded adjudication workflow and remaining delivery
-checklist are documented in [the Wave 8 checkpoint](docs/wave-8.md).
+Wave 8 completes the gameplay foundations: bounded adjudication, combat lifecycle,
+advancement and rules migrations, authenticated campaign transport, and versioned
+scene/exploration progression. See [the Wave 8 contracts](docs/wave-8.md).

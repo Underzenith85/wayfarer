@@ -15,6 +15,7 @@ from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
 from wayfarer.rules.catalog import reference
 from wayfarer.rules.checks import Outcome, RandomSource
+from wayfarer.simulation.access import CampaignMember
 from wayfarer.simulation.actions import (
     ACTION_ADAPTER,
     ActionEngine,
@@ -26,6 +27,7 @@ from wayfarer.simulation.actions import (
 )
 from wayfarer.simulation.adjudication import expire_rulings
 from wayfarer.simulation.resources import Pool, Record, ResourceState
+from wayfarer.simulation.scenes import ActorScene, JournalEntry, SceneEvent
 from wayfarer.world import World
 
 
@@ -53,6 +55,7 @@ class PlayService:
         world: World,
         resources: ResourceState,
         actors: tuple[ActorSetup, ...],
+        members: tuple[CampaignMember, ...] | None = None,
     ) -> PlayState:
         """Trusted scenario input; player drafts never supply approval records."""
         if campaign["revision"] != 0 or resources.revision != 0:
@@ -100,6 +103,66 @@ class PlayService:
         resources = resources.model_copy(
             update={"owners": tuple(owners.values()), "pools": tuple(pools.values())}
         )
+        if members is None:
+            members = tuple(
+                CampaignMember(
+                    principal_id=actor.actor_id, role="player", actor_ids=(actor.actor_id,)
+                )
+                for actor in actors
+            ) + tuple(
+                CampaignMember(principal_id=gm_id, role="gm")
+                for gm_id in sorted(self.engine.reviewer.gm_ids)
+                if gm_id not in {actor.actor_id for actor in actors}
+            )
+        actor_scenes: tuple[ActorScene, ...] = ()
+        scene_events: tuple[SceneEvent, ...] = ()
+        journal: tuple[JournalEntry, ...] = ()
+        fired_scene_triggers: tuple[str, ...] = ()
+        if self.engine.rules.scenes is not None:
+            rules = self.engine.rules.scenes
+            rules.validate_world(world)
+            by_location = {scene.location_id: scene for scene in rules.scenes}
+            cursors: list[ActorScene] = []
+            events: list[SceneEvent] = []
+            entries: list[JournalEntry] = []
+            fired: set[str] = set()
+            for actor in actors:
+                entity = next(entity for entity in world.entities if entity.id == actor.actor_id)
+                scene = by_location.get(entity.location_id or "")
+                if scene is None:
+                    raise ValidationError("Actor location has no configured scene")
+                cursors.append(ActorScene(actor_id=actor.actor_id, scene_id=scene.id))
+                events.append(
+                    SceneEvent(
+                        id=f"initial:{actor.actor_id}",
+                        actor_id=actor.actor_id,
+                        scene_id=scene.id,
+                        kind="entered",
+                        at=0,
+                    )
+                )
+                for discovery in rules.discoveries:
+                    if discovery.scene_id == scene.id and discovery.mode == "automatic":
+                        world = world.learn(actor.actor_id, discovery.fact_id)
+                        entries.append(
+                            JournalEntry(
+                                id=f"initial:{actor.actor_id}:{discovery.id}",
+                                actor_id=actor.actor_id,
+                                scene_id=scene.id,
+                                fact_id=discovery.fact_id,
+                                at=0,
+                            )
+                        )
+                for trigger in rules.triggers:
+                    if (
+                        trigger.scene_id == scene.id
+                        and trigger.phase == "entry"
+                        and trigger.id not in fired
+                    ):
+                        world = world.learn(actor.actor_id, trigger.fact_id)
+                        fired.add(trigger.id)
+            actor_scenes, scene_events, journal = tuple(cursors), tuple(events), tuple(entries)
+            fired_scene_triggers = tuple(sorted(fired))
         state = PlayState(
             campaign_id=campaign["id"],
             configuration_digest=self.engine.digest,
@@ -107,6 +170,11 @@ class PlayService:
             resources=resources,
             actors=tuple(play_actors),
             approvals=tuple(approvals),
+            members=members,
+            actor_scenes=actor_scenes,
+            scene_events=scene_events,
+            journal=journal,
+            fired_scene_triggers=fired_scene_triggers,
         )
         self.engine.validate(state)
         stored = campaign.copy()

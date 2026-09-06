@@ -20,6 +20,16 @@ class ConflictError(WayfarerError):
     status = 409
 
 
+class AuthenticationError(WayfarerError):
+    code = "authentication_required"
+    status = 401
+
+
+class AuthorizationError(WayfarerError):
+    code = "forbidden"
+    status = 403
+
+
 class ProviderError(WayfarerError):
     code = "provider_error"
     status = 502

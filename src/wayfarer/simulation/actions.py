@@ -15,9 +15,12 @@ from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.rules.catalog import SKILLS, DefinitionKind, ImplementationStatus
 from wayfarer.rules.checks import CheckTrace, Modifier, Outcome, RandomSource, success_check
 from wayfarer.rules.effects import DerivedValue, EffectEvaluator, MechanicalTarget
+from wayfarer.simulation.access import CampaignMember
 from wayfarer.simulation.adjudication import Ruling, RulingPolicy, expire_rulings
+from wayfarer.simulation.advancement import AdvancementEntry, MigrationEntry
 from wayfarer.simulation.combat import CombatEngine, CombatResult, CombatRules, Encounter
 from wayfarer.simulation.resources import Advance, Consume, Record, ResourceEngine, ResourceState
+from wayfarer.simulation.scenes import ActorScene, JournalEntry, SceneEvent, SceneRules
 from wayfarer.world import Entity, EntityKind, World
 
 Id = Annotated[str, Field(min_length=1, max_length=100)]
@@ -113,6 +116,9 @@ class ActionRules(Record):
     consumables: tuple[str, ...] = ()
     adjudication: RulingPolicy | None = None
     combat: CombatRules | None = None
+    # Kept out of the legacy ActionRules encoding so disabled scenes preserve
+    # existing campaign digests; enabled scene rules are appended explicitly.
+    scenes: SceneRules | None = Field(default=None, exclude=True)
 
 
 class ActionResult(Record):
@@ -148,6 +154,13 @@ class PlayState(Record):
     rulings: tuple[Ruling, ...] = ()
     encounters: tuple[Encounter, ...] = ()
     last_combat_result: CombatResult | None = None
+    advancement: tuple[AdvancementEntry, ...] = ()
+    migrations: tuple[MigrationEntry, ...] = ()
+    members: tuple[CampaignMember, ...] = ()
+    actor_scenes: tuple[ActorScene, ...] = ()
+    scene_events: tuple[SceneEvent, ...] = ()
+    journal: tuple[JournalEntry, ...] = ()
+    fired_scene_triggers: tuple[str, ...] = ()
 
 
 class ActionEngine:
@@ -201,12 +214,14 @@ class ActionEngine:
             for field, disabled in (
                 ("adjudication", rules.adjudication is None),
                 ("combat", rules.combat is None),
+                ("scenes", rules.scenes is None),
             )
             if disabled
         }
         encoded_rules = rules.model_dump_json(exclude=excluded)
         payload = (
             encoded_rules
+            + (rules.scenes.model_dump_json() if rules.scenes is not None else "")
             + reviewer.policy.digest
             + repr(resources.rules)
             + repr(reviewer.compiler.effects)
@@ -222,6 +237,69 @@ class ActionEngine:
         self.validate_rulings(state)
         state.world.validate()
         self.resources.validate(state.resources)
+        if self.rules.scenes is None:
+            if (
+                state.actor_scenes
+                or state.scene_events
+                or state.journal
+                or state.fired_scene_triggers
+            ):
+                raise ValidationError("Campaign has scene state without scene rules")
+        else:
+            self.rules.scenes.validate_world(state.world)
+            scenes = {scene.id for scene in self.rules.scenes.scenes}
+            if len({value.actor_id for value in state.actor_scenes}) != len(state.actor_scenes):
+                raise ValidationError("Duplicate actor scene cursor")
+            if {value.actor_id for value in state.actor_scenes} != {
+                a.actor_id for a in state.actors
+            }:
+                raise ValidationError("Every actor requires one scene cursor")
+            if any(value.scene_id not in scenes for value in state.actor_scenes):
+                raise ValidationError("Unknown actor scene")
+            if len({value.id for value in state.scene_events}) != len(state.scene_events):
+                raise ValidationError("Duplicate scene event")
+            if any(
+                value.actor_id not in {actor.actor_id for actor in state.actors}
+                or value.scene_id not in scenes
+                or value.revision > state.revision
+                for value in state.scene_events
+            ):
+                raise ValidationError("Invalid scene event")
+            if len({value.id for value in state.journal}) != len(state.journal):
+                raise ValidationError("Duplicate journal entry")
+            facts = {fact.id for fact in state.world.facts}
+            if any(
+                value.actor_id not in {actor.actor_id for actor in state.actors}
+                or value.scene_id not in scenes
+                or value.fact_id not in facts
+                or (value.actor_id, value.fact_id) not in state.world.knowledge
+                for value in state.journal
+            ):
+                raise ValidationError("Invalid perspective journal entry")
+            trigger_ids = {value.id for value in self.rules.scenes.triggers}
+            if (
+                len(set(state.fired_scene_triggers)) != len(state.fired_scene_triggers)
+                or not set(state.fired_scene_triggers) <= trigger_ids
+            ):
+                raise ValidationError("Invalid fired scene trigger")
+        if len({entry.id for entry in state.advancement}) != len(state.advancement):
+            raise ValidationError("Duplicate advancement ledger ID")
+        if len({entry.id for entry in state.migrations}) != len(state.migrations):
+            raise ValidationError("Duplicate migration ledger ID")
+        if len({member.principal_id for member in state.members}) != len(state.members):
+            raise ValidationError("Duplicate campaign member")
+        actor_ids = {actor.actor_id for actor in state.actors}
+        if any(
+            len(set(member.actor_ids)) != len(member.actor_ids)
+            or not set(member.actor_ids) <= actor_ids
+            or (member.role != "player" and member.actor_ids)
+            for member in state.members
+        ):
+            raise ValidationError("Invalid campaign actor control")
+        if any(entry.revision > state.revision for entry in state.advancement) or any(
+            entry.revision > state.revision for entry in state.migrations
+        ):
+            raise ValidationError("Ledger entry is ahead of campaign state")
         if len({e.id for e in state.encounters}) != len(state.encounters):
             raise ValidationError("Duplicate encounter ID")
         active_actors: set[str] = set()
@@ -680,12 +758,54 @@ class ActionEngine:
             rules_digest=self.digest,
             ruling_id=ruling_id,
         )
+        journal = state.journal
+        scene_events = state.scene_events
+        if revealed and self.rules.scenes is not None:
+            scene_cursor = next(
+                value for value in state.actor_scenes if value.actor_id == command.actor_id
+            )
+            discoveries = {
+                value.fact_id: value
+                for value in self.rules.scenes.discoveries
+                if value.scene_id == scene_cursor.scene_id
+                and value.mode == "check"
+                and value.target_id == getattr(command, "target_id", None)
+            }
+            additions = tuple(
+                JournalEntry(
+                    id=f"{command.id}:{discoveries[fact_id].id}",
+                    actor_id=command.actor_id,
+                    scene_id=scene_cursor.scene_id,
+                    fact_id=fact_id,
+                    at=resources.game_time,
+                )
+                for fact_id in revealed
+                if fact_id in discoveries
+                and not any(
+                    entry.actor_id == command.actor_id and entry.fact_id == fact_id
+                    for entry in state.journal
+                )
+            )
+            journal += additions
+            scene_events += tuple(
+                SceneEvent(
+                    id=f"{entry.id}:event",
+                    actor_id=entry.actor_id,
+                    scene_id=entry.scene_id,
+                    kind="discovered",
+                    fact_id=entry.fact_id,
+                    at=entry.at,
+                )
+                for entry in additions
+            )
         updated = state.model_copy(
             update={
                 "world": world,
                 "resources": resources,
                 "revision": state.revision + 1,
                 "last_result": result,
+                "journal": journal,
+                "scene_events": scene_events,
                 "rulings": expire_rulings(
                     tuple(
                         r.model_copy(
