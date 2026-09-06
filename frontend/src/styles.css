@@ -337,3 +337,300 @@ main {
     scroll-behavior: auto !important;
   }
 }
+/* Campaign and play surfaces */
+.campaign-grid {
+  display: grid;
+  gap: 1.25rem;
+}
+.section-intro h2 {
+  margin-top: 0;
+}
+.campaign-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 0.7rem;
+  padding: 1.5rem;
+}
+.card-top,
+.card-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.card-bottom {
+  margin-top: 1.5rem;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+.sample-label,
+.sample-note {
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+.sample-note {
+  border-left: 2px solid var(--accent);
+  padding-left: 0.75rem;
+}
+.current-scene {
+  min-height: 0;
+}
+.current-scene h2 {
+  margin: 0.75rem 0;
+}
+.scene-description {
+  font-family: Georgia, serif;
+  font-size: 1.15rem;
+  line-height: 1.8;
+}
+.context-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 1rem 0;
+}
+.session-recap {
+  border-top: 1px solid var(--border);
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+}
+.session-recap summary,
+details summary {
+  cursor: pointer;
+  min-height: 44px;
+  padding: 0.6rem 0;
+  font-size: 0.875rem;
+  color: var(--accent);
+}
+.session-recap li {
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+.transcript-heading {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  font-family: inherit;
+  font-size: 1rem;
+  margin-top: 2rem;
+}
+.transcript-empty {
+  font-size: 0.875rem;
+}
+.transcript {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.transcript-entry {
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.player-message {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  padding: 1rem 1.25rem;
+  margin-left: clamp(0px, 3vw, 2rem);
+}
+.player-message p {
+  white-space: pre-wrap;
+  color: var(--foreground);
+  margin-bottom: 0;
+}
+.channel-dialogue {
+  border-left: 3px solid var(--accent);
+}
+.channel-ooc {
+  border-style: dashed;
+}
+.action-status {
+  font-size: 0.875rem;
+  color: var(--muted);
+  padding: 1rem 0 0.5rem;
+}
+.committed-result {
+  background: var(--accent-soft);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+.committed-result h3 {
+  margin: 0;
+}
+.committed-result li {
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+  line-height: 1.8;
+}
+.gm-message {
+  padding: 1.5rem 0 0.5rem;
+}
+.gm-message p {
+  font-family: Georgia, serif;
+  font-size: 1.15rem;
+  line-height: 1.85;
+}
+.gm-message small {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+.clarification {
+  padding: 1rem;
+  border: 1px solid var(--accent);
+  border-radius: 0.5rem;
+}
+.clarification h3 {
+  margin-top: 0;
+}
+.clarification form {
+  display: grid;
+  gap: 0.75rem;
+}
+.resource-version {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.composer {
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 0.7rem;
+  background: var(--surface);
+  margin-top: 1rem;
+}
+.composer fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0 0 1rem;
+}
+.composer legend {
+  font-size: 0.875rem;
+  color: var(--muted);
+  margin-bottom: 0.6rem;
+}
+.channel-picker {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.channel-picker label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+.channel-picker input {
+  accent-color: var(--accent);
+  width: 18px;
+  height: 18px;
+}
+.composer > label,
+.clarification label {
+  display: block;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+.composer textarea,
+.clarification input,
+.actor-select select {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  font: inherit;
+  color: var(--foreground);
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 0.4rem;
+  padding: 0.75rem;
+  line-height: 1.6;
+}
+.composer textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+.composer-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 0.8rem;
+}
+.composer-bottom span,
+.composer-hint {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: none;
+}
+.actor-select {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.875rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+.actor-select select {
+  width: auto;
+  min-height: 44px;
+}
+.request-error {
+  padding: 1rem;
+  border: 1px solid var(--accent);
+  border-radius: 0.5rem;
+}
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+.stat-grid dt {
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+.stat-grid dd {
+  margin: 0.4rem 0;
+  font-size: 1.1rem;
+}
+.inventory-summary {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.inventory-summary li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  padding: 0.5rem 0;
+}
+.inventory-summary span {
+  overflow-wrap: anywhere;
+}
+.play-workspace {
+  min-width: 0;
+}
+@media (max-width: 700px) {
+  .current-scene {
+    padding: 1.25rem;
+  }
+  .composer {
+    padding: 1rem;
+  }
+  .transcript-entry {
+    padding: 1rem 0;
+  }
+  .player-message {
+    margin-left: 0;
+  }
+  .scene-card h2 {
+    font-size: 1.65rem;
+  }
+}

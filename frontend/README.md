@@ -1,6 +1,6 @@
 # Wayfarer frontend
 
-Issue #51 establishes the independent player shell. It does not replace the Python-served prototype or claim live gameplay integration. Python source, uv and packaging remain unchanged.
+Issues #51/#52 establish the independent player shell and campaign play workspace. It does not replace the Python-served prototype or claim live gameplay integration. Python source, uv and packaging remain unchanged.
 
 ## Local workflow
 
@@ -26,10 +26,64 @@ Type checks and builds use the stable TypeScript 7 native compiler (`pnpm exec t
 
 Path aliases are relative to the config without the removed `baseUrl` option. Node ambient types are explicit for Vite and Playwright configuration. Strictness checks remain enabled.
 
-## Boundaries
+## Campaign workspace preview (#52)
 
-`src/api/adapter.ts` defines an injected, abortable, read-only presentation adapter. The default returns no selected campaign. Production integration must map validated, authorized versioned API responses into this view model; this interface is not an HTTP DTO or an invented endpoint. Pass an adapter once when mounting `App`. TanStack Query owns asynchronous server state. The shell includes pending, empty, retryable error and paused/offline presentation. No game rules, dice, character calculations, fake inventory, or simulated GM are implemented. API contract work and feature issues #52/#53 will extend this seam. Never put provider secrets in Vite environment variables.
+```sh
+VITE_PLAY_FIXTURES=true pnpm dev
+```
 
-TanStack Router owns Play, Character, Inventory, Journal and Campaign routes. Navigation focuses the page heading; the skip link targets main. Desktop uses navigation / scene / character columns, tablet uses navigation / scene, and phone uses fixed five-destination navigation. Radix-backed shadcn-style Button and Sheet primitives live in `src/components/ui`; the sheet handles focus trapping, Escape and restoration. `components.json` records shadcn conventions. Light/dark semantic CSS tokens, 44px controls, safe-area spacing and reduced-motion rules are shared. Only the theme preference is stored locally. UI strings are text, including narration; no HTML is trusted.
+Open `/campaign` and choose a sample story. The fixture switch is off by default;
+normal builds retain an unconfigured connection and never pretend the backend is live.
+To build the explicit sample preview, use `VITE_PLAY_FIXTURES=true pnpm build`.
+Sample outcome selection is a developer query parameter at initial page load:
+`/campaign?journey=clarify` (also `resolve`, `reject`, `retry`,
+`narration-failure`, `expired`, `stale`). Inputs do not determine outcomes:
+these are deterministic response scripts, not game rules or an AI simulation.
+Fixture sessions reset on reload; unsent local drafts persist, keyed by principal,
+campaign, scene, actor and channel. Browser storage may be disabled without
+blocking in-memory drafting. Shared devices should end the authenticated session
+before changing users; expiry clears that principal's drafts and resume marker.
 
-RTL exercises adapter loading, empty, failure/retry, narration and offline behavior. Playwright covers all routes, overflow at phone/tablet/desktop widths and enlarged text, keyboard sheet behavior, focus transfer, skip navigation, theme persistence and offline recovery. Live authentication, campaign selection, mutation/revision handling, streaming and GM interaction remain integration work.
+The workspace includes campaign selection/resume, scene observations, recap,
+known-objective and visible-party presentation, three distinct message channels,
+contextual inspect controls, clarification choices/text, action status and
+expandable authoritative rolls/consequences. Character/inventory summaries update
+from a new snapshot after a committed result, never from narration. A narration
+failure keeps the successful result. Unknown acceptance retries the identical
+command and body. Stale-version responses require reload and reconsideration.
+
+`src/play/transport.ts` is the injected application facade over the frozen HTTP
+DTOs. The runtime has no fabricated HTTP routes or credentials. The store fences
+all asynchronous responses, aborts polling/narration and clears Query caches when
+switching campaigns, and clears private state on authorization/session failures.
+It restores action history and pending choices when re-entering a campaign;
+nonterminal actions recover through polling at no faster than one second. The
+fixture adapter can use shorter delays in unit tests. Existing #51 read-state
+components remain independently tested for loading/empty/error/offline displays.
+
+## Dependency and contract gate
+
+**Draft until #49 is delivered and integrated.** #48/#49 are still pending at the
+start of this change. This work does not claim completion of their shared MSW,
+WebSocket, drift/breaking-change or reconnect fixtures, nor live integration in
+#23/#50/#59. The `Snapshot` objective/party fields and narration iterator are
+presentation-only fixtures; they are not additions to the frozen HTTP schema.
+Dialogue uses the frozen text intent with explicit in-character phrasing; OOC uses
+question intent. Neither claims a separate chat endpoint. #49 should replace the
+fixture facade with its generated client/shared transport and settle these
+presentation mappings before #52 is closed.
+
+Types in `src/api/contracts.generated.ts` are generated from the committed
+OpenAPI contract. `pnpm contracts:generate` regenerates them and
+`pnpm contracts:check` checks drift. JSON Schema tests validate campaign, scene,
+character, inventory, session and all action fixtures against the frozen v1
+schemas. This is a narrow prerequisite for the UI, not the full #49 contract CI.
+The latest openapi-typescript CLI still advertises a TS5 peer range; a scoped
+pnpm peer compatibility exception allows its tested TS6 API shim. TypeScript 7
+remains the actual application compiler. No other peer ranges are relaxed.
+
+Playwright runs sample mode across phone/tablet/desktop and covers send,
+clarification, rejection, exact retry, narration failure after commit, draft
+persistence and expiry, plus the original keyboard/focus/overflow journeys.
+The frontend workflow runs contract drift, typing, lint, formatting, unit/schema
+tests, build and browser tests alongside the unchanged Python checks.

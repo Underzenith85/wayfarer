@@ -18,8 +18,15 @@ import {
   SunMoon,
   PanelRight,
 } from "lucide-react";
-import { unconfiguredAdapter, type CampaignAdapter } from "./api/adapter";
-import { CampaignState } from "./components/campaign-state";
+import { disconnectedTransport, type PlayTransport } from "./play/transport";
+import { PlayProvider } from "./play/context";
+import { usePlay } from "./play/use-play";
+import {
+  CampaignHome,
+  CharacterSummary,
+  Journal,
+  PlayWorkspace,
+} from "./play/workspace";
 import { Button } from "./components/ui/button";
 import { Sheet } from "./components/ui/sheet";
 const destinations = [
@@ -29,17 +36,8 @@ const destinations = [
   { path: "/journal", name: "Journal", icon: BookOpen },
   { path: "/campaign", name: "Campaign", icon: Flag },
 ] as const;
-function ContextDetails() {
-  return (
-    <div className="context-details">
-      <h3>Character</h3>
-      <p>No character selected.</p>
-      <h3>Inventory</h3>
-      <p>Equipment will appear with your character.</p>
-    </div>
-  );
-}
 function Shell() {
+  const { state } = usePlay();
   const pathname = useLocation({ select: (location) => location.pathname });
   const previousPathname = useRef(pathname);
   const [dark, setDark] = useState(() => {
@@ -121,7 +119,7 @@ function Shell() {
           </nav>
           <div className="table-note desktop-only">
             <span className="eyebrow">Campaign</span>
-            <p>No active campaign</p>
+            <p>{state.snapshot?.campaign.name ?? "No active campaign"}</p>
           </div>
         </aside>
         <main id="main" tabIndex={-1}>
@@ -142,7 +140,7 @@ function Shell() {
                 </Button>
               }
             >
-              <ContextDetails />
+              <CharacterSummary />
             </Sheet>
           </div>
           <Outlet />
@@ -152,13 +150,13 @@ function Shell() {
         </main>
         <aside className="character-panel" aria-label="At a glance">
           <span className="eyebrow">At a glance</span>
-          <ContextDetails />
+          <CharacterSummary />
         </aside>
       </div>
     </>
   );
 }
-function makeRouter(adapter: CampaignAdapter = unconfiguredAdapter) {
+function makeRouter() {
   const root = createRootRoute({
     component: Shell,
     notFoundComponent: () => (
@@ -168,49 +166,38 @@ function makeRouter(adapter: CampaignAdapter = unconfiguredAdapter) {
   const play = createRoute({
     getParentRoute: () => root,
     path: "/",
-    component: () => (
-      <section className="scene-card" aria-label="Current scene">
-        <CampaignState adapter={adapter} />
-      </section>
-    ),
+    component: PlayWorkspace,
   });
-  const routes = destinations.slice(1).map(({ path, name }) =>
+  const routes = destinations.slice(1).map(({ path }) =>
     createRoute({
       getParentRoute: () => root,
       path,
-      component: () => (
-        <section className="scene-card">
-          <span className="eyebrow">{name}</span>
-          <h2>
-            {name === "Campaign"
-              ? "No campaign selected"
-              : `Your ${name.toLowerCase()}`}
-          </h2>
-          <p>
-            {name === "Character"
-              ? "Your character’s status and abilities will appear here."
-              : name === "Inventory"
-                ? "Your character’s equipment and carried items will appear here."
-                : name === "Journal"
-                  ? "Your discoveries and session notes will appear here."
-                  : "Campaign information will appear once a campaign is connected."}
-          </p>
-        </section>
-      ),
+      component:
+        path === "/campaign"
+          ? CampaignHome
+          : path === "/journal"
+            ? Journal
+            : () => (
+                <section className="scene-card">
+                  <CharacterSummary />
+                </section>
+              ),
     }),
   );
   return createRouter({ routeTree: root.addChildren([play, ...routes]) });
 }
 export function App({
-  adapter = unconfiguredAdapter,
+  transport = disconnectedTransport,
 }: {
-  adapter?: CampaignAdapter;
+  transport?: PlayTransport;
 }) {
   const [client] = useState(() => new QueryClient());
-  const [router] = useState(() => makeRouter(adapter));
+  const [router] = useState(() => makeRouter());
   return (
     <QueryClientProvider client={client}>
-      <RouterProvider router={router} />
+      <PlayProvider key={transport.principalId} transport={transport}>
+        <RouterProvider router={router} />
+      </PlayProvider>
     </QueryClientProvider>
   );
 }
