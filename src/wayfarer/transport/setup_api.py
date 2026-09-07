@@ -4,7 +4,7 @@ import json
 
 from aiohttp import web
 
-from wayfarer.errors import ValidationError
+from wayfarer.errors import AuthorizationError, ValidationError
 from wayfarer.orchestration.profiles import ProfileMigrations
 from wayfarer.orchestration.setup import SetupService
 from wayfarer.simulation.profiles import ProfileSelection
@@ -81,6 +81,24 @@ async def profiles(request: web.Request) -> web.Response:
     return web.json_response([v.model_dump(mode="json") for v in views])
 
 
+async def character_preview(request: web.Request) -> web.Response:
+    from wayfarer.orchestration.workshop_options import CharacterPreviewRequest, preview_character
+    from wayfarer.transport.campaign_api import _identity, _json
+
+    service = request.app[SETUP_KEY]
+    campaign = await service.play.store.read(request.match_info["cid"])
+    setup = service.load(campaign)
+    principal = _identity(request)
+    service.seat(setup, principal)
+    if setup.host_id != principal:
+        raise AuthorizationError("Only the host edits the setup party")
+    body = CharacterPreviewRequest.model_validate_json(json.dumps(await _json(request)))
+    play = service.play.for_campaign(campaign)
+    return web.json_response(
+        preview_character(play.engine.reviewer, body.proposal).model_dump(mode="json")
+    )
+
+
 def _migrations(request: web.Request) -> ProfileMigrations:
     if MIGRATIONS_KEY not in request.app:
         raise ValidationError("Rules profile migration is unavailable on this server")
@@ -134,6 +152,7 @@ def install(app: web.Application, service: SetupService, graphs: tuple[ScenarioG
             web.get("/setups/templates", templates),
             web.get("/setups/profiles", profiles),
             web.get("/setups/{cid}", read),
+            web.post("/setups/{cid}/character-preview", character_preview),
             web.post("/setups/{cid}", execute),
             web.get("/setups/{cid}/migration", migration_preview),
             web.post("/setups/{cid}/migration", migrate),

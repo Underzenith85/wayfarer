@@ -137,3 +137,103 @@ async def test_setup_reactivation_does_not_heal(tmp_path: Path) -> None:
     )
     updated = play._load(await play.store.read(cid))
     assert next(p for p in updated.resources.pools if p.id == "hp:a").current == 3
+
+
+async def test_active_preview_is_read_only_authorized_and_rejects_client_costs(
+    tmp_path: Path,
+) -> None:
+    cid, play = await prepare(tmp_path)
+    app = create_campaign_app(
+        CampaignAccess(play), {"alice-token": "alice", "bob-token": "bob"}, legacy_routes=True
+    )
+    proposal = CharacterProposal(
+        draft=CharacterDraft(
+            name="Preview hero",
+            purchases=tuple(
+                Purchase(definition_id="attribute:" + key, amount=10)
+                for key in ("st", "dx", "iq", "ht")
+            )
+            + (Purchase(definition_id="skill:observation", amount=4),),
+        )
+    )
+    before = await play.store.read(cid)
+    history = await play.store.history(cid)
+    async with TestClient(TestServer(app)) as client:
+        path = f"/campaigns/{cid}/workshop/a/preview"
+        headers = {"Authorization": "Bearer alice-token"}
+        body = {"proposal": proposal.model_dump(mode="json")}
+        response = await client.post(path, headers=headers, json=body)
+        assert response.status == 200
+        result = await response.json()
+        # Prototype policy: baseline attributes are free; four skill points cost four.
+        assert result["spent"] == 4 and result["remaining"] == 96
+        assert {p["definition_id"]: p["cost"] for p in result["breakdown"]} == {
+            "attribute:st": 0,
+            "attribute:dx": 0,
+            "attribute:iq": 0,
+            "attribute:ht": 0,
+            "skill:observation": 4,
+        }
+        assert result["legal"]
+        overspent = proposal.model_copy(
+            update={
+                "draft": proposal.draft.model_copy(
+                    update={
+                        "purchases": proposal.draft.purchases[:-1]
+                        + (Purchase(definition_id="skill:observation", amount=101),)
+                    }
+                )
+            }
+        )
+        response = await client.post(
+            path, headers=headers, json={"proposal": overspent.model_dump(mode="json")}
+        )
+        result = await response.json()
+        assert result["spent"] == 101 and result["remaining"] == -1
+        assert not result["legal"] and result["diagnostics"]
+        assert result["derived"] == [] and result["breakdown"] == []
+        assert (await client.post(path, json=body)).status == 401
+        assert (
+            await client.post(path, headers={"Authorization": "Bearer bob-token"}, json=body)
+        ).status == 403
+        assert (await client.post(path, headers=headers, json={**body, "spent": 0})).status == 400
+    assert await play.store.read(cid) == before
+    assert await play.store.history(cid) == history
+
+
+async def test_setup_preview_uses_exact_profile_and_host_authority(tmp_path: Path) -> None:
+    from test_profiles import ALICE, EXTENDED, TOKENS, extended_graph, runtime
+
+    from wayfarer.orchestration.setup import SetupService
+    from wayfarer.simulation.setup import CreateSetup, SetupCommand
+
+    profiles = runtime(tmp_path)
+    setup = SetupService(CampaignAccess(profiles.play))
+    graph = extended_graph(trait=True)
+    created = await setup.create(
+        CreateSetup(id="preview", brief=graph.brief, graph=graph, rules_profile=EXTENDED),
+        principal_id="alice",
+    )
+    cid = str(created["id"])
+    await setup.execute(
+        cid,
+        SetupCommand(id="invite", expected_revision=0, operation="invite", principal_id="bob"),
+        principal_id="alice",
+    )
+    before = await profiles.store.read(cid)
+    app = create_campaign_app(CampaignAccess(profiles.play), TOKENS)
+    async with TestClient(TestServer(app)) as client:
+        path = f"/setups/{cid}/character-preview"
+        body = {"proposal": graph.actors[0].proposal.model_dump(mode="json")}
+        result = await client.post(path, headers=ALICE, json=body)
+        assert result.status == 200
+        preview = await result.json()
+        assert any(
+            p["definition_id"] == "trait:lantern-bearer" and p["cost"] == 5
+            for p in preview["breakdown"]
+        )
+        assert (
+            await client.post(path, headers={"Authorization": "Bearer bob-token"}, json=body)
+        ).status == 403
+        assert (await client.post(path, json=body)).status == 401
+    assert await profiles.store.read(cid) == before

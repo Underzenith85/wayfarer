@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "../components/ui/button";
 import { usePlay } from "../play/use-play";
 import { LiveTransport } from "../play/live";
@@ -6,19 +6,11 @@ import { orderStats, statLabel } from "../presentation/labels";
 import type { components } from "./workshop.generated";
 type Options = components["schemas"]["WorkshopOptions"];
 type ProfilePreview = components["schemas"]["ProfilePreviewResult"];
-type TraitOptions = components["schemas"]["TraitOptions"];
-interface Proposal {
-  draft: {
-    name: string;
-    backstory: string;
-    purchases: {
-      definition_id: string;
-      amount: number;
-      trait?: TraitOptions | null;
-    }[];
-  };
-  custom: unknown[];
-}
+import {
+  CharacterDraftEditor,
+  type Proposal,
+  type CharacterPreview,
+} from "./draft-editor";
 interface Draft {
   id: string;
   revision: number;
@@ -52,6 +44,7 @@ export function CharacterWorkshop() {
     points_delta: number;
     points_available: number;
   } | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState("");
   const [reason, setReason] = useState("");
   const [data, setData] = useState<Workshop | null>(null),
     [proposal, setProposal] = useState<Proposal | null>(null),
@@ -79,40 +72,47 @@ export function CharacterWorkshop() {
       });
     return () => controller.abort();
   }, [transport, actor]);
+  const activeProfile = `${data?.options.active_profile}@${data?.options.active_profile_version}`;
+  const previewCharacter = useCallback(
+    async (value: Proposal, signal: AbortSignal): Promise<CharacterPreview> => {
+      if (!(transport instanceof LiveTransport) || !actor)
+        throw new Error("Workshop unavailable");
+      if (selectedProfile && selectedProfile !== activeProfile) {
+        const split = selectedProfile.lastIndexOf("@");
+        const result = (await transport.request(
+          "/workshop-profile-preview",
+          signal,
+          {
+            profile_id: selectedProfile.slice(0, split),
+            version: Number(selectedProfile.slice(split + 1)),
+            proposal: value,
+          },
+        )) as ProfilePreview;
+        if (!signal.aborted) setProfilePreview(result);
+        return result;
+      }
+      return (await transport.request(
+        `/workshop/${encodeURIComponent(actor)}/preview`,
+        signal,
+        { proposal: value },
+      )) as CharacterPreview;
+    },
+    [transport, actor, selectedProfile, activeProfile],
+  );
   if (!(transport instanceof LiveTransport) || !actor || !data || !proposal)
-    return null;
+    return error ? <p role="alert">{error}</p> : null;
   const foreignProfile =
-    profilePreview !== null &&
-    profilePreview.profile.id !== data.options.active_profile;
-  const catalog = profilePreview?.catalog ?? data.options.catalog;
+    selectedProfile !== "" &&
+    selectedProfile !==
+      `${data.options.active_profile}@${data.options.active_profile_version}`;
   const change = (draft: Proposal["draft"]) => {
     setAdvancePreview(null);
     setProposal({ ...proposal, draft });
   };
-  const chooseProfile = async (value: string) => {
-    setError("");
-    if (!value) {
-      setProfilePreview(null);
-      return;
-    }
-    const selected = data.options.profiles.find(
-      (p) => `${p.id}@${p.version}` === value,
-    );
-    if (!selected) return;
-    setBusy(true);
-    try {
-      setProfilePreview(
-        (await transport.request(
-          "/workshop-profile-preview",
-          new AbortController().signal,
-          { profile_id: selected.id, version: selected.version, proposal },
-        )) as ProfilePreview,
-      );
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Profile preview unavailable");
-    } finally {
-      setBusy(false);
-    }
+  const chooseProfile = (value: string) => {
+    setSelectedProfile(value);
+    setProfilePreview(null);
+    setAdvancePreview(null);
   };
   const advance = async (operation: "preview" | "apply") => {
     if (!data.options.build_revision) return;
@@ -232,7 +232,7 @@ export function CharacterWorkshop() {
       <select
         id="workshop-profile"
         disabled={busy}
-        defaultValue=""
+        value={selectedProfile}
         onChange={(e) => void chooseProfile(e.target.value)}
       >
         <option value="">Current campaign profile</option>
@@ -244,20 +244,6 @@ export function CharacterWorkshop() {
       </select>
       {profilePreview && (
         <section aria-label="Profile preview">
-          <p>
-            {profilePreview.spent} points spent · {profilePreview.remaining}{" "}
-            remaining
-          </p>
-          {profilePreview.diagnostics.map((message, i) => (
-            <p key={i}>{message}</p>
-          ))}
-          {orderStats(profilePreview.derived, ([target]) => target).map(
-            ([target, value]) => (
-              <p key={target}>
-                {statLabel({ id: target }).full}: {value}
-              </p>
-            ),
-          )}
           {foreignProfile && (
             <p>
               Preview only. Changing the campaign profile requires an explicit
@@ -275,198 +261,15 @@ export function CharacterWorkshop() {
         </section>
       )}
       {error && <p role="alert">{error}</p>}
-      <label htmlFor="character-name">Name</label>
-      <input
-        id="character-name"
-        value={proposal.draft.name}
-        onChange={(e) => change({ ...proposal.draft, name: e.target.value })}
+      <CharacterDraftEditor
+        proposal={proposal}
+        preview={previewCharacter}
+        disabled={busy}
+        onChange={(next) => {
+          setAdvancePreview(null);
+          setProposal(next);
+        }}
       />
-      <label htmlFor="character-backstory">Concept and backstory</label>
-      <textarea
-        id="character-backstory"
-        value={proposal.draft.backstory}
-        onChange={(e) =>
-          change({ ...proposal.draft, backstory: e.target.value })
-        }
-      />
-      {proposal.draft.purchases.map((p, i) => (
-        <div key={i} className="context-actions">
-          <label htmlFor={`purchase-${i}`}>Ability {i + 1}</label>
-          <select
-            id={`purchase-${i}`}
-            value={p.definition_id}
-            onChange={(e) =>
-              change({
-                ...proposal.draft,
-                purchases: proposal.draft.purchases.map((v, j) =>
-                  j === i ? { definition_id: e.target.value, amount: 1 } : v,
-                ),
-              })
-            }
-          >
-            {catalog.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name}
-              </option>
-            ))}
-          </select>
-          <label htmlFor={`amount-${i}`}>Amount</label>
-          <input
-            id={`amount-${i}`}
-            type="number"
-            min={1}
-            max={10000}
-            value={p.amount}
-            onChange={(e) =>
-              change({
-                ...proposal.draft,
-                purchases: proposal.draft.purchases.map((v, j) =>
-                  j === i ? { ...v, amount: Number(e.target.value) } : v,
-                ),
-              })
-            }
-          />
-          <Button
-            onClick={() =>
-              change({
-                ...proposal.draft,
-                purchases: proposal.draft.purchases.filter((_, j) => j !== i),
-              })
-            }
-          >
-            Remove ability {i + 1}
-          </Button>
-          {(() => {
-            const definition = catalog.find((d) => d.id === p.definition_id);
-            const updateTrait = (trait: TraitOptions) =>
-              change({
-                ...proposal.draft,
-                purchases: proposal.draft.purchases.map((value, j) =>
-                  j === i ? { ...value, trait } : value,
-                ),
-              });
-            const trait = p.trait ?? {
-              parameters: [],
-              modifiers: [],
-              self_control: null,
-            };
-            return (
-              <>
-                {definition?.skill && (
-                  <p>
-                    {statLabel({ id: definition.skill.attribute }).short} /{" "}
-                    {definition.skill.difficulty}
-                    {definition.skill.specialty &&
-                      ` · ${definition.skill.specialty.name}`}
-                    {definition.skill.technique &&
-                      ` · Technique: ${definition.skill.technique.parent}, cap +${definition.skill.technique.maximum_modifier}`}
-                    {definition.skill.defaults
-                      .map((d) => ` · Default: ${d.target} ${d.modifier}`)
-                      .join("")}
-                  </p>
-                )}
-                {definition?.trait?.self_control && (
-                  <label>
-                    Self-control
-                    <select
-                      aria-label={`Self-control ${i + 1}`}
-                      value={trait.self_control ?? ""}
-                      onChange={(e) =>
-                        updateTrait({
-                          ...trait,
-                          self_control: Number(e.target.value) as
-                            6 | 9 | 12 | 15,
-                        })
-                      }
-                    >
-                      <option value="" disabled>
-                        Select rating
-                      </option>
-                      {[6, 9, 12, 15].map((value) => (
-                        <option key={value}>{value}</option>
-                      ))}
-                    </select>
-                  </label>
-                )}
-                {definition?.trait?.parameters.map((parameter) => (
-                  <label key={parameter.name}>
-                    {parameter.name}
-                    <select
-                      aria-label={`${parameter.name} ${i + 1}`}
-                      value={
-                        JSON.stringify(
-                          trait.parameters.find(
-                            (v) => v[0] === parameter.name,
-                          )?.[1],
-                        ) ?? ""
-                      }
-                      onChange={(e) =>
-                        updateTrait({
-                          ...trait,
-                          parameters: [
-                            ...trait.parameters.filter(
-                              (v) => v[0] !== parameter.name,
-                            ),
-                            [
-                              parameter.name,
-                              JSON.parse(e.target.value) as
-                                string | number | boolean,
-                            ],
-                          ],
-                        })
-                      }
-                    >
-                      <option value="" disabled>
-                        Select value
-                      </option>
-                      {parameter.choices.map((value) => (
-                        <option
-                          key={JSON.stringify(value)}
-                          value={JSON.stringify(value)}
-                        >
-                          {String(value)}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                ))}
-                {definition?.trait?.modifiers.map((modifier) => (
-                  <label key={modifier.id}>
-                    <input
-                      type="checkbox"
-                      checked={trait.modifiers.includes(modifier.id)}
-                      onChange={(e) =>
-                        updateTrait({
-                          ...trait,
-                          modifiers: e.target.checked
-                            ? [...trait.modifiers, modifier.id]
-                            : trait.modifiers.filter(
-                                (id) => id !== modifier.id,
-                              ),
-                        })
-                      }
-                    />
-                    {modifier.id} ({modifier.percent}%)
-                  </label>
-                ))}
-              </>
-            );
-          })()}
-        </div>
-      ))}
-      <Button
-        onClick={() =>
-          change({
-            ...proposal.draft,
-            purchases: [
-              ...proposal.draft.purchases,
-              { definition_id: catalog[0]?.id ?? "", amount: 1 },
-            ],
-          })
-        }
-      >
-        Add ability
-      </Button>
       <Button
         disabled={busy || foreignProfile}
         onClick={() => void submit("save")}
@@ -513,7 +316,13 @@ export function CharacterWorkshop() {
           )}
           {data.options.can_approve && (
             <Button
-              disabled={busy || foreignProfile || !reason.trim()}
+              disabled={
+                busy ||
+                foreignProfile ||
+                !reason.trim() ||
+                JSON.stringify(proposal) !==
+                  JSON.stringify(JSON.parse(data.draft.content_json))
+              }
               onClick={() => void submit("approve")}
             >
               Approve draft

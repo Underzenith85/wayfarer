@@ -23,12 +23,14 @@ from wayfarer.orchestration.provider_runtime import provider_runtime
 from wayfarer.orchestration.providers import Orchestrator
 from wayfarer.orchestration.workshop import DraftCommand, WorkshopService
 from wayfarer.orchestration.workshop_options import (
+    CharacterPreviewRequest,
     ProfilePreviewRequest,
     ReviewActor,
     ReviewSubmission,
     WorkshopOptions,
     WorkshopReviewQueue,
     catalog_options,
+    preview_character,
     preview_profile,
     profile_option,
 )
@@ -286,6 +288,7 @@ async def workshop_start(request: web.Request) -> web.Response:
     active = DEFAULT_REGISTRY.find(reference(compiler.rules))
     options = WorkshopOptions(
         active_profile=active.id if active else compiler.statistics_profile,
+        active_profile_version=active.version if active else None,
         profiles=tuple(profile_option(p) for p in DEFAULT_REGISTRY.profiles),
         catalog=catalog_options(compiler),
         build_revision=build.revision if build else None,
@@ -350,6 +353,16 @@ async def workshop_grant(request: web.Request) -> web.Response:
     body = GrantPoints.model_validate_json(json.dumps(await _json(request)))
     result = await AdvancementService(access.play).grant(cid, body, authenticated_gm_id=principal)
     return web.json_response(result.model_dump(mode="json"))
+
+
+async def workshop_character_preview(request: web.Request) -> web.Response:
+    access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
+    state = access.play._load(await access.play.store.read(request.match_info["cid"]))
+    access._control(access._member(state, _identity(request)), request.match_info["aid"])
+    body = CharacterPreviewRequest.model_validate_json(json.dumps(await _json(request)))
+    return web.json_response(
+        preview_character(access.play.engine.reviewer, body.proposal).model_dump(mode="json")
+    )
 
 
 async def workshop_profile_preview(request: web.Request) -> web.Response:
@@ -496,6 +509,7 @@ def create_campaign_app(
                 web.get("/campaigns/{cid}/events", events),
                 web.get("/campaigns/{cid}/drafts/{did}", read_draft),
                 web.get("/campaigns/{cid}/workshop/{aid}", workshop_start),
+                web.post("/campaigns/{cid}/workshop/{aid}/preview", workshop_character_preview),
                 web.get("/campaigns/{cid}/workshop-reviews", workshop_reviews),
                 web.post("/campaigns/{cid}/workshop-grants", workshop_grant),
                 web.post("/campaigns/{cid}/workshop-profile-preview", workshop_profile_preview),

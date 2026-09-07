@@ -7,6 +7,8 @@ from pathlib import Path
 from wayfarer.orchestration.advancement import AdvanceCharacter, GrantPoints
 from wayfarer.orchestration.workshop import DraftCommand
 from wayfarer.orchestration.workshop_options import (
+    CharacterPreviewRequest,
+    CharacterPreviewResult,
     ProfilePreviewRequest,
     ProfilePreviewResult,
     WorkshopOptions,
@@ -18,6 +20,8 @@ def contract() -> str:
     schemas: dict[str, object] = {}
     for model in (
         WorkshopOptions,
+        CharacterPreviewRequest,
+        CharacterPreviewResult,
         ProfilePreviewRequest,
         ProfilePreviewResult,
         AdvanceCharacter,

@@ -48,3 +48,27 @@ def test_both_viewports_run_and_failure_is_retained(
     cases = list(ET.parse(destination).getroot().iter("testcase"))
     assert len(cases) == 4
     assert cases[3].find("error" if missing else "failure") is not None
+
+
+def test_single_viewport_still_isolates_both_batches(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    destination = tmp_path / "live.xml"
+    monkeypatch.setenv("PLAYWRIGHT_JUNIT_OUTPUT_FILE", str(destination))
+    monkeypatch.setattr(sys, "argv", ["runner", "--project=desktop", "--workers=1"])
+    batches: list[str] = []
+
+    def run(
+        args: list[str], *, env: dict[str, str], check: bool
+    ) -> subprocess.CompletedProcess[str]:
+        assert args.count("--project=desktop") == 1 and "--workers=1" in args
+        batches.append(env["WAYFARER_LIVE_BATCH"])
+        Path(env["PLAYWRIGHT_JUNIT_OUTPUT_FILE"]).write_text(
+            '<testsuites><testsuite><testcase name="passed"/></testsuite></testsuites>'
+        )
+        return subprocess.CompletedProcess(args, 0)
+
+    monkeypatch.setattr(subprocess, "run", run)
+    assert run_live_browsers.main() == 0
+    assert batches == ["regular", "workshop"]
+    assert len(list(ET.parse(destination).getroot().iter("testcase"))) == 2

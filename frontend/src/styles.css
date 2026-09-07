@@ -1450,3 +1450,84 @@ input[type="number"] {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Keep the point-buy feedback visible while editing long character sheets. */
+.character-draft-editor {
+  min-width: 0;
+}
+.point-budget {
+  position: sticky;
+  top: 0.5rem;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding: 1rem;
+  background: var(--surface);
+  color: var(--foreground, #f3f5f7);
+  border: 1px solid currentColor;
+  border-radius: 0.5rem;
+}
+.point-budget[data-overspent="true"] {
+  color: #ffb4b4;
+  background: #4a171f;
+}
+.draft-controls {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+.draft-controls details {
+  margin-block: 1rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border, #536074);
+  border-radius: 0.5rem;
+}
+.draft-controls summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+.purchase-row {
+  align-items: center;
+  margin-block: 0.75rem;
+}
+.purchase-row select {
+  max-width: 100%;
+}
+.purchase-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.purchase-stepper input[type="number"] {
+  width: 5rem;
+  min-width: 0;
+  text-align: center;
+}
+.purchase-cost {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.derived-preview dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.75rem;
+}
+.derived-preview dd {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.character-workshop .purchase-row {
+  display: flex;
+}
+.purchase-row > select {
+  flex: 1 1 12rem;
+  width: auto;
+}
+.purchase-row input[type="checkbox"] {
+  display: inline-block;
+  width: auto;
+}

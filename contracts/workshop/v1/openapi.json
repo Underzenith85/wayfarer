@@ -24,6 +24,18 @@
           "status": {
             "$ref": "#/components/schemas/ImplementationStatus"
           },
+          "point_cost": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Point Cost"
+          },
           "skill": {
             "anyOf": [
               {
@@ -423,6 +435,18 @@
             ],
             "title": "Active Profile"
           },
+          "active_profile_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Active Profile Version"
+          },
           "profiles": {
             "items": {
               "$ref": "#/components/schemas/ProfileOption"
@@ -649,36 +673,46 @@
         "title": "TraitOptions",
         "type": "object"
       },
-      "ProfilePreviewRequest": {
+      "CharacterPreviewRequest": {
         "additionalProperties": false,
         "properties": {
-          "profile_id": {
-            "title": "Profile Id",
-            "type": "string"
-          },
-          "version": {
-            "minimum": 1,
-            "title": "Version",
-            "type": "integer"
-          },
           "proposal": {
             "$ref": "#/components/schemas/CharacterProposal"
           }
         },
         "required": [
-          "profile_id",
-          "version",
           "proposal"
         ],
-        "title": "ProfilePreviewRequest",
+        "title": "CharacterPreviewRequest",
         "type": "object"
       },
-      "ProfilePreviewResult": {
+      "PurchaseCost": {
         "additionalProperties": false,
         "properties": {
-          "profile": {
-            "$ref": "#/components/schemas/ProfileOption"
+          "definition_id": {
+            "title": "Definition Id",
+            "type": "string"
           },
+          "amount": {
+            "title": "Amount",
+            "type": "integer"
+          },
+          "cost": {
+            "title": "Cost",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "definition_id",
+          "amount",
+          "cost"
+        ],
+        "title": "PurchaseCost",
+        "type": "object"
+      },
+      "CharacterPreviewResult": {
+        "additionalProperties": false,
+        "properties": {
           "catalog": {
             "items": {
               "$ref": "#/components/schemas/CatalogOption"
@@ -721,16 +755,117 @@
             },
             "title": "Derived",
             "type": "array"
+          },
+          "breakdown": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/PurchaseCost"
+            },
+            "title": "Breakdown",
+            "type": "array"
           }
         },
         "required": [
-          "profile",
           "catalog",
           "spent",
           "remaining",
           "legal",
           "diagnostics",
           "derived"
+        ],
+        "title": "CharacterPreviewResult",
+        "type": "object"
+      },
+      "ProfilePreviewRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "profile_id": {
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          },
+          "proposal": {
+            "$ref": "#/components/schemas/CharacterProposal"
+          }
+        },
+        "required": [
+          "profile_id",
+          "version",
+          "proposal"
+        ],
+        "title": "ProfilePreviewRequest",
+        "type": "object"
+      },
+      "ProfilePreviewResult": {
+        "additionalProperties": false,
+        "properties": {
+          "catalog": {
+            "items": {
+              "$ref": "#/components/schemas/CatalogOption"
+            },
+            "title": "Catalog",
+            "type": "array"
+          },
+          "spent": {
+            "title": "Spent",
+            "type": "integer"
+          },
+          "remaining": {
+            "title": "Remaining",
+            "type": "integer"
+          },
+          "legal": {
+            "title": "Legal",
+            "type": "boolean"
+          },
+          "diagnostics": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Diagnostics",
+            "type": "array"
+          },
+          "derived": {
+            "items": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Derived",
+            "type": "array"
+          },
+          "breakdown": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/PurchaseCost"
+            },
+            "title": "Breakdown",
+            "type": "array"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/ProfileOption"
+          }
+        },
+        "required": [
+          "catalog",
+          "spent",
+          "remaining",
+          "legal",
+          "diagnostics",
+          "derived",
+          "profile"
         ],
         "title": "ProfilePreviewResult",
         "type": "object"

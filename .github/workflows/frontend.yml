@@ -85,7 +85,7 @@ jobs:
         run: pnpm exec playwright test --config playwright.tactical.config.ts --reporter=list
       - name: Run desktop live browser tests
         if: matrix.node == '22' && github.event_name == 'pull_request'
-        run: pnpm exec playwright test --config playwright.live.config.ts --project=desktop --reporter=list,junit
+        run: pnpm test:e2e:live --project=desktop --reporter=list,junit
         env:
           PLAYWRIGHT_JUNIT_OUTPUT_FILE: reports/live.xml
       - name: Run full live browser tests

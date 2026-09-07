@@ -455,6 +455,26 @@ awards or purchases. Browser viewport/batch isolation retains all evidence while
 keeping production rate limits unchanged. Full profile certification remains
 separate from this generic workshop integration.
 
+The point-buy follow-up shares one sectioned editor between setup party authoring
+and the active character workshop. Debounced, read-only previews use the saved
+campaign's exact compiler and power reviewer (including campaign effects and
+policy), returning authoritative totals, legal purchase costs and derived values.
+The budget remains visible, overspending is explicit, and stale responses cannot
+replace feedback for newer edits or another selected profile. Character templates
+reuse authored player characters; they still pass the same validation before save
+and activation. A different version of the same profile is a foreign preview and
+cannot save, generate, approve or advance the campaign's character.
+
+`POST /setups/{cid}/character-preview` is host-only; nonmembers cannot inspect a
+setup. `POST /campaigns/{cid}/workshop/{aid}/preview` requires control of the actor.
+Both accept `CharacterPreviewRequest` and return `CharacterPreviewResult` in the
+additive workshop schema. They never write state, draft receipts, approvals or
+resource pools. Uncompilable builds report diagnostics without fabricated derived
+values or cost breakdowns. The original activation and advancement paths remain
+authoritative. Focused HTTP tests cover pin dispatch, authorization, client cost
+rejection and unchanged state; component tests cover server totals and response
+ordering, alongside the existing live create/review/activate/advance journeys.
+
 
 ## Provisional spell lifecycle (#117)
 

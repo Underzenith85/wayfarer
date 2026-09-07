@@ -167,15 +167,20 @@ test("separate invited identity joins, readies and starts without leaking a priv
   baseURL,
 }) => {
   const { lobby } = await draft(page, 2);
-  let cid = "";
-  page.on("request", (r) => {
-    if (r.method() === "POST" && r.url().includes("/setups/"))
-      cid = new URL(r.url()).pathname.split("/").at(-1)!;
-  });
   await lobby.getByLabel("Invite player ID").fill("bob");
-  await lobby
-    .getByRole("button", { name: "Invite player", exact: true })
-    .click();
+  const [invitation] = await Promise.all([
+    page.waitForResponse((response) => {
+      const request = response.request();
+      return (
+        request.method() === "POST" &&
+        /^\/setups\/[^/]+$/.test(new URL(request.url()).pathname) &&
+        request.postDataJSON().operation === "invite"
+      );
+    }),
+    lobby.getByRole("button", { name: "Invite player", exact: true }).click(),
+  ]);
+  expect(invitation.ok()).toBeTruthy();
+  const { id: cid } = await invitation.json();
   await expect(lobby.getByRole("status")).toContainText("revision 1");
   const guest = await browser.newPage({
     baseURL: baseURL ?? "http://127.0.0.1:4180",
@@ -190,6 +195,7 @@ test("separate invited identity joins, readies and starts without leaking a priv
     const own = await guest.request.get(`/setups/${cid}`, {
       headers: { Authorization: "Bearer bob-token" },
     });
+    expect(own.ok()).toBeTruthy();
     expect((await own.json()).graph).toBeNull();
     await invited.locator(`[data-campaign-id="${cid}"]`).click();
     await invited.getByRole("button", { name: "Accept invitation" }).click();
