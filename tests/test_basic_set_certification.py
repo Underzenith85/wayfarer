@@ -48,8 +48,6 @@ def test_report_serialization_keeps_blockers_machine_readable() -> None:
     blockers = payload["blockers"]
     assert isinstance(blockers, list)
     assert blockers
-    assert all(
-        {"kind", "identifier", "detail", "owner_issue"} <= set(blocker)
-        for blocker in blockers
-        if isinstance(blocker, dict)
-    )
+    for blocker in blockers:
+        assert isinstance(blocker, dict)
+        assert {"kind", "identifier", "detail", "owner_issue"} <= set(blocker)
