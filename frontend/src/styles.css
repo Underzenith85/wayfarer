@@ -208,6 +208,11 @@ main {
   border-left: 1px solid var(--border);
   padding: 3rem 1.5rem;
 }
+/* Shown only below the width where the "At a glance" rail is rendered, so the
+   rail and its drawer trigger are never offered at once. */
+.compact-only {
+  display: none;
+}
 .context-details p {
   font-size: 0.875rem;
 }
@@ -274,6 +279,9 @@ main {
   }
   .character-panel {
     display: none;
+  }
+  .compact-only {
+    display: inline-flex;
   }
 }
 @media (max-width: 700px) {

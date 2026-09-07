@@ -10,6 +10,17 @@ async function open(page: Page, journey = "resolve") {
     page.getByRole("heading", { name: "The courier’s cellar" }),
   ).toBeVisible();
 }
+/**
+ * "At a glance" is a persistent rail at wide widths and a drawer below that
+ * breakpoint, so a test reads the summary from whichever one this viewport has.
+ */
+async function glance(page: Page) {
+  const trigger = page.getByRole("button", { name: "Details", exact: true });
+  if (!(await trigger.isVisible()))
+    return page.getByRole("complementary", { name: "At a glance" });
+  await trigger.click();
+  return page.getByRole("dialog");
+}
 async function send(page: Page, text = "Use a bandage.") {
   await page.getByLabel("What do you do?").fill(text);
   await page.getByRole("button", { name: "Send action", exact: true }).click();
@@ -24,12 +35,11 @@ test("send resolves with authoritative trace and versioned summaries", async ({
   await expect(
     page.getByText("First Aid: 2 + 3 + 4 against 12", { exact: false }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Details", exact: true }).click();
-  const dialog = page.getByRole("dialog");
-  await expect(dialog.getByText("Character version h2")).toBeHidden();
-  await dialog.getByText("Technical details", { exact: true }).click();
-  await expect(dialog.getByText("Character version h2")).toBeVisible();
-  await expect(dialog.getByText("Inventory version i2")).toBeVisible();
+  const summary = await glance(page);
+  await expect(summary.getByText("Character version h2")).toBeHidden();
+  await summary.getByText("Technical details", { exact: true }).click();
+  await expect(summary.getByText("Character version h2")).toBeVisible();
+  await expect(summary.getByText("Inventory version i2")).toBeVisible();
   await page.keyboard.press("Escape");
   expect(
     await page.evaluate(

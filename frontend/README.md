@@ -293,3 +293,15 @@ assignment options and the party editor's legends show a readable form of the
 actor identifier rather than an authored character name. The saved-conclusion
 recovery pools still print pool identifiers (`hp:b`) for the same reason: naming
 those needs a service change, not a presentation mapping.
+
+## One “At a glance” per width (#161)
+
+The summary is offered once at any viewport width. Above 1100px it is the
+persistent rail in the right column (`aside.character-panel`); at 1100px and
+below the rail is hidden and the same `CharacterSummary` is reached through the
+**Details** drawer in the page heading. The drawer's trigger carries
+`.compact-only`, whose one rule pair sits beside the rail's own breakpoint in
+`src/styles.css`, so the trigger appears exactly where the rail does not — a
+modal never dims the page to repeat what is already beside it. `tests/shell.spec.ts`
+asserts the exclusivity on both sides of the breakpoint, and a test that wants
+the summary reads it from whichever presentation the viewport has.
