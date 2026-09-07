@@ -316,7 +316,7 @@ class DirectorService:
                         )
                     ).text
                     available = True
-                except (ProviderError, ValueError):
+                except ProviderError, ValueError:
                     pass
             turn = turn.model_copy(
                 update={

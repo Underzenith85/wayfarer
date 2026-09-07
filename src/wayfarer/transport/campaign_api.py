@@ -80,7 +80,7 @@ async def boundary(
         response = await handler(request)
     except WayfarerError as exc:
         response = web.json_response({"error": str(exc), "code": exc.code}, status=exc.status)
-    except (ValueError, TypeError, KeyError):
+    except ValueError, TypeError, KeyError:
         response = web.json_response(
             {"error": "Invalid request", "code": "validation_error"}, status=400
         )

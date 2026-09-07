@@ -16,8 +16,8 @@ validation and failure boundaries. Raise it as production modules replace demo
 paths; do not add mirror tests solely to inflate the number. Every engine issue
 must test its domain invariants and negative paths.
 
-The CI matrix runs Python 3.12–3.14 with frozen dependencies, Ruff, mypy strict,
-quality-gate probes, pytest, wheel build and an installed application smoke test.
+CI runs Python 3.14 with frozen dependencies, Ruff, mypy strict, quality-gate
+probes, pytest, wheel build and an installed application smoke test.
 
 PostgreSQL transaction/replay work begins in #10. Its reproducible local service is
 reserved now with `docker compose -f compose.test.yml up -d --wait`; future tests

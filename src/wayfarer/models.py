@@ -1,5 +1,7 @@
 """Shared demo contracts. Runtime validation remains at the service boundary."""
 
+from __future__ import annotations
+
 from typing import Literal, NotRequired, TypedDict
 
 Action = Literal["observe", "talk", "sneak", "rest", "ask"]
@@ -33,7 +35,7 @@ class Campaign(TypedDict):
     id: str
     revision: int
     rules: str
-    rules_ref: NotRequired["RulesReference"]
+    rules_ref: NotRequired[RulesReference]
     resources_json: NotRequired[str]
     play_json: NotRequired[str]
     scenario_graph_json: NotRequired[str]

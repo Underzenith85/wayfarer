@@ -213,7 +213,7 @@ class SDKBackend:
             final: str | None = None
             usage = Usage(reported=False)
             completed = False
-            stream = cast(AsyncGenerator[Notification, None], turn.stream())
+            stream = cast(AsyncGenerator[Notification], turn.stream())
             try:
                 async for event in stream:
                     payload = event.payload

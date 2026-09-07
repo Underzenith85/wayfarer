@@ -7,7 +7,7 @@ name = "wayfarer"
 version = "0.2.0"
 description = "Persistent roleplaying engine and local GURPS-inspired demo"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.14"
 dependencies = [
     "aiohttp>=3.14.3",
     "aiosqlite>=0.22.1",
@@ -39,7 +39,7 @@ dev = [
 ]
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.14"
 files = ["src", "tests", "scripts", "server.py"]
 strict = true
 disallow_any_unimported = true
@@ -54,7 +54,7 @@ markers = ["integration: exercises storage or HTTP boundaries", "e2e: exercises 
 
 
 [tool.ruff]
-target-version = "py312"
+target-version = "py314"
 line-length = 100
 
 [tool.ruff.lint]

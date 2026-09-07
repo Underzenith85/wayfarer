@@ -161,7 +161,7 @@ def checkpoint(play: PlayService, state: PlayState) -> PlayState:
                         choice.target_actor_id,
                         f"npc:{plan.id}:{progress.spent_actions}",
                     )
-            except (ValidationError, ConflictError):
+            except ValidationError, ConflictError:
                 state, outcome = before, "rejected"
         decision = NPCDecision(
             id=f"npc:{plan.id}:{progress.spent_actions}",

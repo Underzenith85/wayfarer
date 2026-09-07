@@ -365,7 +365,7 @@ class Orchestrator:
                     )
                 )
             )
-        except (ProviderError, ValueError):
+        except ProviderError, ValueError:
             return TurnResponse(
                 committed=committed,
                 projection=projection,

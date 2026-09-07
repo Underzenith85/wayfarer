@@ -184,7 +184,7 @@ class AsyncPostgresStore:
                         (cid, state["revision"], json.dumps(state)),
                     )
                 return {"kind": "committed", "state": state, "event": event}
-        except (ConflictError, NotFoundError):
+        except ConflictError, NotFoundError:
             raise
         except psycopg.Error as exc:
             raise StorageError("Unable to commit turn") from exc
