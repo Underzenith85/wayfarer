@@ -168,7 +168,7 @@ def campaign(value: object) -> Campaign:
             "complete",
             "messages",
         },
-        {"rules_ref", "resources_json", "play_json"},
+        {"rules_ref", "resources_json", "play_json", "scenario_graph_json"},
     )
     result = Campaign(
         id=string(d["id"]),
@@ -186,6 +186,8 @@ def campaign(value: object) -> Campaign:
         complete=boolean(d["complete"]),
         messages=[message(m) for m in sequence(d["messages"])],
     )
+    if "scenario_graph_json" in d:
+        result["scenario_graph_json"] = string(d["scenario_graph_json"])
     if "play_json" in d:
         result["play_json"] = string(d["play_json"])
     if "resources_json" in d:
@@ -235,6 +237,8 @@ def event_action(value: object) -> EventAction:
             | "party"
             | "npc"
             | "recovery"
+            | "director"
+            | "workshop"
         ):
             return value
         case _:

@@ -1,4 +1,5 @@
 import { createRoot } from "react-dom/client";
+import { ConnectedApp } from "./play/connection";
 import { App } from "./app";
 import { disconnectedTransport, type PlayTransport } from "./play/transport";
 import "./styles.css";
@@ -31,7 +32,11 @@ async function start() {
     }
   }
   createRoot(document.getElementById("root")!).render(
-    <App transport={transport} />,
+    transport === disconnectedTransport ? (
+      <ConnectedApp />
+    ) : (
+      <App transport={transport} />
+    ),
   );
 }
 void start();

@@ -19,6 +19,7 @@ from wayfarer.simulation.access import CampaignMember
 from wayfarer.simulation.adjudication import Ruling, RulingPolicy, expire_rulings
 from wayfarer.simulation.advancement import AdvancementEntry, MigrationEntry
 from wayfarer.simulation.combat import CombatEngine, CombatResult, CombatRules, Encounter
+from wayfarer.simulation.director import AuthorDraft, DirectorTurn
 from wayfarer.simulation.noncombat import NoncombatEncounter, NoncombatRules
 from wayfarer.simulation.npcs import NPCRules, NPCState
 from wayfarer.simulation.objectives import ObjectiveRules, ObjectiveState
@@ -177,6 +178,8 @@ class PlayState(Record):
     party: PartyState = PartyState()
     npcs: NPCState = NPCState()
     recovery: RecoveryState = RecoveryState()
+    director: tuple[DirectorTurn, ...] = ()
+    drafts: tuple[AuthorDraft, ...] = ()
 
 
 class ActionEngine:

@@ -394,6 +394,40 @@ def test_forged_fields_and_integer_coercions_are_rejected(field: str, value: obj
 
 @pytest.mark.asyncio
 @pytest.mark.integration
+async def test_receipt_miss_racing_an_identical_commit_returns_original_result(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    store = AsyncSQLiteStore(tmp_path / "receipt-race.sqlite", 10)
+    reducer, dice = engine(), Dice()
+    service = PlayService(store, reducer, rng=dice)
+    initial = campaign(reducer)
+    await service.create(initial, world(), resource_seed(), (actor_setup(),))
+    command = Inspect(id="same-request", actor_id="a", expected_revision=0, target_id="chest")
+    original_duplicate = store.duplicate
+    raced = False
+
+    async def racing_duplicate(cid: str, command_id: str, payload: str) -> Campaign | None:
+        nonlocal raced
+        receipt = await original_duplicate(cid, command_id, payload)
+        if not raced and receipt is None:
+            raced = True
+            # Another caller commits after this lookup misses, before it returns.
+            await service.execute(cid, command, authenticated_actor_id="a")
+        return receipt
+
+    monkeypatch.setattr(store, "duplicate", racing_duplicate)
+    result = await service.execute(initial["id"], command, authenticated_actor_id="a")
+    assert result.status == "committed" and result.revision == 1
+    assert dice.calls == 3 and len(await store.history(initial["id"])) == 1
+    assert await service.execute(initial["id"], command, authenticated_actor_id="a") == result
+    with pytest.raises(ConflictError):
+        await service.execute(
+            initial["id"], command.model_copy(update={"target_id": "b"}), authenticated_actor_id="a"
+        )
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
 @pytest.mark.parametrize("backend", ["sqlite", "postgres"])
 async def test_action_transactions_retry_concurrency_restart_and_snapshot(
     tmp_path: Path, backend: str

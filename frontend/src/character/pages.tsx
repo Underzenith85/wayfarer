@@ -1,3 +1,4 @@
+import { CharacterWorkshop } from "./workshop";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link } from "@tanstack/react-router";
 import { Backpack, Heart, Shield, Footprints, Coins } from "lucide-react";
@@ -113,6 +114,7 @@ export function CharacterPage() {
   const extra = s.characterDetails?.[c.id];
   return (
     <div className="character-sheet">
+      <CharacterWorkshop />
       <ActorPicker />
       <header className="character-banner">
         <span className="eyebrow">Character sheet</span>

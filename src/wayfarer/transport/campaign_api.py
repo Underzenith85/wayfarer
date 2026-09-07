@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hmac
+import json
 import time
 import uuid
 from collections import deque
@@ -16,8 +17,10 @@ from wayfarer.config import Settings
 from wayfarer.errors import AuthenticationError, ValidationError, WayfarerError
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.codex import ProviderStatus
+from wayfarer.orchestration.director import DirectorService
 from wayfarer.orchestration.provider_runtime import provider_runtime
 from wayfarer.orchestration.providers import Orchestrator
+from wayfarer.orchestration.workshop import DraftCommand, WorkshopService
 from wayfarer.simulation.resources import Record
 
 ORCHESTRATOR_KEY = web.AppKey("campaign-orchestrator", Orchestrator)
@@ -56,7 +59,14 @@ async def boundary(
         return await handler(request)
     request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
     try:
-        if request.path != "/health":
+        if request.path not in (
+            "/health",
+            "/",
+            "/character",
+            "/inventory",
+            "/journal",
+            "/campaign",
+        ) and not request.path.startswith("/assets/"):
             identity = _identity(request)
             now = time.monotonic()
             start, count = request.app[LIMITS_KEY].get(identity, (now, 0))
@@ -117,6 +127,7 @@ async def events(request: web.Request) -> web.Response:
 
 
 class InterpretRequest(Record):
+    proposal: dict[str, object] | None = None
     actor_id: str = Field(min_length=1, max_length=100)
     command_id: str = Field(min_length=1, max_length=100)
     text: str = Field(min_length=1, max_length=4000)
@@ -124,12 +135,26 @@ class InterpretRequest(Record):
 
 async def interpret(request: web.Request) -> web.Response:
     body = InterpretRequest.model_validate(await _json(request))
-    result = await request.app[ORCHESTRATOR_KEY].interpret_and_execute(
+    base = request.app[ORCHESTRATOR_KEY]
+    access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
+    orchestrator = (
+        base
+        if access is request.app[ACCESS_KEY]
+        else Orchestrator(
+            access,
+            base.provider,
+            timeout=base.timeout,
+            attempts=base.attempts,
+            token_budget=base.token_budget,
+        )
+    )
+    result = await DirectorService(orchestrator).run(
         request.match_info["cid"],
         principal_id=_identity(request),
         actor_id=body.actor_id,
         command_id=body.command_id,
         text=body.text,
+        proposal=body.proposal,
     )
     return web.json_response(result.model_dump(mode="json"))
 
@@ -149,6 +174,162 @@ async def provider_status(request: web.Request) -> web.Response:
     )
 
 
+class GenerateDraftRequest(Record):
+    command: DraftCommand
+    prompt: str = Field(min_length=1, max_length=4000)
+
+
+async def generate_scenario_draft(request: web.Request) -> web.Response:
+    from wayfarer.orchestration.studio import ScenarioStudio
+    from wayfarer.simulation.actions import ActorSetup
+    from wayfarer.simulation.studio import GenerationBrief
+
+    access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
+    state = access.play._load(await access.play.store.read(request.match_info["cid"]))
+    principal = _identity(request)
+    if access._member(state, principal).role != "gm":
+        from wayfarer.errors import AuthorizationError
+
+        raise AuthorizationError("Scenario generation requires GM")
+    raw = await _json(request)
+    command = DraftCommand.model_validate_json(json.dumps(raw.get("command")))
+    if command.kind != "scenario" or command.operation != "save":
+        raise ValidationError("Scenario save command required")
+    brief = GenerationBrief.model_validate_json(json.dumps(raw.get("brief")))
+    controlled = {a for m in state.members if m.role == "player" for a in m.actor_ids}
+    graph, report = await ScenarioStudio(access.play).generate(
+        brief,
+        llm=request.app[ORCHESTRATOR_KEY],
+        principal_id=principal,
+        party=tuple(
+            ActorSetup(actor_id=a.actor_id, proposal=a.proposal)
+            for a in state.actors
+            if a.actor_id in controlled
+        ),
+    )
+    saved = await WorkshopService(access).execute(
+        request.match_info["cid"],
+        command.model_copy(update={"content_json": graph.model_dump_json()}),
+        principal_id=principal,
+    )
+    return web.json_response(
+        {"draft": saved, "validation": report.model_dump(mode="json"), "valid": report.valid}
+    )
+
+
+async def generate_draft(request: web.Request) -> web.Response:
+    body = GenerateDraftRequest.model_validate_json(json.dumps(await _json(request)))
+    result = await WorkshopService(
+        await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
+    ).generate(
+        request.match_info["cid"],
+        body.command,
+        principal_id=_identity(request),
+        prompt=body.prompt,
+        llm=request.app[ORCHESTRATOR_KEY],
+    )
+    return web.json_response(result)
+
+
+async def workshop_start(request: web.Request) -> web.Response:
+    access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
+    state = access.play._load(await access.play.store.read(request.match_info["cid"]))
+    actor_id = request.match_info["aid"]
+    member = access._member(state, _identity(request))
+    access._control(member, actor_id)
+    actor = next(a for a in state.actors if a.actor_id == actor_id)
+    draft = next(
+        (
+            d
+            for d in reversed(state.drafts)
+            if d.actor_id == actor_id
+            and d.owner_id == member.principal_id
+            and d.kind == "character"
+        ),
+        None,
+    )
+    compiler = access.play.engine.reviewer.compiler
+    return web.json_response(
+        {
+            "revision": state.revision,
+            "proposal": actor.proposal.model_dump(mode="json"),
+            "draft": WorkshopService(access)._preview(draft) if draft else None,
+            "catalog": [{"id": d.id, "name": d.name} for d in compiler.definitions.values()],
+        }
+    )
+
+
+async def read_draft(request: web.Request) -> web.Response:
+    result = await WorkshopService(
+        await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
+    ).read(request.match_info["cid"], request.match_info["did"], principal_id=_identity(request))
+    return web.json_response(result)
+
+
+async def save_draft(request: web.Request) -> web.Response:
+    body = DraftCommand.model_validate_json(json.dumps(await _json(request)))
+    result = await WorkshopService(
+        await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
+    ).execute(request.match_info["cid"], body, principal_id=_identity(request))
+    return web.json_response(result)
+
+
+class ActivateScenarioRequest(Record):
+    campaign_id: str = Field(min_length=1, max_length=100)
+    expected_draft_revision: int = Field(ge=1)
+
+
+async def activate_scenario(request: web.Request) -> web.Response:
+    from wayfarer.orchestration.studio import ScenarioStudio
+    from wayfarer.simulation.studio import ScenarioGraph
+
+    access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
+    cid = request.match_info["cid"]
+    state = access.play._load(await access.play.store.read(cid))
+    principal = _identity(request)
+    member = access._member(state, principal)
+    if member.role != "gm":
+        from wayfarer.errors import AuthorizationError
+
+        raise AuthorizationError("Scenario activation requires GM")
+    body = ActivateScenarioRequest.model_validate(await _json(request))
+    draft = WorkshopService(access)._get(state, request.match_info["did"], principal)
+    if draft.kind != "scenario" or draft.revision != body.expected_draft_revision:
+        from wayfarer.errors import ConflictError
+
+        raise ConflictError("Scenario draft changed")
+    graph = ScenarioGraph.model_validate_json(draft.content_json)
+    seed = (await access.play.store.read(cid)).copy()
+    seed.pop("play_json", None)
+    seed.pop("resources_json", None)
+    seed.pop("scenario_graph_json", None)
+    seed["id"], seed["revision"] = body.campaign_id, 0
+    activated = await ScenarioStudio(access.play).activate(
+        graph, seed, state.members, principal_id=principal
+    )
+    return web.json_response(
+        {
+            "campaign_id": body.campaign_id,
+            "revision": activated._load(await activated.store.read(body.campaign_id)).revision,
+        }
+    )
+
+
+async def validate_scenario(request: web.Request) -> web.Response:
+    from wayfarer.orchestration.studio import ScenarioStudio
+    from wayfarer.simulation.studio import ScenarioGraph
+
+    access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
+    state = access.play._load(await access.play.store.read(request.match_info["cid"]))
+    if access._member(state, _identity(request)).role != "gm":
+        from wayfarer.errors import AuthorizationError
+
+        raise AuthorizationError("Scenario authoring requires GM")
+    graph = ScenarioGraph.model_validate_json(json.dumps(await _json(request)))
+    report = ScenarioStudio(access.play).validate(graph)
+    return web.json_response({**report.model_dump(mode="json"), "valid": report.valid})
+
+
 def create_campaign_app(
     play: CampaignAccess,
     tokens: Mapping[str, str],
@@ -158,6 +339,7 @@ def create_campaign_app(
     v1_origins: frozenset[str] = frozenset(),
     v1_allow_no_origin: bool = False,
     legacy_routes: bool = False,
+    frontend_dir: Path | None = None,
 ) -> web.Application:
     if not tokens or any(not token or not principal for token, principal in tokens.items()):
         raise ValueError("Non-empty credentials required")
@@ -165,6 +347,14 @@ def create_campaign_app(
     app[ACCESS_KEY] = play
     app[TOKENS_KEY] = dict(tokens)
     app[LIMITS_KEY] = {}
+    if frontend_dir is not None:
+
+        async def frontend(_: web.Request) -> web.FileResponse:
+            return web.FileResponse(frontend_dir / "index.html")
+
+        for path in ("/", "/character", "/inventory", "/journal", "/campaign"):
+            app.router.add_get(path, frontend)
+        app.router.add_static("/assets", frontend_dir / "assets")
     app.router.add_get("/health", health)
     if legacy_routes:
         app.add_routes(
@@ -172,6 +362,11 @@ def create_campaign_app(
                 web.get("/campaigns/{cid}", read_campaign),
                 web.post("/campaigns/{cid}/commands", command),
                 web.get("/campaigns/{cid}/events", events),
+                web.get("/campaigns/{cid}/drafts/{did}", read_draft),
+                web.get("/campaigns/{cid}/workshop/{aid}", workshop_start),
+                web.post("/campaigns/{cid}/drafts", save_draft),
+                web.post("/campaigns/{cid}/scenario-validation", validate_scenario),
+                web.post("/campaigns/{cid}/drafts/{did}/activate-scenario", activate_scenario),
             ]
         )
     from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
@@ -218,6 +413,8 @@ def create_campaign_app(
             app.add_routes(
                 [
                     web.post("/campaigns/{cid}/interpret", interpret),
+                    web.post("/campaigns/{cid}/generate-draft", generate_draft),
+                    web.post("/campaigns/{cid}/generate-scenario", generate_scenario_draft),
                     web.get("/campaigns/{cid}/provider-status", provider_status),
                 ]
             )

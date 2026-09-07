@@ -50,7 +50,7 @@ class PlayService:
     ) -> None:
         self.store, self.engine, self.rng = store, engine, rng
 
-    async def create(
+    def initial_state(
         self,
         campaign: Campaign,
         world: World,
@@ -185,6 +185,17 @@ class PlayService:
 
         state = initialize(self, state)
         self.engine.validate(state)
+        return state
+
+    async def create(
+        self,
+        campaign: Campaign,
+        world: World,
+        resources: ResourceState,
+        actors: tuple[ActorSetup, ...],
+        members: tuple[CampaignMember, ...] | None = None,
+    ) -> PlayState:
+        state = self.initial_state(campaign, world, resources, actors, members)
         stored = campaign.copy()
         stored["play_json"] = state.model_dump_json()
         await self.store.insert(stored)
@@ -250,13 +261,17 @@ class PlayService:
             sort_keys=True,
             separators=(",", ":"),
         )
+        # Read the checkpoint before checking the receipt. If an identical command
+        # commits during either read, duplicate() or commit_turn() returns its result;
+        # assessment must not observe the newer revision after a receipt miss.
+        checkpoint = await self.store.read(cid)
         duplicate = await self.store.duplicate(cid, command.id, payload)
         if duplicate is not None:
             result = self._load(duplicate).last_result
             if result is None:
                 raise ValidationError("Missing committed action result")
             return result
-        feasible = self.engine.assess(self._load(await self.store.read(cid)), command)
+        feasible = self.engine.assess(self._load(checkpoint), command)
         if feasible.status != "feasible":
             return feasible
 

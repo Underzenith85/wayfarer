@@ -72,11 +72,33 @@ class ResponsesProvider:
 
 
 class Intent(Record):
-    kind: Literal["inspect", "social", "use_item", "wait", "question"]
+    kind: Literal[
+        "inspect",
+        "social",
+        "use_item",
+        "wait",
+        "question",
+        "travel_scene",
+        "observe_scene",
+        "choose_recovery",
+        "approach_noncombat",
+        "start_noncombat",
+        "withdraw_noncombat",
+        "take_combat_turn",
+        "choose_defense",
+    ]
     target_id: str | None = Field(default=None, max_length=100)
     item_id: str | None = Field(default=None, max_length=100)
     ticks: int | None = Field(default=None, ge=1, le=100)
     text: str | None = Field(default=None, max_length=2000)
+
+    exit_id: str | None = Field(default=None, max_length=100)
+    rule_id: str | None = Field(default=None, max_length=100)
+    target_actor_id: str | None = Field(default=None, max_length=100)
+    encounter_id: str | None = Field(default=None, max_length=100)
+    selection_id: str | None = Field(default=None, max_length=100)
+    maneuver: str | None = Field(default=None, max_length=100)
+    defense: str | None = Field(default=None, max_length=100)
 
     def command(self, command_id: str, actor_id: str, revision: int) -> dict[str, object]:
         value: dict[str, object] = {
@@ -91,15 +113,53 @@ class Intent(Record):
             "use_item": {"item_id"},
             "wait": {"ticks"},
             "question": {"text"},
+            "travel_scene": {"exit_id"},
+            "observe_scene": set(),
+            "choose_recovery": {"rule_id", "target_actor_id"},
+            "approach_noncombat": {"encounter_id", "selection_id"},
+            "start_noncombat": {"encounter_id", "selection_id"},
+            "withdraw_noncombat": {"encounter_id"},
+            "take_combat_turn": {"encounter_id", "maneuver", "target_id", "item_id"},
+            "choose_defense": {"encounter_id", "defense"},
         }[self.kind]
-        for key in ("target_id", "item_id", "ticks", "text"):
+        for key in (
+            "target_id",
+            "item_id",
+            "ticks",
+            "text",
+            "exit_id",
+            "rule_id",
+            "target_actor_id",
+            "encounter_id",
+            "selection_id",
+            "maneuver",
+            "defense",
+        ):
             field = getattr(self, key)
             if field is not None:
                 if key not in permitted:
                     raise ValidationError("Intent contains incompatible parameters")
                 value[key] = field
         # Validate required fields and the final discriminated command schema.
-        ACTION_ADAPTER.validate_json(json.dumps(value))
+        encoded = json.dumps(value)
+        if self.kind in ("travel_scene", "observe_scene"):
+            from wayfarer.orchestration.scenes import SCENE_ADAPTER
+
+            SCENE_ADAPTER.validate_json(encoded)
+        elif self.kind == "choose_recovery":
+            from wayfarer.orchestration.recovery import RecoveryCommand
+
+            RecoveryCommand.model_validate_json(encoded)
+        elif self.kind in ("approach_noncombat", "start_noncombat", "withdraw_noncombat"):
+            from wayfarer.orchestration.noncombat import NoncombatCommand
+
+            NoncombatCommand.model_validate_json(encoded)
+        elif self.kind in ("take_combat_turn", "choose_defense"):
+            from wayfarer.orchestration.combat import COMBAT_ADAPTER
+
+            COMBAT_ADAPTER.validate_json(encoded)
+        else:
+            ACTION_ADAPTER.validate_json(encoded)
         return value
 
 
@@ -189,6 +249,34 @@ class Orchestrator:
             raise ValidationError("Context actor is not controlled by principal")
         member = member.model_copy(update={"actor_ids": (actor_id,)})
         projection = self.access._projection(state, member)
+        # Durable turn history is UI data, not recursively nested model context.
+        projection.pop("director", None)
+        known = {f.id for f in state.world.perspective(actor_id).facts}
+        projection["scene_options"] = tuple(
+            {"exit_id": e.id, "destination_id": e.destination_id}
+            for cursor in state.actor_scenes
+            if cursor.actor_id == actor_id
+            for scene in (
+                self.access.play.engine.rules.scenes.scenes
+                if self.access.play.engine.rules.scenes
+                else ()
+            )
+            if scene.id == cursor.scene_id
+            for e in scene.exits
+            if set(e.required_fact_ids) <= known
+        )
+        projection["recovery_options"] = tuple(
+            {"rule_id": o.id, "kind": o.kind, "target_actor_id": actor_id}
+            for o in (
+                self.access.play.engine.rules.recovery.options
+                if self.access.play.engine.rules.recovery
+                else ()
+            )
+            if actor_id in o.actor_ids
+            and actor_id in o.target_actor_ids
+            and set(o.required_fact_ids) <= known
+            if any(c.actor_id == actor_id and c.scene_id == o.scene_id for c in state.actor_scenes)
+        )
         events = await self.access.events(
             cid, principal_id=principal_id, after=max(0, state.revision - 20)
         )
@@ -234,7 +322,14 @@ class Orchestrator:
         if current_revision != revision or current_session != session:
             raise ConflictError("Model proposal is stale; request a fresh interpretation")
         current = self.access.play._load(await self.access.play.store.read(cid))
-        if len(current.party.groups) > 1 and intent.kind != "question":
+        if len(current.party.groups) > 1 and intent.kind in (
+            "inspect",
+            "social",
+            "use_item",
+            "wait",
+            "travel_scene",
+            "approach_noncombat",
+        ):
             from wayfarer.orchestration.party import PartyCommand
 
             command = PartyCommand(

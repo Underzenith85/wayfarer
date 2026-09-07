@@ -1,0 +1,200 @@
+{
+  "campaign_id": "f690e23c-ba3d-4607-8680-961c45c6c0ef",
+  "principal_id": "alice",
+  "shared_time": false,
+  "director": [],
+  "journal": [
+    {
+      "id": "initial:a:notice-dock",
+      "actor_id": "a",
+      "scene_id": "dock-scene",
+      "fact_id": "dock-seen",
+      "at": 0
+    }
+  ],
+  "scene_cursors": [
+    {
+      "actor_id": "a",
+      "scene_id": "dock-scene"
+    }
+  ],
+  "encounters": [],
+  "resolution": null,
+  "revision": 0,
+  "game_time": 0,
+  "role": "player",
+  "actors": ["a"],
+  "inventory": [
+    {
+      "id": "potions",
+      "definition_id": "potion",
+      "owner_id": "a",
+      "quantity": 5,
+      "container_id": null,
+      "equipped": false,
+      "ready": false
+    },
+    {
+      "id": "sword",
+      "definition_id": "sword",
+      "owner_id": "a",
+      "quantity": 1,
+      "container_id": null,
+      "equipped": true,
+      "ready": true
+    },
+    {
+      "id": "tool",
+      "definition_id": "tool",
+      "owner_id": "a",
+      "quantity": 1,
+      "container_id": null,
+      "equipped": false,
+      "ready": false
+    }
+  ],
+  "status": [
+    {
+      "actor_id": "a",
+      "conditions": [],
+      "available_at": 0
+    }
+  ],
+  "pools": [
+    {
+      "id": "hp:a",
+      "current": 10,
+      "maximum": 10
+    },
+    {
+      "id": "fp:a",
+      "current": 10,
+      "maximum": 10
+    }
+  ],
+  "perspectives": {
+    "a": {
+      "entities": [
+        {
+          "id": "dock",
+          "kind": "location",
+          "name": "Dock",
+          "location_id": null,
+          "owner_id": null
+        },
+        {
+          "id": "alley",
+          "kind": "location",
+          "name": "Alley",
+          "location_id": null,
+          "owner_id": null
+        },
+        {
+          "id": "a",
+          "kind": "actor",
+          "name": "Mira",
+          "location_id": "dock",
+          "owner_id": null
+        }
+      ],
+      "facts": [
+        {
+          "id": "dock-seen",
+          "subject_id": "dock",
+          "predicate": "visited",
+          "value": "yes"
+        },
+        {
+          "id": "shortcut",
+          "subject_id": "alley",
+          "predicate": "route",
+          "value": "known"
+        }
+      ],
+      "beliefs": [],
+      "commitments": []
+    }
+  },
+  "subgroups": [],
+  "pending_activities": [],
+  "activity_receipts": [],
+  "noncombat": [],
+  "objectives": {
+    "outcome": "ongoing",
+    "revision": 0,
+    "at": 0,
+    "rules_version": 0,
+    "progress": []
+  },
+  "captivity": [],
+  "recovery_decisions": [],
+  "dead_actor_ids": [],
+  "characters": [
+    {
+      "actor_id": "a",
+      "name": "Mira",
+      "values": [
+        {
+          "target": "attribute:dx",
+          "value": "10"
+        },
+        {
+          "target": "attribute:ht",
+          "value": "10"
+        },
+        {
+          "target": "attribute:iq",
+          "value": "10"
+        },
+        {
+          "target": "attribute:st",
+          "value": "10"
+        },
+        {
+          "target": "skill:diplomacy",
+          "value": "10"
+        },
+        {
+          "target": "skill:observation",
+          "value": "11"
+        }
+      ],
+      "spent": 8
+    }
+  ],
+  "equipment": [
+    {
+      "id": "potions",
+      "name": "potion",
+      "unit_weight": 1
+    },
+    {
+      "id": "sword",
+      "name": "sword",
+      "unit_weight": 5
+    },
+    {
+      "id": "tool",
+      "name": "tool",
+      "unit_weight": 1
+    }
+  ],
+  "scenes": [
+    {
+      "actor_id": "a",
+      "id": "dock-scene",
+      "title": "The Dock",
+      "exits": [
+        {
+          "id": "to-alley",
+          "destination_id": "alley-scene"
+        },
+        {
+          "id": "shortcut-to-alley",
+          "destination_id": "alley-scene"
+        }
+      ]
+    }
+  ],
+  "recovery_choices": []
+}
