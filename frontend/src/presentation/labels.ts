@@ -108,6 +108,19 @@ export function presentStats(
 export function definitionLabel(id: string): string {
   return statLabel({ id }).full;
 }
+/**
+ * Reads a runtime pool identifier (`hp:mira`) as the character it belongs to and
+ * the pool's name, so a recovery list is prose rather than engine addressing.
+ */
+export function poolLabel(
+  id: string,
+  actorName: (actorId: string) => string,
+): string {
+  const separator = id.indexOf(":");
+  if (separator === -1) return statLabel({ id }).short;
+  const kind = statLabel({ id: id.slice(0, separator) }).short;
+  return `${actorName(id.slice(separator + 1))} · ${kind}`;
+}
 /** Host controls over the campaign lifecycle, phrased as the action taken. */
 export const lifecycleLabel: Record<string, string> = {
   activate: "Start game",

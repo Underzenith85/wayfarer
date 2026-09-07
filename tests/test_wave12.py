@@ -197,6 +197,58 @@ async def test_two_credentials_invite_join_and_private_preview(tmp_path: Path) -
         assert len(await response.json()) == 1
 
 
+async def test_party_names_reach_every_seat_without_the_secret_graph(tmp_path: Path) -> None:
+    """Assignment needs names; only the host may read the graph they live in."""
+    from test_actions import actor_setup
+
+    setup = service(tmp_path)
+    graph = graph_fixture()
+    graph = graph.model_copy(
+        update={
+            "actors": (
+                actor_setup(),
+                actor_setup().model_copy(
+                    update={
+                        "actor_id": "warden",
+                        "proposal": actor_setup().proposal.model_copy(
+                            update={
+                                "draft": actor_setup().proposal.draft.model_copy(
+                                    update={"name": "Warden Sable"}
+                                )
+                            }
+                        ),
+                    }
+                ),
+            ),
+            "npc_actor_ids": ("warden",),
+        }
+    )
+    created = await setup.create(CreateSetup(id="new", brief=graph.brief), principal_id="alice")
+    cid = str(created["id"])
+    await setup.execute(
+        cid,
+        SetupCommand(id="edit", expected_revision=0, operation="edit", graph=graph),
+        principal_id="alice",
+    )
+    await setup.execute(
+        cid,
+        SetupCommand(id="invite", expected_revision=1, operation="invite", principal_id="bob"),
+        principal_id="alice",
+    )
+    guest = await setup.execute(
+        cid,
+        SetupCommand(id="join", expected_revision=2, operation="join"),
+        principal_id="bob",
+    )
+    host = await setup.read(cid, principal_id="alice")
+    assert host["party"] == [{"actor_id": "a", "name": "Mira"}]
+    assert guest["party"] == host["party"]
+    # The graph stays host-only, and no NPC identity rides along with the names.
+    assert guest["graph"] is None
+    assert "Warden Sable" not in json.dumps(guest)
+    assert "clue" not in json.dumps(guest)
+
+
 def two_player_graph() -> ScenarioGraph:
     from test_actions import actor_setup
 
@@ -208,7 +260,20 @@ def two_player_graph() -> ScenarioGraph:
         update={
             "actors": (
                 actor_setup(),
-                actor_setup().model_copy(update={"actor_id": "b", "aware_of": ("a", "chest")}),
+                # A distinct name, so a projection that mixes the two is visible.
+                actor_setup().model_copy(
+                    update={
+                        "actor_id": "b",
+                        "aware_of": ("a", "chest"),
+                        "proposal": actor_setup().proposal.model_copy(
+                            update={
+                                "draft": actor_setup().proposal.draft.model_copy(
+                                    update={"name": "Iven"}
+                                )
+                            }
+                        ),
+                    }
+                ),
             ),
             "resources": graph.resources.model_copy(
                 update={"owners": graph.resources.owners + (Owner(actor_id="b", capacity=100),)}

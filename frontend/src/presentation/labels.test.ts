@@ -6,6 +6,7 @@ import {
   encumbranceLabel,
   humanize,
   lifecycleOperationLabel,
+  poolLabel,
   presentStats,
   statLabel,
 } from "./labels";
@@ -109,6 +110,17 @@ describe("encumbranceLabel", () => {
     ).toBeNull();
     expect(encumbranceLabel("")).toBeNull();
     expect(encumbranceLabel(undefined)).toBeNull();
+  });
+});
+describe("poolLabel", () => {
+  const names: Record<string, string> = { a: "Mira", b: "Iven" };
+  const name = (id: string) => names[id] ?? id;
+  it("reads a runtime pool as its character and pool name", () => {
+    expect(poolLabel("hp:b", name)).toBe("Iven · HP");
+    expect(poolLabel("fp:a", name)).toBe("Mira · FP");
+  });
+  it("falls back to the pool name alone when the id carries no actor", () => {
+    expect(poolLabel("hp", name)).toBe("HP");
   });
 });
 describe("definitionLabel", () => {

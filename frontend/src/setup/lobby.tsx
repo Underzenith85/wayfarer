@@ -11,6 +11,7 @@ import {
   definitionLabel,
   humanize,
   lifecycleOperationLabel,
+  poolLabel,
 } from "../presentation/labels";
 import type { PlayTransport } from "../play/transport";
 import {
@@ -205,6 +206,14 @@ export function SetupLobby({
         });
     });
   };
+  /**
+   * The service sends assignable character names alongside the seats, so every
+   * player reads a name where the host reads one; only the host sees the graph
+   * those names live in. An unrecognized id still reads as words, never raw.
+   */
+  const characterName = (actorId: string) =>
+    lobby?.party?.find((a) => a.actor_id === actorId)?.name ??
+    humanize(actorId);
   /** The party roster; only the party step offers its assignment controls. */
   const players = (assignable: boolean) =>
     lobby && (
@@ -213,7 +222,7 @@ export function SetupLobby({
           <li key={seat.principal_id} className="seat-row">
             <span className="seat-player">{seat.principal_id}</span>
             <span className="seat-character">
-              {seat.actor_ids.map(humanize).join(", ") ||
+              {seat.actor_ids.map(characterName).join(", ") ||
                 "No character assigned"}
             </span>
             <span className="seat-status">
@@ -242,7 +251,7 @@ export function SetupLobby({
                     )
                     .map((a) => (
                       <option key={a.actor_id} value={a.actor_id}>
-                        {humanize(a.actor_id)}
+                        {characterName(a.actor_id)}
                       </option>
                     ))}
                 </select>
@@ -669,7 +678,9 @@ export function SetupLobby({
                     .filter((a) => !graph.npc_actor_ids.includes(a.actor_id))
                     .map((actor) => (
                       <fieldset key={actor.actor_id}>
-                        <legend>Character {humanize(actor.actor_id)}</legend>
+                        <legend>
+                          Character {characterName(actor.actor_id)}
+                        </legend>
                         <div className="numeric-fields">
                           {actor.proposal.draft.purchases.map(
                             (purchase, index) => (
@@ -787,7 +798,8 @@ export function SetupLobby({
                   </ul>
                   <p>
                     Recorded casualties:{" "}
-                    {ending.casualties.join(", ") || "None visible"}
+                    {ending.casualties.map(characterName).join(", ") ||
+                      "None visible"}
                   </p>
                   <h4>Settled rewards and advancement</h4>
                   <ul>
@@ -808,7 +820,7 @@ export function SetupLobby({
                   <ul>
                     {ending.pools.map((p) => (
                       <li key={p.id}>
-                        {p.id}: {p.current}/{p.maximum}
+                        {poolLabel(p.id, characterName)} {p.current}/{p.maximum}
                       </li>
                     ))}
                   </ul>
