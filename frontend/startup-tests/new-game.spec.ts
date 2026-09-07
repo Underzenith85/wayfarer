@@ -6,7 +6,7 @@ import {
 async function login(page: Page, player = "alice") {
   await page.goto("/");
   await expect(
-    page.getByRole("button", { name: "New game", exact: true }),
+    page.getByRole("tab", { name: "New game", exact: true }),
   ).toBeVisible();
   await expect(page.getByLabel("Campaign ID", { exact: true })).toHaveCount(0);
   await page
@@ -32,6 +32,9 @@ async function draft(page: Page, players = 1) {
   await lobby
     .getByLabel("Adventure and starting party")
     .selectOption(`beacon-${players}`);
+  // The steps advance with Next; only the review step creates the draft.
+  await lobby.getByRole("button", { name: "Next: Rules" }).click();
+  await lobby.getByRole("button", { name: "Next: Ready" }).click();
   await lobby.getByRole("button", { name: "Create game draft" }).click();
   await expect(lobby.getByRole("status")).toContainText("revision 0");
   return { lobby };
