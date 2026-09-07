@@ -23,10 +23,20 @@ async def application() -> web.Application:
     directory = Path(tempfile.mkdtemp(prefix="wave11-browser-"))
     _, play = await prepare(directory)
     access = CampaignAccess(play)
+    opening = two_player_graph()
+    sequel = opening.model_copy(
+        update={
+            "id": "sequel",
+            "title": "Courier aftermath",
+            "objectives": opening.objectives.model_copy(
+                update={"id": "sequel-objectives", "deadline": 300}
+            ),
+        }
+    )
     app = create_campaign_app(
         access,
         {"alice-token": "alice", "bob-token": "bob", "gm-token": "gm"},
-        scenario_templates=(two_player_graph(),),
+        scenario_templates=(opening, sequel),
         legacy_routes=True,
         v1_origins=frozenset({"http://127.0.0.1:4174"}),
     )
