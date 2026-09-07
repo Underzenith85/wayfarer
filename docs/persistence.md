@@ -19,3 +19,7 @@ history. Model calls and narration remain outside write transactions.
 Set `WAYFARER_DATABASE_URL` to a PostgreSQL connection URL for the production
 adapter. Without it, Wayfarer retains the local SQLite adapter and migrates legacy
 databases in place by adding the new log and snapshot tables.
+
+Reusable scenarios use separate catalog and command-receipt tables in the same configured database.
+See [scenario catalog storage, export and restore](scenario-catalog.md) for authoring semantics and
+consistent-backup requirements.

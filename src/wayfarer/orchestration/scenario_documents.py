@@ -200,11 +200,12 @@ def bind_party(
 
 
 class ScenarioDocuments:
-    def __init__(self, studio: ScenarioStudio) -> None:
+    def __init__(self, studio: ScenarioStudio, *, author_ids: frozenset[str] | None = None) -> None:
         self.studio = studio
+        self.author_ids = studio.play.engine.reviewer.gm_ids if author_ids is None else author_ids
 
     def authorize(self, principal_id: str) -> None:
-        if principal_id not in self.studio.play.engine.reviewer.gm_ids:
+        if principal_id not in self.author_ids:
             raise AuthorizationError("Scenario author authority required")
 
     def validate(

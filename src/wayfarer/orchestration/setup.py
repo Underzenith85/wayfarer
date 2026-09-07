@@ -42,9 +42,13 @@ class SetupService:
             raise NotFoundError("Setup not found")
         return seat
 
-    async def create(self, command: CreateSetup, *, principal_id: str) -> dict[str, object]:
+    async def create(
+        self, command: CreateSetup, *, principal_id: str, document_json: str | None = None
+    ) -> dict[str, object]:
         cid = str(uuid5(NAMESPACE_URL, json.dumps([principal_id, command.id])))
         payload = command.model_dump_json()
+        if document_json is not None:
+            payload = json.dumps([payload, document_json])
         setup = Setup(
             host_id=principal_id,
             creation_json=payload,
@@ -84,6 +88,9 @@ class SetupService:
             complete=False,
             messages=[],
         )
+        if document_json is not None:
+            campaign["scenario_document_json"] = document_json
+
         from wayfarer import validation
 
         validation.campaign(campaign)
@@ -119,6 +126,7 @@ class SetupService:
         return {
             "id": cid,
             "engine_controls": self.engine_controls,
+            "scenario_pinned": "scenario_document_json" in campaign,
             "revision": campaign["revision"],
             "host_id": setup.host_id,
             "phase": setup.phase,
@@ -165,6 +173,10 @@ class SetupService:
                 raise ConflictError("Party and controller assignments are locked after activation")
             seats = list(setup.seats)
             if op == "edit":
+                if "scenario_document_json" in campaign:
+                    raise ConflictError(
+                        "Edit the catalog and create a new game to change a pinned scenario"
+                    )
                 setup = setup.model_copy(
                     update={"brief": command.brief or setup.brief, "graph": command.graph}
                 )
@@ -244,6 +256,26 @@ class SetupService:
                 ):
                     raise ConflictError("Every invited player must join and confirm readiness")
                 self.validate(setup)
+                if "scenario_document_json" in campaign:
+                    from wayfarer.orchestration.scenario_documents import ScenarioDocuments
+                    from wayfarer.simulation.scenario_document import PregeneratedCharacter
+
+                    assert setup.graph is not None
+                    documents = ScenarioDocuments(
+                        ScenarioStudio(self.play, npc_reviewer=self.play.engine.reviewer)
+                    )
+                    party = tuple(
+                        PregeneratedCharacter(slot_id=a.actor_id, proposal=a.proposal)
+                        for a in setup.graph.actors
+                        if a.actor_id not in setup.graph.npc_actor_ids
+                    )
+                    if (
+                        documents.validate(campaign["scenario_document_json"], party=party).status
+                        != "playable"
+                    ):
+                        raise ValidationError(
+                            "Pinned scenario is incompatible with this engine or party"
+                        )
                 assert setup.graph is not None
                 graph = setup.graph
                 assigned = [a for s in seats for a in s.actor_ids]
