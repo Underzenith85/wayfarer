@@ -13,9 +13,9 @@ class DirectorTurn(Record):
     principal_id: Id
     session_id: str
     text: str = Field(min_length=1, max_length=4000)
-    phase: Literal["interpretation", "resolution", "narration", "complete", "clarification"] = (
-        "interpretation"
-    )
+    phase: Literal[
+        "interpretation", "resolution", "waiting", "narration", "complete", "clarification"
+    ] = "interpretation"
     request_json: str | None = None
     command_json: str | None = None
     trace_json: str | None = None

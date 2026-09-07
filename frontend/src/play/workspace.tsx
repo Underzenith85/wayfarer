@@ -338,7 +338,9 @@ function ActionEntry({ entry }: { entry: Entry }) {
               : a.status === "submitted"
                 ? "Submitted — not committed"
                 : a.status === "resolving"
-                  ? "Resolving — not committed"
+                  ? a.waitingForSharedTime
+                    ? "Waiting for shared-time coordination"
+                    : "Resolving — not committed"
                   : a.status === "rejected"
                     ? "Rejected — no game changes"
                     : "Cancelled"}
