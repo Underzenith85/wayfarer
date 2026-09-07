@@ -10,6 +10,18 @@ the whole scenario or only its brief, opening, world/routes, objectives/endings,
 or characters/encounters. Generation is bounded to one to three validation and
 repair attempts.
 
+Structural validation uses player knowledge rather than NPC secrets. Advertised
+approaches must be supported by the named character's skills and equipment and
+target the advertised scene. A mandatory clue behind a single check or encounter
+needs an independent fallback unless the party already knows it. All required
+objectives are checked together for incompatible terminal states, including
+contradictions split across separate objectives. These are activation errors;
+challenge estimates remain warnings, not guarantees of fairness or solvability.
+
+The direct scenario graph generator includes the configured NPC policy and NPC
+catalog IDs in its context. Schema-invalid responses consume the same bounded
+repair budget as structurally invalid candidates; they never become active state.
+
 Generation never mutates a scenario. The server persists a job first, runs the
 provider outside database transactions, and saves its output as an untrusted
 proposal with authoritative validation diagnostics. The author must accept the
