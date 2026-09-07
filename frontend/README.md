@@ -231,3 +231,30 @@ reset, control reassignment and revocation during in-flight requests, and exactl
 one receipt after an accepted command loses its acknowledgement. Client filtering
 is never the authorization gate. The frontend tests exercise these privacy and
 recovery boundaries against the server-side fixture authority only.
+
+### Encounter and discovery fixtures (#55)
+
+Start the fixture server and open `/campaign?adventure=true&room=your-room`
+(optionally `&multiplayer=rescuer`). Open the campaign to begin a pending combat
+**defense**, then social, investigation, stealth and hazard decisions. Select a
+permitted target; each option includes a rules trace and known range. The server
+retains the pending decision across reloads and rejects stale versions, invalid
+targets and conflicting duplicate command IDs. Unknown submission outcomes offer
+an exact-command retry; reconnect reads the authoritative state before enabling
+controls. No tactical map or inferred hidden targets are shown.
+
+The Journal searches known NPCs, locations, clues and commitments, displays known
+objective progress and a scoped what-changed recap. “Mark recap read for next
+visit” saves an opaque checkpoint in session storage for that principal, campaign,
+scene, actor and visibility epoch. An unknown checkpoint resets to the permitted
+recap. Entry links include campaign and actor context and recheck access on load;
+unknown, undiscovered and other-character entry IDs all return unavailable.
+Search filtering happens in the server-only authority before results are returned.
+Revocation and perspective changes clear the existing play/query scope.
+
+`src/adventure/model.ts` is a normalized **proposed** adapter boundary, not a new
+frozen HTTP contract. `fixtures/adventure-authority.ts` scripts outcomes; it is not
+the live rules engine. Existing MSW journeys and production connections retain
+their prior behavior. Live wiring remains gated by #16, #17, #34, #35 and #36,
+with integrated acceptance owned by #23/#24/#40/#41 and #59. No dependency changes
+were needed; this retains main’s TypeScript 7 compiler and dependency versions.

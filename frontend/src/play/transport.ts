@@ -34,6 +34,7 @@ export interface PlayTransport {
   readonly sample: boolean;
   readonly inventoryPreview?: InventoryPreviewTransport;
   readonly multiplayer?: MultiplayerPort;
+  readonly adventure?: import("../adventure/model").AdventurePort;
   listCampaigns(signal: AbortSignal): Promise<Campaign[]>;
   readSnapshot(campaignId: string, signal: AbortSignal): Promise<Snapshot>;
   submitAction(

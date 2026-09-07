@@ -113,6 +113,7 @@ export class PlayStore {
     });
   }
   private fence() {
+    this.encounterRetry = null;
     this.controller.abort();
     this.controller = new AbortController();
     this.generation++;
@@ -608,10 +609,39 @@ export class PlayStore {
       ...(inventory ? { inventory: inventory.version } : {}),
     };
   }
-  canSend(intentKind: Intent["kind"]) {
+  encounterRetry: import("../adventure/model").DecisionCommand | null = null;
+  async decideEncounter(command: import("../adventure/model").DecisionCommand) {
+    const view = this.state.multiplayer;
+    if (
+      !this.transport.adventure ||
+      !view ||
+      !this.canSend("text", true) ||
+      !sameScope(command.scope, view.scope) ||
+      command.epoch !== view.checkpoint.epoch
+    )
+      return;
+    const generation = this.generation;
+    this.patch({ busy: true });
+    this.encounterRetry = command;
+    try {
+      await this.transport.adventure.decide(command, this.controller.signal);
+      if (this.active(generation)) this.encounterRetry = null;
+    } catch (error) {
+      if (
+        this.active(generation) &&
+        !(error instanceof TransportError && error.code === "network")
+      )
+        this.encounterRetry = null;
+      throw error;
+    } finally {
+      if (this.active(generation)) this.patch({ busy: false });
+    }
+  }
+  canSend(intentKind: Intent["kind"], allowEncounterRetry = false) {
     const s = this.state.snapshot;
     return (
       !!s &&
+      (allowEncounterRetry || !this.encounterRetry) &&
       this.state.connection === "online" &&
       !this.state.tableRetry &&
       !this.state.expired &&

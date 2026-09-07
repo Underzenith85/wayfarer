@@ -1,3 +1,5 @@
+import { AdventureAuthority } from "./adventure-authority";
+import type { DecisionCommand, JournalKind } from "../src/adventure/model";
 import type { Plugin } from "vite";
 import { MultiplayerAuthority, type Identity } from "./multiplayer-authority";
 import {
@@ -8,6 +10,7 @@ import {
 import type { Scope, TableCommand } from "../src/multiplayer/model";
 
 export function multiplayerFixtures(): Plugin {
+  const adventures = new Map<string, AdventureAuthority>();
   const rooms = new Map<string, MultiplayerAuthority>();
   return {
     name: "multiplayer-fixtures",
@@ -42,6 +45,11 @@ export function multiplayerFixtures(): Plugin {
           }
           const input = JSON.parse(raw) as {
             op: string;
+            query: string;
+            kind: JournalKind | "all";
+            id: string;
+            since: string | null;
+            decision: DecisionCommand;
             actorId?: string;
             scope: Scope;
             cursor: string;
@@ -51,13 +59,37 @@ export function multiplayerFixtures(): Plugin {
             scenario: "rescue" | "revoke" | "reassign" | "missed";
           };
           if (!rooms.has(room)) {
-            if (rooms.size >= 100) rooms.delete(rooms.keys().next().value!);
+            if (rooms.size >= 100) {
+              const oldest = rooms.keys().next().value!;
+              rooms.delete(oldest);
+              adventures.delete(oldest);
+            }
             rooms.set(room, new MultiplayerAuthority(room));
+            adventures.set(room, new AdventureAuthority(rooms.get(room)!));
           }
           const authority = rooms.get(room)!;
           const who: Identity = identity;
           let value: unknown;
           switch (input.op) {
+            case "adventure-overview":
+              value = adventures
+                .get(room)!
+                .overview(who, input.scope, input.epoch, input.since);
+              break;
+            case "adventure-search":
+              value = adventures
+                .get(room)!
+                .search(who, input.scope, input.epoch, input.query, input.kind);
+              break;
+            case "adventure-entry":
+              value = adventures
+                .get(room)!
+                .entry(who, input.scope, input.epoch, input.id);
+              break;
+            case "adventure-decide":
+              adventures.get(room)!.decide(who, input.decision);
+              value = null;
+              break;
             case "campaigns":
               value = [authority.read(who, null).snapshot.campaign];
               break;
