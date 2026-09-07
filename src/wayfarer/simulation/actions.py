@@ -16,6 +16,7 @@ from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.rules.catalog import SKILLS, DefinitionKind, ImplementationStatus
 from wayfarer.rules.checks import CheckTrace, Modifier, Outcome, RandomSource, success_check
 from wayfarer.rules.effects import DerivedValue, EffectEvaluator, MechanicalTarget
+from wayfarer.simulation.ability_types import AbilityRules
 from wayfarer.simulation.access import CampaignMember
 from wayfarer.simulation.adjudication import Ruling, RulingPolicy, expire_rulings
 from wayfarer.simulation.advancement import AdvancementEntry, MigrationEntry
@@ -132,6 +133,7 @@ class ActionRules(Record):
     party: PartyRules | None = Field(default=None, exclude=True)
     npcs: NPCRules | None = Field(default=None, exclude=True)
     recovery: RecoveryRules | None = Field(default=None, exclude=True)
+    abilities: AbilityRules | None = Field(default=None, exclude=True)
 
 
 class ActionResult(Record):
@@ -198,6 +200,27 @@ class ActionEngine:
         ):
             raise ValidationError("Ambiguous action check rules")
         definitions = reviewer.compiler.definitions
+        if rules.abilities is not None:
+            from wayfarer.rules.abilities import definition as ability_definition
+            from wayfarer.rules.abilities import metadata, validate_binding
+            from wayfarer.rules.traits import TraitOptions
+
+            if reviewer.compiler.statistics_profile != rules.abilities.profile_id:
+                raise ValidationError("Ability rules require the exact compiled profile")
+            for ability in rules.abilities.abilities:
+                definition = definitions.get(ability.definition_id)
+                if definition is None or definition.trait_rules != metadata(ability):
+                    raise ValidationError("Ability runtime metadata differs from pinned catalog")
+                expected = ability_definition(ability)
+                if (
+                    definition.point_cost != expected.point_cost
+                    or definition.status != expected.status
+                    or "supernatural" not in definition.hooks
+                ):
+                    raise ValidationError(
+                        "Ability cost or implementation status differs from runtime"
+                    )
+                validate_binding(ability, 1, TraitOptions(modifiers=ability.modifiers))
         for rule in rules.checks:
             definition = definitions.get(rule.definition_id)
             if (
@@ -292,6 +315,7 @@ class ActionEngine:
             + (rules.party.model_dump_json() if rules.party else "")
             + (rules.npcs.model_dump_json() if rules.npcs else "")
             + (rules.recovery.model_dump_json() if rules.recovery else "")
+            + (rules.abilities.model_dump_json() if rules.abilities else "")
             + reviewer.policy.digest
             + repr(resources.rules)
             + repr(reviewer.compiler.effects)
@@ -304,6 +328,28 @@ class ActionEngine:
             raise ValidationError("Play configuration changed; explicit migration required")
         if state.revision != state.resources.revision:
             raise ValidationError("Play and resource revisions diverged")
+        if self.rules.abilities:
+            ability_entities = {e.id for e in state.world.entities}
+            facts = {f.id for f in state.world.facts}
+            for channel in self.rules.abilities.channels:
+                if (
+                    not {channel.actor_id, channel.target_id, channel.location_id}
+                    <= ability_entities
+                ):
+                    raise ValidationError("Invalid ability channel entity references")
+                if (
+                    not set(
+                        (
+                            *channel.presence_fact_ids,
+                            *channel.detection_fact_ids,
+                            *channel.precise_fact_ids,
+                            *channel.analysis_fact_ids,
+                            *channel.thought_fact_ids,
+                        )
+                    )
+                    <= facts
+                ):
+                    raise ValidationError("Invalid ability channel fact references")
         if self.rules.combat:
             consequence_actors = {a.actor_id for a in state.actors}
             facts = {f.id for f in state.world.facts}
@@ -859,7 +905,9 @@ class ActionEngine:
         world, resources = state.world, state.resources
         if not isinstance(command, Wait):
             from wayfarer.rules.recovery_types import interrupt_tasks
+            from wayfarer.simulation.abilities import interrupt_concentration
 
+            resources = interrupt_concentration(resources, command.actor_id, command.id)
             resources = resources.model_copy(
                 update={
                     "recovery_tasks": interrupt_tasks(

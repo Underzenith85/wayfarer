@@ -109,7 +109,7 @@ class PortableGraph(ScenarioContent):
     @model_validator(mode="after")
     def single_mechanics_source(self) -> PortableGraph:
         # runtime_rules replaces these nested copies. Reject ambiguity in portable content.
-        for name in ("scenes", "objectives", "noncombat", "npcs", "recovery", "party"):
+        for name in ("scenes", "objectives", "noncombat", "npcs", "recovery", "party", "abilities"):
             nested = getattr(self.actions, name)
             if nested is not None and nested != getattr(self, name):
                 raise ValueError(f"Conflicting actions.{name} mechanics")

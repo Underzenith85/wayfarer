@@ -317,6 +317,10 @@ class CombatService:
                         current_actor_id=current_actor,
                     )
                 elif isinstance(command, TakeCombatTurn):
+                    from wayfarer.simulation.abilities import interrupt_concentration
+
+                    resources = interrupt_concentration(resources, command.actor_id, command.id)
+                    state = state.model_copy(update={"resources": resources})
                     actor = next(a for a in state.actors if a.actor_id == command.actor_id)
                     hp = next(p for p in resources.pools if p.id == f"hp:{actor.actor_id}")
                     if (
@@ -442,6 +446,13 @@ class CombatService:
                         )
                         resources = state.resources
                 elif isinstance(command, ChooseDefense):
+                    from wayfarer.simulation.abilities import interrupt_concentration
+
+                    if command.defense != "none":
+                        resources = interrupt_concentration(
+                            resources, command.actor_id, command.id, distraction=True
+                        )
+                        state = state.model_copy(update={"resources": resources})
                     previous = encounter
                     selected_defense = command.defense
                     if engine.rules.gurps_equipment is not None:
@@ -590,7 +601,11 @@ class CombatService:
                         )
                     }
                 )
-            elif engine.rules.attacks or engine.rules.gurps_equipment is not None:
+            elif (
+                engine.rules.attacks
+                or engine.rules.gurps_equipment is not None
+                or self.play.engine.rules.abilities
+            ):
                 prior = next((e for e in state.encounters if e.id == encounter.id), None)
                 ticks = max(0, encounter.round - prior.round) if prior is not None else 0
                 if ticks:

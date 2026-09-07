@@ -6,6 +6,7 @@ from typing import Literal
 
 from pydantic import Field
 
+from wayfarer.simulation.ability_types import AbilityRules
 from wayfarer.simulation.actions import ActionRules, ActorSetup
 from wayfarer.simulation.combat import AttackProfile, CombatConsequence, ProtectionProfile
 from wayfarer.simulation.gurps_equipment import EquipmentCatalog
@@ -63,6 +64,7 @@ class ScenarioContent(Record):
     npcs: NPCRules | None = None
     recovery: RecoveryRules | None = None
     party: PartyRules | None = None
+    abilities: AbilityRules | None = Field(default=None, exclude_if=lambda value: value is None)
     approaches: tuple[ApproachSupport, ...] = ()
 
     def runtime_rules(self) -> ActionRules:
@@ -84,6 +86,7 @@ class ScenarioContent(Record):
                 "npcs": self.npcs,
                 "recovery": self.recovery,
                 "party": self.party,
+                "abilities": self.abilities,
             }
         )
 

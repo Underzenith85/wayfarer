@@ -427,6 +427,12 @@ def resolve_melee(
         ),
         default=0,
     )
+    from wayfarer.simulation.abilities import damage_resistance
+
+    if play.engine.rules.abilities is not None:
+        resistance += damage_resistance(
+            state.resources, pending.defender_id, build_revision=defend_build.revision
+        )
     if critical in (4, 17):
         resistance //= 2
     injury = 0

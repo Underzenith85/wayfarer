@@ -1,5 +1,191 @@
 {
   "$defs": {
+    "AbilityChannel": {
+      "additionalProperties": false,
+      "description": "An authored permission, not general access to the target's knowledge.\n\nDistance is valid only in the named location. Moving out invalidates it.\nDetect facts encode presence/direction/quantity separately from analysis;\nthought facts contain only currently authored surface thoughts.",
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "ability_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Ability Id",
+          "type": "string"
+        },
+        "actor_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "target_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Target Id",
+          "type": "string"
+        },
+        "location_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Location Id",
+          "type": "string"
+        },
+        "distance_yards": {
+          "default": 0,
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Distance Yards",
+          "type": "integer"
+        },
+        "presence_fact_ids": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Presence Fact Ids",
+          "type": "array"
+        },
+        "detection_fact_ids": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Detection Fact Ids",
+          "type": "array"
+        },
+        "precise_fact_ids": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Precise Fact Ids",
+          "type": "array"
+        },
+        "analysis_fact_ids": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Analysis Fact Ids",
+          "type": "array"
+        },
+        "thought_fact_ids": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Thought Fact Ids",
+          "type": "array"
+        },
+        "shared_language": {
+          "default": true,
+          "title": "Shared Language",
+          "type": "boolean"
+        },
+        "digital_mind": {
+          "default": false,
+          "title": "Digital Mind",
+          "type": "boolean"
+        },
+        "psionic_blocked": {
+          "default": false,
+          "title": "Psionic Blocked",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "ability_id",
+        "actor_id",
+        "target_id",
+        "location_id"
+      ],
+      "title": "AbilityChannel",
+      "type": "object"
+    },
+    "AbilityRules": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "version": {
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "profile_id": {
+          "const": "gurps-basic-set-4e-2004",
+          "default": "gurps-basic-set-4e-2004",
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "abilities": {
+          "items": {
+            "$ref": "#/$defs/AbilitySpec"
+          },
+          "title": "Abilities",
+          "type": "array"
+        },
+        "channels": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/AbilityChannel"
+          },
+          "title": "Channels",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "version",
+        "abilities"
+      ],
+      "title": "AbilityRules",
+      "type": "object"
+    },
+    "AbilitySpec": {
+      "additionalProperties": false,
+      "properties": {
+        "definition_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Definition Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "burning-malediction",
+            "damage-resistance",
+            "detect",
+            "mind-reading"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "modifiers": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Modifiers",
+          "type": "array"
+        }
+      },
+      "required": [
+        "definition_id",
+        "kind"
+      ],
+      "title": "AbilitySpec",
+      "type": "object"
+    },
     "ActionRules": {
       "additionalProperties": false,
       "properties": {
@@ -139,6 +325,17 @@
           "anyOf": [
             {
               "$ref": "#/$defs/RecoveryRules"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "abilities": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AbilityRules"
             },
             {
               "type": "null"
@@ -2680,6 +2877,17 @@
           "anyOf": [
             {
               "$ref": "#/$defs/PartyRules"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "abilities": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AbilityRules"
             },
             {
               "type": "null"

@@ -333,6 +333,10 @@ class CharacterCompiler:
                     options = purchase.trait or TraitOptions()
                     try:
                         cost = trait_cost(cost, amount, options, metadata)
+                        if any(hook.startswith("ability:") for hook in metadata.runtime_hooks):
+                            from wayfarer.rules.abilities import validate_purchase
+
+                            validate_purchase(definition, amount, options)
                     except ValidationError as exc:
                         error("trait.invalid", i, str(exc))
                     required_hooks = set(metadata.runtime_hooks)

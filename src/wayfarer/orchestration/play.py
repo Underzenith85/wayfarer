@@ -100,6 +100,8 @@ class PlayService:
         """Trusted scenario input; player drafts never supply approval records."""
         if campaign["revision"] != 0 or resources.revision != 0:
             raise ValidationError("Initial revisions must be zero")
+        if any(event.id.startswith("ability:") for event in resources.events):
+            raise ValidationError("Initial resources cannot seed ability execution receipts")
         if campaign.get("rules_ref") != reference(self.engine.resources.rules):
             raise ValidationError("Campaign rules do not match the play engine")
         if "resources_json" in campaign or "play_json" in campaign:
