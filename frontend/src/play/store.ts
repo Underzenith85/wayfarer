@@ -427,16 +427,10 @@ export class PlayStore {
     const serial = ++this.watchSerial;
     const receive = (event: import("../multiplayer/model").ScopeEvent) => {
       if (!this.active(g) || serial !== this.watchSerial) return;
-      if (event.kind === "revoked") {
-        this.expire();
-        return;
-      }
-      if (event.kind === "disconnected") {
-        this.disconnect();
-        return;
-      }
-      if (event.kind === "reset") {
-        void this.reconnect();
+      if (event.kind !== "changed") {
+        if (event.kind === "revoked") this.expire();
+        else if (event.kind === "disconnected") this.disconnect();
+        else void this.reconnect();
         return;
       }
       if (!sameScope(event.scope, view.scope)) return;
