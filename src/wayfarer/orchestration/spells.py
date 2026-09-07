@@ -253,14 +253,14 @@ class SpellService:
             ):
                 raise ValidationError("Missile commands require approved combat dispatch")
             if (
-                command.kind == "release"
+                command.kind in ("release", "expand")
                 and next(
                     p.current for p in before.resources.pools if p.id == "hp:" + command.actor_id
                 )
                 <= 0
             ):
                 raise ValidationError(
-                    "Missile release at nonpositive HP requires the held-missile injury adapter"
+                    "Missile handling at nonpositive HP requires the held-missile injury adapter"
                 )
             if command.kind == "release" and context.distance > 50:
                 raise ValidationError("Fireball exceeds its maximum range")
