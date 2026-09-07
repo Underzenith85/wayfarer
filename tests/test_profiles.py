@@ -413,173 +413,372 @@ async def test_new_campaigns_select_exact_profiles_and_old_ones_stay_unchanged(
         "title": EXTENDED_PROFILE.title,
         "supported": True,
     }
-    old_graph = graph.model_copy(update={"rules": None})
-    old = await setup.create(
-        CreateSetup(id="old", brief=old_graph.brief, graph=old_graph), principal_id="alice"
-    )
-    assert old["rules"] == reference(DEFAULT_RULES)
-
-
-async def test_unverified_gurps_selection_is_rejected_before_state_creation(tmp_path: Path) -> None:
-    profiles = runtime(tmp_path)
-    setup = SetupService(CampaignAccess(profiles.play))
-    graph = starting_scenario()
+    # The creation receipt for a profile-less command keeps its pre-profile payload bytes.
+    stored = await profiles.store.read(str(default["id"]))
+    assert "rules_profile" not in json.loads(SetupService.load(stored).creation_json)
     with pytest.raises(ValidationError, match="not supported"):
         await setup.create(
             CreateSetup(id="gurps", brief=graph.brief, graph=graph, rules_profile=GURPS_LITE),
             principal_id="alice",
         )
-    assert await profiles.store.load("gurps") is None
-
-
-async def test_failed_migration_rolls_back_and_cannot_be_replayed(tmp_path: Path) -> None:
-    profiles = runtime(tmp_path)
-    setup = SetupService(CampaignAccess(profiles.play))
-    graph = starting_scenario()
-    cid = await activated(setup, graph, None)
-    before = await profiles.load(cid)
-    assert before is not None
-    digest = profiles.play.digest(before)
-    command = migration(cid, digest, chosen=GURPS_LITE)
-    with pytest.raises(ValidationError, match="not supported"):
-        await profiles.migrations.execute(cid, command, principal_id="alice")
-    after = await profiles.load(cid)
-    assert after == before
-    with pytest.raises(ValidationError, match="not supported"):
-        await profiles.migrations.execute(cid, command, principal_id="alice")
-
-
-async def test_migration_is_atomic_replayable_and_recompiles_state(tmp_path: Path) -> None:
-    profiles = runtime(tmp_path)
-    setup = SetupService(CampaignAccess(profiles.play))
-    graph = extended_graph(item=True, trait=True, check=True)
-    cid = await activated(setup, graph, None)
-    before = await profiles.load(cid)
-    assert before is not None
-    digest = profiles.play.digest(before)
-    command = migration(cid, digest)
-    result = await profiles.migrations.execute(cid, command, principal_id="alice")
-    assert result.rules == EXTENDED_PROFILE.reference
-    assert result.revision == 5
-    assert result.character_builds["mira"].total_points == 5
-    assert result.resources.items[0].definition_id == "equipment:test-lantern"
-    replay = await profiles.migrations.execute(cid, command, principal_id="alice")
-    assert replay == result
-
-
-async def test_migration_requires_gm_pause_and_exact_current_digest(tmp_path: Path) -> None:
-    profiles = runtime(tmp_path)
-    setup = SetupService(CampaignAccess(profiles.play))
-    cid = await activated(setup, starting_scenario(), None)
-    state = await profiles.load(cid)
-    assert state is not None
-    digest = profiles.play.digest(state)
-    command = migration(cid, digest)
-    with pytest.raises(AuthorizationError):
-        await profiles.migrations.execute(cid, command, principal_id="bob")
-    bad = command.model_copy(update={"expected_from_digest": "0" * 64})
-    with pytest.raises(ConflictError, match="digest"):
-        await profiles.migrations.execute(cid, bad, principal_id="alice")
-
-
-async def test_migration_rejects_stale_revision_and_reused_id(tmp_path: Path) -> None:
-    profiles = runtime(tmp_path)
-    setup = SetupService(CampaignAccess(profiles.play))
-    cid = await activated(setup, starting_scenario(), None)
-    state = await profiles.load(cid)
-    assert state is not None
-    digest = profiles.play.digest(state)
-    with pytest.raises(ConflictError, match="revision"):
-        await profiles.migrations.execute(
-            cid,
-            migration(cid, digest).model_copy(update={"expected_revision": 3}),
-            principal_id="alice",
-        )
-    migrated = await profiles.migrations.execute(cid, migration(cid, digest), principal_id="alice")
-    with pytest.raises(ConflictError, match="already used"):
-        await profiles.migrations.execute(
-            cid,
-            migration(cid, profiles.play.digest(migrated), command_id="m").model_copy(
-                update={"expected_revision": 5}
+    with pytest.raises(ValidationError, match="Unknown rules profile"):
+        await setup.create(
+            CreateSetup(
+                id="unknown",
+                brief=graph.brief,
+                graph=graph,
+                rules_profile=ProfileSelection(id="profile:test-extended", version=2),
             ),
             principal_id="alice",
         )
-
-
-async def test_unknown_profile_migration_is_rejected(tmp_path: Path) -> None:
-    profiles = runtime(tmp_path)
-    setup = SetupService(CampaignAccess(profiles.play))
-    cid = await activated(setup, starting_scenario(), None)
-    state = await profiles.load(cid)
-    assert state is not None
-    unknown = ProfileSelection(id="profile:missing", version=1)
-    with pytest.raises(ValidationError, match="Unknown rules profile"):
-        await profiles.migrations.execute(
-            cid,
-            migration(cid, profiles.play.digest(state), chosen=unknown),
+    assert {c["id"] for c in await setup.play.store.listing()} == {default["id"], chosen["id"]}
+    # A service composed without a registry cannot honour selections.
+    bare = SetupService(CampaignAccess(PlayService(profiles.store, build(PROTOTYPE_PROFILE))))
+    with pytest.raises(ValidationError, match="unavailable"):
+        await bare.create(
+            CreateSetup(id="bare", brief=graph.brief, graph=graph, rules_profile=EXTENDED),
             principal_id="alice",
         )
 
 
-async def test_http_profile_projection_and_migration(tmp_path: Path) -> None:
+async def test_dispatch_binds_each_campaign_to_its_own_profile(tmp_path: Path) -> None:
     profiles = runtime(tmp_path)
     setup = SetupService(CampaignAccess(profiles.play))
-    cid = await activated(setup, starting_scenario(), None)
-    state = await profiles.load(cid)
-    assert state is not None
-    app = create_campaign_app(profiles.play, profiles.migrations, principal_for_token=TOKENS.get)
-    server = TestServer(app)
-    client = TestClient(server)
-    await client.start_server()
-    try:
-        response = await client.get(f"/campaigns/{cid}", headers=ALICE)
-        assert response.status == 200
-        body = await response.json()
-        assert body["rules_profile"] == {
-            "id": PROTOTYPE_PROFILE.id,
-            "version": PROTOTYPE_PROFILE.version,
-            "title": PROTOTYPE_PROFILE.title,
-            "supported": True,
-        }
-        response = await client.post(
-            f"/campaigns/{cid}/rules-profile",
-            headers=ALICE,
-            json={
-                "id": "m",
-                "expected_revision": 4,
-                "profile": {"id": EXTENDED_PROFILE.id, "version": EXTENDED_PROFILE.version},
-                "expected_from_digest": profiles.play.digest(state),
-                "reason": "Approved profile change",
-            },
+    extended = await activated(setup, extended_graph(item=True, trait=True), EXTENDED)
+    default = await activated(setup, starting_scenario(), None)
+    # The extended character is illegal under the prototype profile...
+    from wayfarer.orchestration.studio import ScenarioStudio
+
+    assert not ScenarioStudio(profiles.play).validate(extended_graph(trait=True)).valid
+    assert (
+        ScenarioStudio(profiles.service(EXTENDED_PROFILE))
+        .validate(extended_graph(trait=True))
+        .valid
+    )
+    # ...yet dispatch loads each campaign through the service pinned to its own profile.
+    access = CampaignAccess(profiles.play)
+    bound = await access.runtime(extended)
+    assert bound.play.engine.reviewer.compiler.rules == EXTENDED_PROFILE.rules
+    state = bound.play._load(await profiles.store.read(extended))
+    assert state.resources.items[0].definition_id == "equipment:test-lantern"
+    assert (await access.runtime(default)).play.engine.reviewer.compiler.rules == DEFAULT_RULES
+    restarted = runtime(tmp_path)
+    again = await CampaignAccess(restarted.play).runtime(extended)
+    assert again.play.engine.digest == bound.play.engine.digest
+    # Without a registry, a differently pinned campaign fails closed as before.
+    bare = PlayService(profiles.store, build(PROTOTYPE_PROFILE))
+    with pytest.raises(ValidationError, match="do not match the play engine"):
+        bare.for_campaign(await profiles.store.read(extended))._load(
+            await profiles.store.read(extended)
         )
-        assert response.status == 200
-        migrated = await response.json()
-        assert migrated["rules_profile"]["id"] == EXTENDED_PROFILE.id
-        assert migrated["rules_profile"]["supported"] is True
-    finally:
-        await client.close()
 
 
-async def test_http_unknown_campaign_and_invalid_profile_errors(tmp_path: Path) -> None:
+async def test_migration_previews_incompatibilities_and_blocks_atomically(
+    tmp_path: Path,
+) -> None:
     profiles = runtime(tmp_path)
-    app = create_campaign_app(profiles.play, profiles.migrations, principal_for_token=TOKENS.get)
-    server = TestServer(app)
-    client = TestClient(server)
-    await client.start_server()
-    try:
-        response = await client.get("/campaigns/missing", headers=ALICE)
-        assert response.status == 404
+    setup = SetupService(CampaignAccess(profiles.play))
+    migrations = ProfileMigrations(profiles)
+    cid = await activated(setup, extended_graph(item=True, trait=True), EXTENDED)
+    preview = await migrations.preview(cid, PROTOTYPE, principal_id="alice")
+    assert preview.from_profile == EXTENDED and preview.to_profile == PROTOTYPE
+    assert {(i.kind, i.reference) for i in preview.incompatibilities} == {
+        ("character", "mira"),
+        ("resource", "lantern-1"),
+    }
+    assert not preview.applicable and preview.to_digest is not None
+    before = await profiles.store.read(cid)
+    history = len(await profiles.store.history(cid))
+    with pytest.raises(ValidationError, match="Migration blocked: character mira"):
+        await migrations.apply(
+            cid, migration(cid, preview.from_digest, chosen=PROTOTYPE), principal_id="alice"
+        )
+    assert await profiles.store.read(cid) == before
+    assert len(await profiles.store.history(cid)) == history
+    scenario = await activated(setup, extended_graph(check=True), EXTENDED)
+    preview = await migrations.preview(scenario, PROTOTYPE, principal_id="alice")
+    assert [i.kind for i in preview.incompatibilities] == ["scenario"]
+    assert "implemented catalog skill" in preview.incompatibilities[0].message
+    assert preview.to_digest is None
+    with pytest.raises(ValidationError, match="Migration blocked: scenario"):
+        await migrations.apply(
+            scenario,
+            migration(scenario, preview.from_digest, chosen=PROTOTYPE),
+            principal_id="alice",
+        )
+
+
+async def test_migration_is_explicit_authorized_atomic_and_idempotent(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    profiles = runtime(tmp_path)
+    setup = SetupService(CampaignAccess(profiles.play))
+    migrations = ProfileMigrations(profiles)
+    cid = await activated(setup, starting_scenario(), None)
+    preview = await migrations.preview(cid, EXTENDED, principal_id="alice")
+    assert preview.applicable and preview.revision == 4
+    assert [d.actor_id for d in preview.actor_diffs] == ["mira"]
+    assert preview.actor_diffs[0].added == () and preview.actor_diffs[0].removed == ()
+    assert preview.from_digest != preview.to_digest
+    command = migration(cid, preview.from_digest)
+    untouched = await profiles.store.read(cid)
+    with pytest.raises(NotFoundError):
+        await migrations.preview(cid, EXTENDED, principal_id="bob")
+    with pytest.raises(NotFoundError):
+        await migrations.apply(cid, command, principal_id="bob")
+    with pytest.raises(ValidationError, match="not supported"):
+        await migrations.preview(cid, GURPS_LITE, principal_id="alice")
+    with pytest.raises(ValidationError, match="already uses"):
+        await migrations.preview(cid, PROTOTYPE, principal_id="alice")
+    with pytest.raises(ConflictError, match="source configuration changed"):
+        await migrations.apply(
+            cid, command.model_copy(update={"expected_from_digest": "stale"}), principal_id="alice"
+        )
+    with pytest.raises(ConflictError):
+        await migrations.apply(
+            cid, command.model_copy(update={"expected_revision": 3}), principal_id="alice"
+        )
+    with pytest.raises(ValidationError, match="Invalid profile migration"):
+        await migrations.apply(cid, {"id": "m"}, principal_id="alice")
+    await setup.execute(
+        cid,
+        SetupCommand(id="resume", expected_revision=4, operation="resume"),
+        principal_id="alice",
+    )
+    with pytest.raises(ConflictError, match="Pause or complete"):
+        await migrations.preview(cid, EXTENDED, principal_id="alice")
+    await setup.execute(
+        cid,
+        SetupCommand(id="pause-again", expected_revision=5, operation="pause"),
+        principal_id="alice",
+    )
+    assert await profiles.store.read(cid) != untouched
+    untouched = await profiles.store.read(cid)
+    command = command.model_copy(update={"expected_revision": 6})
+    # A failure inside the write transaction leaves no partial state or receipt...
+    target = profiles.service(EXTENDED_PROFILE)
+    original = ActionEngine.validate
+
+    def explode(self: ActionEngine, state: PlayState) -> None:
+        if self.reviewer.compiler.rules == EXTENDED_PROFILE.rules and state.migrations:
+            raise ValidationError("Injected migration failure")
+        original(self, state)
+
+    monkeypatch.setattr(ActionEngine, "validate", explode)
+    with pytest.raises(ValidationError, match="Injected"):
+        await migrations.apply(cid, command, principal_id="alice")
+    monkeypatch.setattr(ActionEngine, "validate", original)
+    assert await profiles.store.read(cid) == untouched
+    assert target.engine.reviewer.compiler.rules == EXTENDED_PROFILE.rules
+    # ...so the identical retry applies once and later retries replay the receipt.
+    entry = await migrations.apply(cid, command, principal_id="alice")
+    assert entry.from_profile == "profile:wayfarer-lite@1"
+    assert entry.to_profile == "profile:test-extended@1"
+    assert entry.from_digest == preview.from_digest and entry.to_digest == preview.to_digest
+    assert await migrations.apply(cid, command, principal_id="alice") == entry
+    with pytest.raises(ConflictError):
+        await migrations.apply(
+            cid, command.model_copy(update={"reason": "Different"}), principal_id="alice"
+        )
+    migrated = await profiles.store.read(cid)
+    assert migrated["rules_ref"] == EXTENDED_PROFILE.reference
+    assert migrated["revision"] == 7
+    assert await profiles.store.read(cid) == await profiles.store.replay(cid)
+    view = await setup.read(cid, principal_id="alice")
+    assert view["rules_profile"] == {
+        "id": EXTENDED_PROFILE.id,
+        "version": 1,
+        "title": EXTENDED_PROFILE.title,
+        "supported": True,
+    }
+    access = await CampaignAccess(profiles.play).runtime(cid)
+    state = access.play._load(migrated)
+    assert [m.id for m in state.migrations] == ["m"]
+    assert state.configuration_digest == access.play.engine.digest
+    assert access.play.engine.reviewer.compiler.rules == EXTENDED_PROFILE.rules
+    # Play continues under the new profile after a resume.
+    await setup.execute(
+        cid,
+        SetupCommand(id="resume-2", expected_revision=7, operation="resume"),
+        principal_id="alice",
+    )
+    await access.execute(
+        cid,
+        {"kind": "wait", "id": "wait", "actor_id": "mira", "expected_revision": 8, "ticks": 1},
+        principal_id="alice",
+    )
+    with pytest.raises(ValidationError, match="already uses"):
+        await migrations.preview(cid, EXTENDED, principal_id="alice")
+
+
+async def test_only_the_host_migrates_a_shared_table(tmp_path: Path) -> None:
+    profiles = runtime(tmp_path)
+    setup = SetupService(CampaignAccess(profiles.play))
+    graph = starting_scenario(2)
+    created = await setup.create(
+        CreateSetup(id="shared", brief=graph.brief, graph=graph), principal_id="alice"
+    )
+    cid = str(created["id"])
+    commands = (
+        (
+            "alice",
+            SetupCommand(id="invite", expected_revision=0, operation="invite", principal_id="bob"),
+        ),
+        ("bob", SetupCommand(id="join", expected_revision=1, operation="join")),
+        (
+            "alice",
+            SetupCommand(
+                id="assign-a",
+                expected_revision=2,
+                operation="assign",
+                principal_id="alice",
+                actor_ids=("mira",),
+            ),
+        ),
+        (
+            "alice",
+            SetupCommand(
+                id="assign-b",
+                expected_revision=3,
+                operation="assign",
+                principal_id="bob",
+                actor_ids=("iven",),
+            ),
+        ),
+        ("alice", SetupCommand(id="ready-a", expected_revision=4, operation="ready")),
+        ("bob", SetupCommand(id="ready-b", expected_revision=5, operation="ready")),
+        ("alice", SetupCommand(id="activate", expected_revision=6, operation="activate")),
+        ("alice", SetupCommand(id="pause", expected_revision=7, operation="pause")),
+    )
+    for principal, command in commands:
+        await setup.execute(cid, command, principal_id=principal)
+    migrations = ProfileMigrations(profiles)
+    preview = await migrations.preview(cid, EXTENDED, principal_id="alice")
+    assert {d.actor_id for d in preview.actor_diffs} == {"mira", "iven"}
+    with pytest.raises(AuthorizationError, match="Only the host"):
+        await migrations.preview(cid, EXTENDED, principal_id="bob")
+    approval = migration(cid, preview.from_digest).model_copy(update={"expected_revision": 8})
+    with pytest.raises(AuthorizationError, match="Only the host"):
+        await migrations.apply(cid, approval, principal_id="bob")
+    entry = await migrations.apply(cid, approval, principal_id="alice")
+    state = (await CampaignAccess(profiles.play).runtime(cid)).play._load(
+        await profiles.store.read(cid)
+    )
+    assert [a.approval.decision for a in state.actors if a.approval] == ["automatic", "automatic"]
+    assert entry.revision == 9 == state.revision
+
+
+async def test_http_profile_listing_selection_and_migration(tmp_path: Path) -> None:
+    profiles = runtime(tmp_path)
+    app = create_campaign_app(
+        CampaignAccess(profiles.play), TOKENS, scenario_templates=(starting_scenario(),)
+    )
+    graph = starting_scenario().model_dump(mode="json")
+    async with TestClient(TestServer(app)) as client:
+        assert (await client.get("/setups/profiles")).status == 401
+        response = await client.get("/setups/profiles", headers=ALICE)
+        listed = {(p["id"], p["version"]): p for p in await response.json()}
+        assert listed[("profile:wayfarer-lite", 1)]["supported"] is True
+        assert listed[("profile:test-extended", 1)]["packages"][1]["dependencies"] == [
+            "package:wayfarer-lite"
+        ]
+        lite = listed[("profile:gurps-lite-4e-2004", 3)]
+        assert lite["supported"] is False and lite["conformance_profile_id"] == "gurps-lite-4e-2004"
+        assert lite["unverified_capabilities"] == list(GURPS_LITE_PROFILE.unverified_capabilities)
+        assert lite["packages"][0]["source_ids"] == ["sjg:gurps-lite-4e-2004"]
         response = await client.post(
-            "/campaigns/missing/rules-profile",
+            "/setups",
             headers=ALICE,
             json={
-                "id": "m",
-                "expected_revision": 0,
-                "profile": {"id": "profile:missing", "version": 1},
-                "expected_from_digest": "0" * 64,
-                "reason": "Approved profile change",
+                "id": str(uuid.uuid4()),
+                "brief": graph["brief"],
+                "graph": graph,
+                "rules_profile": {"id": "profile:gurps-lite-4e-2004", "version": 3},
             },
         )
+        assert response.status == 400 and "not supported" in (await response.json())["error"]
+        response = await client.post(
+            "/setups",
+            headers=ALICE,
+            json={"id": str(uuid.uuid4()), "brief": graph["brief"], "graph": graph},
+        )
+        assert response.status == 201, await response.text()
+        lobby = await response.json()
+        cid = lobby["id"]
+        assert lobby["rules_profile"]["id"] == "profile:wayfarer-lite"
+        steps: list[dict[str, object]] = [
+            {"operation": "assign", "principal_id": "alice", "actor_ids": ["mira"]},
+            {"operation": "ready"},
+            {"operation": "activate"},
+        ]
+        for revision, fields in enumerate(steps):
+            response = await client.post(
+                f"/setups/{cid}",
+                headers=ALICE,
+                json={"id": str(uuid.uuid4()), "expected_revision": revision, **fields},
+            )
+            assert response.status == 200, await response.text()
+        query = {"profile_id": "profile:test-extended", "version": "1"}
+        response = await client.get(f"/setups/{cid}/migration", headers=ALICE, params=query)
+        assert response.status == 409, await response.text()
+        response = await client.post(
+            f"/setups/{cid}",
+            headers=ALICE,
+            json={"id": str(uuid.uuid4()), "expected_revision": 3, "operation": "pause"},
+        )
+        assert response.status == 200
+        response = await client.get(f"/setups/{cid}/migration", headers=ALICE, params=query)
+        assert response.status == 200, await response.text()
+        preview = await response.json()
+        assert preview["applicable"] is True and preview["incompatibilities"] == []
+        response = await client.get(
+            f"/setups/{cid}/migration", headers=ALICE, params={"profile_id": "x"}
+        )
+        assert response.status == 400
+        response = await client.get(
+            f"/setups/{cid}/migration", headers={"Authorization": "Bearer bob-token"}, params=query
+        )
         assert response.status == 404
-    finally:
-        await client.close()
+        body = {
+            "id": "http-migration",
+            "expected_revision": preview["revision"],
+            "profile": preview["to_profile"],
+            "expected_from_digest": preview["from_digest"],
+            "reason": "Switch to the extended profile",
+        }
+        response = await client.post(f"/setups/{cid}/migration", headers=ALICE, json=body)
+        assert response.status == 200, await response.text()
+        result = await response.json()
+        assert result["entry"]["to_profile"] == "profile:test-extended@1"
+        assert result["setup"]["rules_profile"]["id"] == "profile:test-extended"
+        response = await client.post(f"/setups/{cid}/migration", headers=ALICE, json=body)
+        assert response.status == 200 and (await response.json())["entry"] == result["entry"]
+        response = await client.get(f"/setups/{cid}", headers=ALICE)
+        assert (await response.json())["rules"] == EXTENDED_PROFILE.reference
+        access = await client.app[SETUP_KEY].access.runtime(cid)
+        assert access.play.engine.reviewer.compiler.rules == EXTENDED_PROFILE.rules
+
+
+async def test_servers_without_a_registry_expose_no_profiles(tmp_path: Path) -> None:
+    play = PlayService(AsyncSQLiteStore(tmp_path / "bare.sqlite", 10), build(PROTOTYPE_PROFILE))
+    app = create_campaign_app(CampaignAccess(play), TOKENS)
+    async with TestClient(TestServer(app)) as client:
+        response = await client.get("/setups/profiles", headers=ALICE)
+        assert await response.json() == []
+        response = await client.get("/setups/none/migration", headers=ALICE)
+        assert response.status == 400
+
+
+def test_profile_contract_schema_drift() -> None:
+    from wayfarer.simulation.advancement import MigrationEntry
+    from wayfarer.simulation.profiles import ProfileMigrationPreview, ProfileView
+
+    models = (
+        ProfileSelection,
+        ProfileView,
+        ProfileMigrationPreview,
+        MigrateProfile,
+        MigrationEntry,
+    )
+    expected = {model.__name__: model.model_json_schema() for model in models}
+    assert json.loads(Path("contracts/profiles/v1/schemas.json").read_text()) == expected
