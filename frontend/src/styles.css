@@ -1104,3 +1104,42 @@ details summary {
   margin-top: 1.5rem;
   padding-top: 1rem;
 }
+
+.voice-panel {
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  background: var(--surface);
+}
+.voice-panel h3 {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.voice-panel p {
+  overflow-wrap: anywhere;
+}
+.voice-panel .push-to-talk {
+  touch-action: none;
+  user-select: none;
+}
+.voice-review {
+  margin: 1rem 0;
+}
+.voice-review textarea {
+  width: 100%;
+}
+.narration-controls {
+  border-top: 1px solid var(--border);
+  margin-top: 1rem;
+  padding-top: 1rem;
+}
+.narration-controls label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.narration-controls button {
+  margin: 0.5rem 0.5rem 0.5rem 0;
+}
