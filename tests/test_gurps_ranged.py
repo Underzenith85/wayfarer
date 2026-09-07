@@ -299,3 +299,24 @@ async def test_basic_critical_is_persisted_without_using_melee_miss_table(tmp_pa
     assert next(i.quantity for i in state.resources.items if i.id == "ammo-a") == 9
     assert state.encounters[0].blocked_reason == "ranged-critical-table"
     assert await play.store.read(cid) == await play.store.replay(cid)
+
+
+async def test_switching_ranged_modes_resets_aim_seconds(tmp_path: Path) -> None:
+    cid, play = await setup(
+        tmp_path, ranged_fixture=True, ranged_mode=weapon(thrown=True), ranged_scene=scene()
+    )
+    await turn(cid, play, "a", "aim", item_id="sword-a", target_id="b", mode_id="ranged")
+    await turn(cid, play, "b", "do_nothing")
+    await turn(cid, play, "a", "aim", item_id="sword-a", target_id="b", mode_id="throw-fixture")
+    state = play._load(await play.store.read(cid))
+    assert state.encounters[0].participants[0].maneuver_state.aim_seconds == 1
+
+
+async def test_critical_block_readiness_matches_inventory(tmp_path: Path) -> None:
+    cid, play = await setup(tmp_path, ranged_mode=weapon(thrown=True), ranged_scene=scene())
+    await turn(cid, play, "a", "attack", item_id="sword-a", target_id="b", mode_id="ranged")
+    play.rng = RecordedDice([4, 4, 4, 6, 6, 6, 1])
+    result = await defend(cid, play, "b", "block", item_id="shield-b")
+    assert result.injury is not None and result.injury.per_hit_damage == (1,)
+    state = play._load(await play.store.read(cid))
+    assert not next(i.ready for i in state.resources.items if i.id == "shield-b")

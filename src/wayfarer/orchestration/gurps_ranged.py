@@ -397,6 +397,30 @@ def resolve(
             target = target.model_copy(update={"block_used": True})
         if second_trace.outcome is Outcome.CRITICAL_FAILURE and second_defense == "dodge":
             target = target.model_copy(update={"posture": "prone"})
+    dropped = {
+        equipment_id
+        for choice, roll, equipment_id in (
+            (selected, defense, defense_item),
+            (second_defense, second_trace, second_item),
+        )
+        if choice == "block"
+        and roll is not None
+        and roll.outcome is Outcome.CRITICAL_FAILURE
+        and equipment_id is not None
+    }
+    if dropped:
+        state = state.model_copy(
+            update={
+                "resources": state.resources.model_copy(
+                    update={
+                        "items": tuple(
+                            i.model_copy(update={"ready": False}) if i.id in dropped else i
+                            for i in state.resources.items
+                        )
+                    }
+                )
+            }
+        )
     # Ranged-specific critical tables must never dispatch to the melee miss table.
     blocked = (
         "ranged-critical-table"
@@ -456,7 +480,11 @@ def resolve(
             ht=defender_stats.ht,
             rng=play.rng,
             system=True,
-            held_item_ids=target.ready_item_ids,
+            held_item_ids=tuple(
+                i.id
+                for i in state.resources.items
+                if i.owner_id == target.actor_id and i.ready and i.equipped
+            ),
         )
         state = state.model_copy(update={"resources": resources})
         damages.append(damage)
