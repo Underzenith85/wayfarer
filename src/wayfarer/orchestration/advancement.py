@@ -258,7 +258,7 @@ class AdvancementService:
         self, cid: str, value: object, *, authenticated_actor_id: str
     ) -> AdvancementEntry:
         command = self._advance(value, authenticated_actor_id)
-        await self.preview(cid, command, authenticated_actor_id=authenticated_actor_id)
+        # Validate inside the transaction so a committed retry reaches its receipt first.
         payload = self._payload("advance", command.model_dump(mode="json"))
 
         def resolve(campaign: Campaign) -> Event:
