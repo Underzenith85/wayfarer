@@ -14,7 +14,8 @@ from typing import Final, Literal, cast
 from wayfarer.errors import ValidationError
 from wayfarer.rules.conformance import CAPABILITIES, PROFILES, CoverageStatus
 from wayfarer.rules.profiles import DEFAULT_REGISTRY, RegisteredProfile
-from wayfarer.source_audit import InventoryItem, inventory, report as source_audit_report
+from wayfarer.source_audit import InventoryItem, inventory
+from wayfarer.source_audit import report as source_audit_report
 
 PROFILE_ID: Final = "gurps-basic-set-4e-2004"
 
@@ -78,7 +79,7 @@ def evaluate(root: Path) -> CertificationReport:
     target = PROFILES[PROFILE_ID]
     selected = _latest_registered_profile()
     audit = source_audit_report(root)
-    audit_blockers = cast(list[str], audit["blockers"])
+    audit_blockers = cast(tuple[str, ...], audit["blockers"])
     source_baseline = cast(str, audit["baseline_id"])
     source_complete = cast(bool, audit["audit_complete"])
     blockers: list[CertificationBlocker] = []
