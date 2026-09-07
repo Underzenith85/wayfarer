@@ -315,6 +315,26 @@ in each spec and fixture. The publisher pages were inaccessible during #98, so
 these numeric cases do not remove the existing exact-source-artifact review merge
 gate. No source prose is bundled.
 
+## Mundane skill inventory (#112)
+
+`rules.mundane_skills` is a dedicated, versioned candidate package and item-level
+inventory for the Basic Set skill chapter. It records skill families, aliases,
+weapon classes and representative expanded specialties/techniques with page
+references, controlling attributes, difficulty and numeric attribute defaults.
+Cinematic/supernatural entries have a separate exclusion inventory. The inspected
+Characters printing is third; the frozen first-printing delta audit is pending.
+
+`python -m scripts.audit_mundane_skills` emits coverage directly from this
+inventory, including each entry's explicit blockers and owning issues. Conditional
+skill defaults, required specialties, TL context and prerequisites are identified
+as blockers rather than discarded or guessed. Missing entries reject. Candidate
+package definitions are unsupported and cannot activate; they do not mutate
+existing pinned packages or advertise that a generic check implements a profession,
+medical procedure, vehicle or weapon. Independent tests sample difficulty classes,
+Will-based targets, optional/required specialties, techniques, reference integrity
+and unavailable/unknown IDs. Full specialty expansion and runtime availability
+remain visible item-level blockers under #112 and the indicated mechanics owners.
+
 ## Provisional social procedures (#111)
 
 `rules.gurps_social` implements reaction bands and typed status/reputation/
@@ -340,6 +360,7 @@ explicit GM trait/panic choices. Each row has executable tests. Table effects
 are persisted in the private receipt; applying timed effects to live characters
 remains an explicit integration blocker in #137. Coverage does not claim that
 recording an effect already executes it. These blockers remain visible for #122.
+
 ## Provisional implementation policy (2026-09-07)
 
 The project owner explicitly authorized implementation from model knowledge while
