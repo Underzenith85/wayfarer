@@ -39,6 +39,7 @@ class Campaign(TypedDict):
     resources_json: NotRequired[str]
     play_json: NotRequired[str]
     setup_json: NotRequired[str]
+    scenario_document_json: NotRequired[str]
     scenario_graph_json: NotRequired[str]
     character: Character
     scenario: dict[str, str]

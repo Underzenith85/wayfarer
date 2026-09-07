@@ -1,0 +1,1034 @@
+{
+  "schema_version": 1,
+  "scenario_id": "last-lantern-1",
+  "revision_id": "last-lantern-published-1",
+  "revision": 1,
+  "public": {
+    "title": "The Last Lantern",
+    "summary": "Investigate missing relief supplies before the last ferry leaves.",
+    "tags": [
+      "mystery",
+      "rescue"
+    ],
+    "setup": {
+      "premise": "Recover the stolen relief shipment before the last ferry departs. The warden can be persuaded, outwitted, or fought. Rescue captured friends before leaving.",
+      "genre": "Harbor mystery",
+      "tone": "Hopeful suspense",
+      "duration_minutes": 60,
+      "difficulty": "standard",
+      "restrictions": []
+    },
+    "opening_prompt": "Start at Lantern Harbor. Inspect the manifest or speak with the ferrymen."
+  },
+  "provenance": {
+    "kind": "authored",
+    "author": "Wayfarer",
+    "source": null,
+    "generator": null,
+    "source_digest": null
+  },
+  "compatibility": {
+    "rules": {
+      "edition": "wayfarer-lite",
+      "packages": [
+        {
+          "id": "wayfarer-reference-1",
+          "version": "1.0.0",
+          "digest": "b75029033feb954fc98836201e44b8c08ffe84f1d739ae6e5da95c06cc2337ab"
+        }
+      ],
+      "policy_id": "policy:wayfarer-demo",
+      "policy_version": 1
+    },
+    "engine_digest": "da7ed45c363cf2395bc9fcc8c1b9479091626922d4c678a4cfcdecfe1e2d7345",
+    "capabilities": [
+      "actions-v1",
+      "scenes-v1",
+      "objectives-v1",
+      "combat-v1",
+      "noncombat-v1",
+      "npc-plans-v1",
+      "recovery-v1",
+      "split-party-v1"
+    ]
+  },
+  "party": {
+    "slots": [
+      {
+        "actor_id": "a",
+        "role": "Adventurer",
+        "required_definitions": [],
+        "aware_of": [
+          "a",
+          "b",
+          "warden",
+          "manifest",
+          "records",
+          "harbor",
+          "warehouse"
+        ],
+        "conditions": []
+      },
+      {
+        "actor_id": "b",
+        "role": "Adventurer",
+        "required_definitions": [],
+        "aware_of": [
+          "a",
+          "b",
+          "warden",
+          "manifest",
+          "records",
+          "harbor",
+          "warehouse"
+        ],
+        "conditions": []
+      }
+    ],
+    "minimum_points": 0,
+    "maximum_points": 100
+  },
+  "graph": {
+    "id": "last-lantern-1",
+    "version": 1,
+    "title": "The Last Lantern",
+    "brief": {
+      "premise": "Recover the stolen relief shipment before the last ferry departs. The warden can be persuaded, outwitted, or fought. Rescue captured friends before leaving.",
+      "genre": "Harbor mystery",
+      "tone": "Hopeful suspense",
+      "duration_minutes": 60,
+      "difficulty": "standard",
+      "restrictions": []
+    },
+    "opening_scene_id": "harbor-scene",
+    "opening_action": "Inspect the manifest, visit the customs house for another lead, or negotiate with Warden Sable. The ferry leaves at tick 12.",
+    "failure_consequence": "The ferry departs. The relief shipment is lost for now; the campaign can continue.",
+    "world": {
+      "entities": [
+        {
+          "id": "harbor",
+          "kind": "location",
+          "name": "Lantern Harbor",
+          "location_id": null,
+          "owner_id": null
+        },
+        {
+          "id": "warehouse",
+          "kind": "location",
+          "name": "Old Customs House",
+          "location_id": null,
+          "owner_id": null
+        },
+        {
+          "id": "a",
+          "kind": "actor",
+          "name": "Mira",
+          "location_id": "harbor",
+          "owner_id": null
+        },
+        {
+          "id": "b",
+          "kind": "actor",
+          "name": "Iven",
+          "location_id": "harbor",
+          "owner_id": null
+        },
+        {
+          "id": "warden",
+          "kind": "actor",
+          "name": "Warden Sable",
+          "location_id": "harbor",
+          "owner_id": null
+        },
+        {
+          "id": "manifest",
+          "kind": "object",
+          "name": "Sealed shipping manifest",
+          "location_id": "harbor",
+          "owner_id": null
+        },
+        {
+          "id": "records",
+          "kind": "object",
+          "name": "Duplicate customs records",
+          "location_id": "warehouse",
+          "owner_id": null
+        },
+        {
+          "id": "ferrymen",
+          "kind": "faction",
+          "name": "The Ferrymen",
+          "location_id": null,
+          "owner_id": null
+        },
+        {
+          "id": "escrow",
+          "kind": "actor",
+          "name": "Ferrymen reward chest",
+          "location_id": "harbor",
+          "owner_id": null
+        }
+      ],
+      "connections": [
+        {
+          "source_id": "harbor",
+          "destination_id": "warehouse",
+          "label": "customs path"
+        },
+        {
+          "source_id": "warehouse",
+          "destination_id": "harbor",
+          "label": "quayside path"
+        }
+      ],
+      "facts": [
+        {
+          "id": "manifest-found",
+          "subject_id": "manifest",
+          "predicate": "cargo",
+          "value": "The last ferry carries stolen relief supplies."
+        },
+        {
+          "id": "passage-secured",
+          "subject_id": "ferrymen",
+          "predicate": "passage",
+          "value": "The party secured passage for the relief supplies."
+        },
+        {
+          "id": "capture-signal",
+          "subject_id": "a",
+          "predicate": "detention",
+          "value": "Mira is held in the harbor guardhouse."
+        },
+        {
+          "id": "inside-route",
+          "subject_id": "manifest",
+          "predicate": "route",
+          "value": "A loose shutter opens onto the prisoners' yard."
+        },
+        {
+          "id": "warden-secret",
+          "subject_id": "warden",
+          "predicate": "motive",
+          "value": "Sable secretly owes the Ferrymen a debt."
+        },
+        {
+          "id": "opening",
+          "subject_id": "harbor",
+          "predicate": "deadline",
+          "value": "The last ferry departs at shared tick 12. Find the manifest and secure passage."
+        }
+      ],
+      "knowledge": [
+        [
+          "warden",
+          "warden-secret"
+        ]
+      ],
+      "beliefs": [],
+      "commitments": [
+        {
+          "id": "ferrymen-debt",
+          "kind": "debt",
+          "debtor_id": "a",
+          "creditor_id": "ferrymen",
+          "description": "Return the Ferrymen's favor after this voyage.",
+          "reveal_fact_id": "passage-secured",
+          "complete_fact_id": null,
+          "status": "hidden"
+        }
+      ]
+    },
+    "resources": {
+      "revision": 0,
+      "game_time": 0,
+      "items": [
+        {
+          "id": "blade-a",
+          "definition_id": "lantern-blade",
+          "owner_id": "a",
+          "quantity": 1,
+          "container_id": null,
+          "equipped": true,
+          "ready": true
+        },
+        {
+          "id": "blade-b",
+          "definition_id": "lantern-blade",
+          "owner_id": "b",
+          "quantity": 1,
+          "container_id": null,
+          "equipped": true,
+          "ready": true
+        },
+        {
+          "id": "blade-warden",
+          "definition_id": "lantern-blade",
+          "owner_id": "warden",
+          "quantity": 1,
+          "container_id": null,
+          "equipped": true,
+          "ready": true
+        },
+        {
+          "id": "last-lantern-1-supply",
+          "definition_id": "ration",
+          "owner_id": "escrow",
+          "quantity": 1,
+          "container_id": null,
+          "equipped": false,
+          "ready": false
+        }
+      ],
+      "owners": [
+        {
+          "actor_id": "a",
+          "capacity": 100,
+          "definitions": []
+        },
+        {
+          "actor_id": "b",
+          "capacity": 100,
+          "definitions": []
+        },
+        {
+          "actor_id": "warden",
+          "capacity": 100,
+          "definitions": []
+        },
+        {
+          "actor_id": "escrow",
+          "capacity": 100,
+          "definitions": []
+        }
+      ],
+      "pools": [],
+      "active_effect_ids": [],
+      "scheduled": [],
+      "fired": [],
+      "receipts": [],
+      "events": []
+    },
+    "npc_actor_ids": [
+      "warden"
+    ],
+    "combat_consequences": [
+      {
+        "id": "warden-yields",
+        "battlefield_id": "guardhouse-yard",
+        "defeated_actor_id": "warden",
+        "recipient_actor_ids": [
+          "a"
+        ],
+        "fact_ids": [
+          "passage-secured"
+        ]
+      }
+    ],
+    "combat_attacks": [
+      {
+        "definition_id": "lantern-blade",
+        "mode": "melee",
+        "target": "torso",
+        "attack_target": "attribute:dx",
+        "attack_modifier": 0,
+        "damage_dice": 1,
+        "damage_bonus": 2,
+        "injury_multiplier": 1,
+        "stun_ticks": 0
+      }
+    ],
+    "combat_protection": [],
+    "actions": {
+      "id": "lantern-actions",
+      "version": 1,
+      "movement_ticks": 1,
+      "item_ticks": 1,
+      "maximum_wait": 100,
+      "fatigue_cost": 0,
+      "checks": [
+        {
+          "id": "read-manifest",
+          "action": "inspect",
+          "target_id": "manifest",
+          "definition_id": "skill:observation",
+          "package_id": "wayfarer-reference-1",
+          "package_version": "1.0.0",
+          "duration": 1,
+          "modifier": 0,
+          "reveal_fact_ids": [
+            "manifest-found"
+          ],
+          "required_equipment": null,
+          "not_before": 0
+        },
+        {
+          "id": "convince-warden",
+          "action": "social",
+          "target_id": "warden",
+          "definition_id": "skill:diplomacy",
+          "package_id": "wayfarer-reference-1",
+          "package_version": "1.0.0",
+          "duration": 1,
+          "modifier": 0,
+          "reveal_fact_ids": [],
+          "required_equipment": null,
+          "not_before": 0
+        },
+        {
+          "id": "slip-lock",
+          "action": "inspect",
+          "target_id": "warden",
+          "definition_id": "skill:stealth",
+          "package_id": "wayfarer-reference-1",
+          "package_version": "1.0.0",
+          "duration": 1,
+          "modifier": 0,
+          "reveal_fact_ids": [],
+          "required_equipment": null,
+          "not_before": 0
+        }
+      ],
+      "consumables": [],
+      "adjudication": null,
+      "combat": {
+        "id": "harbor-combat",
+        "version": 1,
+        "movement_allowance": 5,
+        "prone_movement_allowance": 1,
+        "default_reach": 1,
+        "max_combatants": 30,
+        "battlefields": [
+          {
+            "id": "guardhouse-yard",
+            "location_id": "harbor",
+            "width": 6,
+            "height": 6,
+            "blocked": []
+          }
+        ]
+      }
+    },
+    "scenes": {
+      "id": "lantern-scenes",
+      "version": 1,
+      "scenes": [
+        {
+          "id": "harbor-scene",
+          "version": 1,
+          "location_id": "harbor",
+          "title": "Lantern Harbor",
+          "exits": [
+            {
+              "id": "customs-path",
+              "destination_id": "warehouse-scene",
+              "ticks": 1,
+              "required_fact_ids": []
+            }
+          ],
+          "obstacles": []
+        },
+        {
+          "id": "warehouse-scene",
+          "version": 1,
+          "location_id": "warehouse",
+          "title": "Old Customs House",
+          "exits": [
+            {
+              "id": "return-harbor",
+              "destination_id": "harbor-scene",
+              "ticks": 1,
+              "required_fact_ids": []
+            }
+          ],
+          "obstacles": []
+        }
+      ],
+      "discoveries": [
+        {
+          "id": "opening-notice",
+          "scene_id": "harbor-scene",
+          "fact_id": "opening",
+          "mode": "automatic",
+          "target_id": null
+        },
+        {
+          "id": "manifest-check",
+          "scene_id": "harbor-scene",
+          "fact_id": "manifest-found",
+          "mode": "check",
+          "target_id": "manifest"
+        },
+        {
+          "id": "duplicate-manifest",
+          "scene_id": "warehouse-scene",
+          "fact_id": "manifest-found",
+          "mode": "automatic",
+          "target_id": null
+        }
+      ],
+      "triggers": []
+    },
+    "objectives": {
+      "id": "last-lantern-1-objectives",
+      "version": 1,
+      "objectives": [
+        {
+          "id": "manifest",
+          "title": "Locate the relief manifest",
+          "required": true,
+          "visible_to": [],
+          "predicates": [
+            {
+              "kind": "known",
+              "subject_id": "a",
+              "value": "manifest-found",
+              "minimum": 1,
+              "negate": false
+            }
+          ]
+        },
+        {
+          "id": "passage",
+          "title": "Secure passage and recover Mira's equipment",
+          "required": true,
+          "visible_to": [],
+          "predicates": [
+            {
+              "kind": "known",
+              "subject_id": "a",
+              "value": "passage-secured",
+              "minimum": 1,
+              "negate": false
+            },
+            {
+              "kind": "item",
+              "subject_id": "a",
+              "value": "lantern-blade",
+              "minimum": 1,
+              "negate": false
+            }
+          ]
+        }
+      ],
+      "failures": [],
+      "deadline": 12,
+      "partial_on_deadline": true,
+      "rewards": [
+        {
+          "id": "last-lantern-1-points-a",
+          "actor_id": "a",
+          "points": 4,
+          "item_id": null,
+          "outcomes": [
+            "success",
+            "partial-success"
+          ]
+        },
+        {
+          "id": "last-lantern-1-points-b",
+          "actor_id": "b",
+          "points": 4,
+          "item_id": null,
+          "outcomes": [
+            "success",
+            "partial-success"
+          ]
+        },
+        {
+          "id": "last-lantern-1-supply",
+          "actor_id": "a",
+          "points": 0,
+          "item_id": "last-lantern-1-supply",
+          "outcomes": [
+            "success"
+          ]
+        }
+      ]
+    },
+    "noncombat": {
+      "id": "lantern-negotiation",
+      "version": 1,
+      "encounters": [
+        {
+          "id": "parley",
+          "scene_id": "harbor-scene",
+          "category": "negotiation",
+          "stakes": "Sable releases the relief shipment if persuaded; a failed approach costs time.",
+          "required_progress": 2,
+          "maximum_failures": 2,
+          "approaches": [
+            {
+              "id": "appeal-to-duty",
+              "check_rule_id": "convince-warden",
+              "success_progress": 2,
+              "failure_progress": 0,
+              "fatigue_cost": 0,
+              "failure_hp_cost": 0,
+              "success_fact_ids": [],
+              "failure_fact_ids": []
+            }
+          ],
+          "completion_fact_ids": [
+            "passage-secured"
+          ],
+          "defeat_fact_ids": [],
+          "withdrawal_fact_ids": []
+        }
+      ]
+    },
+    "npcs": {
+      "id": "last-lantern-1-npcs",
+      "version": 1,
+      "plans": [
+        {
+          "id": "last-lantern-1-watch",
+          "actor_id": "warden",
+          "faction_id": null,
+          "goal": "Keep the relief shipment at the pier",
+          "disposition": "neutral",
+          "first_due": 1,
+          "interval": 1,
+          "action_budget": 12,
+          "clock_limit": 12,
+          "actions": [
+            {
+              "id": "watch",
+              "kind": "patrol",
+              "required_fact_ids": [],
+              "reveal_fact_ids": [],
+              "recipient_ids": [],
+              "cost_definition_id": null,
+              "cost": 0,
+              "setback_rule_id": null,
+              "target_actor_id": null
+            }
+          ]
+        }
+      ],
+      "checkpoint_budget": 100
+    },
+    "recovery": {
+      "id": "lantern-recovery",
+      "version": 1,
+      "setbacks": [
+        {
+          "id": "harbor-capture",
+          "kind": "capture",
+          "actor_ids": [
+            "a"
+          ],
+          "required_fact_ids": [],
+          "destination_scene_id": null,
+          "captor_id": "warden",
+          "custody_owner_id": "warden",
+          "restraints": [
+            "rope"
+          ],
+          "permitted": [
+            "observe",
+            "communicate",
+            "negotiate",
+            "escape",
+            "assist"
+          ],
+          "consequence_fact_ids": [
+            "capture-signal"
+          ],
+          "impossible_objective_ids": [],
+          "failure_fact_id": null
+        }
+      ],
+      "options": [
+        {
+          "id": "study-cell",
+          "kind": "observe",
+          "scene_id": "harbor-scene",
+          "actor_ids": [
+            "a",
+            "b"
+          ],
+          "target_actor_ids": [
+            "a",
+            "b"
+          ],
+          "required_fact_ids": [],
+          "ticks": 1,
+          "check_rule_id": null,
+          "supported": true,
+          "success_fact_ids": [
+            "capture-signal",
+            "manifest-found",
+            "inside-route"
+          ],
+          "failure_fact_ids": [],
+          "cost_definition_id": null,
+          "cost": 0,
+          "recovery_hp": 0,
+          "recovery_fp": 0,
+          "stock_item_id": null,
+          "stock_quantity": 1,
+          "replacement": null,
+          "advancement": null,
+          "recipient_actor_ids": [],
+          "communication_fact_ids": []
+        },
+        {
+          "id": "signal-outside",
+          "kind": "communicate",
+          "scene_id": "harbor-scene",
+          "actor_ids": [
+            "a"
+          ],
+          "target_actor_ids": [
+            "a"
+          ],
+          "required_fact_ids": [],
+          "ticks": 1,
+          "check_rule_id": null,
+          "supported": true,
+          "success_fact_ids": [],
+          "failure_fact_ids": [],
+          "cost_definition_id": null,
+          "cost": 0,
+          "recovery_hp": 0,
+          "recovery_fp": 0,
+          "stock_item_id": null,
+          "stock_quantity": 1,
+          "replacement": null,
+          "advancement": null,
+          "recipient_actor_ids": [
+            "b"
+          ],
+          "communication_fact_ids": [
+            "capture-signal"
+          ]
+        },
+        {
+          "id": "loosen-bars",
+          "kind": "assist",
+          "scene_id": "harbor-scene",
+          "actor_ids": [
+            "a",
+            "b"
+          ],
+          "target_actor_ids": [
+            "a",
+            "b"
+          ],
+          "required_fact_ids": [],
+          "ticks": 1,
+          "check_rule_id": null,
+          "supported": true,
+          "success_fact_ids": [
+            "inside-route"
+          ],
+          "failure_fact_ids": [],
+          "cost_definition_id": null,
+          "cost": 0,
+          "recovery_hp": 0,
+          "recovery_fp": 0,
+          "stock_item_id": null,
+          "stock_quantity": 1,
+          "replacement": null,
+          "advancement": null,
+          "recipient_actor_ids": [],
+          "communication_fact_ids": []
+        },
+        {
+          "id": "slip-bonds",
+          "kind": "escape",
+          "scene_id": "harbor-scene",
+          "actor_ids": [
+            "a",
+            "b"
+          ],
+          "target_actor_ids": [
+            "a",
+            "b"
+          ],
+          "required_fact_ids": [],
+          "ticks": 1,
+          "check_rule_id": "slip-lock",
+          "supported": true,
+          "success_fact_ids": [],
+          "failure_fact_ids": [],
+          "cost_definition_id": null,
+          "cost": 0,
+          "recovery_hp": 0,
+          "recovery_fp": 0,
+          "stock_item_id": null,
+          "stock_quantity": 1,
+          "replacement": null,
+          "advancement": null,
+          "recipient_actor_ids": [],
+          "communication_fact_ids": []
+        },
+        {
+          "id": "negotiate-release",
+          "kind": "rescue",
+          "scene_id": "harbor-scene",
+          "actor_ids": [
+            "a",
+            "b"
+          ],
+          "target_actor_ids": [
+            "a",
+            "b"
+          ],
+          "required_fact_ids": [
+            "capture-signal"
+          ],
+          "ticks": 1,
+          "check_rule_id": "convince-warden",
+          "supported": true,
+          "success_fact_ids": [],
+          "failure_fact_ids": [],
+          "cost_definition_id": null,
+          "cost": 0,
+          "recovery_hp": 0,
+          "recovery_fp": 0,
+          "stock_item_id": null,
+          "stock_quantity": 1,
+          "replacement": null,
+          "advancement": null,
+          "recipient_actor_ids": [],
+          "communication_fact_ids": []
+        },
+        {
+          "id": "quiet-rescue",
+          "kind": "rescue",
+          "scene_id": "harbor-scene",
+          "actor_ids": [
+            "a",
+            "b"
+          ],
+          "target_actor_ids": [
+            "a",
+            "b"
+          ],
+          "required_fact_ids": [
+            "capture-signal"
+          ],
+          "ticks": 1,
+          "check_rule_id": "slip-lock",
+          "supported": true,
+          "success_fact_ids": [],
+          "failure_fact_ids": [],
+          "cost_definition_id": null,
+          "cost": 0,
+          "recovery_hp": 0,
+          "recovery_fp": 0,
+          "stock_item_id": null,
+          "stock_quantity": 1,
+          "replacement": null,
+          "advancement": null,
+          "recipient_actor_ids": [],
+          "communication_fact_ids": []
+        },
+        {
+          "id": "recover-gear",
+          "kind": "recover_items",
+          "scene_id": "harbor-scene",
+          "actor_ids": [
+            "a",
+            "b"
+          ],
+          "target_actor_ids": [
+            "a",
+            "b"
+          ],
+          "required_fact_ids": [],
+          "ticks": 1,
+          "check_rule_id": null,
+          "supported": true,
+          "success_fact_ids": [
+            "passage-secured"
+          ],
+          "failure_fact_ids": [],
+          "cost_definition_id": null,
+          "cost": 0,
+          "recovery_hp": 0,
+          "recovery_fp": 0,
+          "stock_item_id": null,
+          "stock_quantity": 1,
+          "replacement": null,
+          "advancement": null,
+          "recipient_actor_ids": [],
+          "communication_fact_ids": []
+        },
+        {
+          "id": "camp-rest",
+          "kind": "rest",
+          "scene_id": "harbor-scene",
+          "actor_ids": [
+            "a",
+            "b"
+          ],
+          "target_actor_ids": [
+            "a",
+            "b"
+          ],
+          "required_fact_ids": [],
+          "ticks": 2,
+          "check_rule_id": null,
+          "supported": true,
+          "success_fact_ids": [],
+          "failure_fact_ids": [],
+          "cost_definition_id": null,
+          "cost": 0,
+          "recovery_hp": 2,
+          "recovery_fp": 2,
+          "stock_item_id": null,
+          "stock_quantity": 1,
+          "replacement": null,
+          "advancement": null,
+          "recipient_actor_ids": [],
+          "communication_fact_ids": []
+        }
+      ]
+    },
+    "party": {
+      "id": "lantern-party",
+      "version": 1,
+      "effects": []
+    },
+    "approaches": []
+  },
+  "npc_actors": [
+    {
+      "actor_id": "warden",
+      "proposal": {
+        "draft": {
+          "name": "Warden Sable",
+          "backstory": "",
+          "purchases": [
+            {
+              "definition_id": "attribute:st",
+              "amount": 10
+            },
+            {
+              "definition_id": "attribute:dx",
+              "amount": 10
+            },
+            {
+              "definition_id": "attribute:iq",
+              "amount": 10
+            },
+            {
+              "definition_id": "attribute:ht",
+              "amount": 10
+            },
+            {
+              "definition_id": "skill:observation",
+              "amount": 4
+            },
+            {
+              "definition_id": "skill:diplomacy",
+              "amount": 4
+            },
+            {
+              "definition_id": "skill:stealth",
+              "amount": 4
+            }
+          ]
+        },
+        "custom": []
+      },
+      "aware_of": [
+        "a",
+        "b",
+        "warden",
+        "manifest",
+        "records",
+        "harbor",
+        "warehouse"
+      ],
+      "conditions": [],
+      "available_at": 0
+    }
+  ],
+  "pregenerated": [
+    {
+      "slot_id": "a",
+      "proposal": {
+        "draft": {
+          "name": "Mira",
+          "backstory": "",
+          "purchases": [
+            {
+              "definition_id": "attribute:st",
+              "amount": 10
+            },
+            {
+              "definition_id": "attribute:dx",
+              "amount": 10
+            },
+            {
+              "definition_id": "attribute:iq",
+              "amount": 10
+            },
+            {
+              "definition_id": "attribute:ht",
+              "amount": 10
+            },
+            {
+              "definition_id": "skill:observation",
+              "amount": 4
+            },
+            {
+              "definition_id": "skill:diplomacy",
+              "amount": 4
+            },
+            {
+              "definition_id": "skill:stealth",
+              "amount": 4
+            }
+          ]
+        },
+        "custom": []
+      }
+    },
+    {
+      "slot_id": "b",
+      "proposal": {
+        "draft": {
+          "name": "Iven",
+          "backstory": "",
+          "purchases": [
+            {
+              "definition_id": "attribute:st",
+              "amount": 10
+            },
+            {
+              "definition_id": "attribute:dx",
+              "amount": 10
+            },
+            {
+              "definition_id": "attribute:iq",
+              "amount": 10
+            },
+            {
+              "definition_id": "attribute:ht",
+              "amount": 10
+            },
+            {
+              "definition_id": "skill:observation",
+              "amount": 4
+            },
+            {
+              "definition_id": "skill:diplomacy",
+              "amount": 4
+            },
+            {
+              "definition_id": "skill:stealth",
+              "amount": 4
+            }
+          ]
+        },
+        "custom": []
+      }
+    }
+  ],
+  "gm_notes": "Keep the warden's plans and unrevealed facts private."
+}

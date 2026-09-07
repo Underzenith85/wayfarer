@@ -1,0 +1,149 @@
+{
+  "$defs": {
+    "GenerationBrief": {
+      "additionalProperties": false,
+      "properties": {
+        "premise": {
+          "maxLength": 4000,
+          "minLength": 1,
+          "title": "Premise",
+          "type": "string"
+        },
+        "genre": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Genre",
+          "type": "string"
+        },
+        "tone": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Tone",
+          "type": "string"
+        },
+        "duration_minutes": {
+          "maximum": 10000,
+          "minimum": 10,
+          "title": "Duration Minutes",
+          "type": "integer"
+        },
+        "difficulty": {
+          "enum": [
+            "gentle",
+            "standard",
+            "hard"
+          ],
+          "title": "Difficulty",
+          "type": "string"
+        },
+        "restrictions": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 30,
+          "title": "Restrictions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "premise",
+        "genre",
+        "tone",
+        "duration_minutes",
+        "difficulty"
+      ],
+      "title": "GenerationBrief",
+      "type": "object"
+    },
+    "PublicBrief": {
+      "additionalProperties": false,
+      "description": "Explicit author-approved allowlist, never populated from the private graph.",
+      "properties": {
+        "title": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "summary": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Summary",
+          "type": "string"
+        },
+        "tags": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 30,
+          "title": "Tags",
+          "type": "array"
+        },
+        "setup": {
+          "$ref": "#/$defs/GenerationBrief"
+        },
+        "opening_prompt": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Opening Prompt",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "summary",
+        "setup",
+        "opening_prompt"
+      ],
+      "title": "PublicBrief",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "export_kind": {
+      "const": "player-brief",
+      "default": "player-brief",
+      "title": "Export Kind",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "scenario_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Scenario Id",
+      "type": "string"
+    },
+    "revision_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Revision Id",
+      "type": "string"
+    },
+    "brief": {
+      "$ref": "#/$defs/PublicBrief"
+    },
+    "party_size": {
+      "maximum": 30,
+      "minimum": 1,
+      "title": "Party Size",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "scenario_id",
+    "revision_id",
+    "brief",
+    "party_size"
+  ],
+  "title": "PlayerScenarioExport",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

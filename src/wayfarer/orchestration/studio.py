@@ -383,8 +383,13 @@ class ScenarioStudio:
         except NotFoundError:
             existing = None
         if existing is not None:
-            if existing.get("scenario_graph_json") != graph.model_dump_json():
+            existing_graph = existing.get("scenario_graph_json")
+            if existing_graph is None or json.loads(existing_graph) != graph.model_dump(
+                mode="json"
+            ):
                 raise ConflictError("Campaign identity already belongs to another scenario")
+            if existing.get("scenario_document_json") != campaign.get("scenario_document_json"):
+                raise ConflictError("Campaign identity already pins another document revision")
             existing_state = activated._load(existing)
             if existing_state.members != members:
                 raise ConflictError("Activation membership changed")
