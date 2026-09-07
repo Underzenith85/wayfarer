@@ -6,7 +6,7 @@ import type {
 import type { components } from "../api/contracts.generated";
 type Schemas = components["schemas"];
 export type Campaign = Schemas["Campaign"];
-export type Action = Schemas["Action"];
+export type Action = Schemas["Action"] & { mechanicallyCommitted?: boolean };
 export type SubmitAction = Schemas["SubmitAction"];
 export type ClarifyAction = Schemas["ClarifyAction"];
 export type Intent = Schemas["Intent"];

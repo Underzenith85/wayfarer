@@ -236,6 +236,20 @@ export class PlayStore {
       this.fail(error, g);
     }
   }
+  async refresh() {
+    const id = this.state.selectedId,
+      g = this.generation;
+    if (!id || this.state.busy) return;
+    try {
+      const snapshot = await this.transport.readSnapshot(
+        id,
+        this.controller.signal,
+      );
+      if (this.active(g)) this.patch({ snapshot });
+    } catch (error) {
+      this.fail(error, g);
+    }
+  }
   resumeId() {
     try {
       const id = sessionStorage.getItem(

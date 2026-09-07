@@ -1,3 +1,4 @@
+import { LiveControls } from "./live-controls";
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowUp, ChevronRight, MessageCircle, Sparkles } from "lucide-react";
@@ -214,7 +215,9 @@ function ActionEntry({ entry }: { entry: Entry }) {
         {!a
           ? "Awaiting acknowledgement"
           : a.status === "succeeded"
-            ? "Committed"
+            ? a.mechanicallyCommitted === false
+              ? "Answered — no game changes"
+              : "Committed"
             : a.status === "needs_clarification"
               ? "Awaiting your clarification"
               : a.status === "submitted"
@@ -384,6 +387,7 @@ export function PlayWorkspace() {
     );
   return (
     <div className="play-workspace">
+      <LiveControls />
       {store.transport.sample && (
         <p className="sample-note">Sample story · Fixed outcomes for preview</p>
       )}

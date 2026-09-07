@@ -20,6 +20,28 @@ class CampaignAccess:
     def __init__(self, play: PlayService) -> None:
         self.play = play
 
+    async def runtime(self, cid: str) -> CampaignAccess:
+        """Reconstruct an activated scenario's pinned runtime after restart."""
+        campaign = await self.play.store.read(cid)
+        encoded = campaign.get("scenario_graph_json")
+        if encoded is None:
+            return self
+        from wayfarer.simulation.actions import ActionEngine
+        from wayfarer.simulation.studio import ScenarioGraph
+
+        graph = ScenarioGraph.model_validate_json(encoded)
+        engine = ActionEngine(
+            self.play.engine.reviewer,
+            self.play.engine.resources.for_world(graph.world),
+            graph.runtime_rules(),
+        )
+        if (
+            engine.digest == self.play.engine.digest
+            and engine.resources.actors == self.play.engine.resources.actors
+        ):
+            return self
+        return CampaignAccess(PlayService(self.play.store, engine, rng=self.play.rng))
+
     @staticmethod
     def _member(state: PlayState, principal_id: str) -> CampaignMember:
         member = next((item for item in state.members if item.principal_id == principal_id), None)
@@ -74,6 +96,52 @@ class CampaignAccess:
         )
         return {
             "campaign_id": state.campaign_id,
+            "principal_id": member.principal_id,
+            "shared_time": len(state.party.groups) > 1,
+            "rulings": tuple(
+                r.model_dump(
+                    mode="json",
+                    include={"id", "actor_id", "status", "alternatives", "selected_id", "reason"},
+                )
+                for r in state.rulings
+                if r.actor_id in member.actor_ids
+            ),
+            "director": tuple(
+                t.model_dump(
+                    mode="json",
+                    exclude={
+                        "command_json",
+                        "request_json",
+                        "session_id",
+                        "principal_id",
+                        "outcome_json",
+                    },
+                )
+                for t in state.director
+                if t.actor_id in member.actor_ids
+            ),
+            "journal": tuple(
+                e.model_dump(mode="json") for e in state.journal if e.actor_id in member.actor_ids
+            ),
+            "scene_cursors": tuple(
+                e.model_dump(mode="json")
+                for e in state.actor_scenes
+                if e.actor_id in member.actor_ids
+            ),
+            "encounters": tuple(
+                e.model_dump(mode="json")
+                for e in state.encounters
+                if set(e.turn_order) & set(member.actor_ids)
+            ),
+            "resolution": state.last_result.model_dump(mode="json")
+            if state.last_result
+            and any(
+                t.actor_id in member.actor_ids
+                and t.command_json
+                and json.loads(t.command_json).get("id") == state.last_result.command_id
+                for t in state.director
+            )
+            else None,
             "revision": state.revision,
             "game_time": state.resources.game_time,
             "role": member.role,
@@ -125,10 +193,95 @@ class CampaignAccess:
         }
 
     async def read(self, cid: str, *, principal_id: str) -> dict[str, object]:
+        runtime = await self.runtime(cid)
+        if runtime is not self:
+            return await runtime.read(cid, principal_id=principal_id)
         state = self.play._load(await self.play.store.read(cid))
-        return self._projection(state, self._member(state, principal_id))
+        member = self._member(state, principal_id)
+        projection = self._projection(state, member)
+        if member.role != "player":
+            return projection
+        compiler = self.play.engine.reviewer.compiler
+        projection["characters"] = tuple(
+            {
+                "actor_id": a.actor_id,
+                "name": a.proposal.draft.name,
+                "values": tuple(
+                    {"target": v.target, "value": str(v.value)} for v in build.sheet.values
+                ),
+                "spent": build.spent,
+            }
+            for a in state.actors
+            if a.actor_id in member.actor_ids
+            if (build := compiler.compile(a.proposal.draft).build) is not None
+        )
+        projection["equipment"] = tuple(
+            {
+                "id": i.id,
+                "name": compiler.definitions[i.definition_id].name,
+                "unit_weight": self.play.engine.resources.specs[i.definition_id].unit_weight,
+            }
+            for i in state.resources.items
+            if i.owner_id in member.actor_ids
+        )
+        projection["scenes"] = tuple(
+            {
+                "actor_id": cursor.actor_id,
+                "id": scene.id,
+                "title": scene.title,
+                "exits": tuple(
+                    {"id": e.id, "destination_id": e.destination_id}
+                    for e in scene.exits
+                    if set(e.required_fact_ids)
+                    <= {f.id for f in state.world.perspective(cursor.actor_id).facts}
+                ),
+            }
+            for cursor in state.actor_scenes
+            if cursor.actor_id in member.actor_ids
+            for scene in (
+                self.play.engine.rules.scenes.scenes if self.play.engine.rules.scenes else ()
+            )
+            if scene.id == cursor.scene_id
+        )
+        from wayfarer.orchestration.recovery import RecoveryCommand, RecoveryService
+
+        choices: list[dict[str, object]] = []
+        recovery = RecoveryService(self.play)
+        for option in (
+            self.play.engine.rules.recovery.options if self.play.engine.rules.recovery else ()
+        ):
+            for actor_id in member.actor_ids:
+                visible = {e.id for e in state.world.perspective(actor_id).entities}
+                for target_id in option.target_actor_ids:
+                    if target_id not in visible or not option.supported:
+                        continue
+                    candidate = RecoveryCommand(
+                        id="preview",
+                        actor_id=actor_id,
+                        expected_revision=state.revision,
+                        kind="choose_recovery",
+                        rule_id=option.id,
+                        target_actor_id=target_id,
+                    )
+                    try:
+                        recovery.assess(state, candidate)
+                    except (ValidationError, ConflictError):
+                        continue
+                    choices.append(
+                        {
+                            "id": option.id,
+                            "kind": option.kind,
+                            "actor_id": actor_id,
+                            "target_actor_id": target_id,
+                        }
+                    )
+        projection["recovery_choices"] = choices
+        return projection
 
     async def execute(self, cid: str, value: object, *, principal_id: str) -> dict[str, object]:
+        runtime = await self.runtime(cid)
+        if runtime is not self:
+            return await runtime.execute(cid, value, principal_id=principal_id)
         state = self.play._load(await self.play.store.read(cid))
         member = self._member(state, principal_id)
         if not isinstance(value, dict):
@@ -140,7 +293,15 @@ class CampaignAccess:
             guard(state, str(value["actor_id"]), kind)
         raw = json.dumps(value)
         try:
-            if kind in ("apply_setback", "choose_recovery"):
+            if kind in ("request_ruling", "decide_ruling", "execute_ruling"):
+                from wayfarer.orchestration.adjudication import RULING_ADAPTER, AdjudicationService
+
+                ruling = RULING_ADAPTER.validate_json(raw)
+                self._control(member, ruling.actor_id)
+                await AdjudicationService(self.play).submit(
+                    cid, ruling, authenticated_actor_id=ruling.actor_id
+                )
+            elif kind in ("apply_setback", "choose_recovery"):
                 from wayfarer.orchestration.recovery import RecoveryCommand, RecoveryService
 
                 recovery = RecoveryCommand.model_validate_json(raw)
@@ -219,6 +380,9 @@ class CampaignAccess:
     async def events(
         self, cid: str, *, principal_id: str, after: int = 0, limit: int = 100
     ) -> tuple[StreamEvent, ...]:
+        runtime = await self.runtime(cid)
+        if runtime is not self:
+            return await runtime.events(cid, principal_id=principal_id, after=after, limit=limit)
         if after < 0 or not 1 <= limit <= 100:
             raise ValidationError("Invalid stream cursor or limit")
         current = self.play._load(await self.play.store.read(cid))
