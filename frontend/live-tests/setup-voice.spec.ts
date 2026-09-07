@@ -47,7 +47,9 @@ test("two identities activate a saved party and review speech through the live d
     });
     const lobby = await login(a, "alice");
     const title = `Courier ${crypto.randomUUID().slice(0, 8)}`;
-    await lobby.getByLabel("Premise", { exact: true }).fill(title);
+    await lobby
+      .getByRole("textbox", { name: "Premise", exact: true })
+      .fill(title);
     await lobby.getByRole("button", { name: "Create game draft" }).click();
     await expect(
       lobby.getByRole("button", { name: "Save setup draft" }),
@@ -55,7 +57,9 @@ test("two identities activate a saved party and review speech through the live d
     await lobby
       .getByLabel("Adventure and starting party")
       .selectOption("adventure");
-    await lobby.getByLabel("Premise", { exact: true }).fill(title);
+    await lobby
+      .getByRole("textbox", { name: "Premise", exact: true })
+      .fill(title);
     await lobby.getByRole("button", { name: "Save setup draft" }).click();
     await lobby.getByLabel("Invite player ID").fill("bob");
     await lobby
