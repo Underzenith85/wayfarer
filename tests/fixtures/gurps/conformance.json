@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "baseline_id": "gurps-4e-legacy-2004+errata-2026-09-06",
+  "sources": [
+    {
+      "id": "sjg:gurps-lite-4e-2004",
+      "title": "GURPS Lite, Fourth Edition",
+      "edition": "Fourth Edition",
+      "artifact": "official 32-page electronic edition",
+      "printing": null,
+      "publication_year": 2004,
+      "errata_through": "2026-09-06",
+      "url": "https://www.sjgames.com/gurps/lite/"
+    },
+    {
+      "id": "sjg:basic-set-characters-4e-2004",
+      "title": "GURPS Basic Set: Characters",
+      "edition": "Fourth Edition",
+      "artifact": "official electronic edition",
+      "printing": null,
+      "publication_year": 2004,
+      "errata_through": "2026-09-06",
+      "url": "https://www.sjgames.com/gurps/books/basic/"
+    },
+    {
+      "id": "sjg:basic-set-campaigns-4e-2004",
+      "title": "GURPS Basic Set: Campaigns",
+      "edition": "Fourth Edition",
+      "artifact": "official electronic edition",
+      "printing": null,
+      "publication_year": 2004,
+      "errata_through": "2026-09-06",
+      "url": "https://www.sjgames.com/gurps/books/basic/"
+    }
+  ],
+  "units": {
+    "distance": "yard",
+    "mass": "pound",
+    "time": "second",
+    "money": "GURPS_$",
+    "dice": "Nd6+integer_add"
+  },
+  "rounding_modes": ["none", "floor", "ceil", "nearest", "truncate"],
+  "cases": [
+    {
+      "id": "lite-success-basic-pass",
+      "capability_id": "gurps.check.success",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Success Rolls section",
+      "input": {"target": 10, "roll": [3, 3, 4]},
+      "expected": {"success": true, "margin": 0},
+      "rounding": "none",
+      "prototype_divergence": null
+    },
+    {
+      "id": "lite-success-basic-fail",
+      "capability_id": "gurps.check.success",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Success Rolls section",
+      "input": {"target": 10, "roll": [4, 4, 4]},
+      "expected": {"success": false, "margin": -2},
+      "rounding": "none",
+      "prototype_divergence": null
+    },
+    {
+      "id": "lite-attribute-st-cost",
+      "capability_id": "gurps.character.primary_attributes",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Attributes section",
+      "input": {"attribute": "ST", "from": 10, "to": 12},
+      "expected": {"point_cost": 20},
+      "rounding": "none",
+      "prototype_divergence": null
+    },
+    {
+      "id": "lite-attribute-dx-cost",
+      "capability_id": "gurps.character.primary_attributes",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Attributes section",
+      "input": {"attribute": "DX", "from": 10, "to": 12},
+      "expected": {"point_cost": 40},
+      "rounding": "none",
+      "prototype_divergence": "Wayfarer prototype exposes the same per-level DX cost, but that coincidence is not conformance evidence."
+    },
+    {
+      "id": "lite-secondary-basic-speed",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Secondary Characteristics section",
+      "input": {"DX": 11, "HT": 12},
+      "expected": {"basic_speed": "5.75"},
+      "rounding": "none",
+      "prototype_divergence": "Prototype character compilation does not yet expose the published secondary-characteristic calculation."
+    },
+    {
+      "id": "lite-secondary-basic-move",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Secondary Characteristics section",
+      "input": {"basic_speed": "5.75"},
+      "expected": {"basic_move": 5, "unit": "yard/second"},
+      "rounding": "floor",
+      "prototype_divergence": null
+    },
+    {
+      "id": "basic-hex-step-unit",
+      "capability_id": "gurps.tactical.hex_movement",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "Tactical Combat / movement on a hex map",
+      "input": {"hexes": 3},
+      "expected": {"distance": 3, "unit": "yard"},
+      "rounding": "none",
+      "prototype_divergence": "Prototype positioning is not a complete hex/facing model."
+    },
+    {
+      "id": "basic-unknown-mechanic-must-not-fallback",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "Resistance Rolls section",
+      "input": {"request_capability_id": "gurps.check.not-a-real-capability"},
+      "expected": {"accepted": false, "error": "unknown-capability"},
+      "rounding": "none",
+      "prototype_divergence": "LLM/manual adjudication must not silently substitute for an undeclared capability."
+    }
+  ]
+}
