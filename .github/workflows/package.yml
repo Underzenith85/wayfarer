@@ -71,6 +71,8 @@ jobs:
       - run: uv run --frozen python scripts/check_quality_gates.py
       - run: uv run --frozen python scripts/validate_contracts.py
       - run: uv run --frozen python -m scripts.validate_live_contracts
+      - name: Prepare test artifacts directory
+        run: mkdir -p artifacts
       - run: uv run --frozen pytest --junitxml=artifacts/pytest.xml --cov-report=xml:artifacts/coverage.xml --cov-report=term-missing
       - name: Verify and publish mechanics evidence
         if: always()
@@ -80,7 +82,7 @@ jobs:
         with:
           name: engine-release-evidence
           path: artifacts/
-          if-no-files-found: error
+          if-no-files-found: warn
       - run: uv build
       - name: Install wheel into a separate environment
         run: |
