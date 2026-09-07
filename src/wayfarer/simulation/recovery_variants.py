@@ -1,4 +1,4 @@
-"""Bounded Basic Set recovery variants on the existing recovery and hazard stores.
+"""Bounded Basic Set recovery variants on existing recovery and hazard stores.
 
 Numeric procedures use B423-424 and B444. Permanent crippling repair remains
 fail-closed because its availability and result are explicitly setting/GM-defined.
@@ -17,7 +17,17 @@ from wayfarer.rules.hazard_types import HazardSchedule, HazardSpec
 from wayfarer.rules.location_types import LastingInjury
 from wayfarer.rules.recovery_types import ProfileId, RecoveryTask, require_settled, retire_tasks
 from wayfarer.simulation.injury import Wound, apply_injury
-from wayfarer.simulation.resources import Command, Receipt, Record, ResourceEvent, ResourceState
+from wayfarer.simulation.resources import (
+    Command,
+    Pool,
+    Receipt,
+    Record,
+    ResourceEvent,
+    ResourceState,
+)
+
+_TRAUMA_PREFIX = "variant:trauma:"
+_REPAIR_PREFIX = "variant:repair-lasting:"
 
 
 class BeginRecoveryVariant(Command):
@@ -73,7 +83,32 @@ def surgery_equipment_modifier(tl: int) -> int:
     return tl - 6
 
 
-def _hp(state: ResourceState, actor_id: str, profile_id: ProfileId):
+def _trauma_marker(life_support: bool) -> str:
+    return _TRAUMA_PREFIX + ("daily" if life_support else "hourly")
+
+
+def _repair_marker(injury_id: str, infection_risk: bool, infection_modifier: int) -> str:
+    risk = "risk" if infection_risk else "clean"
+    return f"{_REPAIR_PREFIX}{risk}:{infection_modifier}:{injury_id}"
+
+
+def _repair_metadata(marker: str | None) -> tuple[bool, int, str]:
+    if marker is None or not marker.startswith(_REPAIR_PREFIX):
+        raise ValidationError("Advanced recovery task marker is invalid")
+    payload = marker.removeprefix(_REPAIR_PREFIX)
+    pieces = payload.split(":", 2)
+    if len(pieces) != 3 or pieces[0] not in ("risk", "clean") or not pieces[2]:
+        raise ValidationError("Advanced recovery task marker is invalid")
+    try:
+        modifier = int(pieces[1])
+    except ValueError as error:
+        raise ValidationError("Advanced recovery task marker is invalid") from error
+    if not -30 <= modifier <= 30:
+        raise ValidationError("Advanced recovery task marker is invalid")
+    return pieces[0] == "risk", modifier, pieces[2]
+
+
+def _hp(state: ResourceState, actor_id: str, profile_id: ProfileId) -> Pool:
     hp = next((p for p in state.pools if p.id == f"hp:{actor_id}"), None)
     if hp is None or hp.injury is None or hp.injury.profile_id != profile_id:
         raise ValidationError("Advanced recovery requires matching profile HP")
@@ -91,7 +126,7 @@ def _lasting_injury(state: ResourceState, target: str, injury_id: str | None) ->
     return injury
 
 
-def _replace_lasting(hp, replacement: LastingInjury):
+def _replace_lasting(hp: Pool, replacement: LastingInjury) -> Pool:
     assert hp.injury is not None
     status = hp.injury.model_copy(
         update={
@@ -103,7 +138,7 @@ def _replace_lasting(hp, replacement: LastingInjury):
     return hp.model_copy(update={"injury": status})
 
 
-def _infection_schedule(task: RecoveryTask, now: int) -> HazardSchedule:
+def _infection_schedule(task: RecoveryTask, now: int, infection_modifier: int) -> HazardSchedule:
     schedule_id = f"infection:{task.id}"
     spec = HazardSpec(
         id=schedule_id,
@@ -111,7 +146,7 @@ def _infection_schedule(task: RecoveryTask, now: int) -> HazardSchedule:
         scene_id="postoperative-care",
         interval=86400,
         cycles=100000,
-        resistance_modifier=task.infection_modifier,
+        resistance_modifier=infection_modifier,
         damage_dice=0,
         damage_add=1,
         resistible=True,
@@ -155,19 +190,17 @@ def apply_recovery_variant(
     if type(context.ht) is not int or context.ht < 1:
         raise ValidationError("Advanced recovery requires compiled HT")
 
-    task = next(
-        (
-            t
-            for t in state.recovery_tasks
-            if isinstance(command, FinishRecoveryVariant) and t.id == command.task_id
-        ),
-        None,
-    )
-    if isinstance(command, FinishRecoveryVariant) and (task is None or task.actor_id != command.actor_id):
-        raise ValidationError("Unknown or unauthorized advanced recovery task")
-    target = command.target_id if isinstance(command, BeginRecoveryVariant) else task.target_id
+    task: RecoveryTask | None = None
+    if isinstance(command, FinishRecoveryVariant):
+        task = next((t for t in state.recovery_tasks if t.id == command.task_id), None)
+        if task is None or task.actor_id != command.actor_id:
+            raise ValidationError("Unknown or unauthorized advanced recovery task")
+        target = task.target_id
+    else:
+        target = command.target_id
     hp = _hp(state, target, context.profile_id)
-    if hp.injury is None or hp.injury.dead:
+    assert hp.injury is not None
+    if hp.injury.dead:
         raise ValidationError("Dead patients cannot receive this recovery procedure")
 
     check = None
@@ -214,18 +247,18 @@ def apply_recovery_variant(
                 actor_id=command.actor_id,
                 target_id=target,
                 profile_id=context.profile_id,
-                kind="trauma-maintenance",
+                # Use an existing contract kind; the marker makes this task exclusive
+                # to this reducer, while generic Physician recovery rejects mortal wounds.
+                kind="physician",
                 start=state.game_time,
                 due=state.game_time + duration,
+                wound_id=_trauma_marker(context.life_support),
                 technology_level=context.technology_level,
                 ht=context.ht,
                 skill=context.physician_skill,
-                life_support=context.life_support,
             )
             hp = hp.model_copy(
-                update={
-                    "injury": hp.injury.model_copy(update={"mortal_wound_due": task.due})
-                }
+                update={"injury": hp.injury.model_copy(update={"mortal_wound_due": task.due})}
             )
         else:
             injury = _lasting_injury(state, target, command.injury_id)
@@ -251,29 +284,33 @@ def apply_recovery_variant(
                 actor_id=command.actor_id,
                 target_id=target,
                 profile_id=context.profile_id,
-                kind="repair-lasting",
+                # Generic stabilization rejects a non-mortal patient, preventing
+                # this specialized task from being settled through the wrong reducer.
+                kind="stabilize",
                 start=state.game_time,
                 due=state.game_time + 7200,
-                wound_id=injury.id,
+                wound_id=_repair_marker(
+                    injury.id, infection_risk, context.infection_modifier
+                ),
                 technology_level=context.technology_level,
                 ht=context.ht,
                 skill=context.surgery_skill,
                 treatment_modifier=modifier,
-                infection_risk=infection_risk,
-                infection_modifier=context.infection_modifier,
             )
         tasks = state.recovery_tasks + (task,)
         result = RecoveryVariantResult(task_id=task.id, status="pending")
     else:
         assert task is not None
-        if task.kind not in ("trauma-maintenance", "repair-lasting"):
+        trauma = task.wound_id is not None and task.wound_id.startswith(_TRAUMA_PREFIX)
+        repair = task.wound_id is not None and task.wound_id.startswith(_REPAIR_PREFIX)
+        if not ((trauma and task.kind == "physician") or (repair and task.kind == "stabilize")):
             raise ValidationError("Task is not an advanced recovery variant")
         if task.settled or task.status == "completed":
             raise ConflictError("Advanced recovery task is no longer pending")
         if task.profile_id != context.profile_id:
             raise ValidationError("Recovery profile changed")
         if task.status == "interrupted":
-            if task.kind == "trauma-maintenance":
+            if trauma:
                 assert hp.injury is not None and task.interrupted_at is not None
                 fallback_due = task.interrupted_at + 1800
                 if state.game_time > fallback_due:
@@ -281,9 +318,7 @@ def apply_recovery_variant(
                         "Settle interrupted trauma maintenance before its survival deadline"
                     )
                 hp = hp.model_copy(
-                    update={
-                        "injury": hp.injury.model_copy(update={"mortal_wound_due": fallback_due})
-                    }
+                    update={"injury": hp.injury.model_copy(update={"mortal_wound_due": fallback_due})}
                 )
             task = task.model_copy(update={"settled": True})
             tasks = tuple(task if t.id == task.id else t for t in state.recovery_tasks)
@@ -291,8 +326,8 @@ def apply_recovery_variant(
         else:
             if state.game_time != task.due:
                 raise ValidationError("Advanced recovery must settle at its shared-clock deadline")
-            if task.kind == "trauma-maintenance":
-                assert hp.injury is not None and task.skill is not None
+            if trauma:
+                assert hp.injury is not None and task.skill is not None and task.wound_id is not None
                 check = success_roll(context.profile_id, max(task.ht, task.skill), rng=rng)
                 if check.outcome is Outcome.CRITICAL_SUCCESS:
                     stabilized = True
@@ -308,7 +343,7 @@ def apply_recovery_variant(
                         }
                     )
                 elif check.outcome.succeeded:
-                    interval = 86400 if task.life_support else 3600
+                    interval = 86400 if task.wound_id == _trauma_marker(True) else 3600
                     hp = hp.model_copy(
                         update={
                             "injury": hp.injury.model_copy(
@@ -331,8 +366,9 @@ def apply_recovery_variant(
                     stabilized=stabilized,
                 )
             else:
-                assert task.skill is not None and task.wound_id is not None
-                injury = _lasting_injury(state, target, task.wound_id)
+                assert task.skill is not None
+                infection_risk, infection_modifier, injury_id = _repair_metadata(task.wound_id)
+                injury = _lasting_injury(state, target, injury_id)
                 if injury.duration != "lasting" or injury.recovery_at is None:
                     raise ValidationError("Recorded lasting injury is no longer repairable")
                 check = success_roll(
@@ -340,6 +376,9 @@ def apply_recovery_variant(
                 )
                 if check.outcome.succeeded:
                     remaining = max(1, injury.recovery_at - state.game_time)
+                    # The source converts remaining months to weeks. The injury
+                    # clock models one month as 30 days, so preserve the numeric
+                    # remaining count while changing the unit to seven days.
                     shortened = max(1, (remaining * 7 + 29) // 30)
                     injury = injury.model_copy(update={"recovery_at": state.game_time + shortened})
                     hp = _replace_lasting(hp, injury)
@@ -377,14 +416,14 @@ def apply_recovery_variant(
                     hp = next(p for p in state.pools if p.id == hp.id)
                     tasks = state.recovery_tasks
 
-                if task.infection_risk and hp.injury is not None and not hp.injury.dead:
+                if infection_risk and hp.injury is not None and not hp.injury.dead:
                     infection_check = success_roll(
                         context.profile_id,
-                        max(1, task.ht + 3 + task.infection_modifier),
+                        max(1, task.ht + 3 + infection_modifier),
                         rng=rng,
                     )
                     if not infection_check.outcome.succeeded:
-                        schedule = _infection_schedule(task, state.game_time)
+                        schedule = _infection_schedule(task, state.game_time, infection_modifier)
                         if any(h.id == schedule.id for h in state.hazards):
                             raise ConflictError("Postoperative infection schedule already exists")
                         state = state.model_copy(update={"hazards": state.hazards + (schedule,)})
