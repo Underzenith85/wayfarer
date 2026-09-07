@@ -60,7 +60,7 @@ _CAPABILITIES: Final = (
     Capability("gurps.equipment.weapon_profiles", True, True, CoverageStatus.PARTIAL, 101),
     Capability("gurps.equipment.armor_profiles", True, True, CoverageStatus.PARTIAL, 101),
     Capability("gurps.equipment.catalog", True, True, CoverageStatus.PARTIAL, 114),
-    Capability("gurps.equipment.object_durability", False, True, CoverageStatus.ABSENT, 114),
+    Capability("gurps.equipment.object_durability", False, True, CoverageStatus.PARTIAL, 114),
     Capability("gurps.injury.damage_types", True, True, CoverageStatus.PARTIAL, 102),
     Capability("gurps.injury.damage_resistance", True, True, CoverageStatus.PARTIAL, 102),
     Capability("gurps.injury.hp_thresholds", True, True, CoverageStatus.PARTIAL, 102),

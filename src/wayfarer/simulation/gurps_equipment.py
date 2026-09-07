@@ -20,6 +20,7 @@ from wayfarer.errors import ValidationError
 from wayfarer.rules.catalog import DefinitionKind, RulesPackage
 from wayfarer.rules.conformance import require_capabilities
 from wayfarer.rules.location_types import HumanLocation
+from wayfarer.rules.object_types import ObjectProfile
 from wayfarer.simulation.resources import EquipmentSpec, Id, Record, ResourceEngine, ResourceState
 
 Nonnegative = Annotated[int, Field(ge=0)]
@@ -30,7 +31,11 @@ Location = HumanLocation | Literal["arms", "hands", "legs", "feet", "eyes"]
 
 class Provenance(Record):
     source_id: Id
-    edition: Literal["August 2004, Rev. 07/12/04", "Fourth Edition, first printing (2004)"]
+    edition: Literal[
+        "August 2004, Rev. 07/12/04",
+        "Fourth Edition, first printing (2004)",
+        "Fourth Edition, third printing (2008)",
+    ]
     pages: tuple[Positive, ...] = Field(min_length=1)
     errata: Id
 
@@ -138,6 +143,11 @@ class EquipmentProfile(Record):
     modes: tuple[WeaponMode, ...] = ()
     armor: Armor | None = None
     shield: Shield | None = None
+    unsupported_mechanics: tuple[Id, ...] = Field(default=(), exclude_if=lambda v: not v)
+    durability: ObjectProfile | None = Field(default=None, exclude_if=lambda v: v is None)
+    container_capacity_millipounds: Nonnegative | None = Field(
+        default=None, exclude_if=lambda v: v is None
+    )
 
     @model_validator(mode="after")
     def valid_modes(self) -> Self:
@@ -150,11 +160,17 @@ class EquipmentProfile(Record):
         return self
 
     def inventory_spec(self) -> EquipmentSpec:
+        if self.unsupported_mechanics:
+            raise ValidationError(
+                "Equipment has unsupported mechanics: " + ", ".join(self.unsupported_mechanics)
+            )
         return EquipmentSpec(
             definition_id=self.definition_id,
             unit_weight=self.weight_millipounds,
             technology_level=self.technology_level,
-            stackable=not bool(self.modes or self.armor or self.shield),
+            stackable=not bool(self.modes or self.armor or self.shield or self.durability),
+            durability=self.durability,
+            container_capacity=self.container_capacity_millipounds,
             slot=self.slot,
             ammunition=self.ammunition,
         )
@@ -170,6 +186,8 @@ class EquipmentCatalog(Record):
         if len(entries) != len(self.entries):
             raise ValueError("Duplicate equipment definition")
         for entry in self.entries:
+            if entry.durability is not None and entry.durability.profile_id != self.profile_id:
+                raise ValueError("Object durability requires the exact Basic Set profile")
             for mode in entry.modes:
                 if isinstance(mode, RangedMode) and mode.ammunition_id is not None:
                     ammo = entries.get(mode.ammunition_id)
@@ -187,6 +205,10 @@ class EquipmentCatalog(Record):
         if len(definitions) != sum(len(p.definitions) for p in packages):
             raise ValidationError("Ambiguous equipment catalog references")
         for entry in self.entries:
+            if entry.unsupported_mechanics:
+                raise ValidationError(
+                    "Equipment has unsupported mechanics: " + ", ".join(entry.unsupported_mechanics)
+                )
             definition = definitions.get(entry.definition_id)
             if definition is None or definition.kind is not DefinitionKind.EQUIPMENT:
                 raise ValidationError("Missing equipment definition")
