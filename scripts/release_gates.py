@@ -4,7 +4,6 @@ import argparse
 import json
 import os
 import xml.etree.ElementTree as ET
-from dataclasses import asdict
 from pathlib import Path
 
 from wayfarer.rules.catalog import PROTOTYPE_PACKAGE
@@ -86,9 +85,10 @@ def main() -> None:
     args = parser.parse_args()
     rows, errors = evaluate(args.report)
     approved = json.loads((ROOT / "tests/fixtures/approved_rules.json").read_text())
-    current = json.loads(
-        json.dumps({"package": asdict(PROTOTYPE_PACKAGE), "digest": PROTOTYPE_PACKAGE.digest})
-    )
+    current = {
+        "package": json.loads(PROTOTYPE_PACKAGE.canonical_json()),
+        "digest": PROTOTYPE_PACKAGE.digest,
+    }
     if approved != current:
         errors.append("Approved-source fixture differs from declared prototype rules")
     product = json.loads((ROOT / "docs/product-release.json").read_text())

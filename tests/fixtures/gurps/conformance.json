@@ -2866,6 +2866,1539 @@
       "prototype_divergence": "Source requires GM permission beyond this band; recorded as an advisory, not a hard failure.",
       "evidence_kind": "published-example",
       "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-easy-1",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "easy",
+        "points": 1,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 10
+      }
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-easy-2",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "easy",
+        "points": 2,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 11
+      }
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-easy-3",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "easy",
+        "points": 3,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 11
+      }
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-easy-4",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "easy",
+        "points": 4,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 12
+      }
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-easy-7",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "easy",
+        "points": 7,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 12
+      }
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-easy-8",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "easy",
+        "points": 8,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 13
+      }
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-easy-12",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "easy",
+        "points": 12,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 14
+      }
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-easy-20",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "easy",
+        "points": 20,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 16
+      }
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-average-1",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "average",
+        "points": 1,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 9
+      }
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-average-2",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "average",
+        "points": 2,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 10
+      }
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-average-3",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "average",
+        "points": 3,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 10
+      }
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-average-4",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "average",
+        "points": 4,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 11
+      }
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-average-7",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "average",
+        "points": 7,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 11
+      }
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-average-8",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "average",
+        "points": 8,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 12
+      }
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-average-12",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "average",
+        "points": 12,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 13
+      }
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-average-20",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "average",
+        "points": 20,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 15
+      }
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-hard-1",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "hard",
+        "points": 1,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 8
+      }
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-hard-2",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "hard",
+        "points": 2,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 9
+      }
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-hard-3",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "hard",
+        "points": 3,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 9
+      }
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-hard-4",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "hard",
+        "points": 4,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 10
+      }
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-hard-7",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "hard",
+        "points": 7,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 10
+      }
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-hard-8",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "hard",
+        "points": 8,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 11
+      }
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-hard-12",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "hard",
+        "points": 12,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 12
+      }
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-hard-20",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "hard",
+        "points": 20,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 14
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-easy-1",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "easy",
+        "points": 1,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 10
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-easy-2",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "easy",
+        "points": 2,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 11
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-easy-3",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "easy",
+        "points": 3,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 11
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-easy-4",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "easy",
+        "points": 4,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 12
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-easy-7",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "easy",
+        "points": 7,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 12
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-easy-8",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "easy",
+        "points": 8,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 13
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-easy-12",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "easy",
+        "points": 12,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 14
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-easy-20",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "easy",
+        "points": 20,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 16
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-average-1",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "average",
+        "points": 1,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 9
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-average-2",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "average",
+        "points": 2,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 10
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-average-3",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "average",
+        "points": 3,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 10
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-average-4",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "average",
+        "points": 4,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 11
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-average-7",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "average",
+        "points": 7,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 11
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-average-8",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "average",
+        "points": 8,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 12
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-average-12",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "average",
+        "points": 12,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 13
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-average-20",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "average",
+        "points": 20,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 15
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-hard-1",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "hard",
+        "points": 1,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 8
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-hard-2",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "hard",
+        "points": 2,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 9
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-hard-3",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "hard",
+        "points": 3,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 9
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-hard-4",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "hard",
+        "points": 4,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 10
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-hard-7",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "hard",
+        "points": 7,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 10
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-hard-8",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "hard",
+        "points": 8,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 11
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-hard-12",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "hard",
+        "points": 12,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 12
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-hard-20",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "hard",
+        "points": 20,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 14
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-very-hard-1",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "very-hard",
+        "points": 1,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 7
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-very-hard-2",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "very-hard",
+        "points": 2,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 8
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-very-hard-3",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "very-hard",
+        "points": 3,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 8
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-very-hard-4",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "very-hard",
+        "points": 4,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 9
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-very-hard-7",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "very-hard",
+        "points": 7,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 9
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-very-hard-8",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "very-hard",
+        "points": 8,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 10
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-very-hard-12",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "very-hard",
+        "points": 12,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 11
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-very-hard-20",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "progression",
+        "difficulty": "very-hard",
+        "points": 20,
+        "attribute": 10
+      },
+      "expected": {
+        "level": 13
+      }
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-best-attribute",
+      "capability_id": "gurps.character.skill_defaults",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "B173 / Lite 14, Skill Defaults",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "compile",
+        "points": {},
+        "attributes": {
+          "attribute:iq": 14
+        },
+        "target": "skill:stealth"
+      },
+      "expected": {
+        "level": 9,
+        "default_from": "attribute:iq"
+      }
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-attribute-cap",
+      "capability_id": "gurps.character.skill_defaults",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "B173 / Lite 14, Rule of 20",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "compile",
+        "points": {},
+        "attributes": {
+          "attribute:iq": 25
+        },
+        "target": "skill:diplomacy"
+      },
+      "expected": {
+        "level": 14,
+        "default_from": "attribute:iq"
+      }
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-changed-attribute",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "compile",
+        "points": {
+          "skill:stealth": 4
+        },
+        "attributes": {
+          "attribute:dx": 12
+        },
+        "target": "skill:stealth"
+      },
+      "expected": {
+        "level": 13
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-best-attribute",
+      "capability_id": "gurps.character.skill_defaults",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B173 / Lite 14, Skill Defaults",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "compile",
+        "points": {},
+        "attributes": {
+          "attribute:iq": 14
+        },
+        "target": "skill:stealth"
+      },
+      "expected": {
+        "level": 9,
+        "default_from": "attribute:iq"
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-attribute-cap",
+      "capability_id": "gurps.character.skill_defaults",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B173 / Lite 14, Rule of 20",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "compile",
+        "points": {},
+        "attributes": {
+          "attribute:iq": 25
+        },
+        "target": "skill:diplomacy"
+      },
+      "expected": {
+        "level": 14,
+        "default_from": "attribute:iq"
+      }
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-changed-attribute",
+      "capability_id": "gurps.character.skill_difficulty",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B170 / Lite 13, Skill Cost Table",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "compile",
+        "points": {
+          "skill:stealth": 4
+        },
+        "attributes": {
+          "attribute:dx": 12
+        },
+        "target": "skill:stealth"
+      },
+      "expected": {
+        "level": 13
+      }
+    },
+    {
+      "id": "skill-default",
+      "capability_id": "gurps.character.skill_defaults",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B173, Improving Skills from Default",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "compile",
+        "points": {
+          "skill:broadsword": 20
+        },
+        "target": "skill:shortsword"
+      },
+      "expected": {
+        "level": 13,
+        "default_from": "skill:broadsword",
+        "credit": 0
+      }
+    },
+    {
+      "id": "skill-credit",
+      "capability_id": "gurps.character.skill_defaults",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B173, Improving Skills from Default",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "compile",
+        "points": {
+          "skill:broadsword": 20,
+          "skill:shortsword": 4
+        },
+        "target": "skill:shortsword"
+      },
+      "expected": {
+        "level": 14,
+        "default_from": "skill:broadsword",
+        "credit": 12
+      }
+    },
+    {
+      "id": "skill-partial-credit",
+      "capability_id": "gurps.character.skill_defaults",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B173, Improving Skills from Default",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "compile",
+        "points": {
+          "skill:broadsword": 20,
+          "skill:shortsword": 3
+        },
+        "target": "skill:shortsword"
+      },
+      "expected": {
+        "level": 13,
+        "default_from": "skill:broadsword",
+        "credit": 0
+      }
+    },
+    {
+      "id": "skill-required-specialty",
+      "capability_id": "gurps.character.specialties",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B169, Specialties; B213; B223",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "compile",
+        "points": {
+          "skill:survival-woodlands": 4
+        },
+        "target": "skill:survival-woodlands"
+      },
+      "expected": {
+        "level": 11
+      }
+    },
+    {
+      "id": "skill-optional-specialty",
+      "capability_id": "gurps.character.specialties",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B169, Specialties; B213; B223",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "compile",
+        "points": {
+          "skill:physics-acoustics": 4
+        },
+        "target": "skill:physics-acoustics"
+      },
+      "expected": {
+        "level": 10
+      }
+    },
+    {
+      "id": "skill-optional-general-default",
+      "capability_id": "gurps.character.specialties",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B169, Specialties; B213; B223",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "compile",
+        "points": {
+          "skill:physics-acoustics": 12
+        },
+        "target": "skill:physics"
+      },
+      "expected": {
+        "level": 10
+      }
+    },
+    {
+      "id": "skill-general-optional-default",
+      "capability_id": "gurps.character.specialties",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B169, Specialties; B213; B223",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "compile",
+        "points": {
+          "skill:physics": 12
+        },
+        "target": "skill:physics-acoustics"
+      },
+      "expected": {
+        "level": 9
+      }
+    },
+    {
+      "id": "skill-hard-default",
+      "capability_id": "gurps.character.techniques",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B229-232, Technique Cost Table, Arm Lock and Kicking",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "compile",
+        "points": {
+          "skill:karate": 4
+        },
+        "target": "skill:kicking-karate"
+      },
+      "expected": {
+        "level": 8
+      }
+    },
+    {
+      "id": "skill-hard-first",
+      "capability_id": "gurps.character.techniques",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B229-232, Technique Cost Table, Arm Lock and Kicking",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "compile",
+        "points": {
+          "skill:karate": 4,
+          "skill:kicking-karate": 2
+        },
+        "target": "skill:kicking-karate"
+      },
+      "expected": {
+        "level": 9
+      }
+    },
+    {
+      "id": "skill-hard-cap",
+      "capability_id": "gurps.character.techniques",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B229-232, Technique Cost Table, Arm Lock and Kicking",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "compile",
+        "points": {
+          "skill:karate": 4,
+          "skill:kicking-karate": 3
+        },
+        "target": "skill:kicking-karate"
+      },
+      "expected": {
+        "level": 10
+      }
+    },
+    {
+      "id": "skill-hard-over-cap",
+      "capability_id": "gurps.character.techniques",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B229-232, Technique Cost Table, Arm Lock and Kicking",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "compile",
+        "points": {
+          "skill:karate": 4,
+          "skill:kicking-karate": 4
+        },
+        "target": "skill:kicking-karate"
+      },
+      "expected": {
+        "error": "technique.cap"
+      }
+    },
+    {
+      "id": "skill-hard-one-point",
+      "capability_id": "gurps.character.techniques",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B229-232, Technique Cost Table, Arm Lock and Kicking",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "compile",
+        "points": {
+          "skill:karate": 4,
+          "skill:kicking-karate": 1
+        },
+        "target": "skill:kicking-karate"
+      },
+      "expected": {
+        "error": "technique.points"
+      }
+    },
+    {
+      "id": "skill-hard-no-parent",
+      "capability_id": "gurps.character.techniques",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B229-232, Technique Cost Table, Arm Lock and Kicking",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "compile",
+        "points": {
+          "skill:kicking-karate": 2
+        },
+        "target": "skill:kicking-karate"
+      },
+      "expected": {
+        "error": "skill.prerequisite"
+      }
+    },
+    {
+      "id": "skill-average-first",
+      "capability_id": "gurps.character.techniques",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B229-232, Technique Cost Table, Arm Lock and Kicking",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "compile",
+        "points": {
+          "skill:judo": 4,
+          "skill:arm-lock-judo": 1
+        },
+        "target": "skill:arm-lock-judo"
+      },
+      "expected": {
+        "level": 11
+      }
+    },
+    {
+      "id": "skill-average-cap",
+      "capability_id": "gurps.character.techniques",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B229-232, Technique Cost Table, Arm Lock and Kicking",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "compile",
+        "points": {
+          "skill:judo": 4,
+          "skill:arm-lock-judo": 4
+        },
+        "target": "skill:arm-lock-judo"
+      },
+      "expected": {
+        "level": 14
+      }
+    },
+    {
+      "id": "skill-average-over-cap",
+      "capability_id": "gurps.character.techniques",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B229-232, Technique Cost Table, Arm Lock and Kicking",
+      "rounding": "floor",
+      "provenance": "Independent expected numbers entered for #98 from the frozen edition; no implementation-generated expectations. Source artifact audit remains a merge gate.",
+      "service": "skills",
+      "input": {
+        "operation": "compile",
+        "points": {
+          "skill:judo": 4,
+          "skill:arm-lock-judo": 5
+        },
+        "target": "skill:arm-lock-judo"
+      },
+      "expected": {
+        "error": "technique.cap"
+      }
     }
   ]
 }

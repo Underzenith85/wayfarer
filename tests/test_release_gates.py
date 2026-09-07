@@ -58,3 +58,34 @@ def test_browser_gate_rejects_incomplete_or_nonpassing_journeys(
                     SubElement(case, defect)
         ElementTree(root).write(tmp_path / f"{report}.xml")
     assert bool(check(tmp_path)) == (defect != "none")
+
+
+@pytest.mark.parametrize("changed_rules", [False, True])
+def test_release_main_compares_canonical_package_to_unchanged_approved_fixture(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, changed_rules: bool
+) -> None:
+    from dataclasses import replace
+
+    from scripts import release_gates
+    from wayfarer.rules.catalog import PROTOTYPE_PACKAGE
+
+    # Exercise the real source-approval check independently of JUnit validation.
+    def passing_evidence(report: Path) -> tuple[list[dict[str, object]], list[str]]:
+        return [], []
+
+    monkeypatch.setattr(release_gates, "evaluate", passing_evidence)
+    monkeypatch.setattr("sys.argv", ["release_gates", "unused.xml", "--output", str(tmp_path)])
+    if changed_rules:
+        changed = replace(PROTOTYPE_PACKAGE.definitions[0], point_cost=999)
+        monkeypatch.setattr(
+            release_gates,
+            "PROTOTYPE_PACKAGE",
+            replace(PROTOTYPE_PACKAGE, definitions=(changed, *PROTOTYPE_PACKAGE.definitions[1:])),
+        )
+        with pytest.raises(SystemExit, match="Approved-source fixture differs"):
+            release_gates.main()
+    else:
+        release_gates.main()
+        approved = json.loads((ROOT / "tests/fixtures/approved_rules.json").read_text())
+        assert json.loads(PROTOTYPE_PACKAGE.canonical_json()) == approved["package"]
+        assert PROTOTYPE_PACKAGE.digest == approved["digest"]
