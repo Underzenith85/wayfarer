@@ -51,8 +51,9 @@ self.addEventListener("activate", event => {
 self.addEventListener("fetch", event => {
   const url = new URL(event.request.url);
   if (event.request.method !== "GET" || url.origin !== self.location.origin) return;
-  const routes = ["/", "/character", "/inventory", "/journal", "/campaign"];
-  const key = event.request.mode === "navigate" && routes.includes(url.pathname)
+  // Mirrors the router: every page is served bare and under /c/<campaign>/.
+  const route = new RegExp("^/(?:c/[^/]+/?)?(?:character|inventory|journal|campaign)?$");
+  const key = event.request.mode === "navigate" && route.test(url.pathname)
     ? "/index.html" : (!url.search && SHELL.includes(url.pathname) ? url.pathname : null);
   if (key) event.respondWith(caches.open(CACHE).then(cache => cache.match(key)).then(response => response || fetch(event.request)));
 });

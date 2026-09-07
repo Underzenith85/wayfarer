@@ -2,7 +2,7 @@ import { ScenarioCatalog } from "./catalog";
 import { WorkshopReviewQueue } from "../character/review-queue";
 import { LiveTransport } from "../play/live";
 import type { Campaign } from "../play/transport";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "../components/ui/button";
 import { NetworkPlayTransport } from "../api/play-transport";
 import type { PlayTransport } from "../play/transport";
@@ -13,6 +13,7 @@ import {
   type Lobby,
   type RulesProfile,
 } from "./client";
+import { rememberCampaign, rememberPrincipal } from "../play/session";
 const blank: Brief = {
   premise: "",
   genre: "Fantasy",
@@ -24,11 +25,14 @@ const blank: Brief = {
 export function SetupLobby({
   onOpen,
   mode = "new",
+  restored,
 }: {
   mode?: "new" | "continue" | "join";
+  /** A credential this tab already holds; the lobby opens signed in. */
+  restored?: string | undefined;
   onOpen: (transport: PlayTransport) => void;
 }) {
-  const [token, setToken] = useState(""),
+  const [token, setToken] = useState(restored ?? ""),
     [principal, setPrincipal] = useState("");
   const [games, setGames] = useState<Campaign[]>([]);
   const [legacyAvailable, setLegacyAvailable] = useState(false);
@@ -44,7 +48,35 @@ export function SetupLobby({
     [invite, setInvite] = useState("");
   const [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
-  const open = (value: Lobby) =>
+  const authenticate = async (credential: string) => {
+    const auth = await new SetupClient(credential).request<{
+      principal_id: string;
+      generation_available: boolean;
+      legacy_available: boolean;
+    }>("/session");
+    const next = new SetupClient(credential, auth.principal_id);
+    // The tab remembers the session so a reload costs no sign-in.
+    rememberPrincipal(credential, auth.principal_id);
+    setToken(credential);
+    setPrincipal(auth.principal_id);
+    setGenerationAvailable(auth.generation_available);
+    setLegacyAvailable(auth.legacy_available);
+    const games = await new NetworkPlayTransport({
+      origin: location.origin,
+      credential,
+      principalId: auth.principal_id,
+    }).listCampaigns(new AbortController().signal);
+    setGames(games);
+    const values = await next.request<Lobby[]>("");
+    const available = await next.request<Graph[]>("/templates");
+    const registered = await next.request<RulesProfile[]>("/profiles");
+    setClient(next);
+    setLobbies(values);
+    setTemplates(available);
+    setProfiles(registered);
+  };
+  const open = (value: Lobby) => {
+    rememberCampaign(value.id);
     onOpen(
       new NetworkPlayTransport({
         origin: location.origin,
@@ -54,6 +86,7 @@ export function SetupLobby({
         engineControls: value.engine_controls ?? false,
       }),
     );
+  };
   const choose = (value: Lobby) => {
     setLobby(value);
     setBrief(value.brief);
@@ -86,6 +119,14 @@ export function SetupLobby({
     choose(result);
     if (operation === "activate" || operation === "resume") open(result);
   };
+  const rehydrated = useRef(false);
+  useEffect(() => {
+    if (!restored || rehydrated.current) return;
+    rehydrated.current = true;
+    void run(() => authenticate(restored));
+    // The restored credential is signed in once, on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restored]);
   const host = lobby?.host_id === principal;
   const editable = !lobby || lobby.phase === "draft" || lobby.phase === "ready";
   return (
@@ -102,31 +143,7 @@ export function SetupLobby({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            void run(async () => {
-              const auth = await new SetupClient(token).request<{
-                principal_id: string;
-                generation_available: boolean;
-                legacy_available: boolean;
-              }>("/session");
-              const next = new SetupClient(token, auth.principal_id);
-              setPrincipal(auth.principal_id);
-              setGenerationAvailable(auth.generation_available);
-              setLegacyAvailable(auth.legacy_available);
-              const games = await new NetworkPlayTransport({
-                origin: location.origin,
-                credential: token,
-                principalId: auth.principal_id,
-              }).listCampaigns(new AbortController().signal);
-              setGames(games);
-              const values = await next.request<Lobby[]>("");
-              const available = await next.request<Graph[]>("/templates");
-              const registered =
-                await next.request<RulesProfile[]>("/profiles");
-              setClient(next);
-              setLobbies(values);
-              setTemplates(available);
-              setProfiles(registered);
-            });
+            void run(() => authenticate(token));
           }}
         >
           <label>
@@ -229,7 +246,8 @@ export function SetupLobby({
                 <li key={game.id}>
                   <Button
                     data-resume-id={game.id}
-                    onClick={() =>
+                    onClick={() => {
+                      rememberCampaign(game.id);
                       onOpen(
                         legacyAvailable
                           ? new LiveTransport(principal, game.id, token)
@@ -239,8 +257,8 @@ export function SetupLobby({
                               principalId: principal,
                               initialCampaignId: game.id,
                             }),
-                      )
-                    }
+                      );
+                    }}
                   >
                     Continue {game.name}
                   </Button>
@@ -739,20 +757,7 @@ export function SetupLobby({
                     </Button>
                   ))}
                 {lobby.phase === "active" && (
-                  <Button
-                    disabled={busy}
-                    onClick={() =>
-                      onOpen(
-                        new NetworkPlayTransport({
-                          origin: location.origin,
-                          credential: token,
-                          principalId: principal,
-                          initialCampaignId: lobby.id,
-                          engineControls: lobby.engine_controls ?? false,
-                        }),
-                      )
-                    }
-                  >
+                  <Button disabled={busy} onClick={() => open(lobby)}>
                     Open playing scene
                   </Button>
                 )}

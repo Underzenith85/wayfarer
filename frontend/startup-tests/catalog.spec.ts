@@ -18,10 +18,8 @@ test("author a reusable scenario, reopen it, publish and start a pinned game", a
   await catalog.getByRole("button", { name: "Save scenario draft" }).click();
   await expect(catalog.getByRole("status")).toContainText("Saved revision 1");
   await page.reload();
-  await page.getByLabel("Access token", { exact: true }).fill("author-token");
-  await page
-    .getByRole("button", { name: "Load games and invitations" })
-    .click();
+  // The tab stays signed in, so the saved draft is one click away.
+  await expect(page.getByLabel("Access token", { exact: true })).toHaveCount(0);
   await catalog
     .getByRole("button", { name: new RegExp(document.public.title) })
     .click();

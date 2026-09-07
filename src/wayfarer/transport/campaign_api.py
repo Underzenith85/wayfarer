@@ -469,7 +469,9 @@ def create_campaign_app(
         async def frontend(_: web.Request) -> web.FileResponse:
             return web.FileResponse(frontend_dir / "index.html")
 
-        for path in ("/", "/character", "/inventory", "/journal", "/campaign"):
+        pages = ("/character", "/inventory", "/journal", "/campaign")
+        # Every view is also addressable per campaign so links and bookmarks resolve.
+        for path in ("/", *pages, "/c/{campaign}", *(f"/c/{{campaign}}{page}" for page in pages)):
             app.router.add_get(path, frontend)
         app.router.add_static("/assets", frontend_dir / "assets")
     app.router.add_get("/health", health)

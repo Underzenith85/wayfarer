@@ -9,19 +9,23 @@ import {
   SessionClosure,
 } from "../adventure/pages";
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
+import { ScopedLink } from "../scoped-link";
 import { ArrowUp, ChevronRight, MessageCircle, Sparkles } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { usePlay } from "./use-play";
 import type { Entry } from "./store";
 import type { Channel } from "./transport";
 import { MultiplayerPanel } from "../multiplayer/panel";
+import { pagePath } from "../routes";
+import { rememberCampaign } from "./session";
 export function CampaignHome() {
   const { state, store } = usePlay();
   const navigate = useNavigate();
   const open = async (id: string) => {
+    rememberCampaign(id);
     await store.select(id);
-    await navigate({ to: "/" });
+    await navigate({ to: pagePath(id, "") });
   };
   if (state.expired) return <SessionExpired />;
   return (
@@ -437,7 +441,7 @@ export function PlayWorkspace() {
         </p>
         {state.error && <p role="alert">{state.error}</p>}
         <Button asChild>
-          <Link to="/campaign">Choose a campaign</Link>
+          <ScopedLink segment="campaign">Choose a campaign</ScopedLink>
         </Button>
       </section>
     );
