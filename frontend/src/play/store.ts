@@ -10,6 +10,7 @@ import type {
   InventoryIntent,
   InventoryOperation,
 } from "../character/presentation";
+import { forgetSession } from "./session";
 import {
   TransportError,
   wait,
@@ -162,6 +163,7 @@ export class PlayStore {
     });
   }
   private clearPrivateStorage() {
+    forgetSession();
     try {
       const prefix = `wayfarer:draft:${this.transport.principalId}:`;
       for (const key of Object.keys(localStorage))

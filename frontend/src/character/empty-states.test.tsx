@@ -14,6 +14,8 @@ vi.mock("@tanstack/react-router", () => ({
   Link: ({ to, children }: { to: string; children: React.ReactNode }) => (
     <a href={to}>{children}</a>
   ),
+  useLocation: ({ select }: { select: (l: { pathname: string }) => string }) =>
+    select({ pathname: "/" }),
   useNavigate: () => () => {},
 }));
 /** The live projection carries no detail bundles and can report empty collections. */

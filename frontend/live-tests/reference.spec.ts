@@ -39,9 +39,23 @@ async function start(request: APIRequestContext) {
 }
 async function login(page: Page, principal: string, id: string) {
   await page.goto("/");
+  // A tab that has signed in before restores its session and reopens its
+  // campaign; only a fresh tab is asked for the access token.
+  const remembered = await page.evaluate(
+    () => sessionStorage.getItem("wayfarer:session") !== null,
+  );
   const lobby = page.getByRole("region", { name: "New game and lobby" });
-  await lobby.getByLabel("Access token").fill(`${principal}-token`);
-  await lobby.getByRole("button", { name: "Sign in" }).click();
+  if (remembered) {
+    // The tab reopened its campaign in the play shell; setup is behind Session.
+    await page.getByRole("button", { name: "Session", exact: true }).click();
+    await page
+      .getByRole("dialog", { name: "Session" })
+      .getByRole("button", { name: "Switch campaign", exact: true })
+      .click();
+  } else {
+    await lobby.getByLabel("Access token").fill(`${principal}-token`);
+    await lobby.getByRole("button", { name: "Sign in" }).click();
+  }
   await lobby.locator(`[data-campaign-id="${id}"]`).click();
   // Joining loads the snapshot and its scene in separate requests. Do not let
   // another player mutate the campaign until this player's join has completed.

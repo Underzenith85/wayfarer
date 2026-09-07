@@ -22,11 +22,14 @@ to finish pending actions and close **all** tabs/windows before reopening. There
 is no forced reload, skipWaiting, or client takeover. Activation removes only old
 Wayfarer shell caches. Drafts are unaffected. End session, in the play header's
 **Session** menu with Switch campaign and New game, clears the principal's private
-drafts, resume pointer, and query state and reloads the production app to release
-in-memory credentials. Revocation uses the same private-state cleanup; the retained
-setup session is dropped on session termination so it cannot retain a hidden token.
-Leaving play through that menu preserves the authenticated setup session and
-reopens the campaign that was being played.
+drafts, resume pointer, remembered session, and query state and reloads the
+production app to release the tab's credentials. Revocation uses the same
+private-state cleanup; the retained setup session is dropped on session
+termination so it cannot retain a hidden token. Leaving play through that menu
+preserves the authenticated setup session and reopens the campaign that was
+being played. The shell caches the campaign-scoped routes
+(`/c/<campaign-id>/<page>`) alongside the bare ones, so an offline reload of a
+bookmarked campaign view still serves the shell.
 
 ## Verification targets
 
