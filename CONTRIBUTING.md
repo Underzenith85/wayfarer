@@ -23,12 +23,12 @@ Add a runtime dependency with `uv add NAME`, or a development tool with
 sync does not regenerate the lockfile; CI separately checks lockfile freshness.
 The current runtime and test suite intentionally have no third-party dependencies.
 
-The packaging workflow tests supported Python versions, builds the wheel from the
-source distribution, installs it in a separate environment, and runs the HTTP/UI
+The packaging workflow tests Python 3.14, builds the wheel from the source
+distribution, installs it in a separate environment, and runs the HTTP/UI
 smoke test from a temporary working directory. To reproduce that last step:
 
 ```bash
-uv venv /tmp/wayfarer-wheel --python 3.12
+uv venv /tmp/wayfarer-wheel --python 3.14
 uv pip install --python /tmp/wayfarer-wheel/bin/python dist/wayfarer-0.2.0-py3-none-any.whl
 uv run --frozen python scripts/smoke_installed.py /tmp/wayfarer-wheel/bin/wayfarer
 ```
