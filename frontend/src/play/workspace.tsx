@@ -1,3 +1,4 @@
+import { VoiceControls } from "../voice/controls";
 import { LiveControls } from "./live-controls";
 import { EncounterPanel, DiscoveryJournal } from "../adventure/pages";
 import { useState, type FormEvent } from "react";
@@ -345,6 +346,17 @@ function Composer() {
               : "Ask the game master…"
         }
       />
+      <VoiceControls
+        key={channel}
+        disabled={!allowed}
+        onReview={(text) => store.saveDraft(channel, text.slice(0, max))}
+        narration={
+          [...state.entries]
+            .reverse()
+            .find((e) => e.narration?.status === "complete")?.narration?.text ??
+          ""
+        }
+      />
       <div className="composer-bottom">
         <span>
           {draft.length} / {max} · Draft saved on this device
@@ -509,7 +521,9 @@ export function PlayWorkspace() {
             ))}
         </select>
       </label>
-      <Composer key={`${s.campaign.id}:${s.scene.id}:${state.actorId}`} />
+      <Composer
+        key={`${s.campaign.id}:${s.scene.id}:${state.actorId}:${s.campaign.membership.version}`}
+      />
     </div>
   );
 }

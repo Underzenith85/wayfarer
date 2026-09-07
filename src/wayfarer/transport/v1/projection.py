@@ -16,6 +16,7 @@ from .common import Fault, Obj, encoded, validate
 
 @dataclass
 class View:
+    runtime: PlayService
     state: PlayState
     member: CampaignMember
     campaign: Obj
@@ -45,7 +46,10 @@ class Projector:
     def make(
         self, raw: Campaign, principal: str, stamp: str, *, viewpoint: str | None = None
     ) -> View:
-        state = self.play._load(raw)
+        if "play_json" not in raw:
+            raise Fault(404, "not_found")
+        play = self.play.for_campaign(raw)
+        state = play._load(raw)
         member = next((m for m in state.members if m.principal_id == principal), None)
         if member is None:
             raise Fault(404, "not_found")
@@ -104,9 +108,9 @@ class Projector:
                 for f in state.world.facts
                 if f.id in known and f.subject_id in visible
             ]
-            if self.play.engine.rules.scenes:
-                configured = next(s for s in self.play.engine.rules.scenes.scenes if s.id == scene)
-                by_id = {s.id: s for s in self.play.engine.rules.scenes.scenes}
+            if play.engine.rules.scenes:
+                configured = next(s for s in play.engine.rules.scenes.scenes if s.id == scene)
+                by_id = {s.id: s for s in play.engine.rules.scenes.scenes}
                 observations += [
                     {
                         "id": e.destination_id,
@@ -133,7 +137,7 @@ class Projector:
                     },
                 ),
             )
-            build = self.play.engine.reviewer.review(actor.proposal).compilation.build
+            build = play.engine.reviewer.review(actor.proposal).compilation.build
             if build is None:
                 raise Fault(503, "service_unavailable")
             stats = [
@@ -155,7 +159,7 @@ class Projector:
             for i in state.resources.items:
                 if i.owner_id != aid and i.id not in confiscated:
                     continue
-                spec = self.play.engine.resources.specs[i.definition_id]
+                spec = play.engine.resources.specs[i.definition_id]
                 held = i.id in confiscated
                 items.append(
                     {
@@ -177,7 +181,7 @@ class Projector:
                             ["use_item"]
                             if not held
                             and not i.equipped
-                            and i.definition_id in self.play.engine.rules.consumables
+                            and i.definition_id in play.engine.rules.consumables
                             else []
                         ),
                     }
@@ -189,9 +193,7 @@ class Projector:
                 {
                     "actor_id": aid,
                     "items": sorted(items, key=lambda i: str(i["id"])),
-                    "total_weight_grams": self.play.engine.resources.carried_weight(
-                        state.resources, aid
-                    )
+                    "total_weight_grams": play.engine.resources.carried_weight(state.resources, aid)
                     * self.weight_grams,
                     "encumbrance": "Not supplied by the current engine projection",
                 },
@@ -230,8 +232,8 @@ class Projector:
             # still request one actor's restricted viewpoint above.
             locations = {e.id: e for e in state.world.entities if e.kind.value == "location"}
             scene_ids = (
-                {x.location_id: x.id for x in self.play.engine.rules.scenes.scenes}
-                if self.play.engine.rules.scenes
+                {x.location_id: x.id for x in play.engine.rules.scenes.scenes}
+                if play.engine.rules.scenes
                 else {}
             )
             for lid, location in locations.items():
@@ -277,7 +279,11 @@ class Projector:
                 "id": state.campaign_id,
                 "name": raw["scenario"].get("title", "Campaign"),
                 "premise": raw["scenario"].get("premise", "Explore the current scene.")[:2000],
-                "status": "completed" if state.objectives.outcome != "ongoing" else "active",
+                "status": state.lifecycle
+                if state.lifecycle != "active"
+                else "completed"
+                if state.objectives.outcome != "ongoing"
+                else "active",
                 "game_time": {"ticks": min(ticks, default=0), "tick_duration_ms": self.tick_ms},
                 "membership": membership,
                 "capabilities": [
@@ -299,6 +305,7 @@ class Projector:
                 validate(name, value)
         validate("Campaign", campaign)
         return View(
+            play,
             state,
             member,
             campaign,

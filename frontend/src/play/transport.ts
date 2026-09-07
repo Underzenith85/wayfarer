@@ -30,6 +30,7 @@ export interface Narration {
 }
 /** Facade for #49's generated transport; no HTTP endpoints or WebSocket envelopes invented here. */
 export interface PlayTransport {
+  readonly initialCampaignId?: string;
   readonly principalId: string;
   readonly sample: boolean;
   readonly inventoryPreview?: InventoryPreviewTransport;

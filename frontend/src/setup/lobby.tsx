@@ -1,0 +1,489 @@
+import { useState } from "react";
+import { Button } from "../components/ui/button";
+import { NetworkPlayTransport } from "../api/play-transport";
+import type { PlayTransport } from "../play/transport";
+import { SetupClient, type Brief, type Graph, type Lobby } from "./client";
+const blank: Brief = {
+  premise: "",
+  genre: "Fantasy",
+  tone: "Adventurous",
+  duration_minutes: 90,
+  difficulty: "standard",
+  restrictions: [],
+};
+export function SetupLobby({
+  onOpen,
+}: {
+  onOpen: (transport: PlayTransport) => void;
+}) {
+  const [token, setToken] = useState(""),
+    [principal, setPrincipal] = useState("");
+  const [client, setClient] = useState<SetupClient>();
+  const [lobbies, setLobbies] = useState<Lobby[]>([]),
+    [lobby, setLobby] = useState<Lobby>();
+  const [templates, setTemplates] = useState<Graph[]>([]),
+    [graph, setGraph] = useState<Graph | null>(null);
+  const [brief, setBrief] = useState(blank),
+    [invite, setInvite] = useState("");
+  const [error, setError] = useState(""),
+    [busy, setBusy] = useState(false);
+  const choose = (value: Lobby) => {
+    setLobby(value);
+    setBrief(value.brief);
+    setGraph(value.graph);
+  };
+  const run = async (work: () => Promise<void>) => {
+    if (busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      await work();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Request failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+  const command = async (
+    operation: string,
+    extra: object = {},
+    suffix = "",
+  ) => {
+    if (!client || !lobby) return;
+    choose(
+      await client.write(`/${lobby.id}${suffix}`, {
+        id: crypto.randomUUID(),
+        expected_revision: lobby.revision,
+        operation,
+        ...extra,
+      }),
+    );
+  };
+  const host = lobby?.host_id === principal;
+  const editable = !lobby || lobby.phase === "draft" || lobby.phase === "ready";
+  return (
+    <section className="scene-card setup-lobby" aria-label="New game and lobby">
+      <h2>New game & invitations</h2>
+      {!client ? (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void run(async () => {
+              const next = new SetupClient(token);
+              const values = await next.request<Lobby[]>("");
+              const available = await next.request<Graph[]>("/templates");
+              setClient(next);
+              setLobbies(values);
+              setTemplates(available);
+            });
+          }}
+        >
+          <label>
+            Player ID
+            <input
+              required
+              value={principal}
+              onChange={(e) => setPrincipal(e.target.value)}
+            />
+          </label>
+          <label>
+            Access token
+            <input
+              required
+              type="password"
+              autoComplete="off"
+              value={token}
+              onChange={(e) => setToken(e.target.value)}
+            />
+          </label>
+          <Button disabled={busy}>Load games and invitations</Button>
+        </form>
+      ) : (
+        <>
+          <div className="context-actions">
+            <Button
+              type="button"
+              onClick={() => {
+                setClient(undefined);
+                setToken("");
+                setLobbies([]);
+                setLobby(undefined);
+                setGraph(null);
+                setBrief(blank);
+              }}
+            >
+              Sign out of setup
+            </Button>
+            <Button
+              type="button"
+              disabled={busy}
+              onClick={() =>
+                void run(async () => {
+                  const values = await client.request<Lobby[]>("");
+                  setLobbies(values);
+                  if (lobby)
+                    choose(await client.request<Lobby>(`/${lobby.id}`));
+                  client.reconcile();
+                })
+              }
+            >
+              Reload games / reconcile
+            </Button>
+          </div>
+          <ul>
+            {lobbies.map((value) => (
+              <li key={value.id}>
+                <Button
+                  data-campaign-id={value.id}
+                  variant="outline"
+                  disabled={busy || client.hasPending}
+                  onClick={() =>
+                    void run(async () =>
+                      choose(await client.request<Lobby>(`/${value.id}`)),
+                    )
+                  }
+                >
+                  {value.title} · {value.phase}
+                </Button>
+              </li>
+            ))}
+          </ul>
+          {!lobby && <p>Create a game, or open an invitation above.</p>}
+          {lobby && (
+            <p role="status">
+              {lobby.title} · {lobby.phase} · revision {lobby.revision}
+            </p>
+          )}
+          {editable && (!lobby || host) && (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                void run(async () => {
+                  if (!lobby) {
+                    const result = await client.write("", {
+                      id: crypto.randomUUID(),
+                      brief,
+                    });
+                    choose(result);
+                    setLobbies([...lobbies, result]);
+                  } else
+                    await command("edit", {
+                      brief,
+                      graph: graph ? { ...graph, brief } : null,
+                    });
+                });
+              }}
+            >
+              <label>
+                Premise
+                <textarea
+                  required
+                  value={brief.premise}
+                  maxLength={4000}
+                  onChange={(e) =>
+                    setBrief({ ...brief, premise: e.target.value })
+                  }
+                />
+              </label>
+              <label>
+                Genre
+                <input
+                  required
+                  value={brief.genre}
+                  onChange={(e) =>
+                    setBrief({ ...brief, genre: e.target.value })
+                  }
+                />
+              </label>
+              <label>
+                Tone
+                <input
+                  required
+                  value={brief.tone}
+                  onChange={(e) => setBrief({ ...brief, tone: e.target.value })}
+                />
+              </label>
+              <label>
+                Duration (minutes)
+                <input
+                  type="number"
+                  min={10}
+                  max={10000}
+                  value={brief.duration_minutes}
+                  onChange={(e) =>
+                    setBrief({
+                      ...brief,
+                      duration_minutes: Number(e.target.value),
+                    })
+                  }
+                />
+              </label>
+              <label>
+                Difficulty
+                <select
+                  value={brief.difficulty}
+                  onChange={(e) =>
+                    setBrief({
+                      ...brief,
+                      difficulty: e.target.value as Brief["difficulty"],
+                    })
+                  }
+                >
+                  {["gentle", "standard", "hard"].map((d) => (
+                    <option key={d}>{d}</option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Boundaries and restrictions
+                <textarea
+                  value={brief.restrictions.join("\n")}
+                  onChange={(e) =>
+                    setBrief({
+                      ...brief,
+                      restrictions: e.target.value.split("\n"),
+                    })
+                  }
+                />
+              </label>
+              <label>
+                Adventure and starting party
+                <select
+                  value={graph?.id ?? ""}
+                  onChange={(e) => {
+                    const selected =
+                      templates.find((t) => t.id === e.target.value) ?? null;
+                    setGraph(selected);
+                    if (selected) setBrief(selected.brief);
+                  }}
+                >
+                  <option value="">Choose an adventure</option>
+                  {templates.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {!templates.length && (
+                <p>
+                  No authored adventures are installed. Save your premise, then
+                  generate an adventure if a provider is configured.
+                </p>
+              )}
+              {graph?.actors
+                .filter((a) => !graph.npc_actor_ids.includes(a.actor_id))
+                .map((actor) => (
+                  <fieldset key={actor.actor_id}>
+                    <legend>Character {actor.actor_id}</legend>
+                    {actor.proposal.draft.purchases.map((purchase, index) => (
+                      <label key={index}>
+                        {purchase.definition_id}
+                        <input
+                          type="number"
+                          min={0}
+                          value={purchase.amount}
+                          onChange={(e) =>
+                            setGraph({
+                              ...graph,
+                              actors: graph.actors.map((a) =>
+                                a !== actor
+                                  ? a
+                                  : {
+                                      ...a,
+                                      proposal: {
+                                        ...a.proposal,
+                                        draft: {
+                                          ...a.proposal.draft,
+                                          purchases:
+                                            a.proposal.draft.purchases.map(
+                                              (p, i) =>
+                                                i === index
+                                                  ? {
+                                                      ...p,
+                                                      amount: Number(
+                                                        e.target.value,
+                                                      ),
+                                                    }
+                                                  : p,
+                                            ),
+                                        },
+                                      },
+                                    },
+                              ),
+                            })
+                          }
+                        />
+                      </label>
+                    ))}
+                  </fieldset>
+                ))}
+              <p>
+                Characters and equipment are checked against the server’s pinned
+                rules before readiness. Saving edits clears assignments and
+                readiness.
+              </p>
+              <Button disabled={busy || client.hasPending}>
+                {lobby ? "Save setup draft" : "Create game draft"}
+              </Button>
+              {lobby && (
+                <Button
+                  type="button"
+                  disabled={busy || client.hasPending}
+                  onClick={() =>
+                    void run(() => command("edit", {}, "/generate"))
+                  }
+                >
+                  Generate from saved brief
+                </Button>
+              )}
+            </form>
+          )}
+          {lobby && (
+            <>
+              <details>
+                <summary>Campaign rules</summary>
+                <pre>{JSON.stringify(lobby.rules, null, 2)}</pre>
+              </details>
+              <ul>
+                {lobby.seats.map((seat) => (
+                  <li key={seat.principal_id}>
+                    {seat.principal_id} · {seat.joined ? "Joined" : "Invited"} ·{" "}
+                    {seat.ready ? "Ready" : "Not ready"} ·{" "}
+                    {seat.actor_ids.join(", ") || "No character"}
+                    {host && editable && seat.joined && lobby.graph && (
+                      <label>
+                        Assign character to {seat.principal_id}
+                        <select
+                          aria-label={`Assign character to ${seat.principal_id}`}
+                          value={seat.actor_ids[0] ?? ""}
+                          disabled={busy || client.hasPending}
+                          onChange={(e) =>
+                            void run(() =>
+                              command("assign", {
+                                principal_id: seat.principal_id,
+                                actor_ids: e.target.value
+                                  ? [e.target.value]
+                                  : [],
+                              }),
+                            )
+                          }
+                        >
+                          <option value="">Choose character</option>
+                          {lobby.graph.actors
+                            .filter(
+                              (a) =>
+                                !lobby.graph!.npc_actor_ids.includes(
+                                  a.actor_id,
+                                ),
+                            )
+                            .map((a) => (
+                              <option key={a.actor_id} value={a.actor_id}>
+                                {a.actor_id}
+                              </option>
+                            ))}
+                        </select>
+                      </label>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              {editable && (
+                <div className="context-actions">
+                  <Button
+                    disabled={busy || client.hasPending}
+                    onClick={() => void run(() => command("join"))}
+                  >
+                    Accept invitation
+                  </Button>
+                  <Button
+                    disabled={busy || client.hasPending}
+                    onClick={() => void run(() => command("ready"))}
+                  >
+                    Validate and mark ready
+                  </Button>
+                </div>
+              )}
+              {editable && host && (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    void run(() => command("invite", { principal_id: invite }));
+                  }}
+                >
+                  <label>
+                    Invite player ID
+                    <input
+                      required
+                      value={invite}
+                      onChange={(e) => setInvite(e.target.value)}
+                    />
+                  </label>
+                  <Button disabled={busy || client.hasPending}>
+                    Invite player
+                  </Button>
+                </form>
+              )}
+              <div className="context-actions">
+                {host &&
+                  {
+                    ready: ["activate"],
+                    active: ["pause", "complete"],
+                    paused: ["resume"],
+                    completed: ["archive"],
+                    draft: [],
+                    archived: [],
+                  }[lobby.phase].map((operation) => (
+                    <Button
+                      key={operation}
+                      disabled={busy || client.hasPending}
+                      onClick={() => void run(() => command(operation))}
+                    >
+                      {operation}
+                    </Button>
+                  ))}
+                {lobby.phase === "active" && (
+                  <Button
+                    disabled={busy}
+                    onClick={() =>
+                      onOpen(
+                        new NetworkPlayTransport({
+                          origin: location.origin,
+                          credential: token,
+                          principalId: principal,
+                          initialCampaignId: lobby.id,
+                        }),
+                      )
+                    }
+                  >
+                    Open playing scene
+                  </Button>
+                )}
+              </div>
+              <Button
+                variant="outline"
+                disabled={busy || client.hasPending}
+                onClick={() => {
+                  setLobby(undefined);
+                  setGraph(null);
+                  setBrief(blank);
+                }}
+              >
+                Create another game
+              </Button>
+            </>
+          )}
+          {client.hasPending && (
+            <Button
+              disabled={busy}
+              onClick={() => void run(async () => choose(await client.retry()))}
+            >
+              Retry original setup request
+            </Button>
+          )}
+        </>
+      )}
+      {error && <p role="alert">{error}</p>}
+    </section>
+  );
+}

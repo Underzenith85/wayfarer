@@ -23,13 +23,22 @@ export function PlayProvider({
       ),
   );
   useEffect(() => {
-    void store.loadCampaigns();
+    let active = true;
+    void store.loadCampaigns().then(() => {
+      if (
+        active &&
+        store.getSnapshot().connection === "online" &&
+        store.transport.initialCampaignId
+      )
+        void store.select(store.transport.initialCampaignId);
+    });
     const offline = () => store.disconnect();
     const online = () => void store.reconnect();
     window.addEventListener("offline", offline);
     window.addEventListener("online", online);
     if (!navigator.onLine) offline();
     return () => {
+      active = false;
       window.removeEventListener("offline", offline);
       window.removeEventListener("online", online);
       store.dispose();

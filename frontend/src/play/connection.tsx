@@ -1,9 +1,11 @@
+import { SetupLobby } from "../setup/lobby";
 import { useState } from "react";
 import { App } from "../app";
 import { Button } from "../components/ui/button";
 import { LiveTransport } from "./live";
+import type { PlayTransport } from "./transport";
 export function ConnectedApp() {
-  const [transport, setTransport] = useState<LiveTransport>(),
+  const [transport, setTransport] = useState<PlayTransport>(),
     [campaign, setCampaign] = useState(""),
     [principal, setPrincipal] = useState(""),
     [token, setToken] = useState(""),
@@ -19,6 +21,7 @@ export function ConnectedApp() {
       ) : (
         <form
           className="scene-card connection-form"
+          aria-label="Campaign connection"
           onSubmit={(e) => {
             e.preventDefault();
             setBusy(true);
@@ -64,10 +67,14 @@ export function ConnectedApp() {
           {error && <p role="alert">{error}</p>}
         </form>
       )}
+      <details open={!transport}>
+        <summary>Campaign setup and lifecycle</summary>
+        <SetupLobby onOpen={setTransport} />
+      </details>
       <App
         key={
           transport
-            ? `${transport.principalId}:${transport.campaignId}`
+            ? `${transport.principalId}:${transport.initialCampaignId}`
             : "disconnected"
         }
         {...(transport ? { transport } : {})}

@@ -169,6 +169,8 @@ class V1Service:
                 return obj(
                     (await self.action(tx, str(old["action"]), cid, principal, write=True))["wire"]
                 )
+            if view.state.lifecycle != "active":
+                raise Fault(409, "stale_version")
             self.versions(view, request)
             intent = obj(request["intent"])
             if intent["kind"] == "question" or (
@@ -220,7 +222,7 @@ class V1Service:
         return wire
 
     def movement(self, view: View, actor_id: str, destination: str) -> Obj:
-        rules = self.play.engine.rules.scenes
+        rules = view.runtime.engine.rules.scenes
         if rules is not None:
             scene = next(s for s in rules.scenes if s.id == view.actor_scenes[actor_id])
             known = {f for a, f in view.state.world.knowledge if a == actor_id}
@@ -321,13 +323,15 @@ class V1Service:
                     self.scope(
                         current, str(request["actor_id"]), str(request["scene_id"]), write=True
                     )
+                    if current.state.lifecycle != "active":
+                        raise Fault(409, "stale_version")
                     self.versions(current, obj(record["request"]))
 
                 # Hidden-only revision races may be retried under the same visible
                 # versions; never overwrite the saved attempt after an uncertain commit.
                 try:
                     if command["kind"] == "travel_scene":
-                        event = await SceneService(self.play).execute(
+                        event = await SceneService(view.runtime).execute(
                             cid,
                             command,
                             authenticated_actor_id=str(request["actor_id"]),
@@ -340,7 +344,7 @@ class V1Service:
                             command_id=aid,
                         )
                     else:
-                        result = await self.play.execute(
+                        result = await view.runtime.execute(
                             cid,
                             command,
                             authenticated_actor_id=str(request["actor_id"]),

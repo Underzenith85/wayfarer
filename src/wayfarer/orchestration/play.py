@@ -50,6 +50,26 @@ class PlayService:
     ) -> None:
         self.store, self.engine, self.rng = store, engine, rng
 
+    def for_campaign(self, campaign: Campaign) -> PlayService:
+        """Bind a saved scenario without sharing mutable per-campaign runtime state."""
+        from wayfarer.simulation.studio import ScenarioGraph
+
+        encoded = campaign.get("scenario_graph_json")
+        if encoded is None:
+            return self
+        graph = ScenarioGraph.model_validate_json(encoded)
+        engine = ActionEngine(
+            self.engine.reviewer,
+            self.engine.resources.for_world(graph.world),
+            graph.runtime_rules(),
+        )
+        if (
+            engine.digest == self.engine.digest
+            and engine.resources.actors == self.engine.resources.actors
+        ):
+            return self
+        return PlayService(self.store, engine, rng=self.rng)
+
     def initial_state(
         self,
         campaign: Campaign,

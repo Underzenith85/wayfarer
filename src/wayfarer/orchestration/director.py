@@ -85,6 +85,8 @@ class DirectorService:
                 raise ConflictError("Turn identity was already used for different input")
             if turn is not None and request_json is not None and turn.request_json != request_json:
                 raise ConflictError("Turn request payload changed")
+            if state.lifecycle != "active" and (turn is None or turn.phase != "complete"):
+                raise ConflictError("Resume an active campaign before acting")
             if turn is None:
                 if (
                     proposal is not None

@@ -24,16 +24,20 @@ function data<T>(result: Result<T>): T {
   return result.data;
 }
 export interface NetworkOptions {
+  initialCampaignId?: string;
   origin: string;
   credential: string;
   principalId: string;
   sample?: boolean;
 }
 export class NetworkPlayTransport implements PlayTransport {
+  readonly initialCampaignId?: string;
   readonly principalId: string;
   readonly sample: boolean;
   readonly api: ReturnType<typeof createApiClient>;
   constructor(private options: NetworkOptions) {
+    if (options.initialCampaignId)
+      this.initialCampaignId = options.initialCampaignId;
     this.principalId = options.principalId;
     this.sample = options.sample ?? false;
     this.api = createApiClient(`${options.origin}/api/v1`, options.credential);

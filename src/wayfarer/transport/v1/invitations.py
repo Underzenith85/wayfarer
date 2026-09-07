@@ -73,7 +73,7 @@ async def invitation(
         internal_id = service.projector.token(principal, cid, "invitation", data["command_id"])
 
         def grant(campaign: Campaign) -> Event:
-            state = service.play._load(campaign)
+            state = service.play.for_campaign(campaign)._load(campaign)
             if not any(m.principal_id == principal for m in state.members):
                 member = CampaignMember.model_validate(
                     {"principal_id": principal, "role": value["role"]}

@@ -22,6 +22,7 @@ from wayfarer.orchestration.provider_runtime import provider_runtime
 from wayfarer.orchestration.providers import Orchestrator
 from wayfarer.orchestration.workshop import DraftCommand, WorkshopService
 from wayfarer.simulation.resources import Record
+from wayfarer.simulation.studio import ScenarioGraph
 
 ORCHESTRATOR_KEY = web.AppKey("campaign-orchestrator", Orchestrator)
 PROVIDER_STATUS_KEY = web.AppKey("provider-status", deque[ProviderStatus])
@@ -340,6 +341,7 @@ def create_campaign_app(
     v1_allow_no_origin: bool = False,
     legacy_routes: bool = False,
     frontend_dir: Path | None = None,
+    scenario_templates: tuple[ScenarioGraph, ...] = (),
 ) -> web.Application:
     if not tokens or any(not token or not principal for token, principal in tokens.items()):
         raise ValueError("Non-empty credentials required")
@@ -347,6 +349,10 @@ def create_campaign_app(
     app[ACCESS_KEY] = play
     app[TOKENS_KEY] = dict(tokens)
     app[LIMITS_KEY] = {}
+    from wayfarer.orchestration.setup import SetupService
+    from wayfarer.transport.setup_api import install as install_setup
+
+    install_setup(app, SetupService(play), scenario_templates)
     if frontend_dir is not None:
 
         async def frontend(_: web.Request) -> web.FileResponse:
@@ -394,6 +400,9 @@ def create_campaign_app(
         await v1.close()
 
     if settings is not None:
+        from wayfarer.transport.setup_api import generate as generate_setup
+
+        app.router.add_post("/setups/{cid}/generate", generate_setup)
         app[PROVIDER_STATUS_KEY] = deque(maxlen=256)
 
         async def lifespan(application: web.Application) -> AsyncIterator[None]:

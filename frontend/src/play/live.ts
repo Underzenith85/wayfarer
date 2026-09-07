@@ -19,6 +19,7 @@ export interface EngineTurn {
   narration_available: boolean;
 }
 export interface EngineProjection {
+  lifecycle?: "active" | "paused" | "completed" | "archived";
   shared_time: boolean;
   campaign_id: string;
   principal_id: string;
@@ -109,6 +110,9 @@ function projection(value: unknown): EngineProjection {
 }
 export class LiveTransport implements PlayTransport {
   readonly sample = false;
+  get initialCampaignId() {
+    return this.campaignId;
+  }
   private current: EngineProjection | null = null;
   constructor(
     readonly principalId: string,
@@ -168,7 +172,9 @@ export class LiveTransport implements PlayTransport {
       id: p.campaign_id,
       name: p.campaign_id,
       premise: "Your active adventure",
-      status: p.objectives.outcome === "ongoing" ? "active" : "completed",
+      status:
+        p.lifecycle ??
+        (p.objectives.outcome === "ongoing" ? "active" : "completed"),
       version: String(p.revision),
       game_time: { ticks: p.game_time, tick_duration_ms: 1000 },
       membership: {

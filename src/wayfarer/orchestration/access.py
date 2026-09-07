@@ -23,24 +23,8 @@ class CampaignAccess:
     async def runtime(self, cid: str) -> CampaignAccess:
         """Reconstruct an activated scenario's pinned runtime after restart."""
         campaign = await self.play.store.read(cid)
-        encoded = campaign.get("scenario_graph_json")
-        if encoded is None:
-            return self
-        from wayfarer.simulation.actions import ActionEngine
-        from wayfarer.simulation.studio import ScenarioGraph
-
-        graph = ScenarioGraph.model_validate_json(encoded)
-        engine = ActionEngine(
-            self.play.engine.reviewer,
-            self.play.engine.resources.for_world(graph.world),
-            graph.runtime_rules(),
-        )
-        if (
-            engine.digest == self.play.engine.digest
-            and engine.resources.actors == self.play.engine.resources.actors
-        ):
-            return self
-        return CampaignAccess(PlayService(self.play.store, engine, rng=self.play.rng))
+        play = self.play.for_campaign(campaign)
+        return self if play is self.play else CampaignAccess(play)
 
     @staticmethod
     def _member(state: PlayState, principal_id: str) -> CampaignMember:
@@ -55,6 +39,7 @@ class CampaignAccess:
         if member.role == "gm":
             return {
                 "campaign_id": state.campaign_id,
+                "lifecycle": state.lifecycle,
                 "revision": state.revision,
                 "game_time": state.resources.game_time,
                 "role": member.role,
@@ -96,6 +81,7 @@ class CampaignAccess:
         )
         return {
             "campaign_id": state.campaign_id,
+            "lifecycle": state.lifecycle,
             "principal_id": member.principal_id,
             "shared_time": len(state.party.groups) > 1,
             "rulings": tuple(
@@ -286,6 +272,8 @@ class CampaignAccess:
         member = self._member(state, principal_id)
         if not isinstance(value, dict):
             raise ValidationError("Invalid typed campaign command")
+        if state.lifecycle != "active":
+            raise ConflictError("Resume an active campaign before acting")
         kind = value.get("kind")
         from wayfarer.orchestration.recovery import guard
 
