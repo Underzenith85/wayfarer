@@ -1,3 +1,4 @@
+import { OnboardingPanel } from "../onboarding/panel";
 import { LiveControls } from "./live-controls";
 import { EncounterPanel, DiscoveryJournal } from "../adventure/pages";
 import { useState, type FormEvent } from "react";
@@ -18,6 +19,7 @@ export function CampaignHome() {
   if (state.expired) return <SessionExpired />;
   return (
     <section className="campaign-home">
+      <OnboardingPanel />
       <div className="section-intro">
         <h2>Your campaigns</h2>
         <p>Return to a story, or choose another table.</p>
