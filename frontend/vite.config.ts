@@ -3,9 +3,15 @@ import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { multiplayerFixtures } from "./fixtures/multiplayer-plugin";
+import { onboardingFixtures } from "./fixtures/onboarding-plugin";
 export default defineConfig({
   server: { proxy: { "/campaigns": "http://127.0.0.1:8000" } },
-  plugins: [react(), tailwindcss(), multiplayerFixtures()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    multiplayerFixtures(),
+    onboardingFixtures(),
+  ],
   resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
   test: {
     environment: "jsdom",
