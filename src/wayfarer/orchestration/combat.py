@@ -59,6 +59,7 @@ class TakeCombatTurn(CombatCommand):
     mode_id: str | None = None
     shots: int = Field(default=1, ge=1, le=100)
     reload_ammunition_id: str | None = None
+    unload_ammunition: bool = Field(default=False, exclude_if=lambda v: not v)
     hit_location: HitLocation | None = None
     ready_hand: Hand | Literal["both"] | None = None
     attack_option: AttackOption | None = None
@@ -202,6 +203,7 @@ class CombatService:
                             "maneuver": "do_nothing",
                             "shots": 1,
                             "reload_ammunition_id": None,
+                            "unload_ammunition": False,
                             "destination": None,
                             "facing": None,
                             "posture": None,
@@ -631,6 +633,7 @@ class CombatService:
                                     "maneuver": "do_nothing",
                                     "shots": 1,
                                     "reload_ammunition_id": None,
+                                    "unload_ammunition": False,
                                     "item_id": None,
                                     "mode_id": None,
                                     "target_id": None,
@@ -672,6 +675,14 @@ class CombatService:
                             from wayfarer.orchestration.gurps_ranged import reload_weapon
 
                             resources = reload_weapon(
+                                self.play,
+                                state.model_copy(update={"resources": resources}),
+                                command_for_turn,
+                            )
+                        if command_for_turn.unload_ammunition:
+                            from wayfarer.orchestration.gurps_ranged import unload_weapon
+
+                            resources = unload_weapon(
                                 self.play,
                                 state.model_copy(update={"resources": resources}),
                                 command_for_turn,
