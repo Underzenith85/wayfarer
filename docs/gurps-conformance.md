@@ -192,8 +192,8 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.world.environmental_hazards` | yes | yes | partial | #110; [persistent exposure schedules](gurps-hazards.md) |
 | `gurps.magic.spellcasting` | no | yes | partial | #117/#171; approved builds, representative effects; remaining variants below |
 | `gurps.supernatural.abilities` | no | yes | partial | #118 representative execution complete; exhaustive audit #119 |
-| `gurps.vehicles.movement` | no | yes | absent | #120 |
-| `gurps.vehicles.combat` | no | yes | absent | #120 |
+| `gurps.vehicles.movement` | no | yes | partial | #120, #207 |
+| `gurps.vehicles.combat` | no | yes | partial | #120, #207 |
 
 Profile registration and explicit migration (#96) are infrastructure, not
 mechanics: they add no row and change no state above. Both GURPS profiles remain
@@ -675,3 +675,34 @@ See [geometry](tactical-geometry.md) and [injury](gurps-hit-locations.md) for
 independent fixture bindings, persistence evidence and remaining boundaries.
 The source review is fourth-printing evidence pending #191 reconciliation;
 no capability or whole profile is promoted to certified by these changes.
+
+### Ground transport foundation (#120; not acceptance-complete)
+
+`simulation/transport.py` adds opt-in persisted transport manifests to the existing
+resource checkpoint. Internal `ResourceService.execute_transport` uses the same
+commit-turn authority, receipt, CAS and retry boundary as object damage. Old
+checkpoints omit the empty field and do not acquire transports automatically.
+No public API/client or active scenario capability is added; partial capabilities
+still fail the full-profile gate. Catalog vehicle listings remain non-operational.
+
+Source: Basic Set Campaigns Fourth Edition, fourth printing, B394-397,
+B430-432, B466-469. Numeric tests are independently entered in
+`tests/test_transport.py`. This printing does not supersede the frozen first
+printing + 2007-01-26 errata baseline: reconciliation remains under #191.
+
+| Implemented internal slice | Evidence and limitations |
+| --- | --- |
+| Explicit wheeled/mount manifests and operator custody | Validated exact Basic Set injury/durability opt-in; other locomotion tags reject. Stats and contiguous longitudinal footprint are trusted authored scenario facts, not automatic catalog activation. |
+| Straight level hex movement | Full authored footprint checks; safe powered-wheel braking (5 yd/s), acceleration bounds and end-of-turn high-speed adjustment. Occupancy comes from trusted caller. No turns, terrain surcharges, galloping or inferred collision path. |
+| Vehicle control | Handling and situational modifiers, SR/critical-failure split, persisted control dice, lost-Aim and attack-penalty facts. A skid/crash blocks further movement pending integration; no invented recovery. |
+| Mount calming | B397 spooked state, consecutive success/failure counts, critical success and total-loss state survive reload. Full loss-table consequences remain in #120. |
+| Hard immovable vehicle collision | B430 fractional dice and B431 hard-object multiplier; body damage uses object reducer and occupant injury uses existing HP/threshold reducer. Only unequipped occupants and a uniform restraint choice; mounted collisions reject. |
+| Persistence | SQLite concurrent duplicate collision, restart replay, actor authorization and stale payload tests; equivalent PostgreSQL test runs when configured. |
+
+#120 remains open for its representative live mounted/vehicle encounters,
+compiled operator/rider profiles, mounted attacks/defenses, Aim/penalty consumption,
+mount loss-table/fall consequences, and atomic tactical/object synchronization.
+#105, #106 and #102 remain open hard merge prerequisites; live object integration
+also depends on #181. This foundation alone does not satisfy #120 acceptance.
+#207 tracks the additional Basic Set locomotion, collision and ejection audit and
+remains a blocker for #122. Nothing here certifies full vehicle or Basic Set coverage.

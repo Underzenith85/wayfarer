@@ -10,6 +10,7 @@ from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
 from wayfarer.rules.catalog import reference
 from wayfarer.rules.checks import RandomSource
+from wayfarer.simulation.hex_geometry import Hex, HexBattlefield
 from wayfarer.simulation.objects import ObjectCommand, apply_object
 from wayfarer.simulation.resources import (
     COMMAND_ADAPTER,
@@ -18,6 +19,7 @@ from wayfarer.simulation.resources import (
     ResourceState,
     Schedule,
 )
+from wayfarer.simulation.transport import TransportCommand, apply_transport, validate_transport
 
 
 class ResourceService:
@@ -33,6 +35,8 @@ class ResourceService:
         if campaign.get("rules_ref") != reference(self.engine.rules):
             raise ValidationError("Campaign rules do not match the resource engine")
         self.engine.validate(resources)
+        for transport in resources.transports:
+            validate_transport(self.engine, resources, transport)
         state = campaign.copy()
         state["resources_json"] = resources.model_dump_json()
         await self.store.insert(state)
@@ -96,6 +100,61 @@ class ResourceService:
             if resources.revision != state["revision"]:
                 raise ValidationError("Resource and campaign revisions diverged")
             updated, _ = apply_object(self.engine, resources, command, system=True, rng=rng)
+            state["resources_json"] = updated.model_dump_json()
+            state["revision"] = updated.revision
+            return Event(input=payload, action="resource", outcome=command.kind, roll=None)
+
+        result = await self.store.commit_turn(
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            resolve,
+            actor_id=command.actor_id,
+        )
+        return ResourceState.model_validate_json(result["state"]["resources_json"])
+
+    async def execute_transport(
+        self,
+        cid: str,
+        value: object,
+        *,
+        authenticated_actor_id: str,
+        system: bool = False,
+        rng: RandomSource = secrets,
+        board: HexBattlefield | None = None,
+        health: dict[str, int] | None = None,
+        occupied: frozenset[Hex] = frozenset(),
+    ) -> ResourceState:
+        """Internal resolved-damage transaction; no player-facing damage payload."""
+        command: TransportCommand = TypeAdapter(TransportCommand).validate_python(value)
+        if not system or command.actor_id != authenticated_actor_id:
+            raise ValidationError("Transport commands require authenticated engine authority")
+        if command.actor_id not in self.engine.actors:
+            raise ValidationError("Transport command actor is not authorized")
+        payload = command.model_dump_json()
+
+        def resolve(state: Campaign) -> Event:
+            if "play_json" in state:
+                raise ValidationError("Live play transport requires the combat transaction")
+            if state.get("rules_ref") != reference(self.engine.rules):
+                raise ValidationError("Campaign rules do not match the resource engine")
+            raw = state.get("resources_json")
+            if raw is None:
+                raise ValidationError("Campaign has no resource state")
+            resources = ResourceState.model_validate_json(raw)
+            if resources.revision != state["revision"]:
+                raise ValidationError("Resource and campaign revisions diverged")
+            updated = apply_transport(
+                self.engine,
+                resources,
+                command,
+                system=True,
+                rng=rng,
+                board=board,
+                health=health,
+                occupied=occupied,
+            )
             state["resources_json"] = updated.model_dump_json()
             state["revision"] = updated.revision
             return Event(input=payload, action="resource", outcome=command.kind, roll=None)
