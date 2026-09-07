@@ -1,6 +1,7 @@
 """Combined browser evidence cannot hide a failed or missing viewport run."""
 
 import subprocess
+import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -15,7 +16,7 @@ def test_both_viewports_run_and_failure_is_retained(
 ) -> None:
     destination = tmp_path / "live.xml"
     monkeypatch.setenv("PLAYWRIGHT_JUNIT_OUTPUT_FILE", str(destination))
-    monkeypatch.setattr(run_live_browsers.sys, "argv", ["runner"])
+    monkeypatch.setattr(sys, "argv", ["runner"])
     projects: list[str] = []
 
     def run(
@@ -31,7 +32,7 @@ def test_both_viewports_run_and_failure_is_retained(
             )
         return subprocess.CompletedProcess(args, 1 if project == "phone" else 0)
 
-    monkeypatch.setattr(run_live_browsers.subprocess, "run", run)
+    monkeypatch.setattr(subprocess, "run", run)
     assert run_live_browsers.main() == 1
     assert projects == ["desktop", "phone"]
     cases = list(ET.parse(destination).getroot().iter("testcase"))
