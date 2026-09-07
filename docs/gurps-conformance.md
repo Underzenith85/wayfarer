@@ -174,10 +174,10 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.injury.lasting_wounds` | no | yes | partial | #107; [durable impairments and remaining effects](gurps-hit-locations.md) |
 | `gurps.combat.melee_attack` | yes | yes | partial | #103 |
 | `gurps.combat.active_defense` | yes | yes | partial | #103 |
-| `gurps.combat.maneuvers` | yes | yes | partial | #104; [executable transitions and remaining scope](gurps-maneuvers.md) |
-| `gurps.combat.turn_timing` | yes | yes | partial | #104 |
+| `gurps.combat.maneuvers` | yes | yes | partial | #104 and #152 bounded transitions implemented; [executable behavior and certification boundary](gurps-maneuvers.md) |
+| `gurps.combat.turn_timing` | yes | yes | partial | #104 and #152; durable Wait zones, stop thrust, and attack-then-step implemented; #191 source reconciliation remains |
 | `gurps.combat.ranged_attack` | yes | yes | partial | #106; [ranged dispatch and evidence](gurps-ranged.md); #173 adds bounded critical effects, causal records, locations and armed thrown Parries; remaining #173 |
-| `gurps.combat.aim` | yes | yes | partial | #104; target-bound accumulation and disruption; ranged resolution #106 |
+| `gurps.combat.aim` | yes | yes | partial | #104/#152; target-bound accumulation, disruption, bracing and typed fixed/variable scopes; broader ranged resolution #106/#173 |
 | `gurps.combat.ammunition` | yes | yes | partial | #106; [reservations and reload timing](gurps-ranged.md); #173 adds opt-in per-round loading and magazine unloading; remaining #173 |
 | `gurps.combat.rapid_fire` | no | yes | partial | #106; [burst and Dodge resolution](gurps-ranged.md); remaining #173 |
 | `gurps.combat.unarmed` | yes | yes | partial | #108, #176; [unarmed attacks, Double Defense and remaining integrations](gurps-unarmed.md) |
@@ -228,7 +228,8 @@ hex migration, authoritative movement/reach/LOS/range/armed retreat, safe player
 projections, generated contracts, keyboard choices and reconnect receipts.
 `tests/test_tactical.py` and the desktop/phone live tactical browser journeys
 exercise these boundaries. This does not enable or certify the Basic Set profile;
-advanced maneuver, ranged and unarmed gaps remain #152, #173 and #176.
+remaining advanced ranged and unarmed gaps are tracked by #173 and #176, while
+#191 retains the source-reconciliation boundary.
 
 ## Typed equipment profiles (#101)
 

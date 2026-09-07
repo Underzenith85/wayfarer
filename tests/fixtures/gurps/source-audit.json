@@ -2449,6 +2449,50 @@
         "tests/test_geometry_injury_followups.py::test_followup_fixture_ledger_executes_independent_expectations"
       ],
       "owner": 107
+    },
+    {
+      "id": "basic-aim-brace-variable-scope",
+      "sha256": "6400a14578de8e0009be288ec05a9b6c7cdf2130c01d86e147d1aac866ff9f0f",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_maneuver_followups.py::test_variable_scope_and_bipod_bracing_add_independent_aim_bonuses"
+      ],
+      "owner": 152
+    },
+    {
+      "id": "basic-stop-thrust-two-yard-charge",
+      "sha256": "627f3e77e6231b1cedc575e2968e49cf603db24d70336209332d0374f0c3c00c",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_maneuver_followups.py::test_stop_thrust_interrupts_charge_and_adds_one_per_two_yards"
+      ],
+      "owner": 152
+    },
+    {
+      "id": "basic-all-out-double-off-hand",
+      "sha256": "3ccae526fbbb8724d958de00a6fb6cdaf95c31ba78852e2e6aabe6c57da446d1",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_maneuver_followups.py::test_two_weapon_double_uses_declared_off_hand_with_minus_four"
+      ],
+      "owner": 152
+    },
+    {
+      "id": "basic-attack-then-step-order",
+      "sha256": "e8637ed9ac78af40451cba23cbe27a184e8f4f938c7e998435d26bce4268edc2",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_maneuver_followups.py::test_attack_then_step_is_deferred_until_defense_and_replays_once"
+      ],
+      "owner": 152
     }
   ]
 }

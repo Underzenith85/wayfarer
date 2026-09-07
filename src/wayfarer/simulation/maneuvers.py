@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from wayfarer.rules.checks import CheckTrace
 from wayfarer.simulation.resources import Id, Record
@@ -13,7 +13,7 @@ DefenseOption = Literal["dodge", "parry", "block", "double"]
 
 
 class WaitTrigger(Record):
-    actor_id: Id
+    actor_id: Id | None = None
     action: Literal["attack", "move"]
     target_id: Id | None = None
     reaction: Literal["attack", "all_out_attack", "feint", "ready"] = "attack"
@@ -21,6 +21,20 @@ class WaitTrigger(Record):
     reaction_target_id: Id | None = None
     mode_id: str | None = None
     attack_option: AttackOption | None = None
+    zone: tuple[tuple[int, int], ...] = ()
+    stop_thrust: bool = False
+
+    @model_validator(mode="after")
+    def valid_condition(self) -> WaitTrigger:
+        if len(set(self.zone)) != len(self.zone):
+            raise ValueError("Wait zone contains duplicate hexes")
+        if self.zone and self.action != "move":
+            raise ValueError("A Wait zone triggers on movement")
+        if self.stop_thrust and (
+            self.action != "attack" or self.reaction not in ("attack", "all_out_attack")
+        ):
+            raise ValueError("Stop thrust requires an attack reaction to an attack")
+        return self
 
 
 class ManeuverState(Record):
@@ -29,6 +43,8 @@ class ManeuverState(Record):
     aim_seconds: int = Field(default=0, ge=0, le=3)
     aim_accuracy: int = Field(default=0, ge=0)
     aim_mode_id: str | None = None
+    aim_braced: bool = False
+    aim_sight_bonus: int = Field(default=0, ge=0)
     evaluate_target_id: str | None = None
     evaluate_bonus: int = Field(default=0, ge=0, le=3)
     attack_bonus: int = 0
@@ -42,13 +58,22 @@ class ManeuverState(Record):
     wait: WaitTrigger | None = None
     defended: bool = False
     attacks_remaining: int = Field(default=0, ge=0, le=1)
+    second_attack_item_id: str | None = None
+    second_attack_target_id: str | None = None
+    second_attack_mode_id: str | None = None
+    second_attack_penalty: int = Field(default=0, ge=-4, le=0)
+    stop_thrust_damage_bonus: int = Field(default=0, ge=0)
     concentrating: bool = False
     concentration_seconds: int = Field(default=0, ge=0)
     feint_rolls: tuple[CheckTrace, ...] = ()
 
     @property
     def aim_bonus(self) -> int:
-        return self.aim_accuracy + self.aim_seconds - 1 if self.aim_seconds else 0
+        return (
+            self.aim_accuracy + self.aim_seconds - 1 + int(self.aim_braced) + self.aim_sight_bonus
+            if self.aim_seconds
+            else 0
+        )
 
     def new_turn(self) -> ManeuverState:
         # Aim/Evaluate/Feint survive until the next maneuver is selected, not

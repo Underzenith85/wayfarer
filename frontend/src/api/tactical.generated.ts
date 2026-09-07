@@ -368,6 +368,32 @@ export interface components {
       /** @default null */
       wait_trigger: components["schemas"]["WaitTrigger"] | null;
       /**
+       * Step Timing
+       * @default before
+       * @enum {string}
+       */
+      step_timing: "before" | "after";
+      /**
+       * Second Item Id
+       * @default null
+       */
+      second_item_id: string | null;
+      /**
+       * Second Target Id
+       * @default null
+       */
+      second_target_id: string | null;
+      /**
+       * Second Mode Id
+       * @default null
+       */
+      second_mode_id: string | null;
+      /**
+       * Braced
+       * @default false
+       */
+      braced: boolean;
+      /**
        * Hex Path
        * @default []
        */
@@ -454,8 +480,11 @@ export interface components {
     };
     /** WaitTrigger */
     WaitTrigger: {
-      /** Actor Id */
-      actor_id: string;
+      /**
+       * Actor Id
+       * @default null
+       */
+      actor_id: string | null;
       /**
        * Action
        * @enum {string}
@@ -489,6 +518,16 @@ export interface components {
        * @default null
        */
       attack_option: ("determined" | "strong" | "double" | "feint") | null;
+      /**
+       * Zone
+       * @default []
+       */
+      zone: [number, number][];
+      /**
+       * Stop Thrust
+       * @default false
+       */
+      stop_thrust: boolean;
     };
     /** TacticalSnapshot */
     TacticalSnapshot: {
