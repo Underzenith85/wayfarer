@@ -1,3 +1,10 @@
+import {
+  sameScope,
+  scopeKey,
+  type MultiplayerView,
+  type TableCommand,
+  type TableIntent,
+} from "../multiplayer/model";
 import type {
   InventoryCommand,
   InventoryIntent,
@@ -38,6 +45,9 @@ type Command =
       entryId: string;
     };
 export interface PlayState {
+  connection: "online" | "offline" | "recovering";
+  multiplayer: MultiplayerView | null;
+  tableRetry: TableCommand | null;
   drafts: Record<Channel, string>;
   campaigns: Campaign[];
   snapshot: Snapshot | null;
@@ -52,6 +62,9 @@ export interface PlayState {
   actorId: string | null;
 }
 const initial: PlayState = {
+  connection: "online",
+  multiplayer: null,
+  tableRetry: null,
   drafts: { action: "", dialogue: "", ooc: "" },
   campaigns: [],
   snapshot: null,
@@ -71,10 +84,15 @@ export class PlayStore {
   private listeners = new Set<() => void>();
   private controller = new AbortController();
   private generation = 0;
+  private watchSerial = 0;
   constructor(
     readonly transport: PlayTransport,
     private clearCache: () => void = () => {},
     private pollMs = 1000,
+    private cacheView: (
+      key: readonly string[],
+      view: MultiplayerView,
+    ) => void = () => {},
   ) {}
   getSnapshot = () => this.state;
   subscribe = (listener: () => void) => {
@@ -175,11 +193,20 @@ export class PlayStore {
       this.fail(error, g);
     }
   }
-  async select(campaignId: string) {
+  async select(
+    campaignId: string,
+    actorId: string | null = null,
+    recover: Command | null = null,
+  ) {
     this.fence();
     const g = this.generation;
     this.patch({
       snapshot: null,
+      multiplayer: null,
+      tableRetry: null,
+      connection: this.transport.multiplayer
+        ? "recovering"
+        : this.state.connection,
       needsRefresh: false,
       selectedId: campaignId,
       entries: [],
@@ -191,20 +218,50 @@ export class PlayStore {
       drafts: { action: "", dialogue: "", ooc: "" },
     });
     try {
-      const [snapshot, actions] = await Promise.all([
-        this.transport.readSnapshot(campaignId, this.controller.signal),
-        this.transport.listActions(campaignId, this.controller.signal),
-      ]);
+      const view = this.transport.multiplayer
+        ? await this.transport.multiplayer.read(
+            campaignId,
+            actorId,
+            this.controller.signal,
+          )
+        : null;
+      const [snapshot, actions] = view
+        ? [view.snapshot, view.actions]
+        : await Promise.all([
+            this.transport.readSnapshot(campaignId, this.controller.signal),
+            this.transport.listActions(campaignId, this.controller.signal),
+          ]);
       if (!this.active(g)) return;
+      if (
+        view &&
+        (snapshot.campaign.membership.principal_id !==
+          this.transport.principalId ||
+          view.scope.campaignId !== campaignId ||
+          view.scope.sceneId !== snapshot.scene.id ||
+          !snapshot.campaign.membership.actor_ids.includes(
+            view.scope.actorId,
+          ) ||
+          !snapshot.scene.visible_actor_ids.includes(view.scope.actorId) ||
+          actions.some(
+            (a) =>
+              a.scene_id !== view.scope.sceneId ||
+              a.actor_id !== view.scope.actorId,
+          ))
+      )
+        throw new TransportError("forbidden", "Perspective access changed.");
       this.patch({
         snapshot,
+        multiplayer: view,
+        connection: "online",
         loading: false,
         actorId:
+          view?.scope.actorId ??
           snapshot.characters.find(
             (c) =>
               snapshot.campaign.membership.actor_ids.includes(c.id) &&
               snapshot.scene.visible_actor_ids.includes(c.id),
-          )?.id ?? null,
+          )?.id ??
+          null,
       });
       this.patch({
         entries: actions.map((action) => ({
@@ -216,6 +273,47 @@ export class PlayStore {
         })),
       });
       this.hydrateDrafts();
+      if (view)
+        this.cacheView(
+          scopeKey(
+            this.transport.principalId,
+            view.scope,
+            view.checkpoint.epoch,
+          ),
+          view,
+        );
+      if (
+        recover &&
+        view &&
+        recover.request.command_id &&
+        ((recover.kind === "clarify" &&
+          actions.some((a) => a.id === recover.actionId)) ||
+          (recover.kind !== "clarify" &&
+            recover.request.actor_id === view.scope.actorId &&
+            recover.request.scene_id === view.scope.sceneId)) &&
+        !actions.some(
+          (a) =>
+            a.command_id === recover.request.command_id ||
+            (recover.kind === "clarify" &&
+              a.id === recover.actionId &&
+              a.version !== recover.request.expected_action_version),
+        )
+      ) {
+        this.patch({
+          retry: recover,
+          entries: [
+            ...this.state.entries,
+            {
+              id: recover.entryId,
+              channel: "action",
+              text: "Request awaiting acknowledgement",
+              action: null,
+              narration: null,
+            },
+          ],
+        });
+      }
+      if (view) this.watchMultiplayer(view, g);
       for (const action of actions) {
         if (action.status === "submitted" || action.status === "resolving") {
           this.patch({ busy: true });
@@ -247,6 +345,17 @@ export class PlayStore {
     }
   }
   chooseActor(id: string) {
+    if (this.transport.multiplayer) {
+      if (
+        this.state.connection === "online" &&
+        !this.state.busy &&
+        !this.state.retry &&
+        !this.state.tableRetry &&
+        this.state.multiplayer?.controlledActors.some((a) => a.id === id)
+      )
+        void this.select(this.state.selectedId!, id);
+      return;
+    }
     if (
       this.state.busy ||
       this.state.retry ||
@@ -272,6 +381,12 @@ export class PlayStore {
       this.expire();
       return;
     }
+    if (
+      this.transport.multiplayer &&
+      error instanceof TransportError &&
+      error.code === "network"
+    )
+      this.disconnect();
     this.patch({
       needsRefresh:
         error instanceof TransportError && error.code === "stale_version",
@@ -279,6 +394,200 @@ export class PlayStore {
       loading: false,
       busy: false,
     });
+  }
+  disconnect() {
+    if (this.state.expired) return;
+    this.fence();
+    this.patch({ connection: "offline", busy: false, loading: false });
+  }
+  async reconnect() {
+    if (this.state.expired) return;
+    if (this.state.selectedId) {
+      const tableRetry = this.state.tableRetry;
+      const selection = this.select(
+        this.state.selectedId,
+        this.state.actorId,
+        this.state.retry,
+      );
+      const generation = this.generation;
+      await selection;
+      if (
+        this.active(generation) &&
+        tableRetry &&
+        this.state.multiplayer &&
+        sameScope(tableRetry.scope, this.state.multiplayer.scope)
+      )
+        this.patch({ tableRetry });
+    } else {
+      this.patch({ connection: "online" });
+      await this.loadCampaigns();
+    }
+  }
+  private watchMultiplayer(view: MultiplayerView, g: number) {
+    const serial = ++this.watchSerial;
+    const receive = (event: import("../multiplayer/model").ScopeEvent) => {
+      if (!this.active(g) || serial !== this.watchSerial) return;
+      if (event.kind === "revoked") {
+        this.expire();
+        return;
+      }
+      if (event.kind === "disconnected") {
+        this.disconnect();
+        return;
+      }
+      if (event.kind === "reset") {
+        void this.reconnect();
+        return;
+      }
+      if (!sameScope(event.scope, view.scope)) return;
+      if (event.checkpoint.epoch !== view.checkpoint.epoch) {
+        void this.reconnect();
+        return;
+      }
+      if (event.checkpoint.cursor === view.checkpoint.cursor) return;
+      if (this.state.busy) {
+        void wait(this.pollMs, this.controller.signal)
+          .then(() => receive(event))
+          .catch(() => {});
+        return;
+      }
+      const ticket = ++this.watchSerial;
+      void (async () => {
+        try {
+          const next = await this.transport.multiplayer!.read(
+            view.scope.campaignId,
+            view.scope.actorId,
+            this.controller.signal,
+          );
+          if (!this.active(g) || ticket !== this.watchSerial) return;
+          if (this.state.busy) {
+            this.watchMultiplayer(view, g);
+            return;
+          }
+          if (
+            !sameScope(next.scope, view.scope) ||
+            next.checkpoint.epoch !== view.checkpoint.epoch
+          ) {
+            void this.reconnect();
+            return;
+          }
+          if (
+            next.snapshot.campaign.membership.principal_id !==
+              this.transport.principalId ||
+            !next.snapshot.campaign.membership.actor_ids.includes(
+              next.scope.actorId,
+            ) ||
+            next.snapshot.scene.id !== next.scope.sceneId ||
+            next.actions.some(
+              (a) =>
+                a.actor_id !== next.scope.actorId ||
+                a.scene_id !== next.scope.sceneId,
+            )
+          ) {
+            this.expire();
+            return;
+          }
+          this.clearCache();
+          this.cacheView(
+            scopeKey(
+              this.transport.principalId,
+              next.scope,
+              next.checkpoint.epoch,
+            ),
+            next,
+          );
+          // Replace authorized data atomically without unmounting controls during a click.
+          // Cursors/versions are opaque: even reordered or gapped events reread current state.
+          const entries = next.actions.map((action) => {
+            const old = this.state.entries.find(
+              (e) => e.action?.id === action.id,
+            );
+            return old
+              ? { ...old, action }
+              : {
+                  id: action.id,
+                  channel: "action" as const,
+                  text: "Previously submitted action",
+                  action,
+                  narration: null,
+                };
+          });
+          this.patch({
+            snapshot: next.snapshot,
+            multiplayer: next,
+            entries: [
+              ...entries,
+              ...this.state.entries.filter((e) => !e.action),
+            ],
+          });
+          this.watchMultiplayer(next, g);
+        } catch (error) {
+          this.fail(error, g);
+        }
+      })();
+    };
+    this.transport.multiplayer!.watch(view, this.controller.signal, receive);
+  }
+  async tableCommand(intent: TableIntent) {
+    const view = this.state.multiplayer;
+    if (
+      !view ||
+      this.state.connection !== "online" ||
+      this.state.busy ||
+      this.state.retry ||
+      this.state.tableRetry ||
+      this.state.needsRefresh
+    )
+      return;
+    if (
+      intent.kind === "ooc" &&
+      (!view.ooc.enabled || !intent.text.trim() || intent.text.length > 2000)
+    )
+      return;
+    if (
+      intent.kind !== "ready" &&
+      intent.kind !== "ooc" &&
+      !view.destinations.some(
+        (d) => d.id === intent.destinationId && d.kinds.includes(intent.kind),
+      )
+    )
+      return;
+    await this.executeTable({
+      commandId: crypto.randomUUID(),
+      scope: view.scope,
+      expectedGroupVersion: view.groupVersion,
+      expectedMembershipVersion: view.snapshot.campaign.membership.version,
+      intent,
+    });
+  }
+  async retryTable() {
+    if (
+      this.state.tableRetry &&
+      this.state.connection === "online" &&
+      !this.state.busy
+    )
+      await this.executeTable(this.state.tableRetry);
+  }
+  private async executeTable(command: TableCommand) {
+    if (!this.transport.multiplayer) return;
+    const g = this.generation;
+    this.patch({ busy: true, tableRetry: command, error: null });
+    try {
+      await this.transport.multiplayer.command(command, this.controller.signal);
+      if (!this.active(g)) return;
+      if (command.intent.kind === "ooc") this.saveDraft("ooc", "");
+      this.patch({ tableRetry: null });
+      await this.select(command.scope.campaignId, command.scope.actorId);
+    } catch (error) {
+      if (!this.active(g)) return;
+      if (
+        error instanceof TransportError &&
+        error.code !== "network" &&
+        error.code !== "service_unavailable"
+      )
+        this.patch({ tableRetry: null });
+      this.fail(error, g);
+    }
   }
   private versions() {
     const s = this.state.snapshot,
@@ -295,13 +604,17 @@ export class PlayStore {
     const s = this.state.snapshot;
     return (
       !!s &&
+      this.state.connection === "online" &&
+      !this.state.tableRetry &&
       !this.state.expired &&
       !this.state.needsRefresh &&
       !this.state.loading &&
       !this.state.busy &&
       !this.state.retry &&
-      !this.state.entries.some(
-        (e) => e.action?.status === "needs_clarification",
+      !this.state.entries.some((e) =>
+        ["submitted", "resolving", "needs_clarification"].includes(
+          e.action?.status ?? "",
+        ),
       ) &&
       s.campaign.membership.role === "player" &&
       !!this.state.actorId &&
@@ -309,6 +622,7 @@ export class PlayStore {
     );
   }
   async send(channel: Channel, text: string, intent?: Intent) {
+    if (this.transport.multiplayer && channel === "ooc") return;
     const value =
       intent ??
       (channel === "ooc"
@@ -357,10 +671,22 @@ export class PlayStore {
       ?.items.find((i) => i.id === itemId);
     if (!s || !item || !this.state.actorId)
       return "Select a character and item first.";
+    if (this.state.connection !== "online")
+      return "Reconnect and reconcile this scene before acting.";
+    if (this.state.tableRetry)
+      return "Resolve the pending table request first.";
     if (this.state.expired) return "Your session has ended.";
     if (this.state.needsRefresh)
       return "Reload the changed inventory before trying again.";
-    if (this.state.loading || this.state.busy || this.state.retry)
+    if (
+      this.state.loading ||
+      this.state.busy ||
+      this.state.retry ||
+      this.state.entries.some(
+        (e) =>
+          e.action?.status === "submitted" || e.action?.status === "resolving",
+      )
+    )
       return "Another action is pending. Finish or retry it first.";
     if (
       this.state.entries.some((e) => e.action?.status === "needs_clarification")
@@ -450,6 +776,8 @@ export class PlayStore {
   async clarify(entryId: string, answer: ClarifyAction["answer"]) {
     const action = this.state.entries.find((e) => e.id === entryId)?.action;
     if (
+      this.state.connection !== "online" ||
+      this.state.tableRetry ||
       !action ||
       action.status !== "needs_clarification" ||
       this.state.busy ||
@@ -483,7 +811,11 @@ export class PlayStore {
     });
   }
   async retry() {
-    if (this.state.retry && !this.state.busy)
+    if (
+      this.state.connection === "online" &&
+      this.state.retry &&
+      !this.state.busy
+    )
       await this.execute(this.state.retry);
   }
   private async followAction(entryId: string, action: Action, g: number) {
@@ -494,6 +826,12 @@ export class PlayStore {
       action = await this.transport.getAction(campaignId, action.id, signal);
       if (!this.active(g)) return;
       this.entry(entryId, { action });
+    }
+    if (this.transport.multiplayer) {
+      // Clarification receipts can also advance scene versions. Refresh before
+      // enabling the answer controls, not just after successful game changes.
+      await this.select(campaignId, this.state.actorId);
+      return;
     }
     if (action.status === "succeeded") {
       // Read committed projections rather than applying prose or calculating deltas client-side.
@@ -529,7 +867,7 @@ export class PlayStore {
   }
   private async execute(command: Command) {
     const campaignId = this.state.selectedId;
-    if (!campaignId) return;
+    if (!campaignId || this.state.connection !== "online") return;
     const g = this.generation,
       signal = this.controller.signal;
     this.patch({ busy: true, error: null, retry: command });
