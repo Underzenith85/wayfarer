@@ -107,19 +107,14 @@ def evaluate(root: Path) -> CertificationReport:
                 )
             )
 
-    required_inventory = tuple(
-        item for item in inventory() if PROFILE_ID in item.required_profiles
-    )
+    required_inventory = tuple(item for item in inventory() if PROFILE_ID in item.required_profiles)
     for item in required_inventory:
         if not _inventory_ready(item):
             blockers.append(
                 CertificationBlocker(
                     kind="inventory",
                     identifier=item.id,
-                    detail=(
-                        f"implementation={item.implementation}; "
-                        f"source_review={item.source_review}"
-                    ),
+                    detail=f"implementation={item.implementation}; source_review={item.source_review}",
                     owner_issue=item.blockers[0] if item.blockers else item.owner,
                 )
             )
