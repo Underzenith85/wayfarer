@@ -15,6 +15,8 @@ jobs:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: pnpm/action-setup@v4
         with:
           version: 11.19.0
@@ -25,6 +27,13 @@ jobs:
           cache-dependency-path: frontend/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: pnpm contracts:check
+      - run: pnpm contracts:gate-test
+      - run: pnpm fixtures:check
+      - name: Check frozen contract compatibility
+        if: github.event_name == 'pull_request'
+        env:
+          CONTRACT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: pnpm contracts:compat
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm format:check

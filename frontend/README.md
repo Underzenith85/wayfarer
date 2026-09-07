@@ -61,32 +61,68 @@ nonterminal actions recover through polling at no faster than one second. The
 fixture adapter can use shorter delays in unit tests. Existing #51 read-state
 components remain independently tested for loading/empty/error/offline displays.
 
-## Dependency and contract gate
+## Generated clients and shared mocks (#49)
 
-**Draft until #49 is delivered and integrated.** #48/#49 are still pending at the
-start of this change. This work does not claim completion of their shared MSW,
-WebSocket, drift/breaking-change or reconnect fixtures, nor live integration in
-#23/#50/#59. The `Snapshot` objective/party fields and narration iterator are
-presentation-only fixtures; they are not additions to the frozen HTTP schema.
-Dialogue uses the frozen text intent with explicit in-character phrasing; OOC uses
-question intent. Neither claims a separate chat endpoint. #49 should replace the
-fixture facade with its generated client/shared transport and settle these
-presentation mappings before #52 is closed.
+`src/api/client.ts` exposes the typed OpenAPI client for all frozen v1 operations.
+`src/api/live.ts` exposes a typed, bounded WebSocket iterator with runtime frame
+validation, scope fencing and abort cleanup. `NetworkPlayTransport` implements
+`src/play/transport.ts` using both. Pass the service origin, authenticated principal
+and credential when configuring a real connection; backend runtime/auth integration
+remains #50. Automatic reconnect, replay application and cache invalidation policy
+remain #54. The transport rejects an inconsistent snapshot handoff so callers can
+retry without publishing mixed state.
 
-Types in `src/api/contracts.generated.ts` are generated from the committed
-OpenAPI contract. `pnpm contracts:generate` regenerates them and
-`pnpm contracts:check` checks drift. JSON Schema tests validate campaign, scene,
-character, inventory, session and all action fixtures against the frozen v1
-schemas. This is a narrow prerequisite for the UI, not the full #49 contract CI.
-The latest openapi-typescript CLI still advertises a TS5 peer range; a scoped
-pnpm peer compatibility exception allows its tested TS6 API shim. TypeScript 7
-remains the actual application compiler. No other peer ranges are relaxed.
+Sample mode now starts MSW HTTP handlers and a WebSocket adapter, then uses this
+same network transport. It needs no server, AI provider or real credential. MSW
+loads only with the explicit sample switch. Unknown API requests fail locally.
+The direct `FixtureTransport` remains a focused store unit-test double and the
+base for the separate inventory preview described below. A recognized `inventory`
+selector takes precedence over `journey` and selects `InventoryFixtureTransport`
+without starting MSW. Unrecognized inventory selectors fall back to the shared
+MSW journey. This preserves the proposed-operation preview until its contracts freeze.
 
-Playwright runs sample mode across phone/tablet/desktop and covers send,
-clarification, rejection, exact retry, narration failure after commit, draft
-persistence and expiry, plus the original keyboard/focus/overflow journeys.
-The frontend workflow runs contract drift, typing, lint, formatting, unit/schema
-tests, build and browser tests alongside the unchanged Python checks.
+Alongside the original journeys, `?journey=` accepts `join`, `legal-character`,
+`illegal-character`, `item-use`, `encounter`, `split`, `capture`, `rescue`,
+`reconnect`, `ending`, `revoked`, `duplicate` and `out-of-order`. These are scripted
+contract scenarios, not a second rules engine. Domains whose dedicated endpoints
+are still proposed use existing scene/character/action/error projections; this
+change does not freeze or invent their later request DTOs. `createMockHandlers`
+accepts a scenario, origin and latency; use `fixtureCredential('player-2')` to
+exercise a rescuer's separate view or `fixtureCredential('gm')` for invite tests.
+The fixture catalog and network tests show scripted transitions and fault timing.
+
+Generated HTTP types, event unions and operation metadata come only from committed
+`contracts/v1` schemas. Responses, request bodies and live frames are validated
+with those same JSON Schemas. All scenarios, principals and committed/initial
+projections are schema-tested, as are the committed live transcript examples.
+Snapshot objective/party fields remain presentation mappings, not wire additions.
+
+```sh
+pnpm contracts:generate     # HTTP/event types, operation metadata, MSW worker
+pnpm contracts:check        # fails on generated drift
+pnpm fixtures:check         # rejects schema-invalid fixtures
+pnpm contracts:gate-test    # tests the compatibility guard
+CONTRACT_BASE_SHA=<full-PR-base-SHA> pnpm contracts:compat
+```
+
+The compatibility gate compares all frozen documents against the PR base commit.
+It conservatively rejects semantic changes, including additions, inside an
+existing major. Formatting and textual documentation corrections are allowed.
+For an intentional change, retain v1, add a new `contracts/v2` surface and include
+`contracts/migrations/v2.json` with `from_version`, `to_version` and a substantive
+`reason`; review the migration and consumer updates in the PR. The record cannot
+bypass preservation of existing contracts. Generation stays on v1 until consumers
+explicitly migrate. CI fetches base history and runs this guard on pull requests.
+
+The pnpm lockfile and packageManager pin the toolchain. openapi-typescript still
+advertises a TS5 peer range; the existing scoped exception allows its tested TS6
+API shim, while TypeScript 7 remains the application compiler. MSW's optional
+postinstall reminder is disabled; worker generation is explicit and drift-checked.
+
+CI runs generated drift, compatibility, fixture validation, typing, lint,
+formatting, unit/network tests, builds and browser tests. Playwright exercises the
+shared MSW transport across phone/tablet/desktop, including clarification, exact
+retry, narration failure after commit, campaign switching and expiry.
 
 ## Character and inventory preview (#53)
 

@@ -1,5 +1,7 @@
 allowBuilds:
   esbuild: true
+  # Worker is generated explicitly with msw init; skip its install-time reminder.
+  msw: false
 peerDependencyRules:
   allowedVersions:
     # Codegen CLI is exercised by contracts:check; its peer range predates TS6.
