@@ -3,9 +3,12 @@ import { test, expect, type Page } from "@playwright/test";
 const routes = ["Play", "Character", "Inventory", "Journal", "Campaign"];
 async function login(page: Page) {
   await page.goto("/");
-  await page.getByLabel("Access token", { exact: true }).fill("alice-token");
+  // Isolate this journey's rate-limit budget from other startup scenarios.
+  await page
+    .getByLabel("Access token", { exact: true })
+    .fill("shell-alice-token");
   await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page.getByText(/Signed in as/)).toContainText("alice");
+  await expect(page.getByText(/Signed in as/)).toContainText("shell-alice");
   return page.getByRole("region", { name: "New game and lobby" });
 }
 test("play replaces setup, and a second draft replaces the step view", async ({
@@ -37,7 +40,9 @@ test("play replaces setup, and a second draft replaces the step view", async ({
     .getByLabel("Adventure and starting party")
     .selectOption("beacon-1");
   await lobby.getByRole("button", { name: "Create game draft" }).click();
-  await lobby.getByLabel("Assign character to alice").selectOption("mira");
+  await lobby
+    .getByLabel("Assign character to shell-alice")
+    .selectOption("mira");
   await lobby.getByRole("button", { name: "Ready", exact: true }).click();
   await lobby.getByRole("button", { name: "Validate and mark ready" }).click();
   await lobby.getByRole("button", { name: "Start game", exact: true }).click();
@@ -72,7 +77,7 @@ test("play replaces setup, and a second draft replaces the step view", async ({
     .getByRole("dialog", { name: "Session" })
     .getByRole("button", { name: "Switch campaign" })
     .click();
-  await expect(page.getByText(/Signed in as/)).toContainText("alice");
+  await expect(page.getByText(/Signed in as/)).toContainText("shell-alice");
   await expect(
     page.getByRole("heading", { name: "Stormbound Harbor" }),
   ).toHaveCount(0);

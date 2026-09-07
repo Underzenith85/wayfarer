@@ -11,6 +11,8 @@ export default defineConfig({
       "/campaigns": "http://127.0.0.1:8000",
       "/setups": "http://127.0.0.1:8000",
       "/api/v1": { target: "http://127.0.0.1:8000", ws: true },
+      "/api/tactical/v1":
+        process.env.WAYFARER_TACTICAL_BACKEND ?? "http://127.0.0.1:8000",
     },
   },
   plugins: [

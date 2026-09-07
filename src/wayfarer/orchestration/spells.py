@@ -12,7 +12,7 @@ from wayfarer.orchestration.recovery import guard
 from wayfarer.orchestration.spell_bindings import SpellEnvironment
 from wayfarer.orchestration.spell_bindings import approved_context as build_context
 from wayfarer.simulation.actions import PlayState
-from wayfarer.simulation.combat import CombatEngine, Defense, Encounter, PendingDefense
+from wayfarer.simulation.combat import CombatEngine, Defense, Encounter, GridPoint, PendingDefense
 from wayfarer.simulation.maneuvers import ManeuverState
 from wayfarer.simulation.resources import Advance, ResourceEvent
 from wayfarer.simulation.spells import (
@@ -58,6 +58,8 @@ def approved_context(play: PlayService, state: PlayState, command: SpellCommand)
         if channel.target_id not in positions:
             raise ValidationError("Spell target is outside the encounter")
         point = positions[channel.target_id]
+        if not isinstance(point, GridPoint):
+            raise ValidationError("Spell bindings require supported square combat placements")
         position = (point.x, point.y)
         distance = CombatEngine.distance(positions[command.actor_id], point)
     elif command.spell_id in ("create-fire", "fireball"):

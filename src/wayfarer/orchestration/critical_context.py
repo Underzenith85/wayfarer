@@ -6,9 +6,10 @@ from wayfarer.errors import ValidationError
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.location_types import HumanLocation
 from wayfarer.simulation.actions import PlayState
-from wayfarer.simulation.combat import Encounter
+from wayfarer.simulation.combat import Encounter, GridPoint
 from wayfarer.simulation.critical import CriticalMiss, CriticalWeapon, IncomingWound, save_critical
 from wayfarer.simulation.gurps_equipment import MeleeMode
+from wayfarer.simulation.hex_geometry import Hex
 
 
 def capture_critical(
@@ -87,7 +88,13 @@ def capture_critical(
             "catalog_digest": hashlib.sha256(equipment.model_dump_json().encode()).hexdigest(),
             "ht": statistics.ht,
             "created_at": state.resources.game_time,
-            "position": (participant.position.x, participant.position.y),
+            "position": (participant.position.x, participant.position.y)
+            if isinstance(participant.position, GridPoint)
+            else None,
+            "hex_position": (participant.position.q, participant.position.r)
+            if isinstance(participant.position, Hex)
+            else None,
+            "hex_facing": participant.hex_facing,
             "facing": participant.facing,
             "anatomy": hp.injury.anatomy if hp.injury else None,
             "limb_dr": tuple(
