@@ -15,13 +15,28 @@ from pydantic import Field
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.rules.gurps_checks import success_roll
-from wayfarer.rules.recovery_types import ProfileId, RecoveryTask, require_settled, rest_entitlement
+from wayfarer.rules.recovery_types import (
+    ProfileId,
+    RecoveryTask,
+    require_settled,
+    rest_entitlement,
+    retire_tasks,
+)
 from wayfarer.simulation.injury import InjuryResult, Wound, apply_injury
 from wayfarer.simulation.resources import Command, Receipt, Record, ResourceEvent, ResourceState
 
 
 class BeginRecovery(Command):
-    kind: Literal["rest", "natural", "bandage", "first-aid", "physician"]
+    kind: Literal[
+        "rest",
+        "natural",
+        "bandage",
+        "first-aid",
+        "physician",
+        "resuscitate",
+        "stabilize",
+        "mortal-check",
+    ]
     target_id: str
     wound_id: str | None = None
     seconds: int = Field(default=600, ge=1, le=604800)
@@ -43,6 +58,8 @@ class CareContext:
     sleep: bool = False
     physician_skill: int | None = None
     physician_id: str | None = None
+    treatment_modifier: int = 0
+    surgical_facility: bool = False
 
 
 class RecoveryResult(Record):
@@ -52,6 +69,8 @@ class RecoveryResult(Record):
     fp_recovered: int = 0
     check: CheckTrace | None = None
     healing_die: int | None = None
+    resuscitated: bool = False
+    stabilized: bool = False
 
 
 def first_aid_parameters(tl: int) -> tuple[int, int]:
@@ -196,14 +215,61 @@ def apply_recovery(
     fp = next((p for p in state.pools if p.id == f"fp:{target}"), None)
     if hp is None or hp.injury is None or hp.injury.profile_id != context.profile_id:
         raise ValidationError("Recovery requires matching profile HP")
-    if hp.injury.dead or hp.injury.mortal_wound:
+    kind = command.kind if isinstance(command, BeginRecovery) else task.kind if task else ""
+    if hp.injury.dead or (hp.injury.mortal_wound and kind not in ("stabilize", "mortal-check")):
         raise ValidationError("Dead or mortally wounded patients require separate treatment")
-    if fp is not None and fp.fatigue is not None and fp.fatigue.heart_attack:
+    if kind in ("stabilize", "mortal-check") and (
+        context.profile_id != "gurps-basic-set-4e-2004" or not hp.injury.mortal_wound
+    ):
+        raise ValidationError("This procedure requires a Basic Set mortal wound")
+    if kind == "resuscitate":
+        if (
+            context.profile_id != "gurps-basic-set-4e-2004"
+            or fp is None
+            or fp.fatigue is None
+            or not fp.fatigue.heart_attack
+            or fp.fatigue.heart_attack_deadline is None
+            or state.game_time >= fp.fatigue.heart_attack_deadline
+        ):
+            raise ValidationError(
+                "Resuscitation requires a living heart-attack patient before deadline"
+            )
+    elif fp is not None and fp.fatigue is not None and fp.fatigue.heart_attack:
         raise ValidationError("Heart attack requires resuscitation, not ordinary recovery")
     check = None
     die = None
     healed = restored = 0
-    if isinstance(command, BeginRecovery):
+    resuscitated = False
+    stabilized = False
+    if isinstance(command, BeginRecovery) and command.kind == "mortal-check":
+        if hp.injury.mortal_wound_due is None or state.game_time != hp.injury.mortal_wound_due:
+            raise ValidationError("Mortal-wound survival check is not due")
+        check = success_roll(context.profile_id, context.ht, rng=rng)
+        stabilized = check.outcome is Outcome.CRITICAL_SUCCESS
+        dead = not check.outcome.succeeded
+        hp = hp.model_copy(
+            update={
+                "injury": hp.injury.model_copy(
+                    update={
+                        "dead": dead,
+                        "mortal_wound": not stabilized,
+                        "unconscious": hp.injury.unconscious or stabilized,
+                        "mortal_wound_due": None if dead or stabilized else state.game_time + 1800,
+                    }
+                )
+            }
+        )
+        tasks = (
+            retire_tasks(state.recovery_tasks, frozenset({target}), state.game_time)
+            if dead or stabilized
+            else state.recovery_tasks
+        )
+        result = RecoveryResult(
+            task_id=command.id, status="completed", check=check, stabilized=stabilized
+        )
+    elif isinstance(command, BeginRecovery):
+        assert command.kind != "mortal-check"
+        assert hp.injury is not None
         require_settled(
             state.recovery_tasks, frozenset({command.actor_id, target}), state.game_time
         )
@@ -220,7 +286,39 @@ def apply_recovery(
             raise ConflictError("Actor or patient already has pending recovery")
         duration = command.seconds
         bandaged = 0
-        if command.kind in ("bandage", "first-aid"):
+        modifier = context.treatment_modifier
+        if command.kind == "resuscitate":
+            if context.technology_level < 7 or command.actor_id == target:
+                raise ValidationError("Heart-attack resuscitation requires another TL7+ caregiver")
+            assert fp is not None and fp.fatigue is not None
+            assert fp.fatigue.heart_attack_deadline is not None
+            duration = 60
+            if state.game_time + duration >= fp.fatigue.heart_attack_deadline:
+                raise ValidationError("Resuscitation cannot finish before the fatal deadline")
+        elif command.kind == "stabilize":
+            if (
+                context.technology_level < 6
+                or not context.surgical_facility
+                or command.actor_id == target
+            ):
+                raise ValidationError(
+                    "Stabilization requires another surgeon and a sterile TL6+ facility"
+                )
+            if hp.injury.mortal_wound_due is None or state.game_time >= hp.injury.mortal_wound_due:
+                raise ValidationError("Settle the patient's survival check before surgery")
+            duration = 3600
+            modifier += context.technology_level - 6
+            modifier -= (
+                4 if hp.current <= -4 * hp.maximum else 2 if hp.current <= -3 * hp.maximum else 0
+            )
+            modifier -= 2 * sum(
+                t.kind == "stabilize"
+                and t.target_id == target
+                and t.status == "completed"
+                and t.start >= hp.injury.mortal_wound_started
+                for t in state.recovery_tasks
+            )
+        elif command.kind in ("bandage", "first-aid"):
             _wound(state, command.wound_id, target)
             previous = [
                 t
@@ -255,7 +353,7 @@ def apply_recovery(
                 >= maximum
             ):
                 raise ValidationError("Physician patient capacity exceeded")
-        if command.kind in ("first-aid", "physician") and (
+        if command.kind in ("first-aid", "physician", "resuscitate", "stabilize") and (
             context.skill is None or context.skill < 1
         ):
             raise ValidationError("Treatment requires a compiled medical skill")
@@ -318,6 +416,7 @@ def apply_recovery(
             physician_id=context.physician_id,
             ht=context.ht,
             skill=context.skill,
+            treatment_modifier=modifier,
             ordinary_entitlement=entitled[0],
             starvation_entitlement=entitled[1],
             dehydration_entitlement=entitled[2],
@@ -367,6 +466,45 @@ def apply_recovery(
                 }
             )
             fp = fp.model_copy(update={"current": current, "fatigue": status})
+        elif task.kind == "resuscitate":
+            if task.skill is None:
+                raise ValidationError("Resuscitation requires a compiled medical skill")
+            check = success_roll(context.profile_id, task.skill + task.treatment_modifier, rng=rng)
+            if check.outcome.succeeded:
+                assert fp is not None and fp.fatigue is not None
+                fp = fp.model_copy(
+                    update={
+                        "fatigue": fp.fatigue.model_copy(
+                            update={
+                                "heart_attack": False,
+                                "heart_attack_deadline": None,
+                            }
+                        )
+                    }
+                )
+                resuscitated = True
+                hp = hp.model_copy(update={"current": min(0, hp.current)})
+        elif task.kind == "stabilize":
+            assert hp.injury is not None
+            if hp.injury.mortal_wound_due is None or state.game_time >= hp.injury.mortal_wound_due:
+                raise ValidationError("Settle the patient's survival check before surgery finishes")
+            assert task.skill is not None
+            check = success_roll(context.profile_id, task.skill + task.treatment_modifier, rng=rng)
+            if check.outcome.succeeded:
+                hp = hp.model_copy(
+                    update={
+                        "injury": hp.injury.model_copy(
+                            update={
+                                "mortal_wound": False,
+                                "mortal_wound_due": None,
+                                "unconscious": True,
+                            }
+                        )
+                    }
+                )
+                stabilized = True
+            else:
+                healed = -sum(rng.randbelow(6) + 1 for _ in range(3))
         elif task.kind == "bandage":
             healed = min(multiplier, _wound(state, task.wound_id, target).injury)
         elif task.kind == "natural":
@@ -444,6 +582,8 @@ def apply_recovery(
             fp_recovered=restored,
             check=check,
             healing_die=die,
+            resuscitated=resuscitated,
+            stabilized=stabilized,
         )
     updated = state.model_copy(
         update={

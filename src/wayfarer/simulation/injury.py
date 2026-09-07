@@ -112,6 +112,12 @@ def apply_injury(
     }:
         raise ValidationError("Held items must be unique, ready and owned by the injured actor")
     status = pool.injury
+    if (
+        status.mortal_wound
+        and not status.dead
+        and (status.mortal_wound_due is None or state.game_time >= status.mortal_wound_due)
+    ):
+        raise ConflictError("Settle the mortal-wound survival check before further injury")
     current = pool.current
     checks: list[InjuryCheck] = []
     dropped: tuple[str, ...] = ()
@@ -167,7 +173,12 @@ def apply_injury(
                                 and trace.outcome is not Outcome.CRITICAL_FAILURE
                             )
                             status = status.model_copy(
-                                update={"mortal_wound": mortal, "dead": not mortal}
+                                update={
+                                    "mortal_wound": mortal,
+                                    "mortal_wound_due": state.game_time + 1800 if mortal else None,
+                                    "mortal_wound_started": state.game_time,
+                                    "dead": not mortal,
+                                }
                             )
                             if status.dead:
                                 break

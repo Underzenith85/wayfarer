@@ -13,6 +13,8 @@ class InjuryStatus(BaseModel):
     prone: bool = False
     unconscious: bool = False
     mortal_wound: bool = False
+    mortal_wound_due: int | None = Field(default=None, ge=0)
+    mortal_wound_started: int = Field(default=0, ge=0)
     dead: bool = False
     turn: int = Field(default=0, ge=0)
     phase: Literal["between", "acting"] = "between"
