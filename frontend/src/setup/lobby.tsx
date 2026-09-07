@@ -537,7 +537,7 @@ export function SetupLobby({
                     state. The saved preview survives reloads.
                   </p>
                   <Button
-                    disabled={busy || client.hasPending}
+                    disabled={!generationAvailable || busy || client.hasPending}
                     onClick={() =>
                       void run(() => command("preview", {}, "/generate"))
                     }
