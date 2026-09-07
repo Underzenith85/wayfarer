@@ -111,15 +111,20 @@ class Projector:
             if play.engine.rules.scenes:
                 configured = next(s for s in play.engine.rules.scenes.scenes if s.id == scene)
                 by_id = {s.id: s for s in play.engine.rules.scenes.scenes}
-                observations += [
-                    {
-                        "id": e.destination_id,
-                        "label": by_id[e.destination_id].title,
-                        "description": "Known scene exit",
-                    }
-                    for e in configured.exits
-                    if set(e.required_fact_ids) <= known
-                ]
+                destinations: set[str] = set()
+                for exit in configured.exits:
+                    if (
+                        set(exit.required_fact_ids) <= known
+                        and exit.destination_id not in destinations
+                    ):
+                        destinations.add(exit.destination_id)
+                        observations.append(
+                            {
+                                "id": exit.destination_id,
+                                "label": by_id[exit.destination_id].title,
+                                "description": "Known scene exit",
+                            }
+                        )
             title = entities[entity.location_id].name if entity.location_id in entities else scene
             scenes.setdefault(
                 scene,

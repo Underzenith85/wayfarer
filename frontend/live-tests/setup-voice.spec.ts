@@ -137,7 +137,9 @@ test("two identities activate a saved party and review speech through the live d
     expect(view.actors).toEqual(["b"]);
     expect(view.director).toEqual([]);
 
-    await a.getByRole("button", { name: "Travel: alley-scene" }).click();
+    await a
+      .getByRole("button", { name: "Travel to The Alley", exact: true })
+      .click();
     await expect(
       a.getByText("Adventure success", { exact: true }),
     ).toBeVisible();
