@@ -20,20 +20,13 @@ test("independent captive and rescuer choices survive reconnect and reunite priv
     b = await bob.newPage();
   const connect = async (page: Page, principal: string) => {
     await page.goto("/");
-    await page.getByLabel("Campaign ID", { exact: true }).fill(campaign_id);
     await page
-      .getByRole("form", { name: "Campaign connection" })
-      .getByLabel("Player ID", { exact: true })
-      .fill(principal);
-    await page
-      .getByRole("form", { name: "Campaign connection" })
-      .getByLabel("Access token")
+      .getByLabel("Access token", { exact: true })
       .fill(`${principal}-token`);
-    await page.getByRole("button", { name: "Connect", exact: true }).click();
-    await page.getByRole("link", { name: "Campaign", exact: true }).click();
     await page
-      .getByRole("button", { name: /Open campaign|Resume campaign/ })
+      .getByRole("button", { name: "Load games and invitations" })
       .click();
+    await page.locator(`[data-resume-id="${campaign_id}"]`).click();
     await expect(
       page.getByRole("heading", { name: "Scene decisions" }),
     ).toBeVisible();

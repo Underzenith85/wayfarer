@@ -2,7 +2,6 @@ import { test, expect, type Page } from "@playwright/test";
 async function login(page: Page, player: string) {
   await page.goto("/");
   const lobby = page.getByRole("region", { name: "New game and lobby" });
-  await lobby.getByLabel("Player ID", { exact: true }).fill(player);
   await lobby.getByLabel("Access token").fill(`${player}-token`);
   await lobby
     .getByRole("button", { name: "Load games and invitations" })
@@ -100,8 +99,9 @@ test("two identities activate a saved party and review speech through the live d
     await lobby
       .getByRole("button", { name: "Reload games / reconcile" })
       .click();
-    await lobby.getByRole("button", { name: "activate", exact: true }).click();
-    await lobby.getByRole("button", { name: "Open playing scene" }).click();
+    await lobby
+      .getByRole("button", { name: "Start game", exact: true })
+      .click();
 
     await expect(a.getByLabel("What do you do?")).toBeVisible();
     let requests = 0;

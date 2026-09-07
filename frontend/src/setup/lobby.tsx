@@ -1,3 +1,5 @@
+import { LiveTransport } from "../play/live";
+import type { Campaign } from "../play/transport";
 import { useState } from "react";
 import { Button } from "../components/ui/button";
 import { NetworkPlayTransport } from "../api/play-transport";
@@ -13,11 +15,16 @@ const blank: Brief = {
 };
 export function SetupLobby({
   onOpen,
+  mode = "new",
 }: {
+  mode?: "new" | "continue" | "join";
   onOpen: (transport: PlayTransport) => void;
 }) {
   const [token, setToken] = useState(""),
     [principal, setPrincipal] = useState("");
+  const [games, setGames] = useState<Campaign[]>([]);
+  const [legacyAvailable, setLegacyAvailable] = useState(false);
+  const [generationAvailable, setGenerationAvailable] = useState(false);
   const [client, setClient] = useState<SetupClient>();
   const [lobbies, setLobbies] = useState<Lobby[]>([]),
     [lobby, setLobby] = useState<Lobby>();
@@ -27,6 +34,15 @@ export function SetupLobby({
     [invite, setInvite] = useState("");
   const [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
+  const open = (value: Lobby) =>
+    onOpen(
+      new NetworkPlayTransport({
+        origin: location.origin,
+        credential: token,
+        principalId: principal,
+        initialCampaignId: value.id,
+      }),
+    );
   const choose = (value: Lobby) => {
     setLobby(value);
     setBrief(value.brief);
@@ -50,26 +66,47 @@ export function SetupLobby({
     suffix = "",
   ) => {
     if (!client || !lobby) return;
-    choose(
-      await client.write(`/${lobby.id}${suffix}`, {
-        id: crypto.randomUUID(),
-        expected_revision: lobby.revision,
-        operation,
-        ...extra,
-      }),
-    );
+    const result = await client.write(`/${lobby.id}${suffix}`, {
+      id: crypto.randomUUID(),
+      expected_revision: lobby.revision,
+      operation,
+      ...extra,
+    });
+    choose(result);
+    if (operation === "activate" || operation === "resume") open(result);
   };
   const host = lobby?.host_id === principal;
   const editable = !lobby || lobby.phase === "draft" || lobby.phase === "ready";
   return (
     <section className="scene-card setup-lobby" aria-label="New game and lobby">
-      <h2>New game & invitations</h2>
+      <h2>
+        {mode === "new"
+          ? "New game"
+          : mode === "continue"
+            ? "Continue game"
+            : "Join game"}
+      </h2>
+      <p>Sign in with your own access token. No campaign ID is needed.</p>
       {!client ? (
         <form
           onSubmit={(e) => {
             e.preventDefault();
             void run(async () => {
-              const next = new SetupClient(token);
+              const auth = await new SetupClient(token).request<{
+                principal_id: string;
+                generation_available: boolean;
+                legacy_available: boolean;
+              }>("/session");
+              const next = new SetupClient(token, auth.principal_id);
+              setPrincipal(auth.principal_id);
+              setGenerationAvailable(auth.generation_available);
+              setLegacyAvailable(auth.legacy_available);
+              const games = await new NetworkPlayTransport({
+                origin: location.origin,
+                credential: token,
+                principalId: auth.principal_id,
+              }).listCampaigns(new AbortController().signal);
+              setGames(games);
               const values = await next.request<Lobby[]>("");
               const available = await next.request<Graph[]>("/templates");
               setClient(next);
@@ -78,14 +115,6 @@ export function SetupLobby({
             });
           }}
         >
-          <label>
-            Player ID
-            <input
-              required
-              value={principal}
-              onChange={(e) => setPrincipal(e.target.value)}
-            />
-          </label>
           <label>
             Access token
             <input
@@ -106,6 +135,9 @@ export function SetupLobby({
               onClick={() => {
                 setClient(undefined);
                 setToken("");
+                setPrincipal("");
+                setGames([]);
+                setTemplates([]);
                 setLobbies([]);
                 setLobby(undefined);
                 setGraph(null);
@@ -119,17 +151,43 @@ export function SetupLobby({
               disabled={busy}
               onClick={() =>
                 void run(async () => {
+                  if (client.hasPending) {
+                    const recovered = await client.retry();
+                    choose(recovered);
+                    if (recovered.phase === "active") open(recovered);
+                  }
                   const values = await client.request<Lobby[]>("");
                   setLobbies(values);
                   if (lobby)
                     choose(await client.request<Lobby>(`/${lobby.id}`));
-                  client.reconcile();
                 })
               }
             >
               Reload games / reconcile
             </Button>
           </div>
+          {!generationAvailable && (
+            <p>
+              AI generation and free-text actions are unavailable. Authored
+              adventures and scene action buttons work without an AI provider.
+            </p>
+          )}
+          <p>
+            {mode === "join"
+              ? "Ask the host to invite your player name. Then reload to accept your invitation."
+              : "Your saved games and unfinished drafts"}{" "}
+            · Signed in as {principal}
+          </p>
+          <Button
+            disabled={busy || client.hasPending}
+            onClick={() => {
+              setLobby(undefined);
+              setGraph(null);
+              setBrief(blank);
+            }}
+          >
+            New draft
+          </Button>
           <ul>
             {lobbies.map((value) => (
               <li key={value.id}>
@@ -138,15 +196,42 @@ export function SetupLobby({
                   variant="outline"
                   disabled={busy || client.hasPending}
                   onClick={() =>
-                    void run(async () =>
-                      choose(await client.request<Lobby>(`/${value.id}`)),
-                    )
+                    void run(async () => {
+                      const saved = await client.request<Lobby>(`/${value.id}`);
+                      choose(saved);
+                      if (saved.phase === "active") open(saved);
+                    })
                   }
                 >
                   {value.title} · {value.phase}
                 </Button>
               </li>
             ))}
+          </ul>
+          <ul>
+            {games
+              .filter((game) => !lobbies.some((value) => value.id === game.id))
+              .map((game) => (
+                <li key={game.id}>
+                  <Button
+                    data-resume-id={game.id}
+                    onClick={() =>
+                      onOpen(
+                        legacyAvailable
+                          ? new LiveTransport(principal, game.id, token)
+                          : new NetworkPlayTransport({
+                              origin: location.origin,
+                              credential: token,
+                              principalId: principal,
+                              initialCampaignId: game.id,
+                            }),
+                      )
+                    }
+                  >
+                    Continue {game.name}
+                  </Button>
+                </li>
+              ))}
           </ul>
           {!lobby && <p>Create a game, or open an invitation above.</p>}
           {lobby && (
@@ -163,6 +248,7 @@ export function SetupLobby({
                     const result = await client.write("", {
                       id: crypto.randomUUID(),
                       brief,
+                      graph: graph ? { ...graph, brief } : null,
                     });
                     choose(result);
                     setLobbies([...lobbies, result]);
@@ -326,7 +412,7 @@ export function SetupLobby({
               <Button disabled={busy || client.hasPending}>
                 {lobby ? "Save setup draft" : "Create game draft"}
               </Button>
-              {lobby && (
+              {lobby && generationAvailable && (
                 <Button
                   type="button"
                   disabled={busy || client.hasPending}
@@ -439,7 +525,7 @@ export function SetupLobby({
                       disabled={busy || client.hasPending}
                       onClick={() => void run(() => command(operation))}
                     >
-                      {operation}
+                      {operation === "activate" ? "Start game" : operation}
                     </Button>
                   ))}
                 {lobby.phase === "active" && (
@@ -476,7 +562,13 @@ export function SetupLobby({
           {client.hasPending && (
             <Button
               disabled={busy}
-              onClick={() => void run(async () => choose(await client.retry()))}
+              onClick={() =>
+                void run(async () => {
+                  const recovered = await client.retry();
+                  choose(recovered);
+                  if (recovered.phase === "active") open(recovered);
+                })
+              }
             >
               Retry original setup request
             </Button>

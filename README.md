@@ -1,121 +1,61 @@
 # Wayfarer
 
-A local-first, service-backed roleplaying prototype with an LLM game master, constrained character generation, a scenario studio, and voice/text play.
+A local-first, service-backed GURPS-inspired roleplaying engine with persistent campaigns, a responsive player UI, and an optional LLM game master. The engine validates characters and actions; generated prose never changes authoritative state.
 
-## Run
+## Setup and run
 
-Python 3.14 with [uv](https://docs.astral.sh/uv/). CI and local tooling standardize on CPython 3.14. No third-party runtime dependencies.
+Install Python 3.14, [uv](https://docs.astral.sh/uv/), Node 22.22.2+ or 24.15.0+, and pnpm 11.19.0. From the repository root:
 
 ```bash
 uv sync --frozen
+pnpm --dir frontend install --frozen-lockfile
+pnpm --dir frontend build
 ```
 
+Configure a separate access token for each player. Choose your own long random values; these authenticate players to your local service and are separate from an AI provider's credentials.
+
 ```bash
+export WAYFARER_TOKENS='{"replace-with-your-own-long-random-token":"alice"}'
 uv run --frozen wayfarer
 ```
 
-Open http://127.0.0.1:8000. Click **Begin the demo adventure**, or use the Character workshop and Scenario studio to create a campaign. SQLite saves state under `data/`; browser storage holds only the selected campaign ID. Back up the SQLite database to preserve campaigns.
+Open [Wayfarer](http://127.0.0.1:8000). The normal command serves the production frontend and the authoritative `/setups` and `/api/v1` services together.
 
-The default **Offline demo** uses preset generation and a small keyword action classifier. It is explicitly not an LLM simulation. For real generation, intent classification, and narration, export credentials on the server:
+1. Click **New game**, enter your access token, and select **Load games and invitations**. The server identifies your player name; no campaign ID is required.
+2. Choose **The Last Beacon (solo)** under **Adventure and starting party**. Review the brief and the legal starting character, then **Create game draft**.
+3. Assign Mira to your player name. Click **Validate and mark ready**, then **Start game**.
+4. The opening scene loads immediately. Use **Wait one tick** or **Travel to The Beacon** to play without an AI provider. Free-text interpretation and generated narration require a provider.
+
+For multiplayer, add distinct token-to-player entries to `WAYFARER_TOKENS`, restart the server, and choose the two-player scenario. Invite the other player's name. They use **Join game** and their own token to accept; the host assigns Mira and Iven, both players mark ready, and the host starts. Tokens are never shared between players.
+
+**Continue game** lists authorized saved games and unfinished setups. After a page refresh, authenticate again and open your saved game. Tokens are kept in memory. Uncertain setup commands are retained in that tab's session storage under the authenticated player name; **Retry original setup request** resends the same command, including after refresh. Validation errors leave the draft editable; stale revisions require **Reload games / reconcile**. Setup edits clear assignments and readiness.
+
+SQLite saves campaigns and drafts under `data/wayfarer.sqlite3`; durable player-API receipts use `data/wayfarer.v1.sqlite3`. Back up both databases together. Restarting the server retains drafts and active play. You do not need seed scripts, fixtures, SQL, or pre-existing campaign IDs.
+
+## Configuration
+
+- `WAYFARER_HOST` and `WAYFARER_PORT`: default `127.0.0.1:8000`. `--port` overrides the port.
+- `WAYFARER_DB`: campaign database path; `--db` overrides it.
+- `WAYFARER_FRONTEND_DIR`: production build directory, default `frontend/dist` relative to the working directory. When launching an installed wheel outside the checkout, point this at the absolute path of your frontend build.
+- `WAYFARER_ALLOWED_ORIGINS`: JSON array of permitted WebSocket origins. Defaults include localhost/127.0.0.1 on ports 8000 and 5173. Set it to the browser's actual origin when using another port or host.
+- `WAYFARER_DATABASE_URL`: optional PostgreSQL connection string; the API receipt database still uses the configured local database path.
+
+For frontend development, run `pnpm --dir frontend dev` alongside the Python service and open the URL Vite prints. Vite proxies `/setups`, `/campaigns`, and `/api/v1` (including WebSockets) to port 8000. Normal play does not use `VITE_PLAY_FIXTURES`.
+
+## Optional AI provider
+
+The bundled scenario path always works without an LLM. For an API-backed provider:
 
 ```bash
-export OPENAI_API_KEY='your-key'
-export OPENAI_MODEL='your-structured-output-capable-model'
+export WAYFARER_OPENAI_API_KEY='your-key'
+export WAYFARER_OPENAI_MODEL='your-structured-output-capable-model'
 uv run --frozen wayfarer
 ```
 
-Choose a model your API account can access that supports Responses API structured outputs. No API credentials are exposed to the client or saved in Git. API calls incur usage charges. Optional integration uses [Responses structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs). Provider integration is covered with mocks; live provider access requires your credentials.
+For the Codex provider using a supported ChatGPT login, follow the [Codex setup guide](docs/wave-10.md). Configure `WAYFARER_LLM_PROVIDER=codex` before starting the service. Provider credentials stay on the server; each player still authenticates with their own Wayfarer access token.
 
-## Prototype features
+## Documentation
 
-- Three responsive workspaces: Adventure, Character workshop, Scenario studio.
-- Characters, inventory, location, elapsed time, discoveries, narrative consequences, transcript and rolls saved by a SQLite service.
-- LLM character proposals validated against server-owned costs and limits; invalid drafts cannot activate. Manual editing and validation supported.
-- LLM scenario generation skins a fixed mystery encounter graph. Draft editing and activation into separate campaigns.
-- LLM intent classification into typed, allowlisted actions; server dice and consequences; separate flavor narration after state commit.
-- Idempotent turn requests and optimistic revisions; SQLite transactions atomically save state and event history.
-- Browser speech recognition fills an editable text draft; it never submits automatically. Optional speech synthesis reads narration aloud. Recognition availability depends on browser, permissions and secure context (localhost is supported by many browsers). Speech may use the browser vendor’s remote service. Text always works.
+See [architecture](docs/architecture.md), [UI onboarding](docs/ui-onboarding.md), [API runtime](docs/api-v1-runtime.md), [rules](docs/rules-catalog.md), [persistence](docs/persistence.md), [testing](docs/testing.md), and [contributing](CONTRIBUTING.md).
 
-## Rules contract: `wayfarer-lite-1`
-
-This is a **GURPS-inspired, deliberately limited prototype**, not a complete or officially licensed GURPS implementation. No proprietary rulebook text is included. The trait catalog and encounter mechanics below are prototype house rules, not representations of exact published traits.
-
-- 100-point budget; ST/HT cost 10 points per level relative to 10; DX/IQ cost 20. Attributes restricted to 8–14.
-- Reduced attributes plus negative traits cannot contribute more than 25 points.
-- Closed trait catalog: Keen senses +5, Fit +5, Curious −5, Code of honor −10. Traits currently have no automated situational effects; their costs are prototype-defined.
-- Four trained skills; allocations 1/2/4/8/12/16; attribute-relative progression with skill ceiling 16. Unknown skills, duplicate traits, unknown fields, noninteger values and negative allocations rejected. No default/untrained skill checks.
-- 3d6 roll-under including critical success/failure boundaries. Engine selects skills; LLM cannot select target values, modifiers, roll results, rewards or arbitrary mutations.
-- Investigation/conversation reveal one lead; stealth after finding it completes the mystery. Failed checks cost one FP and ten minutes. Rest restores one FP in thirty minutes. These are prototype scenario mechanics.
-- No combat, spells, custom powers, equipment shopping, leveling, or arbitrary action execution yet. Flavor/backstory grants no mechanical benefits.
-
-Point legality does not guarantee balance for a full ruleset. Expanding the catalog requires mechanically implemented traits, prerequisites, incompatibility rules, scenario challenge budgets and an approved rules source.
-
-## Architecture
-
-The installed `wayfarer` command starts the packaged demo. Code lives under `src/wayfarer`, with rules, character, simulation, persistence, orchestration and transport boundaries. Vanilla HTML/CSS/JS ships inside the wheel. See [architecture](docs/architecture.md), [contributing](CONTRIBUTING.md), and [existing campaign migration](docs/migration.md).
-
-`uv run server.py` remains a compatibility launcher. From another directory, use an installed `wayfarer --db /absolute/path/to/campaigns.sqlite3`; relative database paths are relative to the launch directory.
-
-The LLM proposes, the engine validates/resolves, and committed facts drive narration. Narration is presentation only and cannot become canonical state. The UI exposes committed outcomes alongside generated prose. Initial hidden clues/secrets are removed from play responses and intent context until discovered; the scenario studio is deliberately an author view with spoilers.
-
-Campaigns have a revision and pinned rules version. Turn events have a per-campaign unique request ID. Retrying an ID returns its original committed result without executing again; reusing it with different input is rejected. PostgreSQL is selected with `WAYFARER_DATABASE_URL`; SQLite remains the local default. See [rules catalog](docs/rules-catalog.md) and [persistence](docs/persistence.md). A failed intent call applies nothing; a failed narration call leaves the mechanical outcome saved and visible.
-
-## Test
-
-```bash
-uv run --frozen ruff check .
-uv run --frozen ruff format --check .
-uv run --frozen mypy
-uv run --frozen pytest
-uv lock --check
-uv build
-node --check src/wayfarer/transport/static/app.js
-```
-
-Pytest/Hypothesis tests cover character abuse, critical roll edges, secret filtering, stale state, retries, persistent state, progression/reward duplication, invalid activation and provider failures.
-
-## Boundaries and next steps
-
-Single-user localhost prototype: no authentication, multiplayer or hosted deployment. The aiohttp service provides async I/O and graceful shutdown but still binds locally. Do not expose the development server publicly. The server binds loopback and rejects cross-origin JSON writes. LLM calls are bounded by a 45-second timeout. Long-running campaigns need transcript pagination/context budgets; scenario generation needs a richer validated encounter graph. Narrative prose is not formally verified and can diverge from canonical facts; inspect committed outcomes when needed.
-
-Next: production API/auth, full versioned rules catalogs, general typed action planner, per-character knowledge, NPC mechanics, combat and advancement, realtime voice, model evaluations, browser accessibility and interaction QA.
-
-Python source, tests and scripts pass mypy strict and Ruff. See the [quality contract](docs/quality.md) for hooks, CI gates and required-check setup.
-
-Runtime configuration, error mapping, logging and dependency updates are documented in [operations](docs/operations.md); the pytest/Hypothesis strategy is in [testing](docs/testing.md).
-
-Wave 6 adds the server-owned character compiler and transactional inventory/game-time
-engine. See [the Wave 6 contracts and integration guide](docs/wave-6.md).
-
-Wave 7 adds campaign power approval and a transactional typed action pipeline.
-See [the Wave 7 contracts and supported mechanics](docs/wave-7.md).
-
-Wave 8 completes the gameplay foundations: bounded adjudication, combat lifecycle,
-advancement and rules migrations, authenticated campaign transport, and versioned
-scene/exploration progression. See [the Wave 8 contracts](docs/wave-8.md).
-
-
-## Versioned player API contract
-
-The [v1 HTTP contract](contracts/v1/README.md) defines the target for parallel UI
-and backend work, including frozen OpenAPI/shared schemas, validated examples,
-authorization, retries and current implementation gaps. It does not claim that
-the existing demo or authenticated facade already conforms. Backend adaptation
-is tracked in #50; proposed extensions remain outside the frozen specification.
-
-Wave 9 adds combat outcomes, objectives/rewards, noncombat encounters, subgroup
-time coordination and bounded provider-independent orchestration. See the
-[Wave 9 contracts and supported subset](docs/wave-9.md).
-
-
-### Wave 10
-
-Codex subscription setup, NPC/faction activity, capture/rescue and recovery are
-covered in [the Wave 10 guide](docs/wave-10.md). The typed campaign app can select
-the Codex provider with a dedicated login; the legacy demo remains separate.
-
-## Frozen API runtime
-
-The authenticated campaign app also serves `/api/v1` and `/api/v1/live`.
-See [the v1 runtime guide](docs/api-v1-runtime.md) for credential/Origin setup,
-durable receipt storage, capability ownership and contract tests.
+This is a limited GURPS-inspired implementation, not a complete or officially licensed GURPS ruleset. No proprietary rulebook text is included.

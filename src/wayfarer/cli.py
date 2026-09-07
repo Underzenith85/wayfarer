@@ -8,7 +8,7 @@ from pydantic import ValidationError as SettingsValidationError
 
 from wayfarer.config import Settings
 from wayfarer.logging import configure
-from wayfarer.transport.http import create_app
+from wayfarer.runtime import create_runtime_app
 
 
 def main() -> None:
@@ -18,22 +18,19 @@ def main() -> None:
     args = parser.parse_args()
     try:
         base = Settings()
-        settings = Settings(
-            host=base.host,
-            port=args.port if args.port is not None else base.port,
-            db=args.db.expanduser().resolve() if args.db is not None else base.db,
-            database_url=base.database_url,
-            log_level=base.log_level,
-            openai_api_key=base.openai_api_key,
-            openai_model=base.openai_model,
-            model_timeout_seconds=base.model_timeout_seconds,
-            db_timeout_seconds=base.db_timeout_seconds,
+        settings = Settings.model_validate(
+            {
+                **base.model_dump(),
+                "port": args.port if args.port is not None else base.port,
+                "db": args.db.expanduser().resolve() if args.db is not None else base.db,
+            }
         )
-    except SettingsValidationError as exc:
+        app = create_runtime_app(settings, settings.frontend_dir)
+    except (SettingsValidationError, ValueError) as exc:
         parser.error(str(exc))
     configure(settings.log_level)
     web.run_app(
-        create_app(settings),
+        app,
         host=settings.host,
         port=settings.port,
         print=lambda line: print(line, flush=True),
