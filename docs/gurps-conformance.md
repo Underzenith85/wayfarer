@@ -347,3 +347,20 @@ until #109; corrosion's persistent armor destruction remains unavailable under
 #114. No generic damage multiplier implements those missing runtime effects.
 The intended source is Lite August 2004 pp. 28-30 and Basic Set Campaigns first
 printing B378-381, B419-423 plus the selected 2007-01-26 errata; source audit pending.
+
+## Character workshop integration (#116)
+
+The additive workshop contract in `contracts/workshop/v1` describes profile
+previews, catalog metadata and advancement input separately from frozen gameplay
+v1. Generated TypeScript types drive skill difficulty/default/specialty/technique
+and typed trait parameter/self-control/modifier controls. Prices and derived
+values come from CharacterCompiler; no client formula decides point totals.
+
+Profile previews are read-only. Selecting another profile cannot switch a saved
+campaign or bypass its explicit migration/capability gate. Save and generation
+operate on the active campaign compiler. Approval is separate from legality;
+unsaved edits disable activation, and saved edits invalidate the prior approval.
+The existing CAS/build revision/earned-points ledger handles advancement previews
+and purchases. Setup activation preserves depleted HP/FP rather than healing via
+rebuild. Full GURPS campaign activation still requires its outstanding mechanics;
+the workshop exposes those blockers and never silently substitutes prototype rules.

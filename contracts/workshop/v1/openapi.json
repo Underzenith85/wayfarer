@@ -1,0 +1,860 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Character workshop",
+    "version": "1.0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "CatalogOption": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/DefinitionKind"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ImplementationStatus"
+          },
+          "skill": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SkillSpec"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "trait": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TraitRules"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "status"
+        ],
+        "title": "CatalogOption",
+        "type": "object"
+      },
+      "ControllingAttribute": {
+        "enum": [
+          "attribute:st",
+          "attribute:dx",
+          "attribute:iq",
+          "attribute:ht",
+          "secondary:will",
+          "secondary:per"
+        ],
+        "title": "ControllingAttribute",
+        "type": "string"
+      },
+      "DefinitionKind": {
+        "enum": [
+          "attribute",
+          "secondary",
+          "skill",
+          "trait",
+          "equipment"
+        ],
+        "title": "DefinitionKind",
+        "type": "string"
+      },
+      "Difficulty": {
+        "enum": [
+          "easy",
+          "average",
+          "hard",
+          "very-hard"
+        ],
+        "title": "Difficulty",
+        "type": "string"
+      },
+      "ImplementationStatus": {
+        "enum": [
+          "implemented",
+          "manual-adjudication",
+          "unsupported"
+        ],
+        "title": "ImplementationStatus",
+        "type": "string"
+      },
+      "ProfileOption": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "supported": {
+            "title": "Supported",
+            "type": "boolean"
+          },
+          "blockers": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Blockers",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "title",
+          "supported",
+          "blockers"
+        ],
+        "title": "ProfileOption",
+        "type": "object"
+      },
+      "SkillDefault": {
+        "properties": {
+          "target": {
+            "title": "Target",
+            "type": "string"
+          },
+          "modifier": {
+            "title": "Modifier",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "target",
+          "modifier"
+        ],
+        "title": "SkillDefault",
+        "type": "object"
+      },
+      "SkillPrerequisite": {
+        "properties": {
+          "target": {
+            "title": "Target",
+            "type": "string"
+          },
+          "minimum": {
+            "default": 1,
+            "title": "Minimum",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "target"
+        ],
+        "title": "SkillPrerequisite",
+        "type": "object"
+      },
+      "SkillSpec": {
+        "properties": {
+          "attribute": {
+            "$ref": "#/components/schemas/ControllingAttribute"
+          },
+          "difficulty": {
+            "$ref": "#/components/schemas/Difficulty"
+          },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
+          },
+          "defaults": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/SkillDefault"
+            },
+            "title": "Defaults",
+            "type": "array"
+          },
+          "prerequisites": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/SkillPrerequisite"
+            },
+            "title": "Prerequisites",
+            "type": "array"
+          },
+          "specialty": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Specialty"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "technique": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Technique"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "attribute",
+          "difficulty",
+          "reference"
+        ],
+        "title": "SkillSpec",
+        "type": "object"
+      },
+      "Specialty": {
+        "properties": {
+          "family": {
+            "title": "Family",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "optional_parent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Optional Parent"
+          }
+        },
+        "required": [
+          "family",
+          "name"
+        ],
+        "title": "Specialty",
+        "type": "object"
+      },
+      "Technique": {
+        "properties": {
+          "parent": {
+            "title": "Parent",
+            "type": "string"
+          },
+          "default_modifier": {
+            "title": "Default Modifier",
+            "type": "integer"
+          },
+          "maximum_modifier": {
+            "default": 0,
+            "title": "Maximum Modifier",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "parent",
+          "default_modifier"
+        ],
+        "title": "Technique",
+        "type": "object"
+      },
+      "TraitModifier": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "percent": {
+            "title": "Percent",
+            "type": "integer"
+          },
+          "exclusions": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Exclusions",
+            "type": "array"
+          },
+          "runtime_hook": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Runtime Hook"
+          }
+        },
+        "required": [
+          "id",
+          "percent"
+        ],
+        "title": "TraitModifier",
+        "type": "object"
+      },
+      "TraitParameter": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "text",
+              "integer",
+              "boolean"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "choices": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            },
+            "title": "Choices",
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "kind",
+          "choices"
+        ],
+        "title": "TraitParameter",
+        "type": "object"
+      },
+      "TraitRules": {
+        "properties": {
+          "profile_id": {
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "maximum_level": {
+            "default": 1,
+            "title": "Maximum Level",
+            "type": "integer"
+          },
+          "self_control": {
+            "default": false,
+            "title": "Self Control",
+            "type": "boolean"
+          },
+          "parameters": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/TraitParameter"
+            },
+            "title": "Parameters",
+            "type": "array"
+          },
+          "modifiers": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/TraitModifier"
+            },
+            "title": "Modifiers",
+            "type": "array"
+          },
+          "runtime_hooks": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Runtime Hooks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "profile_id"
+        ],
+        "title": "TraitRules",
+        "type": "object"
+      },
+      "WorkshopOptions": {
+        "additionalProperties": false,
+        "properties": {
+          "active_profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active Profile"
+          },
+          "profiles": {
+            "items": {
+              "$ref": "#/components/schemas/ProfileOption"
+            },
+            "title": "Profiles",
+            "type": "array"
+          },
+          "catalog": {
+            "items": {
+              "$ref": "#/components/schemas/CatalogOption"
+            },
+            "title": "Catalog",
+            "type": "array"
+          },
+          "build_revision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Build Revision"
+          },
+          "points_available": {
+            "title": "Points Available",
+            "type": "integer"
+          },
+          "can_approve": {
+            "title": "Can Approve",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "active_profile",
+          "profiles",
+          "catalog",
+          "build_revision",
+          "points_available",
+          "can_approve"
+        ],
+        "title": "WorkshopOptions",
+        "type": "object"
+      },
+      "CharacterDraft": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "backstory": {
+            "default": "",
+            "maxLength": 10000,
+            "title": "Backstory",
+            "type": "string"
+          },
+          "purchases": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Purchase"
+            },
+            "maxItems": 1000,
+            "title": "Purchases",
+            "type": "array"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "CharacterDraft",
+        "type": "object"
+      },
+      "CharacterProposal": {
+        "additionalProperties": false,
+        "properties": {
+          "draft": {
+            "$ref": "#/components/schemas/CharacterDraft"
+          },
+          "custom": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/CustomConstruction"
+            },
+            "maxItems": 100,
+            "title": "Custom",
+            "type": "array"
+          }
+        },
+        "required": [
+          "draft"
+        ],
+        "title": "CharacterProposal",
+        "type": "object"
+      },
+      "CustomConstruction": {
+        "additionalProperties": false,
+        "description": "A named grouping of purchased catalog components, never new mechanics.",
+        "properties": {
+          "id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "components": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Components",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "components"
+        ],
+        "title": "CustomConstruction",
+        "type": "object"
+      },
+      "Purchase": {
+        "additionalProperties": false,
+        "properties": {
+          "definition_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Definition Id",
+            "type": "string"
+          },
+          "amount": {
+            "default": 1,
+            "maximum": 10000,
+            "minimum": 1,
+            "title": "Amount",
+            "type": "integer"
+          },
+          "trait": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TraitOptions"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "definition_id"
+        ],
+        "title": "Purchase",
+        "type": "object"
+      },
+      "TraitOptions": {
+        "additionalProperties": false,
+        "properties": {
+          "parameters": {
+            "default": [],
+            "items": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "string"
+                },
+                {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "boolean"
+                    }
+                  ]
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Parameters",
+            "type": "array"
+          },
+          "self_control": {
+            "anyOf": [
+              {
+                "enum": [
+                  6,
+                  9,
+                  12,
+                  15
+                ],
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Self Control"
+          },
+          "modifiers": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Modifiers",
+            "type": "array"
+          }
+        },
+        "title": "TraitOptions",
+        "type": "object"
+      },
+      "ProfilePreviewRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "profile_id": {
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          },
+          "proposal": {
+            "$ref": "#/components/schemas/CharacterProposal"
+          }
+        },
+        "required": [
+          "profile_id",
+          "version",
+          "proposal"
+        ],
+        "title": "ProfilePreviewRequest",
+        "type": "object"
+      },
+      "ProfilePreviewResult": {
+        "additionalProperties": false,
+        "properties": {
+          "profile": {
+            "$ref": "#/components/schemas/ProfileOption"
+          },
+          "catalog": {
+            "items": {
+              "$ref": "#/components/schemas/CatalogOption"
+            },
+            "title": "Catalog",
+            "type": "array"
+          },
+          "spent": {
+            "title": "Spent",
+            "type": "integer"
+          },
+          "remaining": {
+            "title": "Remaining",
+            "type": "integer"
+          },
+          "legal": {
+            "title": "Legal",
+            "type": "boolean"
+          },
+          "diagnostics": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Diagnostics",
+            "type": "array"
+          },
+          "derived": {
+            "items": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Derived",
+            "type": "array"
+          }
+        },
+        "required": [
+          "profile",
+          "catalog",
+          "spent",
+          "remaining",
+          "legal",
+          "diagnostics",
+          "derived"
+        ],
+        "title": "ProfilePreviewResult",
+        "type": "object"
+      },
+      "AdvanceCharacter": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "expected_build_revision": {
+            "title": "Expected Build Revision",
+            "type": "string"
+          },
+          "draft": {
+            "$ref": "#/components/schemas/CharacterDraft"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "expected_revision",
+          "expected_build_revision",
+          "draft",
+          "reason"
+        ],
+        "title": "AdvanceCharacter",
+        "type": "object"
+      },
+      "DraftCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "draft_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Draft Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "expected_draft_revision": {
+            "minimum": 0,
+            "title": "Expected Draft Revision",
+            "type": "integer"
+          },
+          "operation": {
+            "default": "save",
+            "enum": [
+              "save",
+              "approve",
+              "activate"
+            ],
+            "title": "Operation",
+            "type": "string"
+          },
+          "kind": {
+            "default": "character",
+            "enum": [
+              "character",
+              "scenario"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "content_json": {
+            "anyOf": [
+              {
+                "maxLength": 100000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Content Json"
+          },
+          "reason": {
+            "default": "",
+            "maxLength": 2000,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "draft_id",
+          "actor_id",
+          "expected_revision",
+          "expected_draft_revision"
+        ],
+        "title": "DraftCommand",
+        "type": "object"
+      }
+    }
+  }
+}

@@ -115,6 +115,11 @@ class AdvancementService:
         command = self._advance(value, authenticated_actor_id)
         state = self.play._load(await self.play.store.read(cid))
         before = _build(self.play, state, command.actor_id)
+        if (
+            command.expected_revision != state.revision
+            or command.expected_build_revision != before.revision
+        ):
+            raise ConflictError("Advancement preview context changed")
         review = self.play.engine.reviewer.review(CharacterProposal(draft=command.draft))
         after = review.compilation.build
         if after is None or review.status in ("illegal", "blocked"):
