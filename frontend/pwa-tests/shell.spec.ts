@@ -41,6 +41,6 @@ test("production shell installs, excludes private routes, and reopens offline", 
   await context.setOffline(false);
   await page.reload();
   await expect(
-    page.getByRole("button", { name: "New game", exact: true }),
+    page.getByRole("tab", { name: "New game", exact: true }),
   ).toBeVisible();
 });
