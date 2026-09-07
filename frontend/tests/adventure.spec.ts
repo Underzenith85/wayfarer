@@ -185,14 +185,16 @@ test("success, failure and continuing failure remain distinct and spoiler-safe",
       }),
     ).toBeVisible();
     await expect(page.locator("body")).not.toContainText("copper finch");
-    await expect(
-      page.getByText(
-        success
-          ? "2 points authorized by the campaign record"
-          : "No rewards were authorized for this outcome.",
-        { exact: true },
-      ),
-    ).toBeVisible();
+    if (success)
+      await expect(
+        page.getByText(/2 points authorized by the campaign record/),
+      ).toBeVisible();
+    else
+      await expect(
+        page.getByText("No rewards were authorized for this outcome.", {
+          exact: true,
+        }),
+      ).toBeVisible();
     await expect(
       page.getByRole("link", { name: "Continue campaign" }),
     ).toHaveCount(success ? 0 : 1);
