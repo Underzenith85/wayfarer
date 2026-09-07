@@ -66,6 +66,11 @@ export interface components {
        * @default 0
        */
       opaque_height: number;
+      /**
+       * Elevation Inches
+       * @description Additional inches above elevation datum
+       */
+      elevation_inches?: number;
     };
     /** ChooseDefense */
     ChooseDefense: {
@@ -525,6 +530,8 @@ export interface components {
       baseline_id: "gurps-4e-2004-first-printing+errata-2007-01-26";
       /** Cells */
       cells: components["schemas"]["Cell"][];
+      /** Stairs */
+      stairs?: components["schemas"]["Stairway"][];
     };
     /** HexPlacement */
     HexPlacement: {
@@ -589,6 +596,14 @@ export interface components {
       encounter_id: string;
       /** Grip Id */
       grip_id: string;
+    };
+    /**
+     * Stairway
+     * @description Authored traversable edge, not permission to climb or jump a cliff.
+     */
+    Stairway: {
+      start: components["schemas"]["Hex"];
+      end: components["schemas"]["Hex"];
     };
     /** TacticalRequest */
     TacticalRequest: {

@@ -659,6 +659,23 @@ result nor this partial adapter certifies these missing paths or unblocks #119's
 hard #117 prerequisite.
 
 
+## Geometry and injury follow-up (#105/#107)
+
+The hex adapter now supports fractional authored elevations, explicit stair
+edges and standing armed melee height/location/defense rules. Tactical posture
+costs and final-facing allowances use B387 arithmetic. Existing square positions,
+profile pins and zero-offset hex maps retain their meanings.
+
+Human-layout injury now executes the declared Injury Tolerance structures and
+missing-part variants, with distinct attack/area/internal injury sources and
+B552 targeted near-miss torso fallback. The hit-location, armor-divisor and
+lasting-wound registry entries are reconciled from absent to partial.
+
+See [geometry](tactical-geometry.md) and [injury](gurps-hit-locations.md) for
+independent fixture bindings, persistence evidence and remaining boundaries.
+The source review is fourth-printing evidence pending #191 reconciliation;
+no capability or whole profile is promoted to certified by these changes.
+
 ### Ground transport foundation (#120; not acceptance-complete)
 
 `simulation/transport.py` adds opt-in persisted transport manifests to the existing

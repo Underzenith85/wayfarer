@@ -26,12 +26,25 @@ HitLocation = HumanLocation | Literal["random"]
 Hand = Literal["left-hand", "right-hand"]
 
 
+class InjuryTolerance(BaseModel):
+    """Trusted anatomy facts; never accepted as player-authored damage modifiers."""
+
+    model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
+    structure: Literal["living", "unliving", "homogenous", "diffuse"] = "living"
+    no_brain: bool = False
+    no_eyes: bool = False
+    no_head: bool = False
+    no_neck: bool = False
+    no_vitals: bool = False
+
+
 class HumanBody(BaseModel):
     """Trusted scenario anatomy; absence never selects a human implicitly."""
 
     model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
     anatomy: Literal["human"]
     male_groin: bool = False
+    tolerance: InjuryTolerance | None = Field(default=None, exclude_if=lambda v: v is None)
 
 
 class LastingInjury(BaseModel):

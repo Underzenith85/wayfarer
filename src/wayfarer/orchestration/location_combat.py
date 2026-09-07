@@ -15,6 +15,13 @@ from wayfarer.simulation.injury import ResolveCrippling, apply_injury
 
 def disabled(state: PlayState, actor_id: str) -> frozenset[HumanLocation]:
     hp = next(p for p in state.resources.pools if p.id == f"hp:{actor_id}")
+    absent: frozenset[HumanLocation] = frozenset()
+    if (
+        hp.injury
+        and hp.injury.tolerance
+        and (hp.injury.tolerance.no_eyes or hp.injury.tolerance.no_head)
+    ):
+        absent = frozenset({"left-eye", "right-eye"})
     return (
         disabled_locations(
             hp.injury.lasting_injuries,
@@ -23,7 +30,7 @@ def disabled(state: PlayState, actor_id: str) -> frozenset[HumanLocation]:
         )
         if hp.injury
         else frozenset()
-    )
+    ) | absent
 
 
 def unavailable_hand(locations: frozenset[HumanLocation], hand: Hand) -> bool:
@@ -85,7 +92,12 @@ def validate_target(
     if location in ("left-eye", "right-eye") and from_behind(attacker, defender):
         raise ValidationError("Eyes cannot be targeted from behind")
     if location is not None and location != "random":
-        wound_factor(location, selected.damage.damage_type, tight_beam=selected.damage.tight_beam)
+        wound_factor(
+            location,
+            selected.damage.damage_type,
+            tight_beam=selected.damage.tight_beam,
+            tolerance=hp.injury.tolerance,
+        )
     if location is not None:
         _validate_bindings(play, state, defender)
         entries = {e.definition_id: e for e in catalog(play).entries}

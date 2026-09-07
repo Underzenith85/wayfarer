@@ -156,7 +156,7 @@ def apply_transport(
         if board is None or board.profile_id != t.profile_id:
             raise ValidationError("Ground movement requires the matching explicit hex map")
         point = Hex(q=t.q, r=t.r)
-        elevation = board.cell(point).elevation
+        elevation = board.cell(point).ground
         dq, dr = DIRECTIONS[t.facing]
         # High-speed acceleration/deceleration occurs at turn end (B395, B468).
         # The mount slice permits ordinary movement up to Basic Move (B396).
@@ -172,7 +172,7 @@ def apply_transport(
                 if (
                     terrain.blocked
                     or terrain.extra_cost
-                    or terrain.elevation != elevation
+                    or terrain.ground != elevation
                     or cell in occupied
                 ):
                     raise ValidationError(
@@ -275,6 +275,7 @@ def apply_transport(
                     basic_damage=damage,
                     resistance=resistance,
                     damage_type="cr",
+                    injury_source="area",
                 ),
                 ht=health[actor],
                 rng=rng,

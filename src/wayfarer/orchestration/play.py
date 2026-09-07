@@ -134,6 +134,7 @@ class PlayService:
                             "profile_id": profile,
                             "anatomy": actor.body.anatomy if actor.body else None,
                             "male_groin": actor.body.male_groin if actor.body else False,
+                            "tolerance": actor.body.tolerance if actor.body else None,
                         }
                     )
                 if name == "fp" and profile in ("gurps-lite-4e-2004", "gurps-basic-set-4e-2004"):

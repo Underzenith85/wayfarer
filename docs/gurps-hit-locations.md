@@ -6,7 +6,7 @@ random locations are rolled only for a hit that defeats defense. The resulting
 location, dice, effective DR, HP loss and lasting injury IDs are recorded in the
 combat receipt. Restarting or retrying a command cannot reroll them.
 
-This is a partial, explicit living-human implementation. Trusted scenario actors
+This is a partial, explicit human-layout implementation. Trusted scenario actors
 declare `body: {anatomy: "human", male_groin: false}` and `held_item_hands` pairs.
 An omitted body remains undeclared; unsupported anatomy is rejected instead of
 becoming human. Existing campaigns are not silently migrated. Location attacks
@@ -39,8 +39,8 @@ critical limb hits can apply the timed funny-bone result. Deafness and permanent
 appearance aftermath remain explicit persisted blockers; they are never treated
 as ordinary damage or granted invented character effects. Their cross-system
 implementation is tracked in [#153](https://github.com/Underzenith85/wayfarer/issues/153),
-which depends on the location, trait and social dispatch work. Nonhuman anatomy,
-Injury Tolerance, optional cumulative wounds, assisted/crawling movement and
+which depends on the location, trait and social dispatch work. Nonhumanoid location tables,
+optional cumulative wounds, assisted movement and
 cross-system lasting-disadvantage effects remain unsupported.
 
 ## Evidence and source status
@@ -53,3 +53,38 @@ B379, B398-400, B420-422, B552 and B556-557. These cases do not certify the froz
 first-printing plus January 26, 2007 errata baseline. The profile capability gates
 and coverage matrix remain partial until that evidence and the named remaining
 mechanics are complete.
+
+## Injury Tolerance and targeted near misses (#107 follow-up)
+
+Trusted scenario `body.tolerance` facts now carry living, unliving, homogenous
+or diffuse structure and No Brain/Eyes/Head/Neck/Vitals variants into the saved
+HP injury status. They are anatomical runtime inputs, not player damage
+modifiers or automatic purchase definitions; trait catalog/compiler ownership
+remains #113/#118/#119. This does not publish a selectable profile. Omitted
+metadata preserves existing human behavior and serialization.
+
+The injury reducer applies structure-specific impaling/piercing factors,
+removes applicable location multipliers/knockdown and groin shock effects,
+rejects targeting absent parts, and redirects random missing locations to the
+torso without extra rolls. Eyes can still be crippled with No Brain. Critical
+head handling respects these variants and never invents a missing eye. Missing
+both eyes uses the existing blindness combat penalties.
+
+Diffuse single attacks cap injury at 1 for impaling/piercing and 2 otherwise.
+The internal Wound source distinguishes area exposure from direct internal HP
+loss: scheduled fire/falling use area injury, while fatigue spillover, medical
+loss and disease/poison bypass single-attack caps. Only authoritative reducers
+can supply this classification. Existing default Wound receipt hashes remain
+unchanged. Tolerance and lasting impairments survive checkpoint/retry.
+
+For the B552 note-1 locations, an ordinary miss by exactly one can hit the torso;
+it still permits the selected defense. Automatic/critical failures do not gain
+this fallback, and melee does not redirect into a torso made unreachable by
+height. Melee and ranged receipts keep the original roll and actual location.
+
+Independent numeric and persistence tests are in
+`tests/test_geometry_injury_followups.py`, including executed entries in the
+conformance ledger. The executable registry now correctly records the three
+#107 families as partial, matching their existing implementation rather than
+claiming absence. Full source reconciliation remains #191; #153 and the
+nonhumanoid/assisted-movement boundaries above remain unfinished.

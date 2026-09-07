@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wayfarer.errors import ValidationError
+from wayfarer.rules.location_types import HitLocation
+from wayfarer.simulation.combat_height import HeightEffect, melee_height
 from wayfarer.simulation.hex_geometry import (
     Facing,
     Hex,
@@ -76,13 +78,23 @@ def sight(encounter: Encounter, actor: Combatant, target: Combatant) -> bool:
 
 
 def attack_geometry(
-    encounter: Encounter, actor: Combatant, target: Combatant, reaches: frozenset[int] | None = None
+    encounter: Encounter,
+    actor: Combatant,
+    target: Combatant,
+    reaches: frozenset[int] | None = None,
+    *,
+    location: HitLocation | None = None,
 ) -> None:
     board = encounter.hex_battlefield
     if board is None:
         return
-    if board.cell(pose(actor).position).elevation != board.cell(pose(target).position).elevation:
+    if (
+        reaches is None
+        and board.cell(pose(actor).position).ground != board.cell(pose(target).position).ground
+    ):
         raise ValidationError("Unequal-height combat requires the combat-height adapter")
+    if reaches is not None:
+        height_effect(encounter, actor, target, reach=max(reaches), location=location)
     if not sight(encounter, actor, target) or arc(pose(actor), pose(target).position) not in (
         "front",
         "close",
@@ -92,6 +104,24 @@ def attack_geometry(
         board, pose(actor), pose(target).position, reaches=reaches
     ):
         raise ValidationError("Target is outside selected weapon reach")
+
+
+def height_effect(
+    encounter: Encounter,
+    actor: Combatant,
+    target: Combatant,
+    *,
+    reach: int,
+    location: HitLocation | None,
+) -> HeightEffect:
+    board = encounter.hex_battlefield
+    if board is None:
+        return HeightEffect()
+    start = board.cell(pose(actor).position).ground
+    end = board.cell(pose(target).position).ground
+    if start != end and (actor.posture != "standing" or target.posture != "standing"):
+        raise ValidationError("Unequal-height melee requires standing poses")
+    return melee_height(start, end, reach=reach, location=location)
 
 
 def defense_adjustment(encounter: Encounter, actor: Combatant, target: Combatant) -> int:
@@ -131,7 +161,7 @@ def move_hex(
     if maneuver == "all_out_attack" or (
         maneuver == "all_out_defense" and defense_option == "dodge"
     ):
-        allowance //= 2
+        allowance = (allowance + 1) // 2
         step = False
     if maneuver == "all_out_attack":
         current = pose(actor)
@@ -148,6 +178,11 @@ def move_hex(
         occupants=occupants(encounter),
         actor_id=actor.actor_id,
         final_facing=facing,
+        final_turn_policy="one"
+        if maneuver == "all_out_attack"
+        else "any"
+        if maneuver == "all_out_defense" and defense_option == "dodge"
+        else "move",
     )
     return actor.model_copy(
         update={"position": result.destination.position, "hex_facing": result.destination.facing}

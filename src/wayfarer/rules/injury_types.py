@@ -4,7 +4,7 @@ from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from wayfarer.rules.location_types import LastingInjury
+from wayfarer.rules.location_types import InjuryTolerance, LastingInjury
 
 
 class InjuryStatus(BaseModel):
@@ -23,10 +23,15 @@ class InjuryStatus(BaseModel):
     shock_expires: int = Field(default=0, ge=0)
     anatomy: Literal["human"] | None = None
     male_groin: bool = False
+    tolerance: InjuryTolerance | None = Field(default=None, exclude_if=lambda v: v is None)
     lasting_injuries: tuple[LastingInjury, ...] = ()
 
     @model_validator(mode="after")
     def anatomy_consistent(self) -> Self:
+        if self.tolerance is not None and (
+            self.anatomy != "human" or self.profile_id != "gurps-basic-set-4e-2004"
+        ):
+            raise ValueError("Injury Tolerance requires explicit Basic Set anatomy")
         if self.lasting_injuries and (
             self.anatomy != "human" or self.profile_id != "gurps-basic-set-4e-2004"
         ):

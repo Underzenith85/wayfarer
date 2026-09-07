@@ -298,6 +298,7 @@ class PhysicalService:
                         basic_damage=damage,
                         resistance=0,
                         damage_type="cr",
+                        injury_source="area",
                     ),
                     ht=stats.ht,
                     rng=play.rng,
