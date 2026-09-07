@@ -213,7 +213,9 @@ def apply_recovery_variant(
         if command.kind == "repair-permanent":
             injury = _lasting_injury(state, target, command.injury_id)
             if injury.duration != "permanent":
-                raise ValidationError("Permanent-repair selection requires a permanent crippling injury")
+                raise ValidationError(
+                    "Permanent-repair selection requires a permanent crippling injury"
+                )
             raise ValidationError(
                 "Permanent crippling repair is setting-defined and unsupported without an authored procedure"
             )
@@ -267,9 +269,17 @@ def apply_recovery_variant(
                 or injury.recovery_at is None
                 or injury.recovery_at <= state.game_time
             ):
-                raise ValidationError("Lasting-injury surgery requires an active lasting crippling injury")
-            if command.actor_id == target or context.surgery_skill is None or context.surgery_skill < 1:
-                raise ValidationError("Lasting-injury repair requires another character with Surgery")
+                raise ValidationError(
+                    "Lasting-injury surgery requires an active lasting crippling injury"
+                )
+            if (
+                command.actor_id == target
+                or context.surgery_skill is None
+                or context.surgery_skill < 1
+            ):
+                raise ValidationError(
+                    "Lasting-injury repair requires another character with Surgery"
+                )
             modifier = (
                 surgery_equipment_modifier(context.technology_level)
                 + context.equipment_quality_modifier
@@ -289,9 +299,7 @@ def apply_recovery_variant(
                 kind="stabilize",
                 start=state.game_time,
                 due=state.game_time + 7200,
-                wound_id=_repair_marker(
-                    injury.id, infection_risk, context.infection_modifier
-                ),
+                wound_id=_repair_marker(injury.id, infection_risk, context.infection_modifier),
                 technology_level=context.technology_level,
                 ht=context.ht,
                 skill=context.surgery_skill,
@@ -318,7 +326,9 @@ def apply_recovery_variant(
                         "Settle interrupted trauma maintenance before its survival deadline"
                     )
                 hp = hp.model_copy(
-                    update={"injury": hp.injury.model_copy(update={"mortal_wound_due": fallback_due})}
+                    update={
+                        "injury": hp.injury.model_copy(update={"mortal_wound_due": fallback_due})
+                    }
                 )
             task = task.model_copy(update={"settled": True})
             tasks = tuple(task if t.id == task.id else t for t in state.recovery_tasks)
@@ -327,7 +337,9 @@ def apply_recovery_variant(
             if state.game_time != task.due:
                 raise ValidationError("Advanced recovery must settle at its shared-clock deadline")
             if trauma:
-                assert hp.injury is not None and task.skill is not None and task.wound_id is not None
+                assert (
+                    hp.injury is not None and task.skill is not None and task.wound_id is not None
+                )
                 check = success_roll(context.profile_id, max(task.ht, task.skill), rng=rng)
                 if check.outcome is Outcome.CRITICAL_SUCCESS:
                     stabilized = True
@@ -385,7 +397,9 @@ def apply_recovery_variant(
                     repaired = True
                 else:
                     if check.outcome is Outcome.CRITICAL_FAILURE:
-                        injury = injury.model_copy(update={"duration": "permanent", "recovery_at": None})
+                        injury = injury.model_copy(
+                            update={"duration": "permanent", "recovery_at": None}
+                        )
                         hp = _replace_lasting(hp, injury)
                         permanent = True
                     hp_lost = sum(rng.randbelow(6) + 1 for _ in range(3))
