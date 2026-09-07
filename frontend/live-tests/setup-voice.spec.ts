@@ -152,7 +152,7 @@ test("two identities activate a saved party and review speech through the live d
         { timeout: 10_000 },
       )
       .toBe("success");
-    await a.getByText("Campaign setup and lifecycle", { exact: true }).click();
+    await a.getByRole("link", { name: "Campaign", exact: true }).click();
     await lobby
       .getByRole("button", { name: "Reload games / reconcile" })
       .click();
