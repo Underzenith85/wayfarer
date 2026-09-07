@@ -33,8 +33,9 @@ def approved_context(
     if compiler.statistics_profile != PROFILE:
         raise ValidationError("Spellcasting requires the exact Basic Set profile")
     spell_key = "spell:" + command.spell_id
-    expected = {d.id: d for d in definitions()}
-    if compiler.definitions.get(spell_key) != expected[spell_key]:
+    expected = {d.id: d for d in definitions(2)}
+    permitted = tuple(next(d for d in definitions(v) if d.id == spell_key) for v in (1, 2))
+    if compiler.definitions.get(spell_key) not in permitted:
         raise ValidationError("Spell is not bound to the pinned learning catalog")
     actor = next((a for a in state.actors if a.actor_id == command.actor_id), None)
     if actor is None or actor.approval is None:
@@ -71,6 +72,7 @@ def approved_context(
         learned=learned,
         ht=values["attribute:ht"],
         will=values["secondary:will"],
+        iq=values["attribute:iq"],
         target_ht=target_ht,
         unavailable=bool(actor.conditions) or actor.available_at > state.resources.game_time,
         **environment.model_dump(),

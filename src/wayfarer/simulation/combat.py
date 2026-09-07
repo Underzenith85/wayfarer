@@ -818,9 +818,24 @@ class CombatEngine:
                     or wait_trigger.actor_id == actor_id
                 ):
                     raise ValidationError("Wait requires an observable other combatant trigger")
+                from wayfarer.simulation.spells import active_spells
+
+                held_missile = any(
+                    effect.actor_id == actor_id
+                    and effect.spell_id == "fireball"
+                    and effect.execute_effects
+                    and wait_trigger.item_id
+                    == "spell:" + hashlib.sha256(effect.cast_id.encode()).hexdigest()
+                    for effect in active_spells(resources)
+                )
+                if held_missile and (
+                    wait_trigger.reaction != "attack" or wait_trigger.mode_id is not None
+                ):
+                    raise ValidationError("Held missile Wait supports its declared release only")
                 if (
                     wait_trigger.item_id not in participant.ready_item_ids
                     and wait_trigger.reaction != "ready"
+                    and not held_missile
                 ):
                     raise ValidationError("Wait attack requires a ready weapon")
                 if (

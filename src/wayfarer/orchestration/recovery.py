@@ -50,7 +50,11 @@ def captive(state: PlayState, actor_id: str) -> Captivity | None:
 
 def guard(state: PlayState, actor_id: str, kind: str) -> None:
     from wayfarer.rules.recovery_types import require_settled
+    from wayfarer.simulation.spell_backfires import backfires
 
+    if kind != "question":
+        if any(b.pending for b in backfires(state.resources)):
+            raise ConflictError("Resolve the recorded spell backfire before advancing play")
     require_settled(
         state.resources.recovery_tasks, frozenset({actor_id}), state.resources.game_time
     )

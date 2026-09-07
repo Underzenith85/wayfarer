@@ -8,6 +8,7 @@ import asyncio
 import os
 from dataclasses import replace
 from pathlib import Path
+from typing import Literal
 
 import pytest
 from test_abilities import resources, world
@@ -31,7 +32,7 @@ from wayfarer.simulation.combat import Battlefield, CombatRules, GridPoint, Plac
 from wayfarer.simulation.gurps_equipment import EquipmentCatalog
 from wayfarer.simulation.injury import Wound, apply_injury
 from wayfarer.simulation.resources import ResourceEngine
-from wayfarer.simulation.spell_bindings import SpellChannel, SpellRules
+from wayfarer.simulation.spell_bindings import BackfireAlternative, SpellChannel, SpellRules
 from wayfarer.simulation.spell_effects import dazed
 from wayfarer.simulation.spells import PROFILE, SpellCommand
 
@@ -76,13 +77,39 @@ def draft(*, magery: int = 2, points: int = 4) -> CharacterDraft:
 
 
 async def setup(
-    tmp_path: Path, *, combat: bool = False, backend: str = "sqlite", caster_hp: int = 10
+    tmp_path: Path,
+    *,
+    combat: bool = False,
+    backend: str = "sqlite",
+    caster_hp: int = 10,
+    execution_version: Literal[1, 2] = 1,
+    alternatives: tuple[BackfireAlternative, ...] = (),
+    mana: Literal["none", "low", "normal", "high", "very-high"] = "normal",
+    reserve: bool = False,
 ) -> tuple[str, PlayService]:
+    fixture_world, fixture_resources = world(), resources()
+    if reserve:
+        from wayfarer.simulation.resources import Owner
+        from wayfarer.world import Entity, EntityKind
+
+        fixture_world = replace(
+            fixture_world,
+            entities=fixture_world.entities + (Entity("c", EntityKind.ACTOR, "Reserve", "room"),),
+        )
+        fixture_resources = fixture_resources.model_copy(
+            update={
+                "owners": fixture_resources.owners + (Owner(actor_id="c", capacity=100),),
+                "pools": fixture_resources.pools
+                + (fixture_resources.pools[0].model_copy(update={"id": "hp:c"}),),
+            }
+        )
     compiled = compiler()
     package = profile_package(PROFILE, *definitions(), projectile_definition())
     engine = ActionEngine(
         PowerReviewer(compiled, PowerPolicy(id="power", version=1), frozenset({"gm"})),
-        ResourceEngine(world(), RulesCatalog((package,)), compiled.rules, compiled.policy, ()),
+        ResourceEngine(
+            fixture_world, RulesCatalog((package,)), compiled.rules, compiled.policy, ()
+        ),
         ActionRules(
             id="spells",
             version=1,
@@ -97,6 +124,8 @@ async def setup(
             spells=SpellRules(
                 id="spell-rules",
                 version=1,
+                execution_version=execution_version,
+                backfire_alternatives=alternatives,
                 channels=tuple(
                     SpellChannel(
                         id=spell,
@@ -104,6 +133,7 @@ async def setup(
                         target_id="b",
                         location_id="room",
                         spell_id=spell,
+                        mana=mana,
                     )
                     for spell in ("light", "daze", "fireball", "create-fire")
                 ),
@@ -121,11 +151,16 @@ async def setup(
     initial = campaign(engine)
     initial_state = play.initial_state(
         initial,
-        world(),
-        resources(),
+        fixture_world,
+        fixture_resources,
         (
             ActorSetup(actor_id="a", proposal=CharacterProposal(draft=draft())),
             ActorSetup(actor_id="b", proposal=CharacterProposal(draft=gurps_draft())),
+        )
+        + (
+            (ActorSetup(actor_id="c", proposal=CharacterProposal(draft=gurps_draft())),)
+            if reserve
+            else ()
         ),
     )
     initial_state = initial_state.model_copy(

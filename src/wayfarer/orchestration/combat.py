@@ -1163,6 +1163,18 @@ class CombatService:
                             for fact in consequence.fact_ids:
                                 world = world.learn(recipient, fact)
                 updated = updated.model_copy(update={"world": world})
+            if isinstance(command, TakeCombatTurn) and result.code != "combat.wait_triggered":
+                from wayfarer.orchestration.spell_effects import crossings
+
+                updated = crossings(
+                    self.play,
+                    updated,
+                    initial_state,
+                    command.actor_id,
+                    command.encounter_id,
+                    command.hex_path,
+                    command.id,
+                )
             updated = self.play.checkpoint(updated, before=initial_state)
             self.play.engine.validate(updated)
             campaign["revision"], campaign["play_json"] = revision, updated.model_dump_json()

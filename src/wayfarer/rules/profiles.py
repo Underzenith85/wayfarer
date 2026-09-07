@@ -30,6 +30,7 @@ from wayfarer.rules.catalog import (
     SourceReference,
     reference,
 )
+from wayfarer.rules.spell_catalog import projectile_definition
 
 
 @dataclass(frozen=True, slots=True)
@@ -340,6 +341,25 @@ GURPS_MAGIC_PROFILE: Final = replace(
     ),
 )
 
+# B235 source correction is an explicit new catalog selection, preserving v4.
+
+GURPS_MAGIC_PACKAGE_V5: Final = replace(
+    GURPS_CHARACTERS_PACKAGE,
+    version="0.5.0",
+    definitions=GURPS_CHARACTERS_PACKAGE.definitions
+    + gurps_magic.definitions(2)
+    + (projectile_definition(),),
+)
+GURPS_MAGIC_PROFILE_V5: Final = replace(
+    GURPS_MAGIC_PROFILE,
+    version=5,
+    packages=(GURPS_MAGIC_PACKAGE_V5, GURPS_CAMPAIGNS_PACKAGE),
+    rules=replace(
+        GURPS_MAGIC_PROFILE.rules,
+        packages=(_pin(GURPS_MAGIC_PACKAGE_V5), _pin(GURPS_CAMPAIGNS_PACKAGE)),
+    ),
+)
+
 DEFAULT_REGISTRY: Final = ProfileRegistry(
     (
         PROTOTYPE_PROFILE,
@@ -348,6 +368,7 @@ DEFAULT_REGISTRY: Final = ProfileRegistry(
         GURPS_LITE_PROFILE,
         GURPS_BASIC_PROFILE,
         GURPS_MAGIC_PROFILE,
+        GURPS_MAGIC_PROFILE_V5,
     )
 )
 GURPS_PROFILES: Final = MappingProxyType(

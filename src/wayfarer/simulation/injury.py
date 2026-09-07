@@ -130,6 +130,8 @@ def apply_injury(
     funny_bone: bool = False,
     halve_dr: Literal["up", "down"] | None = None,
     ignore_dr: bool = False,
+    burning_hp: bool = False,
+    stun_iq: int | None = None,
 ) -> tuple[ResourceState, InjuryResult]:
     """Pure reducer; persist atomically via the existing commit_turn/CAS boundary.
 
@@ -141,11 +143,24 @@ def apply_injury(
     if type(ht) is not int or ht < 1:
         raise ValidationError("HT must come from a valid compiled character")
     ResourceState.model_validate(state)
+    if burning_hp and (
+        not isinstance(command, Wound)
+        or command.resistance != 0
+        or command.damage_type != "cr"
+        or command.location is not None
+    ):
+        raise ValidationError("Burning HP requires unresisted life-energy loss")
+    if burning_hp and isinstance(command, Wound):
+        command = command.model_copy(update={"injury_source": "internal"})
     encoded = command.model_dump_json(
         exclude={"injury_source"}
         if isinstance(command, Wound) and command.injury_source == "attack"
         else None
-    )
+    ) + (":burning-hp" if burning_hp else "")
+    if stun_iq is not None:
+        if stun_iq < 1:
+            raise ValidationError("Mental stun requires compiled IQ")
+        encoded += f":stun-iq:{stun_iq}"
     if force_major_wound or double_shock:
         encoded += f":critical:{force_major_wound}:{double_shock}"
     if funny_bone or halve_dr or ignore_dr:
@@ -197,7 +212,8 @@ def apply_injury(
         penalty: int = 0,
         threshold: int | None = None,
     ) -> CheckTrace:
-        trace = success_roll(status.profile_id, ht + penalty, rng=rng)
+        score = stun_iq if reason == "stun-recovery" and stun_iq is not None else ht
+        trace = success_roll(status.profile_id, score + penalty, rng=rng)
         checks.append(InjuryCheck(reason=reason, threshold=threshold, check=trace))
         return trace
 
@@ -368,6 +384,11 @@ def apply_injury(
                     if current <= threshold < pool.current:
                         trace = check("death", threshold=threshold)
                         if not trace.outcome.succeeded:
+                            if burning_hp:
+                                current = pool.current
+                                injury = penetration = uncapped = 0
+                                status = pool.injury.model_copy(update={"unconscious": True})
+                                break
                             mortal = (
                                 not status.mortal_wound
                                 and trace.margin in (-1, -2)
@@ -383,6 +404,11 @@ def apply_injury(
                             )
                             if status.dead:
                                 break
+                if burning_hp and (status.dead or status.mortal_wound):
+                    # B237: failed survival consumes no HP; the caster falls unconscious.
+                    current = pool.current
+                    injury = penetration = uncapped = 0
+                    status = pool.injury.model_copy(update={"unconscious": True})
                 major = force_major_wound or crippled or injury * 2 > pool.maximum
                 head_shock = (
                     location is not None
@@ -410,6 +436,17 @@ def apply_injury(
                             }
                         )
                         dropped = tuple(i.id for i in state.items if i.id in held_item_ids)
+        if burning_hp and status.dead:
+            current = pool.current
+            injury = penetration = uncapped = 0
+            status = pool.injury.model_copy(update={"unconscious": True})
+        if burning_hp:
+            # Its explicit spell-roll penalty replaces shock from this energy loss.
+            status = status.model_copy(
+                update={"shock": pool.injury.shock, "shock_expires": pool.injury.shock_expires}
+            )
+            if status.unconscious:
+                dropped = tuple(i.id for i in state.items if i.id in held_item_ids)
     elif isinstance(command, ResolveCrippling):
         require_location(status, "torso")
         pending_wound = next(
@@ -473,9 +510,7 @@ def apply_injury(
         else:
             if status.phase != "acting" or command.turn != status.turn:
                 raise ValidationError("Injury turns must end once, after starting")
-            if status.stunned and not status.incapacitated:
-                if not command.do_nothing:
-                    raise ValidationError("Stun recovery requires Do Nothing")
+            if status.stunned and not status.incapacitated and command.do_nothing:
                 if check("stun-recovery").outcome.succeeded:
                     status = status.model_copy(update={"stunned": False})
             status = status.model_copy(

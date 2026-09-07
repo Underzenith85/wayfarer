@@ -44,8 +44,10 @@ REFERENCES = {
 }
 
 
-def definitions() -> tuple[RuleDefinition, ...]:
-    """Learning-only catalog. No hook advertises concrete spell execution."""
+def definitions(version: int = 1) -> tuple[RuleDefinition, ...]:
+    """Version 1 preserves historical profile pins; version 2 follows B235."""
+    if version not in (1, 2):
+        raise ValidationError("Unknown magic learning revision")
     return (
         RuleDefinition(
             MAGERY_ZERO,
@@ -75,13 +77,16 @@ def definitions() -> tuple[RuleDefinition, ...]:
             SOURCE,
             1,
             ImplementationStatus.IMPLEMENTED,
-            prerequisites=(MAGERY,) if name == "fireball" else (),
+            prerequisites=((MAGERY,) if name == "fireball" else ())
+            + (tuple("spell:" + p for p in parents) if version == 2 else ()),
             hooks=("character.gurps-skill", "supernatural", "magic.learning"),
             skill=SkillSpec(
                 ControllingAttribute.IQ,
                 Difficulty.HARD,
                 REFERENCES[name],
-                prerequisites=tuple(SkillPrerequisite("spell:" + p, 12) for p in parents),
+                prerequisites=tuple(SkillPrerequisite("spell:" + p, 12) for p in parents)
+                if version == 1
+                else (),
             ),
         )
         for name, parents in PREREQUISITES.items()
@@ -89,11 +94,20 @@ def definitions() -> tuple[RuleDefinition, ...]:
 
 
 def validate_definitions(profile_id: str | None, entries: Mapping[str, RuleDefinition]) -> None:
-    expected = {d.id: d for d in definitions()}
-    for key, entry in entries.items():
-        if key in expected or "magic.learning" in entry.hooks:
-            if profile_id != PROFILE or expected.get(key) != entry:
-                raise ValidationError("Magic learning requires its exact Basic Set catalog binding")
+    versions = tuple({d.id: d for d in definitions(v)} for v in (1, 2))
+    selected = {
+        key: entry
+        for key, entry in entries.items()
+        if key in versions[0] or "magic.learning" in entry.hooks
+    }
+    if selected and (
+        profile_id != PROFILE
+        or not any(
+            all(expected.get(key) == entry for key, entry in selected.items())
+            for expected in versions
+        )
+    ):
+        raise ValidationError("Magic learning requires its exact Basic Set catalog binding")
 
 
 def magery_level(purchases: Mapping[str, int]) -> int:
