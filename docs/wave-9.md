@@ -130,5 +130,4 @@ settlement, all noncombat categories, failed checks with continued progress,
 independent choices, authenticated split/rejoin, shared-time alarms, queued travel,
 combat versus investigation, reinforcement arrival, private knowledge, provider
 forgery, stale proposals, timeout, cancellation and failed narration. Existing
-SQLite/PostgreSQL transaction tests and the Python 3.12/3.13/3.14 CI matrix remain
-mandatory. See the PR for the final test counts and CI status.
+SQLite/PostgreSQL transaction tests on the Python 3.14 CI target remain mandatory. See the PR for the final test counts and CI status.
