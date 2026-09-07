@@ -1,16 +1,21 @@
 """Scenario authoring API v1: additive to, and independent of, frozen play v1."""
 
+import asyncio
+
 from aiohttp import web
 
-from wayfarer.errors import ValidationError
+from wayfarer.errors import ProviderError, ValidationError
+from wayfarer.orchestration.assisted_authoring import AssistedAuthoring
 from wayfarer.orchestration.catalog import ScenarioCatalog
 from wayfarer.orchestration.scenario_documents import adapt_graph
-from wayfarer.simulation.catalog import CatalogCommand, InstantiateRevision
+from wayfarer.simulation.catalog import AssistScenario, CancelGeneration, CatalogCommand, InstantiateRevision
 from wayfarer.simulation.scenario_document import PublicBrief
 from wayfarer.transport.campaign_api import _identity
 from wayfarer.transport.setup_api import TEMPLATES_KEY
 
 KEY = web.AppKey("scenario-catalog", ScenarioCatalog)
+ASSIST_KEY = web.AppKey("scenario-assisted-authoring", AssistedAuthoring)
+TASKS_KEY = web.AppKey("scenario-generation-tasks", dict[tuple[str, str], asyncio.Task[object]])
 MAX_BODY = 12_100_000  # Worst-case JSON escaping of the 2 MB document string.
 
 
@@ -85,8 +90,78 @@ async def instantiate(request: web.Request) -> web.Response:
     return web.json_response(result, status=201)
 
 
+async def generation_listing(request: web.Request) -> web.Response:
+    values = await request.app[ASSIST_KEY].listing(
+        request.match_info["cid"], _identity(request)
+    )
+    return web.json_response([value.model_dump(mode="json") for value in values])
+
+
+async def generation_read(request: web.Request) -> web.Response:
+    value = await request.app[ASSIST_KEY].read(
+        request.match_info["cid"], request.match_info["jid"], _identity(request)
+    )
+    return web.json_response(value.model_dump(mode="json"))
+
+
+async def generate(request: web.Request) -> web.Response:
+    from wayfarer.transport.campaign_api import ORCHESTRATOR_KEY
+
+    if ORCHESTRATOR_KEY not in request.app:
+        raise ProviderError(
+            "Scenario generation is unavailable. Configure a backend provider or use manual/template authoring."
+        )
+    principal = _identity(request)
+    cid = request.match_info["cid"]
+    command = AssistScenario.model_validate_json(await body(request))
+    service = request.app[ASSIST_KEY]
+    job = await service.start(cid, principal, command)
+    key = (cid, job.id)
+    if job.status == "queued" and key not in request.app[TASKS_KEY]:
+
+        async def worker() -> object:
+            try:
+                return await service.run(
+                    cid, job.id, principal, request.app[ORCHESTRATOR_KEY]
+                )
+            except asyncio.CancelledError:
+                await service.cancel(cid, job.id, principal)
+                raise
+
+        task: asyncio.Task[object] = asyncio.create_task(worker())
+        request.app[TASKS_KEY][key] = task
+
+        def finished(_: asyncio.Task[object]) -> None:
+            request.app[TASKS_KEY].pop(key, None)
+
+        task.add_done_callback(finished)
+    return web.json_response(job.model_dump(mode="json"), status=202)
+
+
+async def cancel_generation(request: web.Request) -> web.Response:
+    CancelGeneration.model_validate_json(await body(request))
+    principal = _identity(request)
+    cid, jid = request.match_info["cid"], request.match_info["jid"]
+    job = await request.app[ASSIST_KEY].cancel(cid, jid, principal)
+    task = request.app[TASKS_KEY].get((cid, jid))
+    if task is not None and not task.done():
+        task.cancel()
+    return web.json_response(job.model_dump(mode="json"))
+
+
+async def cleanup_generation(app: web.Application) -> None:
+    tasks = tuple(app[TASKS_KEY].values())
+    for task in tasks:
+        task.cancel()
+    if tasks:
+        await asyncio.gather(*tasks, return_exceptions=True)
+
+
 def install(app: web.Application, service: ScenarioCatalog) -> None:
     app[KEY] = service
+    app[ASSIST_KEY] = AssistedAuthoring(service)
+    app[TASKS_KEY] = {}
+    app.on_cleanup.append(cleanup_generation)
     prefix = "/authoring/v1/scenarios"
     app.add_routes(
         [
@@ -98,5 +173,9 @@ def install(app: web.Application, service: ScenarioCatalog) -> None:
             web.get(prefix + "/{cid}/export", read),
             web.get(prefix + "/{cid}/preview", read),
             web.post(prefix + "/{cid}/instantiate", instantiate),
+            web.get(prefix + "/{cid}/generation-jobs", generation_listing),
+            web.post(prefix + "/{cid}/generate", generate),
+            web.get(prefix + "/{cid}/generation-jobs/{jid}", generation_read),
+            web.post(prefix + "/{cid}/generation-jobs/{jid}/cancel", cancel_generation),
         ]
     )
