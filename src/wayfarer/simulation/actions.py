@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import secrets
 from dataclasses import replace
+from decimal import Decimal
 from typing import Annotated, Literal
 
 from pydantic import Field, TypeAdapter
@@ -698,7 +699,10 @@ class ActionEngine:
         build, _ = self.reviewer.activate(
             actor.proposal, actor.approval, campaign_id=state.campaign_id, actor_id=actor.actor_id
         )
-        if rule.definition_id not in {p.definition_id for p in build.purchases}:
+        if self.reviewer.compiler.skills is not None:
+            if rule.definition_id not in {v.target for v in build.sheet.values}:
+                return result("rejected", "check.skill_required")
+        elif rule.definition_id not in {p.definition_id for p in build.purchases}:
             return result("rejected", "check.skill_required")
         return result("feasible", "check.allowed")
 
@@ -706,6 +710,8 @@ class ActionEngine:
         self, state: PlayState, actor_id: str, build: ValidatedBuild, rule: CheckRule
     ) -> tuple[DerivedValue, tuple[DerivedValue, ...]]:
         values = {v.target: v.value for v in build.sheet.values}
+        if self.reviewer.compiler.skills is not None:
+            return self._gurps_target(state, actor_id, build, rule)
         definition = self.reviewer.compiler.definitions[rule.definition_id]
         attribute, _ = SKILLS[definition.name]
         attribute_id = f"attribute:{attribute.lower()}"
@@ -730,6 +736,48 @@ class ActionEngine:
             at=state.resources.game_time,
         )
         return skill, (attribute_value,)
+
+    def _gurps_target(
+        self, state: PlayState, actor_id: str, build: ValidatedBuild, rule: CheckRule
+    ) -> tuple[DerivedValue, tuple[DerivedValue, ...]]:
+        compiler = self.reviewer.compiler
+        assert compiler.skills is not None
+        values = {v.target: v.value for v in build.sheet.values}
+        equipment = self.resources.equipment_effects(state.resources, actor_id)
+        selected = {p.definition_id for p in build.purchases}
+        skill_effects = tuple(e for key, e in compiler.effects if key in selected) + equipment
+        evaluator = EffectEvaluator(
+            tuple(MechanicalTarget(k) for k in values | compiler.skills.specs)
+        )
+        context = {"actor_id": actor_id}
+        attributes = {
+            key: evaluator.evaluate(
+                key, value, equipment, context=context, at=state.resources.game_time
+            )
+            for key, value in values.items()
+            if key.startswith(("attribute:", "secondary:"))
+        }
+        derived: dict[str, DerivedValue] = {}
+
+        def adjust(key: str, base: int) -> int:
+            result = evaluator.evaluate(
+                key, Decimal(base), skill_effects, context=context, at=state.resources.game_time
+            )
+            if not result.value.is_finite() or result.value != result.value.to_integral_value():
+                raise ValidationError("Skill effects must produce whole-number levels")
+            derived[key] = result
+            return int(result.value)
+
+        compiler.skills.compile(
+            {
+                p.definition_id: p.amount
+                for p in build.purchases
+                if p.definition_id in compiler.skills.specs
+            },
+            {key: value.value for key, value in attributes.items()},
+            adjust,
+        )
+        return derived[rule.definition_id], tuple(attributes.values())
 
     def resolve(
         self,

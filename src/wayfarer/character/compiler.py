@@ -14,6 +14,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from pydantic import ValidationError as SchemaError
 
 from wayfarer.character import statistics
+from wayfarer.character.skills import SkillCompiler, SkillError
 from wayfarer.character.statistics import (
     ATTRIBUTE_IDS,
     SECONDARY_IDS,
@@ -188,6 +189,22 @@ class CharacterCompiler:
                     raise ValidationError(
                         f"Pinned packages do not carry profile statistics: {expected.id}"
                     )
+        self.skills = (
+            None
+            if statistics_profile is None
+            else SkillCompiler(
+                statistics_profile,
+                self.definitions,
+                frozenset(
+                    d.id
+                    for d in definitions
+                    if d.source_id in policy.permitted_sources
+                    and (policy.allow_supernatural or "supernatural" not in d.hooks)
+                ),
+            )
+        )
+        if self.skills is None and any(d.skill is not None for d in definitions):
+            raise ValidationError("GURPS skills require an exact selected rules profile")
         if any(
             type(v) is not int or v < 0
             for v in (
@@ -287,11 +304,15 @@ class CharacterCompiler:
                 deferred.append((key, amount))
                 continue
             elif definition.kind is DefinitionKind.SKILL:
-                # This curve is explicitly the original prototype package's mechanic.
-                if definition.name not in SKILLS or "character.skill" not in definition.hooks:
-                    error("skill.unsupported", i, "No implemented skill cost curve")
-                if amount not in (1, 2, 4, 8, 12, 16):
-                    error("skill.points", i, "Invalid skill point allocation")
+                if self.skills is not None:
+                    if key not in self.skills.specs:
+                        error("skill.unsupported", i, "No pinned GURPS skill specification")
+                else:
+                    # Preserve the original prototype cost curve and dispatch.
+                    if definition.name not in SKILLS or "character.skill" not in definition.hooks:
+                        error("skill.unsupported", i, "No implemented skill cost curve")
+                    if amount not in (1, 2, 4, 8, 12, 16):
+                        error("skill.points", i, "Invalid skill point allocation")
                 cost = amount
             elif definition.kind is DefinitionKind.TRAIT:
                 if amount != 1:
@@ -325,7 +346,12 @@ class CharacterCompiler:
                 bases.update(projection.target_values())
         for purchase in draft.purchases:
             definition = self.definitions.get(purchase.definition_id)
-            if definition and definition.kind is DefinitionKind.SKILL and definition.name in SKILLS:
+            if (
+                self.skills is None
+                and definition
+                and definition.kind is DefinitionKind.SKILL
+                and definition.name in SKILLS
+            ):
                 attribute, offset = SKILLS[definition.name]
                 base = effective_attributes.get(f"attribute:{attribute.lower()}")
                 if base is not None:
@@ -333,7 +359,52 @@ class CharacterCompiler:
                     bases[definition.id] = (
                         base + offset + {1: 0, 2: 1}.get(points, 2 + (points - 4) // 4)
                     )
-        targets = tuple(sorted(set(bases) | {e.target for e in effects}))
+        if self.skills is not None and projection is not None and not diagnostics:
+            # Skills use effective primary and purchased secondary attributes.
+            secondary_evaluator = EffectEvaluator(tuple(MechanicalTarget(k) for k in bases))
+            skill_attributes = {
+                **effective_attributes,
+                **{
+                    key: secondary_evaluator.evaluate(key, base, effects, context={}, at=0).value
+                    for key, base in bases.items()
+                    if key.startswith("secondary:")
+                },
+            }
+            skill_evaluator = EffectEvaluator(tuple(MechanicalTarget(k) for k in self.skills.specs))
+
+            def adjust_skill(key: str, base: int) -> int:
+                adjusted = skill_evaluator.evaluate(
+                    key, Decimal(base), effects, context={}, at=0
+                ).value
+                if not adjusted.is_finite() or adjusted != adjusted.to_integral_value():
+                    raise SkillError(
+                        "skill.level", "Skill effects must produce whole-number levels"
+                    )
+                return int(adjusted)
+
+            try:
+                compiled_skills = self.skills.compile(
+                    {
+                        p.definition_id: p.amount
+                        for p in draft.purchases
+                        if p.definition_id in self.skills.specs
+                    },
+                    skill_attributes,
+                    adjust_skill,
+                )
+                bases.update(
+                    {
+                        s.target: Decimal(s.unmodified if s.unmodified is not None else s.level)
+                        for s in compiled_skills
+                    }
+                )
+            except SkillError as exc:
+                diagnostics.append(Diagnostic(exc.code, ("purchases",), str(exc)))
+        target_ids = set(bases) | {e.target for e in effects}
+        if self.skills is not None:
+            # An effect cannot manufacture access to a skill with no legal default.
+            target_ids = {key for key in target_ids if key in bases or key not in self.skills.specs}
+        targets = tuple(sorted(target_ids))
         evaluator = EffectEvaluator(tuple(MechanicalTarget(key) for key in targets))
         sheet = DerivedSheet(
             tuple(
@@ -347,7 +418,8 @@ class CharacterCompiler:
             if definition and definition.kind is DefinitionKind.ATTRIBUTE:
                 ceiling = self.policy.attribute_ceiling
             elif definition and definition.kind is DefinitionKind.SKILL:
-                ceiling = self.policy.skill_ceiling
+                if self.skills is None or value_.target in selected:
+                    ceiling = self.policy.skill_ceiling
             if ceiling is not None and (
                 value_.value < 1 or value_.value != value_.value.to_integral_value()
             ):

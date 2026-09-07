@@ -16,6 +16,7 @@ from typing import Final, Literal
 
 from wayfarer.errors import ValidationError
 from wayfarer.models import RulesPackagePin, RulesReference
+from wayfarer.rules.skill_types import SkillSpec
 
 VERSION: Final = "wayfarer-lite-1"
 BUDGET: Final = 100
@@ -67,6 +68,7 @@ class RuleDefinition:
     exclusions: tuple[str, ...] = ()
     parameters: tuple[str, ...] = ()
     hooks: tuple[str, ...] = ()
+    skill: SkillSpec | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -80,7 +82,12 @@ class RulesPackage:
 
     @property
     def digest(self) -> str:
-        payload = json.dumps(asdict(self), sort_keys=True, separators=(",", ":"))
+        data = asdict(self)
+        # Absent extension metadata must not change historic package digests.
+        for definition in data["definitions"]:
+            if definition["skill"] is None:
+                del definition["skill"]
+        payload = json.dumps(data, sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(payload.encode()).hexdigest()
 
 
