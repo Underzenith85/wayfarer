@@ -47,7 +47,17 @@ it("shows a saved conclusion and restores an archive to completed", async () => 
   const fetcher = vi
     .spyOn(globalThis, "fetch")
     .mockImplementation(async (input, init) => {
-      const path = String(input);
+      const path = input instanceof Request ? input.url : String(input);
+      if (path.endsWith("/session"))
+        return new Response(
+          JSON.stringify({
+            principal_id: "alice",
+            generation_available: true,
+            legacy_available: false,
+          }),
+        );
+      if (path.endsWith("/api/v1/campaigns"))
+        return new Response(JSON.stringify({ items: [], next_cursor: null }));
       return new Response(
         JSON.stringify(
           init?.method === "POST"
@@ -62,7 +72,6 @@ it("shows a saved conclusion and restores an archive to completed", async () => 
     });
   const user = userEvent.setup();
   render(<SetupLobby onOpen={vi.fn()} />);
-  await user.type(screen.getByLabelText("Player ID"), "alice");
   await user.type(screen.getByLabelText("Access token"), "secret");
   await user.click(
     screen.getByRole("button", { name: "Load games and invitations" }),

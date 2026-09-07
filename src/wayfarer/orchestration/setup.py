@@ -48,6 +48,7 @@ class SetupService:
             host_id=principal_id,
             creation_json=payload,
             brief=command.brief,
+            graph=command.graph,
             seats=(Seat(principal_id=principal_id, joined=True),),
         )
         campaign = Campaign(

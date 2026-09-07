@@ -1,3 +1,4 @@
+import { LiveTransport } from "./live";
 import { OnboardingPanel } from "../onboarding/panel";
 import { VoicePanel } from "../voice/panel";
 import { LiveControls } from "./live-controls";
@@ -411,19 +412,40 @@ export function PlayWorkspace() {
         <h2>{s.scene.title}</h2>
         <p className="scene-description">{s.scene.description}</p>
         <div className="context-actions">
+          {!(store.transport instanceof LiveTransport) && (
+            <Button
+              disabled={!store.canSend("wait")}
+              onClick={() =>
+                void store.send("action", "Wait one tick", {
+                  kind: "wait",
+                  ticks: 1,
+                })
+              }
+            >
+              Wait one tick
+            </Button>
+          )}
           {s.scene.observations.map((o) => (
             <Button
               key={o.id}
               variant="outline"
-              disabled={!store.canSend("inspect")}
+              disabled={
+                !store.canSend(
+                  o.description === "Known scene exit" ? "move" : "inspect",
+                )
+              }
               onClick={() =>
-                void store.send("action", `Inspect ${o.label}`, {
-                  kind: "inspect",
-                  target_id: o.id,
-                })
+                void store.send(
+                  "action",
+                  `${o.description === "Known scene exit" ? "Travel to" : "Inspect"} ${o.label}`,
+                  o.description === "Known scene exit"
+                    ? { kind: "move", destination_id: o.id }
+                    : { kind: "inspect", target_id: o.id },
+                )
               }
             >
-              Inspect {o.label}
+              {o.description === "Known scene exit" ? "Travel to" : "Inspect"}{" "}
+              {o.label}
             </Button>
           ))}
         </div>

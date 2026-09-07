@@ -12,6 +12,15 @@ class Settings(BaseSettings):
         env_prefix="WAYFARER_", extra="ignore"
     )
 
+    tokens: dict[str, str] = Field(default_factory=dict, repr=False)
+    frontend_dir: Path = Path("frontend/dist")
+    allowed_origins: tuple[str, ...] = (
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+        "http://127.0.0.1:5173",
+        "http://localhost:5173",
+    )
+
     host: str = "127.0.0.1"
     port: int = Field(default=8000, ge=0, le=65535)
     db: Path = Path("data/wayfarer.sqlite3")
