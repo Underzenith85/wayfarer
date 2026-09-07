@@ -25,6 +25,7 @@ class CampaignAccess:
         self.medical_environment = medical_environment
 
     async def runtime(self, cid: str) -> CampaignAccess:
+        """Reconstruct an activated scenario's pinned runtime after restart."""
         campaign = await self.play.store.read(cid)
         play = self.play.for_campaign(campaign)
         return self if play is self.play else CampaignAccess(play, self.medical_environment)
@@ -33,6 +34,7 @@ class CampaignAccess:
     def _member(state: PlayState, principal_id: str) -> CampaignMember:
         member = next((item for item in state.members if item.principal_id == principal_id), None)
         if member is None:
+            # Avoid disclosing whether an inaccessible campaign exists.
             raise NotFoundError("Campaign not found")
         return member
 
@@ -75,7 +77,9 @@ class CampaignAccess:
             )
             perspectives[actor_id] = asdict(perspective)
         groups = tuple(g for g in state.party.groups if set(g.actor_ids) & set(member.actor_ids))
-        visible_objectives = state.objectives.model_dump(mode="json", exclude={"evidence", "settled_reward_ids"})
+        visible_objectives = state.objectives.model_dump(
+            mode="json", exclude={"evidence", "settled_reward_ids"}
+        )
         visible_objectives["progress"] = tuple(
             {"objective_id": e.objective_id, "satisfied": e.satisfied}
             for e in state.objectives.evidence
@@ -87,20 +91,35 @@ class CampaignAccess:
             "principal_id": member.principal_id,
             "shared_time": len(state.party.groups) > 1,
             "rulings": tuple(
-                r.model_dump(mode="json", include={"id", "actor_id", "status", "alternatives", "selected_id", "reason"})
+                r.model_dump(
+                    mode="json",
+                    include={"id", "actor_id", "status", "alternatives", "selected_id", "reason"},
+                )
                 for r in state.rulings
                 if r.actor_id in member.actor_ids
             ),
             "director": tuple(
                 t.model_dump(
                     mode="json",
-                    exclude={"command_json", "request_json", "session_id", "principal_id", "outcome_json"},
+                    exclude={
+                        "command_json",
+                        "request_json",
+                        "session_id",
+                        "principal_id",
+                        "outcome_json",
+                    },
                 )
                 for t in state.director
                 if t.actor_id in member.actor_ids
             ),
-            "journal": tuple(e.model_dump(mode="json") for e in state.journal if e.actor_id in member.actor_ids),
-            "scene_cursors": tuple(e.model_dump(mode="json") for e in state.actor_scenes if e.actor_id in member.actor_ids),
+            "journal": tuple(
+                e.model_dump(mode="json") for e in state.journal if e.actor_id in member.actor_ids
+            ),
+            "scene_cursors": tuple(
+                e.model_dump(mode="json")
+                for e in state.actor_scenes
+                if e.actor_id in member.actor_ids
+            ),
             "encounters": tuple(
                 legacy_encounter(state, e, member)
                 for e in state.encounters
@@ -119,7 +138,11 @@ class CampaignAccess:
             "game_time": state.resources.game_time,
             "role": member.role,
             "actors": member.actor_ids,
-            "inventory": tuple(i.model_dump(mode="json") for i in state.resources.items if i.owner_id in member.actor_ids),
+            "inventory": tuple(
+                i.model_dump(mode="json")
+                for i in state.resources.items
+                if i.owner_id in member.actor_ids
+            ),
             "status": tuple(
                 a.model_dump(mode="json", include={"actor_id", "conditions", "available_at"})
                 for a in state.actors
@@ -137,12 +160,28 @@ class CampaignAccess:
                 for q in state.party.queue
                 if q.actor_id in member.actor_ids
             ),
-            "activity_receipts": tuple(r.model_dump(mode="json") for r in state.party.receipts if r.actor_id in member.actor_ids),
-            "noncombat": tuple(e.model_dump(mode="json") for e in state.noncombat if e.actor_id in member.actor_ids),
+            "activity_receipts": tuple(
+                r.model_dump(mode="json")
+                for r in state.party.receipts
+                if r.actor_id in member.actor_ids
+            ),
+            "noncombat": tuple(
+                e.model_dump(mode="json") for e in state.noncombat if e.actor_id in member.actor_ids
+            ),
             "objectives": visible_objectives,
-            "captivity": tuple(c.model_dump(mode="json") for c in state.recovery.captivity if c.actor_id in member.actor_ids),
-            "recovery_decisions": tuple(d.model_dump(mode="json") for d in state.recovery.decisions if d.actor_id in member.actor_ids),
-            "dead_actor_ids": tuple(a for a in state.recovery.dead_actor_ids if a in member.actor_ids),
+            "captivity": tuple(
+                c.model_dump(mode="json")
+                for c in state.recovery.captivity
+                if c.actor_id in member.actor_ids
+            ),
+            "recovery_decisions": tuple(
+                d.model_dump(mode="json")
+                for d in state.recovery.decisions
+                if d.actor_id in member.actor_ids
+            ),
+            "dead_actor_ids": tuple(
+                a for a in state.recovery.dead_actor_ids if a in member.actor_ids
+            ),
         }
 
     async def read(self, cid: str, *, principal_id: str) -> dict[str, object]:
@@ -159,7 +198,9 @@ class CampaignAccess:
             {
                 "actor_id": a.actor_id,
                 "name": a.proposal.draft.name,
-                "values": tuple({"target": v.target, "value": str(v.value)} for v in build.sheet.values),
+                "values": tuple(
+                    {"target": v.target, "value": str(v.value)} for v in build.sheet.values
+                ),
                 "spent": build.spent,
             }
             for a in state.actors
@@ -183,19 +224,24 @@ class CampaignAccess:
                 "exits": tuple(
                     {"id": e.id, "destination_id": e.destination_id}
                     for e in scene.exits
-                    if set(e.required_fact_ids) <= {f.id for f in state.world.perspective(cursor.actor_id).facts}
+                    if set(e.required_fact_ids)
+                    <= {f.id for f in state.world.perspective(cursor.actor_id).facts}
                 ),
             }
             for cursor in state.actor_scenes
             if cursor.actor_id in member.actor_ids
-            for scene in (self.play.engine.rules.scenes.scenes if self.play.engine.rules.scenes else ())
+            for scene in (
+                self.play.engine.rules.scenes.scenes if self.play.engine.rules.scenes else ()
+            )
             if scene.id == cursor.scene_id
         )
         from wayfarer.orchestration.recovery import RecoveryCommand, RecoveryService
 
         choices: list[dict[str, object]] = []
         recovery = RecoveryService(self.play)
-        for option in (self.play.engine.rules.recovery.options if self.play.engine.rules.recovery else ()):
+        for option in (
+            self.play.engine.rules.recovery.options if self.play.engine.rules.recovery else ()
+        ):
             for actor_id in member.actor_ids:
                 visible = {e.id for e in state.world.perspective(actor_id).entities}
                 for target_id in option.target_actor_ids:
@@ -213,7 +259,14 @@ class CampaignAccess:
                         recovery.assess(state, candidate)
                     except ValidationError, ConflictError:
                         continue
-                    choices.append({"id": option.id, "kind": option.kind, "actor_id": actor_id, "target_actor_id": target_id})
+                    choices.append(
+                        {
+                            "id": option.id,
+                            "kind": option.kind,
+                            "actor_id": actor_id,
+                            "target_actor_id": target_id,
+                        }
+                    )
         projection["recovery_choices"] = choices
 
         from wayfarer.orchestration.player_medical import choices as medical_choices
@@ -248,7 +301,9 @@ class CampaignAccess:
                 cursor = next(c for c in state.actor_scenes if c.actor_id == actor.actor_id)
                 for rule in self.play.engine.rules.noncombat.encounters:
                     encounter_id = actor.actor_id + ":" + rule.id
-                    if rule.scene_id == cursor.scene_id and not any(e.id == encounter_id for e in state.noncombat):
+                    if rule.scene_id == cursor.scene_id and not any(
+                        e.id == encounter_id for e in state.noncombat
+                    ):
                         scene_choices.append(
                             {
                                 "id": encounter_id,
@@ -277,7 +332,11 @@ class CampaignAccess:
         kind = value.get("kind")
         from wayfarer.orchestration.recovery import guard
 
-        if isinstance(value.get("actor_id"), str) and isinstance(kind, str) and kind != "gurps_recovery":
+        if (
+            isinstance(value.get("actor_id"), str)
+            and isinstance(kind, str)
+            and kind != "gurps_recovery"
+        ):
             guard(state, str(value["actor_id"]), kind)
         raw = json.dumps(value)
         try:
@@ -299,7 +358,9 @@ class CampaignAccess:
 
                 ruling = RULING_ADAPTER.validate_json(raw)
                 self._control(member, ruling.actor_id)
-                await AdjudicationService(self.play).submit(cid, ruling, authenticated_actor_id=ruling.actor_id)
+                await AdjudicationService(self.play).submit(
+                    cid, ruling, authenticated_actor_id=ruling.actor_id
+                )
             elif kind in ("apply_setback", "choose_recovery"):
                 from wayfarer.orchestration.recovery import RecoveryCommand, RecoveryService
 
@@ -313,7 +374,9 @@ class CampaignAccess:
 
                 proposal = NPCProposal.model_validate_json(raw)
                 self._control(member, proposal.actor_id)
-                await NPCService(self.play).propose(cid, proposal, authenticated_gm_id=proposal.actor_id)
+                await NPCService(self.play).propose(
+                    cid, proposal, authenticated_gm_id=proposal.actor_id
+                )
             elif kind in (
                 "start_encounter",
                 "take_combat_turn",
@@ -333,19 +396,27 @@ class CampaignAccess:
                 )
                 if not (member.role == "gm" and graph and combat.actor_id in graph.npc_actor_ids):
                     self._control(member, combat.actor_id)
-                await CombatService(self.play).execute(cid, combat, authenticated_actor_id=combat.actor_id)
+                await CombatService(self.play).execute(
+                    cid, combat, authenticated_actor_id=combat.actor_id
+                )
             elif kind in ("observe_scene", "travel_scene"):
                 scene = SCENE_ADAPTER.validate_json(raw)
                 self._control(member, scene.actor_id)
-                await SceneService(self.play).execute(cid, scene, authenticated_actor_id=scene.actor_id)
+                await SceneService(self.play).execute(
+                    cid, scene, authenticated_actor_id=scene.actor_id
+                )
             elif kind in ("start_noncombat", "approach_noncombat", "withdraw_noncombat"):
                 noncombat = NoncombatCommand.model_validate_json(raw)
                 self._control(member, noncombat.actor_id)
-                await NoncombatService(self.play).execute(cid, noncombat, authenticated_actor_id=noncombat.actor_id)
+                await NoncombatService(self.play).execute(
+                    cid, noncombat, authenticated_actor_id=noncombat.actor_id
+                )
             elif kind in ("evaluate_objectives", "abandon_scenario"):
                 objective = ObjectiveCommand.model_validate_json(raw)
                 self._control(member, objective.actor_id)
-                await ObjectiveService(self.play).execute(cid, objective, authenticated_actor_id=objective.actor_id)
+                await ObjectiveService(self.play).execute(
+                    cid, objective, authenticated_actor_id=objective.actor_id
+                )
             elif kind in (
                 "split_party",
                 "rejoin_party",
@@ -357,7 +428,9 @@ class CampaignAccess:
             ):
                 party = PartyCommand.model_validate_json(raw)
                 self._control(member, party.actor_id)
-                await PartyService(self.play).execute(cid, party, authenticated_actor_id=party.actor_id)
+                await PartyService(self.play).execute(
+                    cid, party, authenticated_actor_id=party.actor_id
+                )
             else:
                 command = ACTION_ADAPTER.validate_json(raw)
                 self._control(member, command.actor_id)
@@ -395,12 +468,22 @@ class CampaignAccess:
             result.append(
                 StreamEvent(
                     cursor=event.resulting_revision,
-                    command_id=event.command_id if member.role == "gm" or event.actor_id in member.actor_ids else "redacted",
-                    actor_id=event.actor_id if member.role == "gm" or event.actor_id in member.actor_ids else "redacted",
-                    action=event.event["action"] if member.role == "gm" or event.actor_id in member.actor_ids else "private",
+                    command_id=event.command_id
+                    if member.role == "gm" or event.actor_id in member.actor_ids
+                    else "redacted",
+                    actor_id=event.actor_id
+                    if member.role == "gm" or event.actor_id in member.actor_ids
+                    else "redacted",
+                    action=event.event["action"]
+                    if member.role == "gm" or event.actor_id in member.actor_ids
+                    else "private",
                     outcome=(
                         event.event["outcome"]
-                        if member.role == "gm" or (event.actor_id in member.actor_ids and event.event["action"] != "objectives")
+                        if member.role == "gm"
+                        or (
+                            event.actor_id in member.actor_ids
+                            and event.event["action"] != "objectives"
+                        )
                         else ""
                     ),
                     projection=self._projection(state, member),
