@@ -182,9 +182,9 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.combat.rapid_fire` | no | yes | absent | #106 |
 | `gurps.combat.unarmed` | yes | yes | partial | #108 |
 | `gurps.combat.grappling` | yes | yes | absent | #108 |
-| `gurps.tactical.hex_movement` | no | yes | absent | #105 |
-| `gurps.tactical.facing` | no | yes | absent | #105 |
-| `gurps.tactical.visibility` | no | yes | absent | #105 |
+| `gurps.tactical.hex_movement` | no | yes | partial | #105 |
+| `gurps.tactical.facing` | no | yes | partial | #105 |
+| `gurps.tactical.visibility` | no | yes | partial | #105 |
 | `gurps.recovery.fatigue` | yes | yes | partial | #109 |
 | `gurps.recovery.healing` | yes | yes | partial | #109 |
 | `gurps.recovery.medical_treatment` | no | yes | absent | #109 |
@@ -200,3 +200,7 @@ mechanics: they add no row and change no state above. Both GURPS profiles remain
 unsupported while any `lite_required` or `basic_required` entry is still
 `absent`, `partial` or `manual`; the verified `gurps.check.*` rows alone do not
 make either profile selectable.
+
+Tactical geometry (#105): [contracts, provenance and integration boundary](tactical-geometry.md).
+Hex movement, facing and geometric LOS have independent fixtures; the rows remain
+partial pending source audit and combat/API integration (#115).
