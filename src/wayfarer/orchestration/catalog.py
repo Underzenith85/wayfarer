@@ -5,6 +5,7 @@ import json
 from uuid import NAMESPACE_URL, uuid5
 
 from wayfarer.errors import ConflictError, NotFoundError, ValidationError
+from wayfarer.orchestration.providers import Orchestrator, ProviderRequest
 from wayfarer.orchestration.scenario_documents import ScenarioDocuments, bind_party, parse_document
 from wayfarer.orchestration.setup import SetupService
 from wayfarer.orchestration.studio import ScenarioStudio
@@ -16,9 +17,12 @@ from wayfarer.simulation.catalog import (
     CatalogSummary,
     InstantiateRevision,
     RevisionView,
+    ScenarioGenerationJob,
+    ScenarioGenerationRequest,
 )
-from wayfarer.simulation.scenario_document import DraftRevision
+from wayfarer.simulation.scenario_document import DraftRevision, Provenance, PublicBrief
 from wayfarer.simulation.setup import CreateSetup
+from wayfarer.simulation.studio import ScenarioGraph, StudioFinding
 
 
 class ScenarioCatalog:
@@ -212,4 +216,215 @@ class ScenarioCatalog:
             CreateSetup(id=command.id, brief=graph.brief, graph=graph),
             principal_id=principal,
             document_json=source,
+        )
+
+    async def create_generation_job(
+        self, principal: str, request: ScenarioGenerationRequest
+    ) -> ScenarioGenerationJob:
+        self.documents.authorize(principal)
+        if request.source_json is not None:
+            digest = hashlib.sha256(request.source_json.encode()).hexdigest()
+            if request.source_digest != digest:
+                raise ValidationError("Scenario source changed before generation")
+            try:
+                parse_document(request.source_json)
+            except ValueError as exc:
+                raise ValidationError("Refinement requires a valid saved scenario source") from exc
+        elif request.source_digest is not None or request.section != "all":
+            raise ValidationError("Section refinement requires a scenario source")
+        return await self.store.create_job(
+            ScenarioGenerationJob(
+                id=request.id,
+                owner_id=principal,
+                version=1,
+                status="queued",
+                request=request,
+            )
+        )
+
+    async def read_generation_job(self, principal: str, job_id: str) -> ScenarioGenerationJob:
+        self.documents.authorize(principal)
+        return await self.store.read_job(job_id, principal)
+
+    async def cancel_generation_job(self, principal: str, job_id: str) -> ScenarioGenerationJob:
+        for _ in range(3):
+            job = await self.read_generation_job(principal, job_id)
+            if job.status in ("succeeded", "failed", "cancelled"):
+                return job
+            try:
+                return await self.store.update_job(
+                    job.model_copy(update={"status": "cancelled"}), job.version
+                )
+            except ConflictError:
+                continue
+        raise ConflictError("Generation job changed; retry cancellation")
+
+    @staticmethod
+    def _merge_section(
+        current: ScenarioGraph, generated: ScenarioGraph, section: str
+    ) -> ScenarioGraph:
+        if section == "all":
+            return generated
+        fields: dict[str, tuple[str, ...]] = {
+            "brief": ("title", "brief"),
+            "opening": ("opening_action",),
+            "world": ("world", "scenes", "actions", "approaches", "noncombat", "recovery"),
+            "objectives": ("objectives", "failure_consequence"),
+            "characters": (
+                "actors",
+                "npc_actor_ids",
+                "resources",
+                "npcs",
+                "combat_attacks",
+                "combat_consequences",
+                "combat_protection",
+            ),
+        }
+        return current.model_copy(
+            update={name: getattr(generated, name) for name in fields[section]}
+        )
+
+    async def run_generation_job(
+        self, principal: str, job_id: str, llm: Orchestrator
+    ) -> ScenarioGenerationJob:
+        job = await self.read_generation_job(principal, job_id)
+        if job.status not in ("queued", "failed"):
+            return job
+        job = await self.store.update_job(
+            job.model_copy(
+                update={
+                    "status": "running",
+                    "proposal_json": None,
+                    "report": None,
+                    "error_code": None,
+                    "error_message": None,
+                }
+            ),
+            job.version,
+        )
+        request = job.request
+        current_document = (
+            parse_document(request.source_json) if request.source_json is not None else None
+        )
+        current_graph = bind_party(current_document) if current_document is not None else None
+        current_context: object = None
+        if current_graph is not None:
+            dumped = current_graph.model_dump(mode="json")
+            selected = (
+                dumped
+                if request.section == "all"
+                else {
+                    name: dumped[name]
+                    for name in {
+                        "brief": ("title", "brief"),
+                        "opening": ("opening_scene_id", "opening_action"),
+                        "world": (
+                            "world",
+                            "scenes",
+                            "actions",
+                            "approaches",
+                            "noncombat",
+                            "recovery",
+                        ),
+                        "objectives": ("objectives", "failure_consequence"),
+                        "characters": ("actors", "npc_actor_ids", "resources", "npcs"),
+                    }[request.section]
+                }
+            )
+            current_context = selected
+        context: dict[str, object] = {
+            "brief": request.brief.model_dump(mode="json"),
+            "party_capabilities": request.party_capabilities,
+            "catalog_ids": sorted(self.setup.play.engine.reviewer.compiler.definitions),
+            "section": request.section,
+            "current_scenario": current_context,
+        }
+        if len(json.dumps(context)) > 23_000:
+            context["current_scenario"] = {
+                "content_digest": request.source_digest,
+                "note": "The accepted scenario is too large for provider context; propose only the requested section.",
+            }
+        graph: ScenarioGraph | None = None
+        report = None
+        for _ in range(request.attempts):
+            raw = await llm._call(
+                ProviderRequest(
+                    operation="scenario_draft",
+                    session_id=f"scenario-authoring:{principal}:{job.id}",
+                    context_json=json.dumps(context),
+                    prompt=(
+                        "Create a complete runtime-backed scenario proposal using only supplied "
+                        "catalog IDs and supported mechanics. Include an actionable opening, "
+                        "multiple approaches, explicit success/partial/failure consequences, and "
+                        "a supported escape or rescue route for every capture outcome. "
+                        + request.instructions
+                    )[:4000],
+                    output_schema=ScenarioGraph.model_json_schema(),
+                )
+            )
+            graph = ScenarioGraph.model_validate_json(raw)
+            if current_graph is not None:
+                graph = self._merge_section(current_graph, graph, request.section)
+            report = self.documents.studio.validate(graph)
+            if report.valid:
+                break
+            context["validation"] = report.model_dump(mode="json")
+        assert graph is not None and report is not None
+        revision = (current_document.revision + 1) if current_document else 1
+        from wayfarer.orchestration.scenario_documents import adapt_graph
+
+        document = adapt_graph(
+            graph,
+            studio=self.documents.studio,
+            revision_id=f"proposal-{job.id}",
+            author=principal,
+            public=PublicBrief(
+                title=graph.title,
+                summary=graph.brief.premise,
+                setup=graph.brief,
+                opening_prompt=graph.opening_action,
+            ),
+        ).model_copy(
+            update={
+                "revision": revision,
+                "provenance": Provenance(
+                    kind="generated",
+                    author=principal,
+                    generator="configured-provider",
+                    source_digest=current_document.digest if current_document else None,
+                ),
+                "gm_notes": current_document.gm_notes if current_document else "",
+            }
+        )
+        source = document.canonical()
+        document_report = self.documents.validate(source)
+        if not report.valid:
+            document_report = document_report.model_copy(
+                update={
+                    "findings": document_report.findings
+                    + (
+                        StudioFinding(
+                            code="generation.repair_exhausted",
+                            severity="error",
+                            reference=graph.id,
+                            message="The bounded repair budget was exhausted; edit or retry the proposal.",
+                        ),
+                    ),
+                    "status": "invalid",
+                }
+            )
+        latest = await self.read_generation_job(principal, job_id)
+        if latest.status == "cancelled":
+            return latest
+        return await self.store.update_job(
+            latest.model_copy(
+                update={
+                    "status": "succeeded"
+                    if document_report.status == "playable"
+                    else "needs_review",
+                    "proposal_json": source,
+                    "report": document_report,
+                }
+            ),
+            latest.version,
         )

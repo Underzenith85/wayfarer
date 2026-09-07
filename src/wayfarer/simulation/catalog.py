@@ -11,6 +11,7 @@ from wayfarer.simulation.scenario_document import (
     PregeneratedCharacter,
     PublishedRevision,
 )
+from wayfarer.simulation.studio import GenerationBrief
 
 
 class CatalogRevision(Record):
@@ -57,3 +58,32 @@ class RevisionView(Record):
     entry: CatalogSummary
     revision: CatalogRevision
     current_report: DocumentReport
+
+
+GenerationStatus = Literal["queued", "running", "needs_review", "succeeded", "failed", "cancelled"]
+GenerationSection = Literal["all", "brief", "opening", "world", "objectives", "characters"]
+
+
+class ScenarioGenerationRequest(Record):
+    """A bounded, non-authoritative request for an editable scenario proposal."""
+
+    id: Id
+    brief: GenerationBrief
+    instructions: str = Field(default="", max_length=3200)
+    party_capabilities: tuple[Id, ...] = Field(default=(), max_length=30)
+    section: GenerationSection = "all"
+    source_json: str | None = Field(default=None, max_length=2_000_000)
+    source_digest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    attempts: int = Field(default=2, ge=1, le=3)
+
+
+class ScenarioGenerationJob(Record):
+    id: Id
+    owner_id: Id
+    version: int = Field(ge=1)
+    status: GenerationStatus
+    request: ScenarioGenerationRequest
+    proposal_json: str | None = Field(default=None, max_length=2_000_000)
+    report: DocumentReport | None = None
+    error_code: str | None = None
+    error_message: str | None = None

@@ -699,6 +699,469 @@
     "title": "RevisionView",
     "type": "object"
   },
+  "ScenarioGenerationRequest": {
+    "$defs": {
+      "GenerationBrief": {
+        "additionalProperties": false,
+        "properties": {
+          "premise": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Premise",
+            "type": "string"
+          },
+          "genre": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Genre",
+            "type": "string"
+          },
+          "tone": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Tone",
+            "type": "string"
+          },
+          "duration_minutes": {
+            "maximum": 10000,
+            "minimum": 10,
+            "title": "Duration Minutes",
+            "type": "integer"
+          },
+          "difficulty": {
+            "enum": [
+              "gentle",
+              "standard",
+              "hard"
+            ],
+            "title": "Difficulty",
+            "type": "string"
+          },
+          "restrictions": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 30,
+            "title": "Restrictions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "premise",
+          "genre",
+          "tone",
+          "duration_minutes",
+          "difficulty"
+        ],
+        "title": "GenerationBrief",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "description": "A bounded, non-authoritative request for an editable scenario proposal.",
+    "properties": {
+      "id": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Id",
+        "type": "string"
+      },
+      "brief": {
+        "$ref": "#/$defs/GenerationBrief"
+      },
+      "instructions": {
+        "default": "",
+        "maxLength": 3200,
+        "title": "Instructions",
+        "type": "string"
+      },
+      "party_capabilities": {
+        "default": [],
+        "items": {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        "maxItems": 30,
+        "title": "Party Capabilities",
+        "type": "array"
+      },
+      "section": {
+        "default": "all",
+        "enum": [
+          "all",
+          "brief",
+          "opening",
+          "world",
+          "objectives",
+          "characters"
+        ],
+        "title": "Section",
+        "type": "string"
+      },
+      "source_json": {
+        "anyOf": [
+          {
+            "maxLength": 2000000,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Source Json"
+      },
+      "source_digest": {
+        "anyOf": [
+          {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Source Digest"
+      },
+      "attempts": {
+        "default": 2,
+        "maximum": 3,
+        "minimum": 1,
+        "title": "Attempts",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "id",
+      "brief"
+    ],
+    "title": "ScenarioGenerationRequest",
+    "type": "object"
+  },
+  "ScenarioGenerationJob": {
+    "$defs": {
+      "DocumentReport": {
+        "additionalProperties": false,
+        "properties": {
+          "content_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Content Digest",
+            "type": "string"
+          },
+          "engine_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Engine Digest",
+            "type": "string"
+          },
+          "party_digest": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Party Digest"
+          },
+          "status": {
+            "enum": [
+              "invalid",
+              "needs-party",
+              "playable"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/$defs/StudioFinding"
+            },
+            "title": "Findings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "content_digest",
+          "engine_digest",
+          "status",
+          "findings"
+        ],
+        "title": "DocumentReport",
+        "type": "object"
+      },
+      "GenerationBrief": {
+        "additionalProperties": false,
+        "properties": {
+          "premise": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Premise",
+            "type": "string"
+          },
+          "genre": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Genre",
+            "type": "string"
+          },
+          "tone": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Tone",
+            "type": "string"
+          },
+          "duration_minutes": {
+            "maximum": 10000,
+            "minimum": 10,
+            "title": "Duration Minutes",
+            "type": "integer"
+          },
+          "difficulty": {
+            "enum": [
+              "gentle",
+              "standard",
+              "hard"
+            ],
+            "title": "Difficulty",
+            "type": "string"
+          },
+          "restrictions": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 30,
+            "title": "Restrictions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "premise",
+          "genre",
+          "tone",
+          "duration_minutes",
+          "difficulty"
+        ],
+        "title": "GenerationBrief",
+        "type": "object"
+      },
+      "ScenarioGenerationRequest": {
+        "additionalProperties": false,
+        "description": "A bounded, non-authoritative request for an editable scenario proposal.",
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "brief": {
+            "$ref": "#/$defs/GenerationBrief"
+          },
+          "instructions": {
+            "default": "",
+            "maxLength": 3200,
+            "title": "Instructions",
+            "type": "string"
+          },
+          "party_capabilities": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 30,
+            "title": "Party Capabilities",
+            "type": "array"
+          },
+          "section": {
+            "default": "all",
+            "enum": [
+              "all",
+              "brief",
+              "opening",
+              "world",
+              "objectives",
+              "characters"
+            ],
+            "title": "Section",
+            "type": "string"
+          },
+          "source_json": {
+            "anyOf": [
+              {
+                "maxLength": 2000000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Source Json"
+          },
+          "source_digest": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Source Digest"
+          },
+          "attempts": {
+            "default": 2,
+            "maximum": 3,
+            "minimum": 1,
+            "title": "Attempts",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "brief"
+        ],
+        "title": "ScenarioGenerationRequest",
+        "type": "object"
+      },
+      "StudioFinding": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "error",
+              "warning"
+            ],
+            "title": "Severity",
+            "type": "string"
+          },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "severity",
+          "reference",
+          "message"
+        ],
+        "title": "StudioFinding",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "id": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Id",
+        "type": "string"
+      },
+      "owner_id": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Owner Id",
+        "type": "string"
+      },
+      "version": {
+        "minimum": 1,
+        "title": "Version",
+        "type": "integer"
+      },
+      "status": {
+        "enum": [
+          "queued",
+          "running",
+          "needs_review",
+          "succeeded",
+          "failed",
+          "cancelled"
+        ],
+        "title": "Status",
+        "type": "string"
+      },
+      "request": {
+        "$ref": "#/$defs/ScenarioGenerationRequest"
+      },
+      "proposal_json": {
+        "anyOf": [
+          {
+            "maxLength": 2000000,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Proposal Json"
+      },
+      "report": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/DocumentReport"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "error_code": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Error Code"
+      },
+      "error_message": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Error Message"
+      }
+    },
+    "required": [
+      "id",
+      "owner_id",
+      "version",
+      "status",
+      "request"
+    ],
+    "title": "ScenarioGenerationJob",
+    "type": "object"
+  },
   "ScenarioDocument": {
     "$defs": {
       "ActionRules": {

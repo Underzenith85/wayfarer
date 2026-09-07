@@ -249,6 +249,8 @@ export function SetupLobby({
           {!lobby && (
             <ScenarioCatalog
               token={token}
+              principal={principal}
+              generationAvailable={generationAvailable}
               onCreate={(value) => {
                 choose(value);
                 setLobbies([...lobbies, value]);
