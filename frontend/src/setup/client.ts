@@ -34,6 +34,20 @@ export interface Lobby {
     actor_ids: string[];
   }[];
   rules: unknown;
+  adventures?: {
+    adventure_id: string;
+    title: string;
+    outcome: string;
+    at: number;
+    evidence: { id: string; title: string; satisfied: boolean }[];
+    discoveries: { id: string; predicate: string; value: string }[];
+    casualties: string[];
+    commitments: { id: string; description: string; status: string }[];
+    rewards: { id: string; points: number; item_id: string | null }[];
+    pools: { id: string; current: number; maximum: number }[];
+    advancement: { id: string; kind: string; points: number; reason: string }[];
+  }[];
+  next_adventure?: { id: string; title: string; opening_action: string } | null;
 }
 export class SetupClient {
   private pending: { path: string; body: object } | null = null;

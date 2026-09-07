@@ -341,6 +341,137 @@ export function SetupLobby({
           )}
           {lobby && (
             <>
+              {lobby.adventures?.map((ending) => (
+                <article
+                  key={ending.adventure_id}
+                  aria-label="Adventure conclusion"
+                >
+                  <h3>
+                    {ending.title} · {ending.outcome}
+                  </h3>
+                  <p>
+                    Adventure ended at shared time {ending.at}. The campaign can
+                    continue after any outcome.
+                  </p>
+                  <ul>
+                    {ending.evidence.map((e) => (
+                      <li key={e.id}>
+                        {e.title}: {e.satisfied ? "Achieved" : "Unfulfilled"}
+                      </li>
+                    ))}
+                  </ul>
+                  <h4>Discoveries</h4>
+                  <ul>
+                    {ending.discoveries.map((f) => (
+                      <li key={f.id}>
+                        {f.predicate}: {f.value}
+                      </li>
+                    ))}
+                  </ul>
+                  <h4>Lasting commitments</h4>
+                  <ul>
+                    {ending.commitments.map((c) => (
+                      <li key={c.id}>
+                        {c.description} · {c.status}
+                      </li>
+                    ))}
+                  </ul>
+                  <p>
+                    Recorded casualties:{" "}
+                    {ending.casualties.join(", ") || "None visible"}
+                  </p>
+                  <h4>Settled rewards and advancement</h4>
+                  <ul>
+                    {ending.rewards.map((r) => (
+                      <li key={r.id}>
+                        {r.points} points{r.item_id ? ` · ${r.item_id}` : ""}
+                      </li>
+                    ))}
+                  </ul>
+                  <ul>
+                    {ending.advancement.map((e) => (
+                      <li key={e.id}>
+                        {e.kind}: {e.points} · {e.reason}
+                      </li>
+                    ))}
+                  </ul>
+                  <h4>Recovery status</h4>
+                  <ul>
+                    {ending.pools.map((p) => (
+                      <li key={p.id}>
+                        {p.id}: {p.current}/{p.maximum}
+                      </li>
+                    ))}
+                  </ul>
+                  <p>
+                    Continuing preserves injuries and equipment. Use authored
+                    downtime and advancement actions in play.
+                  </p>
+                </article>
+              ))}
+              {lobby.phase === "completed" && host && (
+                <div>
+                  <h3>Next adventure</h3>
+                  <label>
+                    Authored next adventure
+                    <select
+                      value={graph?.id ?? ""}
+                      onChange={(e) =>
+                        setGraph(
+                          templates.find((t) => t.id === e.target.value) ??
+                            null,
+                        )
+                      }
+                    >
+                      <option value="">Choose a successor</option>
+                      {templates
+                        .filter(
+                          (t) =>
+                            !lobby.adventures?.some(
+                              (a) => a.adventure_id === t.id,
+                            ),
+                        )
+                        .map((t) => (
+                          <option key={t.id} value={t.id}>
+                            {t.title}
+                          </option>
+                        ))}
+                    </select>
+                  </label>
+                  <Button
+                    disabled={!graph || busy || client.hasPending}
+                    onClick={() =>
+                      void run(() => command("preview", { graph }))
+                    }
+                  >
+                    Save next-adventure preview
+                  </Button>
+                  <p>
+                    Generate a successor from the saved party and lasting world
+                    state. The saved preview survives reloads.
+                  </p>
+                  <Button
+                    disabled={busy || client.hasPending}
+                    onClick={() =>
+                      void run(() => command("preview", {}, "/generate"))
+                    }
+                  >
+                    Generate next-adventure preview
+                  </Button>
+                </div>
+              )}
+              {lobby.next_adventure && (
+                <article aria-label="Next adventure preview">
+                  <h3>{lobby.next_adventure.title}</h3>
+                  <p>{lobby.next_adventure.opening_action}</p>
+                </article>
+              )}
+              {lobby.phase === "archived" && (
+                <p>
+                  Archived games are read-only. Unarchive returns to the
+                  conclusion, where you can continue.
+                </p>
+              )}
               <details>
                 <summary>Campaign rules</summary>
                 <pre>{JSON.stringify(lobby.rules, null, 2)}</pre>
@@ -430,9 +561,12 @@ export function SetupLobby({
                     ready: ["activate"],
                     active: ["pause", "complete"],
                     paused: ["resume"],
-                    completed: ["archive"],
+                    completed: [
+                      "archive",
+                      ...(lobby.next_adventure ? ["continue"] : []),
+                    ],
                     draft: [],
-                    archived: [],
+                    archived: ["unarchive"],
                   }[lobby.phase].map((operation) => (
                     <Button
                       key={operation}
