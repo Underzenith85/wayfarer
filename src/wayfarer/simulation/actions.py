@@ -20,9 +20,11 @@ from wayfarer.simulation.adjudication import Ruling, RulingPolicy, expire_ruling
 from wayfarer.simulation.advancement import AdvancementEntry, MigrationEntry
 from wayfarer.simulation.combat import CombatEngine, CombatResult, CombatRules, Encounter
 from wayfarer.simulation.noncombat import NoncombatEncounter, NoncombatRules
+from wayfarer.simulation.npcs import NPCRules, NPCState
 from wayfarer.simulation.objectives import ObjectiveRules, ObjectiveState
 from wayfarer.simulation.party import PartyRules, PartyState
 from wayfarer.simulation.party import validate as validate_party
+from wayfarer.simulation.recovery import RecoveryRules, RecoveryState
 from wayfarer.simulation.resources import Advance, Consume, Record, ResourceEngine, ResourceState
 from wayfarer.simulation.scenes import ActorScene, JournalEntry, SceneEvent, SceneRules
 from wayfarer.world import Entity, EntityKind, World
@@ -126,6 +128,8 @@ class ActionRules(Record):
     objectives: ObjectiveRules | None = Field(default=None, exclude=True)
     noncombat: NoncombatRules | None = Field(default=None, exclude=True)
     party: PartyRules | None = Field(default=None, exclude=True)
+    npcs: NPCRules | None = Field(default=None, exclude=True)
+    recovery: RecoveryRules | None = Field(default=None, exclude=True)
 
 
 class ActionResult(Record):
@@ -171,6 +175,8 @@ class PlayState(Record):
     objectives: ObjectiveState = ObjectiveState()
     noncombat: tuple[NoncombatEncounter, ...] = ()
     party: PartyState = PartyState()
+    npcs: NPCState = NPCState()
+    recovery: RecoveryState = RecoveryState()
 
 
 class ActionEngine:
@@ -242,6 +248,8 @@ class ActionEngine:
             + (rules.objectives.model_dump_json() if rules.objectives else "")
             + (rules.noncombat.model_dump_json() if rules.noncombat else "")
             + (rules.party.model_dump_json() if rules.party else "")
+            + (rules.npcs.model_dump_json() if rules.npcs else "")
+            + (rules.recovery.model_dump_json() if rules.recovery else "")
             + reviewer.policy.digest
             + repr(resources.rules)
             + repr(reviewer.compiler.effects)
@@ -300,6 +308,9 @@ class ActionEngine:
                 for e in effects
             ):
                 raise ValidationError("Invalid cross-scene effect references")
+        from wayfarer.simulation.lifecycle import validate_lifecycle
+
+        validate_lifecycle(state, self.rules)
         validate_party(state)
         self.validate_rulings(state)
         state.world.validate()
@@ -520,6 +531,14 @@ class ActionEngine:
         return entity.id if entity.kind is EntityKind.LOCATION else entity.location_id
 
     def assess(self, state: PlayState, command: TypedAction) -> ActionResult:
+        if command.kind != "question" and (
+            command.actor_id in state.recovery.dead_actor_ids
+            or any(
+                c.actor_id == command.actor_id and c.released_at is None
+                for c in state.recovery.captivity
+            )
+        ):
+            raise ValidationError("Setback requires an authored recovery choice")
         self.validate(state)
 
         def result(

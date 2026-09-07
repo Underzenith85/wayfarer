@@ -5,12 +5,22 @@ from __future__ import annotations
 import hmac
 import time
 import uuid
-from collections.abc import Awaitable, Callable, Mapping
+from collections import deque
+from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
 
 from aiohttp import web
+from pydantic import Field
 
+from wayfarer.config import Settings
 from wayfarer.errors import AuthenticationError, ValidationError, WayfarerError
 from wayfarer.orchestration.access import CampaignAccess
+from wayfarer.orchestration.codex import ProviderStatus
+from wayfarer.orchestration.provider_runtime import provider_runtime
+from wayfarer.orchestration.providers import Orchestrator
+from wayfarer.simulation.resources import Record
+
+ORCHESTRATOR_KEY = web.AppKey("campaign-orchestrator", Orchestrator)
+PROVIDER_STATUS_KEY = web.AppKey("provider-status", deque[ProviderStatus])
 
 MAX_BODY = 32_000
 ACCESS_KEY = web.AppKey("campaign-access", CampaignAccess)
@@ -103,7 +113,42 @@ async def events(request: web.Request) -> web.Response:
     return web.json_response({"events": [value.model_dump(mode="json") for value in values]})
 
 
-def create_campaign_app(play: CampaignAccess, tokens: Mapping[str, str]) -> web.Application:
+class InterpretRequest(Record):
+    actor_id: str = Field(min_length=1, max_length=100)
+    command_id: str = Field(min_length=1, max_length=100)
+    text: str = Field(min_length=1, max_length=4000)
+
+
+async def interpret(request: web.Request) -> web.Response:
+    body = InterpretRequest.model_validate(await _json(request))
+    result = await request.app[ORCHESTRATOR_KEY].interpret_and_execute(
+        request.match_info["cid"],
+        principal_id=_identity(request),
+        actor_id=body.actor_id,
+        command_id=body.command_id,
+        text=body.text,
+    )
+    return web.json_response(result.model_dump(mode="json"))
+
+
+async def provider_status(request: web.Request) -> web.Response:
+    _, session, _ = await request.app[ORCHESTRATOR_KEY].context(
+        request.match_info["cid"], _identity(request), request.query.get("actor_id", "")
+    )
+    return web.json_response(
+        {
+            "events": [
+                s.model_dump(mode="json", exclude={"session_id"})
+                for s in request.app[PROVIDER_STATUS_KEY]
+                if s.session_id == session
+            ]
+        }
+    )
+
+
+def create_campaign_app(
+    play: CampaignAccess, tokens: Mapping[str, str], *, settings: Settings | None = None
+) -> web.Application:
     if not tokens or any(not token or not principal for token, principal in tokens.items()):
         raise ValueError("Non-empty credentials required")
     app = web.Application(middlewares=[boundary], client_max_size=MAX_BODY)
@@ -118,4 +163,23 @@ def create_campaign_app(play: CampaignAccess, tokens: Mapping[str, str]) -> web.
             web.get("/campaigns/{cid}/events", events),
         ]
     )
+    if settings is not None:
+        app[PROVIDER_STATUS_KEY] = deque(maxlen=256)
+
+        async def lifespan(application: web.Application) -> AsyncIterator[None]:
+            async with provider_runtime(
+                settings, status=application[PROVIDER_STATUS_KEY].append
+            ) as provider:
+                application[ORCHESTRATOR_KEY] = Orchestrator(
+                    play, provider, timeout=min(settings.model_timeout_seconds, 120.0), attempts=1
+                )
+                yield
+
+        app.cleanup_ctx.append(lifespan)
+        app.add_routes(
+            [
+                web.post("/campaigns/{cid}/interpret", interpret),
+                web.get("/campaigns/{cid}/provider-status", provider_status),
+            ]
+        )
     return app

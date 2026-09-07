@@ -30,7 +30,7 @@ class QueuedActivity(Record):
     start: int = Field(ge=0)
     due: int = Field(ge=0)
     command_json: str = Field(max_length=10000)
-    family: Literal["action", "noncombat", "scene"]
+    family: Literal["action", "noncombat", "scene", "recovery"]
 
 
 class ActivityReceipt(Record):

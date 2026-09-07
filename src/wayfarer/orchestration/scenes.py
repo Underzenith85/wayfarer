@@ -84,6 +84,9 @@ class SceneService:
     def reduce(
         self, state: PlayState, command: SceneCommand, *, advance_time: bool = True
     ) -> PlayState:
+        from wayfarer.orchestration.recovery import guard
+
+        guard(state, command.actor_id, command.kind)
         rules = self.play.engine.rules.scenes
         if rules is None:
             raise ValidationError("Campaign scenes are not configured")

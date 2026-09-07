@@ -14,10 +14,12 @@ dependencies = [
     "pydantic-settings>=2.15.0",
     "psycopg[binary]>=3.3.2",
     "structlog>=26.1.0",
+    "openai-codex>=0.147.0",
 ]
 
 [project.scripts]
 wayfarer = "wayfarer.cli:main"
+wayfarer-codex-login = "wayfarer.codex_login:main"
 
 [dependency-groups]
 # Existing tests use unittest; pytest/Hypothesis arrive in roadmap issue #4.

@@ -172,7 +172,7 @@ class Orchestrator:
                     ProviderTelemetry(operation=request.operation, status="failure")
                 )
                 if attempt == self.attempts - 1:
-                    raise ProviderError("Provider request failed") from None
+                    raise
             except Exception:
                 self.telemetry.append(
                     ProviderTelemetry(operation=request.operation, status="failure")

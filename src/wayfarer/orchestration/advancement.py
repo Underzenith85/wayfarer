@@ -156,6 +156,89 @@ class AdvancementService:
         )
         return PlayState.model_validate_json(committed["state"]["play_json"]).advancement[-1]
 
+    def reduce_purchase(
+        self, state: PlayState, command: AdvanceCharacter, *, revision: int
+    ) -> PlayState:
+        """Pure purchase reducer, shared by ordinary advancement and queued downtime."""
+        if command.expected_revision != state.revision or revision not in (
+            state.revision,
+            state.revision + 1,
+        ):
+            raise ConflictError("Advancement revision changed")
+        before = _build(self.play, state, command.actor_id)
+        if before.revision != command.expected_build_revision:
+            raise ConflictError("Character build changed")
+        current = _balance(state, command.actor_id)
+        review = self.play.engine.reviewer.review(CharacterProposal(draft=command.draft))
+        after = review.compilation.build
+        if after is None or review.status != "automatic":
+            raise ValidationError("Advancement requires a legal automatically approved build")
+        cost = after.spent - before.spent
+        if cost < 0 or cost > current:
+            raise ValidationError("Advancement point balance is invalid")
+        approval = self.play.engine.reviewer.approve(
+            CharacterProposal(draft=command.draft),
+            campaign_id=state.campaign_id,
+            actor_id=command.actor_id,
+            revision=revision,
+        )
+        entry = AdvancementEntry(
+            id=command.id,
+            actor_id=command.actor_id,
+            kind="purchase",
+            points=-cost,
+            revision=revision,
+            build_before=before.revision,
+            build_after=after.revision,
+            reason=command.reason,
+        )
+        actors = tuple(
+            actor.model_copy(
+                update={
+                    "proposal": CharacterProposal(draft=command.draft),
+                    "approval": approval,
+                }
+            )
+            if actor.actor_id == command.actor_id
+            else actor
+            for actor in state.actors
+        )
+        owners = tuple(
+            owner.model_copy(
+                update={"definitions": tuple(p.definition_id for p in after.purchases)}
+            )
+            if owner.actor_id == command.actor_id
+            else owner
+            for owner in state.resources.owners
+        )
+        maxima = {
+            "hp": int(next(v.value for v in after.sheet.values if v.target == "attribute:st")),
+            "fp": int(next(v.value for v in after.sheet.values if v.target == "attribute:ht")),
+        }
+        pools = tuple(
+            pool.model_copy(
+                update={
+                    "maximum": maxima[pool.id.split(":", 1)[0]],
+                    "current": min(pool.current, maxima[pool.id.split(":", 1)[0]]),
+                }
+            )
+            if pool.id in (f"hp:{command.actor_id}", f"fp:{command.actor_id}")
+            else pool
+            for pool in state.resources.pools
+        )
+        return state.model_copy(
+            update={
+                "revision": revision,
+                "actors": actors,
+                "approvals": state.approvals + (approval,),
+                "advancement": state.advancement + (entry,),
+                "resources": state.resources.model_copy(
+                    update={"owners": owners, "pools": pools, "revision": revision}
+                ),
+                "rulings": expire_rulings(state.rulings, revision, state.resources.game_time),
+            }
+        )
+
     async def advance(
         self, cid: str, value: object, *, authenticated_actor_id: str
     ) -> AdvancementEntry:
@@ -165,74 +248,8 @@ class AdvancementService:
 
         def resolve(campaign: Campaign) -> Event:
             state = self.play._load(campaign)
-            before = _build(self.play, state, command.actor_id)
-            if before.revision != command.expected_build_revision:
-                raise ConflictError("Character build changed")
-            current = _balance(state, command.actor_id)
-            review = self.play.engine.reviewer.review(CharacterProposal(draft=command.draft))
-            after = review.compilation.build
-            if after is None or review.status != "automatic":
-                raise ValidationError("Advancement requires a legal automatically approved build")
-            cost = after.spent - before.spent
-            if cost < 0 or cost > current:
-                raise ValidationError("Advancement point balance is invalid")
-            approval = self.play.engine.reviewer.approve(
-                CharacterProposal(draft=command.draft),
-                campaign_id=cid,
-                actor_id=command.actor_id,
-                revision=state.revision + 1,
-            )
-            entry = AdvancementEntry(
-                id=command.id,
-                actor_id=command.actor_id,
-                kind="purchase",
-                points=-cost,
-                revision=state.revision + 1,
-                build_before=before.revision,
-                build_after=after.revision,
-                reason=command.reason,
-            )
-            actors = tuple(
-                actor.model_copy(
-                    update={
-                        "proposal": CharacterProposal(draft=command.draft),
-                        "approval": approval,
-                    }
-                )
-                if actor.actor_id == command.actor_id
-                else actor
-                for actor in state.actors
-            )
-            owners = tuple(
-                owner.model_copy(
-                    update={"definitions": tuple(p.definition_id for p in after.purchases)}
-                )
-                if owner.actor_id == command.actor_id
-                else owner
-                for owner in state.resources.owners
-            )
-            maxima = {
-                "hp": int(next(v.value for v in after.sheet.values if v.target == "attribute:st")),
-                "fp": int(next(v.value for v in after.sheet.values if v.target == "attribute:ht")),
-            }
-            pools = tuple(
-                pool.model_copy(
-                    update={
-                        "maximum": maxima[pool.id.split(":", 1)[0]],
-                        "current": min(pool.current, maxima[pool.id.split(":", 1)[0]]),
-                    }
-                )
-                if pool.id in (f"hp:{command.actor_id}", f"fp:{command.actor_id}")
-                else pool
-                for pool in state.resources.pools
-            )
-            updated = self._revision(
-                state,
-                actors=actors,
-                approvals=state.approvals + (approval,),
-                advancement=state.advancement + (entry,),
-                resources=state.resources.model_copy(update={"owners": owners, "pools": pools}),
-            )
+            updated = self.reduce_purchase(state, command, revision=state.revision + 1)
+            entry = updated.advancement[-1]
             updated = self.play.checkpoint(updated)
             self.play.engine.validate(updated)
             campaign["revision"], campaign["play_json"] = (

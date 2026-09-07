@@ -79,6 +79,8 @@ EventAction = (
         "objectives",
         "noncombat",
         "party",
+        "npc",
+        "recovery",
     ]
 )
 

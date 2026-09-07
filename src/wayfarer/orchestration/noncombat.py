@@ -27,6 +27,9 @@ class NoncombatService:
     def reduce(
         self, state: PlayState, command: NoncombatCommand, *, advance_time: bool = True
     ) -> PlayState:
+        from wayfarer.orchestration.recovery import guard
+
+        guard(state, command.actor_id, command.kind)
         rules = self.play.engine.rules.noncombat
         if rules is None:
             raise ValidationError("Noncombat rules are not configured")
