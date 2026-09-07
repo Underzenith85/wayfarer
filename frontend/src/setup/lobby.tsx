@@ -1,3 +1,4 @@
+import { ScenarioCatalog } from "./catalog";
 import { LiveTransport } from "../play/live";
 import type { Campaign } from "../play/transport";
 import { useState } from "react";
@@ -234,13 +235,22 @@ export function SetupLobby({
                 </li>
               ))}
           </ul>
+          {!lobby && (
+            <ScenarioCatalog
+              token={token}
+              onCreate={(value) => {
+                choose(value);
+                setLobbies([...lobbies, value]);
+              }}
+            />
+          )}
           {!lobby && <p>Create a game, or open an invitation above.</p>}
           {lobby && (
             <p role="status">
               {lobby.title} · {lobby.phase} · revision {lobby.revision}
             </p>
           )}
-          {editable && (!lobby || host) && (
+          {editable && (!lobby || host) && !lobby?.scenario_pinned && (
             <form
               onSubmit={(e) => {
                 e.preventDefault();

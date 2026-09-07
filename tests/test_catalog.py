@@ -1,0 +1,250 @@
+"""Real authoring API, database restart, ownership, retries and isolated games."""
+
+import asyncio
+import json
+import os
+from collections.abc import Mapping
+from pathlib import Path
+from uuid import uuid4
+
+import pytest
+from aiohttp import web
+from aiohttp.test_utils import TestClient, TestServer
+from pydantic import SecretStr
+from test_runtime import settings
+
+from wayfarer.config import Settings
+from wayfarer.runtime import create_runtime_app
+from wayfarer.transport.setup_api import SETUP_KEY
+
+PREFIX = "/authoring/v1/scenarios"
+HEADERS = {"Authorization": "Bearer alice-token"}
+
+
+@pytest.fixture(params=["sqlite", "postgres"])
+def config(tmp_path: Path, request: pytest.FixtureRequest) -> Settings:
+    value = settings(tmp_path)
+    if request.param == "postgres":
+        url = os.environ.get("WAYFARER_TEST_DATABASE_URL")
+        if not url:
+            pytest.skip("WAYFARER_TEST_DATABASE_URL is not configured")
+        value = value.model_copy(update={"database_url": SecretStr(url)})
+    return value
+
+
+async def post(
+    client: TestClient[web.Request, web.Application],
+    path: str,
+    data: Mapping[str, object],
+    status: int = 200,
+) -> dict[str, object]:
+    response = await client.post(PREFIX + path, headers=HEADERS, json=data)
+    assert response.status == status, await response.text()
+    result: dict[str, object] = await response.json()
+    return result
+
+
+async def test_catalog_restart_revisions_isolation(config: Settings) -> None:
+    app = create_runtime_app(config, config.frontend_dir)
+    create_id = str(uuid4())
+    async with TestClient(TestServer(app)) as client:
+        response = await client.get(PREFIX + "/templates", headers=HEADERS)
+        document = (await response.json())[0]
+        document["gm_notes"] = "Hidden antagonist plans"
+        source = json.dumps(document)
+        command = {"id": create_id, "operation": "create", "content_json": source}
+        entry = await post(client, "", command)
+        cid = str(entry["id"])
+        assert entry["status"] == "playable"
+        # Concurrent first-create retries cannot duplicate aggregates.
+        duplicates = await asyncio.gather(post(client, "", command), post(client, "", command))
+        assert all(duplicate == entry for duplicate in duplicates)
+        await post(client, "", {**command, "content_json": "{}"}, 409)
+        response = await client.get(
+            f"{PREFIX}/{cid}", headers={"Authorization": "Bearer bob-token"}
+        )
+        assert response.status == 404
+        assert (await client.get(PREFIX)).status == 401
+        await post(
+            client, f"/{cid}", {"id": str(uuid4()), "operation": "publish", "expected_version": 1}
+        )
+        response = await client.get(f"{PREFIX}/{cid}/preview", headers=HEADERS)
+        preview = await response.text()
+        assert "Hidden antagonist" not in preview and "gm_notes" not in preview
+        response = await client.get(f"{PREFIX}/{cid}/export?revision=1", headers=HEADERS)
+        exported = await response.text()
+        assert json.loads(exported)["gm_notes"] == document["gm_notes"]
+        imported = await post(
+            client, "", {"id": str(uuid4()), "operation": "import", "content_json": exported}
+        )
+        assert imported["id"] != cid
+        response = await client.get(f"{PREFIX}/{imported['id']}/export", headers=HEADERS)
+        fork = json.loads(await response.text())
+        assert {k: v for k, v in fork["graph"].items() if k != "id"} == {
+            k: v for k, v in json.loads(exported)["graph"].items() if k != "id"
+        }
+        game_command = {"id": str(uuid4()), "revision": 1}
+        game1 = await post(client, f"/{cid}/instantiate", game_command, 201)
+        game2 = await post(client, f"/{cid}/instantiate", {"id": str(uuid4()), "revision": 1}, 201)
+        assert game1["id"] != game2["id"]
+        assert await post(client, f"/{cid}/instantiate", game_command, 201) == game1
+        await post(
+            client, f"/{cid}/instantiate", {"id": str(uuid4()), "revision": 1, "party": []}, 400
+        )
+        # Saves retain invalid drafts without changing the published revision or either game.
+        draft = await post(
+            client,
+            f"/{cid}",
+            {
+                "id": str(uuid4()),
+                "operation": "save",
+                "expected_version": 2,
+                "content_json": "{unfinished",
+            },
+        )
+        assert draft["status"] == "invalid" and draft["revision"] == 2
+        await post(
+            client,
+            f"/{cid}",
+            {"id": str(uuid4()), "operation": "save", "expected_version": 2, "content_json": "{}"},
+            409,
+        )
+        await post(
+            client,
+            f"/{cid}",
+            {"id": str(uuid4()), "operation": "publish", "expected_version": 3},
+            400,
+        )
+        await post(client, f"/{cid}/instantiate", {"id": str(uuid4()), "revision": 2}, 400)
+    # Brand-new app and database connections reopen exact saved source and receipts.
+    async with TestClient(TestServer(create_runtime_app(config, config.frontend_dir))) as client:
+        response = await client.get(f"{PREFIX}/{cid}/export", headers=HEADERS)
+        assert await response.text() == "{unfinished"
+        response = await client.get(f"{PREFIX}/{cid}/export?revision=1", headers=HEADERS)
+        assert await response.text() == exported
+        assert await post(client, "", command) == entry
+        for game in (game1, game2):
+            game_id = str(game["id"])
+            steps: list[dict[str, object]] = [
+                {"operation": "assign", "principal_id": "alice", "actor_ids": ["mira"]},
+                {"operation": "ready"},
+                {"operation": "activate"},
+            ]
+            for revision, fields in enumerate(steps):
+                response = await client.post(
+                    f"/setups/{game_id}",
+                    headers=HEADERS,
+                    json={
+                        "id": str(uuid4()),
+                        "expected_revision": revision,
+                        **fields,
+                    },
+                )
+                assert response.status == 200, await response.text()
+        store = client.app[SETUP_KEY].play.store
+        before2 = await store.read(str(game2["id"]))
+        first = await store.read(str(game1["id"]))
+        assert first["scenario_document_json"] == before2["scenario_document_json"] == exported
+        response = await client.post(
+            f"/setups/{game1['id']}",
+            headers=HEADERS,
+            json={
+                "id": str(uuid4()),
+                "expected_revision": 3,
+                "operation": "pause",
+            },
+        )
+        assert response.status == 200
+        assert await store.read(str(game2["id"])) == before2
+        # Archive keeps pinned games and immutable exports recoverable.
+        await post(
+            client, f"/{cid}", {"id": str(uuid4()), "operation": "archive", "expected_version": 3}
+        )
+        response = await client.get(f"/setups/{game2['id']}", headers=HEADERS)
+        assert (await response.json())["phase"] == "active"
+
+
+async def test_catalog_import_security_and_authority(config: Settings) -> None:
+    async with TestClient(TestServer(create_runtime_app(config, config.frontend_dir))) as client:
+        response = await client.get(PREFIX + "/templates", headers=HEADERS)
+        document = (await response.json())[0]
+        for invalid in (
+            "{}",
+            "{",
+            '{"schema_version":999}',
+            '{"schema_version":1,"schema_version":1}',
+        ):
+            await post(
+                client,
+                "",
+                {"id": str(uuid4()), "operation": "import", "content_json": invalid},
+                400,
+            )
+        document["compatibility"]["engine_digest"] = "0" * 64
+        await post(
+            client,
+            "",
+            {"id": str(uuid4()), "operation": "import", "content_json": json.dumps(document)},
+            400,
+        )
+        await post(
+            client,
+            "",
+            {"id": str(uuid4()), "operation": "create", "content_json": "é" * 1_000_001},
+            400,
+        )
+        entry = await post(
+            client, "", {"id": str(uuid4()), "operation": "create", "content_json": "{}"}
+        )
+        for op in ("save", "publish", "archive", "duplicate"):
+            response = await client.post(
+                f"{PREFIX}/{entry['id']}",
+                headers={"Authorization": "Bearer bob-token"},
+                json={
+                    "id": str(uuid4()),
+                    "operation": op,
+                    "expected_version": 1,
+                    "revision": 1,
+                    "content_json": "{}",
+                },
+            )
+            assert response.status == 404
+        for suffix in ("", "/export", "/preview"):
+            assert (
+                await client.get(
+                    f"{PREFIX}/{entry['id']}{suffix}", headers={"Authorization": "Bearer bob-token"}
+                )
+            ).status == 404
+        # Untrusted document metadata cannot name its owner or confer author authority.
+        response = await client.post(
+            PREFIX,
+            headers=HEADERS,
+            json={
+                "id": str(uuid4()),
+                "operation": "create",
+                "content_json": "{}",
+                "owner_id": "bob",
+            },
+        )
+        assert response.status == 400
+
+
+def test_authoring_contract_schema_drift() -> None:
+    from wayfarer.simulation.catalog import (
+        CatalogCommand,
+        CatalogSummary,
+        InstantiateRevision,
+        RevisionView,
+    )
+    from wayfarer.simulation.scenario_document import PlayerScenarioExport, ScenarioDocument
+
+    models = (
+        CatalogCommand,
+        InstantiateRevision,
+        CatalogSummary,
+        RevisionView,
+        ScenarioDocument,
+        PlayerScenarioExport,
+    )
+    expected = {model.__name__: model.model_json_schema() for model in models}
+    assert json.loads(Path("contracts/authoring/v1/schemas.json").read_text()) == expected

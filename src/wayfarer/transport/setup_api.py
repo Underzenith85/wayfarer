@@ -70,6 +70,11 @@ async def templates(request: web.Request) -> web.Response:
 def install(app: web.Application, service: SetupService, graphs: tuple[ScenarioGraph, ...]) -> None:
     app[SETUP_KEY] = service
     app[TEMPLATES_KEY] = graphs
+    from wayfarer.orchestration.catalog import ScenarioCatalog
+    from wayfarer.transport.campaign_api import TOKENS_KEY
+    from wayfarer.transport.catalog_api import install as install_catalog
+
+    install_catalog(app, ScenarioCatalog(service, frozenset(app[TOKENS_KEY].values())))
     app.add_routes(
         [
             web.get("/setups", listing),

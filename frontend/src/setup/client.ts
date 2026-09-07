@@ -21,6 +21,7 @@ export interface Graph {
 }
 export interface Lobby {
   engine_controls?: boolean;
+  scenario_pinned?: boolean;
   id: string;
   revision: number;
   title: string;
