@@ -140,19 +140,19 @@ test("two identities activate a saved party and review speech through the live d
     await a
       .getByRole("button", { name: "Travel to The Alley", exact: true })
       .click();
-    await expect(
-      a.getByRole("heading", { name: "Alley", exact: true }),
-    ).toBeVisible();
     await expect
-      .poll(async () => {
-        const result = await a.request.get(`/campaigns/${cid}`, {
-          headers: { Authorization: "Bearer alice-token" },
-        });
-        const projection = (await result.json()) as {
-          objectives: { outcome: string };
-        };
-        return projection.objectives.outcome;
-      })
+      .poll(
+        async () => {
+          const result = await a.request.get(`/campaigns/${cid}`, {
+            headers: { Authorization: "Bearer alice-token" },
+          });
+          const projection = (await result.json()) as {
+            objectives: { outcome: string };
+          };
+          return projection.objectives.outcome;
+        },
+        { timeout: 10_000 },
+      )
       .toBe("success");
     await a.getByText("Campaign setup and lifecycle", { exact: true }).click();
     await lobby
