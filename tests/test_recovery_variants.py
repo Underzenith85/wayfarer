@@ -83,6 +83,7 @@ def test_trauma_maintenance_uses_higher_target_and_hourly_cadence() -> None:
         system=True,
     )
     assert pending.status == "pending"
+    assert state.recovery_tasks[0].kind == "physician"
     assert state.recovery_tasks[0].due == 3600
     hp = state.pools[0]
     assert hp.injury is not None and hp.injury.mortal_wound_due == 3600
@@ -224,6 +225,7 @@ def test_lasting_repair_shortens_remaining_months_to_weeks() -> None:
         rng=RecordedDice([]),
         system=True,
     )
+    assert state.recovery_tasks[0].kind == "stabilize"
     assert state.recovery_tasks[0].due == 7200
     state = state.model_copy(update={"game_time": 7200})
     state, result = apply_recovery_variant(
@@ -293,7 +295,6 @@ def test_low_tl_surgery_can_schedule_infection_in_existing_hazard_engine() -> No
         system=True,
     )
     assert state.recovery_tasks[0].treatment_modifier == -4
-    assert state.recovery_tasks[0].infection_risk
     state = state.model_copy(update={"game_time": 7200})
     state, result = apply_recovery_variant(
         state,
@@ -305,7 +306,7 @@ def test_low_tl_surgery_can_schedule_infection_in_existing_hazard_engine() -> No
         system=True,
     )
     assert result.repaired and result.infection_schedule_id == "infection:repair"
-    assert result.infection_check is not None and not result.infection_check.check.outcome.succeeded
+    assert result.infection_check is not None and not result.infection_check.outcome.succeeded
     schedule = state.hazards[0]
     assert schedule.spec.kind == "disease" and schedule.due == 7200 + DAY
 
@@ -353,9 +354,19 @@ def test_unclean_surgery_penalty_and_tl5_optional_infection_are_persisted() -> N
         rng=RecordedDice([]),
         system=True,
     )
-    task = state.recovery_tasks[0]
-    assert task.treatment_modifier == -7
-    assert task.infection_risk and task.infection_modifier == -2
+    assert state.recovery_tasks[0].treatment_modifier == -7
+    state = state.model_copy(update={"game_time": 7200})
+    state, result = apply_recovery_variant(
+        state,
+        FinishRecoveryVariant(
+            id="finish", actor_id="b", expected_revision=1, task_id="repair"
+        ),
+        context,
+        rng=RecordedDice([2, 2, 2, 5, 5, 5]),
+        system=True,
+    )
+    assert result.repaired and result.infection_schedule_id == "infection:repair"
+    assert state.hazards[0].spec.resistance_modifier == -2
 
 
 def test_permanent_repair_is_explicitly_fail_closed() -> None:
@@ -381,6 +392,8 @@ def test_permanent_repair_is_explicitly_fail_closed() -> None:
 def test_interrupted_surgery_never_rolls_or_changes_the_lasting_injury() -> None:
     context = RecoveryVariantContext(PROFILE, ht=10, surgery_skill=12, technology_level=6)
     original = lasting_state()
+    assert original.pools[0].injury is not None
+    before_injuries = original.pools[0].injury.lasting_injuries
     state, _ = apply_recovery_variant(
         original,
         BeginRecoveryVariant(
@@ -412,7 +425,7 @@ def test_interrupted_surgery_never_rolls_or_changes_the_lasting_injury() -> None
     )
     assert result.status == "interrupted" and result.check is None
     assert state.pools[0].injury is not None
-    assert state.pools[0].injury.lasting_injuries == original.pools[0].injury.lasting_injuries
+    assert state.pools[0].injury.lasting_injuries == before_injuries
     with pytest.raises(ConflictError):
         apply_recovery_variant(
             state,
