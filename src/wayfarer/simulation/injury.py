@@ -493,6 +493,10 @@ def apply_injury(
             ),
         }
     )
+    if injury:
+        from wayfarer.simulation.spell_effects import break_daze
+
+        updated = break_daze(updated, command.actor_id, command.id)
     return ResourceState.model_validate(updated), result
 
 

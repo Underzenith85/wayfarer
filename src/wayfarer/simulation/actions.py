@@ -32,6 +32,7 @@ from wayfarer.simulation.party import validate as validate_party
 from wayfarer.simulation.recovery import RecoveryRules, RecoveryState
 from wayfarer.simulation.resources import Advance, Consume, Record, ResourceEngine, ResourceState
 from wayfarer.simulation.scenes import ActorScene, JournalEntry, SceneEvent, SceneRules
+from wayfarer.simulation.spell_bindings import SpellRules
 from wayfarer.world import Entity, EntityKind, World
 
 Id = Annotated[str, Field(min_length=1, max_length=100)]
@@ -116,6 +117,7 @@ class CheckRule(Record):
     reveal_fact_ids: tuple[str, ...] = ()
     required_equipment: str | None = None
     not_before: int = Field(default=0, ge=0)
+    darkness_penalty: int = Field(default=0, ge=-9, le=0, exclude_if=lambda value: value == 0)
 
 
 class ActionRules(Record):
@@ -138,6 +140,7 @@ class ActionRules(Record):
     npcs: NPCRules | None = Field(default=None, exclude=True)
     recovery: RecoveryRules | None = Field(default=None, exclude=True)
     abilities: AbilityRules | None = Field(default=None, exclude=True)
+    spells: SpellRules | None = Field(default=None, exclude=True)
 
 
 class ActionResult(Record):
@@ -204,6 +207,21 @@ class ActionEngine:
         ):
             raise ValidationError("Ambiguous action check rules")
         definitions = reviewer.compiler.definitions
+        if rules.spells is not None:
+            from wayfarer.rules.gurps_magic import validate_definitions
+
+            validate_definitions(reviewer.compiler.statistics_profile, definitions)
+            if reviewer.compiler.statistics_profile != rules.spells.profile_id:
+                raise ValidationError("Spell rules require the exact compiled profile")
+            from wayfarer.rules.spell_catalog import projectile_definition
+
+            if (
+                any(c.spell_id == "fireball" for c in rules.spells.channels)
+                and definitions.get("skill:innate-attack-projectile") != projectile_definition()
+            ):
+                raise ValidationError("Fireball requires the pinned projectile skill")
+            if any("spell:" + c.spell_id not in definitions for c in rules.spells.channels):
+                raise ValidationError("Spell channels require pinned training definitions")
         if rules.abilities is not None:
             from wayfarer.rules.abilities import definition as ability_definition
             from wayfarer.rules.abilities import metadata, validate_binding
@@ -320,6 +338,7 @@ class ActionEngine:
             + (rules.npcs.model_dump_json() if rules.npcs else "")
             + (rules.recovery.model_dump_json() if rules.recovery else "")
             + (rules.abilities.model_dump_json() if rules.abilities else "")
+            + (rules.spells.model_dump_json() if rules.spells else "")
             + reviewer.policy.digest
             + repr(resources.rules)
             + repr(reviewer.compiler.effects)
@@ -332,6 +351,16 @@ class ActionEngine:
             raise ValidationError("Play configuration changed; explicit migration required")
         if state.revision != state.resources.revision:
             raise ValidationError("Play and resource revisions diverged")
+        if self.rules.spells:
+            entities = {e.id: e for e in state.world.entities}
+            for spell_channel in self.rules.spells.channels:
+                if (
+                    spell_channel.actor_id not in entities
+                    or spell_channel.target_id not in entities
+                    or spell_channel.location_id not in entities
+                    or entities[spell_channel.location_id].kind is not EntityKind.LOCATION
+                ):
+                    raise ValidationError("Invalid spell spell_channel entity references")
         if self.rules.abilities:
             ability_entities = {e.id for e in state.world.entities}
             facts = {f.id for f in state.world.facts}
@@ -679,6 +708,10 @@ class ActionEngine:
             return result("rejected", "combat.command_required")
         if isinstance(command, Question) or command.hypothetical:
             return result("question", "action.no_effect")
+        from wayfarer.simulation.spell_effects import dazed
+
+        if not isinstance(command, Wait) and dazed(state.resources, command.actor_id):
+            return result("rejected", "actor.dazed")
         require_hazards_settled(
             state.resources.hazards, frozenset({command.actor_id}), state.resources.game_time
         )
@@ -991,9 +1024,24 @@ class ActionEngine:
             derived, dependencies = self._target(state, actor.actor_id, build, rule)
             if not derived.value.is_finite() or derived.value != derived.value.to_integral_value():
                 raise ValidationError("Check target must be a finite integer")
+            from wayfarer.simulation.spell_effects import illuminated
+
+            darkness = 0 if illuminated(state, rule.target_id) else rule.darkness_penalty
             trace = success_check(
                 int(derived.value),
                 (Modifier(rule.modifier, rule.id, rule.definition_id, rule.package_version),)
+                + (
+                    (
+                        Modifier(
+                            darkness,
+                            rule.id + ":darkness",
+                            rule.definition_id,
+                            rule.package_version,
+                        ),
+                    )
+                    if darkness
+                    else ()
+                )
                 + extra_modifiers,
                 rng=rng,
                 rules_package=rule.package_id,

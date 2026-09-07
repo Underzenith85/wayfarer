@@ -17,6 +17,7 @@ from wayfarer.simulation.party import PartyRules
 from wayfarer.simulation.recovery import RecoveryRules
 from wayfarer.simulation.resources import Id, Record, ResourceState
 from wayfarer.simulation.scenes import SceneRules
+from wayfarer.simulation.spell_bindings import SpellRules
 from wayfarer.world import World
 
 
@@ -65,6 +66,7 @@ class ScenarioContent(Record):
     recovery: RecoveryRules | None = None
     party: PartyRules | None = None
     abilities: AbilityRules | None = Field(default=None, exclude_if=lambda value: value is None)
+    spells: SpellRules | None = Field(default=None, exclude_if=lambda value: value is None)
     approaches: tuple[ApproachSupport, ...] = ()
 
     def runtime_rules(self) -> ActionRules:
@@ -87,6 +89,7 @@ class ScenarioContent(Record):
                 "recovery": self.recovery,
                 "party": self.party,
                 "abilities": self.abilities,
+                "spells": self.spells,
             }
         )
 
