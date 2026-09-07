@@ -1,5 +1,9 @@
 import { AdventureAuthority } from "./adventure-authority";
-import type { DecisionCommand, JournalKind } from "../src/adventure/model";
+import type {
+  ClosureCommand,
+  DecisionCommand,
+  JournalKind,
+} from "../src/adventure/model";
 import type { Plugin } from "vite";
 import { MultiplayerAuthority, type Identity } from "./multiplayer-authority";
 import {
@@ -50,6 +54,9 @@ export function multiplayerFixtures(): Plugin {
             id: string;
             since: string | null;
             decision: DecisionCommand;
+            closure: ClosureCommand;
+            closureJourney:
+              "success" | "partial" | "failure" | "continue" | "archive";
             actorId?: string;
             scope: Scope;
             cursor: string;
@@ -89,6 +96,14 @@ export function multiplayerFixtures(): Plugin {
             case "adventure-decide":
               adventures.get(room)!.decide(who, input.decision);
               value = null;
+              break;
+            case "adventure-closure":
+              value = adventures
+                .get(room)!
+                .closure(who, input.scope, input.epoch, input.closureJourney);
+              break;
+            case "adventure-settle":
+              value = adventures.get(room)!.settle(who, input.closure);
               break;
             case "campaigns":
               value = [authority.read(who, null).snapshot.campaign];

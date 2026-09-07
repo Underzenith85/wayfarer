@@ -1,9 +1,11 @@
 import { randomUUID } from "node:crypto";
 import type {
   AdventureView,
+  ClosureCommand,
   DecisionCommand,
   Discovery,
   JournalKind,
+  SessionClosureView,
 } from "../src/adventure/model";
 import type { Scope } from "../src/multiplayer/model";
 import { sameScope } from "../src/multiplayer/model";
@@ -19,6 +21,11 @@ export class AdventureAuthority {
       step: number;
       receipts: Map<string, string>;
       checkpoints: Map<string, number>;
+      settlementReceipt?: string;
+      settlementCommand?: string;
+      selections: Map<string, string>;
+      closureJourney:
+        "success" | "partial" | "failure" | "continue" | "archive";
     }
   >();
   constructor(private table: MultiplayerAuthority) {}
@@ -37,10 +44,187 @@ export class AdventureAuthority {
         step: 0,
         receipts: new Map(),
         checkpoints: new Map(),
+        selections: new Map(),
+        closureJourney: "continue",
       };
       this.states.set(key, state);
     }
     return state;
+  }
+  closure(
+    who: Identity,
+    scope: Scope,
+    epoch: string,
+    journey?: "success" | "partial" | "failure" | "continue" | "archive",
+  ): SessionClosureView {
+    const state = this.access(who, scope, epoch);
+    if (journey) state.closureJourney = journey;
+    const outcome =
+      state.closureJourney === "success" || state.closureJourney === "archive"
+        ? "success"
+        : state.closureJourney === "partial"
+          ? "partial"
+          : "failure";
+    const settled = !!state.settlementReceipt;
+    const selectedDowntime = state.selections.get("downtime");
+    const objectives: SessionClosureView["objectives"] = [
+      {
+        id: "escape",
+        title: "Open an escape route",
+        outcome:
+          outcome === "success"
+            ? "achieved"
+            : outcome === "failure"
+              ? "failed"
+              : "partial",
+        detail:
+          outcome === "failure"
+            ? "The route remains guarded."
+            : "The marked route reaches the alder ford.",
+      },
+    ];
+    if (outcome === "partial")
+      objectives.push({
+        id: "witness",
+        title: "Protect the witness",
+        outcome: "partial",
+        detail: "Safe passage was promised but is not yet complete.",
+      });
+    return {
+      version: state.version,
+      session: {
+        status: ["success", "partial", "archive"].includes(state.closureJourney)
+          ? "completed"
+          : "paused",
+        summary:
+          outcome === "success"
+            ? "The prisoners escaped through the alder ford before dawn."
+            : outcome === "partial"
+              ? "The route opened, but the witness remains in danger."
+              : "The escape failed tonight. The campaign and its consequences continue.",
+      },
+      campaign: {
+        status:
+          state.closureJourney === "archive"
+            ? "archived"
+            : outcome === "success"
+              ? "completed"
+              : state.closureJourney === "partial"
+                ? "active"
+                : "paused",
+        canContinue:
+          state.closureJourney === "partial" ||
+          state.closureJourney === "continue" ||
+          state.closureJourney === "failure",
+      },
+      outcome,
+      objectives,
+      epilogue: [
+        outcome === "failure"
+          ? "The cell door closes again. Mara keeps what she learned to herself."
+          : "Rain erases the party’s tracks along the marked route.",
+      ],
+      rewards:
+        outcome === "failure"
+          ? []
+          : [
+              {
+                id: "earned-1",
+                label: "Character points",
+                detail: "2 points authorized by the campaign record",
+              },
+            ],
+      consequences:
+        outcome === "success"
+          ? [
+              {
+                id: "promise",
+                kind: "commitment",
+                detail: "Guide the witness to the coast.",
+              },
+            ]
+          : [
+              {
+                id: "custody",
+                kind: "custody",
+                detail: "Mara remains in the watch’s custody.",
+              },
+            ],
+      settlement: {
+        id: "settlement-escape",
+        status: settled ? "settled" : "pending",
+        ...(settled ? { settledAt: "2026-09-07T03:00:00Z" } : {}),
+      },
+      advancement: [
+        {
+          id: "downtime",
+          label: "Downtime",
+          options: [
+            {
+              id: "recover",
+              label: "Recover",
+              detail: "Treat lasting injuries between adventures.",
+            },
+            {
+              id: "research",
+              label: "Research",
+              detail: "Follow the known mark on the courier’s seal.",
+            },
+          ],
+          ...(selectedDowntime ? { selectedId: selectedDowntime } : {}),
+        },
+      ],
+      ...(outcome !== "success"
+        ? {
+            nextAdventure: {
+              title: "Beyond the Alder Ford",
+              premise:
+                "Finish the escape and honor the promise of safe passage.",
+              knownHook: "The marked seal points toward a coastal safe house.",
+            },
+          }
+        : {}),
+    };
+  }
+  settle(who: Identity, command: ClosureCommand): SessionClosureView {
+    const state = this.access(who, command.scope, command.epoch);
+    const serialized = JSON.stringify(command);
+    if (state.settlementReceipt) {
+      if (
+        state.settlementReceipt !== command.commandId ||
+        state.settlementCommand !== serialized
+      )
+        throw new TransportError(
+          "illegal_action",
+          "Settlement was already claimed.",
+        );
+      return this.closure(who, command.scope, command.epoch);
+    }
+    const view = this.closure(who, command.scope, command.epoch);
+    if (
+      command.version !== view.version ||
+      command.settlementId !== view.settlement.id
+    )
+      throw new TransportError(
+        "stale_version",
+        "Closure changed. Reload before settling rewards.",
+      );
+    for (const selection of command.selections) {
+      const advancement = view.advancement.find(
+        (item) => item.id === selection.advancementId,
+      );
+      if (
+        !advancement?.options.some((option) => option.id === selection.optionId)
+      )
+        throw new TransportError(
+          "illegal_action",
+          "Choose an offered advancement option.",
+        );
+      state.selections.set(selection.advancementId, selection.optionId);
+    }
+    state.settlementReceipt = command.commandId;
+    state.settlementCommand = serialized;
+    return this.closure(who, command.scope, command.epoch);
   }
   overview(
     who: Identity,

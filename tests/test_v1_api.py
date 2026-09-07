@@ -602,6 +602,14 @@ async def test_configured_scene_travel_uses_scene_engine(tmp_path: Path) -> None
     try:
         async with service.ledger.transaction() as tx:
             view = await service.view(tx, cid, "a")
+        exits = [
+            obj(observation)
+            for observation in array(view.scenes["dock-scene"]["observations"])
+            if obj(observation).get("description") == "Known scene exit"
+        ]
+        assert exits == [
+            {"id": "alley-scene", "label": "The Alley", "description": "Known scene exit"}
+        ]
         request: Obj = {
             "command_id": uid(),
             "actor_id": "a",

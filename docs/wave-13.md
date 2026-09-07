@@ -44,8 +44,9 @@ continuation contract: the graph must preserve existing actor builds.
 Recovery/advancement summaries are visible in the conclusion; mechanical downtime
 continues through authored recovery actions during active play, including the next
 adventure. Continuation does not grant a free rest or spend advancement points.
-The frozen `/api/v1` contract is unchanged; the richer #58 presentation track can
-consume these live setup/lifecycle capabilities.
+The frozen `/api/v1` contract is unchanged. The #58 presentation uses these live
+setup/lifecycle capabilities without allowing the browser to author outcomes or
+rewards.
 
 ## Verification
 
@@ -53,5 +54,10 @@ Feature contracts cover all three principal ending outcomes, immutable snapshots
 injury/inventory/advancement preservation, private projection, rejected duplicate
 rewards, concurrent continuation, restart, generation receipt reuse, HTTP identity
 checks and archive restoration. The React test covers the saved conclusion and
-archive restoration controls. Existing setup tests cover failed/late generation
-and revision conflicts. PostgreSQL-specific transaction tests remain in CI.
+archive restoration controls, player-only projections, success/partial/failure,
+preview and continue journeys, and the absence of browser-authored outcomes or
+rewards. The live two-identity browser journey now completes an adventure, verifies
+the second player's scoped ending, archives/restores, previews a successor and
+continues it through the real Python service. Existing setup tests cover failed/late
+generation and revision conflicts. PostgreSQL-specific transaction tests remain in
+CI.

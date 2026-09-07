@@ -22,6 +22,9 @@ async function start() {
       transport = new AdventureFixtureTransport(
         identity === "rescuer" ? "rescuer" : "captive",
         params.get("room") ?? "adventure-demo",
+        (
+          ["success", "partial", "failure", "continue", "archive"] as const
+        ).find((journey) => journey === params.get("closure")) ?? "continue",
       );
     } else if (identity === "captive" || identity === "rescuer") {
       const { MultiplayerFixtureTransport } =

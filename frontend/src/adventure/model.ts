@@ -33,6 +33,43 @@ export interface AdventureView {
   }[];
   recap: { checkpoint: string; changes: string[]; reset: boolean };
 }
+export type ClosureOutcome = "success" | "partial" | "failure";
+export type CampaignLifecycle = "active" | "paused" | "completed" | "archived";
+export interface SessionClosureView {
+  version: string;
+  session: { status: "paused" | "completed"; summary: string };
+  campaign: { status: CampaignLifecycle; canContinue: boolean };
+  outcome: ClosureOutcome;
+  objectives: {
+    id: string;
+    title: string;
+    outcome: "achieved" | "partial" | "failed";
+    detail: string;
+  }[];
+  epilogue: string[];
+  rewards: { id: string; label: string; detail: string }[];
+  consequences: {
+    id: string;
+    kind: "injury" | "custody" | "commitment";
+    detail: string;
+  }[];
+  settlement: { id: string; status: "pending" | "settled"; settledAt?: string };
+  advancement: {
+    id: string;
+    label: string;
+    options: { id: string; label: string; detail: string }[];
+    selectedId?: string;
+  }[];
+  nextAdventure?: { title: string; premise: string; knownHook: string };
+}
+export interface ClosureCommand {
+  commandId: string;
+  scope: Scope;
+  epoch: string;
+  version: string;
+  settlementId: string;
+  selections: { advancementId: string; optionId: string }[];
+}
 export interface DecisionCommand {
   commandId: string;
   scope: Scope;
@@ -64,4 +101,13 @@ export interface AdventurePort {
     signal: AbortSignal,
   ): Promise<Discovery>;
   decide(command: DecisionCommand, signal: AbortSignal): Promise<void>;
+  closure(
+    scope: Scope,
+    epoch: string,
+    signal: AbortSignal,
+  ): Promise<SessionClosureView>;
+  settle(
+    command: ClosureCommand,
+    signal: AbortSignal,
+  ): Promise<SessionClosureView>;
 }

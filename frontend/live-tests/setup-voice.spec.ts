@@ -12,6 +12,7 @@ test("two identities activate a saved party and review speech through the live d
   browser,
   baseURL,
 }, testInfo) => {
+  test.setTimeout(120_000);
   const options = {
     baseURL: baseURL ?? "http://127.0.0.1:4174",
     viewport: testInfo.project.use.viewport ?? { width: 1440, height: 1000 },
@@ -136,6 +137,67 @@ test("two identities activate a saved party and review speech through the live d
     };
     expect(view.actors).toEqual(["b"]);
     expect(view.director).toEqual([]);
+
+    await a.getByRole("button", { name: "Inspect Chest", exact: true }).click();
+    await expect
+      .poll(
+        async () => {
+          const result = await a.request.get(`/campaigns/${cid}`, {
+            headers: { Authorization: "Bearer alice-token" },
+          });
+          const projection = (await result.json()) as {
+            objectives: { outcome: string };
+          };
+          return projection.objectives.outcome;
+        },
+        { timeout: 10_000 },
+      )
+      .toBe("success");
+    await a.getByRole("button", { name: "Continue game", exact: true }).click();
+    await lobby
+      .getByRole("button", { name: "Reload games / reconcile" })
+      .click();
+    await lobby.getByRole("button", { name: "complete", exact: true }).click();
+    await expect(
+      lobby.getByRole("article", { name: "Adventure conclusion" }),
+    ).toContainText("Courier · success");
+    await expect(
+      lobby.getByRole("article", { name: "Adventure conclusion" }),
+    ).toContainText("hp:a:");
+
+    await blobby
+      .getByRole("button", { name: "Reload games / reconcile" })
+      .click();
+    const bobConclusion = blobby.getByRole("article", {
+      name: "Adventure conclusion",
+    });
+    await expect(bobConclusion).toContainText("Courier · success");
+    await expect(bobConclusion).toContainText("hp:b:");
+    await expect(bobConclusion).not.toContainText("hp:a:");
+    await expect(blobby.getByRole("button", { name: "archive" })).toHaveCount(
+      0,
+    );
+
+    await lobby.getByRole("button", { name: "archive", exact: true }).click();
+    await expect(lobby.getByRole("status")).toContainText("archived");
+    await expect(
+      lobby.getByText(
+        "Archived games are read-only. Unarchive returns to the conclusion, where you can continue.",
+      ),
+    ).toBeVisible();
+    await lobby.getByRole("button", { name: "unarchive", exact: true }).click();
+    await lobby.getByLabel("Authored next adventure").selectOption("sequel");
+    await lobby
+      .getByRole("button", { name: "Save next-adventure preview" })
+      .click();
+    await expect(
+      lobby.getByRole("article", { name: "Next adventure preview" }),
+    ).toContainText("Courier aftermath");
+    await lobby.getByRole("button", { name: "continue", exact: true }).click();
+    await expect(lobby.getByRole("status")).toContainText("active");
+    await expect(
+      lobby.getByRole("article", { name: "Adventure conclusion" }),
+    ).toContainText("Courier · success");
   } finally {
     await alice.close();
     await bob.close();
