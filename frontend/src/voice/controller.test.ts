@@ -181,6 +181,32 @@ describe("reviewed, scope-bound voice", () => {
       expect(transport.requests).toHaveLength(0);
     },
   );
+  it("clears unsent speech on a channel change and leaves narration playing", async () => {
+    const { voice, speech, transport } = await start();
+    review(voice, speech, "Private words for the action channel");
+    // The channel is an input mode, not a scope: the review it captured is
+    // dropped, and playback of an already committed narration is not.
+    voice.setChannel("dialogue");
+    expect(voice.getSnapshot()).toMatchObject({
+      capture: "idle",
+      transcript: "",
+    });
+    await voice.submit();
+    expect(transport.requests).toHaveLength(0);
+    voice.enableNarration(true);
+    review(voice, speech, "Hold the lantern higher");
+    await voice.submit();
+    expect(transport.requests[0]!.request).toMatchObject({
+      intent: {
+        kind: "text",
+        text: "My character says: Hold the lantern higher",
+      },
+    });
+    expect(voice.getSnapshot().speaking).toBe(true);
+    voice.setChannel("action");
+    expect(speech.cancel).not.toHaveBeenCalled();
+    expect(voice.getSnapshot().speaking).toBe(true);
+  });
   it("stops private audio on scene changes and ignores late speech completion", async () => {
     const { voice, speech, play } = await start();
     voice.enableNarration(true);
