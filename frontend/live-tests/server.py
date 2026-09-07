@@ -4,12 +4,19 @@ import tempfile
 from pathlib import Path
 
 from aiohttp import web
+from test_scenes import configured
 from test_wave9 import FakeProvider
 from test_wave10 import prepare, setback
+from test_wave12 import two_player_graph
 
 from wayfarer.orchestration.access import CampaignAccess
+from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.providers import Orchestrator
+from wayfarer.orchestration.setup import SetupService
 from wayfarer.transport.campaign_api import ORCHESTRATOR_KEY, create_campaign_app, interpret
+from wayfarer.transport.setup_api import SETUP_KEY
+from wayfarer.transport.v1.http import SERVICE
+from wayfarer.transport.v1.provider import bind_provider
 
 
 async def application() -> web.Application:
@@ -17,9 +24,15 @@ async def application() -> web.Application:
     _, play = await prepare(directory)
     access = CampaignAccess(play)
     app = create_campaign_app(
-        access, {"alice-token": "alice", "bob-token": "bob", "gm-token": "gm"}, legacy_routes=True
+        access,
+        {"alice-token": "alice", "bob-token": "bob", "gm-token": "gm"},
+        scenario_templates=(two_player_graph(),),
+        legacy_routes=True,
+        v1_origins=frozenset({"http://127.0.0.1:4174"}),
     )
+    app[SETUP_KEY] = SetupService(CampaignAccess(PlayService(play.store, configured()[0])))
     app[ORCHESTRATOR_KEY] = Orchestrator(access, FakeProvider())
+    bind_provider(app[SERVICE], app[ORCHESTRATOR_KEY])
     app.router.add_post("/campaigns/{cid}/interpret", interpret)
 
     async def new_fixture(_: web.Request) -> web.Response:

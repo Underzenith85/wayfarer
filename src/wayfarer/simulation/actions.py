@@ -156,6 +156,7 @@ class ActionResult(Record):
 
 class PlayState(Record):
     campaign_id: str
+    lifecycle: Literal["active", "paused", "completed", "archived"] = "active"
     revision: int = Field(default=0, ge=0)
     configuration_digest: str
     world: World

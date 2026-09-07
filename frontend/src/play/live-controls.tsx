@@ -35,6 +35,10 @@ export function LiveControls() {
     scene = engine.scenes.find((s) => s.actor_id === actor),
     group = engine.subgroups.find((g) => g.actor_ids.includes(actor));
   const run = async (fields: Record<string, unknown>) => {
+    if (engine.lifecycle && engine.lifecycle !== "active") {
+      setError("Resume your campaign before acting.");
+      return;
+    }
     setBusy(true);
     setError("");
     try {

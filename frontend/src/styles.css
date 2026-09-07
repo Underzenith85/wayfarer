@@ -10,7 +10,7 @@
   --accent: #94451d;
   --accent-soft: #f8e9df;
   --focus: #075dc8;
-  background: var(--background);
+  background: var(--surface);
   color: var(--foreground);
 }
 :root[data-theme="dark"] {
@@ -256,7 +256,7 @@ main {
 }
 .skeleton {
   height: 6rem;
-  background: var(--background);
+  background: var(--surface);
   border-radius: 0.5rem;
 }
 .narration p {
@@ -541,7 +541,7 @@ details summary {
   max-width: 100%;
   font: inherit;
   color: var(--foreground);
-  background: var(--background);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 0.4rem;
   padding: 0.75rem;
@@ -924,7 +924,7 @@ details summary {
   border: 1px solid var(--border);
   border-radius: 0.5rem;
   color: var(--foreground);
-  background: var(--background);
+  background: var(--surface);
   font: inherit;
 }
 .character-workshop .context-actions {
@@ -1008,6 +1008,40 @@ details summary {
 .ooc-panel li {
   overflow-wrap: anywhere;
   margin-bottom: 0.6rem;
+}
+
+.setup-lobby {
+  max-width: 54rem;
+  margin: 1rem auto;
+}
+.setup-lobby label,
+.voice-controls label {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0.8rem 0;
+}
+.setup-lobby input,
+.setup-lobby textarea,
+.setup-lobby select,
+.voice-controls textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  color: inherit;
+  background: var(--surface);
+}
+.setup-lobby pre {
+  overflow: auto;
+}
+.voice-controls {
+  border-top: 1px solid var(--border);
+  padding-top: 0.8rem;
+}
+.voice-controls button,
+.setup-lobby button {
+  margin: 0.4rem 0.4rem 0.4rem 0;
 }
 
 .adventure-choice {

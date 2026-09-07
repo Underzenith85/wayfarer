@@ -641,6 +641,7 @@ export class PlayStore {
     const s = this.state.snapshot;
     return (
       !!s &&
+      s.campaign.status === "active" &&
       (allowEncounterRetry || !this.encounterRetry) &&
       this.state.connection === "online" &&
       !this.state.tableRetry &&

@@ -21,8 +21,14 @@ test("independent captive and rescuer choices survive reconnect and reunite priv
   const connect = async (page: Page, principal: string) => {
     await page.goto("/");
     await page.getByLabel("Campaign ID", { exact: true }).fill(campaign_id);
-    await page.getByLabel("Player ID", { exact: true }).fill(principal);
-    await page.getByLabel("Access token").fill(`${principal}-token`);
+    await page
+      .getByRole("form", { name: "Campaign connection" })
+      .getByLabel("Player ID", { exact: true })
+      .fill(principal);
+    await page
+      .getByRole("form", { name: "Campaign connection" })
+      .getByLabel("Access token")
+      .fill(`${principal}-token`);
     await page.getByRole("button", { name: "Connect", exact: true }).click();
     await page.getByRole("link", { name: "Campaign", exact: true }).click();
     await page

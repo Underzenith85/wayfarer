@@ -5,7 +5,13 @@ import tailwindcss from "@tailwindcss/vite";
 import { multiplayerFixtures } from "./fixtures/multiplayer-plugin";
 import { onboardingFixtures } from "./fixtures/onboarding-plugin";
 export default defineConfig({
-  server: { proxy: { "/campaigns": "http://127.0.0.1:8000" } },
+  server: {
+    proxy: {
+      "/campaigns": "http://127.0.0.1:8000",
+      "/setups": "http://127.0.0.1:8000",
+      "/api/v1": { target: "http://127.0.0.1:8000", ws: true },
+    },
+  },
   plugins: [
     react(),
     tailwindcss(),
