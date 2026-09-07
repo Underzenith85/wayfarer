@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 
 from pydantic import TypeAdapter
+from pydantic import ValidationError as SchemaError
 
 from wayfarer.character.power import PowerReviewer
 from wayfarer.errors import ConflictError, ValidationError
@@ -122,9 +123,12 @@ class ScenarioStudio:
             )
         # Monotone progression closure detects circular prerequisites and missing clues.
         reached = {graph.opening_scene_id} & scenes.keys()
-        known = {f for a, f in graph.world.knowledge if a in actors}
+        player_ids = set(actors) - set(graph.npc_actor_ids)
+        known = {f for a, f in graph.world.knowledge if a in player_ids}
+        initially_known = set(known)
         sources: dict[str, set[str]] = {}
         available_checks: set[str] = set()
+        actor_checks: set[tuple[str, str]] = set()
         for check in graph.actions.checks:
             for actor in graph.actors:
                 if actor.actor_id in graph.npc_actor_ids:
@@ -143,6 +147,7 @@ class ScenarioStudio:
                     )
                 ):
                     available_checks.add(check.id)
+                    actor_checks.add((actor.actor_id, check.id))
         for _ in range(len(scenes) + len(graph.world.facts) + 1):
             before = (frozenset(reached), frozenset(known))
             for discovery in graph.scenes.discoveries:
@@ -222,12 +227,43 @@ class ScenarioStudio:
             if fact_id not in known:
                 error("clue.missing", fact_id, "Mandatory clue has no attainable revelation")
             origins = sources.get(fact_id, set())
-            if origins and len(origins) == 1 and all(s.startswith("check:") for s in origins):
+            if (
+                fact_id not in initially_known
+                and origins
+                and len(origins) == 1
+                and all(s.startswith(("check:", "encounter:")) for s in origins)
+            ):
                 error(
                     "clue.bottleneck",
                     fact_id,
                     "Mandatory clue depends on one roll or NPC; add an independent fallback",
                 )
+        # Required objectives are a conjunction even when incompatible predicates
+        # were placed in separate objective records by the author or generator.
+        required_predicates = [
+            p for o in graph.objectives.objectives if o.required for p in o.predicates
+        ]
+        for i, predicate in enumerate(required_predicates):
+            for other in required_predicates[i + 1 :]:
+                if (predicate.kind, predicate.subject_id) != (other.kind, other.subject_id):
+                    continue
+                opposite = (
+                    predicate.value == other.value
+                    and predicate.minimum == other.minimum
+                    and predicate.negate != other.negate
+                )
+                exclusive = (
+                    predicate.kind in ("location", "fact", "custody")
+                    and not predicate.negate
+                    and not other.negate
+                    and predicate.value != other.value
+                )
+                if opposite or exclusive:
+                    error(
+                        "ending.contradiction",
+                        graph.objectives.id,
+                        "Required objectives demand mutually incompatible terminal states",
+                    )
         for objective in graph.objectives.objectives:
             positive = [p for p in objective.predicates if not p.negate]
             for i, predicate in enumerate(positive):
@@ -252,10 +288,17 @@ class ScenarioStudio:
                         "Declared ending requires an unreachable location",
                     )
         for approach in graph.approaches:
+            approach_check = next(
+                (c for c in graph.actions.checks if c.id == approach.check_rule_id), None
+            )
             if (
-                approach.check_rule_id not in available_checks
-                or approach.actor_id not in actors
+                (approach.actor_id, approach.check_rule_id) not in actor_checks
                 or approach.scene_id not in reached
+                or approach_check is None
+                or approach_check.target_id not in entities
+                or approach.scene_id not in scenes
+                or (entities[approach_check.target_id].location_id or approach_check.target_id)
+                != scenes[approach.scene_id].location_id
             ):
                 error(
                     "approach.unsupported",
@@ -325,7 +368,17 @@ class ScenarioStudio:
             "policy": json.loads(
                 TypeAdapter(CampaignPolicy).dump_json(self.play.engine.reviewer.compiler.policy)
             ),
+            "npc_policy": json.loads(
+                TypeAdapter(CampaignPolicy).dump_json(self.npc_reviewer.compiler.policy)
+            )
+            if self.npc_reviewer
+            else None,
+            "npc_catalog_ids": sorted(self.npc_reviewer.compiler.definitions)
+            if self.npc_reviewer
+            else [],
         }
+        graph: ScenarioGraph | None = None
+        report: StudioReport | None = None
         for _ in range(attempts):
             raw = await llm._call(
                 ProviderRequest(
@@ -336,7 +389,14 @@ class ScenarioStudio:
                     output_schema=ScenarioGraph.model_json_schema(),
                 )
             )
-            graph = ScenarioGraph.model_validate_json(raw)
+            try:
+                graph = ScenarioGraph.model_validate_json(raw)
+            except SchemaError:
+                context["validation"] = {
+                    "code": "schema.invalid",
+                    "message": "Return a complete scenario matching the supplied output schema.",
+                }
+                continue
             report = self.validate(graph)
             if party and {a.actor_id: a.proposal for a in party} != {
                 a.actor_id: a.proposal
@@ -359,6 +419,8 @@ class ScenarioStudio:
             if report.valid:
                 return graph, report
             context["validation"] = report.model_dump(mode="json")
+        if graph is None or report is None:
+            raise ValidationError("Scenario generation exhausted its schema repair budget")
         return graph, report
 
     async def activate(

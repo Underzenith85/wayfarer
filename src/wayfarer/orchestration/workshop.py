@@ -297,6 +297,12 @@ class WorkshopService:
         old = next((d for d in state.drafts if d.id == command.draft_id), None)
         if old:
             self._get(state, old.id, principal_id)
+            if (old.kind, old.actor_id) != (command.kind, command.actor_id):
+                raise ConflictError("Draft identity cannot change")
+            if old.activated_revision is not None:
+                raise ConflictError("Activated draft is immutable; create a new draft")
+        if (old.revision if old else 0) != command.expected_draft_revision:
+            raise ConflictError("Draft revision changed")
         context = json.dumps(
             {
                 "catalog_ids": sorted(compiler.definitions),
