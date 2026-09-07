@@ -38,9 +38,9 @@ than issuing SQL itself.
 Ruff and pre-commit tooling; the existing unittest suite uses the standard library. The exact uv build backend version is pinned
 for repeatable builds and bundled by the documented uv CLI version.
 
-CPython 3.12 is the default development interpreter. CI tests 3.12, 3.13 and 3.14;
-`requires-python >=3.12` permits newer interpreters without claiming they have
-been tested. No package publish/license change is part of this issue.
+CPython 3.14 is the development and CI interpreter. `requires-python >=3.14`
+sets the same minimum for installed packages; newer interpreters remain allowed
+without claiming CI coverage.
 
 The wheel includes the web assets under `wayfarer.transport.static`, accessed
 with `importlib.resources`. It has no dependency on a repository-relative static
