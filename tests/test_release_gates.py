@@ -36,18 +36,25 @@ def test_release_evidence_rejects_incomplete_or_nonpassing_report(
     assert bool(errors) == (defect != "none")
 
 
-@pytest.mark.parametrize("defect", ["none", "missing", "empty", "skipped", "failure"])
-def test_browser_gate_rejects_missing_or_skipped_journeys(tmp_path: Path, defect: str) -> None:
-    from scripts.check_browser_evidence import check
+@pytest.mark.parametrize(
+    "defect", ["none", "missing_report", "missing_journey", "empty", "skipped", "failure"]
+)
+def test_browser_gate_rejects_incomplete_or_nonpassing_journeys(
+    tmp_path: Path, defect: str
+) -> None:
+    from scripts.check_browser_evidence import REQUIRED_JOURNEYS, check
 
-    for name in ("browser", "live", "reference", "startup"):
-        if name == "reference" and defect == "missing":
+    for report, required in REQUIRED_JOURNEYS.items():
+        if report == "reference" and defect == "missing_report":
             continue
         root = Element("testsuite")
-        if not (name == "reference" and defect == "empty"):
-            for index in range(2):
-                case = SubElement(root, "testcase", name=f"journey-{index}")
-                if name == "reference" and defect in ("skipped", "failure"):
+        if not (report == "reference" and defect == "empty"):
+            names = list(required)
+            if report == "reference" and defect == "missing_journey":
+                names.pop()
+            for index, name in enumerate(names):
+                case = SubElement(root, "testcase", name=name)
+                if report == "reference" and index == 0 and defect in ("skipped", "failure"):
                     SubElement(case, defect)
-        ElementTree(root).write(tmp_path / f"{name}.xml")
+        ElementTree(root).write(tmp_path / f"{report}.xml")
     assert bool(check(tmp_path)) == (defect != "none")

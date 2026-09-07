@@ -4,10 +4,28 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+REQUIRED_JOURNEYS: dict[str, tuple[str, ...]] = {
+    "browser": (
+        "keyboard item controls inspect and restore focus",
+        "use retry consumes once and updates the current sheet",
+    ),
+    "live": (
+        "two identities activate a saved party and review speech through the live director",
+        "independent captive and rescuer choices survive reconnect and reunite privately",
+    ),
+    "reference": (
+        "reference adventure: reviewed voice, negotiation, saved epilogue and successor",
+        "reference rescue: separate players coordinate, reconnect, reclaim gear and reunite",
+    ),
+    "startup": (
+        "solo production entry, illegal party, stale edit, lost activation, refresh and opening action",
+    ),
+}
+
 
 def check(directory: Path) -> list[str]:
     errors: list[str] = []
-    for name in ("browser", "live", "reference", "startup"):
+    for name, required in REQUIRED_JOURNEYS.items():
         path = directory / f"{name}.xml"
         if not path.is_file():
             errors.append(f"Missing {name} browser report")
@@ -15,8 +33,11 @@ def check(directory: Path) -> list[str]:
         cases = list(ET.parse(path).getroot().iter("testcase"))
         if not cases:
             errors.append(f"Empty {name} browser report")
-        if name == "reference" and len(cases) < 2:
-            errors.append("Reference report must include both adventure and rescue journeys")
+            continue
+        names = {case.get("name") or "" for case in cases}
+        for expected in required:
+            if not any(expected in actual for actual in names):
+                errors.append(f"Missing {name} browser journey: {expected}")
         for case in cases:
             if any(case.find(tag) is not None for tag in ("failure", "error", "skipped")):
                 errors.append(f"Non-passing {name} browser evidence: {case.get('name')}")
