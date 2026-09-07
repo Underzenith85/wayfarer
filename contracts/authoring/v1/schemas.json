@@ -5226,6 +5226,15 @@
             "title": "Reload Seconds",
             "type": "integer"
           },
+          "reload_protocol": {
+            "default": "magazine",
+            "enum": [
+              "magazine",
+              "per-round"
+            ],
+            "title": "Reload Protocol",
+            "type": "string"
+          },
           "bulk": {
             "maximum": 0,
             "title": "Bulk",
