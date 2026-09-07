@@ -172,7 +172,7 @@ test("two identities activate a saved party and review speech through the live d
     ).toContainText("Courier · success");
     await expect(
       lobby.getByRole("article", { name: "Adventure conclusion" }),
-    ).toContainText("hp:a:");
+    ).toContainText("Mira · HP");
 
     await blobby
       .getByRole("button", { name: "Reload games / reconcile" })
@@ -181,8 +181,8 @@ test("two identities activate a saved party and review speech through the live d
       name: "Adventure conclusion",
     });
     await expect(bobConclusion).toContainText("Courier · success");
-    await expect(bobConclusion).toContainText("hp:b:");
-    await expect(bobConclusion).not.toContainText("hp:a:");
+    await expect(bobConclusion).toContainText("Iven · HP");
+    await expect(bobConclusion).not.toContainText("Mira · HP");
     await expect(
       blobby.getByRole("button", { name: "Archive campaign" }),
     ).toHaveCount(0);

@@ -24,6 +24,7 @@ it("shows a saved conclusion and restores an archive to completed", async () => 
       restrictions: [],
     },
     graph: null,
+    party: [{ actor_id: "a", name: "Mira" }],
     seats: [],
     rules: {},
     next_adventure: null,
@@ -81,7 +82,7 @@ it("shows a saved conclusion and restores an archive to completed", async () => 
   expect(
     await screen.findByText("Repay the ferryman · active"),
   ).toBeInTheDocument();
-  expect(screen.getByText("hp:a: 2/10")).toBeInTheDocument();
+  expect(screen.getByText("Mira · HP 2/10")).toBeInTheDocument();
   expect(
     screen.queryByRole("button", { name: "Continue to next adventure" }),
   ).not.toBeInTheDocument();
@@ -116,8 +117,9 @@ it("renders seats as structured rows and lifecycle controls as actions", async (
       restrictions: [],
     },
     graph: null,
+    party: [{ actor_id: "a", name: "Mira" }],
     seats: [
-      { principal_id: "alice", joined: true, ready: true, actor_ids: ["mira"] },
+      { principal_id: "alice", joined: true, ready: true, actor_ids: ["a"] },
       { principal_id: "bob", joined: false, ready: false, actor_ids: [] },
     ],
     rules: {},
@@ -192,6 +194,10 @@ describe("grounded ending journeys", () => {
           restrictions: [],
         },
         graph: null,
+        party: [
+          { actor_id: "a", name: "Mira" },
+          { actor_id: "b", name: "Iven" },
+        ],
         seats: [
           { principal_id: "bob", joined: true, ready: true, actor_ids: ["b"] },
         ],
@@ -260,8 +266,8 @@ describe("grounded ending journeys", () => {
       expect(
         await screen.findByRole("heading", { name: `Courier · ${outcome}` }),
       ).toBeVisible();
-      expect(screen.getByText("hp:b: 2/10")).toBeVisible();
-      expect(screen.queryByText("hp:a:", { exact: false })).toBeNull();
+      expect(screen.getByText("Iven · HP 2/10")).toBeVisible();
+      expect(screen.queryByText("Mira", { exact: false })).toBeNull();
       expect(
         screen.queryByRole("button", { name: "Archive campaign" }),
       ).toBeNull();
@@ -299,6 +305,7 @@ describe("grounded ending journeys", () => {
       host_id: "alice",
       title: "Courier",
       phase: "completed",
+      party: [{ actor_id: "a", name: "Mira" }],
       brief,
       graph: null,
       seats: [],

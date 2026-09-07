@@ -143,6 +143,7 @@ class SetupService:
             "graph": setup.graph.model_dump(mode="json")
             if setup.host_id == principal_id and setup.graph
             else None,
+            "party": self.party(setup),
             "title": setup.graph.title if setup.graph else campaign["scenario"]["title"],
             "opening_action": setup.graph.opening_action
             if setup.graph and setup.phase in ("active", "paused", "completed")
@@ -390,6 +391,23 @@ class SetupService:
             cid, key, command.expected_revision, payload, resolve, actor_id=principal_id
         )
         return await self.read(cid, principal_id=principal_id)
+
+    @staticmethod
+    def party(setup: Setup) -> list[dict[str, str]]:
+        """Display names for the assignable characters, without the secret graph.
+
+        Every seated principal needs to read a character's name to assign, own or
+        recognize it; only the host may read the graph those names live in. NPC
+        identities stay behind that gate, so nothing here reveals the scenario.
+        """
+        graph = setup.graph
+        if graph is None:
+            return []
+        return [
+            {"actor_id": a.actor_id, "name": a.proposal.draft.name}
+            for a in graph.actors
+            if a.actor_id not in graph.npc_actor_ids
+        ]
 
     def profile_summary(self, campaign: Campaign) -> dict[str, object] | None:
         profile = None if self.profiles is None else self.profiles.profile_of(campaign)

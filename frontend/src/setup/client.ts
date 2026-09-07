@@ -38,6 +38,8 @@ export interface Lobby {
   phase: "draft" | "ready" | "active" | "paused" | "completed" | "archived";
   brief: Brief;
   graph: Graph | null;
+  /** Assignable character names; present without the host-only secret graph. */
+  party?: { actor_id: string; name: string }[];
   seats: {
     principal_id: string;
     joined: boolean;

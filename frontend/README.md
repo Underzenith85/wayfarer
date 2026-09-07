@@ -284,15 +284,18 @@ than beside HP and FP.
 Setup lobby seats render as structured rows — player, assigned character,
 readiness — instead of a joined record string, and host lifecycle controls are
 labelled with the action taken (**Pause session**, **End campaign**) rather than
-the operation name sent to the service. The party editor labels each purchase by
-its definition name (`attribute:st` reads Strength) instead of the catalog key
-the input sends.
+the operation name sent to the service. `CharacterDraftEditor` labels each
+purchase by its definition name (`attribute:st` reads Strength) instead of the
+catalog key the control sends.
 
-The setup payload carries no display names for its actors, so seat rows, the
-assignment options and the party editor's legends show a readable form of the
-actor identifier rather than an authored character name. The saved-conclusion
-recovery pools still print pool identifiers (`hp:b`) for the same reason: naming
-those needs a service change, not a presentation mapping.
+The setup service sends a `party` roster — the assignable characters' ids and
+names — beside the seats, so seat rows, assignment options, the party editor's
+legends, recorded casualties and the saved-conclusion recovery pools all read a
+character name. `poolLabel` splits a runtime pool id (`hp:b`) into that name and
+the pool it holds. The roster is deliberately narrower than the graph: only the
+host may read the graph, and NPC identities stay behind that gate, so a name here
+reveals nothing about the scenario. When a name is missing the mapping still falls
+back to a readable form of the identifier rather than printing it raw.
 
 ## One “At a glance” per width (#161)
 
