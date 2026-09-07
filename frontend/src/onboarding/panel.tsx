@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Button } from "../components/ui/button";
+import { EmptyRegion } from "../components/region-state";
 import { usePlay } from "../play/use-play";
 import {
   defaultSetup,
@@ -17,9 +18,10 @@ export function OnboardingPanel() {
   const port = store.transport.onboarding;
   if (!port)
     return (
-      <p>
-        Campaign creation and onboarding are not available on this connection.
-      </p>
+      <EmptyRegion>
+        Creating a game is not part of this session. Open a game you have
+        already been invited to instead.
+      </EmptyRegion>
     );
   return (
     <LobbyPanel
