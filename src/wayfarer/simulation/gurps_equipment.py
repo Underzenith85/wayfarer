@@ -93,6 +93,9 @@ class RangedMode(Record):
     rate_of_fire: Positive = 1
     shots: Positive
     reload_seconds: Nonnegative
+    reload_protocol: Literal["magazine", "per-round"] = Field(
+        default="magazine", exclude_if=lambda v: v == "magazine"
+    )
     bulk: int = Field(le=0)
     recoil: Positive = 1
     ammunition_id: Id | None = None
@@ -103,6 +106,8 @@ class RangedMode(Record):
     def valid_range(self) -> Self:
         if self.half_damage_range is not None and self.half_damage_range > self.maximum_range:
             raise ValueError("Half-damage range exceeds maximum range")
+        if self.thrown and self.reload_protocol != "magazine":
+            raise ValueError("Thrown weapons cannot have a reload protocol")
         if self.thrown:
             if self.ammunition_id is not None or self.shots != 1 or self.rate_of_fire != 1:
                 raise ValueError("Thrown mode uses the item itself, once")

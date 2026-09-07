@@ -316,6 +316,11 @@ export interface components {
        */
       reload_ammunition_id: string | null;
       /**
+       * Unload Ammunition
+       * @default false
+       */
+      unload_ammunition: boolean;
+      /**
        * Hit Location
        * @default null
        */

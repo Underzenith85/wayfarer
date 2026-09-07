@@ -889,6 +889,11 @@
             "default": null,
             "title": "Reload Ammunition Id"
           },
+          "unload_ammunition": {
+            "default": false,
+            "title": "Unload Ammunition",
+            "type": "boolean"
+          },
           "hit_location": {
             "anyOf": [
               {

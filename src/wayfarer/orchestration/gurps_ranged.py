@@ -6,12 +6,14 @@ certification gate. No alternative inventory, injury or command receipt engine.
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import TYPE_CHECKING
 
 from wayfarer.errors import ValidationError
 from wayfarer.rules.checks import Outcome
+from wayfarer.rules.effects import DerivedValue
 from wayfarer.rules.gurps_checks import success_roll
-from wayfarer.rules.location_types import HitLocation
+from wayfarer.rules.location_types import HitLocation, HumanLocation
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import (
     CombatEngine,
@@ -22,6 +24,12 @@ from wayfarer.simulation.combat import (
 )
 from wayfarer.simulation.fatigue import fatigue_value
 from wayfarer.simulation.gurps_equipment import RangedMode
+from wayfarer.simulation.hit_locations import (
+    attack_penalty,
+    missing_location,
+    part,
+    select_location,
+)
 from wayfarer.simulation.injury import Wound, apply_injury
 from wayfarer.simulation.maneuvers import ATTACK_MANEUVERS
 from wayfarer.simulation.resources import AmmunitionLoad, ResourceState
@@ -112,14 +120,49 @@ def validate_command(
         command.maneuver == "ready"
         and command.mode_id is not None
         and command.reload_ammunition_id is None
+        and not command.unload_ammunition
     ):
         raise ValidationError("Ready mode selection requires a reload")
     if command.shots != 1 and command.maneuver not in ATTACK_MANEUVERS:
         raise ValidationError("Shot count requires an attack")
+    if command.unload_ammunition:
+        if command.maneuver != "ready" or command.reload_ammunition_id is not None:
+            raise ValidationError("Unload requires a separate Ready maneuver")
+        unload_weapon(play, state, command)
     if command.reload_ammunition_id is not None:
         if command.maneuver != "ready":
             raise ValidationError("Reload requires a Ready maneuver")
         reload_weapon(play, state, command)  # Validate before consciousness/exertion dice.
+
+
+def unload_weapon(play: PlayService, state: PlayState, command: TakeCombatTurn) -> ResourceState:
+    """Release a removable magazine's reservation; no rounds are minted or spent."""
+    from wayfarer.orchestration.gurps_melee import catalog
+
+    equipment = catalog(play)
+    if equipment.profile_id != "gurps-basic-set-4e-2004":
+        raise ValidationError("Unload requires the exact Basic Set profile")
+    item = next((i for i in state.resources.items if i.id == command.item_id), None)
+    if item is None or item.owner_id != command.actor_id:
+        raise ValidationError("Unload requires an owned weapon")
+    loaded = next(
+        (load for load in state.resources.ammunition_loads if load.weapon_id == item.id), None
+    )
+    if loaded is None or command.mode_id not in (None, loaded.mode_id):
+        raise ValidationError("Unload requires the loaded weapon mode")
+    entry = next(e for e in equipment.entries if e.definition_id == item.definition_id)
+    weapon = next((m for m in entry.modes if m.id == loaded.mode_id), None)
+    if not isinstance(weapon, RangedMode) or weapon.reload_protocol != "magazine":
+        raise ValidationError("Individual-round unloading requires its own timing protocol")
+    result = state.resources.model_copy(
+        update={
+            "ammunition_loads": tuple(
+                load for load in state.resources.ammunition_loads if load.weapon_id != item.id
+            )
+        }
+    )
+    play.engine.resources.validate(result)
+    return result
 
 
 def reload_weapon(play: PlayService, state: PlayState, command: TakeCombatTurn) -> ResourceState:
@@ -144,6 +187,8 @@ def reload_weapon(play: PlayService, state: PlayState, command: TakeCombatTurn) 
     if len(modes) != 1 or modes[0].thrown:
         raise ValidationError("Reload requires one projectile mode")
     weapon = modes[0]
+    if weapon.reload_protocol == "per-round" and equipment.profile_id != "gurps-basic-set-4e-2004":
+        raise ValidationError("Per-round reload requires the exact Basic Set profile")
     if ammo.definition_id != weapon.ammunition_id or item.quantity != 1:
         raise ValidationError("Reload ammunition does not match this individual weapon")
     old = next(
@@ -163,7 +208,10 @@ def reload_weapon(play: PlayService, state: PlayState, command: TakeCombatTurn) 
         raise ValidationError("No unreserved ammunition remains")
     progress = (old.reload_progress if old else 0) + 1
     if progress >= max(1, weapon.reload_seconds):
-        rounds += min(weapon.shots - rounds, ammo.quantity - reserved)
+        rounds += min(
+            1 if weapon.reload_protocol == "per-round" else weapon.shots - rounds,
+            ammo.quantity - reserved,
+        )
         progress = 0
     load = AmmunitionLoad(
         weapon_id=item.id,
@@ -202,8 +250,8 @@ def prepare(
     scene = situation(encounter, actor.actor_id, target.actor_id)
     from wayfarer.orchestration.location_combat import disabled
 
-    if disabled(state, actor.actor_id) & {"left-eye", "right-eye"}:
-        raise ValidationError("Ranged vision impairment requires the vision modifier adapter")
+    if len(disabled(state, actor.actor_id) & {"left-eye", "right-eye"}) == 2:
+        raise ValidationError("Blind ranged attacks require an explicit sensory targeting adapter")
     stats = build(play, state, actor.actor_id).statistics
     assert stats is not None
     fp = next(p for p in state.resources.pools if p.id == f"fp:{actor.actor_id}")
@@ -216,8 +264,13 @@ def prepare(
         shots > 1 and catalog(play).profile_id != "gurps-basic-set-4e-2004"
     ):
         raise ValidationError("Unsupported fire mode or shot count for profile")
-    if hit_location not in (None, "torso"):
-        raise ValidationError("Ranged hit locations require the ranged location adapter")
+    from wayfarer.orchestration.location_combat import validate_target
+
+    validate_target(play, state, encounter, actor.actor_id, target.actor_id, weapon, hit_location)
+    if shots > 1 and hit_location == "random":
+        raise ValidationError(
+            "Random locations for multiple projectiles require per-hit location traces"
+        )
     if actor.last_maneuver == "feint" or (
         actor.last_maneuver == "all_out_attack" and actor.maneuver_state.attack_bonus != 4
     ):
@@ -230,10 +283,19 @@ def prepare(
             (loaded for loaded in state.resources.ammunition_loads if loaded.weapon_id == item.id),
             None,
         )
-        if load is None or load.mode_id != weapon.id or load.rounds < shots or load.reload_progress:
+        if (
+            load is None
+            or load.mode_id != weapon.id
+            or load.rounds < shots
+            or (load.reload_progress and weapon.reload_protocol != "per-round")
+        ):
             raise ValidationError("Weapon is unloaded or reload is incomplete")
     allowed: list[Defense] = ["none"]
-    for candidate in ("dodge", "block"):
+    for candidate in ("dodge", "block", "parry"):
+        if candidate == "parry" and (
+            not weapon.thrown or catalog(play).profile_id != "gurps-basic-set-4e-2004"
+        ):
+            continue
         if candidate == "block" and not (weapon.thrown or weapon.blockable):
             continue
         try:
@@ -296,7 +358,9 @@ def expend(
             loaded for loaded in resources.ammunition_loads if loaded.weapon_id == pending.weapon_id
         )
         loads = tuple(
-            loaded.model_copy(update={"rounds": loaded.rounds - pending.shots})
+            loaded.model_copy(
+                update={"rounds": loaded.rounds - pending.shots, "reload_progress": 0}
+            )
             if loaded == load
             else loaded
             for loaded in resources.ammunition_loads
@@ -328,6 +392,7 @@ def resolve(
     from wayfarer.orchestration.gurps_maneuvers import distracted
     from wayfarer.orchestration.gurps_melee import build, catalog, defense_value, level
 
+    original_resources = state.resources
     pending = encounter.pending_defense
     assert pending is not None
     if selected not in pending.allowed or (
@@ -336,6 +401,7 @@ def resolve(
         raise ValidationError("Defense cannot stop this projectile")
     actor = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     target = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
+    original_target = target
     scene = situation(encounter, actor.actor_id, target.actor_id)
     equipment = catalog(play)
     compiled = build(play, state, actor.actor_id)
@@ -349,12 +415,12 @@ def resolve(
     fp = next(p for p in state.resources.pools if p.id == f"fp:{actor.actor_id}")
     st = fatigue_value(fp, stats.st)
     aim = actor.maneuver_state
-    bonus = (
-        aim.aim_bonus
-        if (aim.aim_item_id, aim.aim_mode_id, aim.aim_target_id)
-        == (pending.weapon_id, weapon.id, target.actor_id)
-        else 0
-    )
+    aimed = (aim.aim_item_id, aim.aim_mode_id, aim.aim_target_id) == (
+        pending.weapon_id,
+        weapon.id,
+        target.actor_id,
+    ) and aim.aim_seconds > 0
+    bonus = aim.aim_bonus if aimed else 0
     if actor.last_maneuver == "move_and_attack":
         bonus = min(-2, weapon.bulk)
     elif actor.last_maneuver == "all_out_attack":
@@ -368,12 +434,43 @@ def resolve(
         - max(0, weapon.minimum_st - st)
     )
     attack_target -= actor_hp.injury.shock if actor_hp.injury else 0
+    from wayfarer.orchestration.location_combat import disabled
+
+    eyes = disabled(state, actor.actor_id) & {"left-eye", "right-eye"}
+    if eyes:
+        attack_target -= 1 if aimed and actor.last_maneuver != "move_and_attack" else 3
+    if pending.hit_location:
+        entries = {e.definition_id: e for e in equipment.entries}
+        shield_side = next(
+            (
+                hand.split("-")[0]
+                for item, hand in target.hand_bindings
+                if any(
+                    i.id == item and entries[i.definition_id].shield for i in state.resources.items
+                )
+            ),
+            None,
+        )
+        attack_target += attack_penalty(pending.hit_location, shield_side=shield_side)
     defense_value_, defense_item = defense_value(play, state, target, selected, item_id)
     second_value, second_item = defense_value(
         play, state, target, second_defense or "none", second_item_id
     )
+    if weapon.thrown:
+        thrown_item = next(i for i in state.resources.items if i.id == pending.weapon_id)
+        entry = next(e for e in equipment.entries if e.definition_id == thrown_item.definition_id)
+        penalty = 2 if entry.weight_millipounds <= 1000 else 1
+        if selected == "parry" and defense_value_ is not None:
+            defense_value_ = DerivedValue(defense_value_.target, defense_value_.value - penalty, ())
+        if second_defense == "parry" and second_value is not None:
+            second_value = DerivedValue(second_value.target, second_value.value - penalty, ())
     state, encounter = expend(play, state, encounter, weapon)
     attack = success_roll(equipment.profile_id, attack_target, rng=play.rng)
+    # B382 excludes ranged attacks from the generic failure-by-ten rule.
+    if equipment.profile_id == "gurps-basic-set-4e-2004":
+        attack = replace(attack, rule_id="gurps.combat.ranged_attack")
+        if attack.outcome is Outcome.CRITICAL_FAILURE and attack.total < 17:
+            attack = replace(attack, outcome=Outcome.FAILURE)
     hits = (
         min(pending.shots, 1 + max(0, attack_target - sum(attack.dice)) // weapon.recoil)
         if attack.outcome.succeeded
@@ -392,6 +489,8 @@ def resolve(
                 )
             )
             hits = max(0, hits - avoided)
+        if selected == "parry" and defense_item is not None:
+            target = target.model_copy(update={"parries": target.parries + (defense_item,)})
         if selected == "block":
             target = target.model_copy(update={"block_used": True})
         if defense.outcome is Outcome.CRITICAL_FAILURE and selected == "dodge":
@@ -409,6 +508,8 @@ def resolve(
                 )
             )
             hits = max(0, hits - avoided)
+        if second_defense == "parry" and second_item is not None:
+            target = target.model_copy(update={"parries": target.parries + (second_item,)})
         if second_defense == "block":
             target = target.model_copy(update={"block_used": True})
         if second_trace.outcome is Outcome.CRITICAL_FAILURE and second_defense == "dodge":
@@ -437,14 +538,60 @@ def resolve(
                 )
             }
         )
-    # Ranged-specific critical tables must never dispatch to the melee miss table.
-    blocked = (
-        "ranged-critical-table"
+    critical_table = (
+        tuple(play.rng.randbelow(6) + 1 for _ in range(3))
         if equipment.profile_id == "gurps-basic-set-4e-2004"
         and attack.outcome in (Outcome.CRITICAL_FAILURE, Outcome.CRITICAL_SUCCESS)
-        else None
+        else ()
     )
-    critical_table = tuple(play.rng.randbelow(6) + 1 for _ in range(3)) if blocked else ()
+    critical = sum(critical_table) if attack.outcome is Outcome.CRITICAL_SUCCESS else 0
+    blocked = "ranged-critical-table" if critical_table and not critical else None
+    if blocked and sum(critical_table) in (7, 13, 16):
+        # B557: a ranged 16 loses balance rather than falling prone.
+        subject = next(p for p in encounter.participants if p.actor_id == actor.actor_id)
+        encounter = CombatEngine._replace(
+            encounter, subject.model_copy(update={"defense_penalty": -2})
+        )
+        blocked = None
+    # Armed projectile Parries use their own critical-miss context, never a Dodge consequence.
+    if any(
+        choice == "parry" and roll is not None and roll.outcome is Outcome.CRITICAL_FAILURE
+        for choice, roll in ((selected, defense), (second_defense, second_trace))
+    ):
+        blocked = "ranged-critical-parry"
+        critical_table = tuple(play.rng.randbelow(6) + 1 for _ in range(3))
+    location: HumanLocation | None = None
+    location_dice: tuple[int, ...] = ()
+    if hits and pending.hit_location:
+        from wayfarer.orchestration.location_combat import from_behind
+
+        location, location_dice = select_location(
+            pending.hit_location, rng=play.rng, from_behind=from_behind(actor, target)
+        )
+        if pending.hit_location == "random" and hp.injury and missing_location(hp.injury, location):
+            location = "torso"
+    if critical and pending.shots > 1:
+        blocked = "ranged-critical-burst-table"
+    head = (
+        location in ("skull", "face", "left-eye", "right-eye")
+        and weapon.damage.damage_type != "tox"
+    )
+    critical_eye = False
+    lasting_ids: tuple[str, ...] = ()
+    effect_dice: tuple[int, ...] = ()
+    if critical and head and blocked is None:
+        from wayfarer.orchestration.location_combat import from_behind
+
+        if critical in (6, 7) and location in ("face", "skull"):
+            if from_behind(actor, target):
+                critical = 4
+            else:
+                eye_die = play.rng.randbelow(6) + 1
+                effect_dice += (eye_die,)
+                location = "right-eye" if eye_die <= 3 else "left-eye"
+                critical_eye = True
+        if critical == 8:
+            target = target.model_copy(update={"forced_do_nothing": True})
     damages: list[int] = []
     injuries: list[int] = []
     damage_dice: list[int] = []
@@ -457,7 +604,11 @@ def resolve(
             and i.equipped
             and (i.condition is None or not i.condition.disabled)
             for armor in (entries[i.definition_id].armor,)
-            if armor is not None and "torso" in armor.locations
+            if armor is not None
+            and (
+                (location or "torso") in armor.locations
+                or (part(location) + "s" if location else "torso") in armor.locations
+            )
         ),
         default=0,
     )
@@ -474,12 +625,22 @@ def resolve(
         weapon.half_damage_range
     ) * (st if weapon.range_basis == "st" else 1)
     for index in range(hits if blocked is None else 0):
-        maximum = equipment.profile_id == "gurps-lite-4e-2004" and sum(attack.dice) <= 4
+        hit_critical = critical
+        maximum = hit_critical in ((3, 15) if head else (6, 15)) or (
+            equipment.profile_id == "gurps-lite-4e-2004" and sum(attack.dice) <= 4
+        )
         dice = () if maximum else tuple(play.rng.randbelow(6) + 1 for _ in range(count))
         damage_dice.extend(dice)
         damage = max(
             0 if weapon.damage.damage_type == "cr" else 1,
             (6 * count if maximum else sum(dice)) + adds,
+        )
+        damage *= (
+            3
+            if hit_critical in ((18,) if head else (3, 18))
+            else 2
+            if hit_critical in ((16,) if head else (5, 16))
+            else 1
         )
         if half:
             damage //= 2
@@ -492,12 +653,31 @@ def resolve(
                 basic_damage=damage,
                 resistance=dr,
                 damage_type=weapon.damage.damage_type,
+                location=location,
+                critical_eye=critical_eye,
                 armor_divisor=weapon.damage.armor_divisor,
                 tight_beam=weapon.damage.tight_beam,
             ),
             ht=defender_stats.ht,
             rng=play.rng,
             system=True,
+            dx=defender_stats.dx,
+            force_major_wound=hit_critical in ((4, 5) if head else (7, 13, 14)),
+            double_shock=hit_critical == 8 and not head,
+            funny_bone=hit_critical == 8 and not head,
+            halve_dr=("up" if head else "down")
+            if hit_critical in ((4, 5, 17) if head else (4, 17))
+            else None,
+            ignore_dr=head and hit_critical == 3,
+            held_item_locations=target.hand_bindings,
+            shield_item_ids=tuple(
+                i.id
+                for i in state.resources.items
+                if i.owner_id == target.actor_id
+                and i.ready
+                and i.equipped
+                and entries[i.definition_id].shield
+            ),
             held_item_ids=tuple(
                 i.id
                 for i in state.resources.items
@@ -507,6 +687,53 @@ def resolve(
         state = state.model_copy(update={"resources": resources})
         damages.append(damage)
         injuries.append(result.injury)
+        lasting_ids += result.lasting_injury_ids
+        effect_dice += result.location_dice
+        if head and hit_critical in (12, 13) and result.injury:
+            blocked = "ranged-critical-head-trauma"
+    if critical == 12 and not head and blocked is None:
+        state = state.model_copy(
+            update={
+                "resources": state.resources.model_copy(
+                    update={
+                        "items": tuple(
+                            i.model_copy(update={"ready": False, "equipped": False})
+                            if i.owner_id == target.actor_id and i.ready
+                            else i
+                            for i in state.resources.items
+                        )
+                    }
+                )
+            }
+        )
+    if head and critical == 14 and blocked is None:
+        held_weapons = tuple(
+            i.id
+            for i in state.resources.items
+            if i.owner_id == target.actor_id
+            and i.ready
+            and i.equipped
+            and entries[i.definition_id].modes
+        )
+        if held_weapons:
+            die = play.rng.randbelow(6) + 1 if len(held_weapons) > 1 else None
+            if die is not None:
+                effect_dice += (die,)
+            drop = held_weapons[0 if die is None or die <= 3 else 1]
+            state = state.model_copy(
+                update={
+                    "resources": state.resources.model_copy(
+                        update={
+                            "items": tuple(
+                                i.model_copy(update={"ready": False, "equipped": False})
+                                if i.id == drop
+                                else i
+                                for i in state.resources.items
+                            )
+                        }
+                    )
+                }
+            )
     updated = next(p for p in state.resources.pools if p.id == hp.id)
     assert updated.injury is not None
     target = target.model_copy(
@@ -545,29 +772,77 @@ def resolve(
                 )
             }
         )
-    return (
-        state,
-        encounter,
-        InjuryTrace(
-            attack=attack,
-            defense=defense,
-            second_defense=second_trace,
-            attack_value=value,
-            defense_value=defense_value_,
-            damage_dice=tuple(damage_dice),
-            basic_damage=sum(damages),
-            resistance=dr,
-            injury=sum(injuries),
-            hp_before=hp.current,
-            hp_after=updated.current,
-            incapacitated=updated.injury.incapacitated,
-            profile_id=equipment.profile_id,
-            rules_version="2004",
-            critical_table=critical_table,
-            adjudication_required=blocked,
-            shots_fired=pending.shots,
-            hits=hits,
-            per_hit_damage=tuple(damages),
-            per_hit_injury=tuple(injuries),
-        ),
+    trace = InjuryTrace(
+        attack=attack,
+        defense=defense,
+        second_defense=second_trace,
+        attack_value=value,
+        defense_value=defense_value_,
+        damage_dice=tuple(damage_dice),
+        basic_damage=sum(damages),
+        resistance=dr,
+        injury=sum(injuries),
+        hp_before=hp.current,
+        hp_after=updated.current,
+        incapacitated=updated.injury.incapacitated,
+        profile_id=equipment.profile_id,
+        rules_version="2004",
+        critical_table=critical_table,
+        location=location,
+        location_dice=location_dice,
+        effect_dice=effect_dice,
+        lasting_injury_ids=lasting_ids,
+        adjudication_required=blocked,
+        shots_fired=pending.shots,
+        hits=hits,
+        per_hit_damage=tuple(damages),
+        per_hit_injury=tuple(injuries),
     )
+    if critical_table:
+        from wayfarer.simulation.ranged_critical import RangedCritical, save_ranged_critical
+
+        state = state.model_copy(
+            update={
+                "resources": save_ranged_critical(
+                    state.resources,
+                    RangedCritical(
+                        id=pending.id,
+                        encounter_id=encounter.id,
+                        created_at=state.resources.game_time,
+                        attacker=actor,
+                        defender=original_target,
+                        attacker_build_revision=compiled.revision,
+                        defender_build_revision=defender_build.revision,
+                        catalog=equipment,
+                        weapon=weapon,
+                        scene=scene,
+                        ammunition_load=next(
+                            (
+                                load
+                                for load in original_resources.ammunition_loads
+                                if load.weapon_id == pending.weapon_id
+                            ),
+                            None,
+                        ),
+                        items=tuple(
+                            i
+                            for i in original_resources.items
+                            if i.owner_id in (actor.actor_id, target.actor_id)
+                        ),
+                        pools=tuple(
+                            p
+                            for p in original_resources.pools
+                            if p.id
+                            in (
+                                f"hp:{actor.actor_id}",
+                                f"fp:{actor.actor_id}",
+                                f"hp:{target.actor_id}",
+                                f"fp:{target.actor_id}",
+                            )
+                        ),
+                        trace=trace,
+                    ),
+                )
+            }
+        )
+    return state, encounter, trace
