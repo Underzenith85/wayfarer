@@ -17,6 +17,7 @@ import {
   encumbranceLabel,
   presentStats,
 } from "../presentation/labels";
+import { notSupplied } from "../presentation/availability";
 type Character = components["schemas"]["Character"];
 type Stat = components["schemas"]["Stat"];
 function EmptyCharacter() {
@@ -188,7 +189,7 @@ export function CharacterPage() {
           <p>
             {extra
               ? "No additional effects reported."
-              : "Derived-effect details are not available from this connection."}
+              : notSupplied("Derived-effect details")}
           </p>
         )}
       </section>
@@ -237,10 +238,7 @@ export function CharacterPage() {
             </p>
           </>
         ) : (
-          <p>
-            Point and advancement information is not available from this
-            connection.
-          </p>
+          <p>{notSupplied("Point and advancement records")}</p>
         )}
       </section>
       <TechnicalDetails
@@ -573,11 +571,7 @@ export function InventoryPage() {
           )}
         </section>
       )}
-      {!details && (
-        <p>
-          Currency and custody details are not available from this connection.
-        </p>
-      )}
+      {!details && <p>{notSupplied("Currency and custody details")}</p>}
       {inventory.items.length > 0 && (
         <div className="inventory-filters">
           <label>

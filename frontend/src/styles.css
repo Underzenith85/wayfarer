@@ -257,6 +257,31 @@ main {
   color: var(--foreground);
   line-height: 1.5;
 }
+.availability-banner {
+  padding: 0.75rem 2rem;
+  background: var(--accent-soft);
+  color: var(--foreground);
+  line-height: 1.5;
+}
+.availability-banner summary {
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+.availability-banner ul {
+  margin: 0.5rem 0 0.25rem 1.1rem;
+  font-size: 0.875rem;
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 .skeleton {
   height: 6rem;
   background: var(--surface);
@@ -658,7 +683,7 @@ details summary {
   width: 18px;
   height: 18px;
 }
-.composer > label,
+.composer-input > label,
 .clarification label {
   display: block;
   font-size: 0.875rem;
@@ -694,6 +719,14 @@ details summary {
 .composer-hint {
   font-size: 0.75rem;
   color: var(--muted);
+}
+.scene-withheld {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+.scene-withheld ul {
+  margin: 0.25rem 0 0 1.1rem;
 }
 .button:disabled {
   opacity: 0.5;

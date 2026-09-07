@@ -112,9 +112,18 @@ narration for a committed result, and interruption affects only its subscription
 
 `actions.inspect`, `actions.move`, `actions.use_item`, `actions.wait` are the core
 capabilities; `actions.text` is added only when the interpretation provider is
-configured. Being implemented by an engine does not automatically freeze a new
-HTTP intent variant. A capability is not a substitute for per-command authorization
-or feasibility checks.
+configured. An advertised capability must conform, so a kind the engine would
+answer with `unsupported_action` is never claimed: `actions.inspect` appears only
+where this viewpoint already sees a target carrying an authored inspection check,
+and `actions.use_item` only where the scenario defines a consumable. Alongside
+`actions.inspect`, the projection names each of those permitted observations as
+`actions.inspect:<target_id>`, so the scoped entries never name a target the
+caller cannot already see; they are omitted whole rather than truncated when the
+list would exceed its bound, and a client that sees no scoped entry falls back to
+the plain capability. Being
+implemented by an engine does not automatically freeze a new HTTP intent variant.
+A capability is not a substitute for per-command authorization or feasibility
+checks.
 
 ## Validation
 

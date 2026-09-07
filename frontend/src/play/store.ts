@@ -10,6 +10,7 @@ import type {
   InventoryIntent,
   InventoryOperation,
 } from "../character/presentation";
+import { capabilityReason } from "../presentation/availability";
 import { forgetSession } from "./session";
 import {
   TransportError,
@@ -643,28 +644,51 @@ export class PlayStore {
       if (this.active(generation)) this.patch({ busy: false });
     }
   }
-  canSend(intentKind: Intent["kind"], allowEncounterRetry = false) {
+  /**
+   * The single reason this intent cannot be sent right now, or null when it can.
+   * Every control that blocks on an intent shows this reason instead of guessing
+   * one, so a disabled control never states a condition that does not apply.
+   */
+  sendBlockReason(
+    intentKind: Intent["kind"],
+    allowEncounterRetry = false,
+  ): string | null {
     const s = this.state.snapshot;
-    return (
-      !!s &&
-      s.campaign.status === "active" &&
-      (allowEncounterRetry || !this.encounterRetry) &&
-      this.state.connection === "online" &&
-      !this.state.tableRetry &&
-      !this.state.expired &&
-      !this.state.needsRefresh &&
-      !this.state.loading &&
-      !this.state.busy &&
-      !this.state.retry &&
-      !this.state.entries.some((e) =>
-        ["submitted", "resolving", "needs_clarification"].includes(
-          e.action?.status ?? "",
-        ),
-      ) &&
-      s.campaign.membership.role === "player" &&
-      !!this.state.actorId &&
-      s.campaign.capabilities.includes(`actions.${intentKind}`)
-    );
+    if (this.state.expired) return "Your session has ended.";
+    if (!s) return "Open a campaign to act in its current scene.";
+    if (s.campaign.status !== "active")
+      return "This campaign is not active, so it accepts no actions.";
+    if (this.state.connection !== "online")
+      return "Reconnect and reconcile this scene before acting.";
+    if (this.state.needsRefresh)
+      return "Reload the changed scene before trying again.";
+    if (this.state.tableRetry)
+      return "Resolve the pending table request first.";
+    if (!allowEncounterRetry && this.encounterRetry)
+      return "Retry the pending encounter decision first.";
+    if (
+      this.state.entries.some((e) => e.action?.status === "needs_clarification")
+    )
+      return "Answer the pending clarification to continue.";
+    if (
+      this.state.loading ||
+      this.state.busy ||
+      this.state.retry ||
+      this.state.entries.some((e) =>
+        ["submitted", "resolving"].includes(e.action?.status ?? ""),
+      )
+    )
+      return "Another action is pending. Finish or retry it first.";
+    if (s.campaign.membership.role !== "player")
+      return "Only a player with a controlled character can act at this table.";
+    if (!this.state.actorId)
+      return "Choose the character you are acting as first.";
+    if (!s.campaign.capabilities.includes(`actions.${intentKind}`))
+      return capabilityReason(intentKind);
+    return null;
+  }
+  canSend(intentKind: Intent["kind"], allowEncounterRetry = false) {
+    return this.sendBlockReason(intentKind, allowEncounterRetry) === null;
   }
   async send(
     channel: Channel,

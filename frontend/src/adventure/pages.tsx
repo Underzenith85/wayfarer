@@ -5,6 +5,7 @@ import type { AdventurePort, DecisionCommand, JournalKind } from "./model";
 import type { Scope } from "../multiplayer/model";
 import { Button } from "../components/ui/button";
 import { ScopedLink } from "../scoped-link";
+import { notSupplied } from "../presentation/availability";
 
 function Boundary({
   children,
@@ -16,11 +17,7 @@ function Boundary({
   if (!state.snapshot || !state.actorId)
     return <p>Select a campaign and character to view discoveries.</p>;
   if (!store.transport.adventure || !state.multiplayer)
-    return (
-      <p>
-        Encounter and discovery details are not available from this connection.
-      </p>
-    );
+    return <p>{notSupplied("Encounter and discovery details")}</p>;
   if (state.loading || state.connection !== "online")
     return (
       <p role="status">Reconnect to load current encounter and discoveries.</p>

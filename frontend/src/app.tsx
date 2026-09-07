@@ -41,6 +41,7 @@ import {
 } from "./play/workspace";
 import { destinations, pagePath, parsePath, type Segment } from "./routes";
 import { Button } from "./components/ui/button";
+import { ProviderBanner } from "./components/availability";
 import { Sheet } from "./components/ui/sheet";
 /** Setup is a separate shell; the play header is the way back to it. */
 const CampaignMenu = createContext<{
@@ -84,6 +85,11 @@ function Shell() {
     }
   });
   const [online, setOnline] = useState(navigator.onLine);
+  // Stated once for the whole shell; the composer and scene actions repeat only
+  // the part of it that blocks each control.
+  const providerMissing =
+    !!state.snapshot &&
+    !state.snapshot.campaign.capabilities.includes("actions.text");
   useEffect(() => {
     const update = () => setOnline(navigator.onLine);
     window.addEventListener("online", update);
@@ -212,6 +218,7 @@ function Shell() {
           You’re offline. Reconnect to load campaign updates.
         </div>
       )}
+      {providerMissing && <ProviderBanner />}
       <div className="workspace">
         <aside className="navigation-panel">
           <p className="eyebrow desktop-only">Your table</p>

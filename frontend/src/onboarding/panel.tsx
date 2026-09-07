@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Button } from "../components/ui/button";
 import { usePlay } from "../play/use-play";
+import { notSupplied } from "../presentation/availability";
 import {
   defaultSetup,
   type Build,
@@ -15,12 +16,7 @@ import {
 export function OnboardingPanel() {
   const { store } = usePlay();
   const port = store.transport.onboarding;
-  if (!port)
-    return (
-      <p>
-        Campaign creation and onboarding are not available on this connection.
-      </p>
-    );
+  if (!port) return <p>{notSupplied("Campaign creation and onboarding")}</p>;
   return (
     <LobbyPanel
       key={store.transport.principalId}
