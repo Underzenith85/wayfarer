@@ -136,7 +136,7 @@ test("reference adventure: reviewed voice, negotiation, saved epilogue and succe
       .getByRole("button", { name: "Switch campaign", exact: true })
       .click();
     await conclusion
-      .getByRole("button", { name: "complete", exact: true })
+      .getByRole("button", { name: "End campaign", exact: true })
       .click();
     await expect(
       conclusion.getByRole("article", { name: "Adventure conclusion" }),
@@ -148,10 +148,10 @@ test("reference adventure: reviewed voice, negotiation, saved epilogue and succe
       conclusion.getByRole("article", { name: "Next adventure preview" }),
     ).toContainText("A Favor Repaid");
     await conclusion
-      .getByRole("button", { name: "continue", exact: true })
+      .getByRole("button", { name: "Continue to next adventure", exact: true })
       .click();
     await expect(conclusion.getByRole("status")).toContainText(
-      "A Favor Repaid · active",
+      "A Favor Repaid · In play",
     );
     await expect(
       conclusion.getByRole("article", { name: "Adventure conclusion" }),

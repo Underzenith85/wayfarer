@@ -5,6 +5,12 @@ import type { Campaign } from "../play/transport";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "../components/ui/button";
 import { NetworkPlayTransport } from "../api/play-transport";
+import {
+  campaignPhaseLabel,
+  definitionLabel,
+  humanize,
+  lifecycleOperationLabel,
+} from "../presentation/labels";
 import type { PlayTransport } from "../play/transport";
 import {
   SetupClient,
@@ -198,6 +204,53 @@ export function SetupLobby({
         });
     });
   };
+  /** The party roster; only the party step offers its assignment controls. */
+  const players = (assignable: boolean) =>
+    lobby && (
+      <ul className="seat-list" aria-label="Players">
+        {lobby.seats.map((seat) => (
+          <li key={seat.principal_id} className="seat-row">
+            <span className="seat-player">{seat.principal_id}</span>
+            <span className="seat-character">
+              {seat.actor_ids.map(humanize).join(", ") ||
+                "No character assigned"}
+            </span>
+            <span className="seat-status">
+              {!seat.joined ? "Invited" : seat.ready ? "Ready" : "Not ready"}
+            </span>
+            {assignable && host && editable && seat.joined && lobby.graph && (
+              <label>
+                Assign character to {seat.principal_id}
+                <select
+                  aria-label={`Assign character to ${seat.principal_id}`}
+                  value={seat.actor_ids[0] ?? ""}
+                  disabled={busy || client?.hasPending}
+                  onChange={(e) =>
+                    void run(() =>
+                      command("assign", {
+                        principal_id: seat.principal_id,
+                        actor_ids: e.target.value ? [e.target.value] : [],
+                      }),
+                    )
+                  }
+                >
+                  <option value="">Choose character</option>
+                  {lobby.graph.actors
+                    .filter(
+                      (a) => !lobby.graph!.npc_actor_ids.includes(a.actor_id),
+                    )
+                    .map((a) => (
+                      <option key={a.actor_id} value={a.actor_id}>
+                        {humanize(a.actor_id)}
+                      </option>
+                    ))}
+                </select>
+              </label>
+            )}
+          </li>
+        ))}
+      </ul>
+    );
   const submit = (
     <Button disabled={busy || client?.hasPending}>
       {lobby ? "Save setup draft" : "Create game draft"}
@@ -316,7 +369,7 @@ export function SetupLobby({
                     })
                   }
                 >
-                  {value.title} · {value.phase}
+                  {value.title} · {campaignPhaseLabel(value.phase)}
                 </Button>
               </li>
             ))}
@@ -360,7 +413,8 @@ export function SetupLobby({
           </ul>
           {lobby ? (
             <p role="status">
-              {lobby.title} · {lobby.phase} · revision {lobby.revision}
+              {lobby.title} · {campaignPhaseLabel(lobby.phase)} · revision{" "}
+              {lobby.revision}
             </p>
           ) : (
             <p>Create a game, or open an invitation above.</p>
@@ -595,12 +649,12 @@ export function SetupLobby({
                     .filter((a) => !graph.npc_actor_ids.includes(a.actor_id))
                     .map((actor) => (
                       <fieldset key={actor.actor_id}>
-                        <legend>Character {actor.actor_id}</legend>
+                        <legend>Character {humanize(actor.actor_id)}</legend>
                         <div className="numeric-fields">
                           {actor.proposal.draft.purchases.map(
                             (purchase, index) => (
                               <label key={index}>
-                                {purchase.definition_id}
+                                {definitionLabel(purchase.definition_id)}
                                 <input
                                   type="number"
                                   min={0}
@@ -650,51 +704,7 @@ export function SetupLobby({
                   {submit}
                 </form>
               )}
-              {lobby && (
-                <ul>
-                  {lobby.seats.map((seat) => (
-                    <li key={seat.principal_id}>
-                      {seat.principal_id} · {seat.joined ? "Joined" : "Invited"}{" "}
-                      · {seat.ready ? "Ready" : "Not ready"} ·{" "}
-                      {seat.actor_ids.join(", ") || "No character"}
-                      {host && editable && seat.joined && lobby.graph && (
-                        <label>
-                          Assign character to {seat.principal_id}
-                          <select
-                            aria-label={`Assign character to ${seat.principal_id}`}
-                            value={seat.actor_ids[0] ?? ""}
-                            disabled={busy || client.hasPending}
-                            onChange={(e) =>
-                              void run(() =>
-                                command("assign", {
-                                  principal_id: seat.principal_id,
-                                  actor_ids: e.target.value
-                                    ? [e.target.value]
-                                    : [],
-                                }),
-                              )
-                            }
-                          >
-                            <option value="">Choose character</option>
-                            {lobby.graph.actors
-                              .filter(
-                                (a) =>
-                                  !lobby.graph!.npc_actor_ids.includes(
-                                    a.actor_id,
-                                  ),
-                              )
-                              .map((a) => (
-                                <option key={a.actor_id} value={a.actor_id}>
-                                  {a.actor_id}
-                                </option>
-                              ))}
-                          </select>
-                        </label>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              )}
+              {players(true)}
               {lobby && editable && host && (
                 <form
                   onSubmit={(e) => {
@@ -719,6 +729,7 @@ export function SetupLobby({
           )}
           {step === "Ready" && lobby && (
             <>
+              {players(false)}
               {lobby.adventures?.map((ending) => (
                 <article
                   key={ending.adventure_id}
@@ -886,7 +897,7 @@ export function SetupLobby({
                       disabled={busy || client.hasPending}
                       onClick={() => void run(() => command(operation))}
                     >
-                      {operation === "activate" ? "Start game" : operation}
+                      {lifecycleOperationLabel(operation)}
                     </Button>
                   ))}
                 {lobby.phase === "active" && (

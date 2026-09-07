@@ -83,6 +83,9 @@ def interrupt_concentration(
     resources: ResourceState, actor_id: str, command_id: str, *, distraction: bool = False
 ) -> ResourceState:
     """Other maneuvers abandon concentration; an active defense needs Will-3."""
+    from wayfarer.simulation.spells import interrupt_spells
+
+    resources = interrupt_spells(resources, actor_id, command_id, distraction=distraction)
     additions = []
     for effect in effects(resources):
         if effect.actor_id != actor_id or not effect.concentrating:

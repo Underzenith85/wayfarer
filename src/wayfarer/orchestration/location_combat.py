@@ -8,7 +8,7 @@ from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.location_types import Hand, HitLocation, HumanLocation, disabled_locations
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import Combatant, Encounter, Posture
-from wayfarer.simulation.gurps_equipment import MeleeMode
+from wayfarer.simulation.gurps_equipment import MeleeMode, RangedMode
 from wayfarer.simulation.hit_locations import part, require_location, wound_factor
 from wayfarer.simulation.injury import ResolveCrippling, apply_injury
 
@@ -43,7 +43,7 @@ def validate_target(
     encounter: Encounter,
     attacker_id: str,
     defender_id: str,
-    selected: MeleeMode,
+    selected: MeleeMode | RangedMode,
     location: HitLocation | None,
 ) -> None:
     """Reject unsupported location intent before consciousness/exertion dice."""

@@ -589,6 +589,40 @@ details summary {
   font-size: 0.75rem;
   color: var(--muted);
 }
+.technical-details {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.technical-details summary {
+  cursor: pointer;
+}
+.technical-details p {
+  margin: 0.4rem 0 0;
+  overflow-wrap: anywhere;
+}
+.seat-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.seat-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.9rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.seat-row:last-child {
+  border-bottom: 0;
+}
+.seat-player {
+  font-weight: 600;
+}
+.seat-character,
+.seat-status {
+  color: var(--muted);
+}
 .composer {
   padding: 1.25rem;
   border: 1px solid var(--border);

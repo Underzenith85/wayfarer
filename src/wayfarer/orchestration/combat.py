@@ -26,6 +26,7 @@ from wayfarer.simulation.combat import (
     Maneuver,
     Placement,
     Posture,
+    RangedSituation,
 )
 from wayfarer.simulation.maneuvers import ATTACK_MANEUVERS, AttackOption, DefenseOption, WaitTrigger
 from wayfarer.simulation.resources import Advance, Id, Record
@@ -42,6 +43,7 @@ class StartEncounter(CombatCommand):
     encounter_id: Id
     battlefield_id: Id
     placements: tuple[Placement, ...] = Field(min_length=2)
+    ranged_situations: tuple[RangedSituation, ...] = ()
 
 
 class TakeCombatTurn(CombatCommand):
@@ -54,6 +56,8 @@ class TakeCombatTurn(CombatCommand):
     item_id: str | None = None
     target_id: str | None = None
     mode_id: str | None = None
+    shots: int = Field(default=1, ge=1, le=100)
+    reload_ammunition_id: str | None = None
     hit_location: HitLocation | None = None
     ready_hand: Hand | Literal["both"] | None = None
     attack_option: AttackOption | None = None
@@ -174,6 +178,8 @@ class CombatService:
                     saved = saved.model_copy(
                         update={
                             "maneuver": "do_nothing",
+                            "shots": 1,
+                            "reload_ammunition_id": None,
                             "destination": None,
                             "facing": None,
                             "posture": None,
@@ -282,6 +288,9 @@ class CombatService:
                     from wayfarer.orchestration.location_combat import bind_initial_hands
 
                     encounter = bind_initial_hands(self.play, state, encounter)
+                from wayfarer.orchestration.gurps_ranged import declare
+
+                encounter = declare(self.play, encounter, command.ranged_situations)
                 encounters = state.encounters + (encounter,)
                 result = CombatResult(
                     encounter_id=encounter.id,
@@ -402,8 +411,10 @@ class CombatService:
                         current_actor_id=current_actor,
                     )
                 elif isinstance(command, TakeCombatTurn):
+                    from wayfarer.orchestration.gurps_ranged import validate_command
                     from wayfarer.simulation.abilities import interrupt_concentration
 
+                    validate_command(self.play, state, encounter, command)
                     resources = interrupt_concentration(resources, command.actor_id, command.id)
                     state = state.model_copy(update={"resources": resources})
                     if command.hit_location is not None and (
@@ -437,7 +448,7 @@ class CombatService:
                         ):
                             raise ValidationError("Unsupported combat weapon or attack mode")
                     if command.mode_id is not None and (
-                        command.maneuver not in ATTACK_MANEUVERS | {"feint", "aim"}
+                        command.maneuver not in ATTACK_MANEUVERS | {"feint", "aim", "ready"}
                         or engine.rules.gurps_equipment is None
                     ):
                         raise ValidationError("Weapon mode requires GURPS attack dispatch")
@@ -465,11 +476,19 @@ class CombatService:
                             selected_mode,
                             command.hit_location,
                         )
+                        from wayfarer.simulation.gurps_equipment import MeleeMode
+
                         encounter = engine._replace(
                             encounter,
                             next(
                                 p for p in encounter.participants if p.actor_id == command.actor_id
-                            ).model_copy(update={"reach": max(selected_mode.reach)}),
+                            ).model_copy(
+                                update={
+                                    "reach": max(selected_mode.reach)
+                                    if isinstance(selected_mode, MeleeMode)
+                                    else 1
+                                }
+                            ),
                         )
                     if engine.rules.gurps_equipment is not None:
                         from wayfarer.orchestration.gurps_melee import (
@@ -508,6 +527,7 @@ class CombatService:
                                     preview,
                                     command.mode_id,
                                     hit_location=command.hit_location,
+                                    shots=command.shots,
                                 )
                             if (
                                 command.maneuver == "aim"
@@ -557,6 +577,8 @@ class CombatService:
                             command_for_turn = command.model_copy(
                                 update={
                                     "maneuver": "do_nothing",
+                                    "shots": 1,
+                                    "reload_ammunition_id": None,
                                     "item_id": None,
                                     "mode_id": None,
                                     "target_id": None,
@@ -594,6 +616,14 @@ class CombatService:
                         command_for_turn.maneuver == "ready"
                         and engine.rules.gurps_equipment is not None
                     ):
+                        if command_for_turn.reload_ammunition_id is not None:
+                            from wayfarer.orchestration.gurps_ranged import reload_weapon
+
+                            resources = reload_weapon(
+                                self.play,
+                                state.model_copy(update={"resources": resources}),
+                                command_for_turn,
+                            )
                         from wayfarer.orchestration.location_combat import bind_ready_hand
 
                         encounter = bind_ready_hand(
@@ -634,6 +664,7 @@ class CombatService:
                             encounter,
                             command.mode_id,
                             hit_location=command.hit_location,
+                            shots=command.shots,
                         )
                         assert encounter.pending_defense is not None
                         result = result.model_copy(

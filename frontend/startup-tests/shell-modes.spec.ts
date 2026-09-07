@@ -76,7 +76,7 @@ test("play replaces setup, and a second draft replaces the step view", async ({
   await expect(
     page.getByRole("heading", { name: "Stormbound Harbor" }),
   ).toHaveCount(0);
-  await expect(lobby.getByRole("status")).toContainText("active");
+  await expect(lobby.getByRole("status")).toContainText("In play");
   await lobby.getByRole("button", { name: "Open playing scene" }).click();
   await expect(
     page.getByRole("heading", { name: "Stormbound Harbor" }),

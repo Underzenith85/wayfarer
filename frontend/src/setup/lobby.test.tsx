@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SetupLobby } from "./lobby";
 
@@ -75,16 +75,18 @@ it("shows a saved conclusion and restores an archive to completed", async () => 
   await user.type(screen.getByLabelText("Access token"), "secret");
   await user.click(screen.getByRole("button", { name: "Sign in" }));
   await user.click(
-    await screen.findByRole("button", { name: "Courier · archived" }),
+    await screen.findByRole("button", { name: "Courier · Archived" }),
   );
   expect(
     await screen.findByText("Repay the ferryman · active"),
   ).toBeInTheDocument();
   expect(screen.getByText("hp:a: 2/10")).toBeInTheDocument();
   expect(
-    screen.queryByRole("button", { name: "continue" }),
+    screen.queryByRole("button", { name: "Continue to next adventure" }),
   ).not.toBeInTheDocument();
-  await user.click(screen.getByRole("button", { name: "unarchive" }));
+  await user.click(
+    screen.getByRole("button", { name: "Restore from archive" }),
+  );
   expect(
     await screen.findByRole("button", {
       name: "Generate next-adventure preview",
@@ -95,6 +97,74 @@ it("shows a saved conclusion and restores an archive to completed", async () => 
     operation: "unarchive",
     expected_revision: 8,
   });
+});
+
+it("renders seats as structured rows and lifecycle controls as actions", async () => {
+  const lobby = {
+    id: "c",
+    revision: 4,
+    host_id: "alice",
+    title: "Courier",
+    phase: "active",
+    brief: {
+      premise: "Find the courier",
+      genre: "Mystery",
+      tone: "Tense",
+      duration_minutes: 90,
+      difficulty: "standard",
+      restrictions: [],
+    },
+    graph: null,
+    seats: [
+      { principal_id: "alice", joined: true, ready: true, actor_ids: ["mira"] },
+      { principal_id: "bob", joined: false, ready: false, actor_ids: [] },
+    ],
+    rules: {},
+  };
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+    const path = input instanceof Request ? input.url : String(input);
+    if (path.endsWith("/session"))
+      return new Response(
+        JSON.stringify({
+          principal_id: "alice",
+          generation_available: false,
+          legacy_available: false,
+        }),
+      );
+    if (path.endsWith("/api/v1/campaigns"))
+      return new Response(JSON.stringify({ items: [], next_cursor: null }));
+    return new Response(
+      JSON.stringify(
+        path.endsWith("/templates") || path.endsWith("/profiles")
+          ? []
+          : path.endsWith("/c")
+            ? lobby
+            : [lobby],
+      ),
+    );
+  });
+  const user = userEvent.setup();
+  render(<SetupLobby onOpen={vi.fn()} />);
+  await user.type(screen.getByLabelText("Access token"), "secret");
+  await user.click(screen.getByRole("button", { name: "Sign in" }));
+  await user.click(
+    await screen.findByRole("button", { name: "Courier · In play" }),
+  );
+  const [host, guest] = within(
+    await screen.findByRole("list", { name: "Players" }),
+  ).getAllByRole("listitem");
+  expect(within(host!).getByText("alice")).toBeVisible();
+  expect(within(host!).getByText("Mira")).toBeVisible();
+  expect(within(host!).getByText("Ready")).toBeVisible();
+  expect(within(guest!).getByText("No character assigned")).toBeVisible();
+  expect(within(guest!).getByText("Invited")).toBeVisible();
+  expect(
+    screen.getByRole("button", { name: "Pause session" }),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: "End campaign" }),
+  ).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "pause" })).toBeNull();
 });
 
 describe("grounded ending journeys", () => {
@@ -178,15 +248,19 @@ describe("grounded ending journeys", () => {
       await user.type(screen.getByLabelText("Access token"), "secret");
       await user.click(screen.getByRole("button", { name: "Sign in" }));
       await user.click(
-        await screen.findByRole("button", { name: "Courier · completed" }),
+        await screen.findByRole("button", { name: "Courier · Finished" }),
       );
       expect(
         await screen.findByRole("heading", { name: `Courier · ${outcome}` }),
       ).toBeVisible();
       expect(screen.getByText("hp:b: 2/10")).toBeVisible();
       expect(screen.queryByText("hp:a:", { exact: false })).toBeNull();
-      expect(screen.queryByRole("button", { name: "archive" })).toBeNull();
-      expect(screen.queryByRole("button", { name: "continue" })).toBeNull();
+      expect(
+        screen.queryByRole("button", { name: "Archive campaign" }),
+      ).toBeNull();
+      expect(
+        screen.queryByRole("button", { name: "Continue to next adventure" }),
+      ).toBeNull();
     });
   }
 
@@ -284,7 +358,7 @@ describe("grounded ending journeys", () => {
     await user.type(screen.getByLabelText("Access token"), "secret");
     await user.click(screen.getByRole("button", { name: "Sign in" }));
     await user.click(
-      await screen.findByRole("button", { name: "Courier · completed" }),
+      await screen.findByRole("button", { name: "Courier · Finished" }),
     );
     await user.selectOptions(
       screen.getByLabelText("Authored next adventure"),
@@ -296,8 +370,10 @@ describe("grounded ending journeys", () => {
     expect(
       await screen.findByRole("article", { name: "Next adventure preview" }),
     ).toHaveTextContent("The debt");
-    await user.click(screen.getByRole("button", { name: "continue" }));
-    expect(await screen.findByRole("status")).toHaveTextContent("active");
+    await user.click(
+      screen.getByRole("button", { name: "Continue to next adventure" }),
+    );
+    expect(await screen.findByRole("status")).toHaveTextContent("In play");
     expect(writes.map((value) => value.operation)).toEqual([
       "preview",
       "continue",

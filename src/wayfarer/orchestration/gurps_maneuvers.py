@@ -34,17 +34,33 @@ def observe(
         ]
         if len(modes) != 1:
             raise ValidationError("Aim requires one selected ranged mode")
+        previous = next(
+            p
+            for e in state.encounters
+            if e.id == encounter.id
+            for p in e.participants
+            if p.actor_id == actor.actor_id
+        )
+        seconds = actor.maneuver_state.aim_seconds
+        if previous.maneuver_state.aim_mode_id != modes[0].id:
+            seconds = 1
         return CombatEngine._replace(
             encounter,
             actor.model_copy(
                 update={
                     "maneuver_state": actor.maneuver_state.model_copy(
-                        update={"aim_accuracy": modes[0].accuracy, "aim_mode_id": modes[0].id}
+                        update={
+                            "aim_accuracy": modes[0].accuracy,
+                            "aim_mode_id": modes[0].id,
+                            "aim_seconds": seconds,
+                        }
                     )
                 }
             ),
         )
     weapon = mode(play, state, actor.actor_id, command.item_id or "", command.mode_id)
+    if not isinstance(weapon, MeleeMode):
+        raise ValidationError("Feint requires a melee mode")
     attacker = build(play, state, actor.actor_id)
     defender = build(play, state, target.actor_id)
     assert defender.statistics is not None
