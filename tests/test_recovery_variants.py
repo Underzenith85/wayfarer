@@ -1,12 +1,14 @@
 """Independent B423-424/B444 trauma and surgical-recovery cases for #209."""
 
+from typing import Final
+
 import pytest
 
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.rules.injury_types import InjuryStatus
 from wayfarer.rules.location_types import LastingInjury
-from wayfarer.rules.recovery_types import FatigueStatus, interrupt_tasks
+from wayfarer.rules.recovery_types import FatigueStatus, ProfileId, interrupt_tasks
 from wayfarer.simulation.hazards import HazardCommand, apply_hazard
 from wayfarer.simulation.recovery_variants import (
     BeginRecoveryVariant,
@@ -17,7 +19,7 @@ from wayfarer.simulation.recovery_variants import (
 )
 from wayfarer.simulation.resources import Pool, ResourceState
 
-PROFILE = "gurps-basic-set-4e-2004"
+PROFILE: Final[ProfileId] = "gurps-basic-set-4e-2004"
 DAY = 86400
 
 
