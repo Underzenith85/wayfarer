@@ -1,4 +1,4 @@
-import { SetupLobby } from "../setup/lobby";
+import { SetupLobby, type SetupSession } from "../setup/lobby";
 import { useCallback, useEffect, useState } from "react";
 import { App } from "../app";
 import { Button } from "../components/ui/button";
@@ -10,63 +10,91 @@ import {
   forgetSession,
   readSession,
   rememberCampaign,
+  rememberPrincipal,
   rememberRequestedPath,
   takeRequestedPath,
 } from "./session";
 import type { PlayTransport } from "./transport";
 
-interface Restored {
-  credential: string;
-  transport: PlayTransport | null;
-}
 /**
  * Rebuilds the tab's session without asking for the access token again. The URL
- * wins over the remembered campaign, so a pasted link opens the view it names.
- * With no campaign to open, the lobby simply opens already signed in.
+ * wins over the remembered campaign, so a pasted link opens the view it names;
+ * with no campaign to open, setup simply starts already signed in.
  */
-async function restore(): Promise<Restored | null> {
+async function restore(): Promise<{
+  session: SetupSession;
+  transport: PlayTransport | null;
+} | null> {
   const saved = readSession();
   if (!saved) return null;
   const auth = await new SetupClient(saved.credential).request<{
     principal_id: string;
+    generation_available: boolean;
     legacy_available: boolean;
   }>("/session");
+  const session: SetupSession = {
+    token: saved.credential,
+    principal: auth.principal_id,
+    generationAvailable: auth.generation_available,
+    legacyAvailable: auth.legacy_available,
+  };
   const campaignId =
     parsePath(location.pathname)?.campaignId ?? saved.campaignId;
-  if (!campaignId) return { credential: saved.credential, transport: null };
+  if (!campaignId) return { session, transport: null };
   rememberCampaign(campaignId);
   return {
-    credential: saved.credential,
-    transport: auth.legacy_available
-      ? new LiveTransport(auth.principal_id, campaignId, saved.credential)
+    session,
+    transport: session.legacyAvailable
+      ? new LiveTransport(session.principal, campaignId, session.token)
       : new NetworkPlayTransport({
           origin: location.origin,
-          credential: saved.credential,
-          principalId: auth.principal_id,
+          credential: session.token,
+          principalId: session.principal,
           initialCampaignId: campaignId,
         }),
   };
 }
 
+/**
+ * Setup and play are separate shells. Opening a campaign unmounts the launcher
+ * and the setup panel, so the game shell starts at the top of every route; the
+ * authenticated setup session is kept here, and in this tab's session storage,
+ * so returning or reloading needs no second sign-in.
+ */
 export function ConnectedApp() {
-  const [session, setSession] = useState(0);
-  const [restored, setRestored] = useState<string>();
-  const clearSession = useCallback(() => {
-    forgetSession();
-    setRestored(undefined);
-    setSession((value) => value + 1);
-  }, []);
+  const [session, setSession] = useState<SetupSession>();
   const [transport, setTransport] = useState<PlayTransport>();
+  const [opened, setOpened] = useState<string>();
   const [mode, setMode] = useState<"new" | "continue" | "join">("new");
   const [restoring, setRestoring] = useState(() => readSession() !== null);
+  const remember = useCallback((value: SetupSession | undefined) => {
+    setSession(value);
+    if (value) rememberPrincipal(value.token, value.principal);
+    else forgetSession();
+  }, []);
+  const clearSession = useCallback(() => {
+    forgetSession();
+    setSession(undefined);
+  }, []);
+  const leave = useCallback((next: "new" | "continue") => {
+    // Leaving play drops the campaign from the URL and from what a reload opens.
+    if (location.pathname !== "/") history.replaceState(null, "", "/");
+    rememberCampaign(null);
+    if (next === "new") setOpened(undefined);
+    setMode(next);
+    setTransport(undefined);
+  }, []);
   useEffect(() => {
     if (!restoring) return;
     let active = true;
     void restore()
       .then((next) => {
         if (!active || !next) return;
-        setRestored(next.credential);
-        if (next.transport) setTransport(next.transport);
+        setSession(next.session);
+        if (next.transport) {
+          setOpened(next.transport.initialCampaignId);
+          setTransport(next.transport);
+        }
       })
       .catch(() => {
         // A revoked or expired credential simply falls back to signing in.
@@ -99,6 +127,16 @@ export function ConnectedApp() {
         </div>
       </section>
     );
+  if (transport)
+    return (
+      <App
+        key={`${transport.principalId}:${transport.initialCampaignId}`}
+        transport={transport}
+        onSessionEnded={clearSession}
+        onNewGame={() => leave("new")}
+        onSwitchCampaign={() => leave("continue")}
+      />
+    );
   return (
     <>
       <header className="scene-card connection-form">
@@ -108,11 +146,8 @@ export function ConnectedApp() {
           {(["new", "continue", "join"] as const).map((value) => (
             <Button
               key={value}
-              aria-pressed={!transport && mode === value}
-              onClick={() => {
-                setTransport(undefined);
-                setMode(value);
-              }}
+              aria-pressed={mode === value}
+              onClick={() => setMode(value)}
             >
               {value === "new"
                 ? "New game"
@@ -123,31 +158,25 @@ export function ConnectedApp() {
           ))}
         </nav>
       </header>
-      <div hidden={!!transport}>
-        <SetupLobby
-          key={session}
-          mode={mode}
-          restored={restored}
-          onOpen={(next) => {
-            const requested = takeRequestedPath();
-            const segment = requested
-              ? (parsePath(new URL(requested, location.origin).pathname)
-                  ?.segment ?? "")
-              : "";
-            const target = pagePath(next.initialCampaignId ?? null, segment);
-            if (location.pathname !== target)
-              history.replaceState(null, "", target);
-            setTransport(next);
-          }}
-        />
-      </div>
-      {transport && (
-        <App
-          key={`${transport.principalId}:${transport.initialCampaignId}`}
-          transport={transport}
-          onSessionEnded={clearSession}
-        />
-      )}
+      <SetupLobby
+        mode={mode}
+        initialSession={session}
+        initialCampaignId={opened}
+        onSession={remember}
+        onOpen={(next) => {
+          const requested = takeRequestedPath();
+          const segment = requested
+            ? (parsePath(new URL(requested, location.origin).pathname)
+                ?.segment ?? "")
+            : "";
+          const target = pagePath(next.initialCampaignId ?? null, segment);
+          if (location.pathname !== target)
+            history.replaceState(null, "", target);
+          if (next.initialCampaignId) rememberCampaign(next.initialCampaignId);
+          setOpened(next.initialCampaignId);
+          setTransport(next);
+        }}
+      />
     </>
   );
 }

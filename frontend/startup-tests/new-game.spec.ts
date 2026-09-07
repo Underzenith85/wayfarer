@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Locator, type Page } from "@playwright/test";
 async function login(page: Page, player = "alice") {
   await page.goto("/");
   await expect(
@@ -18,8 +18,13 @@ async function resumed(page: Page, player = "alice") {
   await expect(page.getByLabel("Access token", { exact: true })).toHaveCount(0);
   return page.getByRole("region", { name: "New game and lobby" });
 }
+/** Setup shows one step at a time; each step is reached from its own control. */
+async function step(lobby: Locator, name: string) {
+  await lobby.getByRole("button", { name, exact: true }).click();
+}
 async function draft(page: Page, players = 1) {
   const lobby = await login(page);
+  await step(lobby, "Adventure");
   await lobby
     .getByLabel("Adventure and starting party")
     .selectOption(`beacon-${players}`);
@@ -34,12 +39,15 @@ test("solo production entry, illegal party, stale edit, lost activation, refresh
   await expect(
     lobby.getByText(/AI generation and free-text actions are unavailable/),
   ).toBeVisible();
+  await step(lobby, "Concept");
   await expect(
     lobby.getByRole("button", { name: "Generate from saved brief" }),
   ).toHaveCount(0);
+  await step(lobby, "Party");
   await lobby.getByLabel("Strength", { exact: true }).fill("100");
   await lobby.getByRole("button", { name: "Save setup draft" }).click();
   await lobby.getByLabel("Assign character to alice").selectOption("mira");
+  await step(lobby, "Ready");
   await lobby.getByRole("button", { name: "Validate and mark ready" }).click();
   await expect(lobby.getByRole("alert")).toContainText(
     /legal|approved|Invalid/,
@@ -47,6 +55,7 @@ test("solo production entry, illegal party, stale edit, lost activation, refresh
   await expect(
     lobby.getByRole("button", { name: "Start game", exact: true }),
   ).toHaveCount(0);
+  await step(lobby, "Party");
   await lobby.getByLabel("Strength", { exact: true }).fill("10");
   // Make a genuine concurrent edit using the same authenticated service.
   let cid = "";
@@ -70,6 +79,7 @@ test("solo production entry, illegal party, stale edit, lost activation, refresh
   await page.unroute("**/setups/*");
   await lobby.getByRole("button", { name: "Reload games / reconcile" }).click();
   await lobby.getByLabel("Assign character to alice").selectOption("mira");
+  await step(lobby, "Ready");
   await lobby.getByRole("button", { name: "Validate and mark ready" }).click();
   await expect(
     lobby.getByRole("button", { name: "Start game", exact: true }),
@@ -179,6 +189,7 @@ test("separate invited identity joins, readies and starts without leaking a priv
     await expect(lobby.getByRole("status")).toContainText("revision 3");
     await lobby.getByLabel("Assign character to bob").selectOption("iven");
     await expect(lobby.getByRole("status")).toContainText("revision 4");
+    await step(lobby, "Ready");
     await lobby
       .getByRole("button", { name: "Validate and mark ready" })
       .click();

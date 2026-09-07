@@ -88,7 +88,9 @@ class RecoveryService:
             raise ConflictError("Character is already dead")
         # A pending defense cannot be erased by a setback. Resolved encounters may continue.
         if any(
-            e.status == "active" and e.pending_defense is not None and actor_id in e.turn_order
+            e.status == "active"
+            and (e.pending_defense is not None or e.pending_unarmed is not None)
+            and actor_id in e.turn_order
             for e in state.encounters
         ):
             raise ConflictError("Resolve pending combat decision before setback")
@@ -314,7 +316,7 @@ class RecoveryService:
             raise ConflictError("This downtime action requires leaving combat")
         if any(
             e.status == "active"
-            and e.pending_defense is not None
+            and (e.pending_defense is not None or e.pending_unarmed is not None)
             and {command.actor_id, command.target_actor_id} & set(e.turn_order)
             for e in state.encounters
         ):

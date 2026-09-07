@@ -45,11 +45,14 @@ async function login(page: Page, principal: string, id: string) {
     () => sessionStorage.getItem("wayfarer:session") !== null,
   );
   const lobby = page.getByRole("region", { name: "New game and lobby" });
-  if (remembered)
+  if (remembered) {
+    // The tab reopened its campaign in the play shell; setup is behind Session.
+    await page.getByRole("button", { name: "Session", exact: true }).click();
     await page
-      .getByRole("button", { name: "Continue game", exact: true })
+      .getByRole("dialog", { name: "Session" })
+      .getByRole("button", { name: "Switch campaign", exact: true })
       .click();
-  else {
+  } else {
     await lobby.getByLabel("Access token").fill(`${principal}-token`);
     await lobby.getByRole("button", { name: "Sign in" }).click();
   }
@@ -140,7 +143,12 @@ test("reference adventure: reviewed voice, negotiation, saved epilogue and succe
     });
     expect(await privateView.text()).not.toContain("secretly owes");
     const conclusion = await login(a, "alice", id);
-    await a.getByRole("button", { name: "Continue game", exact: true }).click();
+    // Setup is reached from the play header; it reopens the played campaign.
+    await a.getByRole("button", { name: "Session", exact: true }).click();
+    await a
+      .getByRole("dialog", { name: "Session" })
+      .getByRole("button", { name: "Switch campaign", exact: true })
+      .click();
     await conclusion
       .getByRole("button", { name: "End campaign", exact: true })
       .click();

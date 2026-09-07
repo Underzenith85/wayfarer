@@ -53,6 +53,23 @@ def validate_target(
     defender = next((p for p in encounter.participants if p.actor_id == defender_id), None)
     if attacker is None or defender is None:
         raise ValidationError("Attack requires encounter participants")
+    occupied_hands = {h for g in encounter.grips if g.holder_id == attacker_id for h in g.hands}
+    occupied_hands.update(
+        "left-hand" if g.location == "left-arm" else "right-hand"
+        for g in encounter.grips
+        if g.target_id == attacker_id and g.location in ("left-arm", "right-arm")
+    )
+    if any(h in occupied_hands for _, h in attacker.hand_bindings):
+        raise ValidationError("Selected weapon hand is controlled by a grapple")
+    if isinstance(selected, RangedMode):
+        if attacker.position == defender.position or any(
+            attacker_id in (g.holder_id, g.target_id) for g in encounter.grips
+        ):
+            raise ValidationError(
+                "Ranged attacks while in close combat require further integration"
+            )
+    elif attacker.position == defender.position and 0 not in selected.reach:
+        raise ValidationError("Weapon does not support close-combat reach")
     hp = next(p for p in state.resources.pools if p.id == f"hp:{defender_id}")
     if hp.injury is None:
         raise ValidationError("GURPS injury requires explicit migration")

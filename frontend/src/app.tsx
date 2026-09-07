@@ -1,6 +1,8 @@
 import { CharacterPage, InventoryPage } from "./character/pages";
 import { ConnectionStatus } from "./multiplayer/panel";
 import {
+  createContext,
+  useContext,
   useEffect,
   useRef,
   useState,
@@ -26,6 +28,7 @@ import {
   Flag,
   SunMoon,
   PanelRight,
+  Menu,
 } from "lucide-react";
 import { disconnectedTransport, type PlayTransport } from "./play/transport";
 import { PlayProvider } from "./play/context";
@@ -39,6 +42,11 @@ import {
 import { destinations, pagePath, parsePath, type Segment } from "./routes";
 import { Button } from "./components/ui/button";
 import { Sheet } from "./components/ui/sheet";
+/** Setup is a separate shell; the play header is the way back to it. */
+const CampaignMenu = createContext<{
+  onNewGame?: (() => void) | undefined;
+  onSwitchCampaign?: (() => void) | undefined;
+}>({});
 const icons: Record<Segment, ComponentType<{ size?: number }>> = {
   "": Compass,
   character: UserRound,
@@ -55,6 +63,7 @@ const pages: Record<Segment, () => ReactNode> = {
 };
 function Shell() {
   const { state, store } = usePlay();
+  const { onNewGame, onSwitchCampaign } = useContext(CampaignMenu);
   const navigate = useNavigate();
   const pathname = useLocation({ select: (location) => location.pathname });
   const route = parsePath(pathname);
@@ -167,16 +176,35 @@ function Shell() {
         >
           <SunMoon size={20} />
         </Button>
-        {!state.expired && (
-          <Button
-            variant="outline"
-            onClick={() => {
-              store.expire();
-              if (!store.transport.sample) location.assign("/");
-            }}
+        {(!state.expired || onSwitchCampaign || onNewGame) && (
+          <Sheet
+            title="Session"
+            description="Leave this table. Switching or starting a game keeps this campaign saved; ending the session clears this tab’s private state."
+            trigger={
+              <Button variant="outline">
+                <Menu size={18} aria-hidden="true" />
+                <span>Session</span>
+              </Button>
+            }
           >
-            End session
-          </Button>
+            <div className="context-actions">
+              {onSwitchCampaign && (
+                <Button onClick={onSwitchCampaign}>Switch campaign</Button>
+              )}
+              {onNewGame && <Button onClick={onNewGame}>New game</Button>}
+              {!state.expired && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    store.expire();
+                    if (!store.transport.sample) location.assign("/");
+                  }}
+                >
+                  End session
+                </Button>
+              )}
+            </div>
+          </Sheet>
         )}
       </header>
       {!online && (
@@ -274,12 +302,18 @@ function makeRouter() {
 export function App({
   transport = disconnectedTransport,
   onSessionEnded,
+  onNewGame,
+  onSwitchCampaign,
 }: {
   transport?: PlayTransport;
-  onSessionEnded?: () => void;
+  onSessionEnded?: (() => void) | undefined;
+  onNewGame?: (() => void) | undefined;
+  onSwitchCampaign?: (() => void) | undefined;
 }) {
   const [client] = useState(() => new QueryClient());
   const [router] = useState(() => makeRouter());
+  // Held stable so route components never re-render on a new callback identity.
+  const [menu] = useState(() => ({ onNewGame, onSwitchCampaign }));
   return (
     <QueryClientProvider client={client}>
       <PlayProvider
@@ -287,7 +321,9 @@ export function App({
         transport={transport}
         onSessionEnded={onSessionEnded}
       >
-        <RouterProvider router={router} />
+        <CampaignMenu.Provider value={menu}>
+          <RouterProvider router={router} />
+        </CampaignMenu.Provider>
       </PlayProvider>
     </QueryClientProvider>
   );
