@@ -14,11 +14,24 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "conditional-or-skill-defaults"
+      "runtime-procedure"
     ],
     "issues": [
       112
+    ],
+    "skill_defaults": [
+      {
+        "target": "finance",
+        "modifier": -4
+      },
+      {
+        "target": "mathematics-statistics",
+        "modifier": -5
+      },
+      {
+        "target": "merchant",
+        "modifier": -5
+      }
     ]
   },
   {
@@ -57,11 +70,20 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "conditional-or-skill-defaults"
+      "runtime-procedure"
     ],
     "issues": [
       112
+    ],
+    "skill_defaults": [
+      {
+        "target": "performance",
+        "modifier": -2
+      },
+      {
+        "target": "public-speaking",
+        "modifier": -5
+      }
     ]
   },
   {
@@ -79,11 +101,16 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "conditional-or-skill-defaults"
+      "runtime-procedure"
     ],
     "issues": [
       112
+    ],
+    "skill_defaults": [
+      {
+        "target": "merchant",
+        "modifier": -3
+      }
     ]
   },
   {
@@ -327,11 +354,13 @@
     "tl_required": true,
     "blockers": [
       "runtime-procedure",
-      "technology-level-context",
-      "prerequisite-procedure"
+      "technology-level-context"
     ],
     "issues": [
       112
+    ],
+    "prerequisites": [
+      "mathematics-applied"
     ]
   },
   {
@@ -547,11 +576,20 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "conditional-or-skill-defaults"
+      "runtime-procedure"
     ],
     "issues": [
       112
+    ],
+    "skill_defaults": [
+      {
+        "target": "detect-lies",
+        "modifier": -4
+      },
+      {
+        "target": "psychology",
+        "modifier": -4
+      }
     ]
   },
   {
@@ -641,11 +679,13 @@
     "blockers": [
       "runtime-procedure",
       "technology-level-context",
-      "conditional-or-skill-defaults",
-      "prerequisite-procedure"
+      "conditional-or-skill-defaults"
     ],
     "issues": [
       112
+    ],
+    "prerequisites": [
+      "psychology"
     ]
   },
   {
@@ -949,11 +989,16 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "conditional-or-skill-defaults"
+      "runtime-procedure"
     ],
     "issues": [
       112
+    ],
+    "skill_defaults": [
+      {
+        "target": "housekeeping",
+        "modifier": -5
+      }
     ]
   },
   {
@@ -1146,12 +1191,25 @@
     "tl_required": true,
     "blockers": [
       "runtime-procedure",
-      "technology-level-context",
-      "conditional-or-skill-defaults"
+      "technology-level-context"
     ],
     "issues": [
       109,
       112
+    ],
+    "skill_defaults": [
+      {
+        "target": "first-aid",
+        "modifier": -8
+      },
+      {
+        "target": "physician",
+        "modifier": -4
+      },
+      {
+        "target": "veterinary",
+        "modifier": -5
+      }
     ]
   },
   {
@@ -1169,12 +1227,17 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "conditional-or-skill-defaults"
+      "runtime-procedure"
     ],
     "issues": [
       111,
       112
+    ],
+    "skill_defaults": [
+      {
+        "target": "politics",
+        "modifier": -6
+      }
     ]
   },
   {
@@ -1702,12 +1765,25 @@
     "tl_required": true,
     "blockers": [
       "runtime-procedure",
-      "technology-level-context",
-      "conditional-or-skill-defaults"
+      "technology-level-context"
     ],
     "issues": [
       109,
       112
+    ],
+    "skill_defaults": [
+      {
+        "target": "esoteric-medicine",
+        "modifier": 0
+      },
+      {
+        "target": "physician",
+        "modifier": 0
+      },
+      {
+        "target": "veterinary",
+        "modifier": -4
+      }
     ]
   },
   {
@@ -2933,6 +3009,312 @@
     ]
   },
   {
+    "id": "mathematics-applied",
+    "name": "Mathematics (Applied)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "skill_defaults": [
+      {
+        "target": "mathematics-computer-science",
+        "modifier": -5
+      },
+      {
+        "target": "mathematics-cryptology",
+        "modifier": -5
+      },
+      {
+        "target": "mathematics-pure",
+        "modifier": -5
+      },
+      {
+        "target": "mathematics-statistics",
+        "modifier": -5
+      },
+      {
+        "target": "mathematics-surveying",
+        "modifier": -5
+      },
+      {
+        "target": "physics",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mathematics",
+      "name": "applied"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "mathematics-computer-science",
+    "name": "Mathematics (Computer Science)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "skill_defaults": [
+      {
+        "target": "mathematics-applied",
+        "modifier": -5
+      },
+      {
+        "target": "mathematics-cryptology",
+        "modifier": -5
+      },
+      {
+        "target": "mathematics-pure",
+        "modifier": -5
+      },
+      {
+        "target": "mathematics-statistics",
+        "modifier": -5
+      },
+      {
+        "target": "mathematics-surveying",
+        "modifier": -5
+      },
+      {
+        "target": "computer-programming",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mathematics",
+      "name": "computer-science"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "mathematics-cryptology",
+    "name": "Mathematics (Cryptology)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "skill_defaults": [
+      {
+        "target": "mathematics-applied",
+        "modifier": -5
+      },
+      {
+        "target": "mathematics-computer-science",
+        "modifier": -5
+      },
+      {
+        "target": "mathematics-pure",
+        "modifier": -5
+      },
+      {
+        "target": "mathematics-statistics",
+        "modifier": -5
+      },
+      {
+        "target": "mathematics-surveying",
+        "modifier": -5
+      },
+      {
+        "target": "cryptography",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mathematics",
+      "name": "cryptology"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "mathematics-pure",
+    "name": "Mathematics (Pure)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "skill_defaults": [
+      {
+        "target": "mathematics-applied",
+        "modifier": -5
+      },
+      {
+        "target": "mathematics-computer-science",
+        "modifier": -5
+      },
+      {
+        "target": "mathematics-cryptology",
+        "modifier": -5
+      },
+      {
+        "target": "mathematics-statistics",
+        "modifier": -5
+      },
+      {
+        "target": "mathematics-surveying",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mathematics",
+      "name": "pure"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "mathematics-statistics",
+    "name": "Mathematics (Statistics)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "skill_defaults": [
+      {
+        "target": "mathematics-applied",
+        "modifier": -5
+      },
+      {
+        "target": "mathematics-computer-science",
+        "modifier": -5
+      },
+      {
+        "target": "mathematics-cryptology",
+        "modifier": -5
+      },
+      {
+        "target": "mathematics-pure",
+        "modifier": -5
+      },
+      {
+        "target": "mathematics-surveying",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mathematics",
+      "name": "statistics"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "mathematics-surveying",
+    "name": "Mathematics (Surveying)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "skill_defaults": [
+      {
+        "target": "mathematics-applied",
+        "modifier": -5
+      },
+      {
+        "target": "mathematics-computer-science",
+        "modifier": -5
+      },
+      {
+        "target": "mathematics-cryptology",
+        "modifier": -5
+      },
+      {
+        "target": "mathematics-pure",
+        "modifier": -5
+      },
+      {
+        "target": "mathematics-statistics",
+        "modifier": -5
+      },
+      {
+        "target": "cartography",
+        "modifier": -3
+      }
+    ],
+    "specialty": {
+      "family": "mathematics",
+      "name": "surveying"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
     "id": "mechanic",
     "name": "Mechanic",
     "page": 207,
@@ -3480,12 +3862,21 @@
     "tl_required": true,
     "blockers": [
       "runtime-procedure",
-      "technology-level-context",
-      "conditional-or-skill-defaults"
+      "technology-level-context"
     ],
     "issues": [
       109,
       112
+    ],
+    "skill_defaults": [
+      {
+        "target": "first-aid",
+        "modifier": -11
+      },
+      {
+        "target": "veterinary",
+        "modifier": -5
+      }
     ]
   },
   {
@@ -3606,11 +3997,16 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "conditional-or-skill-defaults"
+      "runtime-procedure"
     ],
     "issues": [
       112
+    ],
+    "skill_defaults": [
+      {
+        "target": "writing",
+        "modifier": -5
+      }
     ]
   },
   {
@@ -3768,11 +4164,24 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "conditional-or-skill-defaults"
+      "runtime-procedure"
     ],
     "issues": [
       112
+    ],
+    "skill_defaults": [
+      {
+        "target": "acting",
+        "modifier": -5
+      },
+      {
+        "target": "performance",
+        "modifier": -2
+      },
+      {
+        "target": "politics",
+        "modifier": -5
+      }
     ]
   },
   {
@@ -3956,11 +4365,13 @@
     "blockers": [
       "runtime-procedure",
       "technology-level-context",
-      "conditional-or-skill-defaults",
-      "prerequisite-procedure"
+      "conditional-or-skill-defaults"
     ],
     "issues": [
       112
+    ],
+    "prerequisites": [
+      "swimming"
     ]
   },
   {
@@ -4584,11 +4995,28 @@
     "blockers": [
       "runtime-procedure",
       "technology-level-context",
-      "conditional-or-skill-defaults",
       "prerequisite-procedure"
     ],
     "issues": [
       112
+    ],
+    "skill_defaults": [
+      {
+        "target": "first-aid",
+        "modifier": -12
+      },
+      {
+        "target": "physician",
+        "modifier": -5
+      },
+      {
+        "target": "physiology",
+        "modifier": -8
+      },
+      {
+        "target": "veterinary",
+        "modifier": -5
+      }
     ]
   },
   {
