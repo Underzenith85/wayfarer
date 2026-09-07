@@ -222,6 +222,10 @@ def preview(
         attack_option=command.attack_option,
         defense_option=command.defense_option,
         wait_trigger=command.wait_trigger,
+        step_timing=command.step_timing,
+        second_item_id=command.second_item_id,
+        second_target_id=command.second_target_id,
+        second_mode_id=command.second_mode_id,
         hex_path=command.hex_path,
         hex_facing=command.hex_facing,
     )
@@ -456,6 +460,55 @@ def choices(
                             },
                         )
                     )
+                    if mode.damage.basis == "thrust":
+                        candidates.append(
+                            (
+                                f"Stop thrust against {target_name} — {mode.id}",
+                                {
+                                    "kind": "take_combat_turn",
+                                    "maneuver": "wait",
+                                    "wait_trigger": {
+                                        "actor_id": target_id,
+                                        "action": "attack",
+                                        "reaction": "attack",
+                                        "reaction_target_id": target_id,
+                                        "item_id": item.id,
+                                        "mode_id": mode.id,
+                                        "stop_thrust": True,
+                                    },
+                                },
+                            )
+                        )
+                    for _direction, point in adjacent(pose(actor).position):
+                        candidates.append(
+                            (
+                                f"Attack then step to ({point.q}, {point.r}) — {mode.id}",
+                                {
+                                    **attack_fields,
+                                    "maneuver": "attack",
+                                    "step_timing": "after",
+                                    "hex_path": [point.model_dump()],
+                                },
+                            )
+                        )
+                        candidates.append(
+                            (
+                                f"Wait for {target_name} to enter ({point.q}, {point.r})",
+                                {
+                                    "kind": "take_combat_turn",
+                                    "maneuver": "wait",
+                                    "wait_trigger": {
+                                        "actor_id": target_id,
+                                        "action": "move",
+                                        "zone": ((point.q, point.r),),
+                                        "reaction": "attack",
+                                        "reaction_target_id": target_id,
+                                        "item_id": item.id,
+                                        "mode_id": mode.id,
+                                    },
+                                },
+                            )
+                        )
                 maneuvers: tuple[Maneuver, ...] = (
                     ("attack", "aim") if isinstance(mode, RangedMode) else ("attack", "feint")
                 )
@@ -472,6 +525,45 @@ def choices(
                             },
                         )
                     )
+                    if maneuver == "aim" and isinstance(mode, RangedMode) and mode.brace_kind:
+                        candidates.append(
+                            (
+                                f"Aim braced at {target_name} — {mode.id}",
+                                {
+                                    **attack_fields,
+                                    "maneuver": "aim",
+                                    "braced": True,
+                                },
+                            )
+                        )
+            melee_weapons = [
+                (item, mode)
+                for item, mode in weapons
+                if isinstance(mode, MeleeMode)
+                and mode.hands == 1
+                and item.id in actor.ready_item_ids
+            ]
+            for (first_item, first_mode), (second_item, second_mode) in product(
+                melee_weapons, melee_weapons
+            ):
+                if first_item.id >= second_item.id:
+                    continue
+                candidates.append(
+                    (
+                        f"All-Out Attack (Double) {target_name} — two weapons",
+                        {
+                            "kind": "take_combat_turn",
+                            "maneuver": "all_out_attack",
+                            "attack_option": "double",
+                            "target_id": target_id,
+                            "item_id": first_item.id,
+                            "mode_id": first_mode.id,
+                            "second_target_id": target_id,
+                            "second_item_id": second_item.id,
+                            "second_mode_id": second_mode.id,
+                        },
+                    )
+                )
             for action, hands in product(
                 ("punch", "kick", "grapple"),
                 (("left-hand",), ("right-hand",), ("left-hand", "right-hand")),

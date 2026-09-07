@@ -101,6 +101,11 @@ class RangedMode(Record):
     ammunition_id: Id | None = None
     thrown: bool = False
     blockable: bool = False
+    brace_kind: Literal["one-handed", "bipod"] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+    scope_bonus: Nonnegative = Field(default=0, exclude_if=lambda value: value == 0)
+    fixed_power_scope: bool = Field(default=False, exclude_if=lambda value: not value)
 
     @model_validator(mode="after")
     def valid_range(self) -> Self:
@@ -113,6 +118,12 @@ class RangedMode(Record):
                 raise ValueError("Thrown mode uses the item itself, once")
         elif self.ammunition_id is None:
             raise ValueError("Projectile weapons require an ammunition reference")
+        if self.brace_kind == "one-handed" and self.hands != 1:
+            raise ValueError("One-handed bracing requires a one-handed weapon")
+        if self.brace_kind == "bipod" and self.hands != 2:
+            raise ValueError("Bipod bracing requires a two-handed weapon")
+        if self.fixed_power_scope and not self.scope_bonus:
+            raise ValueError("A fixed-power scope requires a scope bonus")
         return self
 
 

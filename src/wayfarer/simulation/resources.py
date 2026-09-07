@@ -342,7 +342,7 @@ class ResourceEngine:
             reserved[ammo.id] = reserved.get(ammo.id, 0) + load.rounds
         if any(items[key].quantity < amount for key, amount in reserved.items()):
             raise ValidationError("Cannot consume or transfer reserved ammunition")
-        occupied: set[tuple[str, str]] = set()
+        occupied: dict[tuple[str, str], int] = {}
         for item in state.items:
             spec = self.specs.get(item.definition_id)
             if spec is None or item.owner_id not in owners:
@@ -391,9 +391,10 @@ class ResourceEngine:
                 if not set(spec.required_definitions) <= set(owners[item.owner_id].definitions):
                     raise ValidationError("Equipment prerequisites are not satisfied")
                 slot = (item.owner_id, spec.slot)
-                if slot in occupied:
+                count = occupied.get(slot, 0) + 1
+                if count > (2 if spec.slot == "hand" else 1):
                     raise ValidationError("Equipment slot is occupied")
-                occupied.add(slot)
+                occupied[slot] = count
 
         contents = dict.fromkeys(items, 0)
         for item in state.items:

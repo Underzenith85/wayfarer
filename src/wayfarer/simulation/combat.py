@@ -7,6 +7,7 @@ profiles resolve checks, protection and injury atomically when that choice resum
 from __future__ import annotations
 
 import hashlib
+import json
 from typing import Literal
 
 from pydantic import Field, model_validator
@@ -198,6 +199,11 @@ class PendingDefense(Record):
     mode_id: str | None = None
     hit_location: HitLocation | None = None
     spell_cast_id: str | None = Field(default=None, exclude_if=lambda value: value is None)
+    post_attack_destination: GridPoint | None = None
+    post_attack_square_facing: Facing | None = None
+    post_attack_hex_path: tuple[Hex, ...] = ()
+    post_attack_facing: Literal[0, 1, 2, 3, 4, 5] | None = None
+    post_attack_posture: Posture | None = None
 
 
 class DefenseChoice(Record):
@@ -597,6 +603,10 @@ class CombatEngine:
         attack_option: AttackOption | None = None,
         defense_option: DefenseOption | None = None,
         wait_trigger: WaitTrigger | None = None,
+        step_timing: Literal["before", "after"] = "before",
+        second_item_id: str | None = None,
+        second_target_id: str | None = None,
+        second_mode_id: str | None = None,
         command_json: str = "",
         hex_path: tuple[Hex, ...] = (),
         hex_facing: Literal[0, 1, 2, 3, 4, 5] | None = None,
@@ -619,6 +629,11 @@ class CombatEngine:
                 declaration.attack_option,
             ):
                 raise ValidationError("Wait reaction must match its recorded declaration")
+            if maneuver != "do_nothing" and (
+                step_timing != "before"
+                or any(v is not None for v in (second_item_id, second_target_id, second_mode_id))
+            ):
+                raise ValidationError("Wait reaction includes undeclared maneuver options")
             encounter = encounter.model_copy(
                 update={
                     "turn_index": encounter.turn_order.index(actor_id),
@@ -639,6 +654,10 @@ class CombatEngine:
             attack_option=attack_option,
             defense_option=defense_option,
             wait_trigger=wait_trigger,
+            step_timing=step_timing,
+            second_item_id=second_item_id,
+            second_target_id=second_target_id,
+            second_mode_id=second_mode_id,
             hex_path=hex_path,
             hex_facing=hex_facing,
         )
@@ -648,31 +667,103 @@ class CombatEngine:
             for waiter_id in original.turn_order:
                 waiter = waiters.get(waiter_id)
                 trigger = waiter.maneuver_state.wait if waiter else None
-                if (
-                    trigger
-                    and trigger.actor_id == actor_id
-                    and trigger.action == action
-                    and (trigger.target_id is None or trigger.target_id == target_id)
-                ):
+                if trigger:
                     assert waiter is not None
+                    before_actor = next(p for p in original.participants if p.actor_id == actor_id)
+                    after_actor = next(p for p in result[0].participants if p.actor_id == actor_id)
+                    zone_hit = not trigger.zone or any(
+                        (point.q, point.r) in trigger.zone
+                        for point in (
+                            hex_path
+                            or (
+                                (after_actor.position,)
+                                if isinstance(after_actor.position, Hex)
+                                else ()
+                            )
+                        )
+                    )
+                    stop_candidate = trigger.stop_thrust and (
+                        action == "attack"
+                        and target_id == waiter_id
+                        and self.distance(before_actor.position, after_actor.position) >= 1
+                        and self.distance(after_actor.position, waiter.position)
+                        < self.distance(before_actor.position, waiter.position)
+                    )
+                    if stop_candidate and waiter.reach <= before_actor.reach:
+                        raise ValidationError(
+                            "Equal or shorter-reach stop-thrust ordering is unsupported"
+                        )
+                    stop_thrust = stop_candidate and waiter.reach > before_actor.reach
+                    observable = True
+                    if original.hex_battlefield is not None:
+                        from wayfarer.simulation.tactical import sight
+
+                        observable = sight(result[0], waiter, after_actor)
+                    matches = (
+                        (trigger.actor_id is None or trigger.actor_id == actor_id)
+                        and trigger.action == action
+                        and (trigger.target_id is None or trigger.target_id == target_id)
+                        and zone_hit
+                        and observable
+                        and (not trigger.stop_thrust or stop_thrust)
+                    )
+                else:
+                    matches = False
+                if matches:
+                    assert waiter is not None and trigger is not None
+                    declaration = trigger
+                    bonus = (
+                        self.distance(before_actor.position, after_actor.position) // 2
+                        if declaration.stop_thrust
+                        else 0
+                    )
+                    moved = self.distance(before_actor.position, after_actor.position) >= 1
                     paused = self._replace(
                         original,
                         waiter.model_copy(
                             update={
                                 "maneuver_state": waiter.maneuver_state.model_copy(
-                                    update={"wait": None}
+                                    update={
+                                        "wait": None,
+                                        "stop_thrust_damage_bonus": bonus,
+                                    }
                                 )
                             }
                         ),
                     )
+                    resume_json = command_json
+                    if moved:
+                        paused_actor = before_actor.model_copy(
+                            update={
+                                "position": after_actor.position,
+                                "facing": after_actor.facing,
+                                "hex_facing": after_actor.hex_facing,
+                                "posture": after_actor.posture,
+                            }
+                        )
+                        paused = self._replace(paused, paused_actor)
+                        saved = json.loads(command_json)
+                        saved.update(
+                            {
+                                "destination": None,
+                                "facing": None,
+                                "posture": None,
+                                "hex_path": [],
+                                "hex_facing": None,
+                                "step_timing": "before",
+                            }
+                        )
+                        if maneuver == "move":
+                            saved["maneuver"] = "do_nothing"
+                        resume_json = json.dumps(saved, sort_keys=True, separators=(",", ":"))
                     paused = paused.model_copy(
                         update={
                             "wait_interrupt": WaitInterrupt(
                                 waiter_id=waiter_id,
                                 actor_id=actor_id,
                                 turn_index=original.turn_index,
-                                command_json=command_json,
-                                declaration=trigger,
+                                command_json=resume_json,
+                                declaration=declaration,
                             )
                         }
                     )
@@ -705,6 +796,10 @@ class CombatEngine:
         attack_option: AttackOption | None = None,
         defense_option: DefenseOption | None = None,
         wait_trigger: WaitTrigger | None = None,
+        step_timing: Literal["before", "after"] = "before",
+        second_item_id: str | None = None,
+        second_target_id: str | None = None,
+        second_mode_id: str | None = None,
         hex_path: tuple[Hex, ...] = (),
         hex_facing: Literal[0, 1, 2, 3, 4, 5] | None = None,
     ) -> tuple[Encounter, ResourceState, CombatResult]:
@@ -722,7 +817,49 @@ class CombatEngine:
             raise ValidationError("Concentration requires a bound ability command")
         participant = next(p for p in encounter.participants if p.actor_id == actor_id)
         battlefield = self.battlefields[encounter.battlefield_id]
-        if encounter.hex_battlefield is not None:
+        deferred_step = step_timing == "after"
+        if deferred_step and maneuver != "attack":
+            raise ValidationError("Only Attack permits a step after the attack")
+        if deferred_step and not (
+            destination is not None or hex_path or hex_facing is not None or posture is not None
+        ):
+            raise ValidationError("A post-attack step requires movement, facing, or posture")
+        if deferred_step and encounter.hex_battlefield is not None:
+            from wayfarer.simulation.tactical import move_hex
+
+            if destination is not None or facing is not None:
+                raise ValidationError("Hex encounters require explicit hex paths and facings")
+            if posture is not None and (hex_path or hex_facing is not None):
+                raise ValidationError("A posture step cannot also move or turn")
+            if posture is not None and {posture, participant.posture} != {
+                "standing",
+                "kneeling",
+            }:
+                raise ValidationError("A posture step only switches standing and kneeling")
+            if posture is None:
+                move_hex(encounter, participant, "attack", hex_path, hex_facing, None)
+        elif deferred_step and destination is not None:
+            if not isinstance(participant.position, GridPoint):
+                raise ValidationError("Square step requires square coordinates")
+            occupied = {
+                p.position
+                for p in encounter.participants
+                if p.actor_id != actor_id and isinstance(p.position, GridPoint)
+            }
+            limit = max(1, (participant.movement_allowance + 9) // 10)
+            if not self._reachable(battlefield, participant.position, destination, limit, occupied):
+                raise ValidationError("Post-attack step exceeds allowance or terrain constraints")
+        elif (
+            deferred_step
+            and posture is not None
+            and {
+                posture,
+                participant.posture,
+            }
+            != {"standing", "kneeling"}
+        ):
+            raise ValidationError("A posture step only switches standing and kneeling")
+        if encounter.hex_battlefield is not None and not deferred_step:
             from wayfarer.simulation.tactical import move_hex
 
             if destination is not None or facing is not None:
@@ -733,7 +870,7 @@ class CombatEngine:
                 encounter, participant, maneuver, hex_path, hex_facing, defense_option
             )
             encounter = self._replace(encounter, participant)
-        elif hex_path or hex_facing is not None:
+        elif (hex_path or hex_facing is not None) and not deferred_step:
             raise ValidationError("Hex movement requires explicit battlefield migration")
         if self.rules.gurps_equipment is None and (
             maneuver not in ("do_nothing", "move", "ready", "change_posture", "attack", "wait")
@@ -748,6 +885,8 @@ class CombatEngine:
             or (wait_trigger is not None and maneuver != "wait")
         ):
             raise ValidationError("Maneuver options do not match the maneuver")
+        if step_timing == "after" and maneuver != "attack":
+            raise ValidationError("Post-attack movement requires Attack")
         if self.rules.gurps_equipment is not None:
             old = participant.maneuver_state
             if participant.last_maneuver != "evaluate":
@@ -763,10 +902,13 @@ class CombatEngine:
                         "aim_mode_id": old.aim_mode_id,
                         "aim_seconds": old.aim_seconds if participant.last_maneuver == "aim" else 0,
                         "aim_accuracy": old.aim_accuracy,
+                        "aim_braced": old.aim_braced,
+                        "aim_sight_bonus": old.aim_sight_bonus,
                         "evaluate_target_id": old.evaluate_target_id,
                         "evaluate_bonus": old.evaluate_bonus,
                         "feint_target_id": old.feint_target_id,
                         "feint_penalty": old.feint_penalty,
+                        "stop_thrust_damage_bonus": old.stop_thrust_damage_bonus,
                     }
                 )
             if maneuver == "all_out_attack":
@@ -778,8 +920,37 @@ class CombatEngine:
                         "attack_bonus": 4 if attack_option == "determined" else 0,
                         "strong": attack_option == "strong",
                         "attacks_remaining": int(attack_option == "double"),
+                        "second_attack_item_id": second_item_id,
+                        "second_attack_target_id": second_target_id,
+                        "second_attack_mode_id": second_mode_id,
                     }
                 )
+                if attack_option == "double":
+                    if second_target_id not in (None, target_id):
+                        raise ValidationError("All-Out Attack (Double) attacks the same foe")
+                    if second_item_id is not None:
+                        hands = {item: hand for item, hand in participant.hand_bindings}
+                        if (
+                            second_item_id == item_id
+                            or second_item_id not in participant.ready_item_ids
+                            or item_id not in hands
+                            or second_item_id not in hands
+                            or hands[item_id] == hands[second_item_id]
+                        ):
+                            raise ValidationError(
+                                "Double requires two distinct ready one-hand weapons"
+                            )
+                        commitment = commitment.model_copy(
+                            update={
+                                "second_attack_target_id": target_id,
+                                "attack_bonus": -4 if hands[item_id] == "left-hand" else 0,
+                                "second_attack_penalty": -4
+                                if hands[second_item_id] == "left-hand"
+                                else 0,
+                            }
+                        )
+                elif any(v is not None for v in (second_item_id, second_target_id, second_mode_id)):
+                    raise ValidationError("Second attack choices require All-Out Attack (Double)")
             if maneuver == "move_and_attack":
                 commitment = commitment.model_copy(
                     update={"attack_bonus": -4, "attack_cap": 9, "parry_forbidden": True}
@@ -792,10 +963,13 @@ class CombatEngine:
                         "aim_mode_id": old.aim_mode_id,
                         "aim_seconds": old.aim_seconds if participant.last_maneuver == "aim" else 0,
                         "aim_accuracy": old.aim_accuracy,
+                        "aim_braced": old.aim_braced,
+                        "aim_sight_bonus": old.aim_sight_bonus,
                         "evaluate_target_id": old.evaluate_target_id,
                         "evaluate_bonus": old.evaluate_bonus,
                         "feint_target_id": old.feint_target_id,
                         "feint_penalty": old.feint_penalty,
+                        "stop_thrust_damage_bonus": old.stop_thrust_damage_bonus,
                     }
                 )
             if maneuver == "concentrate":
@@ -814,8 +988,11 @@ class CombatEngine:
             if maneuver == "wait":
                 if (
                     wait_trigger is None
-                    or wait_trigger.actor_id not in encounter.turn_order
                     or wait_trigger.actor_id == actor_id
+                    or (
+                        wait_trigger.actor_id is not None
+                        and wait_trigger.actor_id not in encounter.turn_order
+                    )
                 ):
                     raise ValidationError("Wait requires an observable other combatant trigger")
                 from wayfarer.simulation.spells import active_spells
@@ -847,6 +1024,21 @@ class CombatEngine:
                     wait_trigger.attack_option is not None
                 ):
                     raise ValidationError("Wait All-Out Attack requires its option in advance")
+                if wait_trigger.zone:
+                    if encounter.hex_battlefield is None:
+                        raise ValidationError("Wait zones require an explicit hex battlefield")
+                    cells = {
+                        (cell.position.q, cell.position.r)
+                        for cell in encounter.hex_battlefield.cells
+                    }
+                    if not set(wait_trigger.zone) <= cells:
+                        raise ValidationError("Wait zone is outside the battlefield")
+                if wait_trigger.stop_thrust:
+                    if (
+                        wait_trigger.actor_id is None
+                        or wait_trigger.reaction_target_id != wait_trigger.actor_id
+                    ):
+                        raise ValidationError("Stop thrust requires one declared charging foe")
                 commitment = commitment.model_copy(update={"wait": wait_trigger})
             if maneuver in ("evaluate", "aim", "feint"):
                 target = next((p for p in encounter.participants if p.actor_id == target_id), None)
@@ -905,7 +1097,7 @@ class CombatEngine:
                 participant = participant.model_copy(update={"posture": posture})
                 posture = None
             # A single destination is one movement allowance, never a second action.
-            if destination is not None and maneuver != "move":
+            if destination is not None and maneuver != "move" and not deferred_step:
                 limit = max(1, (participant.movement_allowance + 9) // 10)
                 if maneuver == "move_and_attack":
                     limit = participant.movement_allowance
@@ -1035,7 +1227,10 @@ class CombatEngine:
             if (
                 target_id is None
                 or item_id is None
-                or any(value is not None for value in (destination, facing, posture))
+                or (
+                    not deferred_step
+                    and any(value is not None for value in (destination, facing, posture))
+                )
             ):
                 raise ValidationError("Attack intent requires a target and ready weapon")
             target = next((p for p in encounter.participants if p.actor_id == target_id), None)
@@ -1066,6 +1261,11 @@ class CombatEngine:
                 allowed=("dodge", "parry", "none") if target.ready_item_ids else ("dodge", "none"),
                 opened_round=encounter.round,
                 opened_turn=encounter.turn_index,
+                post_attack_destination=destination if deferred_step else None,
+                post_attack_square_facing=facing if deferred_step else None,
+                post_attack_hex_path=hex_path if deferred_step else (),
+                post_attack_facing=hex_facing if deferred_step else None,
+                post_attack_posture=posture if deferred_step else None,
             )
             encounter = encounter.model_copy(update={"pending_defense": pending})
             return (
@@ -1143,21 +1343,85 @@ class CombatEngine:
             and attacker.maneuver_state.attacks_remaining
             and not encounter.blocked_reason
         ):
+            commitment = attacker.maneuver_state
+            second_item = commitment.second_attack_item_id or pending.weapon_id
+            second_target = commitment.second_attack_target_id or pending.defender_id
+            if second_item not in attacker.ready_item_ids:
+                commitment = commitment.model_copy(update={"attacks_remaining": 0})
+                attacker = attacker.model_copy(update={"maneuver_state": commitment})
+                encounter = self._replace(encounter, attacker)
+                encounter = self._advance(encounter)
+                return (
+                    encounter,
+                    CombatResult(
+                        encounter_id=encounter.id,
+                        code="combat.defense_recorded",
+                        round=encounter.round,
+                        current_actor_id=encounter.current_actor_id,
+                        available=self.available(encounter, encounter.current_actor_id),
+                    ),
+                )
             attacker = attacker.model_copy(
                 update={
-                    "maneuver_state": attacker.maneuver_state.model_copy(
-                        update={"attacks_remaining": 0}
+                    "maneuver_state": commitment.model_copy(
+                        update={
+                            "attacks_remaining": 0,
+                            "attack_bonus": commitment.second_attack_penalty,
+                        }
                     )
                 }
             )
             encounter = self._replace(encounter, attacker).model_copy(
                 update={
                     "pending_defense": pending.model_copy(
-                        update={"id": "second:" + hashlib.sha256(pending.id.encode()).hexdigest()}
+                        update={
+                            "id": "second:" + hashlib.sha256(pending.id.encode()).hexdigest(),
+                            "weapon_id": second_item,
+                            "defender_id": second_target,
+                            "mode_id": commitment.second_attack_mode_id or pending.mode_id,
+                            "post_attack_destination": None,
+                            "post_attack_square_facing": None,
+                            "post_attack_hex_path": (),
+                            "post_attack_facing": None,
+                            "post_attack_posture": None,
+                        }
                     )
                 }
             )
         else:
+            if (
+                pending.post_attack_destination is not None
+                or pending.post_attack_square_facing is not None
+            ):
+                if not isinstance(attacker.position, GridPoint):
+                    raise ValidationError("Square step requires square coordinates")
+                occupied = {
+                    p.position
+                    for p in encounter.participants
+                    if p.actor_id != attacker.actor_id and isinstance(p.position, GridPoint)
+                }
+                limit = max(1, (attacker.movement_allowance + 9) // 10)
+                destination = pending.post_attack_destination or attacker.position
+                if not self._reachable(
+                    self.battlefields[encounter.battlefield_id],
+                    attacker.position,
+                    destination,
+                    limit,
+                    occupied,
+                ):
+                    raise ValidationError("Post-attack step is no longer available")
+                attacker = attacker.model_copy(
+                    update={
+                        "position": destination,
+                        "facing": pending.post_attack_square_facing or attacker.facing,
+                    }
+                )
+                encounter = self._replace(encounter, attacker)
+            if pending.post_attack_posture is not None:
+                if {attacker.posture, pending.post_attack_posture} != {"standing", "kneeling"}:
+                    raise ValidationError("Post-attack posture step is invalid")
+                attacker = attacker.model_copy(update={"posture": pending.post_attack_posture})
+                encounter = self._replace(encounter, attacker)
             encounter = self._advance(encounter)
         return (
             encounter,
