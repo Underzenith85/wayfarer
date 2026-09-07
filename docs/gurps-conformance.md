@@ -729,3 +729,15 @@ CI now checks this document's full capability table against the registry. Aim
 and environmental hazards are reconciled to partial; Size Modifier cost ownership
 is #192. Existing verified runtime entries are not promoted into source or whole
 profile certification by this audit.
+## Complete supernatural inventory accounting (#119)
+
+[The supernatural catalog audit](gurps-supernatural-catalog.md) is the current
+acceptance and item-coverage matrix for #117/#118/#119. Both representative
+implementation prerequisites are closed. The inventory accounts for 100 spells,
+150 advantages, 42 disadvantages, six psi powers
+eight magic protocols and 28 transferred skills: 334 records in total. Every whole entry remains
+blocked, including narrower implemented subsets. Named runtime follow-ups
+#221–#243 and frozen-source reconciliation #191 remain visible blockers for
+#122. No family or profile is certified. The conformance gate consults this
+inventory before accepting either supernatural family as verified, so a family
+flag alone cannot bypass missing item evidence.

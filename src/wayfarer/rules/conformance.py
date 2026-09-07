@@ -116,6 +116,10 @@ def require_verified(capability_id: str) -> Capability:
         raise ValidationError(
             f"Rules capability is not verified: {capability_id} ({result.status.value})"
         )
+    if capability_id in ("gurps.magic.spellcasting", "gurps.supernatural.abilities"):
+        from wayfarer.rules.supernatural import require_family
+
+        require_family(capability_id)
     return result
 
 
