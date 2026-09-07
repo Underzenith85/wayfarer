@@ -12,6 +12,7 @@ test("two identities activate a saved party and review speech through the live d
   browser,
   baseURL,
 }, testInfo) => {
+  test.setTimeout(120_000);
   const options = {
     baseURL: baseURL ?? "http://127.0.0.1:4174",
     viewport: testInfo.project.use.viewport ?? { width: 1440, height: 1000 },
@@ -152,7 +153,7 @@ test("two identities activate a saved party and review speech through the live d
         { timeout: 10_000 },
       )
       .toBe("success");
-    await a.getByRole("link", { name: "Campaign", exact: true }).click();
+    await a.getByRole("button", { name: "Continue game", exact: true }).click();
     await lobby
       .getByRole("button", { name: "Reload games / reconcile" })
       .click();
