@@ -415,6 +415,23 @@ class CombatService:
                 from wayfarer.orchestration.party import PartyService
 
                 updated = PartyService(self.play).flush(updated)
+            if (
+                isinstance(command, ChooseDefense)
+                and engine.rules.attacks
+                and encounter.status == "completed"
+            ):
+                world = updated.world
+                for consequence in engine.rules.consequences:
+                    if (
+                        consequence.battlefield_id == encounter.battlefield_id
+                        and previous.pending_defense is not None
+                        and consequence.defeated_actor_id == previous.pending_defense.defender_id
+                        and injury.incapacitated
+                    ):
+                        for recipient in consequence.recipient_actor_ids:
+                            for fact in consequence.fact_ids:
+                                world = world.learn(recipient, fact)
+                updated = updated.model_copy(update={"world": world})
             updated = self.play.checkpoint(updated, before=initial_state)
             self.play.engine.validate(updated)
             campaign["revision"], campaign["play_json"] = revision, updated.model_dump_json()

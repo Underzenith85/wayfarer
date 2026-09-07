@@ -1,0 +1,6 @@
+{
+  "pending": [
+    {"issue": 59, "reason": "Stage B complete live campaign acceptance must land with executable evidence."},
+    {"issue": 60, "reason": "Accessibility, installability and offline polish must land with executable evidence."}
+  ]
+}

@@ -79,6 +79,16 @@ class InjuryTrace(Record):
     rules_version: str
 
 
+class CombatConsequence(Record):
+    """Authored revelation after recorded incapacitation in a completed encounter."""
+
+    id: Id
+    battlefield_id: Id
+    defeated_actor_id: Id
+    recipient_actor_ids: tuple[Id, ...] = Field(min_length=1)
+    fact_ids: tuple[Id, ...] = Field(min_length=1)
+
+
 class CombatRules(Record):
     id: Id
     version: int = Field(ge=1)
@@ -88,6 +98,7 @@ class CombatRules(Record):
     max_combatants: int = Field(default=30, ge=2, le=100)
     battlefields: tuple[Battlefield, ...] = Field(min_length=1, max_length=100)
 
+    consequences: tuple[CombatConsequence, ...] = Field(default=(), exclude=True)
     attacks: tuple[AttackProfile, ...] = Field(default=(), exclude=True)
     protection: tuple[ProtectionProfile, ...] = Field(default=(), exclude=True)
 

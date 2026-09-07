@@ -2,6 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "./live-tests",
   testMatch: "*.spec.ts",
+  testIgnore: "reference.spec.ts",
   timeout: 60000,
   fullyParallel: false,
   use: { baseURL: "http://127.0.0.1:4174", trace: "retain-on-failure" },

@@ -41,6 +41,7 @@ export function SetupLobby({
         credential: token,
         principalId: principal,
         initialCampaignId: value.id,
+        engineControls: value.engine_controls ?? false,
       }),
     );
   const choose = (value: Lobby) => {
@@ -672,6 +673,7 @@ export function SetupLobby({
                           credential: token,
                           principalId: principal,
                           initialCampaignId: lobby.id,
+                          engineControls: lobby.engine_controls ?? false,
                         }),
                       )
                     }

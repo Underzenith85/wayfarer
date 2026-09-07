@@ -25,6 +25,19 @@ afterEach(() => {
   stores.length = 0;
 });
 describe("scoped play journeys", () => {
+  it("finishes travel with the destination snapshot without waiting on old-scene narration", async () => {
+    const { store, transport } = await start();
+    const destination = structuredClone(store.getSnapshot().snapshot!);
+    destination.scene.id = "destination";
+    vi.spyOn(transport, "readSnapshot").mockResolvedValue(destination);
+    const narration = vi.spyOn(transport, "narrate");
+    await store.send("action", "Travel onward");
+    expect(store.getSnapshot().snapshot?.scene.id).toBe("destination");
+    expect(store.getSnapshot().entries[0]?.action?.status).toBe("succeeded");
+    expect(store.getSnapshot().busy).toBe(false);
+    expect(store.getSnapshot().expired).toBe(false);
+    expect(narration).not.toHaveBeenCalled();
+  });
   it("updates summaries only after committed results and preserves provisional narration separation", async () => {
     const { store } = await start();
     const versions: string[] = [];

@@ -112,7 +112,8 @@ class V1Service:
         if write:
             self.scope(view, str(wire["actor_id"]), str(wire["scene_id"]), write=True)
         elif (
-            str(wire["actor_id"]) not in view.characters or str(wire["scene_id"]) not in view.scenes
+            str(wire["actor_id"]) not in view.characters
+            or str(record.get("receipt_scene_id", wire["scene_id"])) not in view.scenes
         ):
             raise Fault(404, "not_found")
         if record["principal"] != principal and view.member.role != "gm":
@@ -400,6 +401,7 @@ class V1Service:
                 # Knowledge-changing actions remain readable to their submitting
                 # principal under the new view, but no other principal inherits them.
                 record["policy"] = after.policy
+                record["receipt_scene_id"] = after.actor_scenes[str(request["actor_id"])]
                 await tx.put("action:" + aid, record)
         except asyncio.CancelledError:
             raise

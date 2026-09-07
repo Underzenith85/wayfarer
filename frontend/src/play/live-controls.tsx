@@ -1,3 +1,4 @@
+import { NetworkPlayTransport } from "../api/play-transport";
 import { useEffect, useState } from "react";
 import { Button } from "../components/ui/button";
 import { usePlay } from "./use-play";
@@ -8,7 +9,10 @@ export function LiveControls() {
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [rejoin, setRejoin] = useState("");
-  const transport = store.transport;
+  const transport =
+    store.transport instanceof NetworkPlayTransport
+      ? store.transport.engineTransport
+      : store.transport;
   useEffect(() => {
     if (!(transport instanceof LiveTransport)) return;
     const controller = new AbortController();
@@ -65,6 +69,30 @@ export function LiveControls() {
               : "Your choices are available."}
       </p>
       <div className="context-actions">
+        <Button
+          disabled={busy}
+          onClick={() =>
+            void transport
+              .readEngine(new AbortController().signal)
+              .then(setEngine)
+              .catch((e: unknown) =>
+                setError(e instanceof Error ? e.message : "Refresh failed"),
+              )
+          }
+        >
+          Refresh scene decisions
+        </Button>
+        {engine.scene_choices
+          ?.filter((c) => c.actor_id === actor)
+          .map((c) => (
+            <Button
+              key={c.id}
+              disabled={busy}
+              onClick={() => void run(c.command)}
+            >
+              {c.label}
+            </Button>
+          ))}
         {scene?.exits.map((e) => (
           <Button
             key={e.id}
@@ -82,7 +110,9 @@ export function LiveControls() {
         </Button>
         <Button
           disabled={busy}
-          onClick={() => void run({ kind: "split_party" })}
+          onClick={() =>
+            void run({ kind: "split_party", target_id: crypto.randomUUID() })
+          }
         >
           Split from group
         </Button>

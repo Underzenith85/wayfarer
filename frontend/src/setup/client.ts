@@ -20,6 +20,7 @@ export interface Graph {
   [key: string]: unknown;
 }
 export interface Lobby {
+  engine_controls?: boolean;
   id: string;
   revision: number;
   title: string;
