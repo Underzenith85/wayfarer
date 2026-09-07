@@ -114,12 +114,16 @@ class PortableGraph(ScenarioContent):
             if nested is not None and nested != getattr(self, name):
                 raise ValueError(f"Conflicting actions.{name} mechanics")
         if self.actions.combat is None and (
-            self.combat_attacks or self.combat_consequences or self.combat_protection
+            self.combat_attacks
+            or self.combat_consequences
+            or self.combat_protection
+            or self.combat_equipment
         ):
             raise ValueError("Combat profiles require enabled combat mechanics")
         if self.actions.combat:
             for name, expected in (
                 ("attacks", self.combat_attacks),
+                ("gurps_equipment", self.combat_equipment),
                 ("consequences", self.combat_consequences),
                 ("protection", self.combat_protection),
             ):

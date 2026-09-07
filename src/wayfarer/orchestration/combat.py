@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from typing import Annotated, Literal
 
@@ -50,12 +51,14 @@ class TakeCombatTurn(CombatCommand):
     posture: Posture | None = None
     item_id: str | None = None
     target_id: str | None = None
+    mode_id: str | None = None
 
 
 class ChooseDefense(CombatCommand):
     kind: Literal["choose_defense"] = "choose_defense"
     encounter_id: Id
     defense: Defense
+    item_id: str | None = None
 
 
 class JoinEncounter(CombatCommand):
@@ -82,6 +85,12 @@ class CombatService:
     def __init__(self, play: PlayService) -> None:
         self.play = play
 
+    async def _recorded_result(self, cid: str, command_id: str) -> CombatResult:
+        for entry in await self.play.store.history(cid):
+            if entry.command_id == command_id:
+                return CombatResult.model_validate_json(entry.event["outcome"])
+        raise ValidationError("Missing committed combat receipt")
+
     @staticmethod
     def propose(value: object) -> TypedCombatCommand:
         try:
@@ -102,6 +111,11 @@ class CombatService:
         command = self.propose(value)
         if command.actor_id != authenticated_actor_id:
             raise ValidationError("Combat command actor is not authorized")
+        bound = self.play.for_campaign(await self.play.store.read(cid))
+        if bound is not self.play:
+            return await CombatService(bound).execute(
+                cid, value, authenticated_actor_id=authenticated_actor_id
+            )
         engine = self.play.engine.combat
         if engine is None:
             raise ValidationError("Campaign combat is not configured")
@@ -116,16 +130,28 @@ class CombatService:
         )
         duplicate = await self.play.store.duplicate(cid, command.id, payload)
         if duplicate is not None:
-            result = self.play._load(duplicate).last_combat_result
-            if result is None or result.encounter_id != command.encounter_id:
-                raise ValidationError("Missing committed combat result")
-            return result
+            return await self._recorded_result(cid, command.id)
 
         def resolve(campaign: Campaign) -> Event:
             state = self.play._load(campaign)
             from wayfarer.orchestration.recovery import guard
 
             guard(state, command.actor_id, command.kind)
+            if engine.rules.gurps_equipment is not None:
+                from wayfarer.rules.recovery_types import require_settled
+
+                affected = {command.actor_id}
+                if isinstance(command, StartEncounter):
+                    affected.update(p.actor_id for p in command.placements)
+                elif isinstance(command, TakeCombatTurn) and command.target_id is not None:
+                    affected.add(command.target_id)
+                elif isinstance(command, ChooseDefense):
+                    pending = self._encounter(state, command.encounter_id).pending_defense
+                    if pending is not None:
+                        affected.update((pending.attacker_id, pending.defender_id))
+                require_settled(
+                    state.resources.recovery_tasks, frozenset(affected), state.resources.game_time
+                )
             initial_state = state
             if command.expected_revision != state.revision:
                 raise ConflictError("Play revision changed")
@@ -142,8 +168,17 @@ class CombatService:
                 pools = {pool.id: pool for pool in state.resources.pools}
                 for placement in command.placements:
                     actor = actor_map[placement.actor_id]
+                    if engine.rules.gurps_equipment is not None:
+                        from wayfarer.orchestration.gurps_melee import fatigue_ready
+
+                        if not fatigue_ready(state, actor.actor_id):
+                            raise ValidationError("Exhausted actor cannot start combat")
                     hp = pools.get(f"hp:{actor.actor_id}")
-                    if actor.conditions or hp is None or hp.current == 0:
+                    if (
+                        actor.conditions
+                        or hp is None
+                        or (hp.injury.incapacitated if hp.injury else hp.current == 0)
+                    ):
                         raise ValidationError("Incapacitated actor cannot start combat")
                     build, _ = self.play.engine.reviewer.activate(
                         actor.proposal,
@@ -284,7 +319,9 @@ class CombatService:
                 elif isinstance(command, TakeCombatTurn):
                     actor = next(a for a in state.actors if a.actor_id == command.actor_id)
                     hp = next(p for p in resources.pools if p.id == f"hp:{actor.actor_id}")
-                    if hp.current == 0 or actor.conditions:
+                    if (
+                        hp.injury.incapacitated if hp.injury else hp.current == 0
+                    ) or actor.conditions:
                         raise ValidationError("Incapacitated actor cannot act")
                     if actor.available_at > resources.game_time and command.maneuver not in (
                         "wait",
@@ -297,25 +334,156 @@ class CombatService:
                             p.definition_id == item.definition_id for p in engine.rules.attacks
                         ):
                             raise ValidationError("Unsupported combat weapon or attack mode")
+                    if command.mode_id is not None and (
+                        command.maneuver != "attack" or engine.rules.gurps_equipment is None
+                    ):
+                        raise ValidationError("Weapon mode requires GURPS attack dispatch")
+                    if command.maneuver == "attack" and engine.rules.gurps_equipment is not None:
+                        from wayfarer.orchestration.gurps_melee import mode
+
+                        selected_mode = mode(
+                            self.play,
+                            state,
+                            command.actor_id,
+                            command.item_id or "",
+                            command.mode_id,
+                        )
+                        encounter = engine._replace(
+                            encounter,
+                            next(
+                                p for p in encounter.participants if p.actor_id == command.actor_id
+                            ).model_copy(update={"reach": max(selected_mode.reach)}),
+                        )
+                    if engine.rules.gurps_equipment is not None:
+                        from wayfarer.orchestration.gurps_melee import (
+                            exertion,
+                            injury_turn,
+                            movement,
+                        )
+
+                        state = injury_turn(
+                            self.play,
+                            state,
+                            command.actor_id,
+                            command.id,
+                            start=True,
+                            do_nothing=command.maneuver == "do_nothing",
+                        )
+                        resources = state.resources
+                        started_hp = next(p for p in resources.pools if p.id == hp.id)
+                        assert started_hp.injury is not None
+                        allowed = not started_hp.injury.incapacitated
+                        if allowed and command.maneuver != "do_nothing":
+                            state, allowed = exertion(
+                                self.play, state, command.actor_id, command.id
+                            )
+                            resources = state.resources
+                        encounter = engine._replace(
+                            encounter,
+                            next(
+                                p for p in encounter.participants if p.actor_id == command.actor_id
+                            ).model_copy(
+                                update={
+                                    "movement_allowance": movement(
+                                        self.play, state, command.actor_id
+                                    )
+                                    if allowed
+                                    else 0
+                                }
+                            ),
+                        )
+                        if not allowed:
+                            command_for_turn = command.model_copy(
+                                update={
+                                    "maneuver": "do_nothing",
+                                    "item_id": None,
+                                    "mode_id": None,
+                                    "target_id": None,
+                                    "destination": None,
+                                    "facing": None,
+                                    "posture": None,
+                                }
+                            )
+                        else:
+                            command_for_turn = command
+                    else:
+                        command_for_turn = command
                     encounter, resources, result = engine.take_turn(
                         encounter,
                         actor_id=command.actor_id,
-                        maneuver=command.maneuver,
+                        maneuver=command_for_turn.maneuver,
                         resources=resources,
-                        destination=command.destination,
-                        facing=command.facing,
-                        posture=command.posture,
-                        item_id=command.item_id,
-                        target_id=command.target_id,
+                        destination=command_for_turn.destination,
+                        facing=command_for_turn.facing,
+                        posture=command_for_turn.posture,
+                        item_id=command_for_turn.item_id,
+                        target_id=command_for_turn.target_id,
                         command_id=command.id,
                     )
+                    if (
+                        command_for_turn.maneuver == "attack"
+                        and engine.rules.gurps_equipment is not None
+                    ):
+                        from wayfarer.orchestration.gurps_melee import prepare_attack
+
+                        encounter = prepare_attack(self.play, state, encounter, command.mode_id)
+                        assert encounter.pending_defense is not None
+                        result = result.model_copy(
+                            update={"available": encounter.pending_defense.allowed}
+                        )
+                    elif engine.rules.gurps_equipment is not None:
+                        state = injury_turn(
+                            self.play,
+                            state.model_copy(update={"resources": resources}),
+                            command.actor_id,
+                            command.id,
+                            start=False,
+                            do_nothing=command_for_turn.maneuver == "do_nothing",
+                        )
+                        resources = state.resources
                 elif isinstance(command, ChooseDefense):
                     previous = encounter
+                    selected_defense = command.defense
+                    if engine.rules.gurps_equipment is not None:
+                        from wayfarer.orchestration.gurps_melee import exertion, resolve_melee
+
+                        pending = encounter.pending_defense
+                        if (
+                            pending is None
+                            or pending.defender_id != command.actor_id
+                            or command.defense not in pending.allowed
+                        ):
+                            raise ValidationError("Defense is not available to this actor")
+                        if selected_defense != "none":
+                            state, allowed = exertion(
+                                self.play, state, command.actor_id, command.id
+                            )
+                            if not allowed:
+                                selected_defense = "none"
+                        state, encounter, injury = resolve_melee(
+                            self.play, state, encounter, selected_defense, command.item_id
+                        )
+                        from wayfarer.orchestration.gurps_melee import injury_turn
+
+                        state = injury_turn(
+                            self.play,
+                            state,
+                            pending.attacker_id,
+                            pending.id,
+                            start=False,
+                            do_nothing=False,
+                        )
+                        resources = state.resources
+                    elif command.item_id is not None:
+                        raise ValidationError("Defense equipment selection requires GURPS dispatch")
                     encounter, result = engine.choose_defense(
-                        encounter, actor_id=command.actor_id, selected=command.defense
+                        encounter, actor_id=command.actor_id, selected=selected_defense
                     )
-                    if engine.rules.attacks:
-                        state, injury = resolve_injury(self.play, state, previous, command.defense)
+                    if engine.rules.attacks or engine.rules.gurps_equipment is not None:
+                        if engine.rules.gurps_equipment is None:
+                            state, injury = resolve_injury(
+                                self.play, state, previous, command.defense
+                            )
                         resources = state.resources
                         encounter = encounter.model_copy(
                             update={"wounds": encounter.wounds + (injury,)}
@@ -323,7 +491,8 @@ class CombatService:
                         alive = {
                             p.id.removeprefix("hp:")
                             for p in resources.pools
-                            if p.id.startswith("hp:") and p.current > 0
+                            if p.id.startswith("hp:")
+                            and (not p.injury.incapacitated if p.injury else p.current > 0)
                         }
                         if len(alive.intersection(encounter.turn_order)) < 2:
                             encounter = encounter.model_copy(
@@ -347,7 +516,11 @@ class CombatService:
                             }
                         )
                 else:
-                    if encounter.status != "active" or encounter.pending_defense is not None:
+                    if (
+                        encounter.status != "active"
+                        or encounter.pending_defense is not None
+                        or encounter.blocked_reason
+                    ):
                         raise ConflictError("Encounter cannot end during a pending defense")
                     encounter = encounter.model_copy(
                         update={"status": "completed", "completion_reason": command.reason}
@@ -360,6 +533,38 @@ class CombatService:
                     )
                 encounters = tuple(
                     encounter if e.id == encounter.id else e for e in state.encounters
+                )
+            if (
+                engine.rules.gurps_equipment is not None
+                and encounter.pending_defense is None
+                and encounter.status == "active"
+            ):
+                from wayfarer.orchestration.gurps_melee import fatigue_ready
+
+                conscious = {
+                    p.id.removeprefix("hp:")
+                    for p in resources.pools
+                    if p.id.startswith("hp:")
+                    and p.injury is not None
+                    and not p.injury.incapacitated
+                    and fatigue_ready(
+                        state.model_copy(update={"resources": resources}), p.id.removeprefix("hp:")
+                    )
+                }
+                if len(conscious.intersection(encounter.turn_order)) < 2:
+                    encounter = encounter.model_copy(
+                        update={"status": "completed", "completion_reason": "incapacitation"}
+                    )
+                else:
+                    while encounter.current_actor_id not in conscious:
+                        encounter = engine._advance(encounter)
+                encounters = tuple(encounter if e.id == encounter.id else e for e in encounters)
+                result = result.model_copy(
+                    update={
+                        "round": encounter.round,
+                        "current_actor_id": encounter.current_actor_id,
+                        "available": engine.available(encounter, encounter.current_actor_id),
+                    }
                 )
             # A full combat round contributes one original-subset tick to its subgroup.
             party = state.party
@@ -385,14 +590,16 @@ class CombatService:
                         )
                     }
                 )
-            elif engine.rules.attacks:
+            elif engine.rules.attacks or engine.rules.gurps_equipment is not None:
                 prior = next((e for e in state.encounters if e.id == encounter.id), None)
                 ticks = max(0, encounter.round - prior.round) if prior is not None else 0
                 if ticks:
                     resources = self.play.engine.resources.apply(
                         resources,
                         Advance(
-                            id=f"{command.id}:round-time",
+                            id="combat-time:" + hashlib.sha256(command.id.encode()).hexdigest()
+                            if engine.rules.gurps_equipment
+                            else f"{command.id}:round-time",
                             actor_id=encounter.current_actor_id,
                             expected_revision=resources.revision,
                             to=resources.game_time + ticks,
@@ -447,6 +654,8 @@ class CombatService:
             resolve,
             actor_id=command.actor_id,
         )
+        if committed["kind"] == "replayed":
+            return await self._recorded_result(cid, command.id)
         result = self.play._load(committed["state"]).last_combat_result
         if result is None:
             raise ValidationError("Missing committed combat result")

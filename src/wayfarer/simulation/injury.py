@@ -78,6 +78,8 @@ def apply_injury(
     rng: RandomSource,
     system: bool = False,
     held_item_ids: tuple[str, ...] = (),
+    force_major_wound: bool = False,
+    double_shock: bool = False,
 ) -> tuple[ResourceState, InjuryResult]:
     """Pure reducer; persist atomically via the existing commit_turn/CAS boundary.
 
@@ -89,7 +91,10 @@ def apply_injury(
     if type(ht) is not int or ht < 1:
         raise ValidationError("HT must come from a valid compiled character")
     ResourceState.model_validate(state)
-    digest = hashlib.sha256(command.model_dump_json().encode()).hexdigest()
+    encoded = command.model_dump_json()
+    if force_major_wound or double_shock:
+        encoded += f":critical:{force_major_wound}:{double_shock}"
+    digest = hashlib.sha256(encoded.encode()).hexdigest()
     previous = next((r for r in state.receipts if r.command_id == command.id), None)
     if previous:
         if previous.digest != digest:
@@ -141,7 +146,12 @@ def apply_injury(
         if injury and not status.dead:
             shock = injury // max(1, pool.maximum // 10)
             status = status.model_copy(
-                update={"shock": min(4, status.shock + shock), "shock_expires": status.turn + 1}
+                update={
+                    "shock": max(status.shock, min(8, shock * 2))
+                    if double_shock
+                    else min(8 if status.shock > 4 else 4, status.shock + shock),
+                    "shock_expires": status.turn + 1,
+                }
             )
             if current <= -5 * pool.maximum:
                 status = status.model_copy(update={"dead": True})
@@ -161,7 +171,7 @@ def apply_injury(
                             )
                             if status.dead:
                                 break
-                if injury * 2 > pool.maximum and not status.incapacitated:
+                if (force_major_wound or injury * 2 > pool.maximum) and not status.incapacitated:
                     trace = check("major-wound")
                     if not trace.outcome.succeeded:
                         status = status.model_copy(

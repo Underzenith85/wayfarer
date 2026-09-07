@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class InjuryStatus(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
     profile_id: Literal["gurps-lite-4e-2004", "gurps-basic-set-4e-2004"]
-    shock: int = Field(default=0, ge=0, le=4)
+    shock: int = Field(default=0, ge=0, le=8)
     stunned: bool = False
     prone: bool = False
     unconscious: bool = False

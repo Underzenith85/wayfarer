@@ -1620,6 +1620,46 @@
         "title": "ApproachSupport",
         "type": "object"
       },
+      "Armor": {
+        "additionalProperties": false,
+        "properties": {
+          "locations": {
+            "items": {
+              "enum": [
+                "torso",
+                "skull",
+                "face",
+                "neck",
+                "arms",
+                "hands",
+                "legs",
+                "feet",
+                "groin"
+              ],
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Locations",
+            "type": "array"
+          },
+          "dr": {
+            "minimum": 0,
+            "title": "Dr",
+            "type": "integer"
+          },
+          "flexible": {
+            "default": false,
+            "title": "Flexible",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "locations",
+          "dr"
+        ],
+        "title": "Armor",
+        "type": "object"
+      },
       "AttackProfile": {
         "additionalProperties": false,
         "description": "Server-authored original subset, bound to an implemented equipment entry.",
@@ -2059,6 +2099,17 @@
             },
             "title": "Protection",
             "type": "array"
+          },
+          "gurps_equipment": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/EquipmentCatalog"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           }
         },
         "required": [
@@ -2292,6 +2343,61 @@
         "title": "CustomConstruction",
         "type": "object"
       },
+      "Damage": {
+        "additionalProperties": false,
+        "properties": {
+          "basis": {
+            "enum": [
+              "thrust",
+              "swing",
+              "fixed"
+            ],
+            "title": "Basis",
+            "type": "string"
+          },
+          "dice": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Dice"
+          },
+          "adds": {
+            "default": 0,
+            "title": "Adds",
+            "type": "integer"
+          },
+          "damage_type": {
+            "enum": [
+              "cr",
+              "cut",
+              "imp",
+              "pi-",
+              "pi",
+              "pi+",
+              "pi++",
+              "burn",
+              "cor",
+              "tox",
+              "fat"
+            ],
+            "title": "Damage Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "basis",
+          "damage_type"
+        ],
+        "title": "Damage",
+        "type": "object"
+      },
       "Discovery": {
         "additionalProperties": false,
         "properties": {
@@ -2400,6 +2506,133 @@
         ],
         "title": "EntityKind",
         "type": "string"
+      },
+      "EquipmentCatalog": {
+        "additionalProperties": false,
+        "properties": {
+          "profile_id": {
+            "enum": [
+              "gurps-lite-4e-2004",
+              "gurps-basic-set-4e-2004"
+            ],
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/$defs/EquipmentProfile"
+            },
+            "title": "Entries",
+            "type": "array"
+          }
+        },
+        "required": [
+          "profile_id",
+          "entries"
+        ],
+        "title": "EquipmentCatalog",
+        "type": "object"
+      },
+      "EquipmentProfile": {
+        "additionalProperties": false,
+        "properties": {
+          "definition_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Definition Id",
+            "type": "string"
+          },
+          "provenance": {
+            "$ref": "#/$defs/wayfarer__simulation__gurps_equipment__Provenance"
+          },
+          "weight_millipounds": {
+            "minimum": 0,
+            "title": "Weight Millipounds",
+            "type": "integer"
+          },
+          "price": {
+            "minimum": 0,
+            "title": "Price",
+            "type": "integer"
+          },
+          "technology_level": {
+            "minimum": 0,
+            "title": "Technology Level",
+            "type": "integer"
+          },
+          "slot": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Slot"
+          },
+          "ammunition": {
+            "default": false,
+            "title": "Ammunition",
+            "type": "boolean"
+          },
+          "modes": {
+            "default": [],
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "melee": "#/$defs/MeleeMode",
+                  "ranged": "#/$defs/RangedMode"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/MeleeMode"
+                },
+                {
+                  "$ref": "#/$defs/RangedMode"
+                }
+              ]
+            },
+            "title": "Modes",
+            "type": "array"
+          },
+          "armor": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Armor"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "shield": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Shield"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "definition_id",
+          "provenance",
+          "weight_millipounds",
+          "price",
+          "technology_level"
+        ],
+        "title": "EquipmentProfile",
+        "type": "object"
       },
       "Fact": {
         "properties": {
@@ -2674,7 +2907,7 @@
           },
           "shock": {
             "default": 0,
-            "maximum": 4,
+            "maximum": 8,
             "minimum": 0,
             "title": "Shock",
             "type": "integer"
@@ -2789,6 +3022,75 @@
           "owner_id"
         ],
         "title": "Item",
+        "type": "object"
+      },
+      "MeleeMode": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "const": "melee",
+            "default": "melee",
+            "title": "Kind",
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "skill_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Skill Id",
+            "type": "string"
+          },
+          "minimum_st": {
+            "minimum": 1,
+            "title": "Minimum St",
+            "type": "integer"
+          },
+          "hands": {
+            "default": 1,
+            "enum": [
+              1,
+              2
+            ],
+            "title": "Hands",
+            "type": "integer"
+          },
+          "damage": {
+            "$ref": "#/$defs/Damage"
+          },
+          "reach": {
+            "items": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "minItems": 1,
+            "title": "Reach",
+            "type": "array"
+          },
+          "parry": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Parry"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "id",
+          "skill_id",
+          "minimum_st",
+          "damage",
+          "reach"
+        ],
+        "title": "MeleeMode",
         "type": "object"
       },
       "NPCAction": {
@@ -3361,6 +3663,28 @@
         "title": "PackagePin",
         "type": "object"
       },
+      "Parry": {
+        "additionalProperties": false,
+        "properties": {
+          "modifier": {
+            "default": 0,
+            "title": "Modifier",
+            "type": "integer"
+          },
+          "unbalanced": {
+            "default": false,
+            "title": "Unbalanced",
+            "type": "boolean"
+          },
+          "fencing": {
+            "default": false,
+            "title": "Fencing",
+            "type": "boolean"
+          }
+        },
+        "title": "Parry",
+        "type": "object"
+      },
       "PartyRequirements": {
         "additionalProperties": false,
         "properties": {
@@ -3601,6 +3925,17 @@
             "title": "Combat Attacks",
             "type": "array"
           },
+          "combat_equipment": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/EquipmentCatalog"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
           "combat_protection": {
             "default": [],
             "items": {
@@ -3779,71 +4114,6 @@
         "title": "ProtectionProfile",
         "type": "object"
       },
-      "Provenance": {
-        "additionalProperties": false,
-        "properties": {
-          "kind": {
-            "enum": [
-              "authored",
-              "generated",
-              "adapted"
-            ],
-            "title": "Kind",
-            "type": "string"
-          },
-          "author": {
-            "maxLength": 200,
-            "minLength": 1,
-            "title": "Author",
-            "type": "string"
-          },
-          "source": {
-            "anyOf": [
-              {
-                "maxLength": 1000,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Source"
-          },
-          "generator": {
-            "anyOf": [
-              {
-                "maxLength": 200,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Generator"
-          },
-          "source_digest": {
-            "anyOf": [
-              {
-                "pattern": "^[0-9a-f]{64}$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Source Digest"
-          }
-        },
-        "required": [
-          "kind",
-          "author"
-        ],
-        "title": "Provenance",
-        "type": "object"
-      },
       "PublicBrief": {
         "additionalProperties": false,
         "description": "Explicit author-approved allowlist, never populated from the private graph.",
@@ -3920,6 +4190,159 @@
           "definition_id"
         ],
         "title": "Purchase",
+        "type": "object"
+      },
+      "RangedMode": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "const": "ranged",
+            "default": "ranged",
+            "title": "Kind",
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "skill_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Skill Id",
+            "type": "string"
+          },
+          "minimum_st": {
+            "minimum": 1,
+            "title": "Minimum St",
+            "type": "integer"
+          },
+          "hands": {
+            "default": 1,
+            "enum": [
+              1,
+              2
+            ],
+            "title": "Hands",
+            "type": "integer"
+          },
+          "damage": {
+            "$ref": "#/$defs/Damage"
+          },
+          "accuracy": {
+            "minimum": 0,
+            "title": "Accuracy",
+            "type": "integer"
+          },
+          "range_basis": {
+            "enum": [
+              "yards",
+              "st"
+            ],
+            "title": "Range Basis",
+            "type": "string"
+          },
+          "half_damage_range": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ],
+                "gt": 0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Half Damage Range"
+          },
+          "maximum_range": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "gt": 0,
+            "title": "Maximum Range"
+          },
+          "rate_of_fire": {
+            "default": 1,
+            "minimum": 1,
+            "title": "Rate Of Fire",
+            "type": "integer"
+          },
+          "shots": {
+            "minimum": 1,
+            "title": "Shots",
+            "type": "integer"
+          },
+          "reload_seconds": {
+            "minimum": 0,
+            "title": "Reload Seconds",
+            "type": "integer"
+          },
+          "bulk": {
+            "maximum": 0,
+            "title": "Bulk",
+            "type": "integer"
+          },
+          "recoil": {
+            "default": 1,
+            "minimum": 1,
+            "title": "Recoil",
+            "type": "integer"
+          },
+          "ammunition_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Ammunition Id"
+          },
+          "thrown": {
+            "default": false,
+            "title": "Thrown",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "skill_id",
+          "minimum_st",
+          "damage",
+          "accuracy",
+          "range_basis",
+          "maximum_range",
+          "shots",
+          "reload_seconds",
+          "bulk"
+        ],
+        "title": "RangedMode",
         "type": "object"
       },
       "RecoveryOption": {
@@ -4969,6 +5392,33 @@
         "title": "SetbackRule",
         "type": "object"
       },
+      "Shield": {
+        "additionalProperties": false,
+        "properties": {
+          "skill_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Skill Id",
+            "type": "string"
+          },
+          "defense_bonus": {
+            "minimum": 1,
+            "title": "Defense Bonus",
+            "type": "integer"
+          },
+          "can_block": {
+            "default": true,
+            "title": "Can Block",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "skill_id",
+          "defense_bonus"
+        ],
+        "title": "Shield",
+        "type": "object"
+      },
       "TraitOptions": {
         "additionalProperties": false,
         "properties": {
@@ -5094,6 +5544,113 @@
         },
         "title": "World",
         "type": "object"
+      },
+      "wayfarer__simulation__gurps_equipment__Provenance": {
+        "additionalProperties": false,
+        "properties": {
+          "source_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Source Id",
+            "type": "string"
+          },
+          "edition": {
+            "enum": [
+              "August 2004, Rev. 07/12/04",
+              "Fourth Edition, first printing (2004)"
+            ],
+            "title": "Edition",
+            "type": "string"
+          },
+          "pages": {
+            "items": {
+              "minimum": 1,
+              "type": "integer"
+            },
+            "minItems": 1,
+            "title": "Pages",
+            "type": "array"
+          },
+          "errata": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Errata",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_id",
+          "edition",
+          "pages",
+          "errata"
+        ],
+        "title": "Provenance",
+        "type": "object"
+      },
+      "wayfarer__simulation__scenario_document__Provenance": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "authored",
+              "generated",
+              "adapted"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "author": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Author",
+            "type": "string"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Source"
+          },
+          "generator": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Generator"
+          },
+          "source_digest": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Source Digest"
+          }
+        },
+        "required": [
+          "kind",
+          "author"
+        ],
+        "title": "Provenance",
+        "type": "object"
       }
     },
     "additionalProperties": false,
@@ -5124,7 +5681,7 @@
         "$ref": "#/$defs/PublicBrief"
       },
       "provenance": {
-        "$ref": "#/$defs/Provenance"
+        "$ref": "#/$defs/wayfarer__simulation__scenario_document__Provenance"
       },
       "compatibility": {
         "$ref": "#/$defs/Compatibility"
