@@ -83,9 +83,12 @@ test("solo production entry, illegal party, stale edit, lost activation, refresh
   });
   await lobby.getByRole("button", { name: "Start game", exact: true }).focus();
   await page.keyboard.press("Enter");
+  // A pending command exists while the original request is still in flight.
+  // Wait for the injected loss to reach the UI before removing its route.
+  await expect(lobby.getByRole("alert")).toBeVisible();
   await expect(
     lobby.getByRole("button", { name: "Retry original setup request" }),
-  ).toBeVisible();
+  ).toBeEnabled();
   await page.unroute(`**/setups/${cid}`);
   await page.reload();
   await login(page);
