@@ -339,10 +339,8 @@ class CampaignAccess:
         raw = json.dumps(value)
         try:
             if kind == "gurps_recovery":
-                from wayfarer.orchestration.player_medical import (
-                    PlayerRecoveryCommand,
-                    execute as execute_medical,
-                )
+                from wayfarer.orchestration.player_medical import PlayerRecoveryCommand
+                from wayfarer.orchestration.player_medical import execute as execute_medical
 
                 recovery = PlayerRecoveryCommand.model_validate_json(raw)
                 self._control(member, recovery.actor_id)
