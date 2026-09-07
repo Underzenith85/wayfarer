@@ -14,7 +14,9 @@ from pydantic import SecretStr
 from test_runtime import settings
 
 from wayfarer.config import Settings
-from wayfarer.runtime import create_runtime_app
+from wayfarer.orchestration.providers import Orchestrator, ProviderReply, ProviderRequest, Usage
+from wayfarer.runtime import create_runtime_app, starting_scenario
+from wayfarer.transport.campaign_api import ACCESS_KEY, ORCHESTRATOR_KEY
 from wayfarer.transport.setup_api import SETUP_KEY
 
 PREFIX = "/authoring/v1/scenarios"
@@ -229,12 +231,101 @@ async def test_catalog_import_security_and_authority(config: Settings) -> None:
         assert response.status == 400
 
 
+async def test_guided_generation_is_recoverable_and_never_overwrites_edits(
+    config: Settings,
+) -> None:
+    graph = starting_scenario()
+
+    class Provider:
+        async def complete(self, request: ProviderRequest) -> object:
+            assert request.operation == "scenario_draft"
+            assert "catalog_ids" in request.context_json
+            return ProviderReply(payload_json=graph.model_dump_json(), usage=Usage())
+
+    app = create_runtime_app(config, config.frontend_dir)
+    app[ORCHESTRATOR_KEY] = Orchestrator(app[ACCESS_KEY], Provider())
+    async with TestClient(TestServer(app)) as client:
+        request = {
+            "id": str(uuid4()),
+            "brief": graph.brief.model_dump(mode="json"),
+            "instructions": "Add an investigation route",
+            "party_capabilities": ["observation"],
+            "section": "all",
+        }
+        response = await client.post(
+            PREFIX + "/generation-jobs", headers=HEADERS, json=request
+        )
+        assert response.status == 202, await response.text()
+        job = await response.json()
+        for _ in range(20):
+            response = await client.get(
+                PREFIX + f"/generation-jobs/{job['id']}", headers=HEADERS
+            )
+            job = await response.json()
+            if job["status"] not in ("queued", "running"):
+                break
+            await asyncio.sleep(0)
+        assert job["status"] == "succeeded"
+        assert job["proposal_json"]
+        assert job["report"]["status"] == "playable"
+        # The proposal is not a catalog revision until the author explicitly accepts it.
+        assert await (await client.get(PREFIX, headers=HEADERS)).json() == []
+        saved = await post(
+            client,
+            "",
+            {
+                "id": str(uuid4()),
+                "operation": "create",
+                "content_json": job["proposal_json"],
+            },
+        )
+        assert saved["revision"] == 1
+
+
+async def test_guided_generation_cancel_and_restart_recovery(config: Settings) -> None:
+    gate = asyncio.Event()
+
+    class Provider:
+        async def complete(self, request: ProviderRequest) -> object:
+            await gate.wait()
+            return ProviderReply(
+                payload_json=starting_scenario().model_dump_json(), usage=Usage()
+            )
+
+    app = create_runtime_app(config, config.frontend_dir)
+    app[ORCHESTRATOR_KEY] = Orchestrator(app[ACCESS_KEY], Provider())
+    async with TestClient(TestServer(app)) as client:
+        response = await client.post(
+            PREFIX + "/generation-jobs",
+            headers=HEADERS,
+            json={
+                "id": str(uuid4()),
+                "brief": starting_scenario().brief.model_dump(mode="json"),
+            },
+        )
+        job = await response.json()
+        await asyncio.sleep(0)
+        response = await client.post(
+            PREFIX + f"/generation-jobs/{job['id']}/cancel", headers=HEADERS, json={}
+        )
+        assert response.status == 200, await response.text()
+        assert (await response.json())["status"] == "cancelled"
+        gate.set()
+        await asyncio.sleep(0)
+        response = await client.get(
+            PREFIX + f"/generation-jobs/{job['id']}", headers=HEADERS
+        )
+        assert (await response.json())["status"] == "cancelled"
+
+
 def test_authoring_contract_schema_drift() -> None:
     from wayfarer.simulation.catalog import (
         CatalogCommand,
         CatalogSummary,
         InstantiateRevision,
         RevisionView,
+        ScenarioGenerationJob,
+        ScenarioGenerationRequest,
     )
     from wayfarer.simulation.scenario_document import PlayerScenarioExport, ScenarioDocument
 
@@ -243,6 +334,8 @@ def test_authoring_contract_schema_drift() -> None:
         InstantiateRevision,
         CatalogSummary,
         RevisionView,
+        ScenarioGenerationRequest,
+        ScenarioGenerationJob,
         ScenarioDocument,
         PlayerScenarioExport,
     )

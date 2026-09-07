@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "../components/ui/button";
 import type { Lobby } from "./client";
+import { GuidedScenarioAuthoring } from "./guided";
 
 type Summary = {
   id: string;
@@ -26,9 +27,13 @@ type View = {
 
 export function ScenarioCatalog({
   token,
+  principal,
+  generationAvailable,
   onCreate,
 }: {
   token: string;
+  principal: string;
+  generationAvailable: boolean;
   onCreate: (lobby: Lobby) => void;
 }) {
   const [entries, setEntries] = useState<Summary[]>([]);
@@ -157,6 +162,19 @@ export function ScenarioCatalog({
         Save reusable scenarios before creating a game. Each game keeps its own
         copy of the selected published revision.
       </p>
+      {generationAvailable ? (
+        <GuidedScenarioAuthoring
+          token={token}
+          principal={principal}
+          source={source}
+          onAccept={setSource}
+        />
+      ) : (
+        <p>
+          AI creation is unavailable. Templates, saved scenarios, manual
+          editing, import, and export remain available.
+        </p>
+      )}
       <label>
         Bundled scenario templates
         <select

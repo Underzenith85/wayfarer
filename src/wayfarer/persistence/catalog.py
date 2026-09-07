@@ -13,7 +13,7 @@ import psycopg
 from wayfarer.errors import ConflictError, NotFoundError, StorageError
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
-from wayfarer.simulation.catalog import CatalogEntry
+from wayfarer.simulation.catalog import CatalogEntry, ScenarioGenerationJob
 
 
 class Connection:
@@ -51,6 +51,8 @@ class CatalogStore:
             await connection.query("""CREATE TABLE IF NOT EXISTS scenario_receipts (
                 principal TEXT NOT NULL, command_id TEXT NOT NULL, payload TEXT NOT NULL,
                 state_after TEXT NOT NULL, PRIMARY KEY(principal, command_id))""")
+            await connection.query("""CREATE TABLE IF NOT EXISTS scenario_generation_jobs (
+                id TEXT PRIMARY KEY, owner_id TEXT NOT NULL, state TEXT NOT NULL)""")
             yield connection
             await db.commit()
         except (aiosqlite.Error, psycopg.Error) as exc:
@@ -75,6 +77,52 @@ class CatalogStore:
                 "SELECT state FROM scenario_catalog WHERE owner_id=? ORDER BY id", (owner,)
             )
             return tuple(CatalogEntry.model_validate_json(str(row[0])) for row in rows)
+
+    async def create_job(self, job: ScenarioGenerationJob) -> ScenarioGenerationJob:
+        async with self.transaction() as db:
+            rows = await db.query(
+                "SELECT state FROM scenario_generation_jobs WHERE id=?", (job.id,)
+            )
+            if rows:
+                existing = ScenarioGenerationJob.model_validate_json(str(rows[0][0]))
+                if existing.owner_id != job.owner_id or existing.request != job.request:
+                    raise ConflictError("Generation job identity already used")
+                return existing
+            await db.query(
+                "INSERT INTO scenario_generation_jobs VALUES (?, ?, ?)",
+                (job.id, job.owner_id, job.model_dump_json()),
+            )
+            return job
+
+    async def read_job(self, job_id: str, owner: str) -> ScenarioGenerationJob:
+        async with self.transaction() as db:
+            rows = await db.query(
+                "SELECT state FROM scenario_generation_jobs WHERE id=? AND owner_id=?",
+                (job_id, owner),
+            )
+            if not rows:
+                raise NotFoundError("Generation job not found")
+            return ScenarioGenerationJob.model_validate_json(str(rows[0][0]))
+
+    async def update_job(
+        self, job: ScenarioGenerationJob, expected_version: int
+    ) -> ScenarioGenerationJob:
+        async with self.transaction() as db:
+            rows = await db.query(
+                "SELECT state FROM scenario_generation_jobs WHERE id=? AND owner_id=?",
+                (job.id, job.owner_id),
+            )
+            if not rows:
+                raise NotFoundError("Generation job not found")
+            previous = ScenarioGenerationJob.model_validate_json(str(rows[0][0]))
+            if previous.version != expected_version:
+                raise ConflictError("Generation job changed")
+            result = job.model_copy(update={"version": expected_version + 1})
+            await db.query(
+                "UPDATE scenario_generation_jobs SET state=? WHERE id=? AND owner_id=?",
+                (result.model_dump_json(), result.id, result.owner_id),
+            )
+            return result
 
     async def commit(
         self,
