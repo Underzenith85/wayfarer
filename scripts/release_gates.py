@@ -6,6 +6,7 @@ import os
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+from wayfarer.basic_set_certification import evaluate as basic_set_certification_report
 from wayfarer.rules.catalog import PROTOTYPE_PACKAGE
 from wayfarer.source_audit import report as source_audit_report
 
@@ -84,6 +85,7 @@ def main() -> None:
     parser.add_argument("--output", type=Path, default=Path("artifacts/release"))
     parser.add_argument("--product", action="store_true")
     parser.add_argument("--gurps-source-audit", action="store_true")
+    parser.add_argument("--gurps-basic-set", action="store_true")
     args = parser.parse_args()
     rows, errors = evaluate(args.report)
     approved = json.loads((ROOT / "tests/fixtures/approved_rules.json").read_text())
@@ -105,6 +107,11 @@ def main() -> None:
             errors.append(
                 "Frozen GURPS source audit incomplete; see scripts/audit_gurps_sources.py"
             )
+    basic_set = basic_set_certification_report(ROOT) if args.gurps_basic_set else None
+    if basic_set is not None and not basic_set.certified:
+        errors.append(
+            f"GURPS Basic Set certification has {len(basic_set.blockers)} unresolved blocker(s)"
+        )
     args.output.mkdir(parents=True, exist_ok=True)
     result = {
         "revision": os.environ.get("GITHUB_SHA", "local"),
@@ -114,6 +121,7 @@ def main() -> None:
         "errors": errors,
         "approved_rules": approved,
         "product_prerequisites": product,
+        "gurps_basic_set": basic_set.as_dict() if basic_set is not None else None,
     }
     (args.output / "mechanics.json").write_text(json.dumps(result, indent=2) + "\n")
     lines = [
@@ -137,6 +145,18 @@ def main() -> None:
         ]
     )
     lines.extend(f"| {d.id} | {d.status} | {d.source_id} |" for d in PROTOTYPE_PACKAGE.definitions)
+    if basic_set is not None:
+        lines.extend(
+            [
+                "",
+                "## GURPS Basic Set certification",
+                "",
+                f"Profile: `{basic_set.profile_id}@{basic_set.profile_version}`",
+                f"Digest: `{basic_set.profile_digest}`",
+                f"Result: {'PASS' if basic_set.certified else 'BLOCKED'}",
+                f"Blockers: {len(basic_set.blockers)}",
+            ]
+        )
     lines.extend(
         [
             "",
