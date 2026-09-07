@@ -4,30 +4,33 @@ from typing import TYPE_CHECKING
 
 from wayfarer.errors import ValidationError
 from wayfarer.simulation.resources import ResourceEvent, ResourceState
-from wayfarer.simulation.spells import SpellEvent, SpellResult, active_spells, event_id
+from wayfarer.simulation.spells import SpellEffect, SpellEvent, SpellResult, active_spells, event_id
 
 if TYPE_CHECKING:
     from wayfarer.simulation.actions import PlayState
 
 
-def illuminated(state: PlayState, target_id: str) -> bool:
-    """Torch-sized light (B249); geometry never reveals hidden knowledge by itself."""
+def lights(state: PlayState, target_id: str, *, reversed: bool = False) -> tuple[SpellEffect, ...]:
+    """Local candle light (B249); illumination does not disclose hidden entities."""
     from wayfarer.simulation.combat import CombatEngine, GridPoint
+    from wayfarer.simulation.hex_geometry import Hex
 
     entities = {e.id: e for e in state.world.entities}
     target = entities.get(target_id)
     if target is None:
-        return False
+        return ()
+    found = []
     for effect in active_spells(state.resources):
         if (
             not effect.execute_effects
             or effect.spell_id != "light"
+            or effect.reversed != reversed
             or target.location_id != effect.location_id
         ):
             continue
         if effect.position is None:
             if effect.target_id == target_id:
-                return True
+                found.append(effect)
             continue
         encounter = next((e for e in state.encounters if e.id == effect.encounter_id), None)
         participant = (
@@ -38,12 +41,19 @@ def illuminated(state: PlayState, target_id: str) -> bool:
         if (
             participant
             and CombatEngine.distance(
-                GridPoint(x=effect.position[0], y=effect.position[1]), participant.position
+                Hex(q=effect.position[0], r=effect.position[1])
+                if effect.geometry == "hex"
+                else GridPoint(x=effect.position[0], y=effect.position[1]),
+                participant.position,
             )
-            <= 2
+            <= effect.light_radius
         ):
-            return True
-    return False
+            found.append(effect)
+    return tuple(found)
+
+
+def illuminated(state: PlayState, target_id: str, *, reversed: bool = False) -> bool:
+    return bool(lights(state, target_id, reversed=reversed))
 
 
 def dazed(state: ResourceState, actor_id: str) -> bool:
@@ -74,3 +84,14 @@ def break_daze(state: ResourceState, actor_id: str, command_id: str) -> Resource
                 )
             )
     return state.model_copy(update={"events": state.events + tuple(events)})
+
+
+def lighting_penalty(state: PlayState, target_id: str, darkness: int) -> int:
+    if illuminated(state, target_id, reversed=True):
+        return -10
+    if not illuminated(state, target_id):
+        return darkness
+    return max(
+        darkness,
+        max(0 if e.execution_version == 1 else e.light_penalty for e in lights(state, target_id)),
+    )

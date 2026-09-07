@@ -1,8 +1,8 @@
-"""Provisional Basic Set spell lifecycle on the shared resource ledger.
+"""Versioned Basic Set spell execution on the shared resource ledger.
 
-Intended source: Characters first printing B235-241, B246-247, B249-250,
-with 2007-01-26 errata. Numeric rules reconstructed under project policy;
-source audit and full play adapters remain certification blockers.
+Execution v2 was reviewed against Characters third printing B235-241,
+B246-247 and B249-251. See docs/gurps-spell-execution.md for provenance,
+historical pins and the separate frozen-source certification boundary.
 """
 
 import hashlib
@@ -82,6 +82,8 @@ class SpellContext(Record):
     """
 
     profile_id: str
+    execution_version: Literal[1, 2] = 1
+    iq: int = Field(default=10, ge=1)
     build_revision: Id
     skill: int = Field(ge=1, le=100)
     magery: int = Field(default=0, ge=-1, le=100)
@@ -100,15 +102,30 @@ class SpellContext(Record):
     location_id: str | None = None
     encounter_id: str | None = None
     position: tuple[int, int] | None = None
+    geometry: Literal["square", "hex"] = "square"
+    light_radius: int = Field(default=2, ge=0, le=100)
+    light_penalty: int = Field(default=-3, ge=-9, le=0)
 
 
 class SpellCommand(Command):
-    kind: Literal["start", "concentrate", "complete", "maintain", "cancel", "expand", "release"]
+    kind: Literal[
+        "start",
+        "concentrate",
+        "complete",
+        "maintain",
+        "cancel",
+        "expand",
+        "release",
+        "remember",
+        "focus",
+    ]
     spell_id: SpellId
     cast_id: Id
     channel_id: Id | None = Field(default=None, exclude_if=lambda value: value is None)
     radius: int = Field(default=1, ge=1, le=100, exclude_if=lambda value: value == 1)
     energy: int = Field(default=1, ge=1, le=100, exclude_if=lambda value: value == 1)
+    hp_energy: int = Field(default=0, ge=0, le=1000, exclude_if=lambda value: value == 0)
+    position: tuple[int, int] | None = Field(default=None, exclude_if=lambda value: value is None)
 
 
 class SpellEffect(Record):
@@ -132,8 +149,16 @@ class SpellEffect(Record):
     location_id: str | None = None
     encounter_id: str | None = None
     position: tuple[int, int] | None = None
+    geometry: Literal["square", "hex"] = "square"
+    light_radius: int = Field(default=2, ge=0, le=100)
+    light_penalty: int = Field(default=-3, ge=-9, le=0)
     concentration_seconds: int = 1
     missile_seconds: int = 1
+    hp_energy: int = 0
+    execution_version: Literal[1, 2] = 1
+    required_turns: int | None = None
+    concentrating: bool = False
+    reversed: bool = False
 
 
 class SpellResult(Record):
@@ -146,8 +171,11 @@ class SpellResult(Record):
         "interrupted",
         "critical-failure",
         "released",
+        "remembered",
+        "forgotten",
     ]
     energy_spent: int = 0
+    hp_spent: int = Field(default=0, exclude_if=lambda value: value == 0)
     checks: tuple[CheckTrace, ...] = ()
 
 
@@ -206,6 +234,8 @@ def cost_reduction(skill: int) -> int:
 
 
 def casting_seconds(seconds: int, skill: int, *, missile: bool = False) -> int:
+    if skill < 10:
+        return seconds * 2
     if missile or skill < 20:
         return seconds
     divisor = 1 << (1 + (skill - 20) // 5)
@@ -219,6 +249,7 @@ def apply_spell(
     *,
     rng: RandomSource,
     system: bool = False,
+    validate_only: bool = False,
 ) -> tuple[ResourceState, SpellResult]:
     """Commit the returned checkpoint atomically using the existing store CAS.
 
@@ -243,6 +274,12 @@ def apply_spell(
     require_hazards_settled(
         state.hazards, frozenset({command.actor_id, context.target_id}), state.game_time
     )
+    if command.hp_energy and command.kind in ("concentrate", "release", "focus", "remember"):
+        raise ValidationError("This maneuver does not consume spell energy")
+    from wayfarer.simulation.spell_backfires import forgotten
+    from wayfarer.simulation.spell_backfires import require_settled as backfires_settled
+
+    backfires_settled(state, command.actor_id)
     spec = SPELLS[command.spell_id]
     effect = latest(state).get(command.cast_id)
     fp = next((p for p in state.pools if p.id == "fp:" + command.actor_id), None)
@@ -259,12 +296,14 @@ def apply_spell(
     if effect and (effect.actor_id != command.actor_id or effect.spell_id != command.spell_id):
         raise ConflictError("Cast identity belongs to another actor or spell")
     if command.kind != "cancel":
-        if context.mana in ("none", "very-high"):
+        if context.mana == "none" or (
+            context.mana == "very-high" and context.execution_version == 1
+        ):
             raise ValidationError("No-mana casting and unaudited very-high mana are unavailable")
         if (
             context.unavailable
             or hp.injury.incapacitated
-            or hp.injury.stunned
+            or (hp.injury.stunned and command.kind != "maintain")
             or fp.fatigue.collapsed
             or fp.fatigue.unconscious
             or fp.fatigue.heart_attack
@@ -272,6 +311,8 @@ def apply_spell(
             raise ValidationError("Caster cannot concentrate")
     checks: list[CheckTrace] = []
     spent = 0
+    hp_spent = 0
+    hp_budget = command.hp_energy
     outcome: Literal[
         "casting",
         "active",
@@ -281,8 +322,22 @@ def apply_spell(
         "interrupted",
         "critical-failure",
         "released",
+        "remembered",
+        "forgotten",
     ]
-    if command.kind == "start":
+    if command.kind == "remember":
+        from wayfarer.simulation.spell_backfires import remember
+
+        if effect is None:
+            raise ConflictError("Unknown forgotten cast")
+        state, memory = remember(
+            state, command.actor_id, command.cast_id, command.id, context.iq, rng
+        )
+        checks.append(memory)
+        outcome = "remembered" if memory.outcome.succeeded else "forgotten"
+    elif command.kind == "start":
+        if forgotten(state, command.actor_id, command.spell_id):
+            raise ConflictError("Caster has temporarily forgotten this spell")
         if effect is not None:
             raise ConflictError("Cast identity already used")
         require_idle_concentration(state, command.actor_id)
@@ -295,7 +350,9 @@ def apply_spell(
             context.learned
         ):
             raise ValidationError("Spell and prerequisites must be learned")
-        if context.magery < spec.magery and not (spec.magery == 0 and context.mana == "high"):
+        if context.magery < spec.magery and not (
+            spec.magery == 0 and context.mana in ("high", "very-high")
+        ):
             raise ValidationError("Required Magery unavailable")
         if (
             spec.kind != "area"
@@ -306,7 +363,8 @@ def apply_spell(
             raise ValidationError("Spell does not accept this area or energy")
         if spec.kind == "missile" and context.energy > context.magery:
             raise ValidationError("Initial missile energy exceeds Magery")
-        reduction = cost_reduction(context.skill)
+        ritual_skill = context.skill - (5 if context.mana == "low" else 0)
+        reduction = cost_reduction(ritual_skill)
         scale = (
             context.radius
             if spec.kind == "area"
@@ -315,10 +373,16 @@ def apply_spell(
             else 1
         )
         cost = max(0, spec.cost * scale - reduction)
-        if fp.current < max(1, cost):
-            raise ValidationError("Insufficient FP; HP-powered casting is unavailable")
-        penalty = sum(1 for e in active_spells(state) if e.actor_id == command.actor_id)
-        skill = context.skill - (5 if context.mana == "low" else 0) - hp.injury.shock - penalty
+        if command.hp_energy > cost:
+            raise ValidationError("HP contribution exceeds the spell energy cost")
+        if fp.current < cost - command.hp_energy:
+            raise ValidationError("Insufficient FP for the selected energy contribution")
+        penalty = sum(
+            3 if e.concentrating else 1
+            for e in active_spells(state)
+            if e.actor_id == command.actor_id
+        )
+        skill = ritual_skill - hp.injury.shock - penalty - command.hp_energy
         if spec.kind != "missile":
             skill -= context.distance
         if skill < 1:
@@ -332,7 +396,8 @@ def apply_spell(
             phase="casting",
             started_at=state.game_time,
             ready_at=state.game_time
-            + casting_seconds(spec.seconds, context.skill, missile=spec.kind == "missile"),
+            + casting_seconds(spec.seconds, ritual_skill, missile=spec.kind == "missile")
+            - int(context.execution_version == 2 and context.encounter_id is not None),
             skill=skill,
             cost=cost,
             maintenance=max(
@@ -341,18 +406,26 @@ def apply_spell(
             hp_at_start=hp.current,
             radius=context.radius,
             energy=context.energy,
+            hp_energy=command.hp_energy,
+            execution_version=context.execution_version,
+            required_turns=casting_seconds(
+                spec.seconds, ritual_skill, missile=spec.kind == "missile"
+            )
+            if context.execution_version == 2 and context.encounter_id
+            else None,
             execute_effects=context.execute_effects,
             location_id=context.location_id,
             encounter_id=context.encounter_id,
             position=context.position,
+            geometry=context.geometry,
+            light_radius=context.light_radius,
+            light_penalty=context.light_penalty,
         )
         outcome = "casting"
     else:
         if effect is None or effect.phase == "ended":
             raise ConflictError("Cast is not available")
         if command.kind == "cancel":
-            if effect.phase == "active" and spec.kind == "missile":
-                raise ValidationError("Held missile disposal requires the missile adapter")
             if (
                 effect.phase == "active"
                 and effect.expires_at is not None
@@ -367,7 +440,36 @@ def apply_spell(
                 or effect.target_id != context.target_id
             ):
                 raise ConflictError("Spell binding changed")
-            if command.kind == "release":
+            if command.kind == "focus":
+                from wayfarer.simulation.combat import CombatEngine, GridPoint
+                from wayfarer.simulation.hex_geometry import Hex
+
+                if (
+                    effect.phase != "active"
+                    or effect.spell_id != "light"
+                    or effect.execution_version != 2
+                    or effect.position is None
+                    or context.position is None
+                    or effect.geometry != context.geometry
+                ):
+                    raise ValidationError("Only an active Light supports this manipulation")
+                origin = (
+                    Hex(q=effect.position[0], r=effect.position[1])
+                    if effect.geometry == "hex"
+                    else GridPoint(x=effect.position[0], y=effect.position[1])
+                )
+                destination = (
+                    Hex(q=context.position[0], r=context.position[1])
+                    if effect.geometry == "hex"
+                    else GridPoint(x=context.position[0], y=context.position[1])
+                )
+                if CombatEngine.distance(origin, destination) > 5:
+                    raise ValidationError("Light manipulation exceeds Move 5")
+                effect = effect.model_copy(
+                    update={"position": context.position, "concentrating": True}
+                )
+                outcome = "active"
+            elif command.kind == "release":
                 if (
                     spec.kind != "missile"
                     or effect.phase != "active"
@@ -381,20 +483,27 @@ def apply_spell(
                     or effect.phase != "active"
                     or effect.missile_seconds >= 3
                     or context.energy > context.magery
-                    or state.game_time != effect.ready_at
+                    or state.game_time
+                    != effect.ready_at
+                    + int(effect.execution_version == 2 and effect.encounter_id is not None)
                 ):
                     raise ConflictError(
                         "Enlarge a held missile on the next casting second, at most three seconds"
                     )
                 new_energy = effect.energy + context.energy
-                new_cost = max(0, new_energy - cost_reduction(context.skill))
+                new_cost = max(
+                    0,
+                    new_energy
+                    - cost_reduction(context.skill - (5 if context.mana == "low" else 0)),
+                )
                 spent = new_cost - effect.cost
                 effect = effect.model_copy(
                     update={
                         "energy": new_energy,
                         "cost": new_cost,
                         "missile_seconds": effect.missile_seconds + 1,
-                        "ready_at": state.game_time + 1,
+                        "ready_at": state.game_time
+                        + int(effect.execution_version == 1 or effect.encounter_id is None),
                     }
                 )
                 outcome = "active"
@@ -402,7 +511,11 @@ def apply_spell(
                 if (
                     effect.phase != "casting"
                     or state.game_time != effect.started_at + effect.concentration_seconds
-                    or state.game_time >= effect.ready_at
+                    or (
+                        state.game_time > effect.ready_at
+                        if effect.required_turns
+                        else state.game_time >= effect.ready_at
+                    )
                 ):
                     raise ConflictError("Concentrate on each consecutive casting second")
                 effect = effect.model_copy(
@@ -423,12 +536,12 @@ def apply_spell(
             else:
                 if effect.phase != "casting" or state.game_time != effect.ready_at:
                     raise ConflictError("Complete concentration at its shared-clock deadline")
-                if (
-                    effect.execute_effects
-                    and effect.concentration_seconds != effect.ready_at - effect.started_at
+                if effect.execute_effects and effect.concentration_seconds != (
+                    effect.required_turns or effect.ready_at - effect.started_at
                 ):
                     raise ConflictError("Every casting second requires concentration")
-                if fp.current < effect.cost:
+                hp_budget = effect.hp_energy
+                if fp.current < effect.cost - hp_budget:
                     raise ConflictError("Caster no longer has casting energy")
                 interrupted = False
                 if effect.distracted or context.distracted or hp.current < effect.hp_at_start:
@@ -440,7 +553,9 @@ def apply_spell(
                 else:
                     check = success_roll(PROFILE, effect.skill, rng=rng)
                     checks.append(check)
-                    if check.outcome is Outcome.CRITICAL_FAILURE:
+                    if check.outcome is Outcome.CRITICAL_FAILURE or (
+                        context.mana == "very-high" and not check.outcome.succeeded
+                    ):
                         outcome, spent = "critical-failure", effect.cost
                     elif not check.outcome.succeeded:
                         outcome, spent = "failed", min(1, effect.cost)
@@ -467,8 +582,42 @@ def apply_spell(
                     }
                 )
     assert effect is not None
-    if spent:
-        if fp.current < spent:
+    if command.kind in ("maintain", "cancel", "expand") and hp_budget > spent:
+        raise ValidationError("HP contribution exceeds this operation's energy cost")
+    hp_cost = min(hp_budget, spent)
+    fp_cost = spent - hp_cost
+    if fp.current < fp_cost:
+        raise ConflictError("Caster no longer has reserved casting energy")
+    if validate_only:
+        if command.kind not in ("release", "expand"):
+            raise ValidationError("Preflight supports only missile maneuvers")
+        return state, SpellResult(outcome=outcome, energy_spent=spent, hp_spent=hp_cost)
+    if hp_cost:
+        from wayfarer.simulation.injury import Wound, apply_injury
+
+        state, injury = apply_injury(
+            state,
+            Wound(
+                id=event_id(command.id) + ":hp",
+                actor_id=command.actor_id,
+                expected_revision=state.revision,
+                basic_damage=hp_cost,
+                resistance=0,
+                damage_type="cr",
+            ),
+            ht=context.ht,
+            rng=rng,
+            system=True,
+            burning_hp=True,
+        )
+        hp_spent = injury.injury
+        if hp_spent != hp_cost:
+            outcome = "interrupted"
+            effect = effect.model_copy(update={"phase": "ended"})
+            fp_cost = 0
+        spent = hp_spent + fp_cost
+    if fp_cost:
+        if fp.current < fp_cost:
             raise ConflictError("Caster no longer has reserved casting energy")
         state, _ = apply_fatigue(
             state,
@@ -476,12 +625,50 @@ def apply_spell(
                 id=event_id(command.id) + ":energy",
                 actor_id=command.actor_id,
                 expected_revision=state.revision,
-                amount=spent,
+                amount=fp_cost,
             ),
             ht=context.ht,
             rng=rng,
             system=True,
         )
+    if (
+        fp_cost
+        and context.mana == "very-high"
+        and context.magery >= 0
+        and command.kind in ("complete", "expand")
+    ):
+        from wayfarer.simulation.spell_backfires import refund_later
+
+        state = refund_later(
+            state,
+            command.actor_id,
+            command.id,
+            fp_cost,
+            combat=context.encounter_id is not None,
+            before_turn=False,
+        )
+    if outcome == "critical-failure" and context.execution_version == 2:
+        from wayfarer.simulation.spell_backfires import apply_backfire
+
+        actual_critical = bool(checks and checks[-1].outcome is Outcome.CRITICAL_FAILURE)
+        state = apply_backfire(
+            state,
+            command_id=command.id,
+            actor_id=command.actor_id,
+            cast_id=command.cast_id,
+            spell_id=command.spell_id,
+            ht=context.ht,
+            severity="mild"
+            if context.mana == "low"
+            else "disaster"
+            if context.mana == "very-high" and actual_critical
+            else "normal",
+            rng=rng,
+        )
+    if outcome == "resisted":
+        from wayfarer.simulation.spell_effects import break_daze
+
+        state = break_daze(state, context.target_id, command.id)
     state = state.model_copy(
         update={
             "recovery_tasks": interrupt_tasks(
@@ -489,7 +676,9 @@ def apply_spell(
             )
         }
     )
-    result = SpellResult(outcome=outcome, energy_spent=spent, checks=tuple(checks))
+    result = SpellResult(
+        outcome=outcome, energy_spent=spent, hp_spent=hp_spent, checks=tuple(checks)
+    )
     event = SpellEvent(effect=effect, result=result)
     return state.model_copy(
         update={

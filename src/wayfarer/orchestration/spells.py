@@ -14,7 +14,7 @@ from wayfarer.orchestration.spell_bindings import approved_context as build_cont
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import CombatEngine, Defense, Encounter, GridPoint, PendingDefense
 from wayfarer.simulation.maneuvers import ManeuverState
-from wayfarer.simulation.resources import Advance, ResourceEvent
+from wayfarer.simulation.resources import Advance, ResourceEvent, ResourceState
 from wayfarer.simulation.spells import (
     PROFILE,
     SpellCommand,
@@ -23,6 +23,7 @@ from wayfarer.simulation.spells import (
     SpellResult,
     apply_spell,
     event_id,
+    latest,
 )
 
 SpellResolver = Callable[[PlayService, PlayState, SpellCommand], SpellEnvironment]
@@ -52,18 +53,47 @@ def approved_context(play: PlayService, state: PlayState, command: SpellCommand)
         None,
     )
     position = None
+    geometry = "square"
     distance = channel.distance_yards
     if encounter:
         positions = {p.actor_id: p.position for p in encounter.participants}
         if channel.target_id not in positions:
             raise ValidationError("Spell target is outside the encounter")
         point = positions[channel.target_id]
-        if not isinstance(point, GridPoint):
-            raise ValidationError("Spell bindings require supported square combat placements")
-        position = (point.x, point.y)
+        if isinstance(point, GridPoint):
+            position = (point.x, point.y)
+        else:
+            position = (point.q, point.r)
+            geometry = "hex"
         distance = CombatEngine.distance(positions[command.actor_id], point)
     elif command.spell_id in ("create-fire", "fireball"):
         raise ValidationError("Area and missile spells require authoritative combat placements")
+    if command.position is not None:
+        if command.kind != "focus" or encounter is None:
+            raise ValidationError("A manipulation destination requires combat concentration")
+        if encounter.hex_battlefield is not None:
+            from wayfarer.simulation.hex_geometry import Hex
+
+            cell = encounter.hex_battlefield.cell(Hex(q=command.position[0], r=command.position[1]))
+            if cell.blocked:
+                raise ValidationError("Light cannot move inside solid terrain")
+        else:
+            field = (
+                next(
+                    f
+                    for f in play.engine.rules.combat.battlefields
+                    if f.id == encounter.battlefield_id
+                )
+                if play.engine.rules.combat
+                else None
+            )
+            if field is None or not (
+                0 <= command.position[0] < field.width and 0 <= command.position[1] < field.height
+            ):
+                raise ValidationError("Light destination is outside the battlefield")
+        position = command.position
+    if command.kind == "focus" and command.position is None:
+        raise ValidationError("Light manipulation requires a destination")
     context = build_context(
         play,
         state,
@@ -79,9 +109,13 @@ def approved_context(play: PlayService, state: PlayState, command: SpellCommand)
     return context.model_copy(
         update={
             "execute_effects": True,
+            "execution_version": rules.execution_version,
             "location_id": channel.location_id,
             "encounter_id": encounter.id if encounter else None,
             "position": position,
+            "geometry": geometry,
+            "light_radius": channel.light_radius,
+            "light_penalty": channel.light_penalty,
         }
     )
 
@@ -93,33 +127,63 @@ def combat_guard(state: PlayState, command: SpellCommand) -> Encounter | None:
     )
     if encounter is None:
         return None
+    interrupt = encounter.wait_interrupt
+    reaction = bool(
+        interrupt
+        and not interrupt.ready
+        and not interrupt.reacting
+        and interrupt.waiter_id == command.actor_id
+        and command.kind == "release"
+        and interrupt.declaration.reaction == "attack"
+        and interrupt.declaration.item_id
+        == "spell:" + hashlib.sha256(command.cast_id.encode()).hexdigest()
+    )
     if (
         encounter.pending_defense is not None
         or encounter.pending_unarmed is not None
-        or encounter.wait_interrupt is not None
+        or (encounter.wait_interrupt is not None and not reaction)
         or encounter.blocked_reason
-        or encounter.current_actor_id != command.actor_id
+        or (encounter.current_actor_id != command.actor_id and not reaction)
     ):
         raise ConflictError("Spell must obey the encounter turn and defense pause")
     actor = next(p for p in encounter.participants if p.actor_id == command.actor_id)
     if actor.forced_do_nothing and command.kind != "cancel":
         raise ValidationError("Actor must take the required Do Nothing maneuver")
-    if command.kind == "release" and any(
-        p.maneuver_state.wait
-        and p.maneuver_state.wait.actor_id == command.actor_id
-        and p.maneuver_state.wait.action == "attack"
-        for p in encounter.participants
+    if (
+        command.kind == "release"
+        and not reaction
+        and any(
+            p.maneuver_state.wait
+            and p.maneuver_state.wait.actor_id == command.actor_id
+            and p.maneuver_state.wait.action == "attack"
+            for p in encounter.participants
+        )
     ):
         raise ConflictError("Missile release cannot bypass a declared Wait")
     return encounter
 
 
 def advance_cast_turn(
-    play: PlayService, state: PlayState, encounter: Encounter, command: SpellCommand
+    play: PlayService,
+    state: PlayState,
+    encounter: Encounter,
+    command: SpellCommand,
+    context: SpellContext,
+    *,
+    turn_started: bool = False,
 ) -> PlayState:
     from wayfarer.orchestration.gurps_melee import injury_turn
 
-    state = injury_turn(play, state, command.actor_id, command.id, start=True, do_nothing=False)
+    if not turn_started:
+        before_hp = next(p for p in state.resources.pools if p.id == "hp:" + command.actor_id)
+        state = injury_turn(
+            play,
+            state,
+            command.actor_id,
+            command.id,
+            start=True,
+            do_nothing=bool(before_hp.injury and before_hp.injury.stunned),
+        )
     hp = next(p for p in state.resources.pools if p.id == "hp:" + command.actor_id)
     interrupted = bool(hp.injury and hp.injury.incapacitated)
     if interrupted:
@@ -132,8 +196,10 @@ def advance_cast_turn(
                 update={
                     "kind": record.model_copy(
                         update={
-                            "effect": record.effect.model_copy(update={"phase": "ended"}),
-                            "result": SpellResult(outcome="interrupted"),
+                            "effect": record.effect.model_copy(update={"phase": "ended"})
+                            if record.effect.phase == "casting"
+                            else record.effect,
+                            "result": record.result.model_copy(update={"outcome": "interrupted"}),
                         }
                     ).model_dump_json()
                 }
@@ -143,6 +209,51 @@ def advance_cast_turn(
             update={
                 "resources": state.resources.model_copy(
                     update={"events": tuple(interrupt(e) for e in state.resources.events)}
+                )
+            }
+        )
+    effect = latest(state.resources).get(command.cast_id)
+    if (
+        not interrupted
+        and effect is not None
+        and effect.execution_version == 2
+        and effect.phase == "casting"
+        and effect.required_turns == effect.concentration_seconds
+    ):
+        completed = command.model_copy(
+            update={
+                "id": "complete:" + hashlib.sha256(command.id.encode()).hexdigest(),
+                "kind": "complete",
+                "expected_revision": state.resources.revision,
+                "hp_energy": 0,
+            }
+        )
+        resources, result = apply_spell(
+            state.resources, completed, context, rng=play.rng, system=True
+        )
+        completed_effect = latest(resources)[command.cast_id]
+        events = []
+        for event in resources.events:
+            if event.id == event_id(command.id):
+                record = SpellEvent.model_validate_json(event.kind)
+                event = event.model_copy(
+                    update={
+                        "kind": record.model_copy(
+                            update={
+                                "effect": completed_effect,
+                                "result": result,
+                            }
+                        ).model_dump_json()
+                    }
+                )
+            events.append(event)
+        state = state.model_copy(
+            update={
+                "resources": resources.model_copy(
+                    update={
+                        "events": tuple(events),
+                        "revision": state.revision,
+                    }
                 )
             }
         )
@@ -190,6 +301,18 @@ def advance_cast_turn(
             ),
         }
     )
+
+
+def apparent_result(
+    resources: ResourceState, command: SpellCommand, result: SpellResult
+) -> SpellResult:
+    from wayfarer.simulation.spell_backfires import backfires
+
+    if result.outcome == "critical-failure" and any(
+        b.cast_id == command.cast_id and b.flavor == "illusion" for b in backfires(resources)
+    ):
+        return result.model_copy(update={"outcome": "active", "checks": ()})
+    return result
 
 
 class SpellService:
@@ -250,20 +373,18 @@ class SpellService:
                 if self.resolve
                 else approved_context(play, before, command)
             )
+            if (
+                encounter is not None
+                and context.execution_version == 2
+                and command.kind == "complete"
+            ):
+                raise ValidationError(
+                    "Combat casting completes within its final Concentrate maneuver"
+                )
             if command.kind in ("release", "expand") and (
                 encounter is None or self.resolve is not None
             ):
                 raise ValidationError("Missile commands require approved combat dispatch")
-            if (
-                command.kind in ("release", "expand")
-                and next(
-                    p.current for p in before.resources.pools if p.id == "hp:" + command.actor_id
-                )
-                <= 0
-            ):
-                raise ValidationError(
-                    "Missile handling at nonpositive HP requires the held-missile injury adapter"
-                )
             if command.kind == "release" and context.distance > 50:
                 raise ValidationError("Fireball exceeds its maximum range")
             if context.profile_id != PROFILE:
@@ -271,28 +392,110 @@ class SpellService:
             if command.actor_id not in {a.actor_id for a in before.actors}:
                 raise ValidationError("Unknown caster")
             perceived = {e.id for e in before.world.perspective(command.actor_id).entities}
-            if context.target_id != command.actor_id and context.target_id not in perceived:
+            if (
+                command.kind not in ("cancel", "remember")
+                and context.target_id != command.actor_id
+                and context.target_id not in perceived
+            ):
                 raise ValidationError("Spell target is not perceived")
             if command.kind == "start":
                 from wayfarer.simulation.concentration import require_idle_concentration
 
                 require_idle_concentration(before.resources, command.actor_id)
-            resources, result = apply_spell(
-                before.resources, command, context, rng=play.rng, system=True
-            )
+            turn_started = False
+            unable_to_handle = False
+            casting_resources = before.resources
+            if (
+                encounter is not None
+                and encounter.wait_interrupt is None
+                and command.kind in ("start", "concentrate", "focus", "release", "expand")
+            ):
+                from wayfarer.simulation.spell_backfires import refund_due
+
+                hp = next(p for p in casting_resources.pools if p.id == "hp:" + command.actor_id)
+                assert hp.injury
+                casting_resources = refund_due(
+                    casting_resources, command.actor_id, turn=hp.injury.turn + 1
+                )
+            if encounter is not None and command.kind in ("release", "expand"):
+                if command.kind == "release" and context.target_id == command.actor_id:
+                    raise ValidationError("Missile release requires another participant")
+                if (
+                    encounter.wait_interrupt is not None
+                    and encounter.wait_interrupt.declaration.reaction_target_id != context.target_id
+                ):
+                    raise ValidationError("Missile Wait target differs from its declaration")
+                apply_spell(
+                    casting_resources,
+                    command,
+                    context,
+                    rng=play.rng,
+                    system=True,
+                    validate_only=True,
+                )
+                if encounter.wait_interrupt is None:
+                    from wayfarer.orchestration.gurps_melee import injury_turn
+
+                    began = injury_turn(
+                        play, before, command.actor_id, command.id, start=True, do_nothing=False
+                    )
+                    casting_resources = began.resources.model_copy(
+                        update={"revision": before.revision}
+                    )
+                    turn_started = True
+                    hp = next(
+                        p for p in casting_resources.pools if p.id == "hp:" + command.actor_id
+                    )
+                    unable_to_handle = bool(hp.injury and hp.injury.incapacitated)
+            if unable_to_handle:
+                effect = latest(casting_resources)[command.cast_id]
+                result = SpellResult(outcome="interrupted")
+                resources = casting_resources.model_copy(
+                    update={
+                        "revision": before.revision + 1,
+                        "events": casting_resources.events
+                        + (
+                            ResourceEvent(
+                                id=event_id(command.id),
+                                at=casting_resources.game_time,
+                                target_id=command.actor_id,
+                                kind=SpellEvent(effect=effect, result=result).model_dump_json(),
+                            ),
+                        ),
+                    }
+                )
+            else:
+                resources, result = apply_spell(
+                    casting_resources, command, context, rng=play.rng, system=True
+                )
             updated = before.model_copy(
                 update={"revision": resources.revision, "resources": resources}
             )
-            if encounter is not None and command.kind in ("start", "concentrate", "expand"):
-                updated = advance_cast_turn(play, updated, encounter, command)
-            if encounter is not None and command.kind == "release":
+            if encounter is not None and (
+                unable_to_handle or command.kind in ("start", "concentrate", "expand", "focus")
+            ):
+                updated = advance_cast_turn(
+                    play, updated, encounter, command, context, turn_started=turn_started
+                )
+            if encounter is not None and command.kind == "release" and not unable_to_handle:
                 from wayfarer.orchestration.gurps_melee import defense_value, injury_turn
 
                 if context.target_id == command.actor_id:
                     raise ValidationError("Missile release requires another participant")
-                updated = injury_turn(
-                    play, updated, command.actor_id, command.id, start=True, do_nothing=False
-                )
+                if encounter.wait_interrupt is not None:
+                    interrupt = encounter.wait_interrupt
+                    if interrupt.declaration.reaction_target_id != context.target_id:
+                        raise ValidationError("Missile Wait target differs from its declaration")
+                    encounter = encounter.model_copy(
+                        update={
+                            "turn_index": encounter.turn_order.index(command.actor_id),
+                            "wait_interrupt": interrupt.model_copy(update={"reacting": True}),
+                        }
+                    )
+                elif not turn_started:
+                    updated = injury_turn(
+                        play, updated, command.actor_id, command.id, start=True, do_nothing=False
+                    )
                 hp = next(p for p in updated.resources.pools if p.id == "hp:" + command.actor_id)
                 if hp.injury and hp.injury.incapacitated:
                     raise ValidationError("Caster cannot release the missile")
@@ -354,7 +557,10 @@ class SpellService:
             )
             # Roll targets, opposed traces, and bindings stay in the private ledger.
             return Event(
-                input=payload, action="resource", outcome="spell:" + result.outcome, roll=None
+                input=payload,
+                action="resource",
+                outcome="spell:" + apparent_result(updated.resources, command, result).outcome,
+                roll=None,
             )
 
         committed = await play.store.commit_turn(
@@ -367,4 +573,9 @@ class SpellService:
         )
         saved = play._load(committed["state"])
         recorded = next(e for e in saved.resources.events if e.id == event_id(command.id))
-        return SpellEvent.model_validate_json(recorded.kind).result
+        result = SpellEvent.model_validate_json(recorded.kind).result
+        return (
+            apparent_result(saved.resources, command, result)
+            if principal_id is not None
+            else result
+        )

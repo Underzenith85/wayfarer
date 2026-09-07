@@ -1,5 +1,7 @@
 """Held Fireball release through the existing defense pause and injury service."""
 
+from dataclasses import replace
+
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.gurps_melee import build, defense_value, level
 from wayfarer.orchestration.gurps_ranged import range_penalty
@@ -58,6 +60,9 @@ def resolve(
         - (actor_hp.injury.shock if actor_hp.injury else 0),
         rng=play.rng,
     )
+    attack = replace(attack, rule_id="gurps.combat.ranged_attack")
+    if attack.outcome is Outcome.CRITICAL_FAILURE and attack.total < 17:
+        attack = replace(attack, outcome=Outcome.FAILURE)
     defended = None
     second_roll = None
     hit = attack.outcome.succeeded
@@ -82,15 +87,27 @@ def resolve(
             elif choice == "block" and equipment_id:
                 dropped.add(equipment_id)
     resources = state.resources
-    # Same fail-closed critical-table boundary as the Basic ranged service.
-    blocked = attack.outcome in (Outcome.CRITICAL_SUCCESS, Outcome.CRITICAL_FAILURE)
-    critical = tuple(play.rng.randbelow(6) + 1 for _ in range(3)) if blocked else ()
-    dice = (
-        tuple(play.rng.randbelow(6) + 1 for _ in range(effect.energy))
-        if hit and not blocked
+    # B556 body criticals use the same injury options as physical missiles.
+    critical = (
+        tuple(play.rng.randbelow(6) + 1 for _ in range(3))
+        if attack.outcome in (Outcome.CRITICAL_SUCCESS, Outcome.CRITICAL_FAILURE)
         else ()
     )
-    damage = sum(dice) // (2 if distance > 25 else 1)
+    row = sum(critical) if attack.outcome is Outcome.CRITICAL_SUCCESS else 0
+    blocked = attack.outcome is Outcome.CRITICAL_FAILURE
+    if blocked and sum(critical) in (7, 13, 16):
+        attacker = attacker.model_copy(update={"defense_penalty": -2})
+        encounter = CombatEngine._replace(encounter, attacker)
+        blocked = False
+    maximum = row in (6, 15)
+    dice = (
+        tuple(play.rng.randbelow(6) + 1 for _ in range(effect.energy))
+        if hit and not blocked and not maximum
+        else ()
+    )
+    damage = 6 * effect.energy if maximum else sum(dice)
+    damage *= 3 if row in (3, 18) else 2 if row in (5, 16) else 1
+    damage //= 2 if distance > 25 else 1
     dr = armor(play, state, defender.actor_id)
     lost = 0
     if damage:
@@ -113,8 +130,14 @@ def resolve(
             rng=play.rng,
             system=True,
             held_item_ids=held,
+            force_major_wound=row in (7, 13, 14),
+            double_shock=row == 8,
+            funny_bone=row == 8,
+            halve_dr="down" if row in (4, 17) else None,
         )
         lost = injury.injury
+        if row == 12:
+            dropped.update(held)
     resources = resources.model_copy(
         update={
             "items": tuple(
@@ -175,7 +198,7 @@ def resolve(
             adjudication_required="ranged-critical-table" if blocked else None,
             shots_fired=1,
             hits=int(hit and not blocked),
-            per_hit_damage=(damage,) if dice else (),
-            per_hit_injury=(lost,) if dice else (),
+            per_hit_damage=(damage,) if hit and not blocked else (),
+            per_hit_injury=(lost,) if hit and not blocked else (),
         ),
     )

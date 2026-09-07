@@ -1,7 +1,11 @@
 import { LiveTransport } from "./live";
 import { NetworkPlayTransport } from "../api/play-transport";
 import { OnboardingPanel } from "../onboarding/panel";
-import { VoicePanel } from "../voice/panel";
+import { VoiceMic } from "../voice/input";
+import { voiceStatus } from "../voice/status";
+import { NarrationControls } from "../voice/narration";
+import { useVoice, useVoiceState } from "../voice/use-voice";
+import type { VoiceController } from "../voice/controller";
 import { LiveControls } from "./live-controls";
 import { TacticalControls } from "./tactical";
 import {
@@ -9,13 +13,13 @@ import {
   DiscoveryJournal,
   SessionClosure,
 } from "../adventure/pages";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { ScopedLink } from "../scoped-link";
 import { ArrowUp, ChevronRight, MessageCircle, Sparkles } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { usePlay } from "./use-play";
-import type { Entry } from "./store";
+import type { Entry, PlayState, PlayStore } from "./store";
 import type { Channel, Intent } from "./transport";
 import { MultiplayerPanel } from "../multiplayer/panel";
 import { pagePath } from "../routes";
@@ -356,23 +360,88 @@ function ActionEntry({ entry }: { entry: Entry }) {
     </li>
   );
 }
-function Composer() {
+/**
+ * One composer for one turn (#195-#198): the suggested actions the engine will
+ * accept, the channel, speech input and the free-text field are one region with
+ * one primary action. Voice is an input method here, not a parallel channel:
+ * its transcript lands in this field, for review, and leaves through this Send.
+ */
+function Composer({ voice }: { voice: VoiceController }) {
   const { state, store } = usePlay();
   const [channel, setChannel] = useState<Channel>("action");
+  const speech = useVoiceState(voice);
+  useEffect(() => {
+    voice.setChannel(channel);
+  }, [voice, channel]);
   const draft = state.drafts[channel];
   const kind = channel === "ooc" ? "question" : "text";
   // One reason, the one that actually applies, for the whole input group.
   const blocked = store.sendBlockReason(kind);
   const max = channel === "dialogue" ? 1975 : 2000;
+  const reviewing = speech.capture === "review";
+  const capturing = ["requesting", "listening", "interpreting"].includes(
+    speech.capture,
+  );
+  // The field holds one text: the typed draft, or the transcript under review.
+  // A reviewed transcript is memory-only and never reaches device draft storage.
+  const text = speech.capture === "idle" ? draft : speech.transcript;
+  const status = voiceStatus(speech);
   const send = async (e: FormEvent) => {
     e.preventDefault();
-    await store.send(channel, draft);
+    if (reviewing) await voice.submit();
+    else await store.send(channel, draft);
   };
+  const name =
+    channel === "action"
+      ? "action"
+      : channel === "dialogue"
+        ? "dialogue"
+        : "question";
   return (
     <form className="composer" onSubmit={(e) => void send(e)}>
-      <fieldset disabled={state.busy || !!state.retry}>
-        <legend>Message channel</legend>
-        <div className="channel-picker">
+      <SceneSuggestions />
+      <label htmlFor="play-draft">
+        {channel === "action"
+          ? "What do you do?"
+          : channel === "dialogue"
+            ? "What does your character say?"
+            : "Ask an out-of-character question"}
+      </label>
+      <textarea
+        id="play-draft"
+        className={capturing ? "capturing" : undefined}
+        rows={3}
+        maxLength={max}
+        value={text}
+        disabled={!!blocked}
+        readOnly={capturing}
+        aria-describedby={blocked ? "composer-block" : undefined}
+        onChange={(e) => {
+          if (reviewing) voice.edit(e.target.value);
+          else store.saveDraft(channel, e.target.value);
+        }}
+        placeholder={
+          channel === "action"
+            ? "Describe your next action…"
+            : channel === "dialogue"
+              ? "Speak in character…"
+              : "Ask the game master…"
+        }
+      />
+      {capturing && (
+        <p className="voice-wave" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+          <span />
+        </p>
+      )}
+      <div className="composer-bottom">
+        <fieldset
+          className="channel-switch"
+          disabled={state.busy || !!state.retry || capturing}
+        >
+          <legend className="visually-hidden">Message channel</legend>
           {(["action", "dialogue", "ooc"] as const)
             .filter((value) => !store.transport.multiplayer || value !== "ooc")
             .map((value) => (
@@ -391,51 +460,36 @@ function Composer() {
                     : "OOC"}
               </label>
             ))}
-        </div>
-      </fieldset>
-      <fieldset className="composer-input" disabled={!!blocked}>
-        <legend className="visually-hidden">Message</legend>
-        <VoicePanel key={channel} channel={channel} />
-        <label htmlFor="play-draft">
-          {channel === "action"
-            ? "What do you do?"
-            : channel === "dialogue"
-              ? "What does your character say?"
-              : "Ask an out-of-character question"}
-        </label>
-        <textarea
-          id="play-draft"
-          rows={3}
-          maxLength={max}
-          value={draft}
-          aria-describedby={blocked ? "composer-block" : undefined}
-          onChange={(e) => {
-            const text = e.target.value;
-            store.saveDraft(channel, text);
-          }}
-          placeholder={
-            channel === "action"
-              ? "Describe your next action…"
-              : channel === "dialogue"
-                ? "Speak in character…"
-                : "Ask the game master…"
+        </fieldset>
+        <VoiceMic voice={voice} state={speech} />
+        <span className="composer-count">
+          {text.length} / {max} ·{" "}
+          {reviewing || capturing
+            ? "Voice transcript, not saved"
+            : "Draft saved on this device"}
+        </span>
+        <Button
+          disabled={
+            !!blocked || capturing || !text.trim() || text.trim().length > max
           }
-        />
-        <div className="composer-bottom">
-          <span>
-            {draft.length} / {max} · Draft saved on this device
-          </span>
-          <Button disabled={!draft.trim()}>
-            <ArrowUp size={18} aria-hidden="true" />
-            Send{" "}
-            {channel === "action"
-              ? "action"
-              : channel === "dialogue"
-                ? "dialogue"
-                : "question"}
-          </Button>
-        </div>
-      </fieldset>
+        >
+          <ArrowUp size={18} aria-hidden="true" />
+          Send {reviewing ? `reviewed ${name}` : name}
+        </Button>
+      </div>
+      <p className="voice-status" role="status" aria-live="polite">
+        {status}
+      </p>
+      {speech.error && <p role="alert">{speech.error}</p>}
+      {reviewing && text.trim().length > max && (
+        <p role="alert">Transcript is too long. Shorten it before sending.</p>
+      )}
+      {!voice.speech.recognitionAvailable && (
+        <p className="composer-hint">
+          Microphone speech recognition is unsupported or requires a secure
+          browser context. Type your turn instead.
+        </p>
+      )}
       {blocked && (
         <p className="composer-hint" id="composer-block">
           {blocked}
@@ -449,10 +503,8 @@ function Composer() {
  * does not advertise is never rendered as a control: its observations stay
  * visible as scene detail with the reason, so no click buys a rejection.
  */
-function SceneActions() {
-  const { state, store } = usePlay();
-  const s = state.snapshot;
-  if (!s) return null;
+function sceneActions(state: PlayState, store: PlayStore) {
+  const s = state.snapshot!;
   // A campaign that names its inspectable targets is taken at its word; one that
   // names none falls back to the plain capability.
   const targeted = s.campaign.capabilities.some((c) =>
@@ -483,7 +535,6 @@ function SceneActions() {
     );
   const offered = observations.filter((o) => supports(o.kind, o.id));
   const withheld = observations.filter((o) => !supports(o.kind, o.id));
-  const kinds = [...new Set(withheld.map((o) => o.kind))];
   // Every remaining control shares one temporary blocker, so state it once.
   const pending = [
     ...new Set(
@@ -492,11 +543,24 @@ function SceneActions() {
         .filter((reason): reason is string => reason !== null),
     ),
   ];
+  return { waiting, offered, withheld, pending };
+}
+/**
+ * The suggested actions and the free-text field are two ways to take the same
+ * turn, so they are one decision in one place, directly above the input (#197).
+ */
+function SceneSuggestions() {
+  const { state, store } = usePlay();
+  if (!state.snapshot) return null;
+  const { waiting, offered, pending } = sceneActions(state, store);
+  if (!waiting && !offered.length) return null;
   return (
-    <>
-      <div className="context-actions">
+    <div className="composer-suggestions">
+      <div className="context-actions" aria-label="Suggested actions">
         {waiting && (
           <Button
+            type="button"
+            variant="outline"
             disabled={!store.canSend("wait")}
             title={store.sendBlockReason("wait") ?? undefined}
             onClick={() =>
@@ -511,6 +575,7 @@ function SceneActions() {
         )}
         {offered.map((o) => (
           <Button
+            type="button"
             key={o.id}
             variant="outline"
             disabled={!store.canSend(o.kind)}
@@ -526,6 +591,17 @@ function SceneActions() {
           {reason}
         </p>
       ))}
+    </div>
+  );
+}
+/** An observation with no control stays readable as scene detail, with its reason. */
+function SceneObservations() {
+  const { state, store } = usePlay();
+  if (!state.snapshot) return null;
+  const { withheld } = sceneActions(state, store);
+  const kinds = [...new Set(withheld.map((o) => o.kind))];
+  return (
+    <>
       {kinds.map((kind) => (
         <div key={kind} className="scene-withheld">
           <p>{capabilityReason(kind)}</p>
@@ -541,8 +617,53 @@ function SceneActions() {
     </>
   );
 }
+/** A select implies a choice; one controlled character is a statement (#198). */
+function ActingAs() {
+  const { state, store } = usePlay();
+  const s = state.snapshot;
+  if (!s) return null;
+  const controlled = s.characters.filter(
+    (c) =>
+      s.campaign.membership.actor_ids.includes(c.id) &&
+      s.scene.visible_actor_ids.includes(c.id),
+  );
+  if (controlled.length < 2)
+    return (
+      <p className="acting-as">
+        {controlled.length ? (
+          <>
+            Acting as <strong>{controlled[0]!.name}</strong>
+          </>
+        ) : (
+          "No controlled character"
+        )}
+      </p>
+    );
+  return (
+    <label className="actor-select">
+      Acting as
+      <select
+        value={state.actorId ?? ""}
+        disabled={
+          state.busy ||
+          !!state.retry ||
+          state.entries.some((e) => e.action?.status === "needs_clarification")
+        }
+        onChange={(e) => store.chooseActor(e.target.value)}
+      >
+        {!state.actorId && <option value="">No controlled character</option>}
+        {controlled.map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.name}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
 export function PlayWorkspace() {
   const { state, store } = usePlay();
+  const voice = useVoice();
   const s = state.snapshot;
   if (state.expired) return <SessionExpired />;
   if (state.loading)
@@ -579,7 +700,7 @@ export function PlayWorkspace() {
         <span className="eyebrow">{s.campaign.name}</span>
         <h2>{s.scene.title}</h2>
         <p className="scene-description">{s.scene.description}</p>
-        <SceneActions />
+        <SceneObservations />
         <details className="session-recap">
           <summary>Session recap & known objectives</summary>
           <p>{s.session?.summary ?? "No recap yet."}</p>
@@ -606,10 +727,14 @@ export function PlayWorkspace() {
         </details>
       </section>
       <section aria-label="Play transcript">
-        <h2 className="transcript-heading">
-          <MessageCircle size={20} aria-hidden="true" />
-          At the table
-        </h2>
+        <div className="transcript-header">
+          <h2 className="transcript-heading">
+            <MessageCircle size={20} aria-hidden="true" />
+            At the table
+          </h2>
+          {/* Narration is playback of what appears here, not composition (#195). */}
+          <NarrationControls voice={voice} />
+        </div>
         {!state.entries.length ? (
           <p className="transcript-empty">
             The scene is set. What happens next begins with you.
@@ -638,34 +763,9 @@ export function PlayWorkspace() {
           )}
         </div>
       )}
-      <label className="actor-select">
-        Acting as
-        <select
-          value={state.actorId ?? ""}
-          disabled={
-            state.busy ||
-            !!state.retry ||
-            state.entries.some(
-              (e) => e.action?.status === "needs_clarification",
-            )
-          }
-          onChange={(e) => store.chooseActor(e.target.value)}
-        >
-          {!state.actorId && <option value="">No controlled character</option>}
-          {s.characters
-            .filter(
-              (c) =>
-                s.campaign.membership.actor_ids.includes(c.id) &&
-                s.scene.visible_actor_ids.includes(c.id),
-            )
-            .map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-        </select>
-      </label>
+      <ActingAs />
       <Composer
+        voice={voice}
         key={`${s.campaign.id}:${s.scene.id}:${state.actorId}:${s.campaign.membership.version}`}
       />
     </div>

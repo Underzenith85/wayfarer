@@ -105,6 +105,9 @@ test("reference adventure: reviewed voice, negotiation, saved epilogue and succe
           abort() {}
         },
       });
+      // The browser-speech notice is disclosed on first use of the mic; this
+      // test exercises the capture past it.
+      localStorage.setItem("wayfarer-voice-notice", "seen");
     });
     await login(a, "alice", id);
     await login(b, "bob", id);
@@ -115,8 +118,8 @@ test("reference adventure: reviewed voice, negotiation, saved epilogue and succe
     a.on("request", (r) => {
       if (r.method() === "POST" && r.url().endsWith("/actions")) writes++;
     });
-    await a.getByRole("button", { name: "Start listening" }).click();
-    await a.getByRole("button", { name: "Stop listening" }).click();
+    await a.getByRole("button", { name: "Start voice input" }).click();
+    await a.getByRole("button", { name: "Stop voice input" }).click();
     expect(writes).toBe(0);
     await a
       .getByRole("button", { name: "Send reviewed action", exact: true })

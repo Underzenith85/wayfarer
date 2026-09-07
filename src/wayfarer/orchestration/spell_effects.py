@@ -10,28 +10,35 @@ from wayfarer.simulation.abilities import damage_resistance
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import CombatEngine, GridPoint
 from wayfarer.simulation.hazards import HazardCommand, apply_hazard
+from wayfarer.simulation.hex_geometry import Hex
 from wayfarer.simulation.spells import active_spells
 
 PREFIX = "spell-fire:"
 
 
-def armor(play: PlayService, state: PlayState, actor_id: str) -> int:
+def armor(play: PlayService, state: PlayState, actor_id: str, *, large_area: bool = False) -> int:
     equipment = play.engine.rules.combat.gurps_equipment if play.engine.rules.combat else None
     dr = 0
     if equipment:
         entries = {e.definition_id: e for e in equipment.entries}
-        dr = max(
-            (
-                entry.armor.dr
-                for item in state.resources.items
-                if item.owner_id == actor_id
-                and item.equipped
-                and (item.condition is None or not item.condition.disabled)
-                for entry in (entries[item.definition_id],)
-                if entry.armor and "torso" in entry.armor.locations
-            ),
-            default=0,
+        worn = tuple(
+            entry.armor
+            for item in state.resources.items
+            if item.owner_id == actor_id
+            and item.equipped
+            and (item.condition is None or not item.condition.disabled)
+            for entry in (entries[item.definition_id],)
+            if entry.armor
         )
+        dr = max((a.dr for a in worn if "torso" in a.locations), default=0)
+        if large_area:
+            # B400: torso plus least-protected exposed location, rounded up.
+            locations = ("torso", "skull", "face", "neck", "arms", "hands", "legs", "feet")
+            least = min(
+                max((a.dr for a in worn if location in a.locations), default=0)
+                for location in locations
+            )
+            dr = (dr + least + 1) // 2
     compiled = build(play, state, actor_id)
     return dr + damage_resistance(state.resources, actor_id, build_revision=compiled.revision)
 
@@ -57,7 +64,7 @@ def checkpoint(play: PlayService, state: PlayState) -> PlayState:
             assert current.statistics
             schedule = schedule.model_copy(
                 update={
-                    "resistance": armor(play, state, schedule.actor_id),
+                    "resistance": armor(play, state, schedule.actor_id, large_area=True),
                     "ht": current.statistics.ht,
                     "will": current.statistics.will,
                 }
@@ -95,7 +102,11 @@ def checkpoint(play: PlayService, state: PlayState) -> PlayState:
         encounter = next((e for e in state.encounters if e.id == effect.encounter_id), None)
         if encounter is None or effect.expires_at is None:
             continue
-        center = GridPoint(x=effect.position[0], y=effect.position[1])
+        center = (
+            Hex(q=effect.position[0], r=effect.position[1])
+            if effect.geometry == "hex"
+            else GridPoint(x=effect.position[0], y=effect.position[1])
+        )
         entities = {e.id: e for e in state.world.entities}
         for participant in encounter.participants:
             if (
@@ -135,7 +146,7 @@ def checkpoint(play: PlayService, state: PlayState) -> PlayState:
                 damage_dice=1,
                 damage_add=-1,
                 resistible=False,
-                reference="B246/B434",
+                reference="B246/B433",
             )
             schedule = HazardSchedule(
                 id=sid,
@@ -147,7 +158,7 @@ def checkpoint(play: PlayService, state: PlayState) -> PlayState:
                 ht=compiled.statistics.ht,
                 will=compiled.statistics.will,
                 swimming=compiled.statistics.ht,
-                resistance=armor(play, state, actor_id),
+                resistance=armor(play, state, actor_id, large_area=True),
             )
             resources, _ = apply_hazard(
                 resources,
@@ -206,3 +217,99 @@ def checkpoint(play: PlayService, state: PlayState) -> PlayState:
             )
         encounters.append(encounter)
     return state.model_copy(update={"resources": resources, "encounters": tuple(encounters)})
+
+
+def crossings(
+    play: PlayService,
+    state: PlayState,
+    before: PlayState,
+    actor_id: str,
+    encounter_id: str,
+    path: tuple[Hex, ...],
+    command_id: str,
+) -> PlayState:
+    """B433 partial-turn flame contact, including paths ending outside the area."""
+    fires = tuple(
+        e
+        for e in active_spells(before.resources)
+        if e.execute_effects
+        and e.execution_version == 2
+        and e.spell_id == "create-fire"
+        and e.encounter_id == encounter_id
+    )
+    if not fires:
+        return state
+    old_encounter = next(e for e in before.encounters if e.id == encounter_id)
+    new_encounter = next(e for e in state.encounters if e.id == encounter_id)
+    origin = next(p.position for p in old_encounter.participants if p.actor_id == actor_id)
+    destination = next(p.position for p in new_encounter.participants if p.actor_id == actor_id)
+    if not path and origin == destination:
+        return state
+    points = (origin,) + path if path else (origin, destination)
+    resources = state.resources
+    compiled = build(play, state, actor_id)
+    assert compiled.statistics
+    hp = next(p for p in resources.pools if p.id == "hp:" + actor_id)
+    assert hp.injury
+    for effect in fires:
+        if (
+            not effect.execute_effects
+            or effect.spell_id != "create-fire"
+            or effect.encounter_id != encounter_id
+            or effect.position is None
+        ):
+            continue
+        center = (
+            Hex(q=effect.position[0], r=effect.position[1])
+            if effect.geometry == "hex"
+            else GridPoint(x=effect.position[0], y=effect.position[1])
+        )
+        if not any(CombatEngine.distance(center, point) < effect.radius for point in points):
+            continue
+        sid = (
+            "spell-crossing:"
+            + hashlib.sha256(f"{effect.cast_id}:{actor_id}:{hp.injury.turn}".encode()).hexdigest()
+        )
+        if any(h.id == sid for h in resources.hazards):
+            continue
+        spec = HazardSpec(
+            id=sid,
+            kind="fire",
+            scene_id=effect.location_id or "",
+            delay=0,
+            interval=1,
+            cycles=1,
+            damage_dice=1,
+            damage_add=-3,
+            resistible=False,
+            reference="B433/B400",
+        )
+        schedule = HazardSchedule(
+            id=sid,
+            actor_id=actor_id,
+            spec=spec,
+            started=resources.game_time,
+            due=resources.game_time,
+            remaining=1,
+            ht=compiled.statistics.ht,
+            will=compiled.statistics.will,
+            swimming=compiled.statistics.ht,
+            resistance=armor(play, state, actor_id, large_area=True),
+        )
+        for kind in ("enter", "resolve"):
+            resources, _ = apply_hazard(
+                resources,
+                HazardCommand(
+                    id=sid + ":" + kind,
+                    actor_id=actor_id,
+                    expected_revision=resources.revision,
+                    kind=kind,
+                    hazard_id=sid,
+                ),
+                schedule,
+                rng=play.rng,
+                system=True,
+            )
+    return state.model_copy(
+        update={"resources": resources.model_copy(update={"revision": state.revision})}
+    )
