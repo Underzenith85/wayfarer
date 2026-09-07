@@ -1,15 +1,31 @@
 name: Frontend
+
 on:
   push:
+    paths:
+      - "frontend/**"
+      - "contracts/**"
+      - ".github/workflows/frontend.yml"
   pull_request:
+    paths:
+      - "frontend/**"
+      - "contracts/**"
+      - ".github/workflows/frontend.yml"
+
+concurrency:
+  group: frontend-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
+
 jobs:
   frontend:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
       matrix:
-        node: ['22', '26']
+        node: ["22", "26"]
     defaults:
       run:
         working-directory: frontend
@@ -39,13 +55,28 @@ jobs:
       - run: pnpm format:check
       - run: pnpm test
       - run: pnpm build
-      - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm test:e2e
+      - name: Install Chromium
+        if: matrix.node == '22'
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Run desktop browser tests
+        if: matrix.node == '22' && github.event_name == 'pull_request'
+        run: pnpm exec playwright test --project=desktop
+      - name: Run full browser tests
+        if: matrix.node == '22' && github.event_name == 'push'
+        run: pnpm test:e2e
       - uses: astral-sh/setup-uv@v6
-      - run: uv sync --project .. --frozen
-      - run: pnpm test:e2e:live
+        if: matrix.node == '22'
+      - name: Install live-test backend
+        if: matrix.node == '22'
+        run: uv sync --project .. --frozen
+      - name: Run desktop live browser tests
+        if: matrix.node == '22' && github.event_name == 'pull_request'
+        run: pnpm exec playwright test --config playwright.live.config.ts --project=desktop
+      - name: Run full live browser tests
+        if: matrix.node == '22' && github.event_name == 'push'
+        run: pnpm test:e2e:live
       - uses: actions/upload-artifact@v4
-        if: failure()
+        if: failure() && matrix.node == '22'
         with:
           name: frontend-test-results-node-${{ matrix.node }}
           path: frontend/test-results/
