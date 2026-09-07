@@ -37,7 +37,10 @@ export function LiveControls() {
     return null;
   const actor = state.actorId,
     scene = engine.scenes.find((s) => s.actor_id === actor),
-    group = engine.subgroups.find((g) => g.actor_ids.includes(actor));
+    group = engine.subgroups.find((g) => g.actor_ids.includes(actor)),
+    medicalTasks = (engine.gurps_recovery_tasks ?? []).filter(
+      (task) => task.actor_id === actor,
+    );
   const run = async (fields: Record<string, unknown>) => {
     if (engine.lifecycle && engine.lifecycle !== "active") {
       setError("Resume your campaign before acting.");
@@ -208,6 +211,30 @@ export function LiveControls() {
             {o.kind}: {o.id}
           </Button>
         ))}
+      {(engine.gurps_recovery_choices ?? [])
+        .filter((choice) => choice.actor_id === actor)
+        .map((choice) => (
+          <Button
+            key={choice.id}
+            disabled={busy}
+            onClick={() =>
+              void run({ kind: "gurps_recovery", choice_id: choice.id })
+            }
+          >
+            {choice.label}
+          </Button>
+        ))}
+      {medicalTasks.length > 0 && (
+        <details>
+          <summary>Recovery tasks</summary>
+          {medicalTasks.map((task) => (
+            <p key={task.id}>
+              {task.kind}: {task.status}
+              {!task.settled && ` · due at ${task.due}`}
+            </p>
+          ))}
+        </details>
+      )}
       <details>
         <summary>Discoveries and commitments</summary>
         {engine.perspectives[actor]?.facts.map((f) => (
