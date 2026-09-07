@@ -7,6 +7,7 @@ campaign revision lock; JSON checkpoints retain receipts and fired schedules.
 from __future__ import annotations
 
 import hashlib
+from copy import copy
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
@@ -209,6 +210,14 @@ class ResourceEngine:
                     raise ValidationError("Equipment effect provenance mismatch")
         self.rules = rules
         self.actors = frozenset(e.id for e in world.entities if e.kind is EntityKind.ACTOR)
+
+    def for_world(self, world: World) -> ResourceEngine:
+        """Bind trusted equipment mechanics to a newly validated scenario's owners."""
+        world.validate()
+        engine = copy(self)
+        engine.specs = dict(self.specs)
+        engine.actors = frozenset(e.id for e in world.entities if e.kind is EntityKind.ACTOR)
+        return engine
 
     def validate(self, state: ResourceState) -> None:
         def unique(values: tuple[str, ...]) -> None:

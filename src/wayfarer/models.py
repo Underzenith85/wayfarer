@@ -36,6 +36,7 @@ class Campaign(TypedDict):
     rules_ref: NotRequired["RulesReference"]
     resources_json: NotRequired[str]
     play_json: NotRequired[str]
+    scenario_graph_json: NotRequired[str]
     character: Character
     scenario: dict[str, str]
     hp: int
@@ -81,6 +82,8 @@ EventAction = (
         "party",
         "npc",
         "recovery",
+        "director",
+        "workshop",
     ]
 )
 

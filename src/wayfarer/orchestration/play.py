@@ -49,7 +49,7 @@ class PlayService:
     ) -> None:
         self.store, self.engine, self.rng = store, engine, rng
 
-    async def create(
+    def initial_state(
         self,
         campaign: Campaign,
         world: World,
@@ -184,6 +184,17 @@ class PlayService:
 
         state = initialize(self, state)
         self.engine.validate(state)
+        return state
+
+    async def create(
+        self,
+        campaign: Campaign,
+        world: World,
+        resources: ResourceState,
+        actors: tuple[ActorSetup, ...],
+        members: tuple[CampaignMember, ...] | None = None,
+    ) -> PlayState:
+        state = self.initial_state(campaign, world, resources, actors, members)
         stored = campaign.copy()
         stored["play_json"] = state.model_dump_json()
         await self.store.insert(stored)

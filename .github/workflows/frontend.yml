@@ -41,6 +41,9 @@ jobs:
       - run: pnpm build
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --project .. --frozen
+      - run: pnpm test:e2e:live
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

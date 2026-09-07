@@ -20,7 +20,8 @@
     "contracts:check": "node scripts/check-contracts.mjs",
     "fixtures:check": "vitest run src/mocks/fixtures.test.ts",
     "contracts:compat": "node scripts/check-compatibility.mjs",
-    "contracts:gate-test": "node --test scripts/check-compatibility.test.mjs"
+    "contracts:gate-test": "node --test scripts/check-compatibility.test.mjs",
+    "test:e2e:live": "playwright test --config playwright.live.config.ts"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.23",
