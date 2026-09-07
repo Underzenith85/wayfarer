@@ -725,6 +725,28 @@ details summary {
   border: 1px solid var(--accent);
   border-radius: 0.5rem;
 }
+/* An empty region is quiet prose; a failed one carries the accent and a retry (#162). */
+.empty-region {
+  color: var(--muted);
+  max-width: 65ch;
+}
+.unavailable-region {
+  padding: 1rem;
+  border: 1px solid var(--accent);
+  border-left-width: 4px;
+  border-radius: 0.5rem;
+  background: var(--accent-soft);
+  max-width: 65ch;
+}
+.unavailable-region h2,
+.unavailable-region h3,
+.unavailable-region h4 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+.unavailable-region p {
+  margin: 0 0 1rem;
+}
 .stat-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -5,6 +5,7 @@ import type { AdventurePort, DecisionCommand, JournalKind } from "./model";
 import type { Scope } from "../multiplayer/model";
 import { Button } from "../components/ui/button";
 import { ScopedLink } from "../scoped-link";
+import { EmptyRegion } from "../components/region-state";
 
 function Boundary({
   children,
@@ -12,14 +13,21 @@ function Boundary({
   children: (port: AdventurePort, scope: Scope, epoch: string) => ReactNode;
 }) {
   const { state, store } = usePlay();
-  if (state.expired) return <p role="alert">Perspective access unavailable.</p>;
+  if (state.expired)
+    return (
+      <p role="alert">
+        Your session ended, so this scene is hidden. Sign in again to pick it
+        back up.
+      </p>
+    );
   if (!state.snapshot || !state.actorId)
     return <p>Select a campaign and character to view discoveries.</p>;
   if (!store.transport.adventure || !state.multiplayer)
     return (
-      <p>
-        Encounter and discovery details are not available from this connection.
-      </p>
+      <EmptyRegion>
+        Encounters and discoveries are not part of this game yet. Play out the
+        scene in the transcript instead.
+      </EmptyRegion>
     );
   if (state.loading || state.connection !== "online")
     return (

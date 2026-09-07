@@ -477,9 +477,17 @@ it("creates a game with an exact rules profile and disables unsupported ones", a
   await user.click(await screen.findByRole("button", { name: "Rules" }));
   const select = await screen.findByLabelText("Rules profile");
   const unsupported = screen.getByRole("option", {
-    name: /GURPS Lite, Fourth Edition \(2004\) \(v1\) · unavailable: 2 unverified capabilities/,
+    name: /GURPS Lite, Fourth Edition \(2004\) \(v1\) · Not yet supported/,
   });
   expect(unsupported).toBeDisabled();
+  // The capability gap belongs to maintainers, not to a player choosing rules.
+  expect(screen.queryByText(/unverified capabilit/i)).not.toBeVisible();
+  await user.click(screen.getByText("Technical details"));
+  expect(
+    screen.getByText(
+      "GURPS Lite, Fourth Edition (2004) (v1) unverified capabilities: gurps.check.success, gurps.check.margin",
+    ),
+  ).toBeVisible();
   await user.selectOptions(select, "profile:wayfarer-lite@1");
   await user.click(screen.getByRole("button", { name: "Adventure" }));
   await user.selectOptions(
