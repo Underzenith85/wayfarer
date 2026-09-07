@@ -4,7 +4,7 @@ A local-first, service-backed roleplaying prototype with an LLM game master, con
 
 ## Run
 
-Python 3.12+ with [uv](https://docs.astral.sh/uv/). CI targets CPython 3.12–3.14. No third-party runtime dependencies.
+Python 3.14 with [uv](https://docs.astral.sh/uv/). CI and local tooling standardize on CPython 3.14. No third-party runtime dependencies.
 
 ```bash
 uv sync --frozen
