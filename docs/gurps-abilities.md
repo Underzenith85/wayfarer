@@ -41,3 +41,11 @@ target and location permissions; encounter distance comes from current
 placements. This subset does not support remote channels, alternate power
 systems, conventional ranged Innate Attacks, or arbitrary mental fact queries.
 No profile migration or broad capability gate is bypassed.
+
+Spell casting and ability activation/analysis share one pending concentration
+commitment per actor. Both reducers reject overlap, and AbilityService checks
+before injury-turn dice. Cancelling or abandoning concentration releases it;
+distraction and a missed spell deadline do not. Active maintained effects do
+not reserve concentration. Scenario initialization rejects seeded spell and
+ability execution events. SQLite race/retry/restart tests cover these authority
+invariants in `tests/test_supernatural_concentration.py`.

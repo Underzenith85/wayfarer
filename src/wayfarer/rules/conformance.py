@@ -86,7 +86,7 @@ _CAPABILITIES: Final = (
     Capability("gurps.world.physical_feats", True, True, CoverageStatus.PARTIAL, 110),
     Capability("gurps.world.environmental_hazards", True, True, CoverageStatus.ABSENT, 110),
     Capability("gurps.magic.spellcasting", False, True, CoverageStatus.PARTIAL, 117),
-    Capability("gurps.supernatural.abilities", False, True, CoverageStatus.ABSENT, 118),
+    Capability("gurps.supernatural.abilities", False, True, CoverageStatus.PARTIAL, 118),
     Capability("gurps.vehicles.movement", False, True, CoverageStatus.ABSENT, 120),
     Capability("gurps.vehicles.combat", False, True, CoverageStatus.ABSENT, 120),
 )

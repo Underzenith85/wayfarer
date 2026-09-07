@@ -15,12 +15,12 @@ from wayfarer.rules.traits import TraitOptions
 from wayfarer.simulation.abilities import (
     AbilityContext,
     apply_ability,
-    effects,
     internal_id,
     validate_target,
 )
 from wayfarer.simulation.ability_types import AbilityCommand, AbilityEvent, AbilityOutcome
 from wayfarer.simulation.actions import PlayState
+from wayfarer.simulation.concentration import require_idle_concentration
 from wayfarer.simulation.maneuvers import ManeuverState
 from wayfarer.simulation.party import synchronous
 from wayfarer.simulation.resources import Advance
@@ -94,10 +94,8 @@ class AbilityService:
             and actor.available_at > state.resources.game_time
         ):
             raise ConflictError("Actor is not ready")
-        if command.kind in ("activate", "analyze") and any(
-            e.concentrating and e.actor_id == actor.actor_id for e in effects(state.resources)
-        ):
-            raise ConflictError("Actor is already concentrating")
+        if command.kind in ("activate", "analyze"):
+            require_idle_concentration(state.resources, actor.actor_id)
         encounter = next(
             (
                 e
