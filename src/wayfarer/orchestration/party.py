@@ -384,7 +384,7 @@ class PartyService:
             # reunite at a resolved shared-time boundary without restarting combat.
             combat_reunion = command.kind == "rejoin_party" and any(
                 e.status == "active"
-                and e.pending_defense is None
+                and (e.pending_defense is None and e.pending_unarmed is None)
                 and command.actor_id in e.turn_order
                 and any(
                     g.id == command.target_id and set(g.actor_ids) & set(e.turn_order)

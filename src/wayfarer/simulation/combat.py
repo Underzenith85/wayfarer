@@ -25,6 +25,7 @@ from wayfarer.simulation.maneuvers import (
     WaitTrigger,
 )
 from wayfarer.simulation.resources import Equip, Id, Record, ResourceEngine, ResourceState
+from wayfarer.simulation.unarmed import Grip, PendingUnarmed, UnarmedTrace
 from wayfarer.world import EntityKind, World
 
 Facing = Literal["north", "east", "south", "west"]
@@ -172,6 +173,9 @@ class Combatant(Record):
     last_maneuver: Maneuver | None = None
     last_attack_item_id: str | None = None
     hand_bindings: tuple[tuple[str, Literal["left-hand", "right-hand"]], ...] = ()
+    arm_locked: bool = False
+    grappled: bool = False
+    pinned: bool = False
     forced_do_nothing: bool = False
     maneuver_state: ManeuverState = Field(default_factory=ManeuverState)
 
@@ -217,6 +221,10 @@ class Encounter(Record):
     wounds: tuple[InjuryTrace, ...] = ()
     blocked_reason: str | None = None
     wait_interrupt: WaitInterrupt | None = None
+    grips: tuple[Grip, ...] = ()
+    close_pairs: tuple[tuple[str, str], ...] = ()
+    pending_unarmed: PendingUnarmed | None = None
+    unarmed_history: tuple[UnarmedTrace, ...] = ()
     ranged_situations: tuple[RangedSituation, ...] = ()
 
     @property
@@ -232,6 +240,7 @@ class CombatResult(Record):
     pending_defense_id: str | None = None
     available: tuple[str, ...] = ()
     injury: InjuryTrace | None = None
+    unarmed: UnarmedTrace | None = None
 
 
 class CombatEngine:
@@ -292,7 +301,20 @@ class CombatEngine:
                 participant.position.x >= battlefield.width
                 or participant.position.y >= battlefield.height
                 or participant.position in blocked
-                or participant.position in occupied
+                or (
+                    participant.position in occupied
+                    and not (
+                        self.rules.gurps_equipment is not None
+                        and self.rules.gurps_equipment.profile_id == "gurps-basic-set-4e-2004"
+                        and all(
+                            tuple(sorted((other.actor_id, participant.actor_id)))
+                            in encounter.close_pairs
+                            for other in encounter.participants
+                            if other.actor_id != participant.actor_id
+                            and other.position == participant.position
+                        )
+                    )
+                )
             ):
                 raise ValidationError("Combatant position is blocked, occupied or out of bounds")
             occupied.add(participant.position)
@@ -308,6 +330,16 @@ class CombatEngine:
             )
             if encounter.status == "active" and participant.ready_item_ids != expected_ready:
                 raise ValidationError("Combat readiness disagrees with inventory")
+        from wayfarer.simulation.unarmed import validate_control
+
+        validate_control(
+            encounter,
+            resources,
+            basic=(
+                self.rules.gurps_equipment is not None
+                and self.rules.gurps_equipment.profile_id == "gurps-basic-set-4e-2004"
+            ),
+        )
         pending = encounter.pending_defense
         if pending is not None:
             if (
@@ -389,6 +421,9 @@ class CombatEngine:
     def available(self, encounter: Encounter, actor_id: str) -> tuple[str, ...]:
         if encounter.status != "active" or encounter.blocked_reason:
             return ()
+        if encounter.pending_unarmed is not None:
+            pause = encounter.pending_unarmed
+            return tuple(pause.allowed) if actor_id == pause.target_id else ()
         pending = encounter.pending_defense
         if pending is not None:
             return tuple(pending.allowed) if actor_id == pending.defender_id else ()

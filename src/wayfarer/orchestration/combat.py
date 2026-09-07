@@ -30,6 +30,7 @@ from wayfarer.simulation.combat import (
 )
 from wayfarer.simulation.maneuvers import ATTACK_MANEUVERS, AttackOption, DefenseOption, WaitTrigger
 from wayfarer.simulation.resources import Advance, Id, Record
+from wayfarer.simulation.unarmed import GrappleLocation, UnarmedAction, UnarmedSkill
 
 
 class CombatCommand(Record):
@@ -63,6 +64,25 @@ class TakeCombatTurn(CombatCommand):
     attack_option: AttackOption | None = None
     defense_option: DefenseOption | None = None
     wait_trigger: WaitTrigger | None = None
+
+
+class TakeUnarmedTurn(CombatCommand):
+    kind: Literal["take_unarmed_turn"] = "take_unarmed_turn"
+    encounter_id: Id
+    action: UnarmedAction
+    foot: Literal["left-foot", "right-foot"] = "right-foot"
+    target_id: Id
+    skill: UnarmedSkill = "attribute:dx"
+    hands: tuple[Hand, ...] = ()
+    location: GrappleLocation = "torso"
+    grip_id: Id | None = None
+    enter_close_combat: bool = False
+
+
+class ResolveChokeEffects(CombatCommand):
+    kind: Literal["resolve_choke_effects"] = "resolve_choke_effects"
+    encounter_id: Id
+    grip_id: Id
 
 
 class ResumeInterruptedTurn(CombatCommand):
@@ -99,7 +119,9 @@ TypedCombatCommand = Annotated[
     | ChooseDefense
     | JoinEncounter
     | EndEncounter
-    | ResumeInterruptedTurn,
+    | ResumeInterruptedTurn
+    | TakeUnarmedTurn
+    | ResolveChokeEffects,
     Field(discriminator="kind"),
 ]
 COMBAT_ADAPTER: TypeAdapter[TypedCombatCommand] = TypeAdapter(TypedCombatCommand)
@@ -228,18 +250,33 @@ class CombatService:
                 affected = {command.actor_id}
                 if isinstance(command, StartEncounter):
                     affected.update(p.actor_id for p in command.placements)
-                elif isinstance(command, TakeCombatTurn) and command.target_id is not None:
+                elif (
+                    isinstance(command, (TakeCombatTurn, TakeUnarmedTurn))
+                    and command.target_id is not None
+                ):
                     affected.add(command.target_id)
                 elif isinstance(command, ChooseDefense):
-                    pending = self._encounter(state, command.encounter_id).pending_defense
+                    selected_encounter = self._encounter(state, command.encounter_id)
+                    if selected_encounter.pending_unarmed is not None:
+                        affected.update(
+                            (
+                                selected_encounter.pending_unarmed.actor_id,
+                                selected_encounter.pending_unarmed.target_id,
+                            )
+                        )
+                    pending = selected_encounter.pending_defense
                     if pending is not None:
                         affected.update((pending.attacker_id, pending.defender_id))
                 require_settled(
                     state.resources.recovery_tasks, frozenset(affected), state.resources.game_time
                 )
-                require_hazards_settled(
-                    state.resources.hazards, frozenset(affected), state.resources.game_time
-                )
+                if not isinstance(command, ResolveChokeEffects):
+                    for active_encounter in state.encounters:
+                        if command.actor_id in active_encounter.turn_order:
+                            affected.update(g.target_id for g in active_encounter.grips)
+                    require_hazards_settled(
+                        state.resources.hazards, frozenset(affected), state.resources.game_time
+                    )
             if command.expected_revision != state.revision:
                 raise ConflictError("Play revision changed")
             resources = state.resources
@@ -301,7 +338,22 @@ class CombatService:
                 )
             else:
                 encounter = self._encounter(state, command.encounter_id)
-                if isinstance(command, JoinEncounter):
+                from wayfarer.orchestration.unarmed import guard_control
+
+                guard_control(encounter, command)
+                if isinstance(command, ResolveChokeEffects):
+                    from wayfarer.orchestration.unarmed import resolve_choke
+
+                    state, result = resolve_choke(self.play, state, encounter, command)
+                    resources = state.resources
+                elif isinstance(command, TakeUnarmedTurn) or (
+                    isinstance(command, ChooseDefense) and encounter.pending_unarmed is not None
+                ):
+                    from wayfarer.orchestration.unarmed import execute_unarmed
+
+                    state, encounter, result = execute_unarmed(self.play, state, encounter, command)
+                    resources = state.resources
+                elif isinstance(command, JoinEncounter):
                     from wayfarer.simulation.party import group_for
 
                     if encounter.status != "active" or encounter.pending_defense is not None:
@@ -830,6 +882,7 @@ class CombatService:
             if (
                 engine.rules.gurps_equipment is not None
                 and encounter.pending_defense is None
+                and encounter.pending_unarmed is None
                 and encounter.status == "active"
             ):
                 from wayfarer.orchestration.gurps_melee import fatigue_ready
@@ -859,6 +912,24 @@ class CombatService:
                         "available": engine.available(encounter, encounter.current_actor_id),
                     }
                 )
+            if engine.rules.gurps_equipment is not None:
+                from wayfarer.orchestration.unarmed import retire_chokes, settle_control
+
+                prior_grips = next(
+                    (e.grips for e in initial_state.encounters if e.id == encounter.id), ()
+                )
+                encounter = settle_control(
+                    state.model_copy(update={"resources": resources}), encounter
+                )
+                state = retire_chokes(
+                    self.play,
+                    state.model_copy(update={"resources": resources}),
+                    prior_grips,
+                    encounter.grips,
+                    command.id,
+                )
+                resources = state.resources
+                encounters = tuple(encounter if e.id == encounter.id else e for e in encounters)
             if encounter.status == "completed" and engine.rules.gurps_equipment is not None:
                 from wayfarer.orchestration.location_combat import settle_crippling
 

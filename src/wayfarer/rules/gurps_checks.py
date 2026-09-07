@@ -279,6 +279,23 @@ def _adjustment_modifiers(profile_id: str, adjustment: int) -> tuple[Modifier, .
     )
 
 
+def regular_contest_round(
+    profile_id: str,
+    first: Contestant,
+    second: Contestant,
+    *,
+    rng: RandomSource,
+) -> tuple[CheckTrace, CheckTrace]:
+    """One durable round for activities whose elapsed time separates attempts."""
+    require_capabilities(profile_id, (*SUCCESS_CAPABILITIES, REGULAR_CONTEST_CAPABILITY))
+    _validate_pair(first, second)
+    extra = _adjustment_modifiers(profile_id, regular_contest_adjustment(first, second))
+    return (
+        _score(profile_id, REGULAR_CONTEST_CAPABILITY, first, draw_dice(rng), extra),
+        _score(profile_id, REGULAR_CONTEST_CAPABILITY, second, draw_dice(rng), extra),
+    )
+
+
 def _run_regular(
     profile_id: str,
     first: Contestant,
@@ -289,11 +306,9 @@ def _run_regular(
     if round_limit < 1:
         raise ValidationError("Regular contest round limit must be positive")
     adjustment = regular_contest_adjustment(first, second)
-    extra = _adjustment_modifiers(profile_id, adjustment)
     rounds: list[tuple[CheckTrace, CheckTrace]] = []
     while len(rounds) < round_limit:
-        first_trace = _score(profile_id, REGULAR_CONTEST_CAPABILITY, first, draw_dice(rng), extra)
-        second_trace = _score(profile_id, REGULAR_CONTEST_CAPABILITY, second, draw_dice(rng), extra)
+        first_trace, second_trace = regular_contest_round(profile_id, first, second, rng=rng)
         rounds.append((first_trace, second_trace))
         if first_trace.outcome.succeeded != second_trace.outcome.succeeded:
             winner = first.id if first_trace.outcome.succeeded else second.id
