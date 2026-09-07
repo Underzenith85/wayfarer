@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import cast
 
 import pytest
 
 from test_statistics import BASIC, LITE, gurps_draft, profile_compiler, profile_package
-from wayfarer.character.compiler import CharacterDraft, Purchase, pool_limits
-from wayfarer.character.size_modifier import SizeModifierError, cost
+from wayfarer.character.compiler import CharacterCompiler, Purchase, ValidatedBuild, pool_limits
+from wayfarer.character.size_modifier import SizeCostTarget, SizeModifierError, cost
+from wayfarer.character.statistics import Attribute
 from wayfarer.orchestration.advancement import _refreshed
 from wayfarer.rules.conformance import CoverageStatus, capability
 from wayfarer.rules.gurps_characters import (
@@ -27,10 +29,10 @@ FIXTURE = Path("tests/fixtures/gurps/size_modifier_costs.json")
 def fixture() -> dict[str, object]:
     value = json.loads(FIXTURE.read_text())
     assert isinstance(value, dict)
-    return value
+    return cast(dict[str, object], value)
 
 
-def engine():
+def engine() -> CharacterCompiler:
     package = profile_package(BASIC, size_modifier_definition())
     return profile_compiler(BASIC, package=package)
 
@@ -39,7 +41,7 @@ def size(amount: int, *, trait: TraitOptions | None = None) -> Purchase:
     return Purchase(definition_id=SIZE_MODIFIER_DEFINITION_ID, amount=amount, trait=trait)
 
 
-def entries(build) -> dict[str, int]:
+def entries(build: ValidatedBuild) -> dict[str, int]:
     return {entry.definition_id: entry.cost for entry in build.purchases}
 
 
@@ -50,17 +52,19 @@ def test_independent_fixture_is_executable_and_source_pinned() -> None:
     assert data["references"] == ["B9", "B15", "B16"]
     cases = data["cases"]
     assert isinstance(cases, list) and cases
-    for case in cases:
-        assert isinstance(case, dict)
-        given = case["input"]
-        expected = case["expected"]
-        assert isinstance(given, dict) and isinstance(expected, dict)
-        result = cost(
-            BASIC,
-            given["target"],
-            given["base_cost"],
-            given["size_modifier"],
-        )
+    for value in cases:
+        assert isinstance(value, dict)
+        case = cast(dict[str, object], value)
+        given_value, expected_value = case["input"], case["expected"]
+        assert isinstance(given_value, dict) and isinstance(expected_value, dict)
+        given = cast(dict[str, object], given_value)
+        expected = cast(dict[str, object], expected_value)
+        target = given["target"]
+        base_cost, size_modifier = given["base_cost"], given["size_modifier"]
+        assert target in ("attribute:st", "secondary:hp")
+        assert isinstance(base_cost, int) and not isinstance(base_cost, bool)
+        assert isinstance(size_modifier, int) and not isinstance(size_modifier, bool)
+        result = cost(BASIC, cast(SizeCostTarget, target), base_cost, size_modifier)
         assert result.adjusted_cost == expected["adjusted_cost"], case["id"]
         assert result.discount_percent == expected["discount_percent"], case["id"]
         assert result.source_id == data["source_id"]
@@ -91,21 +95,21 @@ def test_compiler_discounts_only_positive_st_and_hp_costs() -> None:
     assert by_id["secondary:hp"] == 2
     assert by_id[SIZE_MODIFIER_DEFINITION_ID] == 0
     assert result.build.statistics is not None
-    assert result.build.statistics.costs.attributes[next(iter([a for a in result.build.statistics.costs.attributes if a.value == "st"]))] == 14
+    assert result.build.statistics.costs.attributes[Attribute.ST] == 14
     assert [p.target for p in result.build.cost_provenance] == ["attribute:st", "secondary:hp"]
     assert [p.discount_percent for p in result.build.cost_provenance] == [30, 30]
 
     reduced = engine().compile(
         gurps_draft(
             size(4),
-            Purchase(definition_id="secondary:hp", amount=9),
+            Purchase(definition_id="secondary:hp", amount=8),
             st_level=9,
         )
     )
     assert reduced.build is not None, reduced.diagnostics
     reduced_costs = entries(reduced.build)
     assert reduced_costs["attribute:st"] == -10
-    assert reduced_costs["secondary:hp"] == 0
+    assert reduced_costs["secondary:hp"] == -2
     assert [p.discount_percent for p in reduced.build.cost_provenance] == [0, 0]
 
 
