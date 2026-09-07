@@ -37,7 +37,7 @@ class SpellSpec(Record):
 
 SPELLS: dict[str, SpellSpec] = {
     "light": SpellSpec(
-        id="light", kind="regular", cost=1, maintenance=1, seconds=1, duration=60, reference="B250"
+        id="light", kind="regular", cost=1, maintenance=1, seconds=1, duration=60, reference="B249"
     ),
     "daze": SpellSpec(
         id="daze",
