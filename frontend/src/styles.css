@@ -1841,6 +1841,16 @@ input[type="number"] {
 .purchase-row select {
   max-width: 100%;
 }
+/* Primary attributes are fixed rows: a name, its stepper and its cost, with no
+   selector or remove control to line up beside them (#266). */
+.attribute-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.attribute-row > label {
+  flex: 0 0 8rem;
+}
 .purchase-stepper {
   display: inline-flex;
   align-items: center;

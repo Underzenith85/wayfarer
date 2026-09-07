@@ -24,14 +24,27 @@ const proposal: Proposal = {
   },
   custom: [],
 };
+const attribute = (id: string, name: string) => ({
+  id,
+  name,
+  kind: "attribute" as const,
+  status: "implemented" as const,
+  point_cost: 10,
+  skill: null,
+  trait: null,
+});
 const result: CharacterPreview = {
   catalog: [
+    attribute("attribute:st", "Strength"),
+    attribute("attribute:dx", "Dexterity"),
+    attribute("attribute:iq", "Intelligence"),
+    attribute("attribute:ht", "Health"),
     {
-      id: "attribute:st",
-      name: "Strength",
-      kind: "attribute",
+      id: "skill:stealth",
+      name: "Stealth",
+      kind: "skill",
       status: "implemented",
-      point_cost: 10,
+      point_cost: null,
       skill: null,
       trait: null,
     },
@@ -44,8 +57,14 @@ const result: CharacterPreview = {
   breakdown: [{ definition_id: "attribute:st", amount: 10, cost: 23 }],
 };
 afterEach(cleanup);
-function Editor({ preview }: { preview: PreviewCharacter }) {
-  const [value, setValue] = useState(proposal);
+function Editor({
+  preview,
+  initial = proposal,
+}: {
+  preview: PreviewCharacter;
+  initial?: Proposal;
+}) {
+  const [value, setValue] = useState(initial);
   return (
     <CharacterDraftEditor
       proposal={value}
@@ -89,6 +108,71 @@ it("shows service totals, per-purchase costs and derived statistics; edits reque
   expect(screen.getByText("10 points over budget")).toBeVisible();
   expect(screen.getByRole("alert")).toHaveTextContent("Point budget exceeded");
   expect(preview.mock.calls[1]![0].draft.purchases[0]!.amount).toBe(11);
+});
+it("keeps the four primary attributes present, fixed and unremovable", async () => {
+  const preview = vi.fn<PreviewCharacter>().mockResolvedValue(result);
+  render(<Editor preview={preview} />);
+  const section = (await screen.findByText(/^Attributes/)).closest("details")!;
+  for (const name of ["Strength", "Dexterity", "Intelligence", "Health"])
+    expect(within(section).getByLabelText(name, { exact: true })).toHaveValue(
+      10,
+    );
+  expect(within(section).queryByRole("combobox")).toBeNull();
+  expect(screen.queryByRole("button", { name: /^Remove/ })).toBeNull();
+  await waitFor(() =>
+    expect(
+      preview.mock.lastCall![0].draft.purchases.map((p) => p.definition_id),
+    ).toEqual(["attribute:st", "attribute:dx", "attribute:iq", "attribute:ht"]),
+  );
+  await userEvent.click(
+    screen.getByRole("button", { name: "Increase Dexterity" }),
+  );
+  await waitFor(() =>
+    expect(preview.mock.lastCall![0].draft.purchases).toContainEqual({
+      definition_id: "attribute:dx",
+      amount: 11,
+    }),
+  );
+  expect(preview.mock.lastCall![0].draft.purchases).toContainEqual({
+    definition_id: "attribute:st",
+    amount: 10,
+  });
+});
+it("collapses a duplicated attribute and keeps it out of the variable sections", async () => {
+  const preview = vi.fn<PreviewCharacter>().mockResolvedValue(result);
+  render(
+    <Editor
+      preview={preview}
+      initial={{
+        ...proposal,
+        draft: {
+          ...proposal.draft,
+          purchases: [
+            { definition_id: "attribute:st", amount: 12 },
+            { definition_id: "attribute:st", amount: 9 },
+            { definition_id: "skill:stealth", amount: 1 },
+          ],
+        },
+      }}
+    />,
+  );
+  expect(
+    await screen.findAllByLabelText("Strength", { exact: true }),
+  ).toHaveLength(1);
+  await waitFor(() =>
+    expect(
+      preview.mock.lastCall![0].draft.purchases.filter(
+        (p) => p.definition_id === "attribute:st",
+      ),
+    ).toEqual([{ definition_id: "attribute:st", amount: 12 }]),
+  );
+  // A skill row stays a list entry, but its selector cannot reach an attribute.
+  expect(screen.getByRole("button", { name: "Remove skill 1" })).toBeVisible();
+  expect(
+    within(screen.getByLabelText("Skill 1", { exact: true }))
+      .getAllByRole("option")
+      .map((option) => option.textContent),
+  ).toEqual(["Stealth"]);
 });
 it("ignores a late preview even when the transport does not honor cancellation", async () => {
   let resolveOld!: (value: CharacterPreview) => void;
