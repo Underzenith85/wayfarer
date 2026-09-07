@@ -34,10 +34,13 @@ async def setup(
     ability: AbilitySpec,
     *,
     combat: bool = False,
+    magic: bool = False,
     hp: int = 10,
     injury: InjuryStatus | None = None,
 ) -> tuple[str, PlayService]:
-    package = profile_package(PROFILE, definition(ability))
+    from wayfarer.rules.gurps_magic import definitions
+
+    package = profile_package(PROFILE, definition(ability), *(definitions() if magic else ()))
     catalog = RulesCatalog((package,))
     base = profile_compiler(PROFILE, package=package)
     compiler = CharacterCompiler(
@@ -84,7 +87,16 @@ async def setup(
                 actor_id="a",
                 proposal=CharacterProposal(
                     draft=gurps_draft(
-                        Purchase(definition_id=ability.definition_id, trait=ctx.options)
+                        Purchase(definition_id=ability.definition_id, trait=ctx.options),
+                        *(
+                            (
+                                Purchase(definition_id="trait:magery-0"),
+                                Purchase(definition_id="trait:magery"),
+                                Purchase(definition_id="spell:light", amount=16),
+                            )
+                            if magic
+                            else ()
+                        ),
                     )
                 ),
             ),

@@ -1,6 +1,6 @@
 """Private director spell lifecycle transactions; no frozen v1 route.
 
-The trusted resolver supplies a pinned, approved build and perceived target.
+The world resolver supplies environment facts; the compiler supplies the approved build.
 Play dispatch stays gated until catalog and concrete effect consumers land.
 """
 
@@ -12,18 +12,18 @@ from wayfarer.models import Campaign, Event
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.recovery import guard
+from wayfarer.orchestration.spell_bindings import SpellEnvironment, approved_context
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.spells import (
     PROFILE,
     SpellCommand,
-    SpellContext,
     SpellEvent,
     SpellResult,
     apply_spell,
     event_id,
 )
 
-SpellResolver = Callable[[PlayService, PlayState, SpellCommand], SpellContext]
+SpellResolver = Callable[[PlayService, PlayState, SpellCommand], SpellEnvironment]
 
 
 class SpellService:
@@ -57,7 +57,8 @@ class SpellService:
                 e.status == "active" and command.actor_id in e.turn_order for e in before.encounters
             ):
                 raise ValidationError("Combat spell dispatch requires the maneuver adapter")
-            context = self.resolve(play, before, command)
+            environment = SpellEnvironment.model_validate(self.resolve(play, before, command))
+            context = approved_context(play, before, command, environment)
             if context.profile_id != PROFILE:
                 raise ValidationError("Spell context does not match campaign profile")
             if command.actor_id not in {a.actor_id for a in before.actors}:
@@ -65,6 +66,10 @@ class SpellService:
             perceived = {e.id for e in before.world.perspective(command.actor_id).entities}
             if context.target_id != command.actor_id and context.target_id not in perceived:
                 raise ValidationError("Spell target is not perceived")
+            if command.kind == "start":
+                from wayfarer.simulation.concentration import require_idle_concentration
+
+                require_idle_concentration(before.resources, command.actor_id)
             resources, result = apply_spell(
                 before.resources, command, context, rng=play.rng, system=True
             )

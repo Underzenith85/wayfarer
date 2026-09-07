@@ -28,7 +28,7 @@ from wayfarer.simulation.spells import active_spells, apply_spell
 
 @pytest.mark.parametrize("first", ["spell", "ability"])
 async def test_services_share_commitment_and_cancel_releases_it(tmp_path: Path, first: str) -> None:
-    cid, play = await setup(tmp_path, spec())
+    cid, play = await setup(tmp_path, spec(), magic=True)
     spells, abilities = SpellService(play, resolve), AbilityService(play)
     if first == "spell":
         await spells.execute(cid, command(), authenticated_gm_id="gm")
@@ -48,8 +48,13 @@ async def test_services_share_commitment_and_cancel_releases_it(tmp_path: Path, 
         ).outcome == "concentrating"
     else:
         await abilities.execute(cid, ability_command(1, "cancel"), principal_id="a")
+        await play.execute(
+            cid,
+            Wait(id="finish-second", actor_id="a", expected_revision=2, ticks=1),
+            authenticated_actor_id="a",
+        )
         assert (
-            await spells.execute(cid, command(2), authenticated_gm_id="gm")
+            await spells.execute(cid, command(3), authenticated_gm_id="gm")
         ).outcome == "casting"
     assert await play.store.read(cid) == await play.store.replay(cid)
 
@@ -57,7 +62,7 @@ async def test_services_share_commitment_and_cancel_releases_it(tmp_path: Path, 
 async def test_racing_spell_and_ability_commit_only_one_and_retry_survives_restart(
     tmp_path: Path,
 ) -> None:
-    cid, play = await setup(tmp_path, spec())
+    cid, play = await setup(tmp_path, spec(), magic=True)
     results = await asyncio.gather(
         SpellService(play, resolve).execute(cid, command(), authenticated_gm_id="gm"),
         AbilityService(play).execute(cid, ability_command(), principal_id="a"),
@@ -81,7 +86,7 @@ async def test_racing_spell_and_ability_commit_only_one_and_retry_survives_resta
 
 
 async def test_reducer_guard_survives_restart_and_missed_spell_deadline(tmp_path: Path) -> None:
-    cid, play = await setup(tmp_path, spec())
+    cid, play = await setup(tmp_path, spec(), magic=True)
     await SpellService(play, resolve).execute(cid, command(), authenticated_gm_id="gm")
     state = play._load(await play.store.read(cid)).resources
     restored = ResourceState.model_validate_json(state.model_dump_json()).model_copy(
@@ -108,7 +113,7 @@ async def test_reducer_guard_survives_restart_and_missed_spell_deadline(tmp_path
 
 
 async def test_ability_reducer_cannot_overlap_itself_or_start_a_spell(tmp_path: Path) -> None:
-    cid, play = await setup(tmp_path, spec())
+    cid, play = await setup(tmp_path, spec(), magic=True)
     state = play._load(await play.store.read(cid)).resources
     started, _, _ = apply_ability(
         state,
@@ -135,7 +140,7 @@ async def test_ability_reducer_cannot_overlap_itself_or_start_a_spell(tmp_path: 
 
 
 async def test_active_spell_is_not_pending_concentration(tmp_path: Path) -> None:
-    cid, play = await setup(tmp_path, spec())
+    cid, play = await setup(tmp_path, spec(), magic=True)
     spells = SpellService(play, resolve)
     await spells.execute(cid, command(), authenticated_gm_id="gm")
     await play.execute(
@@ -153,7 +158,7 @@ async def test_active_spell_is_not_pending_concentration(tmp_path: Path) -> None
 
 @pytest.mark.parametrize("prefix", ["spell:", "ability:"])
 async def test_scenario_cannot_seed_supernatural_execution(tmp_path: Path, prefix: str) -> None:
-    _, play = await setup(tmp_path, spec())
+    _, play = await setup(tmp_path, spec(), magic=True)
     forged = ResourceState(
         events=(ResourceEvent(id=prefix + "forged", at=0, target_id="a", kind="{}"),)
     )
