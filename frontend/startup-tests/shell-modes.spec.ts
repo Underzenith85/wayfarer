@@ -4,9 +4,7 @@ const routes = ["Play", "Character", "Inventory", "Journal", "Campaign"];
 async function login(page: Page) {
   await page.goto("/");
   await page.getByLabel("Access token", { exact: true }).fill("alice-token");
-  await page
-    .getByRole("button", { name: "Load games and invitations" })
-    .click();
+  await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page.getByText(/Signed in as/)).toContainText("alice");
   return page.getByRole("region", { name: "New game and lobby" });
 }

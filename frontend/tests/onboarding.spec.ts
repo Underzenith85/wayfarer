@@ -123,3 +123,25 @@ test("stale lobby refresh preserves unsaved input", async ({
   await page.getByRole("button", { name: "Save and validate" }).click();
   await expect(page.getByText(/Saved revision 1: pending/)).toBeVisible();
 });
+test("character setup fields are sized to their content type", async ({
+  page,
+}) => {
+  const room = crypto.randomUUID();
+  await page.goto(`/campaign?onboarding=true&identity=host&room=${room}`);
+  await page
+    .getByRole("button", { name: "Create campaign", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Claim Scout", exact: true }).click();
+  const name = await page
+    .getByLabel("Character name", { exact: true })
+    .boundingBox();
+  expect(name!.width).toBeLessThanOrEqual(480);
+  const concept = await page
+    .getByLabel("Character concept", { exact: true })
+    .boundingBox();
+  expect(concept!.width).toBeLessThanOrEqual(640);
+  for (const attribute of ["Strength", "Dexterity"]) {
+    const box = await page.getByLabel(attribute, { exact: true }).boundingBox();
+    expect(box!.width).toBeLessThanOrEqual(96);
+  }
+});

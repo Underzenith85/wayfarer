@@ -30,7 +30,7 @@ vi.mock("../setup/lobby", () => ({
           })
         }
       >
-        Load games and invitations
+        Sign in
       </button>
       <button onClick={() => onOpen(disconnectedTransport)}>
         Open campaign
@@ -66,9 +66,7 @@ vi.mock("../app", () => ({
 it("replaces the setup shell with the game shell and keeps the session on return", async () => {
   const user = userEvent.setup();
   render(<ConnectedApp />);
-  await user.click(
-    screen.getByRole("button", { name: "Load games and invitations" }),
-  );
+  await user.click(screen.getByRole("button", { name: "Sign in" }));
   await user.click(screen.getByRole("button", { name: "Open campaign" }));
   // Play is its own shell: no launcher and no setup panel above it.
   expect(screen.queryByRole("button", { name: "Continue game" })).toBeNull();

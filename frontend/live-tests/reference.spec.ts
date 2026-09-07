@@ -41,9 +41,7 @@ async function login(page: Page, principal: string, id: string) {
   await page.goto("/");
   const lobby = page.getByRole("region", { name: "New game and lobby" });
   await lobby.getByLabel("Access token").fill(`${principal}-token`);
-  await lobby
-    .getByRole("button", { name: "Load games and invitations" })
-    .click();
+  await lobby.getByRole("button", { name: "Sign in" }).click();
   await lobby.locator(`[data-campaign-id="${id}"]`).click();
   // Joining loads the snapshot and its scene in separate requests. Do not let
   // another player mutate the campaign until this player's join has completed.

@@ -11,9 +11,7 @@ test("workshop validates edits, previews profiles and activates saved builds", a
   const { campaign_id } = (await created.json()) as { campaign_id: string };
   await page.goto("/");
   await page.getByLabel("Access token", { exact: true }).fill("alice-token");
-  await page
-    .getByRole("button", { name: "Load games and invitations" })
-    .click();
+  await page.getByRole("button", { name: "Sign in" }).click();
   await page.locator(`[data-resume-id="${campaign_id}"]`).click();
   await page.getByRole("link", { name: "Character", exact: true }).click();
   await expect(
@@ -67,9 +65,7 @@ test("player submits, GM reviews without control, then player activates and spen
   const { campaign_id } = (await created.json()) as { campaign_id: string };
   await page.goto("/");
   await page.getByLabel("Access token", { exact: true }).fill("alice-token");
-  await page
-    .getByRole("button", { name: "Load games and invitations" })
-    .click();
+  await page.getByRole("button", { name: "Sign in" }).click();
   await page.locator(`[data-resume-id="${campaign_id}"]`).click();
   await page.getByRole("link", { name: "Character", exact: true }).click();
   await page.getByLabel("Name", { exact: true }).fill("Submitted hero");
@@ -84,9 +80,7 @@ test("player submits, GM reviews without control, then player activates and spen
     const gm = await context.newPage();
     await gm.goto("http://127.0.0.1:4174/");
     await gm.getByLabel("Access token", { exact: true }).fill("gm-token");
-    await gm
-      .getByRole("button", { name: "Load games and invitations" })
-      .click();
+    await gm.getByRole("button", { name: "Sign in" }).click();
     const panel = gm.getByRole("region", {
       name: `GM workshop ${campaign_id}`,
       exact: true,

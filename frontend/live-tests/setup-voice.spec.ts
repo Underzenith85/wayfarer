@@ -3,9 +3,7 @@ async function login(page: Page, player: string) {
   await page.goto("/");
   const lobby = page.getByRole("region", { name: "New game and lobby" });
   await lobby.getByLabel("Access token").fill(`${player}-token`);
-  await lobby
-    .getByRole("button", { name: "Load games and invitations" })
-    .click();
+  await lobby.getByRole("button", { name: "Sign in" }).click();
   return lobby;
 }
 test("two identities activate a saved party and review speech through the live director", async ({

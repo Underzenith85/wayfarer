@@ -1284,7 +1284,6 @@ input:not([type="radio"]):not([type="checkbox"]),
 select,
 textarea {
   min-height: 44px;
-  max-width: 100%;
   font-size: 1rem;
 }
 .topbar {
@@ -1301,4 +1300,28 @@ textarea {
   .session-label {
     display: none;
   }
+}
+
+/* Field width follows content type: values stay compact, prose keeps a measure. */
+input:not([type]),
+input[type="text"],
+input[type="search"],
+input[type="password"],
+input[type="email"],
+input[type="url"],
+input[type="tel"],
+select {
+  max-width: min(30rem, 100%);
+}
+textarea {
+  max-width: min(40rem, 100%);
+}
+input[type="number"] {
+  max-width: min(6rem, 100%);
+}
+.numeric-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, max-content));
+  gap: 0.25rem 1.5rem;
+  align-items: end;
 }

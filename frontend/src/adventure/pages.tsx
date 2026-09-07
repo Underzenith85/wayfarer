@@ -443,6 +443,9 @@ function JournalContents({
     queryFn: ({ signal }) => port.entry(scope, epoch, id!, signal),
     retry: false,
   });
+  // Keep filters while one is applied so a query that matches nothing is undoable.
+  const searchable =
+    query !== "" || kind !== "all" || (entries.data?.length ?? 1) > 0;
   function select(id: string | null) {
     setId(id);
     const url = new URL(location.href);
@@ -492,25 +495,29 @@ function JournalContents({
       </section>
       <section className="scene-card">
         <h2>Discovery journal</h2>
-        <label>
-          Search discoveries
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </label>
-        <label>
-          Discovery type
-          <select
-            value={kind}
-            onChange={(e) => setKind(e.target.value as JournalKind | "all")}
-          >
-            {["all", "npc", "location", "clue", "commitment"].map((k) => (
-              <option key={k}>{k}</option>
-            ))}
-          </select>
-        </label>
+        {searchable && (
+          <>
+            <label>
+              Search discoveries
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </label>
+            <label>
+              Discovery type
+              <select
+                value={kind}
+                onChange={(e) => setKind(e.target.value as JournalKind | "all")}
+              >
+                {["all", "npc", "location", "clue", "commitment"].map((k) => (
+                  <option key={k}>{k}</option>
+                ))}
+              </select>
+            </label>
+          </>
+        )}
         {entries.isPending ? (
           <p role="status">Searching…</p>
         ) : entries.error ? (

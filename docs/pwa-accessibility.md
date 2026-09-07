@@ -20,12 +20,13 @@ until reconnect reconciliation completes. There is no background action queue.
 Updates install alongside the current worker. A status message asks the player
 to finish pending actions and close **all** tabs/windows before reopening. There
 is no forced reload, skipWaiting, or client takeover. Activation removes only old
-Wayfarer shell caches. Drafts are unaffected. End session, in the play header's **Session**
-menu, clears the principal's private drafts, resume pointer, and query state and
-reloads the production app to release in-memory credentials. Revocation uses the same private-state cleanup;
-the retained setup form is reset on session termination so it cannot retain a
-hidden token. Ordinary navigation back from play preserves the authenticated
-lobby and selected campaign.
+Wayfarer shell caches. Drafts are unaffected. End session, in the play header's
+**Session** menu with Switch campaign and New game, clears the principal's private
+drafts, resume pointer, and query state and reloads the production app to release
+in-memory credentials. Revocation uses the same private-state cleanup; the retained
+setup session is dropped on session termination so it cannot retain a hidden token.
+Leaving play through that menu preserves the authenticated setup session and
+reopens the campaign that was being played.
 
 ## Verification targets
 
@@ -54,12 +55,16 @@ and private UI are gone, including after reconnect.
 The existing skip link, semantic navigation, route heading focus, modal focus
 trap/restoration, labeled controls, action status announcements, and reduced
 motion rules remain the baseline. Inputs/selects now have 44px minimum height and
-16px text; buttons already have 44px touch targets. Header wrapping supports
-narrow screens and text zoom. Both themes use explicit focus and contrast tokens.
-Manual audit must cover new game → character → play → inventory → journal → end
-session with keyboard and VoiceOver/NVDA, at 200% zoom, in both themes. Native
-screen-reader and real-device sign-off is still required; automated semantics
-checks do not establish WCAG conformance.
+16px text; buttons already have 44px touch targets. Field width follows content
+type rather than the content column: single-line text inputs and selects cap at
+30rem, textareas at 40rem, and numeric steppers at 6rem, each still bounded by
+its container. Search and filter controls are rendered only when the collection
+they filter has content, so an empty inventory offers no filters. Header wrapping
+supports narrow screens and text zoom. Both themes use explicit focus and
+contrast tokens. Manual audit must cover new game → character → play →
+inventory → journal → end session with keyboard and VoiceOver/NVDA, at 200%
+zoom, in both themes. Native screen-reader and real-device sign-off is still
+required; automated semantics checks do not establish WCAG conformance.
 
 History uses accessible bounded pagination instead of variable-height virtual
 scrolling: at most 50 transcript rows mount for a 10,000-entry history, with

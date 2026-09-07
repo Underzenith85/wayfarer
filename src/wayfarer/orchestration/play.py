@@ -129,7 +129,13 @@ class PlayService:
                 fatigue = None
                 profile = self.engine.reviewer.compiler.statistics_profile
                 if name == "hp" and profile in ("gurps-lite-4e-2004", "gurps-basic-set-4e-2004"):
-                    injury = InjuryStatus.model_validate({"profile_id": profile})
+                    injury = InjuryStatus.model_validate(
+                        {
+                            "profile_id": profile,
+                            "anatomy": actor.body.anatomy if actor.body else None,
+                            "male_groin": actor.body.male_groin if actor.body else False,
+                        }
+                    )
                 if name == "fp" and profile in ("gurps-lite-4e-2004", "gurps-basic-set-4e-2004"):
                     fatigue = FatigueStatus.model_validate({"profile_id": profile})
                 pools[key] = Pool(
@@ -148,6 +154,8 @@ class PlayService:
                     aware_of=actor.aware_of,
                     conditions=actor.conditions,
                     available_at=actor.available_at,
+                    body=actor.body,
+                    held_item_hands=actor.held_item_hands,
                     approval=approval,
                 )
             )

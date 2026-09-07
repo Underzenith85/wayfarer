@@ -557,35 +557,37 @@ export function InventoryPage() {
           Currency and custody details are not available from this connection.
         </p>
       )}
-      <div className="inventory-filters">
-        <label>
-          Find an item
-          <input
-            type="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Name or description"
-          />
-        </label>
-        <label>
-          Location
-          <select
-            aria-label="Location"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-          >
-            {["all", "carried", "equipped", "stored", "confiscated"].map(
-              (location) => (
-                <option key={location} value={location}>
-                  {location === "all"
-                    ? "All locations"
-                    : location[0]!.toUpperCase() + location.slice(1)}
-                </option>
-              ),
-            )}
-          </select>
-        </label>
-      </div>
+      {inventory.items.length > 0 && (
+        <div className="inventory-filters">
+          <label>
+            Find an item
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Name or description"
+            />
+          </label>
+          <label>
+            Location
+            <select
+              aria-label="Location"
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+            >
+              {["all", "carried", "equipped", "stored", "confiscated"].map(
+                (location) => (
+                  <option key={location} value={location}>
+                    {location === "all"
+                      ? "All locations"
+                      : location[0]!.toUpperCase() + location.slice(1)}
+                  </option>
+                ),
+              )}
+            </select>
+          </label>
+        </div>
+      )}
       <ul className="item-list">
         {items.map((item) => (
           <li key={item.id} className="item-card">

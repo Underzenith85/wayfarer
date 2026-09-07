@@ -21,7 +21,7 @@ uv run --frozen wayfarer
 
 Open [Wayfarer](http://127.0.0.1:8000). The normal command serves the production frontend and the authoritative `/setups` and `/api/v1` services together.
 
-1. Click **New game**, enter your access token, and select **Load games and invitations**. The server identifies your player name; no campaign ID is required.
+1. Click **New game**, enter your access token, and select **Sign in**. The server identifies your player name; no campaign ID is required.
 2. Setup runs as a stepper — **Concept**, **Adventure**, **Rules**, **Party** and **Ready** — showing one step at a time. On **Adventure**, choose **The Last Beacon (solo)** under **Adventure and starting party**. Review the brief and the legal starting character, then **Create game draft**.
 3. The draft opens on **Party**. Assign Mira to your player name, then on **Ready** click **Validate and mark ready** followed by **Start game**.
 4. The opening scene loads immediately, replacing the setup shell: the game shell starts at the top of every page. Use **Wait one tick** or **Travel to The Beacon** to play without an AI provider. Free-text interpretation and generated narration require a provider.

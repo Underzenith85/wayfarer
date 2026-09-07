@@ -169,15 +169,15 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.injury.damage_types` | yes | yes | partial | #102 |
 | `gurps.injury.damage_resistance` | yes | yes | partial | #102 |
 | `gurps.injury.hp_thresholds` | yes | yes | partial | #102 |
-| `gurps.injury.hit_locations` | no | yes | absent | #107 |
-| `gurps.injury.armor_divisors` | no | yes | absent | #107 |
-| `gurps.injury.lasting_wounds` | no | yes | absent | #107 |
+| `gurps.injury.hit_locations` | no | yes | partial | #107; [living-human dispatch and blockers](gurps-hit-locations.md) |
+| `gurps.injury.armor_divisors` | no | yes | partial | #107; [numeric armor integration](gurps-hit-locations.md) |
+| `gurps.injury.lasting_wounds` | no | yes | partial | #107; [durable impairments and remaining effects](gurps-hit-locations.md) |
 | `gurps.combat.melee_attack` | yes | yes | partial | #103 |
 | `gurps.combat.active_defense` | yes | yes | partial | #103 |
-| `gurps.combat.maneuvers` | yes | yes | partial | #104 |
+| `gurps.combat.maneuvers` | yes | yes | partial | #104; [executable transitions and remaining scope](gurps-maneuvers.md) |
 | `gurps.combat.turn_timing` | yes | yes | partial | #104 |
 | `gurps.combat.ranged_attack` | yes | yes | partial | #106 |
-| `gurps.combat.aim` | yes | yes | absent | #106 |
+| `gurps.combat.aim` | yes | yes | partial | #104; target-bound accumulation and disruption; ranged resolution #106 |
 | `gurps.combat.ammunition` | yes | yes | absent | #106 |
 | `gurps.combat.rapid_fire` | no | yes | absent | #106 |
 | `gurps.combat.unarmed` | yes | yes | partial | #108 |
@@ -188,8 +188,8 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.recovery.fatigue` | yes | yes | partial | [#109 details](gurps-recovery.md) |
 | `gurps.recovery.healing` | yes | yes | partial | [#109 details](gurps-recovery.md) |
 | `gurps.recovery.medical_treatment` | no | yes | partial | [#109 details](gurps-recovery.md) |
-| `gurps.world.physical_feats` | yes | yes | partial | #110 |
-| `gurps.world.environmental_hazards` | yes | yes | absent | #110 |
+| `gurps.world.physical_feats` | yes | yes | partial | #110; [bounded authoritative procedures](gurps-hazards.md) |
+| `gurps.world.environmental_hazards` | yes | yes | partial | #110; [persistent exposure schedules](gurps-hazards.md) |
 | `gurps.magic.spellcasting` | no | yes | absent | #117 |
 | `gurps.supernatural.abilities` | no | yes | absent | #118 |
 | `gurps.vehicles.movement` | no | yes | absent | #120 |

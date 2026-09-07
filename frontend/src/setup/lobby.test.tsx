@@ -73,9 +73,7 @@ it("shows a saved conclusion and restores an archive to completed", async () => 
   const user = userEvent.setup();
   render(<SetupLobby onOpen={vi.fn()} />);
   await user.type(screen.getByLabelText("Access token"), "secret");
-  await user.click(
-    screen.getByRole("button", { name: "Load games and invitations" }),
-  );
+  await user.click(screen.getByRole("button", { name: "Sign in" }));
   await user.click(
     await screen.findByRole("button", { name: "Courier · archived" }),
   );
@@ -178,9 +176,7 @@ describe("grounded ending journeys", () => {
       const user = userEvent.setup();
       render(<SetupLobby onOpen={vi.fn()} />);
       await user.type(screen.getByLabelText("Access token"), "secret");
-      await user.click(
-        screen.getByRole("button", { name: "Load games and invitations" }),
-      );
+      await user.click(screen.getByRole("button", { name: "Sign in" }));
       await user.click(
         await screen.findByRole("button", { name: "Courier · completed" }),
       );
@@ -286,9 +282,7 @@ describe("grounded ending journeys", () => {
     const user = userEvent.setup();
     render(<SetupLobby onOpen={vi.fn()} />);
     await user.type(screen.getByLabelText("Access token"), "secret");
-    await user.click(
-      screen.getByRole("button", { name: "Load games and invitations" }),
-    );
+    await user.click(screen.getByRole("button", { name: "Sign in" }));
     await user.click(
       await screen.findByRole("button", { name: "Courier · completed" }),
     );
@@ -403,9 +397,7 @@ it("creates a game with an exact rules profile and disables unsupported ones", a
   const user = userEvent.setup();
   render(<SetupLobby onOpen={vi.fn()} />);
   await user.type(screen.getByLabelText("Access token"), "secret");
-  await user.click(
-    screen.getByRole("button", { name: "Load games and invitations" }),
-  );
+  await user.click(screen.getByRole("button", { name: "Sign in" }));
   await user.click(await screen.findByRole("button", { name: "Rules" }));
   const select = await screen.findByLabelText("Rules profile");
   const unsupported = screen.getByRole("option", {

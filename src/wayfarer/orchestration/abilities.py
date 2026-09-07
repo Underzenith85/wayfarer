@@ -9,6 +9,7 @@ from wayfarer.orchestration.gurps_melee import injury_turn
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.recovery import guard
 from wayfarer.rules.abilities import fatigue_cost, validate_binding
+from wayfarer.rules.hazard_types import require_hazards_settled
 from wayfarer.rules.recovery_types import interrupt_tasks
 from wayfarer.rules.traits import TraitOptions
 from wayfarer.simulation.abilities import (
@@ -20,6 +21,7 @@ from wayfarer.simulation.abilities import (
 )
 from wayfarer.simulation.ability_types import AbilityCommand, AbilityEvent, AbilityOutcome
 from wayfarer.simulation.actions import PlayState
+from wayfarer.simulation.maneuvers import ManeuverState
 from wayfarer.simulation.party import synchronous
 from wayfarer.simulation.resources import Advance
 
@@ -32,6 +34,9 @@ class AbilityService:
         guard(state, command.actor_id, "ability")
         if command.kind != "cancel":
             synchronous(state, command.actor_id)
+            require_hazards_settled(
+                state.resources.hazards, frozenset({command.actor_id}), state.resources.game_time
+            )
         rules = self.play.engine.rules.abilities
         if rules is None:
             raise ValidationError("Campaign has no executable ability bindings")
@@ -60,6 +65,9 @@ class AbilityService:
                 state.resources.recovery_tasks,
                 frozenset({channel.target_id}),
                 state.resources.game_time,
+            )
+            require_hazards_settled(
+                state.resources.hazards, frozenset({channel.target_id}), state.resources.game_time
             )
         target = next(
             (a for a in state.actors if channel and a.actor_id == channel.target_id), None
@@ -101,9 +109,13 @@ class AbilityService:
         if encounter is not None:
             if (
                 encounter.pending_defense is not None
+                or encounter.wait_interrupt is not None
                 or encounter.current_actor_id != actor.actor_id
             ):
                 raise ConflictError("Ability must obey the encounter turn and defense pause")
+            participant = next(p for p in encounter.participants if p.actor_id == actor.actor_id)
+            if participant.forced_do_nothing and command.kind in ("activate", "analyze"):
+                raise ValidationError("Actor must take the required Do Nothing maneuver")
             if channel:
                 positions = {p.actor_id: p.position for p in encounter.participants}
                 combat = self.play.engine.combat
@@ -193,7 +205,10 @@ class AbilityService:
             participant = next(p for p in encounter.participants if p.actor_id == actor.actor_id)
             encounter = combat._advance(
                 combat._replace(
-                    encounter, participant.model_copy(update={"last_maneuver": "concentrate"})
+                    encounter,
+                    participant.model_copy(
+                        update={"last_maneuver": "concentrate", "maneuver_state": ManeuverState()}
+                    ),
                 )
             )
             prior = next(e for e in state.encounters if e.id == encounter.id)

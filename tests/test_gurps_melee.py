@@ -33,6 +33,7 @@ from wayfarer.rules.catalog import (
     RulesCatalog,
 )
 from wayfarer.rules.checks import RecordedDice
+from wayfarer.rules.location_types import HumanBody
 from wayfarer.rules.recovery_types import RecoveryTask
 from wayfarer.rules.skill_types import ControllingAttribute, Difficulty, SkillDefault, SkillSpec
 from wayfarer.simulation.actions import ActionEngine, ActionRules, ActorSetup
@@ -41,8 +42,10 @@ from wayfarer.simulation.fatigue import FatigueCost, apply_fatigue
 from wayfarer.simulation.gurps_equipment import (
     LITE_EQUIPMENT,
     LITE_SOURCE,
+    Damage,
     EquipmentCatalog,
     EquipmentProfile,
+    RangedMode,
     Shield,
 )
 from wayfarer.simulation.resources import Item, Owner, ResourceEngine, ResourceState
@@ -55,6 +58,9 @@ async def setup(
     *,
     trained: bool = True,
     ability_defense: bool = False,
+    human: bool = False,
+    ranged_fixture: bool = False,
+    ready_after_attack: bool = False,
 ) -> tuple[str, PlayService]:
     equipment = EquipmentCatalog(
         profile_id=profile,
@@ -71,6 +77,51 @@ async def setup(
             ),
         ),
     )
+    if ready_after_attack:
+        equipment = equipment.model_copy(
+            update={
+                "entries": tuple(
+                    e.model_copy(
+                        update={
+                            "modes": tuple(
+                                m.model_copy(update={"ready_after_attack": True}) for m in e.modes
+                            )
+                        }
+                    )
+                    for e in equipment.entries
+                )
+            }
+        )
+    if ranged_fixture:
+        equipment = equipment.model_copy(
+            update={
+                "entries": tuple(
+                    e.model_copy(
+                        update={
+                            "modes": e.modes
+                            + (
+                                RangedMode(
+                                    id="throw-fixture",
+                                    skill_id="skill:broadsword",
+                                    minimum_st=1,
+                                    damage=Damage(basis="fixed", dice=1, damage_type="cr"),
+                                    accuracy=2,
+                                    range_basis="yards",
+                                    maximum_range=10,
+                                    shots=1,
+                                    reload_seconds=0,
+                                    bulk=-2,
+                                    thrown=True,
+                                ),
+                            )
+                        }
+                    )
+                    if e.definition_id == "equipment:broadsword"
+                    else e
+                    for e in equipment.entries
+                )
+            }
+        )
     source = "sjg:gurps-lite-4e-2004" if profile == LITE else "sjg:basic-set-characters-4e-2004"
     if profile == BASIC:
         equipment = equipment.model_copy(
@@ -198,6 +249,13 @@ async def setup(
     actors = tuple(
         ActorSetup(
             actor_id=a,
+            body=HumanBody(anatomy="human") if human else None,
+            held_item_hands=(
+                (f"sword-{a}", "right-hand"),
+                *(((("shield-b", "left-hand"),)) if a == "b" else ()),
+            )
+            if human
+            else (),
             proposal=CharacterProposal(
                 draft=gurps_draft(
                     *purchases,
