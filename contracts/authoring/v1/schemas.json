@@ -2589,6 +2589,77 @@
         "title": "InitialResources",
         "type": "object"
       },
+      "InjuryStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "profile_id": {
+            "enum": [
+              "gurps-lite-4e-2004",
+              "gurps-basic-set-4e-2004"
+            ],
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "shock": {
+            "default": 0,
+            "maximum": 4,
+            "minimum": 0,
+            "title": "Shock",
+            "type": "integer"
+          },
+          "stunned": {
+            "default": false,
+            "title": "Stunned",
+            "type": "boolean"
+          },
+          "prone": {
+            "default": false,
+            "title": "Prone",
+            "type": "boolean"
+          },
+          "unconscious": {
+            "default": false,
+            "title": "Unconscious",
+            "type": "boolean"
+          },
+          "mortal_wound": {
+            "default": false,
+            "title": "Mortal Wound",
+            "type": "boolean"
+          },
+          "dead": {
+            "default": false,
+            "title": "Dead",
+            "type": "boolean"
+          },
+          "turn": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Turn",
+            "type": "integer"
+          },
+          "phase": {
+            "default": "between",
+            "enum": [
+              "between",
+              "acting"
+            ],
+            "title": "Phase",
+            "type": "string"
+          },
+          "shock_expires": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Shock Expires",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "profile_id"
+        ],
+        "title": "InjuryStatus",
+        "type": "object"
+      },
       "Item": {
         "additionalProperties": false,
         "properties": {
@@ -3346,7 +3417,6 @@
             "type": "string"
           },
           "current": {
-            "minimum": 0,
             "title": "Current",
             "type": "integer"
           },
@@ -3354,6 +3424,17 @@
             "minimum": 0,
             "title": "Maximum",
             "type": "integer"
+          },
+          "injury": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/InjuryStatus"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           }
         },
         "required": [
