@@ -73,9 +73,7 @@ async def setup(tmp_path: Path) -> tuple[str, PlayService, CampaignAccess]:
             }
         )
         if pool.id == "hp:a"
-        else pool.model_copy(
-            update={"current": 5, "fatigue": FatigueStatus(profile_id=PROFILE)}
-        )
+        else pool.model_copy(update={"current": 5, "fatigue": FatigueStatus(profile_id=PROFILE)})
         for pool in state.resources.pools
     )
     state = state.model_copy(
@@ -98,8 +96,7 @@ async def test_player_can_submit_only_server_authorized_opaque_choice(tmp_path: 
     cid, play, access = await setup(tmp_path)
     projection = await access.read(cid, principal_id="alice")
     offered = {
-        choice["kind"]: choice
-        for choice in projected_list(projection, "gurps_recovery_choices")
+        choice["kind"]: choice for choice in projected_list(projection, "gurps_recovery_choices")
     }
     assert {"rest", "natural"} <= set(offered)
     assert "resuscitate" not in offered and "stabilize" not in offered
