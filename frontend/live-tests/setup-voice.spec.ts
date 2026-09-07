@@ -51,6 +51,10 @@ test("two identities activate a saved party and review speech through the live d
     await lobby
       .getByRole("textbox", { name: "Premise", exact: true })
       .fill(title);
+    // Review is reachable as soon as the concept validates; it creates.
+    await lobby.getByRole("button", { name: "Next: Adventure" }).click();
+    await lobby.getByRole("button", { name: "Next: Rules" }).click();
+    await lobby.getByRole("button", { name: "Next: Ready" }).click();
     await lobby.getByRole("button", { name: "Create game draft" }).click();
     await expect(
       lobby.getByRole("button", { name: "Save setup draft" }),

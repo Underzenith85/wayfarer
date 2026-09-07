@@ -1177,6 +1177,39 @@ details summary {
   min-height: 44px;
 }
 
+/* Setup modes are a tab bar: the selected one is obvious from the control
+   itself, so the panel below never has to repeat its label (#200). */
+.mode-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.connection-form .mode-tab {
+  margin: 0;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid transparent;
+  border-bottom: 3px solid transparent;
+  border-radius: 0.5rem 0.5rem 0 0;
+  margin-bottom: -1px;
+  background: none;
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.connection-form .mode-tab:hover {
+  color: var(--foreground);
+  background: var(--accent-soft);
+}
+.connection-form .mode-tab[aria-selected="true"] {
+  color: var(--accent);
+  background: var(--surface);
+  border-color: var(--border);
+  border-bottom-color: var(--accent);
+}
+
 .multiplayer-panel,
 .connection-status {
   border: 1px solid var(--border);
@@ -1271,6 +1304,36 @@ details summary {
 }
 .setup-steps button {
   margin: 0;
+}
+/* The chips report progress; Back and Next are how the sequence advances. */
+.step-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-block: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+.step-nav p {
+  flex: 1 1 14rem;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+.setup-review {
+  margin: 0.5rem 0 1rem;
+  display: grid;
+  gap: 0.6rem;
+}
+.setup-review dt {
+  color: var(--muted);
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.setup-review dd {
+  margin: 0.15rem 0 0;
 }
 
 .guided-authoring {

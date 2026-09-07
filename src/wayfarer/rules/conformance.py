@@ -40,7 +40,7 @@ _CAPABILITIES: Final = (
     Capability(
         "gurps.character.secondary_characteristics", True, True, CoverageStatus.VERIFIED, 97
     ),
-    Capability("gurps.character.size_modifier_costs", False, True, CoverageStatus.ABSENT, 97),
+    Capability("gurps.character.size_modifier_costs", False, True, CoverageStatus.ABSENT, 192),
     Capability("gurps.character.skill_difficulty", True, True, CoverageStatus.VERIFIED, 98),
     Capability("gurps.character.skill_defaults", True, True, CoverageStatus.VERIFIED, 98),
     Capability("gurps.character.specialties", False, True, CoverageStatus.VERIFIED, 98),
@@ -72,7 +72,7 @@ _CAPABILITIES: Final = (
     Capability("gurps.combat.maneuvers", True, True, CoverageStatus.PARTIAL, 104),
     Capability("gurps.combat.turn_timing", True, True, CoverageStatus.PARTIAL, 104),
     Capability("gurps.combat.ranged_attack", True, True, CoverageStatus.PARTIAL, 106),
-    Capability("gurps.combat.aim", True, True, CoverageStatus.ABSENT, 106),
+    Capability("gurps.combat.aim", True, True, CoverageStatus.PARTIAL, 106),
     Capability("gurps.combat.ammunition", True, True, CoverageStatus.PARTIAL, 106),
     Capability("gurps.combat.rapid_fire", False, True, CoverageStatus.PARTIAL, 106),
     Capability("gurps.combat.unarmed", True, True, CoverageStatus.PARTIAL, 108),
@@ -84,7 +84,7 @@ _CAPABILITIES: Final = (
     Capability("gurps.recovery.healing", True, True, CoverageStatus.PARTIAL, 109),
     Capability("gurps.recovery.medical_treatment", False, True, CoverageStatus.PARTIAL, 109),
     Capability("gurps.world.physical_feats", True, True, CoverageStatus.PARTIAL, 110),
-    Capability("gurps.world.environmental_hazards", True, True, CoverageStatus.ABSENT, 110),
+    Capability("gurps.world.environmental_hazards", True, True, CoverageStatus.PARTIAL, 110),
     Capability("gurps.magic.spellcasting", False, True, CoverageStatus.PARTIAL, 117),
     Capability("gurps.supernatural.abilities", False, True, CoverageStatus.PARTIAL, 118),
     Capability("gurps.vehicles.movement", False, True, CoverageStatus.PARTIAL, 120),

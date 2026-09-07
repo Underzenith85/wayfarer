@@ -1,6 +1,12 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Locator, type Page } from "@playwright/test";
 // In-app navigation: a reload would drop the in-memory token by design.
 const routes = ["Play", "Character", "Inventory", "Journal", "Campaign"];
+/** The draft is created from the review step the forward controls lead to. */
+async function create(lobby: Locator) {
+  await lobby.getByRole("button", { name: "Next: Rules" }).click();
+  await lobby.getByRole("button", { name: "Next: Ready" }).click();
+  await lobby.getByRole("button", { name: "Create game draft" }).click();
+}
 async function login(page: Page) {
   await page.goto("/");
   // Isolate this journey's rate-limit budget from other startup scenarios.
@@ -29,7 +35,7 @@ test("play replaces setup, and a second draft replaces the step view", async ({
   await lobby
     .getByLabel("Adventure and starting party")
     .selectOption("beacon-1");
-  await lobby.getByRole("button", { name: "Create game draft" }).click();
+  await create(lobby);
   await expect(lobby.getByRole("status")).toContainText("revision 0");
   await lobby.getByRole("button", { name: "New draft", exact: true }).click();
   await expect(lobby.getByRole("status")).toHaveCount(0);
@@ -39,7 +45,7 @@ test("play replaces setup, and a second draft replaces the step view", async ({
   await lobby
     .getByLabel("Adventure and starting party")
     .selectOption("beacon-1");
-  await lobby.getByRole("button", { name: "Create game draft" }).click();
+  await create(lobby);
   await lobby
     .getByLabel("Assign character to shell-alice")
     .selectOption("mira");
@@ -58,9 +64,9 @@ test("play replaces setup, and a second draft replaces the step view", async ({
     await expect(
       page.getByRole("region", { name: "New game and lobby" }),
     ).toHaveCount(0);
-    await expect(
-      page.getByRole("navigation", { name: "Game menu" }),
-    ).toHaveCount(0);
+    await expect(page.getByRole("tablist", { name: "Game menu" })).toHaveCount(
+      0,
+    );
     await expect(
       page.getByRole("button", { name: "Session", exact: true }),
     ).toBeVisible();
