@@ -340,6 +340,23 @@ GURPS_MAGIC_PROFILE: Final = replace(
     ),
 )
 
+# #192 adds a Basic-only construction context as another immutable pin. Existing
+# v2-v4 campaigns remain resolvable and unchanged; only v5 carries the definition.
+GURPS_SIZE_PACKAGE: Final = replace(
+    GURPS_MAGIC_PACKAGE,
+    version="0.5.0",
+    definitions=GURPS_MAGIC_PACKAGE.definitions + (gurps_characters.size_modifier_definition(),),
+)
+GURPS_SIZE_PROFILE: Final = replace(
+    GURPS_MAGIC_PROFILE,
+    version=5,
+    packages=(GURPS_SIZE_PACKAGE, GURPS_CAMPAIGNS_PACKAGE),
+    rules=replace(
+        GURPS_MAGIC_PROFILE.rules,
+        packages=(_pin(GURPS_SIZE_PACKAGE), _pin(GURPS_CAMPAIGNS_PACKAGE)),
+    ),
+)
+
 DEFAULT_REGISTRY: Final = ProfileRegistry(
     (
         PROTOTYPE_PROFILE,
@@ -348,8 +365,12 @@ DEFAULT_REGISTRY: Final = ProfileRegistry(
         GURPS_LITE_PROFILE,
         GURPS_BASIC_PROFILE,
         GURPS_MAGIC_PROFILE,
+        GURPS_SIZE_PROFILE,
     )
 )
 GURPS_PROFILES: Final = MappingProxyType(
-    {profile.id: profile for profile in (GURPS_LITE_PROFILE, GURPS_BASIC_PROFILE)}
+    {
+        GURPS_LITE_PROFILE.id: GURPS_LITE_PROFILE,
+        GURPS_SIZE_PROFILE.id: GURPS_SIZE_PROFILE,
+    }
 )
