@@ -1625,6 +1625,40 @@
             }
           ],
           "default": null
+        },
+        "unsupported_mechanics": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Unsupported Mechanics",
+          "type": "array"
+        },
+        "durability": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObjectProfile"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "container_capacity_millipounds": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Container Capacity Millipounds"
         }
       },
       "required": [
@@ -2167,6 +2201,14 @@
           },
           "title": "Illnesses",
           "type": "array"
+        },
+        "object_results": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ObjectResult"
+          },
+          "title": "Object Results",
+          "type": "array"
         }
       },
       "title": "InitialResources",
@@ -2337,6 +2379,17 @@
           "default": false,
           "title": "Ready",
           "type": "boolean"
+        },
+        "condition": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObjectCondition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -2868,6 +2921,145 @@
         "encounters"
       ],
       "title": "NoncombatRules",
+      "type": "object"
+    },
+    "ObjectCondition": {
+      "additionalProperties": false,
+      "properties": {
+        "hp": {
+          "title": "Hp",
+          "type": "integer"
+        },
+        "disabled": {
+          "default": false,
+          "title": "Disabled",
+          "type": "boolean"
+        },
+        "destroyed": {
+          "default": false,
+          "title": "Destroyed",
+          "type": "boolean"
+        },
+        "last_stress_at": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Stress At"
+        }
+      },
+      "required": [
+        "hp"
+      ],
+      "title": "ObjectCondition",
+      "type": "object"
+    },
+    "ObjectProfile": {
+      "additionalProperties": false,
+      "properties": {
+        "profile_id": {
+          "const": "gurps-basic-set-4e-2004",
+          "default": "gurps-basic-set-4e-2004",
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "construction": {
+          "enum": [
+            "unliving",
+            "homogenous"
+          ],
+          "title": "Construction",
+          "type": "string"
+        },
+        "hp": {
+          "exclusiveMinimum": 0,
+          "title": "Hp",
+          "type": "integer"
+        },
+        "dr": {
+          "minimum": 0,
+          "title": "Dr",
+          "type": "integer"
+        },
+        "ht": {
+          "exclusiveMinimum": 0,
+          "title": "Ht",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "construction",
+        "hp",
+        "dr",
+        "ht"
+      ],
+      "title": "ObjectProfile",
+      "type": "object"
+    },
+    "ObjectResult": {
+      "additionalProperties": false,
+      "properties": {
+        "command_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Command Id",
+          "type": "string"
+        },
+        "item_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Item Id",
+          "type": "string"
+        },
+        "injury": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Injury",
+          "type": "integer"
+        },
+        "effective_dr": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Effective Dr",
+          "type": "integer"
+        },
+        "checks": {
+          "default": [],
+          "items": {
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "type": "array"
+          },
+          "title": "Checks",
+          "type": "array"
+        },
+        "condition": {
+          "$ref": "#/$defs/ObjectCondition"
+        }
+      },
+      "required": [
+        "command_id",
+        "item_id",
+        "condition"
+      ],
+      "title": "ObjectResult",
       "type": "object"
     },
     "Objective": {
@@ -5045,7 +5237,8 @@
         "edition": {
           "enum": [
             "August 2004, Rev. 07/12/04",
-            "Fourth Edition, first printing (2004)"
+            "Fourth Edition, first printing (2004)",
+            "Fourth Edition, third printing (2008)"
           ],
           "title": "Edition",
           "type": "string"

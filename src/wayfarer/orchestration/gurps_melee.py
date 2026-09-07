@@ -756,7 +756,9 @@ def resolve_melee(
         (
             e.armor.dr
             for i in state.resources.items
-            if i.owner_id == pending.defender_id and i.equipped
+            if i.owner_id == pending.defender_id
+            and i.equipped
+            and (i.condition is None or not i.condition.disabled)
             for e in (entries[i.definition_id],)
             if e.armor
             and (

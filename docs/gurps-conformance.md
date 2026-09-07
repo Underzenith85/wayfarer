@@ -165,7 +165,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.equipment.weapon_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; source audit pending) |
 | `gurps.equipment.armor_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; source audit pending) |
 | `gurps.equipment.catalog` | yes | yes | partial | #114 |
-| `gurps.equipment.object_durability` | no | yes | absent | #114 |
+| `gurps.equipment.object_durability` | no | yes | partial | #114; #181 live integration |
 | `gurps.injury.damage_types` | yes | yes | partial | #102 |
 | `gurps.injury.damage_resistance` | yes | yes | partial | #102 |
 | `gurps.injury.hp_thresholds` | yes | yes | partial | #102 |
@@ -489,6 +489,46 @@ Early cancellation costs 1 FP regardless of skill; aborting an unfinished cast o
 letting its duration expire is free. The [publisher-hosted cancellation discussion](https://forums.sjgames.com/showthread.php?t=109197)
 corroborates the B237 reference but does not replace the frozen-source audit.
 Held missile disposal remains rejected pending its concrete adapter in #171.
+
+## Selected equipment and object damage (#114)
+
+`basic_equipment.BASIC_EQUIPMENT` contains 20 audited numeric entries: two B271
+weapons, eight B283 rigid body armors, and ten B288 ordinary items. The three
+B280 ultra-tech entries are a separate blocked index. Vehicle listings (B464)
+are separate from inventory and explicitly reject operation pending #120.
+`tests/test_basic_equipment.py` enumerates the selected rows independently.
+This is not a complete table inventory. Remaining rows and special mechanics
+are a completion blocker in #180. The source is Characters fourth edition,
+third printing (February 2008); no separate errata overlay is selected. These
+facts do not certify the frozen first-printing profile. The adapter makes no
+automatic catalog or saved-campaign changes.
+
+Object rules reference Campaigns fourth edition, fourth printing, B380 and
+B483–484, with no additional errata overlay. `ObjectProfile` explicitly selects
+Basic Set homogeneous/unliving, nonsentient construction, maximum HP, DR and
+HT. Exact integer cube-root HP computation implements B483 rounding upward.
+An explicit initialization operation adds condition to individual inventory
+instances; existing items receive no implicit durability state. Unsupported
+item mechanics reject inventory-spec conversion and package binding.
+
+`apply_object` resolves trusted damage and stress through the existing resource
+state, command IDs, revision checks, RNG interface and receipts. It implements
+construction-specific piercing/impaling injury, minimum penetrating injury,
+armor divisors, negative-HP destruction rolls, automatic destruction at -5 HP
+multiples, and at-most-once-per-second stress checks at zero HP or below.
+`ResourceService.execute_object` uses the existing SQLite/PostgreSQL transaction
+store; actor authentication and engine authority are required before retries.
+Damage results and dice survive reload. Disabled items retain their IDs, owner,
+weight and custody, lose readiness, and cannot be equipped again. Disabled
+armor is excluded from melee/ranged protection. No frozen player endpoint is
+added and no player can supply authoritative damage through this operation.
+
+The capability remains partial. This resource transaction is not the live
+PlayService combat transaction: automatic stress scheduling, object targeting,
+shield interception, weapon critical breakage, encounter synchronization,
+shock, diffuse/fragile/sentient objects, residual broken-weapon modes and repairs
+remain #181 completion blockers. Do not invoke resource-only writes against a
+live encounter. #106 and #107 remain the hard merge prerequisites declared by #114.
 
 ## Shared supernatural concentration (#117, #118, #171)
 

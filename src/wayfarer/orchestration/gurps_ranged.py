@@ -437,7 +437,9 @@ def resolve(
         (
             armor.dr
             for i in state.resources.items
-            if i.owner_id == target.actor_id and i.equipped
+            if i.owner_id == target.actor_id
+            and i.equipped
+            and (i.condition is None or not i.condition.disabled)
             for armor in (entries[i.definition_id].armor,)
             if armor is not None and "torso" in armor.locations
         ),

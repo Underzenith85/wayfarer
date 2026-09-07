@@ -23,6 +23,7 @@ from wayfarer.rules.catalog import (
 from wayfarer.rules.effects import Effect
 from wayfarer.rules.hazard_types import HazardSchedule, RecoveryRestriction, require_hazards_settled
 from wayfarer.rules.injury_types import InjuryStatus
+from wayfarer.rules.object_types import ObjectCondition, ObjectProfile, ObjectResult
 from wayfarer.rules.recovery_types import FatigueStatus, RecoveryTask, require_settled, retire_tasks
 from wayfarer.world import EntityKind, World
 
@@ -49,6 +50,7 @@ class EquipmentSpec(Record):
     technology_level: int = Field(default=0, ge=0)
     required_definitions: tuple[str, ...] = ()
     effects: tuple[Effect, ...] = ()
+    durability: ObjectProfile | None = Field(default=None, exclude_if=lambda v: v is None)
 
 
 class Item(Record):
@@ -59,6 +61,7 @@ class Item(Record):
     container_id: str | None = None
     equipped: bool = False
     ready: bool = False
+    condition: ObjectCondition | None = Field(default=None, exclude_if=lambda v: v is None)
 
 
 class Owner(Record):
@@ -141,6 +144,7 @@ class ResourceState(Record):
     recovery_tasks: tuple[RecoveryTask, ...] = ()
     hazards: tuple[HazardSchedule, ...] = ()
     illnesses: tuple[RecoveryRestriction, ...] = ()
+    object_results: tuple[ObjectResult, ...] = Field(default=(), exclude_if=lambda v: not v)
 
     @model_validator(mode="after")
     def validate_recovery_tasks(self) -> ResourceState:
@@ -301,6 +305,11 @@ class ResourceEngine:
         unique(tuple(p.id for p in state.pools))
         unique(tuple(s.id for s in state.scheduled))
         unique(tuple(r.command_id for r in state.receipts))
+        unique(tuple(r.command_id for r in state.object_results))
+        if not {r.command_id for r in state.object_results} <= {
+            r.command_id for r in state.receipts
+        }:
+            raise ValidationError("Object result requires a matching receipt")
         unique(state.active_effect_ids)
         unique(state.fired)
         unique(tuple(s.target_id for s in state.scheduled if s.kind == "expire"))
@@ -335,6 +344,25 @@ class ResourceEngine:
                 not spec.stackable or spec.container_capacity is not None or item.equipped
             ) and item.quantity != 1:
                 raise ValidationError("Equipment instances must have quantity one")
+            if spec.durability is not None:
+                if item.quantity != 1 or item.condition is None:
+                    raise ValidationError(
+                        "Durable objects require individual initialized instances"
+                    )
+                condition = item.condition
+                if condition.hp > spec.durability.hp:
+                    raise ValidationError("Object HP exceeds maximum")
+                if condition.hp <= -5 * spec.durability.hp and not condition.destroyed:
+                    raise ValidationError("Object below destruction threshold")
+                if (
+                    condition.last_stress_at is not None
+                    and condition.last_stress_at > state.game_time
+                ):
+                    raise ValidationError("Object stress time is in the future")
+                if condition.disabled and item.ready:
+                    raise ValidationError("Disabled equipment cannot be ready")
+            elif item.condition is not None:
+                raise ValidationError("Object condition requires a pinned durability profile")
             if item.ready and not item.equipped:
                 raise ValidationError("Unequipped item cannot be ready")
             ancestors: set[str] = {item.id}
@@ -477,6 +505,8 @@ class ResourceEngine:
                         **{**item.model_dump(), "quantity": item.quantity - command.quantity}
                     )
             elif isinstance(command, Equip):
+                if item.condition is not None and item.condition.disabled:
+                    raise ValidationError("Disabled equipment cannot be equipped")
                 items[item.id] = Item(
                     **{**item.model_dump(), "equipped": True, "ready": command.ready}
                 )

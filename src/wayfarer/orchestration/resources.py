@@ -1,10 +1,16 @@
 """Atomic resource commands using the existing SQLite/PostgreSQL event stores."""
 
+import secrets
+
+from pydantic import TypeAdapter
+
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, Event
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
 from wayfarer.rules.catalog import reference
+from wayfarer.rules.checks import RandomSource
+from wayfarer.simulation.objects import ObjectCommand, apply_object
 from wayfarer.simulation.resources import (
     COMMAND_ADAPTER,
     Advance,
@@ -58,5 +64,48 @@ class ResourceService:
 
         result = await self.store.commit_turn(
             cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+        )
+        return ResourceState.model_validate_json(result["state"]["resources_json"])
+
+    async def execute_object(
+        self,
+        cid: str,
+        value: object,
+        *,
+        authenticated_actor_id: str,
+        system: bool = False,
+        rng: RandomSource = secrets,
+    ) -> ResourceState:
+        """Internal resolved-damage transaction; no player-facing damage payload."""
+        command: ObjectCommand = TypeAdapter(ObjectCommand).validate_python(value)
+        if not system or command.actor_id != authenticated_actor_id:
+            raise ValidationError("Object commands require authenticated engine authority")
+        if command.actor_id not in self.engine.actors:
+            raise ValidationError("Object command actor is not authorized")
+        payload = command.model_dump_json()
+
+        def resolve(state: Campaign) -> Event:
+            if "play_json" in state:
+                raise ValidationError("Live play object damage requires the combat transaction")
+            if state.get("rules_ref") != reference(self.engine.rules):
+                raise ValidationError("Campaign rules do not match the resource engine")
+            raw = state.get("resources_json")
+            if raw is None:
+                raise ValidationError("Campaign has no resource state")
+            resources = ResourceState.model_validate_json(raw)
+            if resources.revision != state["revision"]:
+                raise ValidationError("Resource and campaign revisions diverged")
+            updated, _ = apply_object(self.engine, resources, command, system=True, rng=rng)
+            state["resources_json"] = updated.model_dump_json()
+            state["revision"] = updated.revision
+            return Event(input=payload, action="resource", outcome=command.kind, roll=None)
+
+        result = await self.store.commit_turn(
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            resolve,
+            actor_id=command.actor_id,
         )
         return ResourceState.model_validate_json(result["state"]["resources_json"])
