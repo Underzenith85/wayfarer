@@ -1,7 +1,7 @@
 """Player-facing GURPS recovery choices derived only from authoritative state.
 
 The wire contract intentionally exposes opaque choice IDs instead of medical
-parameters.  Clients never submit skill levels, TL, equipment quality, healing
+parameters. Clients never submit skill levels, TL, equipment quality, healing
 amounts, or recovery deadlines; the server reconstructs those values from the
 pinned profile, approved builds, trusted care environment, and persisted tasks.
 """
@@ -9,9 +9,8 @@ pinned profile, approved builds, trusted care environment, and persisted tasks.
 from __future__ import annotations
 
 import hashlib
-from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Literal
+from typing import Literal, cast
 
 from pydantic import Field
 
@@ -24,6 +23,7 @@ from wayfarer.orchestration.medical import (
     _value,
 )
 from wayfarer.orchestration.play import PlayService
+from wayfarer.rules.recovery_types import ProfileId
 from wayfarer.simulation.actions import ActionCommand, PlayState
 from wayfarer.simulation.injury import InjuryResult
 from wayfarer.simulation.medical import BeginRecovery, CareContext, FinishRecovery, apply_recovery
@@ -61,23 +61,9 @@ class _NoRoll:
 
 
 def default_environment(play: PlayService, _state: PlayState, _target_id: str) -> CareEnvironment:
-    """Conservative production fallback when a scenario has no care resolver.
-
-    Campaign policy owns TL.  Supplies/facilities default absent rather than being
-    inferred from player text or names.  Authored scenarios can inject a resolver
-    through CampaignAccess to unlock natural recovery and advanced facilities.
-    """
+    """Conservative fallback when an authored scenario supplies no care resolver."""
 
     return CareEnvironment(technology_level=play.engine.reviewer.compiler.policy.technology_level or 0)
-
-
-def _skill_values(play: PlayService, state: PlayState, actor_id: str) -> dict[str, int]:
-    build = _build(play, state, actor_id)
-    return {
-        value.target: int(value.value)
-        for value in build.sheet.values
-        if value.value == int(value.value)
-    }
 
 
 def _capable_provider(state: PlayState, actor_id: str) -> bool:
@@ -106,6 +92,20 @@ def _context(
     actor = _build(play, state, actor_id)
     target = _build(play, state, target_id)
     env = environment(play, state, target_id)
+    entities = {entity.id: entity for entity in state.world.entities}
+    if actor_id not in entities or target_id not in entities:
+        raise ValidationError("Recovery actor or patient is unavailable")
+    if entities[actor_id].location_id != entities[target_id].location_id:
+        raise ValidationError("Treatment requires the patient's location")
+    if env.physician_id is not None:
+        physician_entity = entities.get(env.physician_id)
+        if (
+            physician_entity is None
+            or physician_entity.location_id != entities[target_id].location_id
+            or not _capable_provider(state, env.physician_id)
+        ):
+            raise ValidationError("Physician must be present and capable of providing care")
+
     skill: int | None = None
     modifier = 0
     if kind in ("first-aid", "physician"):
@@ -130,7 +130,7 @@ def _context(
         else None
     )
     return CareContext(
-        profile,  # type: ignore[arg-type]
+        cast(ProfileId, profile),
         _value(target, "attribute:ht"),
         skill,
         env.technology_level,
@@ -171,13 +171,25 @@ def _start_choices(
             wounds[event.target_id].append(event.id)
 
     choices: list[_Choice] = []
+    kinds: tuple[MedicalKind, ...] = (
+        "rest",
+        "natural",
+        "bandage",
+        "first-aid",
+        "physician",
+        "resuscitate",
+        "stabilize",
+    )
     for actor_id in controlled:
         if actor_id not in entities:
             continue
         for target_id in controlled:
-            if target_id not in entities or entities[actor_id].location_id != entities[target_id].location_id:
+            if (
+                target_id not in entities
+                or entities[actor_id].location_id != entities[target_id].location_id
+            ):
                 continue
-            for kind in ("rest", "natural", "bandage", "first-aid", "physician", "resuscitate", "stabilize"):
+            for kind in kinds:
                 if kind in ("rest", "natural") and actor_id != target_id:
                     continue
                 if kind not in ("rest", "natural") and not _capable_provider(state, actor_id):
@@ -190,15 +202,15 @@ def _start_choices(
                         id="preview-player-recovery",
                         actor_id=actor_id,
                         expected_revision=state.revision,
-                        kind=kind,  # type: ignore[arg-type]
+                        kind=kind,
                         target_id=target_id,
                         wound_id=wound_id or None,
-                        # apply_recovery replaces procedure-defined durations. Rest is
-                        # intentionally offered in ten-minute chunks; clients cannot edit it.
+                        # Procedure-defined durations overwrite this. Rest is an
+                        # intentionally fixed ten-minute player action.
                         seconds=600,
                     )
                     try:
-                        context = _context(play, state, actor_id, target_id, kind, environment)  # type: ignore[arg-type]
+                        context = _context(play, state, actor_id, target_id, kind, environment)
                         apply_recovery(state.resources, command, context, rng=_NoRoll(), system=True)
                     except (ValidationError, ConflictError, AssertionError, StopIteration):
                         continue
@@ -216,7 +228,7 @@ def _start_choices(
                             _choice_id(kind, actor_id, target_id, wound_id),
                             actor_id,
                             target_id,
-                            kind,  # type: ignore[arg-type]
+                            kind,
                             label,
                             wound_id or None,
                         )
@@ -267,9 +279,9 @@ def choices(
             )
             private[choice.id] = choice
 
-    # A pending task blocks conflicting activity.  Only settlement controls are
+    # A pending task blocks conflicting activity. Only settlement controls are
     # advertised until it is settled, preserving the shared-clock invariant.
-    if not any(not task["settled"] for task in tasks):
+    if not any(not bool(task["settled"]) for task in tasks):
         for choice in _start_choices(play, state, controlled, resolver):
             private[choice.id] = choice
 
@@ -291,12 +303,13 @@ async def execute(
     state: PlayState,
     command: PlayerRecoveryCommand,
     *,
+    controlled_actor_ids: tuple[str, ...],
     environment: EnvironmentResolver | None = None,
 ) -> None:
     """Resolve one opaque choice into an authoritative medical command."""
 
     resolver = environment or default_environment
-    _public, _tasks, private = choices(play, state, (command.actor_id,), resolver)
+    _public, _tasks, private = choices(play, state, controlled_actor_ids, resolver)
     selected = private.get(command.choice_id)
     if selected is None or selected.actor_id != command.actor_id:
         raise ValidationError("Recovery choice is no longer authorized")
