@@ -337,11 +337,10 @@ def apply_recovery_variant(
             if state.game_time != task.due:
                 raise ValidationError("Advanced recovery must settle at its shared-clock deadline")
             if trauma:
-                assert (
-                    hp.injury is not None and task.skill is not None and task.wound_id is not None
-                )
+                assert task.skill is not None and task.wound_id is not None
                 check = success_roll(context.profile_id, max(task.ht, task.skill), rng=rng)
                 if check.outcome is Outcome.CRITICAL_SUCCESS:
+                    assert hp.injury is not None
                     stabilized = True
                     hp = hp.model_copy(
                         update={
@@ -355,6 +354,7 @@ def apply_recovery_variant(
                         }
                     )
                 elif check.outcome.succeeded:
+                    assert hp.injury is not None
                     interval = 86400 if task.wound_id == _trauma_marker(True) else 3600
                     hp = hp.model_copy(
                         update={
@@ -364,11 +364,13 @@ def apply_recovery_variant(
                         }
                     )
                 else:
+                    assert hp.injury is not None
                     hp = hp.model_copy(
                         update={"injury": hp.injury.model_copy(update={"dead": True})}
                     )
                 task = task.model_copy(update={"status": "completed", "settled": True})
                 tasks = tuple(task if t.id == task.id else t for t in state.recovery_tasks)
+                assert hp.injury is not None
                 if hp.injury.dead or stabilized:
                     tasks = retire_tasks(tasks, frozenset({target}), state.game_time)
                 result = RecoveryVariantResult(
