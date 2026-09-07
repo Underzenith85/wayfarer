@@ -51,9 +51,7 @@ async function login(page: Page, principal: string, id: string) {
       .click();
   else {
     await lobby.getByLabel("Access token").fill(`${principal}-token`);
-    await lobby
-      .getByRole("button", { name: "Load games and invitations" })
-      .click();
+    await lobby.getByRole("button", { name: "Sign in" }).click();
   }
   await lobby.locator(`[data-campaign-id="${id}"]`).click();
   // Joining loads the snapshot and its scene in separate requests. Do not let
@@ -144,7 +142,7 @@ test("reference adventure: reviewed voice, negotiation, saved epilogue and succe
     const conclusion = await login(a, "alice", id);
     await a.getByRole("button", { name: "Continue game", exact: true }).click();
     await conclusion
-      .getByRole("button", { name: "complete", exact: true })
+      .getByRole("button", { name: "End campaign", exact: true })
       .click();
     await expect(
       conclusion.getByRole("article", { name: "Adventure conclusion" }),
@@ -156,10 +154,10 @@ test("reference adventure: reviewed voice, negotiation, saved epilogue and succe
       conclusion.getByRole("article", { name: "Next adventure preview" }),
     ).toContainText("A Favor Repaid");
     await conclusion
-      .getByRole("button", { name: "continue", exact: true })
+      .getByRole("button", { name: "Continue to next adventure", exact: true })
       .click();
     await expect(conclusion.getByRole("status")).toContainText(
-      "A Favor Repaid · active",
+      "A Favor Repaid · In play",
     );
     await expect(
       conclusion.getByRole("article", { name: "Adventure conclusion" }),

@@ -19,12 +19,13 @@ from wayfarer.character.statistics import (
 from wayfarer.errors import ValidationError
 from wayfarer.rules.catalog import DefinitionKind, RulesPackage
 from wayfarer.rules.conformance import require_capabilities
+from wayfarer.rules.location_types import HumanLocation
 from wayfarer.simulation.resources import EquipmentSpec, Id, Record, ResourceEngine, ResourceState
 
 Nonnegative = Annotated[int, Field(ge=0)]
 Positive = Annotated[int, Field(ge=1)]
 DamageType = Literal["cr", "cut", "imp", "pi-", "pi", "pi+", "pi++", "burn", "cor", "tox", "fat"]
-Location = Literal["torso", "skull", "face", "neck", "arms", "hands", "legs", "feet", "groin"]
+Location = HumanLocation | Literal["arms", "hands", "legs", "feet", "eyes"]
 
 
 class Provenance(Record):
@@ -39,6 +40,8 @@ class Damage(Record):
     dice: Positive | None = None
     adds: int = 0
     damage_type: DamageType
+    armor_divisor: Decimal = Field(default=Decimal(1), gt=0, allow_inf_nan=False)
+    tight_beam: bool = False
 
     @model_validator(mode="after")
     def valid_basis(self) -> Self:
@@ -62,6 +65,7 @@ class MeleeMode(Record):
     damage: Damage
     reach: tuple[Nonnegative, ...] = Field(min_length=1)  # 0 is close combat
     parry: Parry | None = None
+    ready_after_attack: bool = Field(default=False, exclude_if=lambda value: not value)
 
     @model_validator(mode="after")
     def unique_reach(self) -> Self:
@@ -88,6 +92,7 @@ class RangedMode(Record):
     recoil: Positive = 1
     ammunition_id: Id | None = None
     thrown: bool = False
+    blockable: bool = False
 
     @model_validator(mode="after")
     def valid_range(self) -> Self:

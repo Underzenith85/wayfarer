@@ -18,9 +18,9 @@ uv run python -m wayfarer.adventures --tokens /private/tokens.json --db data/lan
 The token file maps your chosen bearer tokens to principal IDs. Include two player
 identities and an identity named `gm`; the server supplies no default credentials.
 Open `http://127.0.0.1:8000`. Each player uses their own token in a separate browser
-profile. Load games and invitations, choose The Last Lantern, create a setup, and
-save the authored graph. Invite the other principal, have them join, assign Mira
-(`a`) and Iven (`b`) to separate players, and have both mark ready before activation.
+profile. Sign in, choose The Last Lantern, create a setup, and save the authored
+graph. Invite the other principal, have them join, assign Mira (`a`) and Iven
+(`b`) to separate players, and have both mark ready before activation.
 The warden is an NPC, validated with the same conservative character policy and
 controlled only by the configured GM. The GM is never a player-character seat.
 

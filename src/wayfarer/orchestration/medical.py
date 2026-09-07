@@ -29,6 +29,9 @@ class CareEnvironment:
     water: bool = False
     sleep: bool = False
     physician_id: str | None = None
+    surgical_facility: bool = False
+    anesthetic: bool = True
+    surgical_modifier: int = 0
 
 
 EnvironmentResolver = Callable[[PlayService, PlayState, str], CareEnvironment]
@@ -130,7 +133,7 @@ class MedicalService:
             entities = {e.id: e for e in before.world.entities}
             if entities[command.actor_id].location_id != entities[target_id].location_id:
                 raise ValidationError("Treatment requires the patient's location")
-            if kind not in ("rest", "natural"):
+            if kind not in ("rest", "natural", "mortal-check"):
                 hp = next(p for p in before.resources.pools if p.id == f"hp:{command.actor_id}")
                 fp = next(p for p in before.resources.pools if p.id == f"fp:{command.actor_id}")
                 if (
@@ -159,6 +162,21 @@ class MedicalService:
                 if kind in ("first-aid", "physician")
                 else None
             )
+            treatment_modifier = 0
+            if kind == "resuscitate":
+                candidates = [
+                    int(v.value) - (4 if v.target == "skill:first-aid" else 0)
+                    for v in actor.sheet.values
+                    if v.target in ("skill:first-aid", "skill:physician")
+                    and v.value == int(v.value)
+                ]
+                if not candidates:
+                    raise ValidationError("Resuscitation requires approved First Aid or Physician")
+                skill = max(candidates)
+            if kind == "stabilize":
+                skill = _value(actor, "skill:surgery")
+                _value(actor, "skill:physician")
+                treatment_modifier = env.surgical_modifier - (0 if env.anesthetic else 2)
             physician = (
                 _value(_build(play, before, env.physician_id), "skill:physician")
                 if env.physician_id
@@ -200,6 +218,8 @@ class MedicalService:
                 env.sleep,
                 physician,
                 env.physician_id,
+                treatment_modifier,
+                env.surgical_facility,
             )
             resources, result = apply_recovery(
                 before.resources, command, context, rng=play.rng, system=True

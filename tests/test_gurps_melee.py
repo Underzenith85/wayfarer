@@ -33,16 +33,26 @@ from wayfarer.rules.catalog import (
     RulesCatalog,
 )
 from wayfarer.rules.checks import RecordedDice
+from wayfarer.rules.location_types import HumanBody
 from wayfarer.rules.recovery_types import RecoveryTask
 from wayfarer.rules.skill_types import ControllingAttribute, Difficulty, SkillDefault, SkillSpec
 from wayfarer.simulation.actions import ActionEngine, ActionRules, ActorSetup
-from wayfarer.simulation.combat import Battlefield, CombatRules, Defense, GridPoint, Placement
+from wayfarer.simulation.combat import (
+    Battlefield,
+    CombatRules,
+    Defense,
+    GridPoint,
+    Placement,
+    RangedSituation,
+)
 from wayfarer.simulation.fatigue import FatigueCost, apply_fatigue
 from wayfarer.simulation.gurps_equipment import (
     LITE_EQUIPMENT,
     LITE_SOURCE,
+    Damage,
     EquipmentCatalog,
     EquipmentProfile,
+    RangedMode,
     Shield,
 )
 from wayfarer.simulation.resources import Item, Owner, ResourceEngine, ResourceState
@@ -55,6 +65,11 @@ async def setup(
     *,
     trained: bool = True,
     ability_defense: bool = False,
+    human: bool = False,
+    ranged_fixture: bool = False,
+    ranged_mode: RangedMode | None = None,
+    ranged_scene: tuple[RangedSituation, ...] = (),
+    ready_after_attack: bool = False,
 ) -> tuple[str, PlayService]:
     equipment = EquipmentCatalog(
         profile_id=profile,
@@ -71,6 +86,70 @@ async def setup(
             ),
         ),
     )
+    if ready_after_attack:
+        equipment = equipment.model_copy(
+            update={
+                "entries": tuple(
+                    e.model_copy(
+                        update={
+                            "modes": tuple(
+                                m.model_copy(update={"ready_after_attack": True}) for m in e.modes
+                            )
+                        }
+                    )
+                    for e in equipment.entries
+                )
+            }
+        )
+    if ranged_fixture:
+        equipment = equipment.model_copy(
+            update={
+                "entries": tuple(
+                    e.model_copy(
+                        update={
+                            "modes": e.modes
+                            + (
+                                RangedMode(
+                                    id="throw-fixture",
+                                    skill_id="skill:broadsword",
+                                    minimum_st=1,
+                                    damage=Damage(basis="fixed", dice=1, damage_type="cr"),
+                                    accuracy=2,
+                                    range_basis="yards",
+                                    maximum_range=10,
+                                    shots=1,
+                                    reload_seconds=0,
+                                    bulk=-2,
+                                    thrown=True,
+                                ),
+                            )
+                        }
+                    )
+                    if e.definition_id == "equipment:broadsword"
+                    else e
+                    for e in equipment.entries
+                )
+            }
+        )
+    if ranged_mode is not None:
+        entries = tuple(
+            e.model_copy(update={"modes": e.modes + (ranged_mode,)})
+            if e.definition_id == "equipment:broadsword"
+            else e
+            for e in equipment.entries
+        )
+        if ranged_mode.ammunition_id:
+            entries += (
+                EquipmentProfile(
+                    definition_id=ranged_mode.ammunition_id,
+                    provenance=LITE_SOURCE,
+                    weight_millipounds=10,
+                    price=1,
+                    technology_level=1,
+                    ammunition=True,
+                ),
+            )
+        equipment = equipment.model_copy(update={"entries": entries})
     source = "sjg:gurps-lite-4e-2004" if profile == LITE else "sjg:basic-set-characters-4e-2004"
     if profile == BASIC:
         equipment = equipment.model_copy(
@@ -198,6 +277,13 @@ async def setup(
     actors = tuple(
         ActorSetup(
             actor_id=a,
+            body=HumanBody(anatomy="human") if human else None,
+            held_item_hands=(
+                (f"sword-{a}", "right-hand"),
+                *(((("shield-b", "left-hand"),)) if a == "b" else ()),
+            )
+            if human
+            else (),
             proposal=CharacterProposal(
                 draft=gurps_draft(
                     *purchases,
@@ -239,6 +325,20 @@ async def setup(
             ),
         ),
     )
+    if ranged_mode is not None and ranged_mode.ammunition_id:
+        seed = seed.model_copy(
+            update={
+                "items": seed.items
+                + (
+                    Item(
+                        id="ammo-a",
+                        definition_id=ranged_mode.ammunition_id,
+                        owner_id="a",
+                        quantity=10,
+                    ),
+                )
+            }
+        )
     await play.create(initial, world(), seed, actors)
     await CombatService(play).execute(
         initial["id"],
@@ -248,6 +348,7 @@ async def setup(
             expected_revision=0,
             encounter_id="fight",
             battlefield_id="dock",
+            ranged_situations=ranged_scene,
             placements=(
                 Placement(actor_id="a", position=GridPoint(x=0, y=0), facing="east"),
                 Placement(actor_id="b", position=GridPoint(x=1, y=0), facing="west"),

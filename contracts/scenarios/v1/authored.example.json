@@ -308,7 +308,11 @@
       "fired": [],
       "receipts": [],
       "events": [],
-      "recovery_tasks": []
+      "ammunition_loads": [],
+      "expended_items": [],
+      "recovery_tasks": [],
+      "hazards": [],
+      "illnesses": []
     },
     "npc_actor_ids": [
       "warden"
@@ -946,7 +950,9 @@
         "warehouse"
       ],
       "conditions": [],
-      "available_at": 0
+      "available_at": 0,
+      "body": null,
+      "held_item_hands": []
     }
   ],
   "pregenerated": [

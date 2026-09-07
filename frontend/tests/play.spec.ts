@@ -25,12 +25,11 @@ test("send resolves with authoritative trace and versioned summaries", async ({
     page.getByText("First Aid: 2 + 3 + 4 against 12", { exact: false }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Details", exact: true }).click();
-  await expect(
-    page.getByRole("dialog").getByText("Character version h2"),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("dialog").getByText("Inventory version i2"),
-  ).toBeVisible();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByText("Character version h2")).toBeHidden();
+  await dialog.getByText("Technical details", { exact: true }).click();
+  await expect(dialog.getByText("Character version h2")).toBeVisible();
+  await expect(dialog.getByText("Inventory version i2")).toBeVisible();
   await page.keyboard.press("Escape");
   expect(
     await page.evaluate(

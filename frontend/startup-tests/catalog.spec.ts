@@ -5,9 +5,7 @@ test("author a reusable scenario, reopen it, publish and start a pinned game", a
 }) => {
   await page.goto("/");
   await page.getByLabel("Access token", { exact: true }).fill("author-token");
-  await page
-    .getByRole("button", { name: "Load games and invitations" })
-    .click();
+  await page.getByRole("button", { name: "Sign in" }).click();
   const catalog = page.getByRole("region", { name: "Scenario catalog" });
   await catalog.getByLabel("Bundled scenario templates").selectOption("0");
   const editor = catalog.getByLabel("Scenario document JSON");

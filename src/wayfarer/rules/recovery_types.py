@@ -38,7 +38,9 @@ class RecoveryTask(BaseModel):
     actor_id: str
     target_id: str
     profile_id: ProfileId
-    kind: Literal["rest", "natural", "bandage", "first-aid", "physician"]
+    kind: Literal[
+        "rest", "natural", "bandage", "first-aid", "physician", "resuscitate", "stabilize"
+    ]
     start: int = Field(ge=0)
     due: int = Field(ge=0)
     status: Literal["pending", "completed", "interrupted", "cancelled"] = "pending"
@@ -54,6 +56,7 @@ class RecoveryTask(BaseModel):
     physician_id: str | None = None
     ht: int = Field(default=10, ge=1)
     skill: int | None = Field(default=None, ge=1)
+    treatment_modifier: int = 0
     ordinary_entitlement: int = Field(default=0, ge=0)
     starvation_entitlement: int = Field(default=0, ge=0)
     dehydration_entitlement: int = Field(default=0, ge=0)

@@ -8,9 +8,7 @@ async function login(page: Page, player = "alice") {
   await page
     .getByLabel("Access token", { exact: true })
     .fill(`${player}-token`);
-  await page
-    .getByRole("button", { name: "Load games and invitations" })
-    .click();
+  await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page.getByText(/Signed in as/)).toContainText(player);
   return page.getByRole("region", { name: "New game and lobby" });
 }
@@ -39,7 +37,7 @@ test("solo production entry, illegal party, stale edit, lost activation, refresh
   await expect(
     lobby.getByRole("button", { name: "Generate from saved brief" }),
   ).toHaveCount(0);
-  await lobby.getByLabel("attribute:st", { exact: true }).fill("100");
+  await lobby.getByLabel("Strength", { exact: true }).fill("100");
   await lobby.getByRole("button", { name: "Save setup draft" }).click();
   await lobby.getByLabel("Assign character to alice").selectOption("mira");
   await lobby.getByRole("button", { name: "Validate and mark ready" }).click();
@@ -49,7 +47,7 @@ test("solo production entry, illegal party, stale edit, lost activation, refresh
   await expect(
     lobby.getByRole("button", { name: "Start game", exact: true }),
   ).toHaveCount(0);
-  await lobby.getByLabel("attribute:st", { exact: true }).fill("10");
+  await lobby.getByLabel("Strength", { exact: true }).fill("10");
   // Make a genuine concurrent edit using the same authenticated service.
   let cid = "";
   await page.route("**/setups/*", async (route) => {
