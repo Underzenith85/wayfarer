@@ -449,7 +449,7 @@ class RecoveryService:
             state = state.model_copy(update={"world": world})
             if status == "committed":
                 state = self._effect(state, command, option)
-        except (ValidationError, ConflictError):
+        except ValidationError, ConflictError:
             state, status = before, "rejected"
         return state.model_copy(
             update={
