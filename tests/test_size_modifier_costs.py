@@ -10,7 +10,7 @@ import pytest
 from test_statistics import BASIC, LITE, gurps_draft, profile_compiler, profile_package
 
 from wayfarer.character.compiler import CharacterCompiler, Purchase, ValidatedBuild, pool_limits
-from wayfarer.character.size_modifier import SizeCostTarget, SizeModifierError, cost
+from wayfarer.character.size_modifier import SizeModifierError, cost
 from wayfarer.character.statistics import Attribute
 from wayfarer.orchestration.advancement import _refreshed
 from wayfarer.rules.conformance import CoverageStatus, capability
@@ -64,7 +64,7 @@ def test_independent_fixture_is_executable_and_source_pinned() -> None:
         assert target in ("attribute:st", "secondary:hp")
         assert isinstance(base_cost, int) and not isinstance(base_cost, bool)
         assert isinstance(size_modifier, int) and not isinstance(size_modifier, bool)
-        result = cost(BASIC, cast(SizeCostTarget, target), base_cost, size_modifier)
+        result = cost(BASIC, target, base_cost, size_modifier)
         assert result.adjusted_cost == expected["adjusted_cost"], case["id"]
         assert result.discount_percent == expected["discount_percent"], case["id"]
         assert result.source_id == data["source_id"]
