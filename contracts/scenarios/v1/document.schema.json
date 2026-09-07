@@ -1819,6 +1819,25 @@
           "title": "Mortal Wound",
           "type": "boolean"
         },
+        "mortal_wound_due": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mortal Wound Due"
+        },
+        "mortal_wound_started": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Mortal Wound Started",
+          "type": "integer"
+        },
         "dead": {
           "default": false,
           "title": "Dead",
@@ -3529,7 +3548,9 @@
             "natural",
             "bandage",
             "first-aid",
-            "physician"
+            "physician",
+            "resuscitate",
+            "stabilize"
           ],
           "title": "Kind",
           "type": "string"
@@ -3655,6 +3676,11 @@
           ],
           "default": null,
           "title": "Skill"
+        },
+        "treatment_modifier": {
+          "default": 0,
+          "title": "Treatment Modifier",
+          "type": "integer"
         },
         "ordinary_entitlement": {
           "default": 0,

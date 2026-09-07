@@ -455,6 +455,14 @@ class ResourceEngine:
             if command.to < state.game_time:
                 raise ValidationError("Game time cannot move backwards")
             if any(
+                p.injury is not None
+                and p.injury.mortal_wound
+                and not p.injury.dead
+                and (p.injury.mortal_wound_due is None or command.to > p.injury.mortal_wound_due)
+                for p in state.pools
+            ):
+                raise ConflictError("Settle the mortal-wound survival check before advancing")
+            if any(
                 t.status == "pending" and not t.settled and command.to > t.due
                 for t in state.recovery_tasks
             ):
