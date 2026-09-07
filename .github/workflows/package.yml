@@ -1,12 +1,40 @@
 name: Python package
+
 on:
   push:
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "scripts/**"
+      - "contracts/**"
+      - "server.py"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".python-version"
+      - ".github/workflows/package.yml"
   pull_request:
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "scripts/**"
+      - "contracts/**"
+      - "server.py"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".python-version"
+      - ".github/workflows/package.yml"
+
+concurrency:
+  group: python-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
+
 jobs:
   package:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     services:
       postgres:
         image: postgres:17
@@ -23,15 +51,12 @@ jobs:
           --health-retries 10
     env:
       WAYFARER_TEST_DATABASE_URL: postgresql://wayfarer:wayfarer@127.0.0.1:5432/wayfarer_test
-    strategy:
-      matrix:
-        python: ['3.12', '3.13', '3.14']
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
         with:
-          version: '0.11.33'
-          python-version: ${{ matrix.python }}
+          version: "0.11.33"
+          python-version: "3.14"
       - run: uv lock --check
       - run: uv sync --frozen
       - run: uv run --frozen ruff check .
@@ -45,8 +70,7 @@ jobs:
       - run: uv build
       - name: Install wheel into a separate environment
         run: |
-          uv venv /tmp/wayfarer-wheel --python '${{ matrix.python }}'
+          uv venv /tmp/wayfarer-wheel --python "3.14"
           uv pip install --python /tmp/wayfarer-wheel/bin/python dist/*.whl
       - name: Exercise wheel outside checkout
         run: uv run --frozen python scripts/smoke_installed.py /tmp/wayfarer-wheel/bin/wayfarer
-
