@@ -16,7 +16,13 @@ import {
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { ScopedLink } from "../scoped-link";
-import { ArrowUp, ChevronRight, MessageCircle, Sparkles } from "lucide-react";
+import {
+  ArrowUp,
+  ChevronRight,
+  MessageCircle,
+  Sparkles,
+  Trash2,
+} from "lucide-react";
 import { Button } from "../components/ui/button";
 import { usePlay } from "./use-play";
 import type { Entry, PlayState, PlayStore } from "./store";
@@ -26,7 +32,13 @@ import { pagePath } from "../routes";
 import { rememberCampaign } from "./session";
 import { TechnicalDetails } from "../components/technical-details";
 import { EmptyRegion, UnavailableRegion } from "../components/region-state";
-import { conditionLabel, encumbranceLabel } from "../presentation/labels";
+import {
+  ageLabel,
+  conditionLabel,
+  encumbranceLabel,
+  sceneDescription,
+  timestampLabel,
+} from "../presentation/labels";
 import { capabilityReason } from "../presentation/availability";
 export function CampaignHome() {
   const { state, store } = usePlay();
@@ -281,6 +293,12 @@ export function Transcript({ entries }: { entries: Entry[] }) {
   );
 }
 
+/**
+ * What was submitted, when, and only then how it went (#202). The frozen v1
+ * action carries no intent text, so a turn taken on another device — or before
+ * this browser's storage was cleared — says so rather than borrowing a
+ * placeholder that makes every entry read alike.
+ */
 function ActionEntry({ entry }: { entry: Entry }) {
   const a = entry.action;
   const label = {
@@ -288,11 +306,25 @@ function ActionEntry({ entry }: { entry: Entry }) {
     dialogue: "Character dialogue",
     ooc: "Out of character",
   }[entry.channel];
+  const at = a?.created_at ?? entry.at;
   return (
     <li className="transcript-entry">
       <div className={`player-message channel-${entry.channel}`}>
         <span className="eyebrow">{label}</span>
-        <p>{entry.text}</p>
+        {entry.text ? (
+          <p>{entry.text}</p>
+        ) : (
+          <p className="entry-unrecorded">
+            {a
+              ? "This turn's text was not kept on this device."
+              : "Waiting for this request to be acknowledged."}
+          </p>
+        )}
+        {at && (
+          <time className="entry-time" dateTime={at}>
+            {timestampLabel(at)}
+          </time>
+        )}
       </div>
       <div className="action-status" role="status">
         {!a
@@ -384,12 +416,23 @@ function Composer({ voice }: { voice: VoiceController }) {
   );
   // The field holds one text: the typed draft, or the transcript under review.
   // A reviewed transcript is memory-only and never reaches device draft storage.
-  const text = speech.capture === "idle" ? draft : speech.transcript;
+  const text = speech.capture === "idle" ? draft.text : speech.transcript;
   const status = voiceStatus(speech);
+  // A draft has a visible lifecycle: what it is, how old it is, and one control
+  // that throws it away (#201).
+  const age = draft.savedAt ? ageLabel(draft.savedAt) : "";
+  const held =
+    reviewing || capturing
+      ? "Voice transcript, not saved"
+      : !draft.text
+        ? "Nothing saved on this device"
+        : age
+          ? `Draft saved on this device ${age}`
+          : "Draft saved on this device";
   const send = async (e: FormEvent) => {
     e.preventDefault();
     if (reviewing) await voice.submit();
-    else await store.send(channel, draft);
+    else await store.send(channel, draft.text);
   };
   const name =
     channel === "action"
@@ -462,12 +505,6 @@ function Composer({ voice }: { voice: VoiceController }) {
             ))}
         </fieldset>
         <VoiceMic voice={voice} state={speech} />
-        <span className="composer-count">
-          {text.length} / {max} ·{" "}
-          {reviewing || capturing
-            ? "Voice transcript, not saved"
-            : "Draft saved on this device"}
-        </span>
         <Button
           disabled={
             !!blocked || capturing || !text.trim() || text.trim().length > max
@@ -477,6 +514,24 @@ function Composer({ voice }: { voice: VoiceController }) {
           Send {reviewing ? `reviewed ${name}` : name}
         </Button>
       </div>
+      {/* What the field holds, how old it is, and the one control that throws
+          it away — beneath the toolbar, so the turn keeps one primary action. */}
+      <p className="composer-draft-state">
+        <span className="composer-count">
+          {text.length} / {max} · {held}
+        </span>
+        {!!draft.text && !reviewing && !capturing && (
+          <Button
+            type="button"
+            variant="outline"
+            className="discard-draft"
+            onClick={() => store.discardDraft(channel)}
+          >
+            <Trash2 size={16} aria-hidden="true" />
+            Discard draft
+          </Button>
+        )}
+      </p>
       <p className="voice-status" role="status" aria-live="polite">
         {status}
       </p>
@@ -665,6 +720,11 @@ export function PlayWorkspace() {
   const { state, store } = usePlay();
   const voice = useVoice();
   const s = state.snapshot;
+  // The projection echoes the location name into the required description
+  // field; the card prints the name once (#203).
+  const description = s
+    ? sceneDescription(s.scene.title, s.scene.description)
+    : null;
   if (state.expired) return <SessionExpired />;
   if (state.loading)
     return (
@@ -699,7 +759,7 @@ export function PlayWorkspace() {
       <section className="scene-card current-scene">
         <span className="eyebrow">{s.campaign.name}</span>
         <h2>{s.scene.title}</h2>
-        <p className="scene-description">{s.scene.description}</p>
+        {description && <p className="scene-description">{description}</p>}
         <SceneObservations />
         <details className="session-recap">
           <summary>Session recap & known objectives</summary>

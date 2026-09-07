@@ -198,3 +198,50 @@ export function encumbranceLabel(
   if (!value) return null;
   return ENCUMBRANCE[value.trim().toLowerCase()] ?? null;
 }
+/**
+ * The scene description, or null when the projection simply echoed the title.
+ * The v1 scene contract requires a non-empty description, and the authored
+ * scene graph carries no prose for one, so the projection repeats the location
+ * name. A card prints the name once and leaves the slot empty rather than
+ * twice (#203).
+ */
+export function sceneDescription(
+  title: string,
+  description: string | null | undefined,
+): string | null {
+  const value = description?.trim();
+  if (!value || value.toLowerCase() === title.trim().toLowerCase()) return null;
+  return value;
+}
+/** Time of day for an entry made today; the date as well for an older one. */
+export function timestampLabel(iso: string, now: Date = new Date()): string {
+  const at = new Date(iso);
+  if (Number.isNaN(at.getTime())) return "";
+  const time: Intl.DateTimeFormatOptions = {
+    hour: "numeric",
+    minute: "2-digit",
+  };
+  return at.toDateString() === now.toDateString()
+    ? at.toLocaleTimeString(undefined, time)
+    : at.toLocaleString(undefined, { month: "short", day: "numeric", ...time });
+}
+const MINUTE = 60000,
+  HOUR = 60 * MINUTE,
+  DAY = 24 * HOUR;
+/**
+ * How long ago something was saved, in the words a player would use. A draft
+ * restored from an earlier session says its age so it is never mistaken for
+ * something typed a moment ago (#201).
+ */
+export function ageLabel(iso: string, now: number = Date.now()): string {
+  const at = new Date(iso).getTime();
+  if (Number.isNaN(at)) return "";
+  const elapsed = Math.max(0, now - at);
+  const count = (unit: number) => Math.floor(elapsed / unit);
+  const plural = (value: number, unit: string) =>
+    `${value} ${unit}${value === 1 ? "" : "s"} ago`;
+  if (elapsed < MINUTE) return "just now";
+  if (elapsed < HOUR) return plural(count(MINUTE), "minute");
+  if (elapsed < DAY) return plural(count(HOUR), "hour");
+  return plural(count(DAY), "day");
+}

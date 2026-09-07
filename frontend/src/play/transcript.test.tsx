@@ -11,6 +11,7 @@ it("bounds a 10,000-entry history to 50 mounted rows and exposes older entries",
         id: String(i),
         channel: "action",
         text: `Message ${i}`,
+        at: new Date(Date.UTC(2026, 0, 1, 12, 0, i % 60)).toISOString(),
         action: null,
         narration: null,
       }))}

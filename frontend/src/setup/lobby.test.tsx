@@ -611,3 +611,97 @@ it("walks the setup steps and creates the draft only from the review step", asyn
     screen.getByRole("button", { name: "Next: Ready" }),
   ).toBeInTheDocument();
 });
+
+/** The signed-in lobby: what the page is for, before what keeps it tidy (#204). */
+async function signedIn(lobbies: object[] = []) {
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+    const path = input instanceof Request ? input.url : String(input);
+    if (path.endsWith("/session"))
+      return new Response(
+        JSON.stringify({
+          principal_id: "alice",
+          generation_available: true,
+          legacy_available: false,
+        }),
+      );
+    if (path.endsWith("/api/v1/campaigns"))
+      return new Response(JSON.stringify({ items: [], next_cursor: null }));
+    return new Response(
+      JSON.stringify(
+        path.endsWith("/templates") || path.endsWith("/profiles")
+          ? []
+          : lobbies,
+      ),
+    );
+  });
+  const user = userEvent.setup();
+  render(<SetupLobby onOpen={vi.fn()} />);
+  await user.type(screen.getByLabelText("Access token"), "secret");
+  await user.click(screen.getByRole("button", { name: "Sign in" }));
+  await screen.findByRole("heading", {
+    name: "Your saved games and unfinished drafts",
+  });
+  return user;
+}
+it("leads with the games list and keeps upkeep out of primary position (#204)", async () => {
+  const draft = {
+    id: "c",
+    revision: 1,
+    host_id: "alice",
+    title: "Courier",
+    phase: "draft",
+    brief: {
+      premise: "Find the courier",
+      genre: "Mystery",
+      tone: "Tense",
+      duration_minutes: 90,
+      difficulty: "standard",
+      restrictions: [],
+    },
+    graph: null,
+    party: [],
+    seats: [],
+    rules: {},
+  };
+  await signedIn([draft]);
+  const panel = screen.getByRole("region", { name: "New game and lobby" });
+  const heading = screen.getByRole("heading", {
+    name: "Your saved games and unfinished drafts",
+  });
+  const saved = await screen.findByRole("button", {
+    name: "Courier · Draft",
+  });
+  // The list is the first content, and every control comes after it.
+  const order = [...panel.querySelectorAll("h3, button")];
+  expect(order[0]).toBe(heading);
+  expect(order[1]).toBe(saved);
+  // Upkeep reads as upkeep: user wording, and never a primary action.
+  for (const name of ["Refresh this list", "Sign out"]) {
+    const control = screen.getByRole("button", { name });
+    expect(control).toHaveClass("button-outline");
+    expect(control.compareDocumentPosition(saved)).toBe(
+      Node.DOCUMENT_POSITION_PRECEDING,
+    );
+  }
+  expect(screen.queryByRole("button", { name: /reconcile/i })).toBeNull();
+  expect(
+    screen.queryByRole("button", { name: "Sign out of setup" }),
+  ).toBeNull();
+});
+it("names every step at every width and numbers them for narrow rows (#206)", async () => {
+  await signedIn();
+  const steps = within(
+    screen.getByRole("navigation", { name: "Setup steps" }),
+  ).getAllByRole("button");
+  expect(steps.map((s) => s.textContent)).toEqual([
+    "1Concept",
+    "2Adventure",
+    "3Rules",
+    "4Party",
+    "5Ready",
+  ]);
+  // The number is decoration; the step name stays the accessible label.
+  expect(steps[0]).toHaveAccessibleName("Concept");
+  expect(steps[0]).toHaveAttribute("aria-current", "step");
+  expect(screen.getByText("Step 1 of 5: Concept")).toBeVisible();
+});
