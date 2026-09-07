@@ -8,7 +8,7 @@ Issue #108 adds internal commands to the existing `CombatService` transaction. T
 | --- | --- |
 | `TakeUnarmedTurn`: `punch`, `kick` | Compiled DX or selected striking skill, thrust-based crushing damage and per-die training bonus. Punches require a named free hand; kicks name a foot. A missed kick checks balance. Armor and resulting wounds use the existing injury service, including injury to a bare striking limb against DR 3+. |
 | `grapple` | Explicit one/two-hand control of torso, neck, arm or leg; reach C and explicit entry into the target's square. No damage on initiation. Torso control imposes the DX-related attack/defense penalties; a controlled arm cannot strike or parry. |
-| `ChooseDefense` | The existing authenticated command resolves an unarmed pause. Supported choices are Dodge, barehanded Parry and no defense. Intent persists before dice; no other combat command can bypass that pause. |
+| `ChooseDefense` | The existing authenticated command resolves an unarmed pause. Supported choices are Dodge, barehanded Parry and no defense. All-Out Defense (Double) permits an ordered fallback using a different defense or a different free parrying hand. Both choices are validated before dice; the fallback rolls only after an ordinary failure. Ordered choices and actual checks survive receipt replay. No other combat command can bypass the pause. |
 | `break_free` | One Quick Contest with grip, pin, stun and lock modifiers. A failed arm-lock escape makes subsequent attempts harder. Pin escape attempts have a ten-round interval. |
 | `takedown` | One Quick Contest using ST, DX or grappling skill against a standing opponent. The loser falls and loses the reciprocal grip. |
 | `pin` | One Regular Contest round, using the existing contest normalization. The free-hand advantage is included. Both-success/both-failure leaves control unchanged and requires another turn, without rolling ahead in time. |
@@ -33,8 +33,10 @@ The declared source is Basic Set Fourth Edition, first printing (2004), with the
 Both `gurps.combat.unarmed` and `gurps.combat.grappling` remain **partial**, which keeps the existing scenario/character capability checks fail-closed. #108 remains open. [Follow-up #176](https://github.com/Underzenith85/wayfarer/issues/176) tracks the remaining work:
 
 - Unarmed critical tables and critical-defense consequences. Table dice are recorded and the encounter blocks, rather than substituting the armed critical-miss table or ordinary damage.
-- Armed parries versus bare limbs, skill-specific advanced defenses, Double Defense, Wait/resume, attack options, evaluation/feint bonuses, retreat and tactical hex integration.
+- Armed parries versus bare limbs, skill-specific advanced defenses, Wait/resume, attack options, evaluation/feint bonuses, retreat and tactical hex integration.
 - The defensive parry-to-arm-lock route, pain on an already crippled locked limb and the distinct Choke Hold technique.
 - Free-hand Ready, partial hand release, escape steps, dragging/carrying, twice-ST movement exceptions, Size Modifier/multiarm variants and additional strikes/targets. Unsupported movement/Ready/maneuver combinations are rejected explicitly.
 
 Current bodies have no authored Size Modifier, so tests cover equal-sized human participants. This does not implement large/small creature grappling. Optional/supplement grappling systems and control points are excluded.
+
+The Double Defense subset of #176 has restart, duplicate-receipt, pre-dice rejection, distinct-hand, fallback ordering and critical-blocker regression tests in `tests/test_unarmed_double_defense.py`. Critical outcomes still preserve table dice and block continuation, including when reached through the fallback. This subset does not complete #176 or the source-baseline audit.
