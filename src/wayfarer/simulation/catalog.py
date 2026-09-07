@@ -85,4 +85,3 @@ class RevisionView(Record):
     entry: CatalogSummary
     revision: CatalogRevision
     current_report: DocumentReport
-    generation_jobs: tuple[GenerationJob, ...] = ()
