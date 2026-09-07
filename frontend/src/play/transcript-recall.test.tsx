@@ -1,5 +1,5 @@
 import { afterEach, expect, it } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { FixtureTransport } from "./fixtures";
 import { PlayStore } from "./store";
@@ -35,6 +35,20 @@ const entries = () => [
     .getByRole("region", { name: "Play transcript" })
     .querySelectorAll<HTMLElement>(".transcript > li"),
 ];
+it("shows error details and retry guidance beside a rejected action", async () => {
+  const store = start(new FixtureTransport("reject", 1));
+  await store.select("campaign-1");
+  store.chooseActor("hero-1");
+  await store.send("action", "Search the dock");
+  mount(store);
+  const alert = await screen.findByRole("alert");
+  fireEvent.click(within(alert).getByText("Error details"));
+  expect(within(alert).getByText("Code: illegal_action")).toBeVisible();
+  expect(within(alert).getByText(/Request ID:/)).toBeVisible();
+  expect(
+    within(alert).getByText("Resolve the issue before retrying."),
+  ).toBeVisible();
+});
 it("shows what was submitted and when, across a reload (#202)", async () => {
   const transport = new FixtureTransport("resolve", 1);
   const store = start(transport);

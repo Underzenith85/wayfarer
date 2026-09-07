@@ -15,7 +15,12 @@ from openai_codex.models import Notification
 from openai_codex.types import TurnCompletedNotification
 from test_wave9 import prepare
 
-from wayfarer.errors import ProviderError, ProviderTimeoutError
+from wayfarer.errors import (
+    ProviderError,
+    ProviderRequestError,
+    ProviderTimeoutError,
+    provider_diagnostic,
+)
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.codex import (
     CodexAuthenticationError,
@@ -217,6 +222,7 @@ def sdk_fake(status: str = "completed", info: str | None = None) -> MagicMock:
         ("failed", "usageLimitExceeded", CodexLimitError),
         ("interrupted", None, CodexCancelledError),
         ("failed", "other", ProviderError),
+        ("failed", "badRequest", ProviderRequestError),
     ],
 )
 async def test_sdk_structured_stream_and_failure_mapping(
@@ -269,6 +275,66 @@ async def test_sdk_missing_authentication_and_safe_runtime_config(tmp_path: Path
     with pytest.raises(CodexAuthenticationError, match="codex login"):
         await backend.generate(request(), None, bind, lambda _: None)
     fake.thread_start.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "stage", ["account", "thread_start", "thread_resume", "turn_start", "turn_stream"]
+)
+async def test_sdk_failure_stage_is_public_but_raw_details_are_not(
+    tmp_path: Path, stage: str
+) -> None:
+    backend = SDKBackend(CodexSettings(home=tmp_path / "profile"))
+    fake = sdk_fake()
+    backend.client = cast(AsyncCodex, fake)
+    failure = RuntimeError("SECRET_TOKEN private prompt /private/profile")
+    if stage == "turn_start":
+        fake.thread_start.return_value.turn.side_effect = failure
+    elif stage == "turn_stream":
+
+        async def broken_stream() -> AsyncIterator[Notification]:
+            yield Notification(
+                method="item/completed",
+                payload=ItemCompletedNotification.model_validate(
+                    {
+                        "threadId": "sdk-thread",
+                        "turnId": "turn-1",
+                        "completedAtMs": 1,
+                        "item": {"id": "message", "type": "agentMessage", "text": "{}"},
+                    }
+                ),
+            )
+            raise failure
+
+        fake.thread_start.return_value.turn.return_value.stream = broken_stream
+    else:
+        getattr(fake, stage).side_effect = failure
+    provider = CodexProvider(CodexSettings(sessions=tmp_path / "map.db"), backend=backend)
+    if stage == "thread_resume":
+        await provider.sessions.get("actor-session")
+        await provider.sessions.put("actor-session", "existing-thread")
+    with pytest.raises(ProviderError) as caught:
+        await provider.complete(request())
+    assert caught.value.stage == stage
+    diagnostic = provider_diagnostic(caught.value)
+    assert "Failed during" in diagnostic.message
+    assert "SECRET_TOKEN" not in diagnostic.message
+    assert "/private" not in diagnostic.message
+    assert diagnostic.code == "provider_unavailable"
+
+
+def test_diagnostics_allowlist_reasons_and_stage() -> None:
+    error = CodexAuthenticationError("SECRET_TOKEN")
+    error.stage = "account"
+    diagnostic = provider_diagnostic(error)
+    assert diagnostic.code == "codex_login_required"
+    assert not diagnostic.retryable
+    assert "wayfarer-codex-login" in diagnostic.message
+    assert "account check" in diagnostic.message
+    error.code = "SECRET_TOKEN"
+    error.stage = "SECRET_TOKEN"
+    diagnostic = provider_diagnostic(error)
+    assert diagnostic.code == "provider_unavailable"
+    assert "SECRET_TOKEN" not in diagnostic.message
 
 
 async def test_authenticated_codex_smoke(tmp_path: Path) -> None:

@@ -345,7 +345,21 @@ function ActionEntry({ entry }: { entry: Entry }) {
                     ? "Rejected — no game changes"
                     : "Cancelled"}
       </div>
-      {a?.status === "rejected" && <p role="alert">{a.error.message}</p>}
+      {a?.status === "rejected" && (
+        <div role="alert">
+          <p>{a.error.message}</p>
+          <details>
+            <summary>Error details</summary>
+            <p>Code: {a.error.code}</p>
+            <p>Request ID: {a.error.request_id}</p>
+            <p>
+              {a.error.retryable
+                ? "Retry is available."
+                : "Resolve the issue before retrying."}
+            </p>
+          </details>
+        </div>
+      )}
       <Clarification entry={entry} />
       {a?.status === "succeeded" && (
         <section className="committed-result">

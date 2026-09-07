@@ -14,7 +14,13 @@ from typing import Literal, Protocol
 from pydantic import Field
 
 from wayfarer.character.compiler import CharacterDraft
-from wayfarer.errors import ConflictError, ProviderError, ProviderTimeoutError, ValidationError
+from wayfarer.errors import (
+    ConflictError,
+    ProviderError,
+    ProviderOutputError,
+    ProviderTimeoutError,
+    ValidationError,
+)
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.llm import LLMClient
 from wayfarer.simulation.actions import ACTION_ADAPTER
@@ -194,18 +200,16 @@ class Orchestrator:
         *,
         timeout: float = 20,
         attempts: int = 2,
-        token_budget: int = 50000,
     ) -> None:
-        if not 0 < timeout <= 120 or not 1 <= attempts <= 3 or token_budget < 1:
+        if not 0 < timeout <= 120 or not 1 <= attempts <= 3:
             raise ValueError("Invalid provider bounds")
         self.access, self.provider = access, provider
-        self.timeout, self.attempts, self.token_budget = timeout, attempts, token_budget
+        self.timeout, self.attempts = timeout, attempts
         self.telemetry: list[ProviderTelemetry] = []
+        # Usage is telemetry, not a lifetime cutoff for this long-running service.
         self.tokens_used = 0
 
     async def _call(self, request: ProviderRequest) -> str:
-        if self.tokens_used >= self.token_budget:
-            raise ProviderError("Provider token budget exhausted")
         for attempt in range(self.attempts):
             try:
                 async with asyncio.timeout(self.timeout):
@@ -222,11 +226,11 @@ class Orchestrator:
                 )
                 if attempt == self.attempts - 1:
                     raise ProviderTimeoutError("Provider request timed out") from exc
-            except ValueError as exc:
+            except ValueError:
                 self.telemetry.append(
                     ProviderTelemetry(operation=request.operation, status="invalid")
                 )
-                raise ProviderError("Invalid provider response envelope") from exc
+                raise ProviderOutputError("Invalid provider response envelope") from None
             except ProviderError:
                 self.telemetry.append(
                     ProviderTelemetry(operation=request.operation, status="failure")
@@ -316,8 +320,8 @@ class Orchestrator:
         try:
             intent = Intent.model_validate_json(await self._call(request))
             command = intent.command(command_id, actor_id, revision)
-        except ValueError as exc:
-            raise ProviderError("Invalid structured intent") from exc
+        except ValueError:
+            raise ProviderOutputError("Invalid structured intent") from None
         _, current_session, current_revision = await self.context(cid, principal_id, actor_id)
         if current_revision != revision or current_session != session:
             raise ConflictError("Model proposal is stale; request a fresh interpretation")
@@ -412,5 +416,5 @@ class Orchestrator:
                 if kind == "character_draft"
                 else ScenarioDraft.model_validate_json(raw)
             )
-        except ValueError as exc:
-            raise ProviderError("Invalid structured draft") from exc
+        except ValueError:
+            raise ProviderOutputError("Invalid structured draft") from None
