@@ -399,7 +399,10 @@ export function GuidedScenarioAuthoring({
                 disabled={changedSinceGeneration}
                 onClick={() => {
                   const proposal = job?.proposal_json;
-                  if (proposal) onAccept(proposal);
+                  if (proposal) {
+                    setSubmittedSource(proposal);
+                    onAccept(proposal);
+                  }
                 }}
               >
                 Accept proposal into editor

@@ -265,7 +265,7 @@ class ScenarioCatalog:
             return generated
         fields: dict[str, tuple[str, ...]] = {
             "brief": ("title", "brief"),
-            "opening": ("opening_scene_id", "opening_action"),
+            "opening": ("opening_action",),
             "world": ("world", "scenes", "actions", "approaches", "noncombat", "recovery"),
             "objectives": ("objectives", "failure_consequence"),
             "characters": (
