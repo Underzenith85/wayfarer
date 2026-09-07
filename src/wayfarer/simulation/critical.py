@@ -51,7 +51,9 @@ class CriticalMiss(Record):
     catalog_digest: Digest
     ht: int = Field(ge=1)
     created_at: int = Field(ge=0)
-    position: tuple[int, int]
+    position: tuple[int, int] | None
+    hex_position: tuple[int, int] | None = None
+    hex_facing: int | None = None
     facing: Literal["north", "east", "south", "west"]
     anatomy: Literal["human"] | None = None
     limb_dr: tuple[tuple[HumanLocation, Annotated[int, Field(ge=0)]], ...]

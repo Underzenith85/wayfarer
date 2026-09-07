@@ -179,7 +179,11 @@ results remain readable even if the provider is unavailable.
 
 A campaign's `capabilities` list identifies implemented action/features, e.g.
 `actions.text`, `actions.inspect`, `actions.use_item`. An advertised capability
-must conform; absent capabilities must not show active controls. #50 must deliver
+must conform; absent capabilities must not show active controls. An entry may be
+scoped to one target as `actions.<kind>:<target_id>`, which narrows the plain
+capability to the named, already-visible targets; a client that sees no scoped
+entry for a kind uses the plain capability alone. Scoped entries are ordinary
+capability strings, so this adds no field and no new schema. #50 must deliver
 the frozen slice before claiming v1 support. Schemas can be consumed before then
 through #49 fixtures. Do not silently alias the demo endpoints to the new API.
 

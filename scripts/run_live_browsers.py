@@ -5,20 +5,24 @@ between viewport suites pools their requests into the same production rate limit
 Workshop authoring gets its own batch; no production limit is raised or disabled.
 """
 
+import argparse
 import os
 import subprocess
-import sys
 import xml.etree.ElementTree as ET
 from itertools import product
 from pathlib import Path
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--project", choices=("desktop", "phone"))
+    options, playwright_args = parser.parse_known_args()
+    projects = (options.project,) if options.project else ("desktop", "phone")
     destination = Path(os.environ.get("PLAYWRIGHT_JUNIT_OUTPUT_FILE", "reports/live.xml"))
     destination.parent.mkdir(parents=True, exist_ok=True)
     combined = ET.Element("testsuites")
     status = 0
-    for project, batch in product(("desktop", "phone"), ("regular", "workshop")):
+    for project, batch in product(projects, ("regular", "workshop")):
         name = f"{project}-{batch}"
         report = destination.with_name(f"live-{name}.xml")
         report.unlink(missing_ok=True)
@@ -33,7 +37,7 @@ def main() -> int:
                 f"--project={project}",
                 "--reporter=list,junit",
                 f"--output=test-results/live-{name}",
-                *sys.argv[1:],
+                *playwright_args,
             ],
             env={
                 **os.environ,

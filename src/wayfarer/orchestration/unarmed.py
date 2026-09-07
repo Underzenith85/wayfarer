@@ -207,6 +207,24 @@ def validate_action(
     distance = (
         0 if command.enter_close_combat else CombatEngine.distance(actor.position, target.position)
     )
+    from wayfarer.simulation.tactical import attack_geometry
+
+    if command.action in ("punch", "kick", "grapple", "arm_lock"):
+        attack_geometry(encounter, actor, target)
+        if command.enter_close_combat and encounter.hex_battlefield is not None:
+            from wayfarer.simulation.hex_geometry import movement as hex_movement
+            from wayfarer.simulation.tactical import occupants, pose
+
+            hex_movement(
+                encounter.hex_battlefield,
+                pose(actor),
+                (pose(target).position,),
+                move=movement(play, state, actor.actor_id),
+                step=True,
+                occupants=occupants(encounter),
+                actor_id=actor.actor_id,
+                enter_close_combat=True,
+            )
     if command.action in ("punch", "kick", "grapple", "arm_lock"):
         if command.grip_id is not None and command.action != "arm_lock":
             raise ValidationError("Attack cannot name an existing grip")
@@ -465,6 +483,10 @@ def unarmed_defense(
         return None, None
     if actor.pinned or actor.maneuver_state.defense_forbidden:
         raise ValidationError("Actor cannot defend")
+    if encounter.hex_battlefield is not None and encounter.pending_unarmed is not None:
+        from wayfarer.simulation.tactical import defense_adjustment
+
+        defense_adjustment(encounter, fighter(encounter, encounter.pending_unarmed.actor_id), actor)
     if selected == "dodge":
         if item_id is not None:
             raise ValidationError("Dodge cannot select equipment")
@@ -495,6 +517,7 @@ def unarmed_defense(
     )
     penalty += (
         actor.defense_penalty
+        + actor.tactical_defense_bonus
         - 4 * int(actor.arm_locked)
         + (2 if actor.maneuver_state.enhanced_defense == "parry" else 0)
     )
@@ -511,12 +534,33 @@ def defend(
         or command.defense not in pending.allowed
     ):
         raise ValidationError("Defense is not authorized for this unarmed attack")
-    if command.second_defense is not None or command.second_item_id is not None:
-        raise ValidationError("Unarmed double-defense integration is not supported")
     defense_target, hand = unarmed_defense(
         play, state, encounter, command.actor_id, command.defense, command.item_id
     )
     actor, target = fighter(encounter, pending.actor_id), fighter(encounter, pending.target_id)
+    defenses = [(defense_target, hand)]
+    if command.second_defense is None:
+        if command.second_item_id is not None:
+            raise ValidationError("Second defense equipment requires a second defense")
+    else:
+        if (
+            command.defense == "none"
+            or command.second_defense == "none"
+            or target.maneuver_state.enhanced_defense != "double"
+        ):
+            raise ValidationError("Second defense requires All-Out Defense (Double)")
+        if command.second_defense not in pending.allowed:
+            raise ValidationError("Second defense is not available against this attack")
+        second_target, second_hand = unarmed_defense(
+            play, state, encounter, command.actor_id, command.second_defense, command.second_item_id
+        )
+        if command.defense == command.second_defense and not (
+            command.defense == "parry" and hand != second_hand
+        ):
+            raise ValidationError(
+                "Double defense requires different defenses or different parrying hands"
+            )
+        defenses.append((second_target, second_hand))
     hp = next(p for p in state.resources.pools if p.id == f"hp:{actor.actor_id}")
     assert hp.injury is not None
     value = skill_value(play, state, actor.actor_id, pending.skill) - hp.injury.shock
@@ -543,15 +587,21 @@ def defend(
     if hit and defense_target is not None:
         state, can_defend = exertion(play, state, target.actor_id, command.id)
         if can_defend:
-            defense = success_roll(BASIC, defense_target, rng=play.rng)
-            checks += (defense,)
-            hit = not defense.outcome.succeeded
-            if hand:
-                target = target.model_copy(update={"parries": target.parries + (hand,)})
-            if defense.outcome in (Outcome.CRITICAL_FAILURE, Outcome.CRITICAL_SUCCESS):
-                table = tuple(play.rng.randbelow(6) + 1 for _ in range(3))
-                blocked = f"basic-unarmed-defense-critical:{defense.outcome.value}:{sum(table)}"
-                hit = False
+            for defense_level, parrying_hand in defenses:
+                assert defense_level is not None
+                defense = success_roll(BASIC, defense_level, rng=play.rng)
+                checks += (defense,)
+                hit = not defense.outcome.succeeded
+                if parrying_hand:
+                    target = target.model_copy(
+                        update={"parries": target.parries + (parrying_hand,)}
+                    )
+                if defense.outcome in (Outcome.CRITICAL_FAILURE, Outcome.CRITICAL_SUCCESS):
+                    table = tuple(play.rng.randbelow(6) + 1 for _ in range(3))
+                    blocked = f"basic-unarmed-defense-critical:{defense.outcome.value}:{sum(table)}"
+                    hit = False
+                if not hit:
+                    break
             target = target.model_copy(
                 update={
                     "maneuver_state": target.maneuver_state.model_copy(update={"defended": True})
@@ -635,6 +685,13 @@ def defend(
             injury=injury,
             blocked_reason=blocked,
             table_dice=table,
+            defenses=tuple(
+                (choice, selected_hand)
+                for choice, (_, selected_hand) in zip(
+                    (command.defense, command.second_defense), defenses, strict=False
+                )
+                if choice is not None
+            ),
         ),
     )
 

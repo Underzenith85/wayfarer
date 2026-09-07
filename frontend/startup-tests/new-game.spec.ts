@@ -1,4 +1,8 @@
 import { test, expect, type Locator, type Page } from "@playwright/test";
+import {
+  providerBanner,
+  providerReason,
+} from "../src/presentation/availability";
 async function login(page: Page, player = "alice") {
   await page.goto("/");
   await expect(
@@ -36,9 +40,8 @@ test("solo production entry, illegal party, stale edit, lost activation, refresh
   page,
 }) => {
   const { lobby } = await draft(page);
-  await expect(
-    lobby.getByText(/AI generation and free-text actions are unavailable/),
-  ).toBeVisible();
+  await expect(lobby.getByText(providerBanner.summary)).toBeVisible();
+  await expect(lobby.getByText(providerBanner.disclosure)).toBeVisible();
   await step(lobby, "Concept");
   await expect(
     lobby.getByRole("button", { name: "Generate from saved brief" }),
@@ -116,6 +119,15 @@ test("solo production entry, illegal party, stale edit, lost activation, refresh
   await expect(
     page.getByRole("heading", { name: "Stormbound Harbor" }),
   ).toBeVisible();
+  // The play shell states the missing provider once, the composer states only
+  // the part that applies to it, and no scene action the engine would reject is
+  // offered as a control.
+  await expect(page.getByText(providerBanner.summary)).toHaveCount(1);
+  await expect(page.getByLabel("What do you do?")).toBeDisabled();
+  await expect(page.getByText(providerReason.text)).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Inspect Stormbound Harbor" }),
+  ).toHaveCount(0);
   await page
     .getByRole("button", { name: "Wait one tick", exact: true })
     .click();
@@ -155,15 +167,20 @@ test("separate invited identity joins, readies and starts without leaking a priv
   baseURL,
 }) => {
   const { lobby } = await draft(page, 2);
-  let cid = "";
-  page.on("request", (r) => {
-    if (r.method() === "POST" && r.url().includes("/setups/"))
-      cid = new URL(r.url()).pathname.split("/").at(-1)!;
-  });
   await lobby.getByLabel("Invite player ID").fill("bob");
-  await lobby
-    .getByRole("button", { name: "Invite player", exact: true })
-    .click();
+  const [invitation] = await Promise.all([
+    page.waitForResponse((response) => {
+      const request = response.request();
+      return (
+        request.method() === "POST" &&
+        /^\/setups\/[^/]+$/.test(new URL(request.url()).pathname) &&
+        request.postDataJSON().operation === "invite"
+      );
+    }),
+    lobby.getByRole("button", { name: "Invite player", exact: true }).click(),
+  ]);
+  expect(invitation.ok()).toBeTruthy();
+  const { id: cid } = await invitation.json();
   await expect(lobby.getByRole("status")).toContainText("revision 1");
   const guest = await browser.newPage({
     baseURL: baseURL ?? "http://127.0.0.1:4180",
@@ -178,6 +195,7 @@ test("separate invited identity joins, readies and starts without leaking a priv
     const own = await guest.request.get(`/setups/${cid}`, {
       headers: { Authorization: "Bearer bob-token" },
     });
+    expect(own.ok()).toBeTruthy();
     expect((await own.json()).graph).toBeNull();
     await invited.locator(`[data-campaign-id="${cid}"]`).click();
     await invited.getByRole("button", { name: "Accept invitation" }).click();

@@ -15,6 +15,11 @@ export interface components {
       name: string;
       kind: components["schemas"]["DefinitionKind"];
       status: components["schemas"]["ImplementationStatus"];
+      /**
+       * Point Cost
+       * @default null
+       */
+      point_cost: number | null;
       /** @default null */
       skill: components["schemas"]["SkillSpec"] | null;
       /** @default null */
@@ -184,6 +189,11 @@ export interface components {
     WorkshopOptions: {
       /** Active Profile */
       active_profile: string | null;
+      /**
+       * Active Profile Version
+       * @default null
+       */
+      active_profile_version: number | null;
       /** Profiles */
       profiles: components["schemas"]["ProfileOption"][];
       /** Catalog */
@@ -264,17 +274,21 @@ export interface components {
        */
       modifiers: string[];
     };
-    /** ProfilePreviewRequest */
-    ProfilePreviewRequest: {
-      /** Profile Id */
-      profile_id: string;
-      /** Version */
-      version: number;
+    /** CharacterPreviewRequest */
+    CharacterPreviewRequest: {
       proposal: components["schemas"]["CharacterProposal"];
     };
-    /** ProfilePreviewResult */
-    ProfilePreviewResult: {
-      profile: components["schemas"]["ProfileOption"];
+    /** PurchaseCost */
+    PurchaseCost: {
+      /** Definition Id */
+      definition_id: string;
+      /** Amount */
+      amount: number;
+      /** Cost */
+      cost: number;
+    };
+    /** CharacterPreviewResult */
+    CharacterPreviewResult: {
       /** Catalog */
       catalog: components["schemas"]["CatalogOption"][];
       /** Spent */
@@ -287,6 +301,40 @@ export interface components {
       diagnostics: string[];
       /** Derived */
       derived: [string, string][];
+      /**
+       * Breakdown
+       * @default []
+       */
+      breakdown: components["schemas"]["PurchaseCost"][];
+    };
+    /** ProfilePreviewRequest */
+    ProfilePreviewRequest: {
+      /** Profile Id */
+      profile_id: string;
+      /** Version */
+      version: number;
+      proposal: components["schemas"]["CharacterProposal"];
+    };
+    /** ProfilePreviewResult */
+    ProfilePreviewResult: {
+      /** Catalog */
+      catalog: components["schemas"]["CatalogOption"][];
+      /** Spent */
+      spent: number;
+      /** Remaining */
+      remaining: number;
+      /** Legal */
+      legal: boolean;
+      /** Diagnostics */
+      diagnostics: string[];
+      /** Derived */
+      derived: [string, string][];
+      /**
+       * Breakdown
+       * @default []
+       */
+      breakdown: components["schemas"]["PurchaseCost"][];
+      profile: components["schemas"]["ProfileOption"];
     };
     /** AdvanceCharacter */
     AdvanceCharacter: {

@@ -31,6 +31,14 @@ def unavailable_hand(locations: frozenset[HumanLocation], hand: Hand) -> bool:
 
 
 def from_behind(attacker: Combatant, defender: Combatant) -> bool:
+    from wayfarer.simulation.combat import GridPoint
+    from wayfarer.simulation.hex_geometry import Hex, arc
+    from wayfarer.simulation.tactical import pose
+
+    if isinstance(attacker.position, Hex) and isinstance(defender.position, Hex):
+        return arc(pose(defender), attacker.position) == "rear"
+    if not isinstance(attacker.position, GridPoint) or not isinstance(defender.position, GridPoint):
+        raise ValidationError("Mixed battlefield coordinates")
     x, y = {"north": (0, -1), "east": (1, 0), "south": (0, 1), "west": (-1, 0)}[defender.facing]
     return (attacker.position.x - defender.position.x) * x + (
         attacker.position.y - defender.position.y

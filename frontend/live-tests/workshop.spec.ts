@@ -17,6 +17,15 @@ test("workshop validates edits, previews profiles and activates saved builds", a
   await expect(
     page.getByRole("heading", { name: "Character workshop" }),
   ).toBeVisible();
+  await expect(page.locator(".point-budget")).toContainText("points remaining");
+  const strength = page.locator(".purchase-row").filter({
+    has: page.locator('select option[value="attribute:st"]:checked'),
+  });
+  await strength.getByRole("button", { name: "Increase Strength" }).click();
+  await expect(strength.locator(".purchase-cost")).toContainText("10 pts");
+  await expect(
+    page.getByRole("region", { name: "Derived statistics" }),
+  ).toContainText("11");
   await page.getByLabel("Name", { exact: true }).fill("Reviewed hero");
   await page.getByRole("button", { name: "Save and validate" }).click();
   await expect(
@@ -140,7 +149,7 @@ test("player submits, GM reviews without control, then player activates and spen
     const observation = page.locator(".context-actions").filter({
       has: page.locator('select option[value="skill:observation"]:checked'),
     });
-    await observation.getByLabel("Amount", { exact: true }).fill("8");
+    await observation.getByRole("spinbutton").fill("8");
     await page
       .getByLabel("Approval or advancement reason")
       .fill("Observation training");
@@ -165,4 +174,56 @@ test("player submits, GM reviews without control, then player activates and spen
   } finally {
     await context.close();
   }
+});
+
+test("setup party edits names, concepts and point buys before saving", async ({
+  page,
+  request,
+}) => {
+  const headers = { Authorization: "Bearer alice-token" };
+  const templates = await request.get(
+    "http://127.0.0.1:8000/setups/templates",
+    { headers },
+  );
+  const [graph] = await templates.json();
+  const created = await request.post("http://127.0.0.1:8000/setups", {
+    headers,
+    data: { id: crypto.randomUUID(), brief: graph.brief, graph },
+  });
+  expect(created.ok()).toBeTruthy();
+  const setup = await created.json();
+  await page.goto("/");
+  await page.getByLabel("Access token", { exact: true }).fill("alice-token");
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await page.locator(`[data-campaign-id="${setup.id}"]`).click();
+  const editor = page.locator(".character-draft-editor").first();
+  await expect(editor.locator(".point-budget")).toContainText(
+    "points remaining",
+  );
+  await expect(
+    editor.getByLabel("Start from a character template"),
+  ).toBeVisible();
+  await editor.getByLabel("Name", { exact: true }).fill("Party scout");
+  await editor
+    .getByLabel("Concept and backstory")
+    .fill("A tracker searching for her brother");
+  await editor.getByRole("button", { name: "Increase Strength" }).click();
+  await expect(editor.locator(".purchase-cost").first()).toContainText(
+    "10 pts",
+  );
+  await page
+    .getByRole("button", { name: "Save setup draft", exact: true })
+    .click();
+  await expect(page.getByRole("status")).toContainText("revision 1");
+  const saved = await request.get(`http://127.0.0.1:8000/setups/${setup.id}`, {
+    headers,
+  });
+  const hero = (await saved.json()).graph.actors[0].proposal.draft;
+  expect(hero.name).toBe("Party scout");
+  expect(hero.backstory).toBe("A tracker searching for her brother");
+  expect(
+    hero.purchases.find(
+      (p: { definition_id: string }) => p.definition_id === "attribute:st",
+    ).amount,
+  ).toBe(11);
 });

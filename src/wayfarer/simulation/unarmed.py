@@ -99,6 +99,10 @@ class UnarmedTrace(Record):
     blocked_reason: str | None = None
     # Extra table dice must survive even when a consequence is not yet implemented.
     table_dice: tuple[int, ...] = ()
+    # Ordered choices include an unused fallback, so a receipt retains full intent.
+    defenses: tuple[tuple[Literal["dodge", "parry", "none"], str | None], ...] = Field(
+        default=(), exclude_if=lambda value: not value
+    )
 
 
 def require_basic(profile_id: str) -> None:

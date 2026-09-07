@@ -180,7 +180,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.combat.aim` | yes | yes | partial | #104; target-bound accumulation and disruption; ranged resolution #106 |
 | `gurps.combat.ammunition` | yes | yes | partial | #106; [reservations and reload timing](gurps-ranged.md); #173 adds opt-in per-round loading and magazine unloading; remaining #173 |
 | `gurps.combat.rapid_fire` | no | yes | partial | #106; [burst and Dodge resolution](gurps-ranged.md); remaining #173 |
-| `gurps.combat.unarmed` | yes | yes | partial | #108, #176; [unarmed attacks and remaining integrations](gurps-unarmed.md) |
+| `gurps.combat.unarmed` | yes | yes | partial | #108, #176; [unarmed attacks, Double Defense and remaining integrations](gurps-unarmed.md) |
 | `gurps.combat.grappling` | yes | yes | partial | #108, #176; [durable grips and remaining integrations](gurps-unarmed.md) |
 | `gurps.tactical.hex_movement` | no | yes | partial | #105 |
 | `gurps.tactical.facing` | no | yes | partial | #105 |
@@ -220,7 +220,13 @@ special constructions are unavailable; they require catalog-specific rules in
 
 Tactical geometry (#105): [contracts, provenance and integration boundary](tactical-geometry.md).
 Hex movement, facing and geometric LOS have independent fixtures; the rows remain
-partial pending source audit and combat/API integration (#115).
+partial pending source audit and the remaining geometry/mechanics variants.
+The [tactical API and player view](tactical-play.md) (#115) integrates explicit
+hex migration, authoritative movement/reach/LOS/range/armed retreat, safe player
+projections, generated contracts, keyboard choices and reconnect receipts.
+`tests/test_tactical.py` and the desktop/phone live tactical browser journeys
+exercise these boundaries. This does not enable or certify the Basic Set profile;
+advanced maneuver, ranged and unarmed gaps remain #152, #173 and #176.
 
 ## Typed equipment profiles (#101)
 
@@ -448,6 +454,26 @@ approve, activate, award and advance; committed command retries do not repeat
 awards or purchases. Browser viewport/batch isolation retains all evidence while
 keeping production rate limits unchanged. Full profile certification remains
 separate from this generic workshop integration.
+
+The point-buy follow-up shares one sectioned editor between setup party authoring
+and the active character workshop. Debounced, read-only previews use the saved
+campaign's exact compiler and power reviewer (including campaign effects and
+policy), returning authoritative totals, legal purchase costs and derived values.
+The budget remains visible, overspending is explicit, and stale responses cannot
+replace feedback for newer edits or another selected profile. Character templates
+reuse authored player characters; they still pass the same validation before save
+and activation. A different version of the same profile is a foreign preview and
+cannot save, generate, approve or advance the campaign's character.
+
+`POST /setups/{cid}/character-preview` is host-only; nonmembers cannot inspect a
+setup. `POST /campaigns/{cid}/workshop/{aid}/preview` requires control of the actor.
+Both accept `CharacterPreviewRequest` and return `CharacterPreviewResult` in the
+additive workshop schema. They never write state, draft receipts, approvals or
+resource pools. Uncompilable builds report diagnostics without fabricated derived
+values or cost breakdowns. The original activation and advancement paths remain
+authoritative. Focused HTTP tests cover pin dispatch, authorization, client cost
+rejection and unchanged state; component tests cover server totals and response
+ordering, alongside the existing live create/review/activate/advance journeys.
 
 
 ## Provisional spell lifecycle (#117)

@@ -284,9 +284,9 @@ than beside HP and FP.
 Setup lobby seats render as structured rows — player, assigned character,
 readiness — instead of a joined record string, and host lifecycle controls are
 labelled with the action taken (**Pause session**, **End campaign**) rather than
-the operation name sent to the service. The party editor labels each purchase by
-its definition name (`attribute:st` reads Strength) instead of the catalog key
-the input sends.
+the operation name sent to the service. `CharacterDraftEditor` labels each
+purchase by its definition name (`attribute:st` reads Strength) instead of the
+catalog key the control sends.
 
 The setup service sends a `party` roster — the assignable characters' ids and
 names — beside the seats, so seat rows, assignment options, the party editor's

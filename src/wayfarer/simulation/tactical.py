@@ -1,0 +1,154 @@
+"""Explicit hex adapter for the existing encounter, not a second combat engine."""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from wayfarer.errors import ValidationError
+from wayfarer.simulation.hex_geometry import (
+    Facing,
+    Hex,
+    Occupant,
+    Pose,
+    SightPoint,
+    arc,
+    in_reach,
+    line_of_sight,
+    movement,
+)
+from wayfarer.simulation.resources import Record
+
+if TYPE_CHECKING:
+    from wayfarer.simulation.combat import Combatant, Encounter, Maneuver
+    from wayfarer.simulation.gurps_equipment import EquipmentCatalog
+    from wayfarer.simulation.maneuvers import DefenseOption
+
+
+class TacticalTrace(Record):
+    command_id: str
+    actor_id: str
+    code: str
+    totals: tuple[int, ...] = ()
+    targets: tuple[int, ...] = ()
+    injury: int = 0
+    source: str = "GURPS Basic Set 4e (2004), B367-377, B384-392; baseline errata 2007-01-26"
+
+
+def pose(actor: Combatant) -> Pose:
+    if not isinstance(actor.position, Hex) or actor.hex_facing is None:
+        raise ValidationError("Hex encounter requires explicitly migrated actor poses")
+    return Pose(
+        position=actor.position,
+        facing=actor.hex_facing,
+        posture="lying" if actor.posture == "prone" else actor.posture,
+    )
+
+
+def occupants(encounter: Encounter) -> tuple[Occupant, ...]:
+    return tuple(
+        Occupant(actor_id=p.actor_id, position=pose(p).position) for p in encounter.participants
+    )
+
+
+def validate_hex_encounter(encounter: Encounter, catalog: EquipmentCatalog | None) -> None:
+    board = encounter.hex_battlefield
+    assert board is not None
+    if (
+        catalog is None
+        or catalog.profile_id != board.profile_id
+        or board.id != encounter.battlefield_id
+    ):
+        raise ValidationError("Hex battlefield must match the exact saved combat profile and map")
+    for actor in encounter.participants:
+        if board.cell(pose(actor).position).blocked:
+            raise ValidationError("Combatant occupies blocked terrain")
+
+
+def sight(encounter: Encounter, actor: Combatant, target: Combatant) -> bool:
+    board = encounter.hex_battlefield
+    if board is None:
+        return True
+    return line_of_sight(
+        board,
+        SightPoint(position=pose(actor).position, height=1 if actor.posture != "prone" else 0),
+        SightPoint(position=pose(target).position, height=1 if target.posture != "prone" else 0),
+    )
+
+
+def attack_geometry(
+    encounter: Encounter, actor: Combatant, target: Combatant, reaches: frozenset[int] | None = None
+) -> None:
+    board = encounter.hex_battlefield
+    if board is None:
+        return
+    if board.cell(pose(actor).position).elevation != board.cell(pose(target).position).elevation:
+        raise ValidationError("Unequal-height combat requires the combat-height adapter")
+    if not sight(encounter, actor, target) or arc(pose(actor), pose(target).position) not in (
+        "front",
+        "close",
+    ):
+        raise ValidationError("Target is unavailable")
+    if reaches is not None and not in_reach(
+        board, pose(actor), pose(target).position, reaches=reaches
+    ):
+        raise ValidationError("Target is outside selected weapon reach")
+
+
+def defense_adjustment(encounter: Encounter, actor: Combatant, target: Combatant) -> int:
+    if encounter.hex_battlefield is None:
+        return 0
+    direction = arc(pose(target), pose(actor).position)
+    if direction == "rear":
+        raise ValidationError("No active defense against a rear attack")
+    return -2 if direction in ("left", "right") else 0
+
+
+def move_hex(
+    encounter: Encounter,
+    actor: Combatant,
+    maneuver: Maneuver,
+    path: tuple[Hex, ...],
+    facing: Facing | None,
+    defense_option: DefenseOption | None,
+) -> Combatant:
+    board = encounter.hex_battlefield
+    assert board is not None
+    if not path and facing is None:
+        if maneuver == "move":
+            raise ValidationError("Move requires a path or facing")
+        return actor
+    if (
+        actor.grappled
+        or actor.pinned
+        or any(g.holder_id == actor.actor_id for g in encounter.grips)
+    ):
+        raise ValidationError("Release or escape the grapple before moving")
+    steps = {"attack", "aim", "evaluate", "feint", "ready", "concentrate", "all_out_defense"}
+    if maneuver not in steps | {"move", "move_and_attack", "all_out_attack"}:
+        raise ValidationError("Maneuver does not permit movement")
+    allowance = actor.movement_allowance
+    step = maneuver in steps
+    if maneuver == "all_out_attack" or (
+        maneuver == "all_out_defense" and defense_option == "dodge"
+    ):
+        allowance //= 2
+        step = False
+    if maneuver == "all_out_attack":
+        current = pose(actor)
+        for point in path:
+            if arc(current, point) != "front":
+                raise ValidationError("All-Out Attack movement must be forward")
+            current = current.model_copy(update={"position": point})
+    result = movement(
+        board,
+        pose(actor),
+        path,
+        move=allowance,
+        step=step,
+        occupants=occupants(encounter),
+        actor_id=actor.actor_id,
+        final_facing=facing,
+    )
+    return actor.model_copy(
+        update={"position": result.destination.position, "hex_facing": result.destination.facing}
+    )

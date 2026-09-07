@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "../components/ui/button";
 import type { Lobby } from "./client";
 import { GuidedScenarioAuthoring } from "./guided";
+import { providerReason } from "../presentation/availability";
 
 type Summary = {
   id: string;
@@ -170,10 +171,7 @@ export function ScenarioCatalog({
           onAccept={setSource}
         />
       ) : (
-        <p>
-          AI creation is unavailable. Templates, saved scenarios, manual
-          editing, import, and export remain available.
-        </p>
+        <p>{providerReason.creation}</p>
       )}
       <label>
         Bundled scenario templates

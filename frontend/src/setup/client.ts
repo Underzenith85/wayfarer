@@ -1,3 +1,4 @@
+import type { Proposal } from "../character/draft-editor";
 export interface Brief {
   premise: string;
   genre: string;
@@ -13,9 +14,7 @@ export interface Graph {
   npc_actor_ids: string[];
   actors: {
     actor_id: string;
-    proposal: {
-      draft: { purchases: { definition_id: string; amount: number }[] };
-    };
+    proposal: Proposal;
   }[];
   [key: string]: unknown;
 }
@@ -97,9 +96,14 @@ export class SetupClient {
       sessionStorage.setItem(this.storageKey, JSON.stringify(this.pending));
     else sessionStorage.removeItem(this.storageKey);
   }
-  async request<T>(path: string, body?: object): Promise<T> {
+  async request<T>(
+    path: string,
+    body?: object,
+    signal?: AbortSignal,
+  ): Promise<T> {
     const response = await fetch(`/setups${path}`, {
       method: body ? "POST" : "GET",
+      ...(signal ? { signal } : {}),
       headers: {
         Authorization: `Bearer ${this.token}`,
         ...(body ? { "Content-Type": "application/json" } : {}),
