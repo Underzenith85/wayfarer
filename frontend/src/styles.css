@@ -217,6 +217,9 @@ main {
   background: #0009;
   z-index: 20;
 }
+.sheet-content .context-actions {
+  flex-direction: row;
+}
 .sheet-content {
   position: fixed;
   right: 0;
@@ -1141,6 +1144,25 @@ details summary {
 .setup-lobby {
   max-width: 54rem;
   margin: 1rem auto;
+}
+.setup-steps {
+  margin-block: 1rem;
+  padding-block: 0.75rem;
+  border-block: 1px solid var(--border);
+}
+.setup-steps p {
+  margin: 0 0 0.5rem;
+}
+.setup-steps ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.setup-steps button {
+  margin: 0;
 }
 
 .guided-authoring {

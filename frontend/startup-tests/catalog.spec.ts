@@ -6,6 +6,8 @@ test("author a reusable scenario, reopen it, publish and start a pinned game", a
   await page.goto("/");
   await page.getByLabel("Access token", { exact: true }).fill("author-token");
   await page.getByRole("button", { name: "Sign in" }).click();
+  const lobby = page.getByRole("region", { name: "New game and lobby" });
+  await lobby.getByRole("button", { name: "Adventure", exact: true }).click();
   const catalog = page.getByRole("region", { name: "Scenario catalog" });
   await catalog.getByLabel("Bundled scenario templates").selectOption("0");
   const editor = catalog.getByLabel("Scenario document JSON");
@@ -18,6 +20,7 @@ test("author a reusable scenario, reopen it, publish and start a pinned game", a
   await page.reload();
   await page.getByLabel("Access token", { exact: true }).fill("author-token");
   await page.getByRole("button", { name: "Sign in" }).click();
+  await lobby.getByRole("button", { name: "Adventure", exact: true }).click();
   await catalog
     .getByRole("button", { name: new RegExp(document.public.title) })
     .click();
@@ -41,6 +44,7 @@ test("author a reusable scenario, reopen it, publish and start a pinned game", a
     .click();
   await expect(catalog).toHaveCount(0);
   await page.getByLabel("Assign character to author").selectOption("mira");
+  await lobby.getByRole("button", { name: "Ready", exact: true }).click();
   await page.getByRole("button", { name: "Validate and mark ready" }).click();
   await page.getByRole("button", { name: "Start game", exact: true }).click();
   await expect(
