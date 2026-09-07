@@ -52,8 +52,23 @@ export class VoiceController {
   constructor(
     readonly play: PlayStore,
     readonly speech: SpeechPort,
-    readonly channel: Channel,
+    private current: Channel,
   ) {}
+  get channel() {
+    return this.current;
+  }
+  /**
+   * The composer owns the channel; one controller serves every channel so that
+   * narration playback, which no longer lives in the composer, is not restarted
+   * by a change of input mode. Unsent speech never crosses a channel: the
+   * transcript was reviewed for the channel it was captured in.
+   */
+  setChannel(channel: Channel) {
+    if (channel === this.current) return;
+    this.discard();
+    this.current = channel;
+    this.sync();
+  }
   getSnapshot = () => this.state;
   subscribe = (fn: () => void) => {
     this.listeners.add(fn);
@@ -97,7 +112,6 @@ export class VoiceController {
       actor,
       snapshot.campaign.membership.version,
       s.multiplayer?.checkpoint.epoch ?? "",
-      this.channel,
     ]);
   }
   private eligible(entry: Entry) {

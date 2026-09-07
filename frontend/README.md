@@ -308,3 +308,46 @@ below the rail is hidden and the same `CharacterSummary` is reached through the
 modal never dims the page to repeat what is already beside it. `tests/shell.spec.ts`
 asserts the exclusivity on both sides of the breakpoint, and a test that wants
 the summary reads it from whichever presentation the viewport has.
+
+## One composer for one turn (#195-#198)
+
+The play screen offers one composer with one primary action. Everything a turn
+needs is inside that single bordered region, in the order the decision is made:
+the suggested scene actions, the field, and one toolbar holding the channel, the
+mic, the counter and **Send**.
+
+Voice is an input _method_ for the composer, not a parallel channel (#195). The
+`Voice & narration` panel that sat between the scene card and the field is gone.
+`src/voice/input.tsx` is one mic control in the composer toolbar: press and hold
+with a pointer or Space/Enter, or tap to keep listening. The field itself swaps
+into the listening state and holds the transcript for review, so speech uses the
+same field, the same character counter and the same Send button as typing. The
+transcript never reaches device draft storage: while a review is open the field
+renders the controller's in-memory transcript instead of the saved draft, and
+**Discard voice input** puts the typed draft back. The browser-speech disclosure
+is shown as a notice on first use of the mic and is the mic's accessible
+description from then on, rather than permanent body copy above the input.
+
+Narration playback is output, not composition, so it moved to where narration
+appears: a **Narration** control in the "At the table" heading opens mute,
+interrupt, replay and the auto-speak opt-in. One `VoiceController` per workspace
+(`src/voice/use-voice.ts`) serves both surfaces, so a capture still interrupts
+local narration and no narration is spoken twice. The channel is no longer part
+of the controller's authorized scope; `setChannel` clears unsent speech instead,
+which leaves narration playing across a change of input mode.
+
+The channel selector is a compact segmented control in that toolbar (#196). Its
+`Message channel` legend is still read by assistive technology, but it is no
+longer a labelled bordered region above the input, and the checked segment shows
+the current channel at a glance.
+
+Suggested scene actions moved out of the scene card and directly above the field
+(#197): picking a suggestion and writing your own are two ways to take the same
+turn, and they are now one decision in one place. The scene card keeps the
+narrative text, the location and — as #160 requires — the observations the engine
+withholds, with the reason they carry no control.
+
+`Acting as` renders the controlled character as static text and becomes a select
+only when the player controls more than one visible character (#198); the store
+already selects the sole controlled character, so no choice is implied where none
+exists.

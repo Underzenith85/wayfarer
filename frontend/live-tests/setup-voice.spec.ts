@@ -42,6 +42,9 @@ test("two identities activate a saved party and review speech through the live d
           abort() {}
         },
       });
+      // The browser-speech notice is disclosed on first use of the mic; this
+      // test exercises the capture past it.
+      localStorage.setItem("wayfarer-voice-notice", "seen");
     });
     const lobby = await login(a, "alice");
     const title = `Courier ${crypto.randomUUID().slice(0, 8)}`;
@@ -111,14 +114,12 @@ test("two identities activate a saved party and review speech through the live d
     a.on("request", (r) => {
       if (r.url().endsWith("/actions") && r.method() === "POST") requests++;
     });
+    // A tap on the composer's mic latches listening on; a second tap ends it,
+    // and the transcript lands in the composer's own field for review (#195).
+    await a.getByRole("button", { name: "Start voice input" }).click();
+    await a.getByRole("button", { name: "Stop voice input" }).click();
     await a
-      .getByRole("button", { name: "Start listening", exact: true })
-      .click();
-    await a
-      .getByRole("button", { name: "Stop listening", exact: true })
-      .click();
-    await a
-      .getByLabel("Review voice transcript", { exact: true })
+      .getByLabel("What do you do?", { exact: true })
       .fill("wait one minute");
     expect(requests).toBe(0);
     await a
@@ -128,7 +129,7 @@ test("two identities activate a saved party and review speech through the live d
     await expect(
       a.getByText("A moment passes.", { exact: true }),
     ).toBeVisible();
-    await expect(a.getByLabel("Review voice transcript")).toHaveCount(0);
+    await expect(a.getByLabel("What do you do?")).toHaveValue("");
     expect(requests).toBe(1);
     const response = await b.request.get(`/campaigns/${cid}`, {
       headers: { Authorization: "Bearer bob-token" },

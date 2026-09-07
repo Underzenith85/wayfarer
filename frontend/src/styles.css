@@ -544,7 +544,7 @@ details summary {
   align-items: center;
   font-family: inherit;
   font-size: 1rem;
-  margin-top: 2rem;
+  margin-block: 0;
 }
 .transcript-empty {
   font-size: 0.875rem;
@@ -666,32 +666,61 @@ details summary {
 .composer fieldset {
   border: 0;
   padding: 0;
-  margin: 0 0 1rem;
+  margin: 0;
 }
-.composer legend {
-  font-size: 0.875rem;
-  color: var(--muted);
-  margin-bottom: 0.6rem;
-}
-.channel-picker {
+/* The channel is a compact segmented control in the composer's own toolbar, not
+   a labelled region above it (#196). The legend stays for assistive naming. */
+.composer .channel-switch {
   display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  overflow: hidden;
 }
-.channel-picker label {
+.channel-switch label {
   display: flex;
+  position: relative;
   align-items: center;
-  gap: 0.4rem;
+  justify-content: center;
   min-height: 44px;
+  padding: 0 0.85rem;
   font-size: 0.875rem;
   cursor: pointer;
+  border-right: 1px solid var(--border);
 }
-.channel-picker input {
-  accent-color: var(--accent);
-  width: 18px;
-  height: 18px;
+.channel-switch label:last-of-type {
+  border-right: 0;
 }
-.composer-input > label,
+.channel-switch label:has(input:checked) {
+  background: var(--accent);
+  color: var(--background);
+  font-weight: 600;
+}
+.channel-switch label:has(input:focus-visible) {
+  outline: 3px solid var(--focus);
+  outline-offset: -3px;
+}
+.channel-switch input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  margin: 0;
+}
+.channel-switch:disabled label {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+/* Suggested actions and the field are one turn decision, in one place (#197). */
+.composer-suggestions {
+  margin-bottom: 1rem;
+}
+.composer-suggestions .context-actions {
+  margin: 0 0 0.5rem;
+}
+.composer-suggestions .composer-hint {
+  margin: 0;
+}
+.composer > label,
 .clarification label {
   display: block;
   font-size: 0.875rem;
@@ -717,16 +746,32 @@ details summary {
 }
 .composer-bottom {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 1rem;
+  gap: 0.6rem;
   flex-wrap: wrap;
   margin-top: 0.8rem;
 }
-.composer-bottom span,
-.composer-hint {
+.composer-count {
+  margin-left: auto;
+  text-align: right;
+}
+.composer-count,
+.composer-hint,
+.voice-status {
   font-size: 0.75rem;
   color: var(--muted);
+}
+.voice-status {
+  margin-bottom: 0;
+}
+.voice-status:empty {
+  display: none;
+}
+.acting-as {
+  font-size: 0.875rem;
+  color: var(--muted);
+  margin-top: 1.5rem;
+  margin-bottom: 0;
 }
 .scene-withheld {
   margin-top: 0.75rem;
@@ -1337,43 +1382,95 @@ details summary {
   padding-top: 1rem;
 }
 
-.voice-panel {
-  border: 1px solid var(--border);
-  border-radius: 0.75rem;
-  padding: 1rem;
-  margin: 1rem 0;
-  background: var(--surface);
-}
-.voice-panel h3 {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-}
-.voice-panel p {
-  overflow-wrap: anywhere;
-}
-.voice-panel .push-to-talk {
+/* Voice is an input method for the composer: one control, no vertical space
+   when unused, and its transcript is reviewed in the composer's own field. */
+.voice-mic {
   touch-action: none;
   user-select: none;
 }
-.voice-review {
-  margin: 1rem 0;
+.voice-mic[aria-pressed="true"] {
+  animation: voice-pulse 1.4s ease-in-out infinite;
 }
-.voice-review textarea {
-  width: 100%;
+.composer textarea.capturing {
+  border-color: var(--accent);
 }
-.narration-controls {
-  border-top: 1px solid var(--border);
-  margin-top: 1rem;
-  padding-top: 1rem;
+.voice-wave {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.25rem;
+  height: 1.25rem;
+  margin: 0.4rem 0 0;
+}
+.voice-wave span {
+  width: 0.25rem;
+  border-radius: 0.25rem;
+  background: var(--accent);
+  animation: voice-wave 1s ease-in-out infinite;
+}
+.voice-wave span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.voice-wave span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.voice-wave span:nth-child(4) {
+  animation-delay: 0.45s;
+}
+@keyframes voice-wave {
+  0%,
+  100% {
+    height: 0.3rem;
+  }
+  50% {
+    height: 1.25rem;
+  }
+}
+@keyframes voice-pulse {
+  50% {
+    opacity: 0.7;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .voice-wave span,
+  .voice-mic[aria-pressed="true"] {
+    animation: none;
+  }
+  .voice-wave span {
+    height: 0.75rem;
+  }
+}
+/* The browser-speech disclosure appears on first use of the mic, anchored to
+   the composer, and is the mic's description from then on (#195). */
+.voice-notice {
+  order: 99;
+  flex-basis: 100%;
+  border: 1px solid var(--accent);
+  border-radius: 0.5rem;
+  padding: 0.9rem;
+  margin-top: 0.6rem;
+  background: var(--accent-soft);
+  font-size: 0.875rem;
+}
+.voice-notice p {
+  margin-top: 0;
+}
+.voice-notice .context-actions {
+  margin-bottom: 0;
+}
+/* Narration is playback, reached from the transcript it reads back (#195). */
+.transcript-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin: 2rem 0 1rem;
 }
 .narration-controls label {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-}
-.narration-controls button {
-  margin: 0.5rem 0.5rem 0.5rem 0;
+  margin: 1rem 0;
 }
 
 /* Keep touch controls usable at text zoom and in narrow standalone windows. */
