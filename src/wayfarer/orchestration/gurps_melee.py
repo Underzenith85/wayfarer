@@ -22,6 +22,7 @@ from wayfarer.simulation.combat import Combatant, Defense, Encounter, InjuryTrac
 from wayfarer.simulation.fatigue import ContinueExertion, apply_fatigue, fatigue_value
 from wayfarer.simulation.gurps_equipment import EquipmentCatalog, MeleeMode, inventory_load
 from wayfarer.simulation.injury import InjuryTurn, Wound, apply_injury, impaired_movement
+from wayfarer.simulation.maneuvers import ATTACK_MANEUVERS, attack_modifier
 
 
 def fatigue_ready(state: PlayState, actor_id: str) -> bool:
@@ -178,6 +179,10 @@ def defense_value(
 ) -> tuple[DerivedValue | None, str | None]:
     if selected == "none":
         return None, None
+    if participant.maneuver_state.defense_forbidden or (
+        selected == "parry" and participant.maneuver_state.parry_forbidden
+    ):
+        raise ValidationError("The selected maneuver forbids this defense")
     compiled = build(play, state, participant.actor_id)
     assert compiled.statistics is not None
     hp = next(p for p in state.resources.pools if p.id == f"hp:{participant.actor_id}")
@@ -199,6 +204,7 @@ def defense_value(
     bonus = max((s.defense_bonus for _, s in shields if s is not None), default=0)
     penalty = (
         participant.defense_penalty
+        + (2 if participant.maneuver_state.enhanced_defense == selected else 0)
         + (-4 if hp.injury.stunned else 0)
         + (-3 if participant.posture == "prone" else -2 if participant.posture == "kneeling" else 0)
     )
@@ -241,7 +247,7 @@ def defense_value(
                 parry = weapon_mode.parry
                 if (
                     parry.unbalanced
-                    and participant.last_maneuver == "attack"
+                    and participant.last_maneuver in ATTACK_MANEUVERS
                     and participant.last_attack_item_id == item.id
                 ):
                     continue
@@ -284,6 +290,10 @@ def prepare_attack(
     selected = mode(play, state, pending.attacker_id, pending.weapon_id, mode_id)
     attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     defender = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
+    if attacker.maneuver_state.strong and selected.damage.basis == "fixed":
+        raise ValidationError("Strong requires ST-based melee damage")
+    if attacker.maneuver_state.attacks_remaining and selected.ready_after_attack:
+        raise ValidationError("Double attack requires a weapon usable twice without readying")
     if (
         abs(attacker.position.x - defender.position.x)
         + abs(attacker.position.y - defender.position.y)
@@ -306,12 +316,46 @@ def prepare_attack(
     )
 
 
+def validate_defense_choices(
+    play: PlayService,
+    state: PlayState,
+    encounter: Encounter,
+    selected: Defense,
+    item_id: str | None,
+    second_defense: Defense | None,
+    second_item_id: str | None,
+) -> None:
+    pending = encounter.pending_defense
+    if pending is None:
+        raise ValidationError("No attack awaits defense")
+    defender = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
+    _, first_item = defense_value(play, state, defender, selected, item_id)
+    if second_defense is None:
+        if second_item_id is not None:
+            raise ValidationError("Second defense equipment requires a second defense")
+        return
+    if (
+        selected == "none"
+        or second_defense == "none"
+        or defender.maneuver_state.enhanced_defense != "double"
+    ):
+        raise ValidationError("Second defense requires All-Out Defense (Double)")
+    _, second_item = defense_value(play, state, defender, second_defense, second_item_id)
+    if selected == second_defense and not (selected == "parry" and first_item != second_item):
+        raise ValidationError(
+            "Double defense requires different defenses or different parrying hands"
+        )
+
+
 def resolve_melee(
     play: PlayService,
     state: PlayState,
     encounter: Encounter,
     selected: Defense,
     item_id: str | None,
+    *,
+    second_defense: Defense | None = None,
+    second_item_id: str | None = None,
 ) -> tuple[PlayState, Encounter, InjuryTrace]:
     pending = encounter.pending_defense
     assert pending is not None
@@ -329,6 +373,24 @@ def resolve_melee(
     if hp.injury is None or attacker_hp.injury is None:
         raise ValidationError("GURPS injury pool requires explicit migration")
     defense_derived, defense_item = defense_value(play, state, defender, selected, item_id)
+    second_derived = None
+    second_item = None
+    if second_defense is not None:
+        if (
+            selected == "none"
+            or second_defense == "none"
+            or defender.maneuver_state.enhanced_defense != "double"
+        ):
+            raise ValidationError("Second defense requires All-Out Defense (Double)")
+        second_derived, second_item = defense_value(
+            play, state, defender, second_defense, second_item_id
+        )
+        if second_defense == selected and not (selected == "parry" and second_item != defense_item):
+            raise ValidationError(
+                "Double defense requires different defenses or different parrying hands"
+            )
+    elif second_item_id is not None:
+        raise ValidationError("Second defense equipment requires a second defense")
     attack_target = (
         int(attack_value.value)
         - attacker_hp.injury.shock
@@ -337,8 +399,16 @@ def resolve_melee(
     attack_target -= (
         4 if attacker.posture == "prone" else 2 if attacker.posture == "kneeling" else 0
     )
+    attack_target = attack_modifier(attacker.maneuver_state, defender.actor_id, attack_target)
+    if defense_derived is not None and attacker.maneuver_state.feint_target_id == defender.actor_id:
+        defense_derived = DerivedValue(
+            defense_derived.target,
+            defense_derived.value - attacker.maneuver_state.feint_penalty,
+            defense_derived.explanations,
+        )
     attack = success_roll(equipment.profile_id, attack_target, rng=play.rng)
     defense = None
+    second_trace = None
     hit = attack.outcome.succeeded
     critical_dice: tuple[int, ...] = ()
     critical = 0
@@ -394,6 +464,59 @@ def resolve_melee(
     ):
         critical_dice = tuple(play.rng.randbelow(6) + 1 for _ in range(3))
         critical = sum(critical_dice)
+    if (
+        hit
+        and defense is not None
+        and not defense.outcome.succeeded
+        and second_derived is not None
+        and blocked is None
+    ):
+        second_target = int(second_derived.value) - (
+            attacker.maneuver_state.feint_penalty
+            if attacker.maneuver_state.feint_target_id == defender.actor_id
+            else 0
+        )
+        second_trace = success_roll(equipment.profile_id, second_target, rng=play.rng)
+        hit = not second_trace.outcome.succeeded
+        if second_defense == "parry" and second_item:
+            defender = defender.model_copy(update={"parries": defender.parries + (second_item,)})
+        if second_defense == "block":
+            defender = defender.model_copy(update={"block_used": True})
+        if second_trace.outcome is Outcome.CRITICAL_FAILURE:
+            if second_defense == "dodge":
+                defender = defender.model_copy(update={"posture": "prone"})
+            elif second_defense == "parry":
+                critical_dice = tuple(play.rng.randbelow(6) + 1 for _ in range(3))
+                blocked = f"basic-critical-miss:{sum(critical_dice)}:defender"
+                defense_item = second_item
+            elif second_item:
+                state = state.model_copy(
+                    update={
+                        "resources": state.resources.model_copy(
+                            update={
+                                "items": tuple(
+                                    i.model_copy(update={"ready": False})
+                                    if i.id == second_item
+                                    else i
+                                    for i in state.resources.items
+                                )
+                            }
+                        )
+                    }
+                )
+                defender = defender.model_copy(
+                    update={
+                        "ready_item_ids": tuple(
+                            i for i in defender.ready_item_ids if i != second_item
+                        )
+                    }
+                )
+        elif (
+            second_trace.outcome is Outcome.CRITICAL_SUCCESS
+            and equipment.profile_id == "gurps-basic-set-4e-2004"
+        ):
+            critical_dice = tuple(play.rng.randbelow(6) + 1 for _ in range(3))
+            blocked = f"basic-critical-miss:{sum(critical_dice)}:attacker"
     expression = (
         attack_build.statistics.swing
         if weapon.damage.basis == "swing"
@@ -401,6 +524,8 @@ def resolve_melee(
     )
     dice_count = weapon.damage.dice or expression.dice
     adds = weapon.damage.adds + (0 if weapon.damage.basis == "fixed" else expression.add)
+    if attacker.maneuver_state.strong:
+        adds += max(2, dice_count)
     maximum = critical in (6, 15) or (
         equipment.profile_id == "gurps-lite-4e-2004" and sum(attack.dice) <= 4
     )
@@ -565,6 +690,7 @@ def resolve_melee(
     trace = InjuryTrace(
         attack=attack,
         defense=defense,
+        second_defense=second_trace,
         attack_value=attack_value,
         defense_value=defense_derived,
         damage_dice=dice,
@@ -579,4 +705,56 @@ def resolve_melee(
         critical_table=critical_dice,
         adjudication_required=blocked,
     )
+    from wayfarer.orchestration.gurps_maneuvers import distracted
+
+    encounter = distracted(
+        play, state, encounter, defender.actor_id, defended=defense is not None, injured=injury > 0
+    )
+    actor = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
+    if weapon.ready_after_attack:
+        state = state.model_copy(
+            update={
+                "resources": state.resources.model_copy(
+                    update={
+                        "items": tuple(
+                            i.model_copy(update={"ready": False})
+                            if i.id == pending.weapon_id
+                            else i
+                            for i in state.resources.items
+                        )
+                    }
+                )
+            }
+        )
+        actor = actor.model_copy(
+            update={
+                "ready_item_ids": tuple(i for i in actor.ready_item_ids if i != pending.weapon_id)
+            }
+        )
+        encounter = encounter.model_copy(
+            update={
+                "participants": tuple(
+                    actor if p.actor_id == actor.actor_id else p for p in encounter.participants
+                )
+            }
+        )
+    if actor.maneuver_state.attacks_remaining and not any(
+        i.id == pending.weapon_id and i.equipped and i.ready for i in state.resources.items
+    ):
+        encounter = encounter.model_copy(
+            update={
+                "participants": tuple(
+                    p.model_copy(
+                        update={
+                            "maneuver_state": p.maneuver_state.model_copy(
+                                update={"attacks_remaining": 0}
+                            )
+                        }
+                    )
+                    if p.actor_id == actor.actor_id
+                    else p
+                    for p in encounter.participants
+                )
+            }
+        )
     return state, encounter, trace
