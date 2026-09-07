@@ -265,7 +265,7 @@ class PartyService:
                         state = NoncombatService(self.play).reduce(
                             working, action_nc, advance_time=False
                         )
-                except (ValidationError, ConflictError):
+                except ValidationError, ConflictError:
                     state, status, code = before, "rejected", "activity.no_longer_feasible"
                 receipt = ActivityReceipt(
                     id=activity.id, actor_id=activity.actor_id, at=at, status=status, code=code
