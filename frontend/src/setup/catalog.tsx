@@ -45,9 +45,12 @@ export function ScenarioCatalog({
   onCreate,
 }: {
   token: string;
-  generationAvailable: boolean;
+  generationAvailable?: boolean;
   onCreate: (lobby: Lobby) => void;
 }) {
+  const [providerAvailable, setProviderAvailable] = useState(
+    generationAvailable ?? false,
+  );
   const [entries, setEntries] = useState<Summary[]>([]);
   const [templates, setTemplates] = useState<
     { public: { title: string }; [key: string]: unknown }[]
@@ -100,7 +103,7 @@ export function ScenarioCatalog({
     );
     setView(next);
     setSource(next.revision.draft.content_json);
-    setJob(next.generation_jobs.at(-1));
+    setJob(next.generation_jobs[next.generation_jobs.length - 1]);
     return next;
   };
   useEffect(() => {
@@ -112,12 +115,20 @@ export function ScenarioCatalog({
       fetch("/authoring/v1/scenarios/templates", {
         headers: { Authorization: `Bearer ${token}` },
       }),
+      generationAvailable === undefined
+        ? fetch("/setups/session", {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+        : Promise.resolve(undefined),
     ])
-      .then(async ([saved, bundled]) => {
-        if (!saved.ok || !bundled.ok)
+      .then(async ([saved, bundled, session]) => {
+        if (!saved.ok || !bundled.ok || (session && !session.ok))
           throw new Error("Scenario catalog is unavailable on this server.");
         const values = (await saved.json()) as Summary[];
         const seeds = (await bundled.json()) as typeof templates;
+        const sessionValue = session
+          ? ((await session.json()) as { generation_available?: boolean })
+          : undefined;
         if (
           !Array.isArray(values) ||
           !Array.isArray(seeds) ||
@@ -129,6 +140,9 @@ export function ScenarioCatalog({
         if (!cancelled) {
           setEntries(values);
           setTemplates(seeds);
+          setProviderAvailable(
+            generationAvailable ?? sessionValue?.generation_available ?? false,
+          );
         }
       })
       .catch((e: unknown) => {
@@ -138,7 +152,7 @@ export function ScenarioCatalog({
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, generationAvailable]);
   const send = async (value: { path: string; body: object; game: boolean }) => {
     setPending(value);
     if (value.game) {
@@ -327,7 +341,7 @@ export function ScenarioCatalog({
           standard scenario document; it cannot publish, approve characters, or
           start play. You review the proposal before saving it.
         </p>
-        {!generationAvailable && (
+        {!providerAvailable && (
           <p role="status">
             AI authoring is unavailable on this server. Templates, saved
             scenarios, manual editing, import/export, and game creation remain
@@ -340,7 +354,7 @@ export function ScenarioCatalog({
             value={instruction}
             maxLength={4000}
             placeholder="A tense two-hour investigation with a rescue route, low lethality, and no supernatural horror."
-            disabled={!generationAvailable || busy || !!pending}
+            disabled={!providerAvailable || busy || !!pending}
             onChange={(e) => setInstruction(e.target.value)}
           />
         </label>
@@ -348,7 +362,7 @@ export function ScenarioCatalog({
           Refine section
           <select
             value={section}
-            disabled={!generationAvailable || busy || !!pending}
+            disabled={!providerAvailable || busy || !!pending}
             onChange={(e) => setSection(e.target.value as GenerationJob["section"])}
           >
             <option value="all">Whole scenario</option>
@@ -360,7 +374,7 @@ export function ScenarioCatalog({
         </label>
         <div className="context-actions">
           <Button
-            disabled={!generationAvailable || busy || !!pending || view?.entry.archived}
+            disabled={!providerAvailable || busy || !!pending || view?.entry.archived}
             onClick={() => void run(startGeneration)}
           >
             Generate proposal
