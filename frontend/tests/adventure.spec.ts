@@ -124,6 +124,8 @@ test("partial closure settles offered downtime once and continues the campaign",
 }) => {
   const room = crypto.randomUUID();
   await page.goto(`/campaign?adventure=true&closure=partial&room=${room}`);
+  await page.getByRole("button", { name: /^(Open|Resume) campaign$/ }).click();
+  await page.getByRole("link", { name: "Campaign", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Adventure complete" }),
   ).toBeVisible();
@@ -157,6 +159,8 @@ test("archived success is final and has no continuation action", async ({
   await page.goto(
     `/campaign?adventure=true&closure=archive&room=${crypto.randomUUID()}`,
   );
+  await page.getByRole("button", { name: /^(Open|Resume) campaign$/ }).click();
+  await page.getByRole("link", { name: "Campaign", exact: true }).click();
   await expect(page.getByText(/Campaign archived/)).toBeVisible();
   await expect(
     page.getByText("success outcome", { exact: true }),
