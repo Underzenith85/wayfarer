@@ -8,6 +8,12 @@ REQUIRED_JOURNEYS: dict[str, tuple[str, ...]] = {
     "browser": (
         "keyboard item controls inspect and restore focus",
         "use retry consumes once and updates the current sheet",
+        "first use of the mic discloses browser speech before any microphone starts",
+        "partial push-to-talk requires edited review, submits once and interrupts only audio after commit",
+        "denied and unsupported microphones retain usable text fallback",
+        "recognition network failure preserves partial review without auto-submission",
+        "campaign switch clears partial speech and stops private narration",
+        "revoked scene access aborts the microphone and erases review buffers",
     ),
     "live": (
         "two identities activate a saved party and review speech through the live director",

@@ -1,8 +1,8 @@
 # Voice input and narration controls (#57)
 
 The Play composer offers optional browser speech recognition and spoken narration.
-This is #57's frontend/browser-mock delivery; live voice/provider parity and the
-supported-browser declaration remain #24/#30 and #59 Stage B. No voice endpoints,
+This is #57's frontend delivery and #24's reviewed browser adapter. Live
+voice/provider parity uses the ordinary text action endpoint and receipt; no voice endpoints,
 provider integration, or changes to the frozen v1 wire contract are introduced.
 These controls replace Wave 12's initial voice UI while retaining its authenticated
 director action path and updating its two-player live integration test. #195 then

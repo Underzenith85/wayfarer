@@ -112,7 +112,7 @@ narration for a committed result, and interruption affects only its subscription
 | Invitations | Durable single-use claim; player/spectator grants without actor assignment or promotion | #40/#50 |
 | Current session | 404 until an engine session record exists; no fabricated session or recap | #40 |
 | Live snapshot/replay/revocation/narration | Implemented over the committed engine log | #45/#50; browser reconciliation #54 |
-| Voice/media | Not advertised; no media routes | #24/#57 |
+| Reviewed voice input / local narration | Browser adapters use the ordinary text action receipt; no server media route is advertised | #24/#57 |
 | Character creation, advancement and scenario generation | Dedicated routes remain proposed | #21/#22/#37/#40 |
 | Combat, equip/drop/store/transfer, split/capture/rescue, objectives/endings | Existing engines retain ownership; dedicated v1 command routes are not invented | #18/#38/#41/#43/#44/#45 and respective waves |
 

@@ -57,6 +57,9 @@ Run **Product release gates** manually on the candidate revision, or push a `v*`
 tag. This does not publish a release. It reuses both existing workflows, runs the
 full desktop/phone/tablet browser suites, live setup/voice/capture coverage,
 reference-adventure and production-startup tests, and requires every job to pass.
+The browser evidence checker names Issue #24's disclosure, reviewed-command parity,
+interruption, denied/unsupported/network fallback and scope-revocation journeys;
+an unrelated green browser report cannot certify voice behavior.
 Routine PR path filters remain in place to avoid running frontend tests on every
 backend change; complete browser verification is mandatory for a release candidate.
 
