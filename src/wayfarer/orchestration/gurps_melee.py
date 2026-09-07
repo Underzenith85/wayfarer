@@ -216,6 +216,9 @@ def defense_value(
 ) -> tuple[DerivedValue | None, str | None]:
     if selected == "none":
         return None, None
+    from wayfarer.simulation.spell_effects import require_not_dazed
+
+    require_not_dazed(state.resources, participant.actor_id)
     if participant.pinned:
         raise ValidationError("Pinned actors cannot defend")
     if participant.maneuver_state.defense_forbidden or (
@@ -455,6 +458,12 @@ def resolve_melee(
 ) -> tuple[PlayState, Encounter, InjuryTrace]:
     pending = encounter.pending_defense
     assert pending is not None
+    if pending.spell_cast_id is not None:
+        from wayfarer.orchestration.spell_missiles import resolve as resolve_spell
+
+        return resolve_spell(
+            play, state, encounter, selected, item_id, second_defense, second_item_id
+        )
     equipment = catalog(play)
     weapon = mode(play, state, pending.attacker_id, pending.weapon_id, pending.mode_id)
     if isinstance(weapon, RangedMode):

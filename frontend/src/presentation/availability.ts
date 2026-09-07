@@ -25,9 +25,6 @@ export const providerReason = {
     "Out-of-character questions need an AI provider. Use the scene actions above for now.",
   creation: "AI creation needs an AI provider.",
 } as const;
-/** One phrasing for a detail the current connection does not project. */
-export const notSupplied = (subject: string) =>
-  `${subject} are not supplied by this connection.`;
 /** The reason a campaign that does not advertise an action kind cannot run it. */
 export function capabilityReason(kind: string): string {
   return (

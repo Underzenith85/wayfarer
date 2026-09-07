@@ -251,10 +251,12 @@ function Shell() {
                 {title}
               </h1>
             </div>
+            {/* The same summary is a rail at wide widths; its drawer trigger
+                exists only where the rail is hidden (.compact-only). */}
             <Sheet
               title="At a glance"
               trigger={
-                <Button variant="outline">
+                <Button variant="outline" className="compact-only">
                   <PanelRight size={18} aria-hidden="true" />
                   <span>Details</span>
                 </Button>

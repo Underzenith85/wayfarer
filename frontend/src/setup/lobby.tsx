@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "../components/ui/button";
 import { ProviderBanner } from "../components/availability";
 import { providerReason } from "../presentation/availability";
+import { TechnicalDetails } from "../components/technical-details";
 import { NetworkPlayTransport } from "../api/play-transport";
 import {
   campaignPhaseLabel,
@@ -590,32 +591,51 @@ export function SetupLobby({
               {canEdit && (
                 <form onSubmit={save}>
                   {!lobby && profiles.length > 0 ? (
-                    <label>
-                      Rules profile
-                      <select
-                        value={profile}
-                        onChange={(e) => setProfile(e.target.value)}
-                      >
-                        <option value="">Server default</option>
-                        {profiles.map((p) => (
-                          <option
-                            key={`${p.id}@${p.version}`}
-                            value={`${p.id}@${p.version}`}
-                            disabled={!p.supported}
-                          >
-                            {p.title} (v{p.version})
-                            {p.supported
-                              ? ""
-                              : ` · unavailable: ${p.unverified_capabilities.length} unverified capabilities`}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+                    <>
+                      <label>
+                        Rules profile
+                        <select
+                          value={profile}
+                          onChange={(e) => setProfile(e.target.value)}
+                        >
+                          <option value="">This game’s default rules</option>
+                          {profiles.map((p) => (
+                            <option
+                              key={`${p.id}@${p.version}`}
+                              value={`${p.id}@${p.version}`}
+                              disabled={!p.supported}
+                            >
+                              {p.title} (v{p.version})
+                              {p.supported ? "" : " · Not yet supported"}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      {profiles.some((p) => !p.supported) && (
+                        <>
+                          <p>
+                            Rule sets marked “Not yet supported” cannot be
+                            chosen yet. Every other choice plays in full.
+                          </p>
+                          {/* Which capabilities are missing is maintainers' business, not a player's (#162). */}
+                          <TechnicalDetails
+                            entries={profiles
+                              .filter((p) => !p.supported)
+                              .map((p) => ({
+                                label: `${p.title} (v${p.version}) unverified capabilities:`,
+                                value:
+                                  p.unverified_capabilities.join(", ") ||
+                                  "none listed",
+                              }))}
+                          />
+                        </>
+                      )}
+                    </>
                   ) : (
                     <p>
                       {lobby
                         ? "This game keeps the rules pinned when its draft was created."
-                        : "This server offers no selectable rules profiles; its default applies."}
+                        : "This game uses its default rules. There is nothing to choose here."}
                     </p>
                   )}
                   {submit}

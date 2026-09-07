@@ -57,6 +57,8 @@ test("campaign-scoped routes open a view directly and survive a reload", async (
 test("sheet traps keyboard focus, closes with Escape and restores trigger", async ({
   page,
 }) => {
+  // The details drawer only exists below the width that shows the rail.
+  await page.setViewportSize({ width: 900, height: 1000 });
   await page.goto("/character");
   const trigger = page.getByRole("button", { name: "Details", exact: true });
   await trigger.focus();
@@ -72,6 +74,27 @@ test("sheet traps keyboard focus, closes with Escape and restores trigger", asyn
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(trigger).toBeFocused();
+});
+test("\u201cAt a glance\u201d is a rail or a drawer trigger, never both", async ({
+  page,
+}) => {
+  await page.goto("/character");
+  const rail = page.getByRole("complementary", { name: "At a glance" });
+  const trigger = page.getByRole("button", { name: "Details", exact: true });
+  for (const width of [1440, 1101, 1100, 820, 390]) {
+    await page.setViewportSize({ width, height: 1000 });
+    if (width > 1100) {
+      await expect(rail).toBeVisible();
+      await expect(trigger).toBeHidden();
+    } else {
+      await expect(rail).toBeHidden();
+      await expect(trigger).toBeVisible();
+    }
+  }
+  await trigger.click();
+  await expect(
+    page.getByRole("dialog").getByRole("heading", { name: "At a glance" }),
+  ).toBeVisible();
 });
 test("theme persists and offline status recovers", async ({
   page,

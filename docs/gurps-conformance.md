@@ -176,9 +176,9 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.combat.active_defense` | yes | yes | partial | #103 |
 | `gurps.combat.maneuvers` | yes | yes | partial | #104; [executable transitions and remaining scope](gurps-maneuvers.md) |
 | `gurps.combat.turn_timing` | yes | yes | partial | #104 |
-| `gurps.combat.ranged_attack` | yes | yes | partial | #106; [ranged dispatch and evidence](gurps-ranged.md); remaining #173 |
+| `gurps.combat.ranged_attack` | yes | yes | partial | #106; [ranged dispatch and evidence](gurps-ranged.md); #173 adds bounded critical effects, causal records, locations and armed thrown Parries; remaining #173 |
 | `gurps.combat.aim` | yes | yes | partial | #104; target-bound accumulation and disruption; ranged resolution #106 |
-| `gurps.combat.ammunition` | yes | yes | partial | #106; [reservations and reload timing](gurps-ranged.md); remaining #173 |
+| `gurps.combat.ammunition` | yes | yes | partial | #106; [reservations and reload timing](gurps-ranged.md); #173 adds opt-in per-round loading and magazine unloading; remaining #173 |
 | `gurps.combat.rapid_fire` | no | yes | partial | #106; [burst and Dodge resolution](gurps-ranged.md); remaining #173 |
 | `gurps.combat.unarmed` | yes | yes | partial | #108, #176; [unarmed attacks and remaining integrations](gurps-unarmed.md) |
 | `gurps.combat.grappling` | yes | yes | partial | #108, #176; [durable grips and remaining integrations](gurps-unarmed.md) |
@@ -190,8 +190,8 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.recovery.medical_treatment` | no | yes | partial | [#109 details](gurps-recovery.md) |
 | `gurps.world.physical_feats` | yes | yes | partial | #110; [bounded authoritative procedures](gurps-hazards.md) |
 | `gurps.world.environmental_hazards` | yes | yes | partial | #110; [persistent exposure schedules](gurps-hazards.md) |
-| `gurps.magic.spellcasting` | no | yes | partial | #117; durable lifecycle, play effects remain blocked |
-| `gurps.supernatural.abilities` | no | yes | absent | #118 |
+| `gurps.magic.spellcasting` | no | yes | partial | #117/#171; approved builds, representative effects; remaining variants below |
+| `gurps.supernatural.abilities` | no | yes | partial | #118 representative execution complete; exhaustive audit #119 |
 | `gurps.vehicles.movement` | no | yes | absent | #120 |
 | `gurps.vehicles.combat` | no | yes | absent | #120 |
 
@@ -548,3 +548,86 @@ four representative runtime families already merged in #150. It remains a
 Basic Set certification blocker. #117/#171 still require catalog and combat
 bindings, concrete spell effects and the remaining magic variants; #118 and
 #119 still require source reconciliation. No manual entry becomes verified.
+
+
+## Approved spell learning bindings (#171, first implementation slice)
+
+Basic Set profile version 4 adds Characters package 0.4.0. Profile versions 2
+and 3 and the prototype retain their original package contents and pins. The new
+version remains unavailable for campaign activation while its required capabilities
+are unverified; the existing explicit migration gate is unchanged.
+
+The learning catalog compiles Magery 0 (5 points), additional Magery levels
+(10 points per level), and seven IQ/Hard spells through CharacterCompiler.
+Light, Daze, Fireball and Create Fire have lifecycle records; Foolishness,
+Ignite Fire and Shape Fire are learning prerequisites only. Learning metadata
+never advertises an executable effect. Trained spell prerequisites require
+skill 12, including Magery bonuses. Foolishness requires effective IQ 12;
+Fireball additionally requires Magery 1. Magery bonuses affect only purchased
+spells, propagate into prerequisite checks, combine with effects once, and obey
+the campaign skill ceiling. Nonmages may learn spells for high-mana use.
+
+The private SpellService no longer accepts a fabricated build revision, skill,
+learned-spell list, Magery, HT, Will or target HT from its resolver. Its resolver
+returns only typed world facts. Spell context comes from reactivated approved
+builds against exact catalog definitions. Unpurchased spells, missing approvals,
+invalid metadata, and unavailable casters reject before spell dice or costs.
+Retries still use the original persisted receipt without rerunning the resolver.
+
+This slice does **not complete #171**. Player dispatch, each-second combat
+concentration, concrete Light/Daze/Fireball/Create Fire effects, critical-failure
+consequences, very-high mana, HP-powered casting, and their PostgreSQL/live
+combat evidence remain required work. The service remains private and rejects
+combat dispatch. No transport contract or generated client has changed.
+Spellcasting remains partial. References B66-67, B235 and B246-250 are provisional;
+the independent frozen-source audit remains pending.
+
+
+## Representative spell effects and ability acceptance (#117, #118, #171)
+
+This section supersedes the earlier learning-only dispatch status. Player spell
+transactions now select authored channels and derive skill, Magery, prerequisites
+and resistance from approved builds. The same catalog from profile version 4 is
+reused; the combat adapter additionally requires the exact B201 projectile skill.
+Scenario spell channels and optional darkness penalties have reviewed additive
+schema fields. Existing scenario serialization omits absent spell configuration;
+existing profile pins and the frozen play v1 contract retain their meaning.
+
+Consecutive Concentrate maneuvers advance the existing encounter and shared clock.
+Pending defense, wrong turns, forced Do Nothing and concurrent spell/ability
+concentration reject. Daze prevents actions and active defenses, permits Do Nothing,
+and ends on actual injury. Light supplies illumination to authored darkness
+penalties without revealing knowledge. Fireball may be held, expanded for at most
+three consecutive seconds and released through the existing defense pause; normal
+hits use the injury ledger. Create Fire uses fixed battlefield placements and
+existing per-second fire exposure schedules. Expiry, cancellation, departures,
+resource revisions and command retries use the existing stores.
+
+Independent hand-entered B66/B201/B235-250/B434 expectations are exercised in
+`tests/test_magic_catalog.py`, `tests/test_spells.py`, `tests/test_spell_bindings.py`
+and `tests/test_spell_service.py`. The Fireball injury/retry journey runs against
+SQLite and PostgreSQL in CI. These remain model-knowledge engineering evidence,
+not completed frozen-source certification.
+
+The bounded acceptance criteria of #118 are implemented:
+
+| Required family or boundary | Executable evidence |
+| --- | --- |
+| Attack: burning Malediction, resistance and injury | `test_malediction_executes_injury_on_signed_profile_pool` |
+| Defense: paid DR, maintenance, expiry, melee damage reduction | `test_defense_spends_fp_maintains_expires_and_cancels`, `test_activated_defense_reduces_authoritative_melee_injury` |
+| Sensing: authorized Detect and timed analysis | `test_detect_reveals_only_authorized_granularity`, `test_detect_analysis_takes_separate_concentration_and_does_not_reveal_early` |
+| Mental: surface thoughts, resistance and private replay | `test_actual_approved_reading_wait_resistance_private_replay` |
+| Unsupported modifiers, ownership and shared concentration | `test_unsupported_combinations_never_only_charge_points`, `test_unowned_ability_and_overspend_rejected`, `tests/test_supernatural_concentration.py` |
+
+Closing this representative implementation issue does not promote the full
+supernatural capability to verified: the exhaustive catalog/source audit belongs
+to #119, and unsupported combinations remain rejected.
+
+#117/#171 are still incomplete. Required remaining paths include critical spell
+failure consequences, very-high mana recovery/backfire, HP-powered casting,
+concentration-dependent maintenance, Wait-triggered missile release, held-missile
+injury/disposal, nonpositive-HP missile release, transient fire crossings and full
+hex-area geometry, and the independent frozen-source audit. Ranged critical
+consequences retain the existing explicit #173 combat pause. Neither a lifecycle
+result nor this partial adapter certifies these missing paths or unblocks #119's
+hard #117 prerequisite.

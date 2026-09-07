@@ -6,9 +6,12 @@ every control it blocks repeats only the part that applies to that control.
 ## Where the wording lives
 
 `frontend/src/presentation/availability.ts` holds every sentence: the banner
-summary and its disclosure list, the per-control reasons, the reason a campaign
-gives for an action kind it does not advertise, and the one phrasing for a detail
-the current connection does not project. No surface writes its own variant.
+summary and its disclosure list, the per-control reasons, and the reason a
+campaign gives for an action kind it does not advertise. No surface writes its
+own variant. A region that is empty or that failed to load is a different
+condition with its own shapes — `EmptyRegion` and `UnavailableRegion` in
+`frontend/src/components/region-state.tsx` — and this module does not restate
+them.
 
 ## The shell banner
 

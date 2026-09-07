@@ -12,16 +12,42 @@ import {
   type InventoryOperation,
 } from "./presentation";
 import { TechnicalDetails } from "../components/technical-details";
+import { EmptyRegion, UnavailableRegion } from "../components/region-state";
 import {
   conditionLabel,
   encumbranceLabel,
   presentStats,
 } from "../presentation/labels";
-import { notSupplied } from "../presentation/availability";
 type Character = components["schemas"]["Character"];
 type Stat = components["schemas"]["Stat"];
 function EmptyCharacter() {
-  const { state } = usePlay();
+  const { state, store } = usePlay();
+  // A failed load is not an empty sheet: it keeps its own alert and a retry.
+  if (
+    !state.expired &&
+    !state.loading &&
+    !state.snapshot &&
+    state.error &&
+    state.selectedId
+  )
+    return (
+      <section className="scene-card">
+        <UnavailableRegion
+          heading="This character sheet did not load"
+          headingLevel={2}
+          reason={state.error}
+          busy={state.busy}
+          retryLabel="Load the sheet again"
+          onRetry={() => void store.select(state.selectedId!)}
+        >
+          Nothing here is missing from your character — we could not reach the
+          game to read it. Try again, or choose another campaign.
+        </UnavailableRegion>
+        <Button asChild variant="outline">
+          <ScopedLink segment="campaign">Choose a campaign</ScopedLink>
+        </Button>
+      </section>
+    );
   return (
     <section className="scene-card">
       <h2>
@@ -72,7 +98,15 @@ function ActorPicker() {
     </label>
   );
 }
-function StatTable({ title, stats }: { title: string; stats: Stat[] }) {
+function StatTable({
+  title,
+  stats,
+  empty,
+}: {
+  title: string;
+  stats: Stat[];
+  empty: string;
+}) {
   const presented = presentStats(stats);
   return (
     <section className="sheet-section">
@@ -95,7 +129,7 @@ function StatTable({ title, stats }: { title: string; stats: Stat[] }) {
           ))}
         </dl>
       ) : (
-        <p>No {title.toLowerCase()} reported.</p>
+        <EmptyRegion>{empty}</EmptyRegion>
       )}
     </section>
   );
@@ -159,16 +193,35 @@ export function CharacterPage() {
             })}
           </ul>
         ) : (
-          <p>No active conditions reported.</p>
+          <EmptyRegion>
+            Nothing is affecting {c.name} right now. Injuries, fatigue and
+            lasting effects appear here while they last.
+          </EmptyRegion>
         )}
       </section>
       <div className="character-columns">
-        <StatTable title="Attributes" stats={c.attributes} />
-        <StatTable title="Skills" stats={c.skills} />
+        <StatTable
+          title="Attributes"
+          stats={c.attributes}
+          empty={`${c.name} has no attributes on record. Attributes are set when the character is created.`}
+        />
+        <StatTable
+          title="Skills"
+          stats={c.skills}
+          empty={`${c.name} has not learned any skills yet. Skills appear here with training and practice.`}
+        />
       </div>
       <div className="character-columns">
-        <StatTable title="Defenses" stats={c.defenses} />
-        <StatTable title="Movement" stats={c.movement} />
+        <StatTable
+          title="Defenses"
+          stats={c.defenses}
+          empty={`${c.name} has no defenses to roll yet. Dodge, parry and block appear here once they are available.`}
+        />
+        <StatTable
+          title="Movement"
+          stats={c.movement}
+          empty={`${c.name} has no movement rates yet. Move and step distances appear here once the game sets them.`}
+        />
       </div>
       <section className="sheet-section">
         <h3>
@@ -186,11 +239,11 @@ export function CharacterPage() {
             ))}
           </ul>
         ) : (
-          <p>
+          <EmptyRegion>
             {extra
-              ? "No additional effects reported."
-              : notSupplied("Derived-effect details")}
-          </p>
+              ? `Nothing is modifying ${c.name}'s abilities right now. Spells, injuries and worn gear appear here while they last.`
+              : `Derived effects are not part of this game yet. Conditions above show what is affecting ${c.name}.`}
+          </EmptyRegion>
         )}
       </section>
       <section className="sheet-section">
@@ -238,7 +291,9 @@ export function CharacterPage() {
             </p>
           </>
         ) : (
-          <p>{notSupplied("Point and advancement records")}</p>
+          <EmptyRegion>
+            {`Point totals and advancement are not part of this game yet. Everything ${c.name} can do is recorded above.`}
+          </EmptyRegion>
         )}
       </section>
       <TechnicalDetails
@@ -407,7 +462,7 @@ function ItemOperations({ itemId }: { itemId: string }) {
             {item.container_id
               ? (details?.containers.find((c) => c.id === item.container_id)
                   ?.label ?? "Unknown container")
-              : "None reported"}
+              : "Carried loose"}
           </dd>
         </div>
       </dl>
@@ -567,11 +622,16 @@ export function InventoryPage() {
               </span>
             ))
           ) : (
-            <span>No currency reported.</span>
+            <span>No coin carried. Money you earn or find appears here.</span>
           )}
         </section>
       )}
-      {!details && <p>{notSupplied("Currency and custody details")}</p>}
+      {!details && (
+        <EmptyRegion>
+          Coin and custody are not part of this game yet. Everything this
+          character is carrying is listed below.
+        </EmptyRegion>
+      )}
       {inventory.items.length > 0 && (
         <div className="inventory-filters">
           <label>

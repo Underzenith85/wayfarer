@@ -195,6 +195,9 @@ class CharacterCompiler:
                     raise ValidationError(
                         f"Pinned packages do not carry profile statistics: {expected.id}"
                     )
+        from wayfarer.rules.gurps_magic import validate_definitions
+
+        validate_definitions(statistics_profile, self.definitions)
         self.skills = (
             None
             if statistics_profile is None
@@ -404,7 +407,15 @@ class CharacterCompiler:
             }
             skill_evaluator = EffectEvaluator(tuple(MechanicalTarget(k) for k in self.skills.specs))
 
+            from wayfarer.rules.gurps_magic import PREREQUISITES, magery_level
+
+            magery = max(0, magery_level({p.definition_id: p.amount for p in draft.purchases}))
+
+            def spell_bonus(key: str) -> int:
+                return magery if key in {"spell:" + name for name in PREREQUISITES} else 0
+
             def adjust_skill(key: str, base: int) -> int:
+                base += spell_bonus(key)
                 adjusted = skill_evaluator.evaluate(
                     key, Decimal(base), effects, context={}, at=0
                 ).value
@@ -426,12 +437,22 @@ class CharacterCompiler:
                 )
                 bases.update(
                     {
-                        s.target: Decimal(s.unmodified if s.unmodified is not None else s.level)
+                        s.target: Decimal(
+                            (s.unmodified if s.unmodified is not None else s.level)
+                            + spell_bonus(s.target)
+                        )
                         for s in compiled_skills
                     }
                 )
             except SkillError as exc:
                 diagnostics.append(Diagnostic(exc.code, ("purchases",), str(exc)))
+        if (
+            "spell:foolishness" in selected
+            and effective_attributes.get("attribute:iq", Decimal(0)) < 12
+        ):
+            diagnostics.append(
+                Diagnostic("spell.prerequisite", ("purchases",), "Foolishness requires IQ 12")
+            )
         target_ids = set(bases) | {e.target for e in effects}
         if self.skills is not None:
             # An effect cannot manufacture access to a skill with no legal default.

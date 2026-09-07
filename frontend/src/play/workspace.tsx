@@ -20,6 +20,7 @@ import { MultiplayerPanel } from "../multiplayer/panel";
 import { pagePath } from "../routes";
 import { rememberCampaign } from "./session";
 import { TechnicalDetails } from "../components/technical-details";
+import { EmptyRegion, UnavailableRegion } from "../components/region-state";
 import { conditionLabel, encumbranceLabel } from "../presentation/labels";
 import { capabilityReason } from "../presentation/availability";
 export function CampaignHome() {
@@ -165,10 +166,24 @@ export function Journal() {
     return (
       <section className="scene-card">
         <h2>Session recap</h2>
-        <p>
-          {state.snapshot?.session?.summary ??
-            "No session recap is available yet."}
-        </p>
+        {state.snapshot?.session?.summary ? (
+          <p>{state.snapshot.session.summary}</p>
+        ) : !state.snapshot && state.error && state.selectedId ? (
+          <UnavailableRegion
+            heading="The recap did not load"
+            reason={state.error}
+            busy={state.busy}
+            retryLabel="Load the recap again"
+            onRetry={() => void store.select(state.selectedId!)}
+          >
+            Your story is safe; we could not reach the game to read it back.
+          </UnavailableRegion>
+        ) : (
+          <EmptyRegion>
+            Your story so far will be summarised here. Play a scene, and the
+            recap fills in as the session goes on.
+          </EmptyRegion>
+        )}
       </section>
     );
   return <DiscoveryJournal />;

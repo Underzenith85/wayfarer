@@ -208,6 +208,11 @@ main {
   border-left: 1px solid var(--border);
   padding: 3rem 1.5rem;
 }
+/* Shown only below the width where the "At a glance" rail is rendered, so the
+   rail and its drawer trigger are never offered at once. */
+.compact-only {
+  display: none;
+}
 .context-details p {
   font-size: 0.875rem;
 }
@@ -299,6 +304,9 @@ main {
   }
   .character-panel {
     display: none;
+  }
+  .compact-only {
+    display: inline-flex;
   }
 }
 @media (max-width: 700px) {
@@ -749,6 +757,28 @@ details summary {
   padding: 1rem;
   border: 1px solid var(--accent);
   border-radius: 0.5rem;
+}
+/* An empty region is quiet prose; a failed one carries the accent and a retry (#162). */
+.empty-region {
+  color: var(--muted);
+  max-width: 65ch;
+}
+.unavailable-region {
+  padding: 1rem;
+  border: 1px solid var(--accent);
+  border-left-width: 4px;
+  border-radius: 0.5rem;
+  background: var(--accent-soft);
+  max-width: 65ch;
+}
+.unavailable-region h2,
+.unavailable-region h3,
+.unavailable-region h4 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+.unavailable-region p {
+  margin: 0 0 1rem;
 }
 .stat-grid {
   display: grid;
