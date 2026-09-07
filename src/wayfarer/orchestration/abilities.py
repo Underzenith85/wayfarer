@@ -108,7 +108,7 @@ class AbilityService:
         )
         if encounter is not None:
             if (
-                encounter.pending_defense is not None
+                (encounter.pending_defense is not None or encounter.pending_unarmed is not None)
                 or encounter.wait_interrupt is not None
                 or encounter.current_actor_id != actor.actor_id
             ):

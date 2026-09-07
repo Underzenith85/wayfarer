@@ -3,6 +3,7 @@
 Test-only catalog bindings do not change profile certification or availability.
 """
 
+from dataclasses import replace
 from pathlib import Path
 from typing import Literal
 
@@ -61,6 +62,8 @@ async def setup(
     human: bool = False,
     ranged_fixture: bool = False,
     ready_after_attack: bool = False,
+    unarmed_fixture: bool = False,
+    third_actor: bool = False,
 ) -> tuple[str, PlayService]:
     equipment = EquipmentCatalog(
         profile_id=profile,
@@ -162,6 +165,11 @@ async def setup(
         for key, difficulty in (
             ("skill:broadsword", Difficulty.AVERAGE),
             ("skill:shield", Difficulty.EASY),
+            *(
+                ((("skill:judo", Difficulty.HARD), ("skill:wrestling", Difficulty.AVERAGE)))
+                if unarmed_fixture
+                else ()
+            ),
         )
     )
     extras = skills + tuple(
@@ -215,8 +223,16 @@ async def setup(
     reviewer = PowerReviewer(
         compiler, PowerPolicy(id="power", version=1, automatic_approval=True), frozenset({"gm"})
     )
+    test_world = world()
+    if third_actor:
+        test_world = replace(
+            test_world,
+            entities=test_world.entities
+            + (replace(next(e for e in test_world.entities if e.id == "b"), id="c"),),
+        )
+    actor_ids = ("a", "b", "c") if third_actor else ("a", "b")
     resources = ResourceEngine(
-        world(), catalog, rules, policy, tuple(e.inventory_spec() for e in equipment.entries)
+        test_world, catalog, rules, policy, tuple(e.inventory_spec() for e in equipment.entries)
     )
     combat = CombatRules(
         id="gurps-melee",
@@ -242,6 +258,14 @@ async def setup(
         (
             Purchase(definition_id="skill:broadsword", amount=12),
             Purchase(definition_id="skill:shield", amount=4),
+            *(
+                (
+                    Purchase(definition_id="skill:wrestling", amount=4),
+                    Purchase(definition_id="skill:judo", amount=4),
+                )
+                if unarmed_fixture
+                else ()
+            ),
         )
         if trained
         else ()
@@ -270,13 +294,14 @@ async def setup(
                         if ability_defense
                         else ()
                     ),
+                    st_level=20 if third_actor and a == "c" else 10,
                 )
             ),
         )
-        for a in ("a", "b")
+        for a in actor_ids
     )
     seed = ResourceState(
-        owners=tuple(Owner(actor_id=a, capacity=100000) for a in ("a", "b")),
+        owners=tuple(Owner(actor_id=a, capacity=100000) for a in actor_ids),
         items=tuple(
             Item(
                 id=f"sword-{a}",
@@ -285,7 +310,7 @@ async def setup(
                 equipped=True,
                 ready=True,
             )
-            for a in ("a", "b")
+            for a in actor_ids
         )
         + (
             Item(
@@ -297,7 +322,7 @@ async def setup(
             ),
         ),
     )
-    await play.create(initial, world(), seed, actors)
+    await play.create(initial, test_world, seed, actors)
     await CombatService(play).execute(
         initial["id"],
         StartEncounter(
@@ -309,6 +334,11 @@ async def setup(
             placements=(
                 Placement(actor_id="a", position=GridPoint(x=0, y=0), facing="east"),
                 Placement(actor_id="b", position=GridPoint(x=1, y=0), facing="west"),
+                *(
+                    (Placement(actor_id="c", position=GridPoint(x=2, y=0), facing="west"),)
+                    if third_actor
+                    else ()
+                ),
             ),
         ),
         authenticated_actor_id="gm",

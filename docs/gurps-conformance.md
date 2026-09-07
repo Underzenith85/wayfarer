@@ -180,8 +180,8 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.combat.aim` | yes | yes | partial | #104; target-bound accumulation and disruption; ranged resolution #106 |
 | `gurps.combat.ammunition` | yes | yes | absent | #106 |
 | `gurps.combat.rapid_fire` | no | yes | absent | #106 |
-| `gurps.combat.unarmed` | yes | yes | partial | #108 |
-| `gurps.combat.grappling` | yes | yes | absent | #108 |
+| `gurps.combat.unarmed` | yes | yes | partial | #108, #176; [unarmed attacks and remaining integrations](gurps-unarmed.md) |
+| `gurps.combat.grappling` | yes | yes | partial | #108, #176; [durable grips and remaining integrations](gurps-unarmed.md) |
 | `gurps.tactical.hex_movement` | no | yes | partial | #105 |
 | `gurps.tactical.facing` | no | yes | partial | #105 |
 | `gurps.tactical.visibility` | no | yes | partial | #105 |

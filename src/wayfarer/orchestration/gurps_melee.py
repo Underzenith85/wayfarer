@@ -170,7 +170,12 @@ def mode(
         raise ValidationError("Weapon damage requires unsupported profile mechanics")
     from wayfarer.orchestration.location_combat import disabled, item_hands, unavailable_hand
 
-    unavailable = disabled(state, actor_id)
+    unavailable = disabled(state, actor_id) | frozenset(
+        g.location
+        for e in state.encounters
+        for g in e.grips
+        if g.target_id == actor_id and g.location in ("left-arm", "right-arm")
+    )
     hands = item_hands(state, actor_id, item_id)
     hp = next(p for p in state.resources.pools if p.id == f"hp:{actor_id}")
     if hp.injury and hp.injury.anatomy == "human" and len(hands) != selected.hands:
@@ -208,6 +213,8 @@ def defense_value(
 ) -> tuple[DerivedValue | None, str | None]:
     if selected == "none":
         return None, None
+    if participant.pinned:
+        raise ValidationError("Pinned actors cannot defend")
     if participant.maneuver_state.defense_forbidden or (
         selected == "parry" and participant.maneuver_state.parry_forbidden
     ):
@@ -232,7 +239,12 @@ def defense_value(
     ]
     from wayfarer.orchestration.location_combat import disabled, item_hands
 
-    unavailable = disabled(state, participant.actor_id)
+    unavailable = disabled(state, participant.actor_id) | frozenset(
+        g.location
+        for e in state.encounters
+        for g in e.grips
+        if g.target_id == participant.actor_id and g.location in ("left-arm", "right-arm")
+    )
     blind = "left-eye" in unavailable and "right-eye" in unavailable
     bonus = max(
         (
@@ -253,6 +265,8 @@ def defense_value(
     )
     penalty = (
         participant.defense_penalty
+        - 4 * int(participant.arm_locked)
+        + (-1 if selected == "dodge" else -2) * int(participant.grappled)
         + (2 if participant.maneuver_state.enhanced_defense == selected else 0)
         + (-4 if hp.injury.stunned else 0)
         + (-3 if participant.posture == "prone" else -2 if participant.posture == "kneeling" else 0)
@@ -464,6 +478,7 @@ def resolve_melee(
         - attacker_hp.injury.shock
         - max(0, weapon.minimum_st - fatigue_value(attacker_fp, attack_build.statistics.st))
     )
+    attack_target -= 4 if attacker.grappled else 0
     attack_target -= (
         4 if attacker.posture == "prone" else 2 if attacker.posture == "kneeling" else 0
     )

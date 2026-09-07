@@ -4399,6 +4399,107 @@
       "expected": {
         "error": "technique.cap"
       }
+    },
+    {
+      "id": "unarmed-karate-bonus",
+      "capability_id": "gurps.combat.unarmed",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B203, Karate",
+      "rounding": "floor",
+      "provenance": "Independent numeric expectations for #108; selected 2004 first-printing/2007-01-26 errata baseline. Exact artifact audit remains outstanding.",
+      "service": "unarmed",
+      "input": {
+        "operation": "striking_bonus",
+        "skill": "skill:karate",
+        "dx": 10,
+        "level": 11
+      },
+      "expected": {
+        "bonus": 2
+      }
+    },
+    {
+      "id": "grapple-wrestling-st",
+      "capability_id": "gurps.combat.grappling",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B228, Wrestling",
+      "rounding": "floor",
+      "provenance": "Independent numeric expectations for #108; selected 2004 first-printing/2007-01-26 errata baseline. Exact artifact audit remains outstanding.",
+      "service": "unarmed",
+      "input": {
+        "operation": "wrestling_bonus",
+        "dx": 10,
+        "level": 12
+      },
+      "expected": {
+        "bonus": 2
+      }
+    },
+    {
+      "id": "grapple-two-hand-escape",
+      "capability_id": "gurps.combat.grappling",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B371, Break Free",
+      "rounding": "floor",
+      "provenance": "Independent numeric expectations for #108; selected 2004 first-printing/2007-01-26 errata baseline. Exact artifact audit remains outstanding.",
+      "service": "unarmed",
+      "input": {
+        "operation": "contest",
+        "first": 10,
+        "second": 15,
+        "regular": false,
+        "dice": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ]
+      },
+      "expected": {
+        "won": false,
+        "decided": true,
+        "margins": [
+          1,
+          6
+        ]
+      }
+    },
+    {
+      "id": "grapple-pin-undecided",
+      "capability_id": "gurps.combat.grappling",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349/B370, Regular Contest and Pin",
+      "rounding": "floor",
+      "provenance": "Independent numeric expectations for #108; selected 2004 first-printing/2007-01-26 errata baseline. Exact artifact audit remains outstanding.",
+      "service": "unarmed",
+      "input": {
+        "operation": "contest",
+        "first": 20,
+        "second": 18,
+        "regular": true,
+        "dice": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          3
+        ]
+      },
+      "expected": {
+        "won": false,
+        "decided": false,
+        "margins": [
+          5,
+          3
+        ]
+      }
     }
   ]
 }

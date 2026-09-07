@@ -76,7 +76,7 @@ _CAPABILITIES: Final = (
     Capability("gurps.combat.ammunition", True, True, CoverageStatus.ABSENT, 106),
     Capability("gurps.combat.rapid_fire", False, True, CoverageStatus.ABSENT, 106),
     Capability("gurps.combat.unarmed", True, True, CoverageStatus.PARTIAL, 108),
-    Capability("gurps.combat.grappling", True, True, CoverageStatus.ABSENT, 108),
+    Capability("gurps.combat.grappling", True, True, CoverageStatus.PARTIAL, 108),
     Capability("gurps.tactical.hex_movement", False, True, CoverageStatus.PARTIAL, 105),
     Capability("gurps.tactical.facing", False, True, CoverageStatus.PARTIAL, 105),
     Capability("gurps.tactical.visibility", False, True, CoverageStatus.PARTIAL, 105),
