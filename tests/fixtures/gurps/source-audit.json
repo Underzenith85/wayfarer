@@ -116,7 +116,7 @@
       "owner": 119,
       "decision": "required",
       "reviewed": false,
-      "reason": "Exclusions from the mundane inventory remain Basic requirements owned by the supernatural inventory; they are not profile exclusions."
+      "reason": "All 28 exclusions from the mundane inventory are directly integrated through #119 with concrete runtime blockers #242/#243 and #191 source reconciliation. They are not profile exclusions."
     },
     {
       "id": "supernatural-catalog",
@@ -125,7 +125,7 @@
       "owner": 119,
       "decision": "required",
       "reviewed": false,
-      "reason": "Representative abilities and seven learned spells do not enumerate the complete supernatural catalog or modifiers."
+      "reason": "The #119 typed inventory accounts for all 100 indexed spells, 192 exotic/supernatural or psi-member traits, six psi powers and eight magic protocols. All rows retain concrete runtime blockers and #191 printing/errata reconciliation; no complete execution coverage is claimed."
     },
     {
       "id": "equipment-catalog",
