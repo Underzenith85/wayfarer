@@ -162,8 +162,8 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.social.reaction` | yes | yes | absent | #111 |
 | `gurps.social.influence` | yes | yes | absent | #111 |
 | `gurps.social.fright` | no | yes | absent | #111 |
-| `gurps.equipment.weapon_profiles` | yes | yes | partial | #101 |
-| `gurps.equipment.armor_profiles` | yes | yes | partial | #101 |
+| `gurps.equipment.weapon_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; source audit pending) |
+| `gurps.equipment.armor_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; source audit pending) |
 | `gurps.equipment.catalog` | yes | yes | partial | #114 |
 | `gurps.equipment.object_durability` | no | yes | absent | #114 |
 | `gurps.injury.damage_types` | yes | yes | partial | #102 |
@@ -215,3 +215,40 @@ self-control checks (#111), catalog content (#113), and supernatural execution
 (#118) remain visible blockers. Disadvantage-specific modifiers and non-percentage
 special constructions are unavailable; they require catalog-specific rules in
 #118 before activation. No generic hook or manual ruling certifies coverage.
+
+## Typed equipment profiles (#101)
+
+`wayfarer.simulation.gurps_equipment` defines strict, immutable, JSON-round-trippable
+weapon modes (melee/ranged discriminated union), thrust/swing/fixed d6 damage,
+skill references, minimum ST, hands, reach, parry properties, shields/block,
+armor locations/DR, price, TL and exact mass. Ranged modes carry Acc, ST-scaled
+or fixed ranges (including fractional multipliers), RoF, shots, reload, Bulk,
+Rcl and ammunition references. Impossible ranges, damage bases, duplicate modes,
+and missing ammunition references fail schema validation. `EquipmentCatalog.bind`
+resolves equipment, skill and source references against supplied pinned packages;
+missing skills never become invented definitions. These references do not require
+an actor to have purchased the skill just to equip a weapon.
+
+The declared `LITE_EQUIPMENT` sample contains a broadsword (two modes) and leather
+armor. Numeric expectations reference Lite August 2004, Rev. 07/12/04, pp. 19–20;
+no prose is bundled. The official artifact could not be retrieved during this
+change, so the source audit remains outstanding and the equipment capability
+rows deliberately remain **partial**. The sample does not claim catalog coverage.
+Basic equipment catalog/durability coverage remains owned by #114.
+
+`inventory_spec()` adapts data to the existing `ResourceEngine`: **one integer
+weight unit is 0.001 lb**, including owner/container capacities. `inventory_load`
+requires exact catalog specs and a matching statistics profile, validates the
+resource state, and recomputes pounds, encumbrance, Move and Dodge from existing
+owned instances. Equipped items count once; transfer and retry use existing CAS
+and command receipts. Overloaded characters return an explicit absent band/Move/
+Dodge rather than an invented sixth band. The adapter is internal and opt-in;
+prototype weights, package digests, saved campaigns and frozen v1 are unchanged.
+Do not pass this adapter's units to the v1 integer-gram projection.
+
+`tests/test_gurps_equipment.py` provides numeric sample expectations, strict-schema
+and reference failures, ranged round trips, and property-based equip/transfer
+conservation with stale-revision and idempotency checks. Combat damage, ST-use
+penalties, hand occupancy beyond the inventory slot, active defenses, hit-location
+resolution and ammunition consumption in attacks remain with #102, #103, #106
+and #107; these data structures do not authorize those unverified mechanics.
