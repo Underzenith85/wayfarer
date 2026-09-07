@@ -192,8 +192,8 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.world.environmental_hazards` | yes | yes | partial | #110; [persistent exposure schedules](gurps-hazards.md) |
 | `gurps.magic.spellcasting` | no | yes | partial | #117/#171; approved builds, representative effects; remaining variants below |
 | `gurps.supernatural.abilities` | no | yes | partial | #118 representative execution complete; exhaustive audit #119 |
-| `gurps.vehicles.movement` | no | yes | partial | #120, #207 |
-| `gurps.vehicles.combat` | no | yes | partial | #120, #207 |
+| `gurps.vehicles.movement` | no | yes | partial | #120, #207; [vehicle operation audit](gurps-vehicles.md) |
+| `gurps.vehicles.combat` | no | yes | partial | #120, #207; [vehicle operation audit](gurps-vehicles.md) |
 
 Profile registration and explicit migration (#96) are infrastructure, not
 mechanics: they add no row and change no state above. Both GURPS profiles remain
@@ -715,3 +715,16 @@ mount loss-table/fall consequences, and atomic tactical/object synchronization.
 also depends on #181. This foundation alone does not satisfy #120 acceptance.
 #207 tracks the additional Basic Set locomotion, collision and ejection audit and
 remains a blocker for #122. Nothing here certifies full vehicle or Basic Set coverage.
+
+
+### Version-two vehicle operations (#207)
+
+The [vehicle operation audit](gurps-vehicles.md) records the supported internal
+mode/operation matrix, source references, independent test examples, and remaining
+coverage blockers. Explicit upgrades preserve version-one behavior and frozen v1
+scenario contracts. Version two adds ground locomotion variants, planar air/water
+movement, turning/terrain controls, mapped skids and rollover thirds, moving and
+breakable-object collisions, individual passenger protection and ejection distance.
+Full three-dimensional/navigation/environmental and live encounter consumers remain
+incomplete; the vehicle capability rows stay partial. Neither closed #120 nor this
+internal expansion is evidence of complete Basic Set vehicle play.

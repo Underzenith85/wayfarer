@@ -26,6 +26,15 @@ from wayfarer.simulation.resources import (
     ResourceEvent,
     ResourceState,
 )
+from wayfarer.simulation.vehicle_commands import (
+    UpgradeVehicle,
+    VehicleControl,
+    VehicleImpact,
+    VehicleManeuver,
+    VehicleRollover,
+    VehicleSkid,
+)
+from wayfarer.simulation.vehicle_resolution import resolve_vehicle
 
 
 class Drive(Command):
@@ -54,7 +63,17 @@ class CollideTransport(Command):
 
 
 TransportCommand = Annotated[
-    Drive | ControlTransport | SpookMount | CollideTransport, Field(discriminator="kind")
+    Drive
+    | ControlTransport
+    | SpookMount
+    | CollideTransport
+    | VehicleControl
+    | VehicleImpact
+    | VehicleManeuver
+    | VehicleRollover
+    | VehicleSkid
+    | UpgradeVehicle,
+    Field(discriminator="kind"),
 ]
 
 
@@ -89,7 +108,7 @@ def validate_transport(engine: ResourceEngine, state: ResourceState, t: Transpor
         pool = next((p for p in state.pools if p.id == "hp:" + actor), None)
         if pool is None or pool.injury is None or pool.injury.profile_id != t.profile_id:
             raise ValidationError("Transport actors require matching explicit injury profiles")
-    if t.locomotion == "ground-wheeled":
+    if t.locomotion != "ground-mount":
         item = next((i for i in state.items if i.id == t.body_id), None)
         spec = engine.specs.get(item.definition_id) if item else None
         if item is None or item.condition is None or spec is None or spec.durability is None:
@@ -132,6 +151,24 @@ def apply_transport(
     actors = frozenset((*t.occupants, t.body_id))
     require_settled(state.recovery_tasks, actors, state.game_time)
     require_hazards_settled(state.hazards, actors, state.game_time)
+    if isinstance(
+        command,
+        (
+            UpgradeVehicle,
+            VehicleControl,
+            VehicleImpact,
+            VehicleManeuver,
+            VehicleRollover,
+            VehicleSkid,
+        ),
+    ):
+        updated = resolve_vehicle(
+            engine, state, command, t, board=board, health=health, occupied=occupied, rng=rng
+        )
+        t = next(v for v in updated.transports if v.id == t.id)
+        return _finish_transport(state, updated, command, t, digest)
+    if t.mechanics_version != 1:
+        raise ValidationError("Version-two transports require version-two commands")
     updated = state
     if isinstance(command, (Drive, ControlTransport)):
         if t.last_turn == state.game_time:
@@ -288,12 +325,22 @@ def apply_transport(
                 "aim_lost": True,
             }
         )
+    return _finish_transport(state, updated, command, t, digest)
+
+
+def _finish_transport(
+    state: ResourceState,
+    updated: ResourceState,
+    command: TransportCommand,
+    t: Transport,
+    digest: str,
+) -> ResourceState:
     # Nested reducers share this atomic transaction; expose one revision to CAS.
     result = updated.model_copy(
         update={
             "revision": state.revision + 1,
             "transports": tuple(
-                t if existing.id == t.id else existing for existing in state.transports
+                t if existing.id == t.id else existing for existing in updated.transports
             ),
             "events": (
                 *updated.events,

@@ -4,6 +4,8 @@ from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from wayfarer.rules.vehicle_types import Locomotion, VehicleTrace
+
 
 class Transport(BaseModel):
     model_config = ConfigDict(
@@ -17,7 +19,19 @@ class Transport(BaseModel):
     control_margin: int | None = None
     id: str = Field(min_length=1, max_length=200)
     profile_id: Literal["gurps-basic-set-4e-2004"] = "gurps-basic-set-4e-2004"
-    locomotion: Literal["ground-wheeled", "ground-mount"]
+    mechanics_version: Literal[1, 2] = 1
+    altitude: int = 0
+    minimum_speed: int = Field(default=0, ge=0)
+    draft: int = Field(default=0, ge=0)
+    open_cabin: bool = False
+    unsinkable: bool = False
+    straight_yards: int = Field(default=0, ge=0)
+    recovery_turn: int = Field(default=-1, ge=-1)
+    remaining_points: int = Field(default=0, ge=0, le=100)
+    skid_thirds: int = Field(default=0, ge=0)
+    subhex_thirds: int = Field(default=0, ge=0, le=2)
+    traces: tuple[VehicleTrace, ...] = ()
+    locomotion: Locomotion
     body_id: str = Field(min_length=1, max_length=200)
     operator_id: str = Field(min_length=1, max_length=200)
     occupants: tuple[str, ...] = Field(min_length=1)
@@ -31,7 +45,22 @@ class Transport(BaseModel):
     facing: Literal[0, 1, 2, 3, 4, 5] = 0
     # Authored longitudinal footprint, with the reference hex at offset zero.
     footprint: tuple[int, ...] = (0,)
-    status: Literal["controlled", "skidding", "crashed", "spooked", "lost"] = "controlled"
+    footprint_offsets: tuple[tuple[int, int], ...] = Field(default=(), max_length=100)
+    status: Literal[
+        "controlled",
+        "skidding",
+        "crashed",
+        "spooked",
+        "lost",
+        "diving",
+        "stalled",
+        "capsized",
+        "sinking",
+        "drifting",
+        "stress-failure",
+        "ejection-pending",
+        "control-required",
+    ] = "controlled"
     last_turn: int = Field(default=-1, ge=-1)
     successes: int = Field(default=0, ge=0, le=3)
     failures: int = Field(default=0, ge=0, le=3)
@@ -46,6 +75,21 @@ class Transport(BaseModel):
             or self.operator_id not in self.occupants
         ):
             raise ValueError("Transport requires a unique manifest including its operator")
+        if self.mechanics_version == 1 and self.locomotion not in (
+            "ground-wheeled",
+            "ground-mount",
+        ):
+            raise ValueError("New locomotion modes require explicit transport version 2")
+        if self.footprint_offsets and (
+            self.mechanics_version != 2
+            or (0, 0) not in self.footprint_offsets
+            or len(set(self.footprint_offsets)) != len(self.footprint_offsets)
+        ):
+            raise ValueError(
+                "Planar footprints require version 2 and unique offsets including origin"
+            )
+        if self.minimum_speed > self.top_speed:
+            raise ValueError("Minimum speed exceeds top speed")
         if self.speed > self.top_speed:
             raise ValueError("Transport exceeds top speed")
         if (
