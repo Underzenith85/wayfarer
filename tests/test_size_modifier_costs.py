@@ -7,8 +7,8 @@ from pathlib import Path
 from typing import cast
 
 import pytest
-
 from test_statistics import BASIC, LITE, gurps_draft, profile_compiler, profile_package
+
 from wayfarer.character.compiler import CharacterCompiler, Purchase, ValidatedBuild, pool_limits
 from wayfarer.character.size_modifier import SizeCostTarget, SizeModifierError, cost
 from wayfarer.character.statistics import Attribute
