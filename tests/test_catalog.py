@@ -245,6 +245,7 @@ async def test_guided_generation_is_recoverable_and_never_overwrites_edits(
     app = create_runtime_app(config, config.frontend_dir)
     app[ORCHESTRATOR_KEY] = Orchestrator(app[ACCESS_KEY], Provider())
     async with TestClient(TestServer(app)) as client:
+        catalog_before_generation = await (await client.get(PREFIX, headers=HEADERS)).json()
         request = {
             "id": str(uuid4()),
             "brief": graph.brief.model_dump(mode="json"),
@@ -265,7 +266,7 @@ async def test_guided_generation_is_recoverable_and_never_overwrites_edits(
         assert job["proposal_json"]
         assert job["report"]["status"] == "playable"
         # The proposal is not a catalog revision until the author explicitly accepts it.
-        assert await (await client.get(PREFIX, headers=HEADERS)).json() == []
+        assert await (await client.get(PREFIX, headers=HEADERS)).json() == catalog_before_generation
         saved = await post(
             client,
             "",
