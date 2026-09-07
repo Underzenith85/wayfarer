@@ -13,7 +13,7 @@ import psycopg
 from wayfarer.errors import ConflictError, NotFoundError, StorageError
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
-from wayfarer.simulation.catalog import CatalogEntry
+from wayfarer.simulation.catalog import CatalogEntry, GenerationJob
 
 
 class Connection:
@@ -51,6 +51,9 @@ class CatalogStore:
             await connection.query("""CREATE TABLE IF NOT EXISTS scenario_receipts (
                 principal TEXT NOT NULL, command_id TEXT NOT NULL, payload TEXT NOT NULL,
                 state_after TEXT NOT NULL, PRIMARY KEY(principal, command_id))""")
+            await connection.query("""CREATE TABLE IF NOT EXISTS scenario_generation_jobs (
+                scenario_id TEXT NOT NULL, job_id TEXT NOT NULL, owner_id TEXT NOT NULL,
+                state TEXT NOT NULL, PRIMARY KEY(scenario_id, job_id))""")
             yield connection
             await db.commit()
         except (aiosqlite.Error, psycopg.Error) as exc:
@@ -104,5 +107,69 @@ class CatalogStore:
             await db.query(
                 "INSERT INTO scenario_receipts VALUES (?, ?, ?, ?)",
                 (principal, command, payload, result.model_dump_json()),
+            )
+            return result
+
+    async def create_job(self, job: GenerationJob) -> GenerationJob:
+        """Idempotently persist a provider job without changing scenario revision/version."""
+        async with self.transaction() as db:
+            rows = await db.query(
+                "SELECT state FROM scenario_generation_jobs WHERE scenario_id=? AND job_id=?",
+                (job.scenario_id, job.id),
+            )
+            if rows:
+                previous = GenerationJob.model_validate_json(str(rows[0][0]))
+                comparable = previous.model_copy(
+                    update={"status": job.status, "proposal_json": None, "report": None, "error": None}
+                )
+                expected = job.model_copy(update={"proposal_json": None, "report": None, "error": None})
+                if comparable != expected:
+                    raise ConflictError("Generation job ID already used for different input")
+                return previous
+            await db.query(
+                "INSERT INTO scenario_generation_jobs VALUES (?, ?, ?, ?)",
+                (job.scenario_id, job.id, job.owner_id, job.model_dump_json()),
+            )
+            return job
+
+    async def read_job(self, cid: str, job_id: str, owner: str) -> GenerationJob:
+        async with self.transaction() as db:
+            rows = await db.query(
+                "SELECT state FROM scenario_generation_jobs WHERE scenario_id=? AND job_id=? AND owner_id=?",
+                (cid, job_id, owner),
+            )
+            if not rows:
+                raise NotFoundError("Generation job not found")
+            return GenerationJob.model_validate_json(str(rows[0][0]))
+
+    async def jobs(self, cid: str, owner: str) -> tuple[GenerationJob, ...]:
+        async with self.transaction() as db:
+            rows = await db.query(
+                "SELECT state FROM scenario_generation_jobs WHERE scenario_id=? AND owner_id=? ORDER BY job_id",
+                (cid, owner),
+            )
+            return tuple(GenerationJob.model_validate_json(str(row[0])) for row in rows)
+
+    async def update_job(
+        self,
+        cid: str,
+        job_id: str,
+        owner: str,
+        resolve: Callable[[GenerationJob], GenerationJob],
+    ) -> GenerationJob:
+        async with self.transaction() as db:
+            rows = await db.query(
+                "SELECT state FROM scenario_generation_jobs WHERE scenario_id=? AND job_id=? AND owner_id=?",
+                (cid, job_id, owner),
+            )
+            if not rows:
+                raise NotFoundError("Generation job not found")
+            previous = GenerationJob.model_validate_json(str(rows[0][0]))
+            result = resolve(previous)
+            if result.id != previous.id or result.scenario_id != cid or result.owner_id != owner:
+                raise ConflictError("Generation job identity cannot change")
+            await db.query(
+                "UPDATE scenario_generation_jobs SET state=? WHERE scenario_id=? AND job_id=?",
+                (result.model_dump_json(), cid, job_id),
             )
             return result
