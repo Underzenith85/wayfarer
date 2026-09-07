@@ -289,7 +289,7 @@ def choices(
         for choice in _start_choices(play, state, controlled, resolver):
             private[choice.id] = choice
 
-    public = [
+    public: list[dict[str, object]] = [
         {
             "id": choice.id,
             "actor_id": choice.actor_id,
@@ -324,6 +324,7 @@ async def execute(
     selected = private.get(command.choice_id)
     if selected is None or selected.actor_id != command.actor_id:
         raise ValidationError("Recovery choice is no longer authorized")
+    medical: BeginRecovery | FinishRecovery
     if selected.kind == "finish-recovery":
         assert selected.task_id is not None
         medical = FinishRecovery(
