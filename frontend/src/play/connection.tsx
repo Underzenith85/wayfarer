@@ -1,7 +1,6 @@
 import { SetupLobby, type SetupSession } from "../setup/lobby";
 import { useCallback, useEffect, useState } from "react";
 import { App } from "../app";
-import { Button } from "../components/ui/button";
 import { NetworkPlayTransport } from "../api/play-transport";
 import { SetupClient } from "../setup/client";
 import { LiveTransport } from "./live";
@@ -15,6 +14,30 @@ import {
   takeRequestedPath,
 } from "./session";
 import type { PlayTransport } from "./transport";
+
+/**
+ * Setup modes are tabs, not three primary actions: one is always selected, and
+ * the panel below is the one the selected tab names (#200).
+ */
+const modes = [
+  { value: "new", label: "New game" },
+  { value: "continue", label: "Continue game" },
+  { value: "join", label: "Join game" },
+] as const;
+type Mode = (typeof modes)[number]["value"];
+const panelId = "game-mode-panel";
+const tabId = (value: Mode) => `game-mode-${value}`;
+/** Arrow keys walk the tab bar and Home/End reach its ends, as tabs do. */
+const step = (index: number, key: string) =>
+  key === "ArrowRight"
+    ? (index + 1) % modes.length
+    : key === "ArrowLeft"
+      ? (index - 1 + modes.length) % modes.length
+      : key === "Home"
+        ? 0
+        : key === "End"
+          ? modes.length - 1
+          : undefined;
 
 /**
  * Rebuilds the tab's session without asking for the access token again. The URL
@@ -65,7 +88,7 @@ export function ConnectedApp() {
   const [session, setSession] = useState<SetupSession>();
   const [transport, setTransport] = useState<PlayTransport>();
   const [opened, setOpened] = useState<string>();
-  const [mode, setMode] = useState<"new" | "continue" | "join">("new");
+  const [mode, setMode] = useState<Mode>("new");
   const [restoring, setRestoring] = useState(() => readSession() !== null);
   const remember = useCallback((value: SetupSession | undefined) => {
     setSession(value);
@@ -76,7 +99,7 @@ export function ConnectedApp() {
     forgetSession();
     setSession(undefined);
   }, []);
-  const leave = useCallback((next: "new" | "continue") => {
+  const leave = useCallback((next: Extract<Mode, "new" | "continue">) => {
     // Leaving play drops the campaign from the URL and from what a reload opens.
     if (location.pathname !== "/") history.replaceState(null, "", "/");
     rememberCampaign(null);
@@ -142,41 +165,53 @@ export function ConnectedApp() {
       <header className="scene-card connection-form">
         <h1>Wayfarer</h1>
         <p>Start an adventure or return to your table.</p>
-        <nav className="context-actions" aria-label="Game menu">
-          {(["new", "continue", "join"] as const).map((value) => (
-            <Button
+        <div className="mode-tabs" role="tablist" aria-label="Game menu">
+          {modes.map(({ value, label }, index) => (
+            <button
               key={value}
-              aria-pressed={mode === value}
+              type="button"
+              role="tab"
+              id={tabId(value)}
+              className="mode-tab"
+              aria-selected={mode === value}
+              aria-controls={panelId}
+              tabIndex={mode === value ? 0 : -1}
+              onKeyDown={(event) => {
+                const target = step(index, event.key);
+                if (target === undefined) return;
+                event.preventDefault();
+                setMode(modes[target]!.value);
+                document.getElementById(tabId(modes[target]!.value))?.focus();
+              }}
               onClick={() => setMode(value)}
             >
-              {value === "new"
-                ? "New game"
-                : value === "continue"
-                  ? "Continue game"
-                  : "Join game"}
-            </Button>
+              {label}
+            </button>
           ))}
-        </nav>
+        </div>
       </header>
-      <SetupLobby
-        mode={mode}
-        initialSession={session}
-        initialCampaignId={opened}
-        onSession={remember}
-        onOpen={(next) => {
-          const requested = takeRequestedPath();
-          const segment = requested
-            ? (parsePath(new URL(requested, location.origin).pathname)
-                ?.segment ?? "")
-            : "";
-          const target = pagePath(next.initialCampaignId ?? null, segment);
-          if (location.pathname !== target)
-            history.replaceState(null, "", target);
-          if (next.initialCampaignId) rememberCampaign(next.initialCampaignId);
-          setOpened(next.initialCampaignId);
-          setTransport(next);
-        }}
-      />
+      <div id={panelId} role="tabpanel" aria-labelledby={tabId(mode)}>
+        <SetupLobby
+          mode={mode}
+          initialSession={session}
+          initialCampaignId={opened}
+          onSession={remember}
+          onOpen={(next) => {
+            const requested = takeRequestedPath();
+            const segment = requested
+              ? (parsePath(new URL(requested, location.origin).pathname)
+                  ?.segment ?? "")
+              : "";
+            const target = pagePath(next.initialCampaignId ?? null, segment);
+            if (location.pathname !== target)
+              history.replaceState(null, "", target);
+            if (next.initialCampaignId)
+              rememberCampaign(next.initialCampaignId);
+            setOpened(next.initialCampaignId);
+            setTransport(next);
+          }}
+        />
+      </div>
     </>
   );
 }

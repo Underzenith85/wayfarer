@@ -94,6 +94,23 @@ export interface EngineProjection {
     target_actor_id: string;
     kind: string;
   }[];
+  gurps_recovery_choices?: {
+    id: string;
+    actor_id: string;
+    target_actor_id: string;
+    kind: string;
+    label: string;
+  }[];
+  gurps_recovery_tasks?: {
+    id: string;
+    actor_id: string;
+    target_actor_id: string;
+    kind: string;
+    status: string;
+    due: number;
+    settled: boolean;
+    can_finish: boolean;
+  }[];
   captivity: { actor_id: string; released_at: number | null }[];
 }
 function projection(value: unknown): EngineProjection {

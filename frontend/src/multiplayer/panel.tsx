@@ -194,7 +194,7 @@ export function MultiplayerPanel() {
                   e.preventDefault();
                   void store.tableCommand({
                     kind: "ooc",
-                    text: state.drafts.ooc,
+                    text: state.drafts.ooc.text,
                   });
                 }}
               >
@@ -202,12 +202,12 @@ export function MultiplayerPanel() {
                   Table message
                   <textarea
                     aria-label="Table message"
-                    value={state.drafts.ooc}
+                    value={state.drafts.ooc.text}
                     maxLength={2000}
                     onChange={(e) => store.saveDraft("ooc", e.target.value)}
                   />
                 </label>
-                <Button disabled={blocked || !state.drafts.ooc.trim()}>
+                <Button disabled={blocked || !state.drafts.ooc.text.trim()}>
                   Send table message
                 </Button>
               </form>

@@ -196,11 +196,34 @@ export function SetupLobby({
   const host = !!session && lobby?.host_id === session.principal;
   const editable = !lobby || lobby.phase === "draft" || lobby.phase === "ready";
   const canEdit = editable && (!lobby || host) && !lobby?.scenario_pinned;
+  /**
+   * A brief a draft can be created from. The concept step asks for these three
+   * fields, and choosing an authored adventure fills them in, so either entry
+   * into the flow unlocks its review step.
+   */
+  const complete =
+    !!brief.premise.trim() && !!brief.genre.trim() && !!brief.tone.trim();
+  /**
+   * The party is only assignable once the service holds a draft; review is
+   * reachable earlier because creating the draft is its own step's action.
+   */
   const reachable = (value: Step) =>
-    value === "Party" || value === "Ready" ? !!lobby : true;
+    value === "Party"
+      ? !!lobby
+      : value === "Ready"
+        ? !!lobby || complete
+        : true;
+  /** Back and Next walk the steps that can actually be opened right now. */
+  const sequence = steps.filter(reachable);
+  const at = sequence.indexOf(step);
+  const previous = at > 0 ? sequence[at - 1] : undefined;
+  const following = sequence[at + 1];
   const save = (e: React.FormEvent) => {
     e.preventDefault();
     if (!client) return;
+    // A draft is created from the review step alone, never by a stray submit
+    // of a step that is still collecting the brief.
+    if (!lobby && step !== "Ready") return;
     void run(async () => {
       if (!lobby) {
         const selected = profiles.find(
@@ -216,6 +239,7 @@ export function SetupLobby({
         });
         choose(result);
         setLobbies([...lobbies, result]);
+        // Creating the draft unlocks the party, which is the work left to do.
         setStep("Party");
       } else
         await command("edit", {
@@ -279,21 +303,46 @@ export function SetupLobby({
         ))}
       </ul>
     );
-  const submit = (
-    <Button disabled={busy || client?.hasPending}>
-      {lobby ? "Save setup draft" : "Create game draft"}
-    </Button>
+  /**
+   * Editing steps offer saving once there is a draft to save into. Before
+   * that, a step is filled in and left with Next; the review step creates.
+   */
+  const submit = lobby ? (
+    <Button disabled={busy || client?.hasPending}>Save setup draft</Button>
+  ) : null;
+  /** Back and Next make the sequence the step chips describe an actual one. */
+  const walk = (
+    <nav className="step-nav" aria-label="Setup step navigation">
+      <Button
+        type="button"
+        variant="outline"
+        disabled={!previous}
+        onClick={() => previous && setStep(previous)}
+      >
+        Back
+      </Button>
+      {step !== "Ready" && (
+        <Button
+          type="button"
+          disabled={!following}
+          onClick={() => following && setStep(following)}
+        >
+          {following ? `Next: ${following}` : "Next"}
+        </Button>
+      )}
+      {!following && step !== "Ready" && (
+        <p>
+          Write a premise on the concept step, or choose an authored adventure,
+          to review and create the draft.
+        </p>
+      )}
+    </nav>
   );
   return (
     <section className="scene-card setup-lobby" aria-label="New game and lobby">
-      <h2>
-        {mode === "new"
-          ? "New game"
-          : mode === "continue"
-            ? "Continue game"
-            : "Join game"}
-      </h2>
-      <p>Sign in with your own access token. No campaign ID is needed.</p>
+      {/* The mode tab above names this panel; repeating it as a heading made
+          selecting a mode look as though nothing had happened (#200). */}
+      <h2 className="visually-hidden">Game setup</h2>
       {!session || !client ? (
         <form
           onSubmit={(e) => {
@@ -313,6 +362,7 @@ export function SetupLobby({
             });
           }}
         >
+          <p>Sign in with your own access token. No campaign ID is needed.</p>
           <label>
             Access token
             <input
@@ -327,55 +377,25 @@ export function SetupLobby({
         </form>
       ) : (
         <>
-          <div className="context-actions">
-            <Button
-              type="button"
-              onClick={() => {
-                remember(undefined);
-                setSecret("");
-                setGames([]);
-                setTemplates([]);
-                setProfiles([]);
-                setLobbies([]);
-                restart();
-              }}
-            >
-              Sign out of setup
-            </Button>
-            <Button
-              type="button"
-              disabled={busy}
-              onClick={() =>
-                void run(async () => {
-                  if (client.hasPending) {
-                    const recovered = await client.retry();
-                    choose(recovered);
-                    if (recovered.phase === "active") open(recovered);
-                  }
-                  const values = await client.request<Lobby[]>("");
-                  setLobbies(values);
-                  if (lobby)
-                    choose(await client.request<Lobby>(`/${lobby.id}`));
-                })
-              }
-            >
-              Reload games / reconcile
-            </Button>
-            <Button
-              type="button"
-              disabled={busy || client.hasPending}
-              onClick={restart}
-            >
-              New draft
-            </Button>
-          </div>
-          {!session.generationAvailable && <ProviderBanner />}
-          <p>
+          {/* The list this page exists to show comes first; keeping the shell's
+              own upkeep above it put maintenance ahead of content (#204). */}
+          <h3 className="lobby-heading">
             {mode === "join"
-              ? "Ask the host to invite your player name. Then reload to accept your invitation."
-              : "Your saved games and unfinished drafts"}{" "}
-            · Signed in as {session.principal}
-          </p>
+              ? "Invitations and games"
+              : "Your saved games and unfinished drafts"}
+          </h3>
+          {mode === "join" && (
+            <p>
+              Ask the host to invite your player name, then refresh this list to
+              accept your invitation.
+            </p>
+          )}
+          {!lobbies.length && !games.length && !busy && (
+            <p>
+              No saved games yet. Start one below, and it appears here for every
+              later visit.
+            </p>
+          )}
           <ul>
             {lobbies.map((value) => (
               <li key={value.id}>
@@ -434,6 +454,56 @@ export function SetupLobby({
                 </li>
               ))}
           </ul>
+          {/* Keeping the list current and leaving setup are upkeep, so they
+              read as upkeep: secondary, in user words, below the list (#204). */}
+          <p className="lobby-account">
+            Signed in as {session.principal}
+            <Button
+              type="button"
+              variant="outline"
+              disabled={busy}
+              onClick={() =>
+                void run(async () => {
+                  if (client.hasPending) {
+                    const recovered = await client.retry();
+                    choose(recovered);
+                    if (recovered.phase === "active") open(recovered);
+                  }
+                  const values = await client.request<Lobby[]>("");
+                  setLobbies(values);
+                  if (lobby)
+                    choose(await client.request<Lobby>(`/${lobby.id}`));
+                })
+              }
+            >
+              Refresh this list
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                remember(undefined);
+                setSecret("");
+                setGames([]);
+                setTemplates([]);
+                setProfiles([]);
+                setLobbies([]);
+                restart();
+              }}
+            >
+              Sign out
+            </Button>
+          </p>
+          {!session.generationAvailable && <ProviderBanner />}
+          <div className="context-actions">
+            <Button
+              type="button"
+              disabled={busy || client.hasPending}
+              onClick={restart}
+            >
+              Start a new game
+            </Button>
+          </div>
           {lobby ? (
             <p role="status">
               {lobby.title} · {campaignPhaseLabel(lobby.phase)} · revision{" "}
@@ -442,12 +512,16 @@ export function SetupLobby({
           ) : (
             <p>Create a game, or open an invitation above.</p>
           )}
+          {/* The line names the step; the chips below it are the same five
+              steps, shown as numbered dots where a labelled row cannot fit on
+              one line (#206). Every chip keeps its step name as its accessible
+              label at every width. */}
           <nav className="setup-steps" aria-label="Setup steps">
             <p className="eyebrow">
               Step {steps.indexOf(step) + 1} of {steps.length}: {step}
             </p>
             <ol>
-              {steps.map((value) => (
+              {steps.map((value, index) => (
                 <li key={value}>
                   <Button
                     type="button"
@@ -456,7 +530,10 @@ export function SetupLobby({
                     disabled={!reachable(value)}
                     onClick={() => setStep(value)}
                   >
-                    {value}
+                    <span className="step-index" aria-hidden="true">
+                      {index + 1}
+                    </span>
+                    <span className="step-name">{value}</span>
                   </Button>
                 </li>
               ))}
@@ -945,8 +1022,45 @@ export function SetupLobby({
             </>
           )}
           {step === "Ready" && !lobby && (
-            <p>Create or open a game draft before marking a party ready.</p>
+            <form onSubmit={save} aria-label="Review and create">
+              <h3>Review this setup</h3>
+              <dl className="setup-review">
+                <div>
+                  <dt>Concept</dt>
+                  <dd>{brief.premise || "No premise written yet"}</dd>
+                </div>
+                <div>
+                  <dt>Style</dt>
+                  <dd>
+                    {brief.genre} · {brief.tone} · {brief.duration_minutes}{" "}
+                    minutes · {brief.difficulty}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Adventure</dt>
+                  <dd>
+                    {graph?.title ??
+                      "No authored adventure; the premise alone starts the draft"}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Rules</dt>
+                  <dd>
+                    {profiles.find((p) => `${p.id}@${p.version}` === profile)
+                      ?.title ?? "This game’s default rules"}
+                  </dd>
+                </div>
+              </dl>
+              <Button disabled={busy || !complete || client.hasPending}>
+                Create game draft
+              </Button>
+              <p>
+                Creating the draft opens its party, where characters are
+                assigned and players invited. Nothing is published or started.
+              </p>
+            </form>
           )}
+          {walk}
           {client.hasPending && (
             <Button
               disabled={busy}

@@ -1,0 +1,7687 @@
+{
+  "version": 1,
+  "profile": "gurps-basic-set-4e-2004",
+  "baseline": "gurps-4e-2004-first-printing+errata-2007-01-26",
+  "sources": [
+    {
+      "id": "characters-third",
+      "title": "Basic Set: Characters",
+      "edition": 4,
+      "printing": 3,
+      "publication": "February 2008",
+      "errata_overlay": null,
+      "baseline_reconciled": false,
+      "blocker": 191,
+      "sha256": "872b5fece8f4013bf46825b397ef52b52c865fa2879f4544f055d9b6caecf47e"
+    },
+    {
+      "id": "campaigns-fourth",
+      "title": "Basic Set: Campaigns",
+      "edition": 4,
+      "printing": 4,
+      "publication": "2008",
+      "errata_overlay": null,
+      "baseline_reconciled": false,
+      "blocker": 191,
+      "sha256": "79cff8f75b91b4ba72e7947320bf98e184515e60108bda0f0891d379b3c96e80"
+    }
+  ],
+  "entries": [
+    {
+      "id": "advantage:360-vision",
+      "name": "360° Vision",
+      "kind": "advantage",
+      "page": 34,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:accessory",
+      "name": "Accessory",
+      "kind": "advantage",
+      "page": 100,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:affliction",
+      "name": "Affliction",
+      "kind": "advantage",
+      "page": 35,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        237,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:altered-time-rate",
+      "name": "Altered Time Rate",
+      "kind": "advantage",
+      "page": 38,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:alternate-form",
+      "name": "Alternate Form",
+      "kind": "advantage",
+      "page": 83,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:amphibious",
+      "name": "Amphibious",
+      "kind": "advantage",
+      "page": 40,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:animal-empathy",
+      "name": "Animal Empathy",
+      "kind": "advantage",
+      "page": 40,
+      "classification": "psi-member",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        240,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:arm-dx",
+      "name": "Arm DX",
+      "kind": "advantage",
+      "page": 40,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:arm-st",
+      "name": "Arm ST",
+      "kind": "advantage",
+      "page": 40,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:binding",
+      "name": "Binding",
+      "kind": "advantage",
+      "page": 40,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        237,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:blessed",
+      "name": "Blessed",
+      "kind": "advantage",
+      "page": 40,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:brachiator",
+      "name": "Brachiator",
+      "kind": "advantage",
+      "page": 41,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:breath-holding",
+      "name": "Breath-Holding",
+      "kind": "advantage",
+      "page": 41,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:catfall",
+      "name": "Catfall",
+      "kind": "advantage",
+      "page": 41,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:chameleon",
+      "name": "Chameleon",
+      "kind": "advantage",
+      "page": 41,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:channeling",
+      "name": "Channeling",
+      "kind": "advantage",
+      "page": 41,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:clairsentience",
+      "name": "Clairsentience",
+      "kind": "advantage",
+      "page": 42,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:claws",
+      "name": "Claws",
+      "kind": "advantage",
+      "page": 42,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        237,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:clinging",
+      "name": "Clinging",
+      "kind": "advantage",
+      "page": 43,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:compartmentalized-mind",
+      "name": "Compartmentalized Mind",
+      "kind": "advantage",
+      "page": 43,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:constriction-attack",
+      "name": "Constriction Attack",
+      "kind": "advantage",
+      "page": 43,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        237,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:damage-resistance",
+      "name": "Damage Resistance",
+      "kind": "advantage",
+      "page": 46,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        237,
+        191
+      ],
+      "source": "characters-third",
+      "status": "partial",
+      "supported_subset": "Paid activation with Costs Fatigue 1 or 2; not every DR modifier.",
+      "evidence": [
+        "tests/test_ability_service.py"
+      ],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:danger-sense",
+      "name": "Danger Sense",
+      "kind": "advantage",
+      "page": 47,
+      "classification": "psi-member",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        240,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:dark-vision",
+      "name": "Dark Vision",
+      "kind": "advantage",
+      "page": 47,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:destiny",
+      "name": "Destiny",
+      "kind": "advantage",
+      "page": 48,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:detect",
+      "name": "Detect",
+      "kind": "advantage",
+      "page": 48,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "partial",
+      "supported_subset": "Rare authored category with Precise or Vague; bounded knowledge channels.",
+      "evidence": [
+        "tests/test_abilities.py"
+      ],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:digital-mind",
+      "name": "Digital Mind",
+      "kind": "advantage",
+      "page": 48,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:discriminatory-hearing",
+      "name": "Discriminatory Hearing",
+      "kind": "advantage",
+      "page": 49,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:discriminatory-smell",
+      "name": "Discriminatory Smell",
+      "kind": "advantage",
+      "page": 49,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:discriminatory-taste",
+      "name": "Discriminatory Taste",
+      "kind": "advantage",
+      "page": 49,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:doesnt-breathe",
+      "name": "Doesn’t Breathe",
+      "kind": "advantage",
+      "page": 49,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:doesnt-eat-or-drink",
+      "name": "Doesn’t Eat or Drink",
+      "kind": "advantage",
+      "page": 50,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:doesnt-sleep",
+      "name": "Doesn’t Sleep",
+      "kind": "advantage",
+      "page": 50,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:dominance",
+      "name": "Dominance",
+      "kind": "advantage",
+      "page": 50,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:duplication",
+      "name": "Duplication",
+      "kind": "advantage",
+      "page": 50,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:elastic-skin",
+      "name": "Elastic Skin",
+      "kind": "advantage",
+      "page": 51,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:empathy",
+      "name": "Empathy",
+      "kind": "advantage",
+      "page": 51,
+      "classification": "psi-member",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        240,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:enhanced-move",
+      "name": "Enhanced Move",
+      "kind": "advantage",
+      "page": 52,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:enhanced-time-sense",
+      "name": "Enhanced Time Sense",
+      "kind": "advantage",
+      "page": 52,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:enhanced-tracking",
+      "name": "Enhanced Tracking",
+      "kind": "advantage",
+      "page": 53,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:extended-lifespan",
+      "name": "Extended Lifespan",
+      "kind": "advantage",
+      "page": 53,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:extra-arms",
+      "name": "Extra Arms",
+      "kind": "advantage",
+      "page": 53,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:extra-head",
+      "name": "Extra Head",
+      "kind": "advantage",
+      "page": 54,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:extra-legs",
+      "name": "Extra Legs",
+      "kind": "advantage",
+      "page": 54,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:extra-life",
+      "name": "Extra Life",
+      "kind": "advantage",
+      "page": 55,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:extra-mouth",
+      "name": "Extra Mouth",
+      "kind": "advantage",
+      "page": 55,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:filter-lungs",
+      "name": "Filter Lungs",
+      "kind": "advantage",
+      "page": 55,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:flight",
+      "name": "Flight",
+      "kind": "advantage",
+      "page": 56,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:fur",
+      "name": "Fur",
+      "kind": "advantage",
+      "page": 101,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:growth",
+      "name": "Growth",
+      "kind": "advantage",
+      "page": 58,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:healing",
+      "name": "Healing",
+      "kind": "advantage",
+      "page": 59,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:hermaphromorph",
+      "name": "Hermaphromorph",
+      "kind": "advantage",
+      "page": 59,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:higher-purpose",
+      "name": "Higher Purpose",
+      "kind": "advantage",
+      "page": 59,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:hyperspectral-vision",
+      "name": "Hyperspectral Vision",
+      "kind": "advantage",
+      "page": 60,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:illuminated",
+      "name": "Illuminated",
+      "kind": "advantage",
+      "page": 60,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:infravision",
+      "name": "Infravision",
+      "kind": "advantage",
+      "page": 60,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:injury-tolerance",
+      "name": "Injury Tolerance",
+      "kind": "advantage",
+      "page": 60,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        237,
+        191,
+        107
+      ],
+      "source": "characters-third",
+      "status": "partial",
+      "supported_subset": "Selected human-layout structural injury variants; complete construction and anatomy coverage remains blocked.",
+      "evidence": [
+        "tests/test_hit_locations.py"
+      ],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:innate-attack",
+      "name": "Innate Attack",
+      "kind": "advantage",
+      "page": 61,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        237,
+        191
+      ],
+      "source": "characters-third",
+      "status": "partial",
+      "supported_subset": "Burning Malediction 1 only, with optional Costs Fatigue 1 or 2.",
+      "evidence": [
+        "tests/test_abilities.py"
+      ],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:insubstantiality",
+      "name": "Insubstantiality",
+      "kind": "advantage",
+      "page": 62,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:invisibility",
+      "name": "Invisibility",
+      "kind": "advantage",
+      "page": 63,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:jumper",
+      "name": "Jumper",
+      "kind": "advantage",
+      "page": 64,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        238,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:lifting-st",
+      "name": "Lifting ST",
+      "kind": "advantage",
+      "page": 65,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:magery",
+      "name": "Magery",
+      "kind": "advantage",
+      "page": 66,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        239,
+        191
+      ],
+      "source": "characters-third",
+      "status": "partial",
+      "supported_subset": "Profile v5 learning: Magery 0 and leveled bonus; variants and magic detection remain blocked.",
+      "evidence": [
+        "tests/test_magic_catalog.py"
+      ],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:magic-resistance",
+      "name": "Magic Resistance",
+      "kind": "advantage",
+      "page": 67,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        239,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:mana-damper",
+      "name": "Mana Damper",
+      "kind": "advantage",
+      "page": 67,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        239,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:mana-enhancer",
+      "name": "Mana Enhancer",
+      "kind": "advantage",
+      "page": 68,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        239,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:medium",
+      "name": "Medium",
+      "kind": "advantage",
+      "page": 68,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:metabolism-control",
+      "name": "Metabolism Control",
+      "kind": "advantage",
+      "page": 68,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:microscopic-vision",
+      "name": "Microscopic Vision",
+      "kind": "advantage",
+      "page": 68,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:mimicry",
+      "name": "Mimicry",
+      "kind": "advantage",
+      "page": 68,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:mind-control",
+      "name": "Mind Control",
+      "kind": "advantage",
+      "page": 68,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:mind-probe",
+      "name": "Mind Probe",
+      "kind": "advantage",
+      "page": 69,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:mind-reading",
+      "name": "Mind Reading",
+      "kind": "advantage",
+      "page": 69,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "partial",
+      "supported_subset": "Living shared-language surface thoughts; optional Telepathic suppression.",
+      "evidence": [
+        "tests/test_ability_service.py"
+      ],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:mind-shield",
+      "name": "Mind Shield",
+      "kind": "advantage",
+      "page": 70,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "partial",
+      "supported_subset": "Trusted resistance context only; full purchased trait binding remains blocked.",
+      "evidence": [
+        "tests/test_abilities.py"
+      ],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:mindlink",
+      "name": "Mindlink",
+      "kind": "advantage",
+      "page": 70,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:modular-abilities",
+      "name": "Modular Abilities",
+      "kind": "advantage",
+      "page": 71,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:morph",
+      "name": "Morph",
+      "kind": "advantage",
+      "page": 84,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:neutralize",
+      "name": "Neutralize",
+      "kind": "advantage",
+      "page": 71,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:nictitating-membrane",
+      "name": "Nictitating Membrane",
+      "kind": "advantage",
+      "page": 71,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        237,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:obscure",
+      "name": "Obscure",
+      "kind": "advantage",
+      "page": 72,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:oracle",
+      "name": "Oracle",
+      "kind": "advantage",
+      "page": 72,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:parabolic-hearing",
+      "name": "Parabolic Hearing",
+      "kind": "advantage",
+      "page": 72,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:payload",
+      "name": "Payload",
+      "kind": "advantage",
+      "page": 74,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:penetrating-vision",
+      "name": "Penetrating Vision",
+      "kind": "advantage",
+      "page": 74,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:permeation",
+      "name": "Permeation",
+      "kind": "advantage",
+      "page": 75,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:possession",
+      "name": "Possession",
+      "kind": "advantage",
+      "page": 75,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:power-investiture",
+      "name": "Power Investiture",
+      "kind": "advantage",
+      "page": 77,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        239,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:precognition",
+      "name": "Precognition",
+      "kind": "advantage",
+      "page": 77,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:pressure-support",
+      "name": "Pressure Support",
+      "kind": "advantage",
+      "page": 77,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:protected-sense",
+      "name": "Protected Sense",
+      "kind": "advantage",
+      "page": 78,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:psi-static",
+      "name": "Psi Static",
+      "kind": "advantage",
+      "page": 78,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:psychometry",
+      "name": "Psychometry",
+      "kind": "advantage",
+      "page": 78,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:puppet",
+      "name": "Puppet",
+      "kind": "advantage",
+      "page": 78,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:racial-memory",
+      "name": "Racial Memory",
+      "kind": "advantage",
+      "page": 78,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:radiation-tolerance",
+      "name": "Radiation Tolerance",
+      "kind": "advantage",
+      "page": 79,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:reawakened",
+      "name": "Reawakened",
+      "kind": "advantage",
+      "page": 80,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:recovery",
+      "name": "Recovery",
+      "kind": "advantage",
+      "page": 80,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:regeneration",
+      "name": "Regeneration",
+      "kind": "advantage",
+      "page": 80,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:regrowth",
+      "name": "Regrowth",
+      "kind": "advantage",
+      "page": 80,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:resistant",
+      "name": "Resistant",
+      "kind": "advantage",
+      "page": 80,
+      "classification": "psi-member",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        240,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:sanitized-metabolism",
+      "name": "Sanitized Metabolism",
+      "kind": "advantage",
+      "page": 101,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:scanning-sense",
+      "name": "Scanning Sense",
+      "kind": "advantage",
+      "page": 81,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:sealed",
+      "name": "Sealed",
+      "kind": "advantage",
+      "page": 82,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:see-invisible",
+      "name": "See Invisible",
+      "kind": "advantage",
+      "page": 83,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:sensitive-touch",
+      "name": "Sensitive Touch",
+      "kind": "advantage",
+      "page": 83,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:shadow-form",
+      "name": "Shadow Form",
+      "kind": "advantage",
+      "page": 83,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:shapeshifting",
+      "name": "Shapeshifting",
+      "kind": "advantage",
+      "page": 83,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:shrinking",
+      "name": "Shrinking",
+      "kind": "advantage",
+      "page": 85,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:silence",
+      "name": "Silence",
+      "kind": "advantage",
+      "page": 85,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:slippery",
+      "name": "Slippery",
+      "kind": "advantage",
+      "page": 85,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:snatcher",
+      "name": "Snatcher",
+      "kind": "advantage",
+      "page": 86,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        238,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:speak-underwater",
+      "name": "Speak Underwater",
+      "kind": "advantage",
+      "page": 87,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:speak-with-animals",
+      "name": "Speak With Animals",
+      "kind": "advantage",
+      "page": 87,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:speak-with-plants",
+      "name": "Speak With Plants",
+      "kind": "advantage",
+      "page": 87,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:special-rapport",
+      "name": "Special Rapport",
+      "kind": "advantage",
+      "page": 88,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:spines",
+      "name": "Spines",
+      "kind": "advantage",
+      "page": 88,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        237,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:spirit-empathy",
+      "name": "Spirit Empathy",
+      "kind": "advantage",
+      "page": 88,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:stretching",
+      "name": "Stretching",
+      "kind": "advantage",
+      "page": 88,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:striker",
+      "name": "Striker",
+      "kind": "advantage",
+      "page": 88,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        237,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:striking-st",
+      "name": "Striking ST",
+      "kind": "advantage",
+      "page": 88,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        237,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:subsonic-hearing",
+      "name": "Subsonic Hearing",
+      "kind": "advantage",
+      "page": 89,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:subsonic-speech",
+      "name": "Subsonic Speech",
+      "kind": "advantage",
+      "page": 89,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:super-climbing",
+      "name": "Super Climbing",
+      "kind": "advantage",
+      "page": 89,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:super-jump",
+      "name": "Super Jump",
+      "kind": "advantage",
+      "page": 89,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:super-luck",
+      "name": "Super Luck",
+      "kind": "advantage",
+      "page": 89,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:supernatural-durability",
+      "name": "Supernatural Durability",
+      "kind": "advantage",
+      "page": 89,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        237,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:teeth",
+      "name": "Teeth",
+      "kind": "advantage",
+      "page": 91,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        237,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:telecommunication",
+      "name": "Telecommunication",
+      "kind": "advantage",
+      "page": 91,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:telekinesis",
+      "name": "Telekinesis",
+      "kind": "advantage",
+      "page": 92,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:telescopic-vision",
+      "name": "Telescopic Vision",
+      "kind": "advantage",
+      "page": 92,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:temperature-control",
+      "name": "Temperature Control",
+      "kind": "advantage",
+      "page": 92,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:temporal-inertia",
+      "name": "Temporal Inertia",
+      "kind": "advantage",
+      "page": 93,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:terrain-adaptation",
+      "name": "Terrain Adaptation",
+      "kind": "advantage",
+      "page": 93,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:terror",
+      "name": "Terror",
+      "kind": "advantage",
+      "page": 93,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:true-faith",
+      "name": "True Faith",
+      "kind": "advantage",
+      "page": 94,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:tunneling",
+      "name": "Tunneling",
+      "kind": "advantage",
+      "page": 94,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:ultrahearing",
+      "name": "Ultrahearing",
+      "kind": "advantage",
+      "page": 94,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:ultrasonic-speech",
+      "name": "Ultrasonic Speech",
+      "kind": "advantage",
+      "page": 94,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:ultravision",
+      "name": "Ultravision",
+      "kind": "advantage",
+      "page": 94,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:unaging",
+      "name": "Unaging",
+      "kind": "advantage",
+      "page": 95,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:universal-digestion",
+      "name": "Universal Digestion",
+      "kind": "advantage",
+      "page": 95,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:unkillable",
+      "name": "Unkillable",
+      "kind": "advantage",
+      "page": 95,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        237,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:vacuum-support",
+      "name": "Vacuum Support",
+      "kind": "advantage",
+      "page": 96,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:vampiric-bite",
+      "name": "Vampiric Bite",
+      "kind": "advantage",
+      "page": 96,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        237,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:vibration-sense",
+      "name": "Vibration Sense",
+      "kind": "advantage",
+      "page": 96,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        234,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:visualization",
+      "name": "Visualization",
+      "kind": "advantage",
+      "page": 96,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:walk-on-air",
+      "name": "Walk on Air",
+      "kind": "advantage",
+      "page": 97,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:walk-on-liquid",
+      "name": "Walk on Liquid",
+      "kind": "advantage",
+      "page": 97,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:warp",
+      "name": "Warp",
+      "kind": "advantage",
+      "page": 97,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        238,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "advantage:wild-talent",
+      "name": "Wild Talent",
+      "kind": "advantage",
+      "page": 99,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:bestial",
+      "name": "Bestial",
+      "kind": "disadvantage",
+      "page": 124,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:cold-blooded",
+      "name": "Cold-Blooded",
+      "kind": "disadvantage",
+      "page": 127,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:cursed",
+      "name": "Cursed",
+      "kind": "disadvantage",
+      "page": 129,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:decreased-time-rate",
+      "name": "Decreased Time Rate",
+      "kind": "disadvantage",
+      "page": 129,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:dependency",
+      "name": "Dependency",
+      "kind": "disadvantage",
+      "page": 130,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:destiny",
+      "name": "Destiny",
+      "kind": "disadvantage",
+      "page": 131,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:divine-curse",
+      "name": "Divine Curse",
+      "kind": "disadvantage",
+      "page": 132,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:draining",
+      "name": "Draining",
+      "kind": "disadvantage",
+      "page": 132,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:dread",
+      "name": "Dread",
+      "kind": "disadvantage",
+      "page": 132,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:electrical",
+      "name": "Electrical",
+      "kind": "disadvantage",
+      "page": 134,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:fragile",
+      "name": "Fragile",
+      "kind": "disadvantage",
+      "page": 136,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        237,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:frightens-animals",
+      "name": "Frightens Animals",
+      "kind": "disadvantage",
+      "page": 137,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:horizontal",
+      "name": "Horizontal",
+      "kind": "disadvantage",
+      "page": 139,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:increased-life-support",
+      "name": "Increased Life Support",
+      "kind": "disadvantage",
+      "page": 139,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:infectious-attack",
+      "name": "Infectious Attack",
+      "kind": "disadvantage",
+      "page": 140,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:invertebrate",
+      "name": "Invertebrate",
+      "kind": "disadvantage",
+      "page": 140,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:lifebane",
+      "name": "Lifebane",
+      "kind": "disadvantage",
+      "page": 142,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:magic-susceptibility",
+      "name": "Magic Susceptibility",
+      "kind": "disadvantage",
+      "page": 143,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        239,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:no-fine-manipulators",
+      "name": "No Fine Manipulators",
+      "kind": "disadvantage",
+      "page": 145,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:no-legs",
+      "name": "No Legs",
+      "kind": "disadvantage",
+      "page": 145,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:no-manipulators",
+      "name": "No Manipulators",
+      "kind": "disadvantage",
+      "page": 145,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:nocturnal",
+      "name": "Nocturnal",
+      "kind": "disadvantage",
+      "page": 146,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:reprogrammable",
+      "name": "Reprogrammable",
+      "kind": "disadvantage",
+      "page": 150,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:revulsion",
+      "name": "Revulsion",
+      "kind": "disadvantage",
+      "page": 151,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:self-destruct",
+      "name": "Self-Destruct",
+      "kind": "disadvantage",
+      "page": 153,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:semi-upright",
+      "name": "Semi-Upright",
+      "kind": "disadvantage",
+      "page": 153,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:sexless",
+      "name": "Sexless",
+      "kind": "disadvantage",
+      "page": 165,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:shadow-form",
+      "name": "Shadow Form",
+      "kind": "disadvantage",
+      "page": 153,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        233,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:short-lifespan",
+      "name": "Short Lifespan",
+      "kind": "disadvantage",
+      "page": 154,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:sleepy",
+      "name": "Sleepy",
+      "kind": "disadvantage",
+      "page": 154,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:slow-eater",
+      "name": "Slow Eater",
+      "kind": "disadvantage",
+      "page": 155,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:stress-atavism",
+      "name": "Stress Atavism",
+      "kind": "disadvantage",
+      "page": 156,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:supernatural-features",
+      "name": "Supernatural Features",
+      "kind": "disadvantage",
+      "page": 157,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:supersensitive",
+      "name": "Supersensitive",
+      "kind": "disadvantage",
+      "page": 158,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:uncontrollable-appetite",
+      "name": "Uncontrollable Appetite",
+      "kind": "disadvantage",
+      "page": 159,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:unhealing",
+      "name": "Unhealing",
+      "kind": "disadvantage",
+      "page": 160,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:unique",
+      "name": "Unique",
+      "kind": "disadvantage",
+      "page": 160,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:unusual-biochemistry",
+      "name": "Unusual Biochemistry",
+      "kind": "disadvantage",
+      "page": 160,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:vulnerability",
+      "name": "Vulnerability",
+      "kind": "disadvantage",
+      "page": 161,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        237,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:weak-bite",
+      "name": "Weak Bite",
+      "kind": "disadvantage",
+      "page": 161,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        237,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:weakness",
+      "name": "Weakness",
+      "kind": "disadvantage",
+      "page": 161,
+      "classification": "X",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        235,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "disadvantage:weirdness-magnet",
+      "name": "Weirdness Magnet",
+      "kind": "disadvantage",
+      "page": 161,
+      "classification": "Sup",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        236,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "power:antipsi",
+      "name": "Antipsi",
+      "kind": "power",
+      "page": 255,
+      "classification": "psi",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        240,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [
+        "advantage:neutralize",
+        "advantage:obscure",
+        "advantage:psi-static",
+        "advantage:resistant"
+      ],
+      "talent_cost": null,
+      "power_modifier": 0,
+      "optional": false,
+      "member_conditions": [
+        "Obscure applies to Para-Radar or psionic Detect; Resistant applies to Psionics.",
+        "No Antipsi Talent and no power discount."
+      ]
+    },
+    {
+      "id": "power:esp",
+      "name": "ESP",
+      "kind": "power",
+      "page": 256,
+      "classification": "psi",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        240,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [
+        "advantage:channeling",
+        "advantage:clairsentience",
+        "advantage:danger-sense",
+        "advantage:detect",
+        "advantage:medium",
+        "advantage:oracle",
+        "advantage:scanning-sense",
+        "advantage:penetrating-vision",
+        "advantage:precognition",
+        "advantage:psychometry",
+        "advantage:racial-memory",
+        "advantage:see-invisible"
+      ],
+      "talent_cost": 5,
+      "power_modifier": -10,
+      "optional": false,
+      "member_conditions": [
+        "Detect is restricted to psis or psionic activity; Scanning Sense means Para-Radar.",
+        "Secret rolls; Precognition and Psychometry failures by more than 5 require false information."
+      ]
+    },
+    {
+      "id": "power:psychic-healing",
+      "name": "Psychic Healing",
+      "kind": "power",
+      "page": 256,
+      "classification": "psi",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        240,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [
+        "advantage:detect",
+        "advantage:healing",
+        "advantage:metabolism-control",
+        "advantage:regeneration",
+        "advantage:regrowth",
+        "advantage:resistant"
+      ],
+      "talent_cost": 5,
+      "power_modifier": -10,
+      "optional": false,
+      "member_conditions": [
+        "Detect targets disease or poison; Resistant targets noxious physical effects."
+      ]
+    },
+    {
+      "id": "power:psychokinesis",
+      "name": "Psychokinesis",
+      "kind": "power",
+      "page": 257,
+      "classification": "psi",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        240,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [
+        "advantage:binding",
+        "advantage:damage-resistance",
+        "advantage:enhanced-move",
+        "advantage:flight",
+        "advantage:innate-attack",
+        "advantage:super-jump",
+        "advantage:telekinesis",
+        "advantage:temperature-control",
+        "advantage:vibration-sense",
+        "advantage:walk-on-air",
+        "advantage:walk-on-liquid"
+      ],
+      "talent_cost": 5,
+      "power_modifier": -10,
+      "optional": false,
+      "member_conditions": [
+        "DR requires Force Field; Enhanced Move applies to Air or Water."
+      ]
+    },
+    {
+      "id": "power:telepathy",
+      "name": "Telepathy",
+      "kind": "power",
+      "page": 257,
+      "classification": "psi",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        240,
+        191
+      ],
+      "source": "characters-third",
+      "status": "partial",
+      "supported_subset": "Representative Telepathic Mind Reading only; this does not implement the power Talent or every member.",
+      "evidence": [
+        "tests/test_abilities.py"
+      ],
+      "members": [
+        "advantage:animal-empathy",
+        "advantage:empathy",
+        "advantage:invisibility",
+        "advantage:mind-control",
+        "advantage:mind-probe",
+        "advantage:mind-reading",
+        "advantage:mind-shield",
+        "advantage:mindlink",
+        "advantage:possession",
+        "advantage:speak-with-animals",
+        "advantage:special-rapport",
+        "advantage:telecommunication",
+        "advantage:terror",
+        "advantage:affliction",
+        "advantage:innate-attack"
+      ],
+      "talent_cost": 5,
+      "power_modifier": -10,
+      "optional": false,
+      "member_conditions": [
+        "Telecommunication means Telesend.",
+        "Affliction and Innate Attack require Malediction and only fatigue, stunning, incapacitation, temporary mental disadvantages or DX/IQ/Will penalties.",
+        "Normally limited to living sentient subjects."
+      ]
+    },
+    {
+      "id": "power:teleportation",
+      "name": "Teleportation",
+      "kind": "power",
+      "page": 257,
+      "classification": "psi",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        240,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [
+        "advantage:jumper",
+        "advantage:snatcher",
+        "advantage:warp"
+      ],
+      "talent_cost": 5,
+      "power_modifier": -10,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "protocol:area-boundary-variants",
+      "name": "Area boundary variants",
+      "kind": "protocol",
+      "page": 239,
+      "classification": "magic",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        241,
+        191
+      ],
+      "source": "characters-third",
+      "status": "partial",
+      "supported_subset": "Create Fire fixed ground area only; arbitrary area geometry and spell-specific boundaries remain blocked.",
+      "evidence": [
+        "tests/test_spell_execution.py"
+      ],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "protocol:blocking-spells",
+      "name": "Blocking spells",
+      "kind": "protocol",
+      "page": 241,
+      "classification": "magic",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        241,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "protocol:ceremonial-magic",
+      "name": "Ceremonial Magic",
+      "kind": "protocol",
+      "page": 238,
+      "classification": "magic",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        241,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "protocol:clerical-magic",
+      "name": "Clerical Magic",
+      "kind": "protocol",
+      "page": 242,
+      "classification": "magic",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        241,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": true,
+      "member_conditions": []
+    },
+    {
+      "id": "protocol:information-spells",
+      "name": "Information spells",
+      "kind": "protocol",
+      "page": 241,
+      "classification": "magic",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        241,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "protocol:magic-items-and-enchantment-activation",
+      "name": "Magic items and enchantment activation",
+      "kind": "protocol",
+      "page": 481,
+      "classification": "magic",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        241,
+        191
+      ],
+      "source": "campaigns-fourth",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "protocol:melee-spells",
+      "name": "Melee spells",
+      "kind": "protocol",
+      "page": 240,
+      "classification": "magic",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        241,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "protocol:ritual-magic",
+      "name": "Ritual Magic",
+      "kind": "protocol",
+      "page": 242,
+      "classification": "magic",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        241,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": true,
+      "member_conditions": []
+    },
+    {
+      "id": "skill:alchemy",
+      "name": "Alchemy",
+      "kind": "skill",
+      "page": 174,
+      "classification": "cinematic-skill",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        243,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "skill:blind-fighting",
+      "name": "Blind Fighting",
+      "kind": "skill",
+      "page": 180,
+      "classification": "cinematic-skill",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        242,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "skill:body-control",
+      "name": "Body Control",
+      "kind": "skill",
+      "page": 181,
+      "classification": "cinematic-skill",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        242,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "skill:breaking-blow",
+      "name": "Breaking Blow",
+      "kind": "skill",
+      "page": 182,
+      "classification": "cinematic-skill",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        242,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "skill:captivate",
+      "name": "Captivate",
+      "kind": "skill",
+      "page": 191,
+      "classification": "cinematic-skill",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        242,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "skill:computer-hacking",
+      "name": "Computer Hacking",
+      "kind": "skill",
+      "page": 184,
+      "classification": "cinematic-skill",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        242,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "skill:enthrallment",
+      "name": "Enthrallment",
+      "kind": "skill",
+      "page": 191,
+      "classification": "cinematic-skill",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        242,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "skill:flying-leap",
+      "name": "Flying Leap",
+      "kind": "skill",
+      "page": 196,
+      "classification": "cinematic-skill",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        242,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "skill:herb-lore",
+      "name": "Herb Lore",
+      "kind": "skill",
+      "page": 199,
+      "classification": "cinematic-skill",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        243,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "skill:immovable-stance",
+      "name": "Immovable Stance",
+      "kind": "skill",
+      "page": 201,
+      "classification": "cinematic-skill",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        242,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "skill:invisibility-art",
+      "name": "Invisibility Art",
+      "kind": "skill",
+      "page": 202,
+      "classification": "cinematic-skill",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        242,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "skill:kiai",
+      "name": "Kiai",
+      "kind": "skill",
+      "page": 203,
+      "classification": "cinematic-skill",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        242,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "skill:light-walk",
+      "name": "Light Walk",
+      "kind": "skill",
+      "page": 205,
+      "classification": "cinematic-skill",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        242,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "skill:mental-strength",
+      "name": "Mental Strength",
+      "kind": "skill",
+      "page": 209,
+      "classification": "cinematic-skill",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        242,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "skill:musical-influence",
+      "name": "Musical Influence",
+      "kind": "skill",
+      "page": 210,
+      "classification": "cinematic-skill",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        242,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "skill:persuade",
+      "name": "Persuade",
+      "kind": "skill",
+      "page": 191,
+      "classification": "cinematic-skill",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        242,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "skill:power-blow",
+      "name": "Power Blow",
+      "kind": "skill",
+      "page": 215,
+      "classification": "cinematic-skill",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        242,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "skill:pressure-points",
+      "name": "Pressure Points",
+      "kind": "skill",
+      "page": 215,
+      "classification": "cinematic-skill",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        242,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "skill:pressure-secrets",
+      "name": "Pressure Secrets",
+      "kind": "skill",
+      "page": 215,
+      "classification": "cinematic-skill",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        242,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "skill:push",
+      "name": "Push",
+      "kind": "skill",
+      "page": 216,
+      "classification": "cinematic-skill",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        242,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "skill:ritual-magic",
+      "name": "Ritual Magic",
+      "kind": "skill",
+      "page": 218,
+      "classification": "cinematic-skill",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        243,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "skill:suggest",
+      "name": "Suggest",
+      "kind": "skill",
+      "page": 191,
+      "classification": "cinematic-skill",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        242,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "skill:sway-emotions",
+      "name": "Sway Emotions",
+      "kind": "skill",
+      "page": 192,
+      "classification": "cinematic-skill",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        242,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "skill:symbol-drawing",
+      "name": "Symbol Drawing",
+      "kind": "skill",
+      "page": 224,
+      "classification": "cinematic-skill",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        243,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "skill:thaumatology",
+      "name": "Thaumatology",
+      "kind": "skill",
+      "page": 225,
+      "classification": "cinematic-skill",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        243,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "skill:throwing-art",
+      "name": "Throwing Art",
+      "kind": "skill",
+      "page": 226,
+      "classification": "cinematic-skill",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        242,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "skill:weird-science",
+      "name": "Weird Science",
+      "kind": "skill",
+      "page": 228,
+      "classification": "cinematic-skill",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        242,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "skill:zen-archery",
+      "name": "Zen Archery",
+      "kind": "skill",
+      "page": 228,
+      "classification": "cinematic-skill",
+      "difficulty": null,
+      "colleges": [],
+      "blockers": [
+        242,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:accuracy",
+      "name": "Accuracy",
+      "kind": "spell",
+      "page": 480,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "enchantment"
+      ],
+      "blockers": [
+        221,
+        191
+      ],
+      "source": "campaigns-fourth",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:analyze-magic",
+      "name": "Analyze Magic",
+      "kind": "spell",
+      "page": 249,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "knowledge"
+      ],
+      "blockers": [
+        222,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:apportation",
+      "name": "Apportation",
+      "kind": "spell",
+      "page": 251,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "movement"
+      ],
+      "blockers": [
+        223,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:armor",
+      "name": "Armor",
+      "kind": "spell",
+      "page": 253,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "protection-warning"
+      ],
+      "blockers": [
+        223,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:aura",
+      "name": "Aura",
+      "kind": "spell",
+      "page": 249,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "knowledge"
+      ],
+      "blockers": [
+        222,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:awaken",
+      "name": "Awaken",
+      "kind": "spell",
+      "page": 248,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "healing"
+      ],
+      "blockers": [
+        224,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:banish",
+      "name": "Banish",
+      "kind": "spell",
+      "page": 252,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "necromantic"
+      ],
+      "blockers": [
+        225,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:blur",
+      "name": "Blur",
+      "kind": "spell",
+      "page": 250,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "light-darkness"
+      ],
+      "blockers": [
+        222,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:breathe-water",
+      "name": "Breathe Water",
+      "kind": "spell",
+      "page": 243,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "air",
+        "water"
+      ],
+      "blockers": [
+        226,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:clumsiness",
+      "name": "Clumsiness",
+      "kind": "spell",
+      "page": 244,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "body-control"
+      ],
+      "blockers": [
+        227,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:cold",
+      "name": "Cold",
+      "kind": "spell",
+      "page": 247,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "fire"
+      ],
+      "blockers": [
+        228,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:command",
+      "name": "Command",
+      "kind": "spell",
+      "page": 251,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "mind-control"
+      ],
+      "blockers": [
+        229,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:continual-light",
+      "name": "Continual Light",
+      "kind": "spell",
+      "page": 249,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "light-darkness"
+      ],
+      "blockers": [
+        222,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:counterspell",
+      "name": "Counterspell",
+      "kind": "spell",
+      "page": 250,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "meta"
+      ],
+      "blockers": [
+        222,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:create-air",
+      "name": "Create Air",
+      "kind": "spell",
+      "page": 243,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "air"
+      ],
+      "blockers": [
+        226,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:create-earth",
+      "name": "Create Earth",
+      "kind": "spell",
+      "page": 246,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "earth"
+      ],
+      "blockers": [
+        230,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:create-fire",
+      "name": "Create Fire",
+      "kind": "spell",
+      "page": 246,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "fire"
+      ],
+      "blockers": [
+        228,
+        191
+      ],
+      "source": "characters-third",
+      "status": "partial",
+      "supported_subset": "Execution v2: fixed ground area, full-turn exposure and transient crossings.",
+      "evidence": [
+        "tests/test_spell_execution.py"
+      ],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:create-water",
+      "name": "Create Water",
+      "kind": "spell",
+      "page": 253,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "water"
+      ],
+      "blockers": [
+        231,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:darkness",
+      "name": "Darkness",
+      "kind": "spell",
+      "page": 250,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "light-darkness"
+      ],
+      "blockers": [
+        222,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:daze",
+      "name": "Daze",
+      "kind": "spell",
+      "page": 250,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "mind-control"
+      ],
+      "blockers": [
+        229,
+        191
+      ],
+      "source": "characters-third",
+      "status": "partial",
+      "supported_subset": "Execution v2: resisted Daze, action restriction and injury/resistance cancellation.",
+      "evidence": [
+        "tests/test_spell_bindings.py"
+      ],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:death-vision",
+      "name": "Death Vision",
+      "kind": "spell",
+      "page": 251,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "necromantic"
+      ],
+      "blockers": [
+        225,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:deathtouch",
+      "name": "Deathtouch",
+      "kind": "spell",
+      "page": 245,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "body-control"
+      ],
+      "blockers": [
+        227,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:deflect",
+      "name": "Deflect",
+      "kind": "spell",
+      "page": 480,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "enchantment"
+      ],
+      "blockers": [
+        221,
+        191
+      ],
+      "source": "campaigns-fourth",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:deflect-energy",
+      "name": "Deflect Energy",
+      "kind": "spell",
+      "page": 246,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "fire"
+      ],
+      "blockers": [
+        228,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:deflect-missile",
+      "name": "Deflect Missile",
+      "kind": "spell",
+      "page": 251,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "movement"
+      ],
+      "blockers": [
+        223,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:destroy-water",
+      "name": "Destroy Water",
+      "kind": "spell",
+      "page": 253,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "water"
+      ],
+      "blockers": [
+        231,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:detect-magic",
+      "name": "Detect Magic",
+      "kind": "spell",
+      "page": 249,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "knowledge"
+      ],
+      "blockers": [
+        222,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:dispel-magic",
+      "name": "Dispel Magic",
+      "kind": "spell",
+      "page": 250,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "meta"
+      ],
+      "blockers": [
+        222,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:earth-to-air",
+      "name": "Earth to Air",
+      "kind": "spell",
+      "page": 243,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "air",
+        "earth"
+      ],
+      "blockers": [
+        226,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:earth-to-stone",
+      "name": "Earth to Stone",
+      "kind": "spell",
+      "page": 245,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "earth"
+      ],
+      "blockers": [
+        230,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:enchant",
+      "name": "Enchant",
+      "kind": "spell",
+      "page": 480,
+      "classification": "spell",
+      "difficulty": "VH",
+      "colleges": [
+        "enchantment"
+      ],
+      "blockers": [
+        221,
+        191
+      ],
+      "source": "campaigns-fourth",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:entombment",
+      "name": "Entombment",
+      "kind": "spell",
+      "page": 246,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "earth"
+      ],
+      "blockers": [
+        230,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:explosive-fireball",
+      "name": "Explosive Fireball",
+      "kind": "spell",
+      "page": 247,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "fire"
+      ],
+      "blockers": [
+        228,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:extinguish-fire",
+      "name": "Extinguish Fire",
+      "kind": "spell",
+      "page": 247,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "fire"
+      ],
+      "blockers": [
+        228,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:fireball",
+      "name": "Fireball",
+      "kind": "spell",
+      "page": 247,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "fire"
+      ],
+      "blockers": [
+        228,
+        191,
+        173
+      ],
+      "source": "characters-third",
+      "status": "partial",
+      "supported_subset": "Execution v2: held missile, expansion, Wait, injury and supported body criticals; remaining physical criticals are #173.",
+      "evidence": [
+        "tests/test_spell_execution.py"
+      ],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:flesh-to-stone",
+      "name": "Flesh to Stone",
+      "kind": "spell",
+      "page": 246,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "earth"
+      ],
+      "blockers": [
+        230,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:fog",
+      "name": "Fog",
+      "kind": "spell",
+      "page": 253,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "water"
+      ],
+      "blockers": [
+        231,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:foolishness",
+      "name": "Foolishness",
+      "kind": "spell",
+      "page": 250,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "mind-control"
+      ],
+      "blockers": [
+        229,
+        191
+      ],
+      "source": "characters-third",
+      "status": "partial",
+      "supported_subset": "Purchased learning prerequisite only; no Foolishness effect.",
+      "evidence": [
+        "tests/test_spell_energy.py"
+      ],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:forgetfulness",
+      "name": "Forgetfulness",
+      "kind": "spell",
+      "page": 250,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "mind-control"
+      ],
+      "blockers": [
+        229,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:fortify",
+      "name": "Fortify",
+      "kind": "spell",
+      "page": 480,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "enchantment"
+      ],
+      "blockers": [
+        221,
+        191
+      ],
+      "source": "campaigns-fourth",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:great-haste",
+      "name": "Great Haste",
+      "kind": "spell",
+      "page": 251,
+      "classification": "spell",
+      "difficulty": "VH",
+      "colleges": [
+        "movement"
+      ],
+      "blockers": [
+        223,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:great-healing",
+      "name": "Great Healing",
+      "kind": "spell",
+      "page": 248,
+      "classification": "spell",
+      "difficulty": "VH",
+      "colleges": [
+        "healing"
+      ],
+      "blockers": [
+        224,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:haste",
+      "name": "Haste",
+      "kind": "spell",
+      "page": 251,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "movement"
+      ],
+      "blockers": [
+        223,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:heat",
+      "name": "Heat",
+      "kind": "spell",
+      "page": 247,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "fire"
+      ],
+      "blockers": [
+        228,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:hide-thoughts",
+      "name": "Hide Thoughts",
+      "kind": "spell",
+      "page": 245,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "communication-empathy"
+      ],
+      "blockers": [
+        232,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:hinder",
+      "name": "Hinder",
+      "kind": "spell",
+      "page": 244,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "body-control",
+        "movement"
+      ],
+      "blockers": [
+        227,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:icy-weapon",
+      "name": "Icy Weapon",
+      "kind": "spell",
+      "page": 253,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "water"
+      ],
+      "blockers": [
+        231,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:identify-spell",
+      "name": "Identify Spell",
+      "kind": "spell",
+      "page": 249,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "knowledge"
+      ],
+      "blockers": [
+        222,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:ignite-fire",
+      "name": "Ignite Fire",
+      "kind": "spell",
+      "page": 246,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "fire"
+      ],
+      "blockers": [
+        228,
+        191
+      ],
+      "source": "characters-third",
+      "status": "partial",
+      "supported_subset": "Purchased learning prerequisite only; no Ignite Fire effect.",
+      "evidence": [
+        "tests/test_spell_energy.py"
+      ],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:itch",
+      "name": "Itch",
+      "kind": "spell",
+      "page": 244,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "body-control"
+      ],
+      "blockers": [
+        227,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:lend-energy",
+      "name": "Lend Energy",
+      "kind": "spell",
+      "page": 248,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "healing"
+      ],
+      "blockers": [
+        224,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:lend-vitality",
+      "name": "Lend Vitality",
+      "kind": "spell",
+      "page": 248,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "healing"
+      ],
+      "blockers": [
+        224,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:light",
+      "name": "Light",
+      "kind": "spell",
+      "page": 249,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "light-darkness"
+      ],
+      "blockers": [
+        222,
+        191
+      ],
+      "source": "characters-third",
+      "status": "partial",
+      "supported_subset": "Execution v2: candle-sized light; radius and darkness penalty are authored scene conventions.",
+      "evidence": [
+        "tests/test_spell_execution.py"
+      ],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:lightning",
+      "name": "Lightning",
+      "kind": "spell",
+      "page": 244,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "air"
+      ],
+      "blockers": [
+        226,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:lockmaster",
+      "name": "Lockmaster",
+      "kind": "spell",
+      "page": 251,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "movement"
+      ],
+      "blockers": [
+        223,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:magelock",
+      "name": "Magelock",
+      "kind": "spell",
+      "page": 253,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "protection-warning"
+      ],
+      "blockers": [
+        223,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:major-healing",
+      "name": "Major Healing",
+      "kind": "spell",
+      "page": 248,
+      "classification": "spell",
+      "difficulty": "VH",
+      "colleges": [
+        "healing"
+      ],
+      "blockers": [
+        224,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:mass-daze",
+      "name": "Mass Daze",
+      "kind": "spell",
+      "page": 251,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "mind-control"
+      ],
+      "blockers": [
+        229,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:mass-sleep",
+      "name": "Mass Sleep",
+      "kind": "spell",
+      "page": 251,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "mind-control"
+      ],
+      "blockers": [
+        229,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:mind-reading",
+      "name": "Mind-Reading",
+      "kind": "spell",
+      "page": 245,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "communication-empathy"
+      ],
+      "blockers": [
+        232,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:minor-healing",
+      "name": "Minor Healing",
+      "kind": "spell",
+      "page": 248,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "healing"
+      ],
+      "blockers": [
+        224,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:no-smell",
+      "name": "No-Smell",
+      "kind": "spell",
+      "page": 243,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "air"
+      ],
+      "blockers": [
+        226,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:pain",
+      "name": "Pain",
+      "kind": "spell",
+      "page": 244,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "body-control"
+      ],
+      "blockers": [
+        227,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:paralyze-limb",
+      "name": "Paralyze Limb",
+      "kind": "spell",
+      "page": 244,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "body-control"
+      ],
+      "blockers": [
+        227,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:planar-summons",
+      "name": "Planar Summons",
+      "kind": "spell",
+      "page": 247,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "gate"
+      ],
+      "blockers": [
+        225,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:plane-shift",
+      "name": "Plane Shift",
+      "kind": "spell",
+      "page": 248,
+      "classification": "spell",
+      "difficulty": "VH",
+      "colleges": [
+        "gate"
+      ],
+      "blockers": [
+        225,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:power",
+      "name": "Power",
+      "kind": "spell",
+      "page": 480,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "enchantment"
+      ],
+      "blockers": [
+        221,
+        191
+      ],
+      "source": "campaigns-fourth",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:predict-weather",
+      "name": "Predict Weather",
+      "kind": "spell",
+      "page": 243,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "air"
+      ],
+      "blockers": [
+        226,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:puissance",
+      "name": "Puissance",
+      "kind": "spell",
+      "page": 481,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "enchantment"
+      ],
+      "blockers": [
+        221,
+        191
+      ],
+      "source": "campaigns-fourth",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:purify-air",
+      "name": "Purify Air",
+      "kind": "spell",
+      "page": 243,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "air"
+      ],
+      "blockers": [
+        226,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:purify-water",
+      "name": "Purify Water",
+      "kind": "spell",
+      "page": 253,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "water"
+      ],
+      "blockers": [
+        231,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:recover-energy",
+      "name": "Recover Energy",
+      "kind": "spell",
+      "page": 248,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "healing"
+      ],
+      "blockers": [
+        224,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:resist-cold",
+      "name": "Resist Cold",
+      "kind": "spell",
+      "page": 247,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "fire"
+      ],
+      "blockers": [
+        228,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:resist-fire",
+      "name": "Resist Fire",
+      "kind": "spell",
+      "page": 247,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "fire"
+      ],
+      "blockers": [
+        228,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:rooted-feet",
+      "name": "Rooted Feet",
+      "kind": "spell",
+      "page": 244,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "body-control"
+      ],
+      "blockers": [
+        227,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:seek-earth",
+      "name": "Seek Earth",
+      "kind": "spell",
+      "page": 245,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "earth"
+      ],
+      "blockers": [
+        230,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:seek-water",
+      "name": "Seek Water",
+      "kind": "spell",
+      "page": 253,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "water"
+      ],
+      "blockers": [
+        231,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:seeker",
+      "name": "Seeker",
+      "kind": "spell",
+      "page": 249,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "knowledge"
+      ],
+      "blockers": [
+        222,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:sense-emotion",
+      "name": "Sense Emotion",
+      "kind": "spell",
+      "page": 245,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "communication-empathy"
+      ],
+      "blockers": [
+        232,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:sense-foes",
+      "name": "Sense Foes",
+      "kind": "spell",
+      "page": 245,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "communication-empathy"
+      ],
+      "blockers": [
+        232,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:sense-spirit",
+      "name": "Sense Spirit",
+      "kind": "spell",
+      "page": 252,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "necromantic"
+      ],
+      "blockers": [
+        225,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:shape-air",
+      "name": "Shape Air",
+      "kind": "spell",
+      "page": 243,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "air"
+      ],
+      "blockers": [
+        226,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:shape-earth",
+      "name": "Shape Earth",
+      "kind": "spell",
+      "page": 245,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "earth"
+      ],
+      "blockers": [
+        230,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:shape-fire",
+      "name": "Shape Fire",
+      "kind": "spell",
+      "page": 246,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "fire"
+      ],
+      "blockers": [
+        228,
+        191
+      ],
+      "source": "characters-third",
+      "status": "partial",
+      "supported_subset": "Purchased learning prerequisite only; no Shape Fire effect.",
+      "evidence": [
+        "tests/test_spell_energy.py"
+      ],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:shape-water",
+      "name": "Shape Water",
+      "kind": "spell",
+      "page": 253,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "water"
+      ],
+      "blockers": [
+        231,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:shield",
+      "name": "Shield",
+      "kind": "spell",
+      "page": 252,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "protection-warning"
+      ],
+      "blockers": [
+        223,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:sleep",
+      "name": "Sleep",
+      "kind": "spell",
+      "page": 251,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "mind-control"
+      ],
+      "blockers": [
+        229,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:spasm",
+      "name": "Spasm",
+      "kind": "spell",
+      "page": 244,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "body-control"
+      ],
+      "blockers": [
+        227,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:staff",
+      "name": "Staff",
+      "kind": "spell",
+      "page": 481,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "enchantment"
+      ],
+      "blockers": [
+        221,
+        191
+      ],
+      "source": "campaigns-fourth",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:stench",
+      "name": "Stench",
+      "kind": "spell",
+      "page": 244,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "air"
+      ],
+      "blockers": [
+        226,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:stone-to-earth",
+      "name": "Stone to Earth",
+      "kind": "spell",
+      "page": 246,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "earth"
+      ],
+      "blockers": [
+        230,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:stone-to-flesh",
+      "name": "Stone to Flesh",
+      "kind": "spell",
+      "page": 246,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "earth"
+      ],
+      "blockers": [
+        230,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:summon-demon",
+      "name": "Summon Demon",
+      "kind": "spell",
+      "page": 252,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "necromantic"
+      ],
+      "blockers": [
+        225,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:summon-spirit",
+      "name": "Summon Spirit",
+      "kind": "spell",
+      "page": 252,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "necromantic"
+      ],
+      "blockers": [
+        225,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:trace",
+      "name": "Trace",
+      "kind": "spell",
+      "page": 249,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "knowledge"
+      ],
+      "blockers": [
+        222,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:truthsayer",
+      "name": "Truthsayer",
+      "kind": "spell",
+      "page": 245,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "communication-empathy"
+      ],
+      "blockers": [
+        232,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:turn-zombie",
+      "name": "Turn Zombie",
+      "kind": "spell",
+      "page": 252,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "necromantic"
+      ],
+      "blockers": [
+        225,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:walk-on-air",
+      "name": "Walk on Air",
+      "kind": "spell",
+      "page": 243,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "air"
+      ],
+      "blockers": [
+        226,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:wither-limb",
+      "name": "Wither Limb",
+      "kind": "spell",
+      "page": 244,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "body-control"
+      ],
+      "blockers": [
+        227,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    },
+    {
+      "id": "spell:zombie",
+      "name": "Zombie",
+      "kind": "spell",
+      "page": 252,
+      "classification": "spell",
+      "difficulty": "H",
+      "colleges": [
+        "necromantic"
+      ],
+      "blockers": [
+        225,
+        191
+      ],
+      "source": "characters-third",
+      "status": "absent",
+      "supported_subset": "",
+      "evidence": [],
+      "members": [],
+      "talent_cost": null,
+      "power_modifier": null,
+      "optional": false,
+      "member_conditions": []
+    }
+  ]
+}

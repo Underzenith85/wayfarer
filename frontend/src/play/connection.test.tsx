@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -57,6 +57,12 @@ vi.mock("../setup/lobby", () => ({
     );
   },
 }));
+/** The one tab a lobby-mode tab bar reports as selected. */
+function selected() {
+  return screen
+    .getAllByRole("tab")
+    .find((tab) => tab.getAttribute("aria-selected") === "true")?.textContent;
+}
 function Expire() {
   const { store } = usePlay();
   return <button onClick={() => store.expire()}>Revoke access</button>;
@@ -125,21 +131,40 @@ it("replaces the setup shell with the game shell and keeps the session on return
   await user.click(screen.getByRole("button", { name: "Sign in" }));
   await user.click(screen.getByRole("button", { name: "Open campaign" }));
   // Play is its own shell: no launcher and no setup panel above it.
-  expect(screen.queryByRole("button", { name: "Continue game" })).toBeNull();
+  expect(screen.queryByRole("tab", { name: "Continue game" })).toBeNull();
   expect(screen.queryByRole("button", { name: "Open campaign" })).toBeNull();
   await user.click(screen.getByRole("button", { name: "Switch campaign" }));
   expect(screen.getByText("Signed in as alice")).toBeInTheDocument();
-  expect(screen.getByRole("button", { name: "Continue game" })).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
+  expect(selected()).toBe("Continue game");
   await user.click(screen.getByRole("button", { name: "Open campaign" }));
   await user.click(screen.getByRole("button", { name: "Revoke access" }));
   await user.click(screen.getByRole("button", { name: "New game" }));
   expect(screen.getByText("Signed in as nobody")).toBeInTheDocument();
-  expect(screen.getByRole("button", { name: "New game" })).toHaveAttribute(
-    "aria-pressed",
-    "true",
+  expect(selected()).toBe("New game");
+});
+
+it("selects a lobby mode from the tab itself, by pointer and by arrow key", async () => {
+  const user = userEvent.setup();
+  render(<ConnectedApp />);
+  // The mode is readable from the control, and the panel it reveals is named
+  // by that tab instead of repeating its label as a heading (#200).
+  expect(selected()).toBe("New game");
+  const panel = screen.getByRole("tabpanel");
+  expect(panel).toHaveAccessibleName("New game");
+  expect(within(panel).queryByRole("heading", { name: "New game" })).toBeNull();
+  await user.click(screen.getByRole("tab", { name: "Join game" }));
+  expect(selected()).toBe("Join game");
+  expect(screen.getByRole("tabpanel")).toHaveAccessibleName("Join game");
+  // A tab bar is walked with the arrow keys; only the selected tab is a stop.
+  screen.getByRole("tab", { name: "Join game" }).focus();
+  await user.keyboard("{ArrowRight}");
+  expect(selected()).toBe("New game");
+  expect(screen.getByRole("tab", { name: "New game" })).toHaveFocus();
+  await user.keyboard("{End}");
+  expect(selected()).toBe("Join game");
+  expect(screen.getByRole("tab", { name: "Continue game" })).toHaveAttribute(
+    "tabindex",
+    "-1",
   );
 });
 it("rehydrates the campaign and route on reload instead of asking to sign in again", async () => {

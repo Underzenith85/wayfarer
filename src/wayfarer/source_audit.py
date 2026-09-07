@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import re
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Literal
@@ -13,7 +12,6 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from wayfarer.errors import ValidationError
 from wayfarer.rules.conformance import BASELINE_ID, CAPABILITIES, PROFILES
-from wayfarer.rules.mundane_skills import exclusions
 from wayfarer.rules.mundane_skills import inventory as skills
 from wayfarer.rules.mundane_traits import inventory as traits
 from wayfarer.rules.profiles import (
@@ -22,6 +20,7 @@ from wayfarer.rules.profiles import (
     GURPS_LITE_PACKAGE,
     GURPS_MAGIC_PACKAGE,
 )
+from wayfarer.rules.supernatural import inventory as supernatural_inventory
 from wayfarer.simulation.basic_equipment import BASIC_EQUIPMENT, ULTRATECH_INDEX, VEHICLE_INDEX
 
 
@@ -77,6 +76,7 @@ class InventoryItem:
     scope: str
     required_profiles: tuple[str, ...] = ("gurps-basic-set-4e-2004",)
     source_review: str = "pending"
+    blockers: tuple[int, ...] = ()
 
 
 def inventory() -> tuple[InventoryItem, ...]:
@@ -85,16 +85,18 @@ def inventory() -> tuple[InventoryItem, ...]:
     rows.extend(
         InventoryItem(e.id, e.reference, 113, "partial", "mundane-traits") for e in traits()
     )
-    # These are exclusions from the mundane inventory, not from the Basic profile.
+    # Consume the owner inventory directly, including transferred skill exclusions.
     rows.extend(
         InventoryItem(
-            "supernatural-skill:" + re.sub(r"[^a-z0-9]+", "-", e.name.lower()).strip("-"),
+            "supernatural/" + e.id,
             f"B{e.page}",
             119,
-            "unreconciled",
-            "supernatural-skills",
+            e.status.value,
+            "supernatural-skills" if e.kind == "skill" else "supernatural-catalog",
+            () if e.optional else ("gurps-basic-set-4e-2004",),
+            blockers=e.blockers,
         )
-        for e in exclusions()
+        for e in supernatural_inventory().entries
     )
     for package in (
         GURPS_LITE_PACKAGE,

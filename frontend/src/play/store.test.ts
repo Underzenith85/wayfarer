@@ -84,11 +84,11 @@ describe("scoped play journeys", () => {
     store.saveDraft("action", "Use bandage");
     await store.send("action", "Use bandage");
     expect(store.getSnapshot().retry).not.toBeNull();
-    expect(store.readDraft("action")).toBe("Use bandage");
+    expect(store.readDraft("action").text).toBe("Use bandage");
     await store.retry();
     expect(transport.requests[1]).toEqual(transport.requests[0]);
     expect(store.getSnapshot().entries).toHaveLength(1);
-    expect(store.getSnapshot().drafts.action).toBe("");
+    expect(store.getSnapshot().drafts.action.text).toBe("");
     expect(store.getSnapshot().entries[0]?.action?.status).toBe("succeeded");
   });
   it("does not treat business rejection as a retry or apply resource changes", async () => {
@@ -113,13 +113,13 @@ describe("scoped play journeys", () => {
     store.saveDraft("action", "Private cellar draft");
     store.saveDraft("ooc", "A rules question");
     await store.select("campaign-2");
-    expect(store.getSnapshot().drafts.action).toBe("");
+    expect(store.getSnapshot().drafts.action.text).toBe("");
     store.saveDraft("action", "Harbor draft");
     await store.select("campaign-1");
     expect(store.getSnapshot().drafts).toMatchObject({
-      action: "Private cellar draft",
-      ooc: "A rules question",
-      dialogue: "",
+      action: { text: "Private cellar draft" },
+      ooc: { text: "A rules question" },
+      dialogue: { text: "" },
     });
     expect(clear).toHaveBeenCalledTimes(3);
     expect(store.resumeId()).toBe("campaign-1");
@@ -172,7 +172,11 @@ describe("scoped play journeys", () => {
       entries: [],
       campaigns: [],
       retry: null,
-      drafts: { action: "", dialogue: "", ooc: "" },
+      drafts: {
+        action: { text: "" },
+        dialogue: { text: "" },
+        ooc: { text: "" },
+      },
     });
     expect(
       Object.keys(localStorage).filter((k) => k.startsWith("wayfarer:draft")),
@@ -186,7 +190,7 @@ describe("scoped play journeys", () => {
     store.saveDraft("action", "Wait here");
     await store.send("action", "Wait here");
     expect(store.getSnapshot().retry).toBeNull();
-    expect(store.readDraft("action")).toBe("Wait here");
+    expect(store.readDraft("action").text).toBe("Wait here");
     expect(store.getSnapshot().error).toContain("reconsider");
   });
   it("uses typed question and text intents while retaining separate transcript channels", async () => {

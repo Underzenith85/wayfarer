@@ -40,7 +40,7 @@ runtime definitions:
 | --- | --- | --- |
 | Mundane skill families and selected expansions | #112 | Specialties/TL and runtime blockers remain |
 | Selected mundane traits and backgrounds | #113 | Selected constructions do not exhaust all entries |
-| Supernatural skills excluded from mundane inventory | #119 | Transferred ownership; still Basic requirements |
+| Supernatural catalog and transferred skills | #119 | All 334 typed records consumed directly; concrete runtime/source blockers remain |
 | Registered catalog definitions and learned spells | #112/#113/#119 | IDs include package versions; representative coverage |
 | Equipment selection and ultratech index | #180 | Item-level references retained; full catalog pending |
 | Vehicle index | #207/#120 | Listing facts do not establish operating mechanics |

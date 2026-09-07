@@ -143,13 +143,15 @@ p {
   letter-spacing: 0.13em;
   color: var(--accent);
 }
-nav {
+/* Scoped to the destination rail: a bare `nav` selector also caught the setup
+   stepper and its Back/Next bar, which lay themselves out (#206). */
+.navigation-panel nav {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   margin-top: 1.5rem;
 }
-nav a {
+.navigation-panel nav a {
   display: flex;
   align-items: center;
   gap: 0.8rem;
@@ -159,11 +161,11 @@ nav a {
   color: var(--muted);
   font-size: 0.875rem;
 }
-nav a.active {
+.navigation-panel nav a.active {
   background: var(--accent-soft);
   color: var(--accent);
 }
-nav a:hover {
+.navigation-panel nav a:hover {
   background: var(--surface);
 }
 .table-note {
@@ -341,13 +343,13 @@ main {
   .desktop-only {
     display: none;
   }
-  nav {
+  .navigation-panel nav {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 0;
     margin: 0;
   }
-  nav a {
+  .navigation-panel nav a {
     flex-direction: column;
     gap: 0.35rem;
     padding: 0.6rem 0.1rem;
@@ -570,6 +572,18 @@ details summary {
   color: var(--foreground);
   margin-bottom: 0;
 }
+/* What was submitted reads as the entry; when it was, and how it went, are its
+   metadata (#202). */
+.entry-time {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.player-message p.entry-unrecorded {
+  color: var(--muted);
+  font-style: italic;
+}
 .channel-dialogue {
   border-left: 3px solid var(--accent);
 }
@@ -751,9 +765,29 @@ details summary {
   flex-wrap: wrap;
   margin-top: 0.8rem;
 }
-.composer-count {
+/* One primary action closes the row, whatever sits before it. */
+.composer-bottom .button-primary {
   margin-left: auto;
-  text-align: right;
+}
+/* A draft states what it holds and how old it is, and is discarded there (#201). */
+.composer-draft-state {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0.6rem 0 0;
+}
+.composer-count {
+  margin: 0;
+}
+.discard-draft {
+  min-height: 32px;
+  min-width: 0;
+  padding: 0.25rem 0.6rem;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 .composer-count,
 .composer-hint,
@@ -1177,6 +1211,39 @@ details summary {
   min-height: 44px;
 }
 
+/* Setup modes are a tab bar: the selected one is obvious from the control
+   itself, so the panel below never has to repeat its label (#200). */
+.mode-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.connection-form .mode-tab {
+  margin: 0;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid transparent;
+  border-bottom: 3px solid transparent;
+  border-radius: 0.5rem 0.5rem 0 0;
+  margin-bottom: -1px;
+  background: none;
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.connection-form .mode-tab:hover {
+  color: var(--foreground);
+  background: var(--accent-soft);
+}
+.connection-form .mode-tab[aria-selected="true"] {
+  color: var(--accent);
+  background: var(--surface);
+  border-color: var(--border);
+  border-bottom-color: var(--accent);
+}
+
 .multiplayer-panel,
 .connection-status {
   border: 1px solid var(--border);
@@ -1253,6 +1320,23 @@ details summary {
   max-width: 54rem;
   margin: 1rem auto;
 }
+/* The games list leads; signing out and refreshing it are upkeep beneath it. */
+.lobby-heading {
+  margin-top: 0;
+}
+.lobby-account {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.875rem;
+  margin-block: 1rem;
+}
+.lobby-account .button {
+  min-height: 36px;
+  padding: 0.35rem 0.7rem;
+  font-weight: 500;
+}
 .setup-steps {
   margin-block: 1rem;
   padding-block: 0.75rem;
@@ -1271,6 +1355,75 @@ details summary {
 }
 .setup-steps button {
   margin: 0;
+}
+/* The number is the narrow-width form of the chip; the name stays the control's
+   accessible label at every width. */
+.setup-steps .step-index {
+  display: none;
+}
+/* Five labelled chips cannot share a phone-width line, so below this breakpoint
+   the row becomes numbered dots under the "Step N of 5: Name" line (#206). */
+@media (max-width: 700px) {
+  .setup-steps ol {
+    flex-wrap: nowrap;
+    gap: 0.4rem;
+  }
+  /* Sized explicitly: the hidden step name still feeds the item's intrinsic
+     width, which pushed the fifth dot past the row. */
+  .setup-steps li {
+    display: flex;
+    flex: 0 0 44px;
+    min-width: 0;
+  }
+  .setup-steps .step-index {
+    display: inline;
+  }
+  .setup-steps .step-name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .setup-steps button {
+    min-width: 44px;
+    width: 44px;
+    padding: 0;
+    border-radius: 50%;
+  }
+}
+/* The chips report progress; Back and Next are how the sequence advances. */
+.step-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-block: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+.step-nav p {
+  flex: 1 1 14rem;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+.setup-review {
+  margin: 0.5rem 0 1rem;
+  display: grid;
+  gap: 0.6rem;
+}
+.setup-review dt {
+  color: var(--muted);
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.setup-review dd {
+  margin: 0.15rem 0 0;
 }
 
 .guided-authoring {

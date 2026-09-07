@@ -35,6 +35,25 @@ stay readable as scene detail under the reason they cannot be acted on. A contro
 blocked only by a passing condition (another action pending, a reconnect) stays
 rendered and disabled, with that condition named beneath it.
 
+## Drafts
+
+Unsent composer text is private to one principal, campaign, scene and character,
+so nothing written for one scene reappears in another, and ending the session
+clears it with the rest of that principal's private storage. A draft states what
+it is and how old it is — "Draft saved on this device 3 days ago" — and
+**Discard draft** throws it away in one interaction, here and on the device
+(#201). Because the field is disabled whenever submission is unavailable, a
+draft can only ever be text the composer was willing to accept.
+
+## Transcript
+
+An entry shows what was submitted, when, and only then how it went (#202). The
+frozen v1 action carries no intent text, so what this device submitted is kept
+beside the drafts, under the same scope and the same session-end clearing, and
+looked up by action id when a transcript is read back. A turn taken on another
+device, or before this browser's storage was cleared, says so rather than
+borrowing a placeholder that would make every entry read alike.
+
 ## Server side
 
 Capability accuracy is what makes this work: see the capability policy in
@@ -47,6 +66,9 @@ scenario defines a consumable.
 
 `frontend/src/play/availability.test.tsx` covers the blocked composer, the
 withheld scene action and the banner's disclosure;
+`frontend/src/play/drafts.test.tsx` covers the draft's age and its discard, and
+`frontend/src/play/transcript-recall.test.tsx` covers what a reloaded transcript
+shows and what it admits it does not have;
 `frontend/src/play/store.test.ts` pins the reasons to the conditions;
 `frontend/src/setup/lobby.test.tsx` checks the setup shell states it once;
 `frontend/startup-tests/new-game.spec.ts` checks the same in the production

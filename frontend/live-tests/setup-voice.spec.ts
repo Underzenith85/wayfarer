@@ -51,6 +51,10 @@ test("two identities activate a saved party and review speech through the live d
     await lobby
       .getByRole("textbox", { name: "Premise", exact: true })
       .fill(title);
+    // Review is reachable as soon as the concept validates; it creates.
+    await lobby.getByRole("button", { name: "Next: Adventure" }).click();
+    await lobby.getByRole("button", { name: "Next: Rules" }).click();
+    await lobby.getByRole("button", { name: "Next: Ready" }).click();
     await lobby.getByRole("button", { name: "Create game draft" }).click();
     await expect(
       lobby.getByRole("button", { name: "Save setup draft" }),
@@ -83,9 +87,7 @@ test("two identities activate a saved party and review speech through the live d
     await blobby.locator(`[data-campaign-id="${cid}"]`).click();
     await blobby.getByRole("button", { name: "Accept invitation" }).click();
     await expect(blobby.getByRole("status")).toContainText("revision 3");
-    await lobby
-      .getByRole("button", { name: "Reload games / reconcile" })
-      .click();
+    await lobby.getByRole("button", { name: "Refresh this list" }).click();
     await lobby.getByLabel("Assign character to alice").selectOption("a");
     await expect(lobby.getByRole("status")).toContainText("revision 4");
     await lobby.getByLabel("Assign character to bob").selectOption("b");
@@ -95,16 +97,12 @@ test("two identities activate a saved party and review speech through the live d
       .getByRole("button", { name: "Validate and mark ready" })
       .click();
     await expect(lobby.getByRole("status")).toContainText("revision 6");
-    await blobby
-      .getByRole("button", { name: "Reload games / reconcile" })
-      .click();
+    await blobby.getByRole("button", { name: "Refresh this list" }).click();
     await blobby
       .getByRole("button", { name: "Validate and mark ready" })
       .click();
     await expect(blobby.getByRole("status")).toContainText("revision 7");
-    await lobby
-      .getByRole("button", { name: "Reload games / reconcile" })
-      .click();
+    await lobby.getByRole("button", { name: "Refresh this list" }).click();
     await lobby
       .getByRole("button", { name: "Start game", exact: true })
       .click();
@@ -162,9 +160,7 @@ test("two identities activate a saved party and review speech through the live d
       .getByRole("dialog", { name: "Session" })
       .getByRole("button", { name: "Switch campaign", exact: true })
       .click();
-    await lobby
-      .getByRole("button", { name: "Reload games / reconcile" })
-      .click();
+    await lobby.getByRole("button", { name: "Refresh this list" }).click();
     await lobby
       .getByRole("button", { name: "End campaign", exact: true })
       .click();
@@ -175,9 +171,7 @@ test("two identities activate a saved party and review speech through the live d
       lobby.getByRole("article", { name: "Adventure conclusion" }),
     ).toContainText("Mira · HP");
 
-    await blobby
-      .getByRole("button", { name: "Reload games / reconcile" })
-      .click();
+    await blobby.getByRole("button", { name: "Refresh this list" }).click();
     const bobConclusion = blobby.getByRole("article", {
       name: "Adventure conclusion",
     });

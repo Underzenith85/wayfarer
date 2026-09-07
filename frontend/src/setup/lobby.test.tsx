@@ -488,7 +488,8 @@ it("creates a game with an exact rules profile and disables unsupported ones", a
   render(<SetupLobby onOpen={vi.fn()} />);
   await user.type(screen.getByLabelText("Access token"), "secret");
   await user.click(screen.getByRole("button", { name: "Sign in" }));
-  await user.click(await screen.findByRole("button", { name: "Rules" }));
+  await user.click(await screen.findByRole("button", { name: "Adventure" }));
+  await user.click(screen.getByRole("button", { name: "Next: Rules" }));
   const select = await screen.findByLabelText("Rules profile");
   const unsupported = screen.getByRole("option", {
     name: /GURPS Lite, Fourth Edition \(2004\) \(v1\) · Not yet supported/,
@@ -503,11 +504,20 @@ it("creates a game with an exact rules profile and disables unsupported ones", a
     ),
   ).toBeVisible();
   await user.selectOptions(select, "profile:wayfarer-lite@1");
-  await user.click(screen.getByRole("button", { name: "Adventure" }));
+  await user.click(screen.getByRole("button", { name: "Back" }));
   await user.selectOptions(
     screen.getByLabelText("Adventure and starting party"),
     "beacon-1",
   );
+  // The draft is created from the review step, never from a collecting one.
+  expect(
+    screen.queryByRole("button", { name: "Create game draft" }),
+  ).toBeNull();
+  await user.click(screen.getByRole("button", { name: "Next: Rules" }));
+  await user.click(screen.getByRole("button", { name: "Next: Ready" }));
+  expect(
+    await screen.findByRole("form", { name: "Review and create" }),
+  ).toHaveTextContent("Wayfarer prototype rules");
   await user.click(screen.getByRole("button", { name: "Create game draft" }));
   // Creating a draft replaces the step view; the pin is on the rules step.
   await user.click(await screen.findByRole("button", { name: "Rules" }));
@@ -517,4 +527,181 @@ it("creates a game with an exact rules profile and disables unsupported ones", a
   expect(writes[0]).toMatchObject({
     rules_profile: { id: "profile:wayfarer-lite", version: 1 },
   });
+});
+
+it("walks the setup steps and creates the draft only from the review step", async () => {
+  const created = {
+    id: "c",
+    revision: 0,
+    host_id: "alice",
+    title: "Carry the warning",
+    phase: "draft",
+    brief: {
+      premise: "Carry the warning",
+      genre: "Fantasy",
+      tone: "Adventurous",
+      duration_minutes: 90,
+      difficulty: "standard",
+      restrictions: [],
+    },
+    graph: null,
+    party: [],
+    seats: [
+      { principal_id: "alice", joined: true, ready: false, actor_ids: [] },
+    ],
+    rules: {},
+    next_adventure: null,
+    adventures: [],
+  };
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+    const path = input instanceof Request ? input.url : String(input);
+    if (path.endsWith("/session"))
+      return new Response(
+        JSON.stringify({
+          principal_id: "alice",
+          generation_available: false,
+          legacy_available: false,
+        }),
+      );
+    if (path.endsWith("/api/v1/campaigns"))
+      return new Response(JSON.stringify({ items: [], next_cursor: null }));
+    if (init?.method === "POST")
+      return new Response(JSON.stringify(created), { status: 201 });
+    return new Response(JSON.stringify([]));
+  });
+  const user = userEvent.setup();
+  render(<SetupLobby onOpen={vi.fn()} />);
+  await user.type(screen.getByLabelText("Access token"), "secret");
+  await user.click(screen.getByRole("button", { name: "Sign in" }));
+  const chip = async (name: string) =>
+    within(
+      await screen.findByRole("navigation", { name: "Setup steps" }),
+    ).getByRole("button", { name });
+  // The first step offers a way forward, not the action that finishes setup.
+  expect(
+    screen.queryByRole("button", { name: "Create game draft" }),
+  ).toBeNull();
+  expect(screen.getByRole("button", { name: "Back" })).toBeDisabled();
+  expect(await chip("Party")).toBeDisabled();
+  expect(await chip("Ready")).toBeDisabled();
+  await user.type(screen.getByLabelText("Premise"), "Carry the warning");
+  // A validated concept unlocks review; the party still waits for the draft.
+  expect(await chip("Ready")).toBeEnabled();
+  expect(await chip("Party")).toBeDisabled();
+  await user.click(screen.getByRole("button", { name: "Next: Adventure" }));
+  expect(await chip("Adventure")).toHaveAttribute("aria-current", "step");
+  await user.click(screen.getByRole("button", { name: "Next: Rules" }));
+  // The party is skipped forward over, because it cannot be opened yet.
+  await user.click(screen.getByRole("button", { name: "Next: Ready" }));
+  expect(
+    screen.getByRole("form", { name: "Review and create" }),
+  ).toHaveTextContent("Carry the warning");
+  expect(screen.queryByRole("button", { name: /^Next/ })).toBeNull();
+  await user.click(screen.getByRole("button", { name: "Back" }));
+  expect(await chip("Rules")).toHaveAttribute("aria-current", "step");
+  await user.click(await chip("Ready"));
+  await user.click(screen.getByRole("button", { name: "Create game draft" }));
+  // The created draft opens its party, and every step is reachable from there.
+  expect(await chip("Party")).toHaveAttribute("aria-current", "step");
+  expect(await chip("Ready")).toBeEnabled();
+  expect(
+    screen.queryByRole("button", { name: "Create game draft" }),
+  ).toBeNull();
+  expect(
+    screen.getByRole("button", { name: "Next: Ready" }),
+  ).toBeInTheDocument();
+});
+
+/** The signed-in lobby: what the page is for, before what keeps it tidy (#204). */
+async function signedIn(lobbies: object[] = []) {
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+    const path = input instanceof Request ? input.url : String(input);
+    if (path.endsWith("/session"))
+      return new Response(
+        JSON.stringify({
+          principal_id: "alice",
+          generation_available: true,
+          legacy_available: false,
+        }),
+      );
+    if (path.endsWith("/api/v1/campaigns"))
+      return new Response(JSON.stringify({ items: [], next_cursor: null }));
+    return new Response(
+      JSON.stringify(
+        path.endsWith("/templates") || path.endsWith("/profiles")
+          ? []
+          : lobbies,
+      ),
+    );
+  });
+  const user = userEvent.setup();
+  render(<SetupLobby onOpen={vi.fn()} />);
+  await user.type(screen.getByLabelText("Access token"), "secret");
+  await user.click(screen.getByRole("button", { name: "Sign in" }));
+  await screen.findByRole("heading", {
+    name: "Your saved games and unfinished drafts",
+  });
+  return user;
+}
+it("leads with the games list and keeps upkeep out of primary position (#204)", async () => {
+  const draft = {
+    id: "c",
+    revision: 1,
+    host_id: "alice",
+    title: "Courier",
+    phase: "draft",
+    brief: {
+      premise: "Find the courier",
+      genre: "Mystery",
+      tone: "Tense",
+      duration_minutes: 90,
+      difficulty: "standard",
+      restrictions: [],
+    },
+    graph: null,
+    party: [],
+    seats: [],
+    rules: {},
+  };
+  await signedIn([draft]);
+  const panel = screen.getByRole("region", { name: "New game and lobby" });
+  const heading = screen.getByRole("heading", {
+    name: "Your saved games and unfinished drafts",
+  });
+  const saved = await screen.findByRole("button", {
+    name: "Courier · Draft",
+  });
+  // The list is the first content, and every control comes after it.
+  const order = [...panel.querySelectorAll("h3, button")];
+  expect(order[0]).toBe(heading);
+  expect(order[1]).toBe(saved);
+  // Upkeep reads as upkeep: user wording, and never a primary action.
+  for (const name of ["Refresh this list", "Sign out"]) {
+    const control = screen.getByRole("button", { name });
+    expect(control).toHaveClass("button-outline");
+    expect(control.compareDocumentPosition(saved)).toBe(
+      Node.DOCUMENT_POSITION_PRECEDING,
+    );
+  }
+  expect(screen.queryByRole("button", { name: /reconcile/i })).toBeNull();
+  expect(
+    screen.queryByRole("button", { name: "Sign out of setup" }),
+  ).toBeNull();
+});
+it("names every step at every width and numbers them for narrow rows (#206)", async () => {
+  await signedIn();
+  const steps = within(
+    screen.getByRole("navigation", { name: "Setup steps" }),
+  ).getAllByRole("button");
+  expect(steps.map((s) => s.textContent)).toEqual([
+    "1Concept",
+    "2Adventure",
+    "3Rules",
+    "4Party",
+    "5Ready",
+  ]);
+  // The number is decoration; the step name stays the accessible label.
+  expect(steps[0]).toHaveAccessibleName("Concept");
+  expect(steps[0]).toHaveAttribute("aria-current", "step");
+  expect(screen.getByText("Step 1 of 5: Concept")).toBeVisible();
 });
