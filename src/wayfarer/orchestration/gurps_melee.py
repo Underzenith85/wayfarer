@@ -21,7 +21,12 @@ from wayfarer.rules.recovery_types import interrupt_tasks
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import Combatant, Defense, Encounter, InjuryTrace
 from wayfarer.simulation.fatigue import ContinueExertion, apply_fatigue, fatigue_value
-from wayfarer.simulation.gurps_equipment import EquipmentCatalog, MeleeMode, inventory_load
+from wayfarer.simulation.gurps_equipment import (
+    EquipmentCatalog,
+    MeleeMode,
+    RangedMode,
+    inventory_load,
+)
 from wayfarer.simulation.hit_locations import (
     attack_penalty,
     missing_location,
@@ -151,18 +156,16 @@ def level(compiled: ValidatedBuild, target: str) -> DerivedValue:
 
 def mode(
     play: PlayService, state: PlayState, actor_id: str, item_id: str, mode_id: str | None
-) -> MeleeMode:
+) -> MeleeMode | RangedMode:
     item = next((i for i in state.resources.items if i.id == item_id), None)
     if item is None or item.owner_id != actor_id or not item.equipped or not item.ready:
         raise ValidationError("Melee requires an owned, equipped, ready weapon")
     entry = next((e for e in catalog(play).entries if e.definition_id == item.definition_id), None)
     if entry is None:
         raise ValidationError("Weapon is not in the pinned combat catalog")
-    modes = tuple(
-        m for m in entry.modes if isinstance(m, MeleeMode) and (mode_id is None or m.id == mode_id)
-    )
+    modes = tuple(m for m in entry.modes if (mode_id is None or m.id == mode_id))
     if len(modes) != 1:
-        raise ValidationError("Select exactly one supported melee weapon mode")
+        raise ValidationError("Select exactly one supported weapon mode")
     selected = modes[0]
     if selected.damage.damage_type == "fat" or (
         selected.damage.armor_divisor != 1 and catalog(play).profile_id != "gurps-basic-set-4e-2004"
@@ -343,10 +346,17 @@ def prepare_attack(
     mode_id: str | None,
     *,
     hit_location: HitLocation | None = None,
+    shots: int = 1,
 ) -> Encounter:
     pending = encounter.pending_defense
     assert pending is not None
     selected = mode(play, state, pending.attacker_id, pending.weapon_id, mode_id)
+    if isinstance(selected, RangedMode):
+        from wayfarer.orchestration.gurps_ranged import prepare
+
+        return prepare(play, state, encounter, selected, shots=shots, hit_location=hit_location)
+    if shots != 1:
+        raise ValidationError("Shot count requires a ranged mode")
     attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     defender = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
     from wayfarer.orchestration.location_combat import validate_target
@@ -396,6 +406,10 @@ def validate_defense_choices(
     pending = encounter.pending_defense
     if pending is None:
         raise ValidationError("No attack awaits defense")
+    if selected not in pending.allowed or (
+        second_defense is not None and second_defense not in pending.allowed
+    ):
+        raise ValidationError("Defense is not available against this attack")
     defender = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
     _, first_item = defense_value(play, state, defender, selected, item_id)
     if second_defense is None:
@@ -429,6 +443,19 @@ def resolve_melee(
     assert pending is not None
     equipment = catalog(play)
     weapon = mode(play, state, pending.attacker_id, pending.weapon_id, pending.mode_id)
+    if isinstance(weapon, RangedMode):
+        from wayfarer.orchestration.gurps_ranged import resolve
+
+        return resolve(
+            play,
+            state,
+            encounter,
+            weapon,
+            selected,
+            item_id,
+            second_defense=second_defense,
+            second_item_id=second_item_id,
+        )
     attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     defender = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
     attack_build = build(play, state, pending.attacker_id)

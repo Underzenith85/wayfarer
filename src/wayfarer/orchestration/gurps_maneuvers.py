@@ -45,6 +45,8 @@ def observe(
             ),
         )
     weapon = mode(play, state, actor.actor_id, command.item_id or "", command.mode_id)
+    if not isinstance(weapon, MeleeMode):
+        raise ValidationError("Feint requires a melee mode")
     attacker = build(play, state, actor.actor_id)
     defender = build(play, state, target.actor_id)
     assert defender.statistics is not None
