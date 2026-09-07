@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PlayStore } from "./store";
 import { FixtureTransport, fixtureSnapshot, type Journey } from "./fixtures";
 import type { Snapshot } from "./transport";
+import { providerReason } from "../presentation/availability";
 const stores: PlayStore[] = [];
 function make(journey: Journey = "resolve") {
   const transport = new FixtureTransport(journey, 1);
@@ -214,5 +215,24 @@ describe("scoped play journeys", () => {
     await store.send("action", "Try action");
     expect(transport.requests).toEqual([]);
     expect(store.canSend("text")).toBe(false);
+    expect(store.sendBlockReason("text")).toBe(
+      "Only a player with a controlled character can act at this table.",
+    );
+  });
+  it("names the one condition that blocks a send, never a stale one", async () => {
+    const { store, transport } = make();
+    vi.spyOn(transport, "readSnapshot").mockImplementation(async () => {
+      const s = fixtureSnapshot("campaign-1");
+      s.campaign.capabilities = ["actions.inspect"];
+      return s;
+    });
+    await store.select("campaign-1");
+    // A missing provider is the only thing free text still waits on.
+    expect(store.sendBlockReason("text")).toBe(providerReason.text);
+    expect(store.sendBlockReason("question")).toBe(providerReason.question);
+    expect(store.sendBlockReason("inspect")).toBeNull();
+    expect(store.canSend("inspect")).toBe(true);
+    store.expire();
+    expect(store.sendBlockReason("inspect")).toBe("Your session has ended.");
   });
 });

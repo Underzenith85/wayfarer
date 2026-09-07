@@ -16,13 +16,14 @@ import { ArrowUp, ChevronRight, MessageCircle, Sparkles } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { usePlay } from "./use-play";
 import type { Entry } from "./store";
-import type { Channel } from "./transport";
+import type { Channel, Intent } from "./transport";
 import { MultiplayerPanel } from "../multiplayer/panel";
 import { pagePath } from "../routes";
 import { rememberCampaign } from "./session";
 import { TechnicalDetails } from "../components/technical-details";
 import { EmptyRegion, UnavailableRegion } from "../components/region-state";
 import { conditionLabel, encumbranceLabel } from "../presentation/labels";
+import { capabilityReason } from "../presentation/availability";
 export function CampaignHome() {
   const { state, store } = usePlay();
   const navigate = useNavigate();
@@ -360,7 +361,8 @@ function Composer() {
   const [channel, setChannel] = useState<Channel>("action");
   const draft = state.drafts[channel];
   const kind = channel === "ooc" ? "question" : "text";
-  const allowed = store.canSend(kind);
+  // One reason, the one that actually applies, for the whole input group.
+  const blocked = store.sendBlockReason(kind);
   const max = channel === "dialogue" ? 1975 : 2000;
   const send = async (e: FormEvent) => {
     e.preventDefault();
@@ -391,54 +393,152 @@ function Composer() {
             ))}
         </div>
       </fieldset>
-      <VoicePanel key={channel} channel={channel} />
-      <label htmlFor="play-draft">
-        {channel === "action"
-          ? "What do you do?"
-          : channel === "dialogue"
-            ? "What does your character say?"
-            : "Ask an out-of-character question"}
-      </label>
-      <textarea
-        id="play-draft"
-        rows={3}
-        maxLength={max}
-        value={draft}
-        disabled={state.busy || !!state.retry}
-        onChange={(e) => {
-          const text = e.target.value;
-          store.saveDraft(channel, text);
-        }}
-        placeholder={
-          channel === "action"
-            ? "Describe your next action…"
-            : channel === "dialogue"
-              ? "Speak in character…"
-              : "Ask the game master…"
-        }
-      />
-      <div className="composer-bottom">
-        <span>
-          {draft.length} / {max} · Draft saved on this device
-        </span>
-        <Button disabled={!allowed || !draft.trim()}>
-          <ArrowUp size={18} aria-hidden="true" />
-          Send{" "}
+      <fieldset className="composer-input" disabled={!!blocked}>
+        <legend className="visually-hidden">Message</legend>
+        <VoicePanel key={channel} channel={channel} />
+        <label htmlFor="play-draft">
           {channel === "action"
-            ? "action"
+            ? "What do you do?"
             : channel === "dialogue"
-              ? "dialogue"
-              : "question"}
-        </Button>
-      </div>
-      {!allowed && !state.busy && !state.retry && (
-        <p className="composer-hint">
-          {state.entries.some((e) => e.action?.status === "needs_clarification")
-            ? "Answer the pending clarification to continue."
-            : "This message channel requires a controlled character and campaign permission."}
+              ? "What does your character say?"
+              : "Ask an out-of-character question"}
+        </label>
+        <textarea
+          id="play-draft"
+          rows={3}
+          maxLength={max}
+          value={draft}
+          aria-describedby={blocked ? "composer-block" : undefined}
+          onChange={(e) => {
+            const text = e.target.value;
+            store.saveDraft(channel, text);
+          }}
+          placeholder={
+            channel === "action"
+              ? "Describe your next action…"
+              : channel === "dialogue"
+                ? "Speak in character…"
+                : "Ask the game master…"
+          }
+        />
+        <div className="composer-bottom">
+          <span>
+            {draft.length} / {max} · Draft saved on this device
+          </span>
+          <Button disabled={!draft.trim()}>
+            <ArrowUp size={18} aria-hidden="true" />
+            Send{" "}
+            {channel === "action"
+              ? "action"
+              : channel === "dialogue"
+                ? "dialogue"
+                : "question"}
+          </Button>
+        </div>
+      </fieldset>
+      {blocked && (
+        <p className="composer-hint" id="composer-block">
+          {blocked}
         </p>
       )}
     </form>
+  );
+}
+/**
+ * Scene actions the engine will actually accept. An action kind the campaign
+ * does not advertise is never rendered as a control: its observations stay
+ * visible as scene detail with the reason, so no click buys a rejection.
+ */
+function SceneActions() {
+  const { state, store } = usePlay();
+  const s = state.snapshot;
+  if (!s) return null;
+  // A campaign that names its inspectable targets is taken at its word; one that
+  // names none falls back to the plain capability.
+  const targeted = s.campaign.capabilities.some((c) =>
+    c.startsWith("actions.inspect:"),
+  );
+  const supports = (kind: Intent["kind"], id: string) =>
+    kind === "inspect" && targeted
+      ? s.campaign.capabilities.includes(`actions.inspect:${id}`)
+      : s.campaign.capabilities.includes(`actions.${kind}`);
+  const observations = s.scene.observations.map((o) => {
+    const exit = o.description === "Known scene exit";
+    return {
+      id: o.id,
+      name: o.label,
+      kind: (exit ? "move" : "inspect") as Intent["kind"],
+      label: `${exit ? "Travel to" : "Inspect"} ${o.label}`,
+      intent: (exit
+        ? { kind: "move", destination_id: o.id }
+        : { kind: "inspect", target_id: o.id }) as Intent,
+    };
+  });
+  // The engine transports drive their own waiting; only the frozen slice offers it.
+  const waiting =
+    !(store.transport instanceof LiveTransport) &&
+    !(
+      store.transport instanceof NetworkPlayTransport &&
+      store.transport.engineTransport
+    );
+  const offered = observations.filter((o) => supports(o.kind, o.id));
+  const withheld = observations.filter((o) => !supports(o.kind, o.id));
+  const kinds = [...new Set(withheld.map((o) => o.kind))];
+  // Every remaining control shares one temporary blocker, so state it once.
+  const pending = [
+    ...new Set(
+      [...(waiting ? ["wait" as const] : []), ...offered.map((o) => o.kind)]
+        .map((kind) => store.sendBlockReason(kind))
+        .filter((reason): reason is string => reason !== null),
+    ),
+  ];
+  return (
+    <>
+      <div className="context-actions">
+        {waiting && (
+          <Button
+            disabled={!store.canSend("wait")}
+            title={store.sendBlockReason("wait") ?? undefined}
+            onClick={() =>
+              void store.send("action", "Wait one tick", {
+                kind: "wait",
+                ticks: 1,
+              })
+            }
+          >
+            Wait one tick
+          </Button>
+        )}
+        {offered.map((o) => (
+          <Button
+            key={o.id}
+            variant="outline"
+            disabled={!store.canSend(o.kind)}
+            title={store.sendBlockReason(o.kind) ?? undefined}
+            onClick={() => void store.send("action", o.label, o.intent)}
+          >
+            {o.label}
+          </Button>
+        ))}
+      </div>
+      {pending.map((reason) => (
+        <p key={reason} className="composer-hint">
+          {reason}
+        </p>
+      ))}
+      {kinds.map((kind) => (
+        <div key={kind} className="scene-withheld">
+          <p>{capabilityReason(kind)}</p>
+          <ul>
+            {withheld
+              .filter((o) => o.kind === kind)
+              .map((o) => (
+                <li key={o.id}>{o.name}</li>
+              ))}
+          </ul>
+        </div>
+      ))}
+    </>
   );
 }
 export function PlayWorkspace() {
@@ -479,48 +579,7 @@ export function PlayWorkspace() {
         <span className="eyebrow">{s.campaign.name}</span>
         <h2>{s.scene.title}</h2>
         <p className="scene-description">{s.scene.description}</p>
-        <div className="context-actions">
-          {!(store.transport instanceof LiveTransport) &&
-            !(
-              store.transport instanceof NetworkPlayTransport &&
-              store.transport.engineTransport
-            ) && (
-              <Button
-                disabled={!store.canSend("wait")}
-                onClick={() =>
-                  void store.send("action", "Wait one tick", {
-                    kind: "wait",
-                    ticks: 1,
-                  })
-                }
-              >
-                Wait one tick
-              </Button>
-            )}
-          {s.scene.observations.map((o) => (
-            <Button
-              key={o.id}
-              variant="outline"
-              disabled={
-                !store.canSend(
-                  o.description === "Known scene exit" ? "move" : "inspect",
-                )
-              }
-              onClick={() =>
-                void store.send(
-                  "action",
-                  `${o.description === "Known scene exit" ? "Travel to" : "Inspect"} ${o.label}`,
-                  o.description === "Known scene exit"
-                    ? { kind: "move", destination_id: o.id }
-                    : { kind: "inspect", target_id: o.id },
-                )
-              }
-            >
-              {o.description === "Known scene exit" ? "Travel to" : "Inspect"}{" "}
-              {o.label}
-            </Button>
-          ))}
-        </div>
+        <SceneActions />
         <details className="session-recap">
           <summary>Session recap & known objectives</summary>
           <p>{s.session?.summary ?? "No recap yet."}</p>

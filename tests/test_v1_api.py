@@ -19,10 +19,12 @@ from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.simulation.access import CampaignMember
+from wayfarer.simulation.actions import ActionEngine, ActionRules
 from wayfarer.simulation.resources import Owner
 from wayfarer.transport.campaign_api import create_campaign_app
 from wayfarer.transport.v1.common import Fault, Obj, array, obj, uid, validate
 from wayfarer.transport.v1.http import SERVICE
+from wayfarer.transport.v1.projection import Projector
 from wayfarer.transport.v1.service import V1Service
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.integration]
@@ -643,3 +645,42 @@ async def test_configured_scene_travel_uses_scene_engine(tmp_path: Path) -> None
                 await service.action(tx, str(action["id"]), cid, "another-player")
     finally:
         await service.close()
+
+
+async def test_capabilities_name_only_the_actions_the_engine_executes(
+    api: tuple[str, str, V1Service], tmp_path: Path
+) -> None:
+    """Advertised capabilities conform: absent ones must not show active controls."""
+    base, cid, _ = api
+    async with aiohttp.ClientSession(headers={"Authorization": "Bearer alice-key"}) as client:
+        record = await get(client, f"{base}/api/v1/campaigns/{cid}", "Campaign")
+    advertised = [str(x) for x in array(record["capabilities"])]
+    # This scenario authors an inspect check for the chest and none for Iven, so
+    # only the chest is named; the potion makes item use conform.
+    assert "actions.inspect" in advertised
+    assert "actions.inspect:chest" in advertised
+    assert "actions.inspect:b" not in advertised
+    assert "actions.use_item" in advertised
+    # A target the caller cannot see is never named, inspectable or not.
+    assert "actions.inspect:hidden" not in advertised
+    # No interpretation provider is configured for this app.
+    assert "actions.text" not in advertised
+    reducer = engine()
+    bare = ActionEngine(reducer.reviewer, reducer.resources, ActionRules(id="actions", version=1))
+    play = PlayService(AsyncSQLiteStore(tmp_path / "bare.sqlite"), bare, rng=Dice())
+    initial = campaign(bare)
+    await play.create(
+        initial,
+        world(),
+        resource_seed(),
+        (actor_setup(),),
+        (CampaignMember(principal_id="alice", role="player", actor_ids=("a",)),),
+    )
+    view = Projector(play, "secret").make(
+        await play.store.read(initial["id"]), "alice", "1970-01-01T00:00:00Z"
+    )
+    # Without authored checks or consumables both kinds answer unsupported_action.
+    assert [str(x) for x in array(view.campaign["capabilities"])] == [
+        "actions.move",
+        "actions.wait",
+    ]

@@ -66,6 +66,10 @@ class Projector:
                 raise Fault(404, "not_found")
             permitted = {viewpoint}
         entities = {e.id: e for e in state.world.entities}
+        # Only these targets have an authored check; inspecting anything else is
+        # answered with unsupported_action, so it is never advertised.
+        inspectable = {c.target_id for c in play.engine.rules.checks if c.action == "inspect"}
+        offered: set[str] = set()
         scenes: dict[str, Obj] = {}
         characters: dict[str, Obj] = {}
         inventories: dict[str, Obj] = {}
@@ -108,6 +112,7 @@ class Projector:
                 for f in state.world.facts
                 if f.id in known and f.subject_id in visible
             ]
+            offered |= {str(o["id"]) for o in observations} & inspectable
             if play.engine.rules.scenes:
                 configured = next(s for s in play.engine.rules.scenes.scenes if s.id == scene)
                 by_id = {s.id: s for s in play.engine.rules.scenes.scenes}
@@ -243,6 +248,12 @@ class Projector:
             )
             for lid, location in locations.items():
                 sid = scene_ids.get(lid, lid)
+                gm_observations: list[Obj] = [
+                    {"id": f.id, "label": f.predicate, "description": f.value}
+                    for f in state.world.facts
+                    if f.subject_id == lid or entities[f.subject_id].location_id == lid
+                ]
+                offered |= {str(o["id"]) for o in gm_observations} & inspectable
                 scenes[sid] = self.versioned(
                     principal,
                     state.campaign_id,
@@ -255,16 +266,27 @@ class Projector:
                             "ticks": state.resources.game_time,
                             "tick_duration_ms": self.tick_ms,
                         },
-                        "observations": [
-                            {"id": f.id, "label": f.predicate, "description": f.value}
-                            for f in state.world.facts
-                            if f.subject_id == lid or entities[f.subject_id].location_id == lid
-                        ],
+                        "observations": gm_observations,
                         "visible_actor_ids": sorted(
                             a for a in actors if entities[a].location_id == lid
                         ),
                     },
                 )
+        # An advertised capability must conform: the UI renders active controls
+        # for exactly these, so a kind the engine would answer with
+        # unsupported_action is never claimed. Inspection is offered only where
+        # this viewpoint can already see a target carrying an authored check, and
+        # the target-scoped entries below name exactly those.
+        capabilities = [
+            *(["actions.inspect"] if offered else []),
+            "actions.move",
+            *(["actions.use_item"] if play.engine.rules.consumables else []),
+            "actions.wait",
+            *(["actions.text"] if self.text_enabled else []),
+        ]
+        scoped = [f"actions.inspect:{target}" for target in sorted(offered)]
+        if len(capabilities) + len(scoped) <= 100 and all(len(x) <= 100 for x in scoped):
+            capabilities += scoped
         membership = self.versioned(
             principal,
             state.campaign_id,
@@ -291,13 +313,7 @@ class Projector:
                 else "active",
                 "game_time": {"ticks": min(ticks, default=0), "tick_duration_ms": self.tick_ms},
                 "membership": membership,
-                "capabilities": [
-                    "actions.inspect",
-                    "actions.move",
-                    "actions.use_item",
-                    "actions.wait",
-                ]
-                + (["actions.text"] if self.text_enabled else []),
+                "capabilities": capabilities,
                 "updated_at": stamp,
             },
         )

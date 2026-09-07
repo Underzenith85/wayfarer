@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SetupLobby } from "./lobby";
+import { providerBanner } from "../presentation/availability";
 
 afterEach(() => {
   cleanup();
@@ -165,6 +166,12 @@ it("renders seats as structured rows and lifecycle controls as actions", async (
     screen.getByRole("button", { name: "End campaign" }),
   ).toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "pause" })).toBeNull();
+  // Without a provider the setup shell states the condition once, in the same
+  // wording play uses, and lists what it costs behind a disclosure.
+  expect(screen.getAllByText(providerBanner.summary)).toHaveLength(1);
+  expect(screen.getByText(providerBanner.disclosure)).toBeVisible();
+  expect(screen.queryByText(/AI generation and free-text actions/)).toBeNull();
+  expect(screen.queryByText(/AI creation is unavailable/)).toBeNull();
 });
 
 describe("grounded ending journeys", () => {

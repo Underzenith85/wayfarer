@@ -4,6 +4,8 @@ import { LiveTransport } from "../play/live";
 import type { Campaign } from "../play/transport";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "../components/ui/button";
+import { ProviderBanner } from "../components/availability";
+import { providerReason } from "../presentation/availability";
 import { TechnicalDetails } from "../components/technical-details";
 import { NetworkPlayTransport } from "../api/play-transport";
 import {
@@ -342,12 +344,7 @@ export function SetupLobby({
               New draft
             </Button>
           </div>
-          {!session.generationAvailable && (
-            <p>
-              AI generation and free-text actions are unavailable. Authored
-              adventures and scene action buttons work without an AI provider.
-            </p>
-          )}
+          {!session.generationAvailable && <ProviderBanner />}
           <p>
             {mode === "join"
               ? "Ask the host to invite your player name. Then reload to accept your invitation."
@@ -863,12 +860,20 @@ export function SetupLobby({
                     disabled={
                       !session.generationAvailable || busy || client.hasPending
                     }
+                    title={
+                      session.generationAvailable
+                        ? undefined
+                        : providerReason.creation
+                    }
                     onClick={() =>
                       void run(() => command("preview", {}, "/generate"))
                     }
                   >
                     Generate next-adventure preview
                   </Button>
+                  {!session.generationAvailable && (
+                    <p>{providerReason.creation}</p>
+                  )}
                 </div>
               )}
               {lobby.next_adventure && (
