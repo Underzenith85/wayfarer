@@ -529,6 +529,80 @@ it("creates a game with an exact rules profile and disables unsupported ones", a
   });
 });
 
+it("keeps an authored concept unless its adventure brief is explicitly chosen", async () => {
+  const adventureBrief = {
+    premise: "Carry the harbor warning to the beacon before the storm arrives.",
+    genre: "Fantasy",
+    tone: "Adventurous",
+    duration_minutes: 30,
+    difficulty: "gentle",
+    restrictions: [],
+  };
+  const template = {
+    id: "beacon-2",
+    title: "The Last Beacon (two players)",
+    brief: adventureBrief,
+    npc_actor_ids: [],
+    actors: [],
+  };
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+    const path = input instanceof Request ? input.url : String(input);
+    if (path.endsWith("/session"))
+      return new Response(
+        JSON.stringify({
+          principal_id: "alice",
+          generation_available: false,
+          legacy_available: false,
+        }),
+      );
+    if (path.endsWith("/api/v1/campaigns"))
+      return new Response(JSON.stringify({ items: [], next_cursor: null }));
+    return new Response(
+      JSON.stringify(path.endsWith("/templates") ? [template] : []),
+    );
+  });
+  const user = userEvent.setup();
+  render(<SetupLobby onOpen={vi.fn()} />);
+  await user.type(screen.getByLabelText("Access token"), "secret");
+  await user.click(screen.getByRole("button", { name: "Sign in" }));
+
+  const premise =
+    "A storm-battered harbor town whose lighthouse has gone dark.";
+  await user.type(screen.getByLabelText("Premise"), premise);
+  await user.clear(screen.getByLabelText("Duration (minutes)"));
+  await user.type(screen.getByLabelText("Duration (minutes)"), "90");
+  await user.selectOptions(screen.getByLabelText("Difficulty"), "standard");
+  await user.click(screen.getByRole("button", { name: "Next: Adventure" }));
+  await user.selectOptions(
+    screen.getByLabelText("Adventure and starting party"),
+    "beacon-2",
+  );
+
+  expect(screen.getByRole("status")).toHaveTextContent(
+    "Your Concept answers were kept",
+  );
+  await user.click(screen.getByRole("button", { name: "Concept" }));
+  expect(screen.getByLabelText("Premise")).toHaveValue(premise);
+  expect(screen.getByLabelText("Duration (minutes)")).toHaveValue(90);
+  expect(screen.getByLabelText("Difficulty")).toHaveValue("standard");
+
+  await user.click(screen.getByRole("button", { name: "Adventure" }));
+  await user.click(
+    screen.getByRole("button", { name: "Use adventure concept" }),
+  );
+  await user.click(screen.getByRole("button", { name: "Concept" }));
+  expect(screen.getByLabelText("Premise")).toHaveValue(adventureBrief.premise);
+  expect(screen.getByLabelText("Duration (minutes)")).toHaveValue(30);
+  expect(screen.getByLabelText("Difficulty")).toHaveValue("gentle");
+
+  await user.click(
+    screen.getByRole("button", { name: "Restore previous concept" }),
+  );
+  expect(screen.getByLabelText("Premise")).toHaveValue(premise);
+  expect(screen.getByLabelText("Duration (minutes)")).toHaveValue(90);
+  expect(screen.getByLabelText("Difficulty")).toHaveValue("standard");
+});
+
 it("walks the setup steps and creates the draft only from the review step", async () => {
   const created = {
     id: "c",
