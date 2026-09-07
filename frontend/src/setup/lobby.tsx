@@ -9,6 +9,7 @@ import { LiveTransport } from "../play/live";
 import type { Campaign } from "../play/transport";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "../components/ui/button";
+import { ConfirmDialog } from "../components/ui/confirm";
 import { ProviderBanner } from "../components/availability";
 import { providerReason } from "../presentation/availability";
 import { TechnicalDetails } from "../components/technical-details";
@@ -48,6 +49,21 @@ export interface SetupSession {
 /** One step of setup is shown at a time; a draft is never a stack of forms. */
 const steps = ["Concept", "Adventure", "Rules", "Party", "Ready"] as const;
 type Step = (typeof steps)[number];
+/**
+ * The lifecycle operations a host is offered in each phase, and the ones that
+ * cannot be taken back. `complete` ends the campaign for everyone with no way
+ * back to play, so it asks before it acts; the reversible operations stay a
+ * single press and offer their own way back (#163).
+ */
+const lifecycleActions: Record<Lobby["phase"], readonly string[]> = {
+  draft: [],
+  ready: ["activate"],
+  active: ["pause", "complete"],
+  paused: ["resume"],
+  completed: ["archive"],
+  archived: ["unarchive"],
+};
+const irreversible = new Set(["complete"]);
 /** A host resumes an editable draft at its party; anyone else at readiness. */
 const landing = (value: Lobby, principal: string): Step =>
   value.host_id === principal &&
@@ -81,6 +97,10 @@ export function SetupLobby({
   const [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
   const [step, setStep] = useState<Step>("Concept");
+  /** The irreversible lifecycle operation waiting on its confirmation, if any. */
+  const [confirming, setConfirming] = useState<string>();
+  /** Set by a pause this session, so its undo is offered where it was taken. */
+  const [undoPause, setUndoPause] = useState(false);
   const client = useMemo(
     () =>
       session ? new SetupClient(session.token, session.principal) : undefined,
@@ -115,6 +135,7 @@ export function SetupLobby({
     );
   };
   const choose = (value: Lobby) => {
+    setUndoPause(false);
     setLobby(value);
     setBrief(value.brief);
     setGraph(value.graph);
@@ -141,6 +162,10 @@ export function SetupLobby({
     operation: string,
     extra: object = {},
     suffix = "",
+    // Starting or resuming a session enters play, because that is what the
+    // host asked for. Undoing a pause is not that ask: it puts the campaign
+    // back the way it was and leaves the panel where it stands.
+    { enter = true }: { enter?: boolean } = {},
   ) => {
     if (!client || !lobby) return;
     const result = await client.write(`/${lobby.id}${suffix}`, {
@@ -150,7 +175,8 @@ export function SetupLobby({
       ...extra,
     });
     choose(result);
-    if (operation === "activate" || operation === "resume") open(result);
+    if (enter && (operation === "activate" || operation === "resume"))
+      open(result);
   };
   // A restored session reloads its own games, drafts and catalogs.
   useEffect(() => {
@@ -989,36 +1015,84 @@ export function SetupLobby({
                   </Button>
                 </div>
               )}
+              {host && lifecycleActions[lobby.phase].length > 0 && (
+                <section
+                  className="lifecycle-actions"
+                  aria-label="Campaign lifecycle"
+                >
+                  <div className="context-actions">
+                    {[
+                      ...lifecycleActions[lobby.phase],
+                      ...(lobby.phase === "completed" && lobby.next_adventure
+                        ? ["continue"]
+                        : []),
+                    ].map((operation) => (
+                      <Button
+                        key={operation}
+                        variant={
+                          irreversible.has(operation) ? "danger" : "default"
+                        }
+                        disabled={busy || client.hasPending}
+                        onClick={() => {
+                          if (irreversible.has(operation)) {
+                            setConfirming(operation);
+                            return;
+                          }
+                          void run(async () => {
+                            await command(operation);
+                            if (operation === "pause") setUndoPause(true);
+                          });
+                        }}
+                      >
+                        {lifecycleOperationLabel(operation)}
+                      </Button>
+                    ))}
+                  </div>
+                  {undoPause && lobby.phase === "paused" && (
+                    <div className="lifecycle-undo" role="status">
+                      <p>
+                        Paused “{lobby.title}”. Nobody can act in this campaign
+                        until it resumes.
+                      </p>
+                      <Button
+                        variant="outline"
+                        disabled={busy || client.hasPending}
+                        onClick={() =>
+                          void run(() =>
+                            command("resume", {}, "", { enter: false }),
+                          )
+                        }
+                      >
+                        Undo pause
+                      </Button>
+                    </div>
+                  )}
+                </section>
+              )}
               <div className="context-actions">
-                {host &&
-                  {
-                    ready: ["activate"],
-                    active: ["pause", "complete"],
-                    paused: ["resume"],
-                    completed: [
-                      "archive",
-                      ...(lobby.next_adventure ? ["continue"] : []),
-                    ],
-                    draft: [],
-                    archived: ["unarchive"],
-                  }[lobby.phase].map((operation) => (
-                    <Button
-                      key={operation}
-                      disabled={busy || client.hasPending}
-                      onClick={() => void run(() => command(operation))}
-                    >
-                      {lifecycleOperationLabel(operation)}
-                    </Button>
-                  ))}
                 {lobby.phase === "active" && (
                   <Button disabled={busy} onClick={() => open(lobby)}>
                     Open playing scene
                   </Button>
                 )}
+                <Button variant="outline" disabled={busy} onClick={restart}>
+                  Create another game
+                </Button>
               </div>
-              <Button variant="outline" disabled={busy} onClick={restart}>
-                Create another game
-              </Button>
+              <ConfirmDialog
+                open={!!confirming}
+                title={`End “${lobby.title}”?`}
+                description="Ending this campaign finishes it for every player at the scene they are in. It cannot be returned to play: a finished campaign can only be archived, or continued as a new adventure. Pause the session instead if the table is stopping for now."
+                confirmLabel="End this campaign"
+                cancelLabel="Keep playing"
+                busy={busy || client.hasPending}
+                onConfirm={() => {
+                  const operation = confirming;
+                  setConfirming(undefined);
+                  if (operation) void run(() => command(operation));
+                }}
+                onCancel={() => setConfirming(undefined)}
+              />
             </>
           )}
           {step === "Ready" && !lobby && (

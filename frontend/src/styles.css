@@ -9,6 +9,8 @@
   --border: #cbd3db;
   --accent: #94451d;
   --accent-soft: #f8e9df;
+  --danger: #9a1c24;
+  --danger-soft: #fbe7e8;
   --focus: #075dc8;
   background: var(--surface);
   color: var(--foreground);
@@ -22,6 +24,8 @@
   --border: #394958;
   --accent: #f0ad7f;
   --accent-soft: #382b26;
+  --danger: #ffa9a4;
+  --danger-soft: #3a2426;
   --focus: #91c7ff;
 }
 * {
@@ -121,6 +125,15 @@ p {
   background: var(--surface);
   color: var(--foreground);
   border-color: var(--border);
+}
+/* An action that cannot be taken back reads as one, so it is never mistaken
+   for the navigation beside it (#163). */
+.button-danger {
+  background: var(--danger);
+  color: var(--surface);
+}
+:root[data-theme="dark"] .button-danger {
+  color: var(--background);
 }
 .button:hover {
   filter: brightness(1.12);
@@ -522,6 +535,45 @@ main {
   flex-wrap: wrap;
   gap: 0.6rem;
   margin: 1rem 0;
+}
+/* Lifecycle controls change the campaign; the buttons beside them only move
+   between views. They are separated so a press meant for one is not spent on
+   the other (#163). */
+.lifecycle-actions {
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  padding: 0.2rem 1rem 0.8rem;
+  margin-top: 1rem;
+}
+.lifecycle-undo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.8rem;
+}
+.lifecycle-undo p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+/* The question asked before an ending: centred, above the panel it interrupts,
+   and no wider than the sentence it has to be read from. */
+.confirm-content {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(30rem, calc(100% - 2rem));
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.8rem;
+  padding: 1.5rem;
+  z-index: 21;
+}
+.confirm-content h2 {
+  margin-top: 0;
 }
 .session-recap {
   border-top: 1px solid var(--border);

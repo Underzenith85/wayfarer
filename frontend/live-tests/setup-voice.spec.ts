@@ -164,6 +164,12 @@ test("two identities activate a saved party and review speech through the live d
     await lobby
       .getByRole("button", { name: "End campaign", exact: true })
       .click();
+    // Ending a campaign is confirmed in a dialog that names it (#163). The
+    // dialog is portalled to the document, not into the lobby region.
+    await a
+      .getByRole("dialog")
+      .getByRole("button", { name: "End this campaign", exact: true })
+      .click();
     await expect(
       lobby.getByRole("article", { name: "Adventure conclusion" }),
     ).toContainText("Courier · success");

@@ -4,7 +4,11 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "./utils";
 const variants = cva("button", {
   variants: {
-    variant: { default: "button-primary", outline: "button-outline" },
+    variant: {
+      default: "button-primary",
+      outline: "button-outline",
+      danger: "button-danger",
+    },
   },
   defaultVariants: { variant: "default" },
 });

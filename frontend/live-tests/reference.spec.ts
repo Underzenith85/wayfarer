@@ -155,6 +155,12 @@ test("reference adventure: reviewed voice, negotiation, saved epilogue and succe
     await conclusion
       .getByRole("button", { name: "End campaign", exact: true })
       .click();
+    // Ending a campaign is confirmed in a dialog that names it (#163). The
+    // dialog is portalled to the document, not into the lobby region.
+    await a
+      .getByRole("dialog")
+      .getByRole("button", { name: "End this campaign", exact: true })
+      .click();
     await expect(
       conclusion.getByRole("article", { name: "Adventure conclusion" }),
     ).toContainText("success");
