@@ -95,6 +95,36 @@ class MedicalService:
                 else ""
             )
             kind = command.kind if isinstance(command, BeginRecovery) else task.kind if task else ""
+            if task is not None:
+                context = CareContext(
+                    task.profile_id,
+                    task.ht,
+                    task.skill,
+                    task.technology_level,
+                    task.food,
+                    task.water,
+                    task.sleep,
+                    task.physician_skill,
+                    task.physician_id,
+                )
+                resources, result = apply_recovery(
+                    before.resources, command, context, rng=play.rng, system=True
+                )
+                updated = before.model_copy(
+                    update={"revision": resources.revision, "resources": resources}
+                )
+                updated = play.checkpoint(updated, before=before)
+                play.engine.validate(updated)
+                campaign["revision"], campaign["play_json"] = (
+                    updated.revision,
+                    updated.model_dump_json(),
+                )
+                return Event(
+                    input=payload,
+                    action="recovery",
+                    outcome=json.dumps({"task_id": result.task_id, "status": result.status}),
+                    roll=None,
+                )
             actor = _build(play, before, command.actor_id)
             target = _build(play, before, target_id)
             entities = {e.id: e for e in before.world.entities}

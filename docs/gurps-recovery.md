@@ -37,6 +37,18 @@ not advance the world clock. Existing wait and shared-party time services own
 elapsed time. CAS and command receipts commit recovery once across reconnects
 and restarts, together with the unchanged injury history.
 
+Rest accrues deterministically as the authoritative clock advances, including
+partial intervals before interruption. Per-cause entitlement snapshots and
+consumed-credit counters prevent old rest from paying for future fatigue.
+Finishing rest reports its accumulated recovery without applying it again.
+Medical work stores the starting HT, skill, and HP deficit. The clock can reach
+a pending recovery deadline but cannot pass it until the task is explicitly
+finished; further activity involving its actor or patient is likewise blocked.
+This settlement boundary preserves injury/fatigue ordering and does not revoke
+an earned treatment merely because the provider's state changes afterward.
+Concurrent treatment attempts sharing a patient are conservatively rejected;
+one physician may still maintain bounded tasks for different patients.
+
 Ordinary action resolution, positive injury, and fatigue costs interrupt pending
 tasks. Combat adapters must call the same `interrupt_tasks` helper for maneuvers
 and active defenses. Timed recovery does not implicitly occur on scene changes.

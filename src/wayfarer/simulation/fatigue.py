@@ -14,7 +14,7 @@ from pydantic import Field
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.rules.gurps_checks import success_roll
-from wayfarer.rules.recovery_types import FatigueCause, interrupt_tasks
+from wayfarer.rules.recovery_types import FatigueCause, interrupt_tasks, require_settled
 from wayfarer.simulation.injury import InjuryResult, Wound, apply_injury
 from wayfarer.simulation.resources import (
     Command,
@@ -70,6 +70,7 @@ def apply_fatigue(
         return state, FatigueResult.model_validate_json(event.kind)
     if state.revision != command.expected_revision:
         raise ConflictError("Resource revision changed")
+    require_settled(state.recovery_tasks, frozenset({command.actor_id}), state.game_time)
     pool = next((p for p in state.pools if p.id == f"fp:{command.actor_id}"), None)
     hp = next((p for p in state.pools if p.id == f"hp:{command.actor_id}"), None)
     if pool is None or pool.fatigue is None or hp is None or hp.injury is None:

@@ -4,6 +4,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from wayfarer.errors import ConflictError
+
 ProfileId = Literal["gurps-lite-4e-2004", "gurps-basic-set-4e-2004"]
 FatigueCause = Literal["ordinary", "starvation", "dehydration", "sleep"]
 
@@ -50,12 +52,56 @@ class RecoveryTask(BaseModel):
     sleep: bool = False
     physician_skill: int | None = None
     physician_id: str | None = None
+    ht: int = Field(default=10, ge=1)
+    skill: int | None = Field(default=None, ge=1)
+    ordinary_entitlement: int = Field(default=0, ge=0)
+    starvation_entitlement: int = Field(default=0, ge=0)
+    dehydration_entitlement: int = Field(default=0, ge=0)
+    sleep_entitlement: int = Field(default=0, ge=0)
+    ordinary_granted: int = Field(default=0, ge=0)
+    starvation_granted: int = Field(default=0, ge=0)
+    dehydration_granted: int = Field(default=0, ge=0)
+    sleep_granted: int = Field(default=0, ge=0)
+    hp_entitlement: int = Field(default=0, ge=0)
+    fp_recovered_total: int = Field(default=0, ge=0)
+
+
+def rest_entitlement(task: RecoveryTask, at: int | None = None) -> tuple[int, int, int, int]:
+    end = min(task.due, task.interrupted_at if task.interrupted_at is not None else task.due)
+    seconds = max(0, min(end, at if at is not None else end) - task.start)
+    return (
+        min(task.ordinary_entitlement, seconds // 600),
+        min(task.starvation_entitlement, 3 * (seconds // 86400)) if task.food else 0,
+        task.dehydration_entitlement if task.water and seconds >= 86400 else 0,
+        min(task.sleep_entitlement, 1 + (seconds - 28800) // 3600)
+        if task.sleep and seconds >= 28800
+        else 0,
+    )
+
+
+def require_settled(tasks: tuple[RecoveryTask, ...], actor_ids: frozenset[str], at: int) -> None:
+    """Finish earned recovery before using resources or taking further actions."""
+    for task in tasks:
+        if task.settled or not actor_ids & {task.actor_id, task.target_id}:
+            continue
+        earned = rest_entitlement(task, at)
+        granted = (
+            task.ordinary_granted,
+            task.starvation_granted,
+            task.dehydration_granted,
+            task.sleep_granted,
+        )
+        if (task.status == "pending" and task.due <= at) or (
+            task.kind == "rest" and any(e > g for e, g in zip(earned, granted, strict=True))
+        ):
+            raise ConflictError("Settle earned recovery before further activity")
 
 
 def interrupt_tasks(
     tasks: tuple[RecoveryTask, ...], actor_ids: frozenset[str], at: int
 ) -> tuple[RecoveryTask, ...]:
     """Activity after the due time cannot erase already earned uninterrupted rest."""
+    require_settled(tasks, actor_ids, at)
     return tuple(
         task.model_copy(update={"status": "interrupted", "interrupted_at": at})
         if task.status == "pending"

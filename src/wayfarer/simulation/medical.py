@@ -15,7 +15,7 @@ from pydantic import Field
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.rules.gurps_checks import success_roll
-from wayfarer.rules.recovery_types import ProfileId, RecoveryTask
+from wayfarer.rules.recovery_types import ProfileId, RecoveryTask, require_settled, rest_entitlement
 from wayfarer.simulation.injury import InjuryResult, Wound, apply_injury
 from wayfarer.simulation.resources import Command, Receipt, Record, ResourceEvent, ResourceState
 
@@ -101,6 +101,62 @@ def _wound(state: ResourceState, wound_id: str | None, target: str) -> InjuryRes
     return result
 
 
+def accrue_rest(state: ResourceState, at: int) -> ResourceState:
+    """Deterministic clock accrual, preserving continuous restricted-fatigue rest."""
+    pools = {p.id: p for p in state.pools}
+    tasks: list[RecoveryTask] = []
+    for task in state.recovery_tasks:
+        if task.kind != "rest" or task.settled:
+            tasks.append(task)
+            continue
+        fp = pools.get(f"fp:{task.target_id}")
+        if fp is None or fp.fatigue is None or fp.fatigue.heart_attack:
+            tasks.append(task)
+            continue
+        status = fp.fatigue
+        granted = (
+            task.ordinary_granted,
+            task.starvation_granted,
+            task.dehydration_granted,
+            task.sleep_granted,
+        )
+        earned = rest_entitlement(task, at)
+        available = (
+            fp.maximum - fp.current - status.starvation - status.dehydration - status.sleep,
+            status.starvation,
+            status.dehydration,
+            status.sleep,
+        )
+        award = tuple(
+            min(max(0, e - g), remaining)
+            for e, g, remaining in zip(earned, granted, available, strict=True)
+        )
+        current = fp.current + sum(award)
+        status = status.model_copy(
+            update={
+                "starvation": status.starvation - award[1],
+                "dehydration": status.dehydration - award[2],
+                "sleep": status.sleep - award[3],
+                "collapsed": status.collapsed and current <= 0,
+                "unconscious": status.unconscious and current <= 0,
+            }
+        )
+        pools[fp.id] = fp.model_copy(update={"current": current, "fatigue": status})
+        # Mark earned units consumed even if another healing source filled FP.
+        # They can never become credit against a future fatigue cost.
+        task = task.model_copy(
+            update={
+                "ordinary_granted": earned[0],
+                "starvation_granted": earned[1],
+                "dehydration_granted": earned[2],
+                "sleep_granted": earned[3],
+                "fp_recovered_total": task.fp_recovered_total + sum(award),
+            }
+        )
+        tasks.append(task)
+    return state.model_copy(update={"pools": tuple(pools.values()), "recovery_tasks": tuple(tasks)})
+
+
 def apply_recovery(
     state: ResourceState,
     command: BeginRecovery | FinishRecovery,
@@ -148,6 +204,9 @@ def apply_recovery(
     die = None
     healed = restored = 0
     if isinstance(command, BeginRecovery):
+        require_settled(
+            state.recovery_tasks, frozenset({command.actor_id, target}), state.game_time
+        )
         if any(
             t.status == "pending"
             and ({t.actor_id, t.target_id} & {command.actor_id, target})
@@ -155,10 +214,6 @@ def apply_recovery(
                 t.kind == command.kind == "physician"
                 and t.actor_id == command.actor_id
                 and t.target_id != target
-            )
-            and not (
-                t.target_id == target
-                and {t.kind, command.kind} in ({"rest", "natural"}, {"natural", "physician"})
             )
             for t in state.recovery_tasks
         ):
@@ -211,6 +266,40 @@ def apply_recovery(
             or fp.fatigue.profile_id != context.profile_id
         ):
             raise ValidationError("Rest requires the actor's profile FP pool")
+        entitled = [0, 0, 0, 0]
+        if command.kind == "rest":
+            assert fp is not None and fp.fatigue is not None
+            fatigue = fp.fatigue
+            entitled = [
+                fp.maximum - fp.current - fatigue.starvation - fatigue.dehydration - fatigue.sleep,
+                fatigue.starvation,
+                fatigue.dehydration,
+                fatigue.sleep,
+            ]
+            for earlier in state.recovery_tasks:
+                if (
+                    earlier.kind == "rest"
+                    and earlier.target_id == target
+                    and not earlier.settled
+                    and (earlier.due <= state.game_time or earlier.status == "interrupted")
+                ):
+                    outstanding = tuple(
+                        max(0, e - g)
+                        for e, g in zip(
+                            rest_entitlement(earlier),
+                            (
+                                earlier.ordinary_granted,
+                                earlier.starvation_granted,
+                                earlier.dehydration_granted,
+                                earlier.sleep_granted,
+                            ),
+                            strict=True,
+                        )
+                    )
+                    entitled = [
+                        max(0, debt - earned)
+                        for debt, earned in zip(entitled, outstanding, strict=True)
+                    ]
         task = RecoveryTask(
             id=command.id,
             actor_id=command.actor_id,
@@ -227,6 +316,13 @@ def apply_recovery(
             sleep=context.sleep,
             physician_skill=context.physician_skill,
             physician_id=context.physician_id,
+            ht=context.ht,
+            skill=context.skill,
+            ordinary_entitlement=entitled[0],
+            starvation_entitlement=entitled[1],
+            dehydration_entitlement=entitled[2],
+            sleep_entitlement=entitled[3],
+            hp_entitlement=hp.maximum - hp.current,
         )
         tasks = state.recovery_tasks + (task,)
         result = RecoveryResult(task_id=task.id, status="pending")
@@ -234,6 +330,12 @@ def apply_recovery(
         assert task is not None
         if task.settled or task.status == "completed":
             raise ConflictError("Recovery task is no longer pending")
+        if task.kind == "rest" and task.status == "pending" and state.game_time < task.due:
+            if state.game_time <= task.start:
+                raise ValidationError("Recovery is not due in this profile")
+            task = task.model_copy(
+                update={"status": "interrupted", "interrupted_at": state.game_time}
+            )
         if task.profile_id != context.profile_id or (
             task.status != "interrupted" and state.game_time < task.due
         ):
@@ -245,21 +347,16 @@ def apply_recovery(
             if fp is None or fp.fatigue is None:
                 raise ValidationError("Rest requires profile FP")
             status = fp.fatigue
-            seconds = (
-                min(task.due, task.interrupted_at if task.interrupted_at is not None else task.due)
-                - task.start
-            )
             restricted = status.starvation + status.dehydration + status.sleep
-            ordinary = min(seconds // 600, fp.maximum - fp.current - restricted)
-            starvation = min(status.starvation, 3 * (seconds // 86400)) if task.food else 0
-            dehydration = status.dehydration if task.water and seconds >= 86400 else 0
-            sleep = (
-                min(status.sleep, 1 + (seconds - 28800) // 3600)
-                if task.sleep and seconds >= 28800
-                else 0
+            earned = rest_entitlement(task)
+            ordinary = min(
+                max(0, earned[0] - task.ordinary_granted), fp.maximum - fp.current - restricted
             )
-            restored = ordinary + starvation + dehydration + sleep
-            current = fp.current + restored
+            starvation = min(max(0, earned[1] - task.starvation_granted), status.starvation)
+            dehydration = min(max(0, earned[2] - task.dehydration_granted), status.dehydration)
+            sleep = min(max(0, earned[3] - task.sleep_granted), status.sleep)
+            current = fp.current + ordinary + starvation + dehydration + sleep
+            restored = ordinary + starvation + dehydration + sleep + task.fp_recovered_total
             status = status.model_copy(
                 update={
                     "starvation": status.starvation - starvation,
@@ -275,15 +372,15 @@ def apply_recovery(
         elif task.kind == "natural":
             check = success_roll(
                 context.profile_id,
-                context.ht
+                task.ht
                 + (1 if task.physician_skill is not None and task.physician_skill >= 12 else 0),
                 rng=rng,
             )
             healed = multiplier if check.outcome.succeeded else 0
         else:
-            if context.skill is None or context.skill < 1:
+            if task.skill is None or task.skill < 1:
                 raise ValidationError("Treatment requires a compiled medical skill")
-            check = success_roll(context.profile_id, context.skill, rng=rng)
+            check = success_roll(context.profile_id, task.skill, rng=rng)
             if check.outcome is Outcome.CRITICAL_FAILURE:
                 healed = -2 if task.kind == "first-aid" else -1
             elif check.outcome.succeeded:
@@ -301,6 +398,16 @@ def apply_recovery(
                 else:
                     healed = (2 if check.outcome is Outcome.CRITICAL_SUCCESS else 1) * multiplier
         if healed < 0:
+            state = state.model_copy(
+                update={
+                    "recovery_tasks": tuple(
+                        t.model_copy(update={"status": "completed", "settled": True})
+                        if t.id == task.id
+                        else t
+                        for t in state.recovery_tasks
+                    )
+                }
+            )
             state, _ = apply_injury(
                 state,
                 Wound(
@@ -311,13 +418,13 @@ def apply_recovery(
                     resistance=0,
                     damage_type="cr",
                 ),
-                ht=context.ht,
+                ht=task.ht,
                 rng=rng,
                 system=True,
             )
             hp = next(p for p in state.pools if p.id == hp.id)
         else:
-            healed = min(healed, hp.maximum - hp.current)
+            healed = min(healed, hp.maximum - hp.current, task.hp_entitlement)
             hp = hp.model_copy(update={"current": hp.current + healed})
         status_result: Literal["completed", "interrupted"] = (
             "interrupted" if task.status == "interrupted" else "completed"

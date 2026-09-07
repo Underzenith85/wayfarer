@@ -212,3 +212,246 @@ async def test_heart_attack_deadline_uses_shared_clock_once(tmp_path: Path) -> N
     assert hp.injury is not None and hp.injury.dead
     assert len([e for e in resources.events if e.kind == "heart-attack-death"]) == 1
     assert play.engine.resources.apply(resources, command, system=True) == resources
+
+
+async def test_rest_at_full_fp_cannot_bank_credit_against_future_cost(tmp_path: Path) -> None:
+    from wayfarer.rules.checks import RecordedDice
+    from wayfarer.simulation.fatigue import FatigueCost, apply_fatigue
+    from wayfarer.simulation.medical import CareContext, apply_recovery
+    from wayfarer.simulation.resources import Advance
+
+    cid, play, _ = await setup(tmp_path)
+    state = play._load(await play.store.read(cid)).resources
+    state = state.model_copy(
+        update={
+            "pools": tuple(
+                p.model_copy(update={"current": p.maximum}) if p.id == "fp:a" else p
+                for p in state.pools
+            )
+        }
+    )
+    context = CareContext("gurps-basic-set-4e-2004", 10)
+    state, _ = apply_recovery(
+        state,
+        BeginRecovery(
+            id="rest", actor_id="a", target_id="a", kind="rest", seconds=600, expected_revision=0
+        ),
+        context,
+        rng=RecordedDice([]),
+        system=True,
+    )
+    with pytest.raises(ConflictError, match="deadline"):
+        play.engine.resources.apply(
+            state, Advance(id="past", actor_id="a", expected_revision=1, to=601), system=True
+        )
+    state = play.engine.resources.apply(
+        state, Advance(id="due", actor_id="a", expected_revision=1, to=600), system=True
+    )
+    with pytest.raises(ConflictError, match="Settle"):
+        apply_fatigue(
+            state,
+            FatigueCost(id="cost", actor_id="a", expected_revision=2, amount=3),
+            ht=10,
+            rng=RecordedDice([]),
+            system=True,
+        )
+    state, result = apply_recovery(
+        state,
+        FinishRecovery(id="finish", actor_id="a", expected_revision=2, task_id="rest"),
+        context,
+        rng=RecordedDice([]),
+        system=True,
+    )
+    assert result.fp_recovered == 0
+    state, result_cost = apply_fatigue(
+        state,
+        FatigueCost(id="cost", actor_id="a", expected_revision=3, amount=3),
+        ht=10,
+        rng=RecordedDice([]),
+        system=True,
+    )
+    assert next(p.current for p in state.pools if p.id == "fp:a") == 7 and result_cost.hp_lost == 0
+
+
+async def test_partial_rest_accrues_before_exhaustion_cost_and_never_twice(tmp_path: Path) -> None:
+    from wayfarer.simulation.fatigue import FatigueCost, apply_fatigue
+    from wayfarer.simulation.medical import CareContext, apply_recovery
+    from wayfarer.simulation.resources import Advance
+
+    cid, play, _ = await setup(tmp_path)
+    state = play._load(await play.store.read(cid)).resources
+    state = state.model_copy(
+        update={
+            "pools": tuple(
+                p.model_copy(update={"current": 0}) if p.id == "fp:a" else p for p in state.pools
+            )
+        }
+    )
+    context = CareContext("gurps-basic-set-4e-2004", 10)
+    state, _ = apply_recovery(
+        state,
+        BeginRecovery(
+            id="rest", actor_id="a", target_id="a", kind="rest", seconds=1200, expected_revision=0
+        ),
+        context,
+        rng=RecordedDice([]),
+        system=True,
+    )
+    state = play.engine.resources.apply(
+        state, Advance(id="partial", actor_id="a", expected_revision=1, to=601), system=True
+    )
+    assert next(p.current for p in state.pools if p.id == "fp:a") == 1
+    state, cost = apply_fatigue(
+        state,
+        FatigueCost(id="cost", actor_id="a", expected_revision=2, amount=1),
+        ht=10,
+        rng=RecordedDice([]),
+        system=True,
+    )
+    assert cost.hp_lost == 0
+    state, result = apply_recovery(
+        state,
+        FinishRecovery(id="finish", actor_id="a", expected_revision=3, task_id="rest"),
+        context,
+        rng=RecordedDice([]),
+        system=True,
+    )
+    assert result.fp_recovered == 1
+    assert next(p.current for p in state.pools if p.id == "fp:a") == 0
+    state, _ = apply_recovery(
+        state,
+        BeginRecovery(
+            id="rest-2", actor_id="a", target_id="a", kind="rest", seconds=600, expected_revision=4
+        ),
+        context,
+        rng=RecordedDice([]),
+        system=True,
+    )
+    state = play.engine.resources.apply(
+        state, Advance(id="due-2", actor_id="a", expected_revision=5, to=1201), system=True
+    )
+    state, result = apply_recovery(
+        state,
+        FinishRecovery(id="finish-2", actor_id="a", expected_revision=6, task_id="rest-2"),
+        context,
+        rng=RecordedDice([]),
+        system=True,
+    )
+    assert result.fp_recovered == 1 and next(p.current for p in state.pools if p.id == "fp:a") == 1
+
+
+async def test_restricted_rest_accrual_preserves_continuous_day(tmp_path: Path) -> None:
+    from wayfarer.simulation.medical import CareContext, apply_recovery
+    from wayfarer.simulation.resources import Advance
+
+    cid, play, _ = await setup(tmp_path)
+    state = play._load(await play.store.read(cid)).resources
+    state = state.model_copy(
+        update={
+            "pools": tuple(
+                p.model_copy(
+                    update={
+                        "current": 7,
+                        "fatigue": FatigueStatus(
+                            profile_id="gurps-basic-set-4e-2004", starvation=3
+                        ),
+                    }
+                )
+                if p.id == "fp:a"
+                else p
+                for p in state.pools
+            )
+        }
+    )
+    context = CareContext("gurps-basic-set-4e-2004", 10, food=True)
+    state, _ = apply_recovery(
+        state,
+        BeginRecovery(
+            id="rest", actor_id="a", target_id="a", kind="rest", seconds=86400, expected_revision=0
+        ),
+        context,
+        rng=RecordedDice([]),
+        system=True,
+    )
+    state = play.engine.resources.apply(
+        state, Advance(id="hour", actor_id="a", expected_revision=1, to=3600), system=True
+    )
+    assert next(p.current for p in state.pools if p.id == "fp:a") == 7
+    state = play.engine.resources.apply(
+        state, Advance(id="day", actor_id="a", expected_revision=2, to=86400), system=True
+    )
+    assert next(p.current for p in state.pools if p.id == "fp:a") == 10
+    state, result = apply_recovery(
+        state,
+        FinishRecovery(id="finish", actor_id="a", expected_revision=3, task_id="rest"),
+        context,
+        rng=RecordedDice([]),
+        system=True,
+    )
+    assert result.fp_recovered == 3 and next(p.current for p in state.pools if p.id == "fp:a") == 10
+
+
+async def test_natural_healing_cannot_be_banked_for_future_injury(tmp_path: Path) -> None:
+    from wayfarer.simulation.injury import Wound, apply_injury
+    from wayfarer.simulation.medical import CareContext, apply_recovery
+    from wayfarer.simulation.resources import Advance
+
+    cid, play, _ = await setup(tmp_path)
+    state = play._load(await play.store.read(cid)).resources
+    state = state.model_copy(
+        update={
+            "pools": tuple(
+                p.model_copy(update={"current": p.maximum}) if p.id == "hp:a" else p
+                for p in state.pools
+            )
+        }
+    )
+    context = CareContext("gurps-basic-set-4e-2004", 10, food=True)
+    state, _ = apply_recovery(
+        state,
+        BeginRecovery(id="day", actor_id="a", target_id="a", kind="natural", expected_revision=0),
+        context,
+        rng=RecordedDice([]),
+        system=True,
+    )
+    state = play.engine.resources.apply(
+        state, Advance(id="due", actor_id="a", expected_revision=1, to=86400), system=True
+    )
+    with pytest.raises(ConflictError, match="Settle"):
+        apply_injury(
+            state,
+            Wound(
+                id="later",
+                actor_id="a",
+                expected_revision=2,
+                basic_damage=2,
+                resistance=0,
+                damage_type="cr",
+            ),
+            ht=10,
+            rng=RecordedDice([]),
+            system=True,
+        )
+    state, result = apply_recovery(
+        state,
+        FinishRecovery(id="finish", actor_id="a", expected_revision=2, task_id="day"),
+        context,
+        rng=RecordedDice([3, 3, 3]),
+        system=True,
+    )
+    assert result.hp_recovered == 0
+    state, _ = apply_injury(
+        state,
+        Wound(
+            id="later",
+            actor_id="a",
+            expected_revision=3,
+            basic_damage=2,
+            resistance=0,
+            damage_type="cr",
+        ),
+        ht=10,
+        rng=RecordedDice([]),
+        system=True,
+    )
+    assert next(p.current for p in state.pools if p.id == "hp:a") == 8

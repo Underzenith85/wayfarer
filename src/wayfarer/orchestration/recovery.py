@@ -49,6 +49,11 @@ def captive(state: PlayState, actor_id: str) -> Captivity | None:
 
 
 def guard(state: PlayState, actor_id: str, kind: str) -> None:
+    from wayfarer.rules.recovery_types import require_settled
+
+    require_settled(
+        state.resources.recovery_tasks, frozenset({actor_id}), state.resources.game_time
+    )
     if actor_id in state.recovery.dead_actor_ids and kind not in ("choose_recovery", "question"):
         raise ValidationError("Dead characters require a policy-governed replacement")
     if captive(state, actor_id) is not None and kind not in (

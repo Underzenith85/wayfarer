@@ -3004,6 +3004,85 @@
           ],
           "default": null,
           "title": "Physician Id"
+        },
+        "ht": {
+          "default": 10,
+          "minimum": 1,
+          "title": "Ht",
+          "type": "integer"
+        },
+        "skill": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Skill"
+        },
+        "ordinary_entitlement": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Ordinary Entitlement",
+          "type": "integer"
+        },
+        "starvation_entitlement": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Starvation Entitlement",
+          "type": "integer"
+        },
+        "dehydration_entitlement": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Dehydration Entitlement",
+          "type": "integer"
+        },
+        "sleep_entitlement": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Sleep Entitlement",
+          "type": "integer"
+        },
+        "ordinary_granted": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Ordinary Granted",
+          "type": "integer"
+        },
+        "starvation_granted": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Starvation Granted",
+          "type": "integer"
+        },
+        "dehydration_granted": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Dehydration Granted",
+          "type": "integer"
+        },
+        "sleep_granted": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Sleep Granted",
+          "type": "integer"
+        },
+        "hp_entitlement": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Hp Entitlement",
+          "type": "integer"
+        },
+        "fp_recovered_total": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Fp Recovered Total",
+          "type": "integer"
         }
       },
       "required": [

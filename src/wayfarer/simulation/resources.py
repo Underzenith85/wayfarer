@@ -22,7 +22,7 @@ from wayfarer.rules.catalog import (
 )
 from wayfarer.rules.effects import Effect
 from wayfarer.rules.injury_types import InjuryStatus
-from wayfarer.rules.recovery_types import FatigueStatus, RecoveryTask
+from wayfarer.rules.recovery_types import FatigueStatus, RecoveryTask, require_settled
 from wayfarer.world import EntityKind, World
 
 Id = Annotated[str, Field(min_length=1, max_length=200)]
@@ -377,6 +377,8 @@ class ResourceEngine:
             return state
         if command.expected_revision != state.revision:
             raise ConflictError("Resource revision changed")
+        if not isinstance(command, Advance):
+            require_settled(state.recovery_tasks, frozenset({command.actor_id}), state.game_time)
         items = {i.id: i for i in state.items}
         updated = state
         if isinstance(command, (Transfer, Consume, Equip, Unequip)):
@@ -452,6 +454,13 @@ class ResourceEngine:
         elif isinstance(command, Advance):
             if command.to < state.game_time:
                 raise ValidationError("Game time cannot move backwards")
+            if any(
+                t.status == "pending" and not t.settled and command.to > t.due
+                for t in state.recovery_tasks
+            ):
+                raise ConflictError(
+                    "Advance to the recovery deadline and settle it before continuing"
+                )
             due = sorted(
                 (s for s in state.scheduled if s.due <= command.to), key=lambda s: (s.due, s.id)
             )
@@ -514,6 +523,9 @@ class ResourceEngine:
                     ),
                 }
             )
+            from wayfarer.simulation.medical import accrue_rest
+
+            updated = accrue_rest(updated, command.to)
         updated = updated.model_copy(
             update={
                 "revision": state.revision + 1,
