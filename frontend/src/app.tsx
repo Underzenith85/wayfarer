@@ -173,45 +173,49 @@ function Shell() {
           <Compass aria-hidden="true" />
           WAYFARER
         </Link>
-        <span className="session-label">Campaign companion</span>
-        <Button
-          variant="outline"
-          aria-label="Toggle dark theme"
-          aria-pressed={dark}
-          onClick={() => setDark(!dark)}
-        >
-          <SunMoon size={20} />
-        </Button>
-        {(!state.expired || onSwitchCampaign || onNewGame) && (
-          <Sheet
-            title="Session"
-            description="Leave this table. Switching or starting a game keeps this campaign saved; ending the session clears this tab’s private state."
-            trigger={
-              <Button variant="outline">
-                <Menu size={18} aria-hidden="true" />
-                <span>Session</span>
-              </Button>
-            }
+        {/* A descriptor of the shell, not a control: it belongs with the
+            logotype and is never styled like the buttons beside it (#255). */}
+        <p className="brand-tagline">Campaign companion</p>
+        <div className="topbar-actions">
+          <Button
+            variant="outline"
+            aria-label="Toggle dark theme"
+            aria-pressed={dark}
+            onClick={() => setDark(!dark)}
           >
-            <div className="context-actions">
-              {onSwitchCampaign && (
-                <Button onClick={onSwitchCampaign}>Switch campaign</Button>
-              )}
-              {onNewGame && <Button onClick={onNewGame}>New game</Button>}
-              {!state.expired && (
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    store.expire();
-                    if (!store.transport.sample) location.assign("/");
-                  }}
-                >
-                  End session
+            <SunMoon size={20} />
+          </Button>
+          {(!state.expired || onSwitchCampaign || onNewGame) && (
+            <Sheet
+              title="Session"
+              description="Leave this table. Switching or starting a game keeps this campaign saved; ending the session clears this tab’s private state."
+              trigger={
+                <Button variant="outline">
+                  <Menu size={18} aria-hidden="true" />
+                  <span>Session</span>
                 </Button>
-              )}
-            </div>
-          </Sheet>
-        )}
+              }
+            >
+              <div className="context-actions">
+                {onSwitchCampaign && (
+                  <Button onClick={onSwitchCampaign}>Switch campaign</Button>
+                )}
+                {onNewGame && <Button onClick={onNewGame}>New game</Button>}
+                {!state.expired && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      store.expire();
+                      if (!store.transport.sample) location.assign("/");
+                    }}
+                  >
+                    End session
+                  </Button>
+                )}
+              </div>
+            </Sheet>
+          )}
+        </div>
       </header>
       {!online && (
         <div role="status" className="offline-banner">
