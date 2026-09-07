@@ -54,13 +54,16 @@ test("two identities activate a saved party and review speech through the live d
     await expect(
       lobby.getByRole("button", { name: "Save setup draft" }),
     ).toBeVisible();
+    await lobby.getByRole("button", { name: "Adventure", exact: true }).click();
     await lobby
       .getByLabel("Adventure and starting party")
       .selectOption("adventure");
+    await lobby.getByRole("button", { name: "Concept", exact: true }).click();
     await lobby
       .getByRole("textbox", { name: "Premise", exact: true })
       .fill(title);
     await lobby.getByRole("button", { name: "Save setup draft" }).click();
+    await lobby.getByRole("button", { name: "Party", exact: true }).click();
     await lobby.getByLabel("Invite player ID").fill("bob");
     await lobby
       .getByRole("button", { name: "Invite player", exact: true })
@@ -86,6 +89,7 @@ test("two identities activate a saved party and review speech through the live d
     await expect(lobby.getByRole("status")).toContainText("revision 4");
     await lobby.getByLabel("Assign character to bob").selectOption("b");
     await expect(lobby.getByRole("status")).toContainText("revision 5");
+    await lobby.getByRole("button", { name: "Ready", exact: true }).click();
     await lobby
       .getByRole("button", { name: "Validate and mark ready" })
       .click();
@@ -153,7 +157,12 @@ test("two identities activate a saved party and review speech through the live d
         { timeout: 10_000 },
       )
       .toBe("success");
-    await a.getByRole("button", { name: "Continue game", exact: true }).click();
+    // Setup is reached from the play header; it reopens the played campaign.
+    await a.getByRole("button", { name: "Games", exact: true }).click();
+    await a
+      .getByRole("dialog", { name: "Games" })
+      .getByRole("button", { name: "Switch campaign", exact: true })
+      .click();
     await lobby
       .getByRole("button", { name: "Reload games / reconcile" })
       .click();

@@ -2,7 +2,7 @@ import { ScenarioCatalog } from "./catalog";
 import { WorkshopReviewQueue } from "../character/review-queue";
 import { LiveTransport } from "../play/live";
 import type { Campaign } from "../play/transport";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "../components/ui/button";
 import { NetworkPlayTransport } from "../api/play-transport";
 import type { PlayTransport } from "../play/transport";
@@ -21,19 +21,41 @@ const blank: Brief = {
   difficulty: "standard",
   restrictions: [],
 };
+/**
+ * The authenticated setup session. The caller keeps it so the setup shell can
+ * unmount while a campaign is being played without asking for the token again.
+ */
+export interface SetupSession {
+  token: string;
+  principal: string;
+  generationAvailable: boolean;
+  legacyAvailable: boolean;
+}
+/** One step of setup is shown at a time; a draft is never a stack of forms. */
+const steps = ["Concept", "Adventure", "Rules", "Party", "Ready"] as const;
+type Step = (typeof steps)[number];
+/** A host resumes an editable draft at its party; anyone else at readiness. */
+const landing = (value: Lobby, principal: string): Step =>
+  value.host_id === principal &&
+  (value.phase === "draft" || value.phase === "ready")
+    ? "Party"
+    : "Ready";
 export function SetupLobby({
   onOpen,
   mode = "new",
+  initialSession,
+  initialCampaignId,
+  onSession,
 }: {
   mode?: "new" | "continue" | "join";
   onOpen: (transport: PlayTransport) => void;
+  initialSession?: SetupSession | undefined;
+  initialCampaignId?: string | undefined;
+  onSession?: ((value: SetupSession | undefined) => void) | undefined;
 }) {
-  const [token, setToken] = useState(""),
-    [principal, setPrincipal] = useState("");
+  const [secret, setSecret] = useState("");
+  const [session, setSession] = useState(initialSession);
   const [games, setGames] = useState<Campaign[]>([]);
-  const [legacyAvailable, setLegacyAvailable] = useState(false);
-  const [generationAvailable, setGenerationAvailable] = useState(false);
-  const [client, setClient] = useState<SetupClient>();
   const [lobbies, setLobbies] = useState<Lobby[]>([]),
     [lobby, setLobby] = useState<Lobby>();
   const [templates, setTemplates] = useState<Graph[]>([]),
@@ -44,20 +66,38 @@ export function SetupLobby({
     [invite, setInvite] = useState("");
   const [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
-  const open = (value: Lobby) =>
+  const [step, setStep] = useState<Step>("Concept");
+  const client = useMemo(
+    () =>
+      session ? new SetupClient(session.token, session.principal) : undefined,
+    [session],
+  );
+  const remember = (value: SetupSession | undefined) => {
+    setSession(value);
+    onSession?.(value);
+  };
+  const open = (value: Lobby) => {
+    if (!session) return;
     onOpen(
       new NetworkPlayTransport({
         origin: location.origin,
-        credential: token,
-        principalId: principal,
+        credential: session.token,
+        principalId: session.principal,
         initialCampaignId: value.id,
         engineControls: value.engine_controls ?? false,
       }),
     );
+  };
   const choose = (value: Lobby) => {
     setLobby(value);
     setBrief(value.brief);
     setGraph(value.graph);
+  };
+  const restart = () => {
+    setLobby(undefined);
+    setGraph(null);
+    setBrief(blank);
+    setStep("Concept");
   };
   const run = async (work: () => Promise<void>) => {
     if (busy) return;
@@ -86,8 +126,83 @@ export function SetupLobby({
     choose(result);
     if (operation === "activate" || operation === "resume") open(result);
   };
-  const host = lobby?.host_id === principal;
+  // A restored session reloads its own games, drafts and catalogs.
+  useEffect(() => {
+    if (!client || !session) return;
+    let cancelled = false;
+    void (async () => {
+      setBusy(true);
+      setError("");
+      try {
+        const saved = await new NetworkPlayTransport({
+          origin: location.origin,
+          credential: session.token,
+          principalId: session.principal,
+        }).listCampaigns(new AbortController().signal);
+        const values = await client.request<Lobby[]>("");
+        const available = await client.request<Graph[]>("/templates");
+        const registered = await client.request<RulesProfile[]>("/profiles");
+        if (cancelled) return;
+        setGames(saved);
+        setLobbies(values);
+        setTemplates(available);
+        setProfiles(registered);
+        // Returning from play reopens the campaign that was being played.
+        if (values.some((value) => value.id === initialCampaignId)) {
+          const current = await client.request<Lobby>(`/${initialCampaignId}`);
+          if (cancelled) return;
+          setLobby(current);
+          setBrief(current.brief);
+          setGraph(current.graph);
+          setStep(landing(current, session.principal));
+        }
+      } catch (e) {
+        if (!cancelled)
+          setError(e instanceof Error ? e.message : "Request failed");
+      } finally {
+        if (!cancelled) setBusy(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [client, session, initialCampaignId]);
+  const host = !!session && lobby?.host_id === session.principal;
   const editable = !lobby || lobby.phase === "draft" || lobby.phase === "ready";
+  const canEdit = editable && (!lobby || host) && !lobby?.scenario_pinned;
+  const reachable = (value: Step) =>
+    value === "Party" || value === "Ready" ? !!lobby : true;
+  const save = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!client) return;
+    void run(async () => {
+      if (!lobby) {
+        const selected = profiles.find(
+          (p) => `${p.id}@${p.version}` === profile,
+        );
+        const result = await client.write("", {
+          id: crypto.randomUUID(),
+          brief,
+          graph: graph ? { ...graph, brief } : null,
+          ...(selected
+            ? { rules_profile: { id: selected.id, version: selected.version } }
+            : {}),
+        });
+        choose(result);
+        setLobbies([...lobbies, result]);
+        setStep("Party");
+      } else
+        await command("edit", {
+          brief,
+          graph: graph ? { ...graph, brief } : null,
+        });
+    });
+  };
+  const submit = (
+    <Button disabled={busy || client?.hasPending}>
+      {lobby ? "Save setup draft" : "Create game draft"}
+    </Button>
+  );
   return (
     <section className="scene-card setup-lobby" aria-label="New game and lobby">
       <h2>
@@ -98,34 +213,22 @@ export function SetupLobby({
             : "Join game"}
       </h2>
       <p>Sign in with your own access token. No campaign ID is needed.</p>
-      {!client ? (
+      {!session || !client ? (
         <form
           onSubmit={(e) => {
             e.preventDefault();
             void run(async () => {
-              const auth = await new SetupClient(token).request<{
+              const auth = await new SetupClient(secret).request<{
                 principal_id: string;
                 generation_available: boolean;
                 legacy_available: boolean;
               }>("/session");
-              const next = new SetupClient(token, auth.principal_id);
-              setPrincipal(auth.principal_id);
-              setGenerationAvailable(auth.generation_available);
-              setLegacyAvailable(auth.legacy_available);
-              const games = await new NetworkPlayTransport({
-                origin: location.origin,
-                credential: token,
-                principalId: auth.principal_id,
-              }).listCampaigns(new AbortController().signal);
-              setGames(games);
-              const values = await next.request<Lobby[]>("");
-              const available = await next.request<Graph[]>("/templates");
-              const registered =
-                await next.request<RulesProfile[]>("/profiles");
-              setClient(next);
-              setLobbies(values);
-              setTemplates(available);
-              setProfiles(registered);
+              remember({
+                token: secret,
+                principal: auth.principal_id,
+                generationAvailable: auth.generation_available,
+                legacyAvailable: auth.legacy_available,
+              });
             });
           }}
         >
@@ -135,8 +238,8 @@ export function SetupLobby({
               required
               type="password"
               autoComplete="off"
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
+              value={secret}
+              onChange={(e) => setSecret(e.target.value)}
             />
           </label>
           <Button disabled={busy}>Load games and invitations</Button>
@@ -147,15 +250,13 @@ export function SetupLobby({
             <Button
               type="button"
               onClick={() => {
-                setClient(undefined);
-                setToken("");
-                setPrincipal("");
+                remember(undefined);
+                setSecret("");
                 setGames([]);
                 setTemplates([]);
+                setProfiles([]);
                 setLobbies([]);
-                setLobby(undefined);
-                setGraph(null);
-                setBrief(blank);
+                restart();
               }}
             >
               Sign out of setup
@@ -179,8 +280,15 @@ export function SetupLobby({
             >
               Reload games / reconcile
             </Button>
+            <Button
+              type="button"
+              disabled={busy || client.hasPending}
+              onClick={restart}
+            >
+              New draft
+            </Button>
           </div>
-          {!generationAvailable && (
+          {!session.generationAvailable && (
             <p>
               AI generation and free-text actions are unavailable. Authored
               adventures and scene action buttons work without an AI provider.
@@ -190,18 +298,8 @@ export function SetupLobby({
             {mode === "join"
               ? "Ask the host to invite your player name. Then reload to accept your invitation."
               : "Your saved games and unfinished drafts"}{" "}
-            · Signed in as {principal}
+            · Signed in as {session.principal}
           </p>
-          <Button
-            disabled={busy || client.hasPending}
-            onClick={() => {
-              setLobby(undefined);
-              setGraph(null);
-              setBrief(blank);
-            }}
-          >
-            New draft
-          </Button>
           <ul>
             {lobbies.map((value) => (
               <li key={value.id}>
@@ -213,6 +311,7 @@ export function SetupLobby({
                     void run(async () => {
                       const saved = await client.request<Lobby>(`/${value.id}`);
                       choose(saved);
+                      setStep(landing(saved, session.principal));
                       if (saved.phase === "active") open(saved);
                     })
                   }
@@ -231,12 +330,16 @@ export function SetupLobby({
                     data-resume-id={game.id}
                     onClick={() =>
                       onOpen(
-                        legacyAvailable
-                          ? new LiveTransport(principal, game.id, token)
+                        session.legacyAvailable
+                          ? new LiveTransport(
+                              session.principal,
+                              game.id,
+                              session.token,
+                            )
                           : new NetworkPlayTransport({
                               origin: location.origin,
-                              credential: token,
-                              principalId: principal,
+                              credential: session.token,
+                              principalId: session.principal,
                               initialCampaignId: game.id,
                             }),
                       )
@@ -244,255 +347,375 @@ export function SetupLobby({
                   >
                     Continue {game.name}
                   </Button>
-                  {legacyAvailable && game.membership.role === "gm" && (
+                  {session.legacyAvailable && game.membership.role === "gm" && (
                     <WorkshopReviewQueue
-                      key={`${principal}:${game.id}`}
+                      key={`${session.principal}:${game.id}`}
                       campaignId={game.id}
-                      principal={principal}
-                      token={token}
+                      principal={session.principal}
+                      token={session.token}
                     />
                   )}
                 </li>
               ))}
           </ul>
-          {!lobby && (
-            <ScenarioCatalog
-              token={token}
-              principal={principal}
-              generationAvailable={generationAvailable}
-              onCreate={(value) => {
-                choose(value);
-                setLobbies([...lobbies, value]);
-              }}
-            />
-          )}
-          {!lobby && <p>Create a game, or open an invitation above.</p>}
-          {lobby && (
+          {lobby ? (
             <p role="status">
               {lobby.title} · {lobby.phase} · revision {lobby.revision}
             </p>
+          ) : (
+            <p>Create a game, or open an invitation above.</p>
           )}
-          {editable && (!lobby || host) && !lobby?.scenario_pinned && (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                void run(async () => {
-                  if (!lobby) {
-                    const selected = profiles.find(
-                      (p) => `${p.id}@${p.version}` === profile,
-                    );
-                    const result = await client.write("", {
-                      id: crypto.randomUUID(),
-                      brief,
-                      graph: graph ? { ...graph, brief } : null,
-                      ...(selected
-                        ? {
-                            rules_profile: {
-                              id: selected.id,
-                              version: selected.version,
-                            },
-                          }
-                        : {}),
-                    });
-                    choose(result);
-                    setLobbies([...lobbies, result]);
-                  } else
-                    await command("edit", {
-                      brief,
-                      graph: graph ? { ...graph, brief } : null,
-                    });
-                });
-              }}
-            >
-              <label>
-                Premise
-                <textarea
-                  required
-                  value={brief.premise}
-                  maxLength={4000}
-                  onChange={(e) =>
-                    setBrief({ ...brief, premise: e.target.value })
-                  }
-                />
-              </label>
-              <label>
-                Genre
-                <input
-                  required
-                  value={brief.genre}
-                  onChange={(e) =>
-                    setBrief({ ...brief, genre: e.target.value })
-                  }
-                />
-              </label>
-              <label>
-                Tone
-                <input
-                  required
-                  value={brief.tone}
-                  onChange={(e) => setBrief({ ...brief, tone: e.target.value })}
-                />
-              </label>
-              <label>
-                Duration (minutes)
-                <input
-                  type="number"
-                  min={10}
-                  max={10000}
-                  value={brief.duration_minutes}
-                  onChange={(e) =>
-                    setBrief({
-                      ...brief,
-                      duration_minutes: Number(e.target.value),
-                    })
-                  }
-                />
-              </label>
-              <label>
-                Difficulty
-                <select
-                  value={brief.difficulty}
-                  onChange={(e) =>
-                    setBrief({
-                      ...brief,
-                      difficulty: e.target.value as Brief["difficulty"],
-                    })
-                  }
-                >
-                  {["gentle", "standard", "hard"].map((d) => (
-                    <option key={d}>{d}</option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Boundaries and restrictions
-                <textarea
-                  value={brief.restrictions.join("\n")}
-                  onChange={(e) =>
-                    setBrief({
-                      ...brief,
-                      restrictions: e.target.value.split("\n"),
-                    })
-                  }
-                />
-              </label>
-              <label>
-                Adventure and starting party
-                <select
-                  value={graph?.id ?? ""}
-                  onChange={(e) => {
-                    const selected =
-                      templates.find((t) => t.id === e.target.value) ?? null;
-                    setGraph(selected);
-                    if (selected) setBrief(selected.brief);
-                  }}
-                >
-                  <option value="">Choose an adventure</option>
-                  {templates.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.title}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              {!templates.length && (
-                <p>
-                  No authored adventures are installed. Save your premise, then
-                  generate an adventure if a provider is configured.
-                </p>
-              )}
-              {!lobby && profiles.length > 0 && (
-                <label>
-                  Rules profile
-                  <select
-                    value={profile}
-                    onChange={(e) => setProfile(e.target.value)}
+          <nav className="setup-steps" aria-label="Setup steps">
+            <p className="eyebrow">
+              Step {steps.indexOf(step) + 1} of {steps.length}: {step}
+            </p>
+            <ol>
+              {steps.map((value) => (
+                <li key={value}>
+                  <Button
+                    type="button"
+                    variant={value === step ? "default" : "outline"}
+                    aria-current={value === step ? "step" : undefined}
+                    disabled={!reachable(value)}
+                    onClick={() => setStep(value)}
                   >
-                    <option value="">Server default</option>
-                    {profiles.map((p) => (
-                      <option
-                        key={`${p.id}@${p.version}`}
-                        value={`${p.id}@${p.version}`}
-                        disabled={!p.supported}
-                      >
-                        {p.title} (v{p.version})
-                        {p.supported
-                          ? ""
-                          : ` · unavailable: ${p.unverified_capabilities.length} unverified capabilities`}
-                      </option>
+                    {value}
+                  </Button>
+                </li>
+              ))}
+            </ol>
+          </nav>
+          {step === "Concept" &&
+            (canEdit ? (
+              <form onSubmit={save}>
+                <label>
+                  Premise
+                  <textarea
+                    required
+                    value={brief.premise}
+                    maxLength={4000}
+                    onChange={(e) =>
+                      setBrief({ ...brief, premise: e.target.value })
+                    }
+                  />
+                </label>
+                <label>
+                  Genre
+                  <input
+                    required
+                    value={brief.genre}
+                    onChange={(e) =>
+                      setBrief({ ...brief, genre: e.target.value })
+                    }
+                  />
+                </label>
+                <label>
+                  Tone
+                  <input
+                    required
+                    value={brief.tone}
+                    onChange={(e) =>
+                      setBrief({ ...brief, tone: e.target.value })
+                    }
+                  />
+                </label>
+                <label>
+                  Duration (minutes)
+                  <input
+                    type="number"
+                    min={10}
+                    max={10000}
+                    value={brief.duration_minutes}
+                    onChange={(e) =>
+                      setBrief({
+                        ...brief,
+                        duration_minutes: Number(e.target.value),
+                      })
+                    }
+                  />
+                </label>
+                <label>
+                  Difficulty
+                  <select
+                    value={brief.difficulty}
+                    onChange={(e) =>
+                      setBrief({
+                        ...brief,
+                        difficulty: e.target.value as Brief["difficulty"],
+                      })
+                    }
+                  >
+                    {["gentle", "standard", "hard"].map((d) => (
+                      <option key={d}>{d}</option>
                     ))}
                   </select>
                 </label>
-              )}
-              {graph?.actors
-                .filter((a) => !graph.npc_actor_ids.includes(a.actor_id))
-                .map((actor) => (
-                  <fieldset key={actor.actor_id}>
-                    <legend>Character {actor.actor_id}</legend>
-                    {actor.proposal.draft.purchases.map((purchase, index) => (
-                      <label key={index}>
-                        {purchase.definition_id}
-                        <input
-                          type="number"
-                          min={0}
-                          value={purchase.amount}
-                          onChange={(e) =>
-                            setGraph({
-                              ...graph,
-                              actors: graph.actors.map((a) =>
-                                a !== actor
-                                  ? a
-                                  : {
-                                      ...a,
-                                      proposal: {
-                                        ...a.proposal,
-                                        draft: {
-                                          ...a.proposal.draft,
-                                          purchases:
-                                            a.proposal.draft.purchases.map(
-                                              (p, i) =>
-                                                i === index
-                                                  ? {
-                                                      ...p,
-                                                      amount: Number(
-                                                        e.target.value,
-                                                      ),
-                                                    }
-                                                  : p,
-                                            ),
-                                        },
-                                      },
-                                    },
-                              ),
-                            })
-                          }
-                        />
-                      </label>
-                    ))}
-                  </fieldset>
-                ))}
+                <label>
+                  Boundaries and restrictions
+                  <textarea
+                    value={brief.restrictions.join("\n")}
+                    onChange={(e) =>
+                      setBrief({
+                        ...brief,
+                        restrictions: e.target.value.split("\n"),
+                      })
+                    }
+                  />
+                </label>
+                {submit}
+                {lobby && session.generationAvailable && (
+                  <Button
+                    type="button"
+                    disabled={busy || client.hasPending}
+                    onClick={() =>
+                      void run(() => command("edit", {}, "/generate"))
+                    }
+                  >
+                    Generate from saved brief
+                  </Button>
+                )}
+              </form>
+            ) : (
               <p>
-                Characters and equipment are checked against the server’s pinned
-                rules before readiness. Saving edits clears assignments and
-                readiness.
+                This game’s premise is fixed. Only its host can edit a draft,
+                and a started or pinned game keeps the concept it was created
+                with.
               </p>
-              <Button disabled={busy || client.hasPending}>
-                {lobby ? "Save setup draft" : "Create game draft"}
-              </Button>
-              {lobby && generationAvailable && (
-                <Button
-                  type="button"
-                  disabled={busy || client.hasPending}
-                  onClick={() =>
-                    void run(() => command("edit", {}, "/generate"))
-                  }
-                >
-                  Generate from saved brief
-                </Button>
+            ))}
+          {step === "Adventure" && (
+            <>
+              {canEdit ? (
+                <form onSubmit={save}>
+                  <label>
+                    Adventure and starting party
+                    <select
+                      value={graph?.id ?? ""}
+                      onChange={(e) => {
+                        const selected =
+                          templates.find((t) => t.id === e.target.value) ??
+                          null;
+                        setGraph(selected);
+                        if (selected) setBrief(selected.brief);
+                      }}
+                    >
+                      <option value="">Choose an adventure</option>
+                      {templates.map((t) => (
+                        <option key={t.id} value={t.id}>
+                          {t.title}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  {!templates.length && (
+                    <p>
+                      No authored adventures are installed. Save your premise,
+                      then generate an adventure if a provider is configured.
+                    </p>
+                  )}
+                  {submit}
+                </form>
+              ) : (
+                <p>
+                  This game’s adventure is fixed. Its host chose the scenario
+                  and starting party when the draft was created.
+                </p>
               )}
-            </form>
+              {!lobby && (
+                <ScenarioCatalog
+                  token={session.token}
+                  principal={session.principal}
+                  generationAvailable={session.generationAvailable}
+                  onCreate={(value) => {
+                    choose(value);
+                    setLobbies([...lobbies, value]);
+                    setStep("Party");
+                  }}
+                />
+              )}
+            </>
           )}
-          {lobby && (
+          {step === "Rules" && (
+            <>
+              {canEdit && (
+                <form onSubmit={save}>
+                  {!lobby && profiles.length > 0 ? (
+                    <label>
+                      Rules profile
+                      <select
+                        value={profile}
+                        onChange={(e) => setProfile(e.target.value)}
+                      >
+                        <option value="">Server default</option>
+                        {profiles.map((p) => (
+                          <option
+                            key={`${p.id}@${p.version}`}
+                            value={`${p.id}@${p.version}`}
+                            disabled={!p.supported}
+                          >
+                            {p.title} (v{p.version})
+                            {p.supported
+                              ? ""
+                              : ` · unavailable: ${p.unverified_capabilities.length} unverified capabilities`}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  ) : (
+                    <p>
+                      {lobby
+                        ? "This game keeps the rules pinned when its draft was created."
+                        : "This server offers no selectable rules profiles; its default applies."}
+                    </p>
+                  )}
+                  {submit}
+                </form>
+              )}
+              {lobby && (
+                <details>
+                  <summary>
+                    Campaign rules
+                    {lobby.rules_profile
+                      ? `: ${lobby.rules_profile.title} (v${lobby.rules_profile.version})`
+                      : ""}
+                  </summary>
+                  <p>
+                    Saved games keep their exact rules pins. Changing profiles
+                    is an explicit host migration of a paused game.
+                  </p>
+                  <pre>{JSON.stringify(lobby.rules, null, 2)}</pre>
+                </details>
+              )}
+            </>
+          )}
+          {step === "Party" && (
+            <>
+              {canEdit && (
+                <form onSubmit={save}>
+                  {graph?.actors
+                    .filter((a) => !graph.npc_actor_ids.includes(a.actor_id))
+                    .map((actor) => (
+                      <fieldset key={actor.actor_id}>
+                        <legend>Character {actor.actor_id}</legend>
+                        {actor.proposal.draft.purchases.map(
+                          (purchase, index) => (
+                            <label key={index}>
+                              {purchase.definition_id}
+                              <input
+                                type="number"
+                                min={0}
+                                value={purchase.amount}
+                                onChange={(e) =>
+                                  setGraph({
+                                    ...graph,
+                                    actors: graph.actors.map((a) =>
+                                      a !== actor
+                                        ? a
+                                        : {
+                                            ...a,
+                                            proposal: {
+                                              ...a.proposal,
+                                              draft: {
+                                                ...a.proposal.draft,
+                                                purchases:
+                                                  a.proposal.draft.purchases.map(
+                                                    (p, i) =>
+                                                      i === index
+                                                        ? {
+                                                            ...p,
+                                                            amount: Number(
+                                                              e.target.value,
+                                                            ),
+                                                          }
+                                                        : p,
+                                                  ),
+                                              },
+                                            },
+                                          },
+                                    ),
+                                  })
+                                }
+                              />
+                            </label>
+                          ),
+                        )}
+                      </fieldset>
+                    ))}
+                  <p>
+                    Characters and equipment are checked against the server’s
+                    pinned rules before readiness. Saving edits clears
+                    assignments and readiness.
+                  </p>
+                  {submit}
+                </form>
+              )}
+              {lobby && (
+                <ul>
+                  {lobby.seats.map((seat) => (
+                    <li key={seat.principal_id}>
+                      {seat.principal_id} · {seat.joined ? "Joined" : "Invited"}{" "}
+                      · {seat.ready ? "Ready" : "Not ready"} ·{" "}
+                      {seat.actor_ids.join(", ") || "No character"}
+                      {host && editable && seat.joined && lobby.graph && (
+                        <label>
+                          Assign character to {seat.principal_id}
+                          <select
+                            aria-label={`Assign character to ${seat.principal_id}`}
+                            value={seat.actor_ids[0] ?? ""}
+                            disabled={busy || client.hasPending}
+                            onChange={(e) =>
+                              void run(() =>
+                                command("assign", {
+                                  principal_id: seat.principal_id,
+                                  actor_ids: e.target.value
+                                    ? [e.target.value]
+                                    : [],
+                                }),
+                              )
+                            }
+                          >
+                            <option value="">Choose character</option>
+                            {lobby.graph.actors
+                              .filter(
+                                (a) =>
+                                  !lobby.graph!.npc_actor_ids.includes(
+                                    a.actor_id,
+                                  ),
+                              )
+                              .map((a) => (
+                                <option key={a.actor_id} value={a.actor_id}>
+                                  {a.actor_id}
+                                </option>
+                              ))}
+                          </select>
+                        </label>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {lobby && editable && host && (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    void run(() => command("invite", { principal_id: invite }));
+                  }}
+                >
+                  <label>
+                    Invite player ID
+                    <input
+                      required
+                      value={invite}
+                      onChange={(e) => setInvite(e.target.value)}
+                    />
+                  </label>
+                  <Button disabled={busy || client.hasPending}>
+                    Invite player
+                  </Button>
+                </form>
+              )}
+            </>
+          )}
+          {step === "Ready" && lobby && (
             <>
               {lobby.adventures?.map((ending) => (
                 <article
@@ -604,7 +827,9 @@ export function SetupLobby({
                     state. The saved preview survives reloads.
                   </p>
                   <Button
-                    disabled={!generationAvailable || busy || client.hasPending}
+                    disabled={
+                      !session.generationAvailable || busy || client.hasPending
+                    }
                     onClick={() =>
                       void run(() => command("preview", {}, "/generate"))
                     }
@@ -625,62 +850,6 @@ export function SetupLobby({
                   conclusion, where you can continue.
                 </p>
               )}
-              <details>
-                <summary>
-                  Campaign rules
-                  {lobby.rules_profile
-                    ? `: ${lobby.rules_profile.title} (v${lobby.rules_profile.version})`
-                    : ""}
-                </summary>
-                <p>
-                  Saved games keep their exact rules pins. Changing profiles is
-                  an explicit host migration of a paused game.
-                </p>
-                <pre>{JSON.stringify(lobby.rules, null, 2)}</pre>
-              </details>
-              <ul>
-                {lobby.seats.map((seat) => (
-                  <li key={seat.principal_id}>
-                    {seat.principal_id} · {seat.joined ? "Joined" : "Invited"} ·{" "}
-                    {seat.ready ? "Ready" : "Not ready"} ·{" "}
-                    {seat.actor_ids.join(", ") || "No character"}
-                    {host && editable && seat.joined && lobby.graph && (
-                      <label>
-                        Assign character to {seat.principal_id}
-                        <select
-                          aria-label={`Assign character to ${seat.principal_id}`}
-                          value={seat.actor_ids[0] ?? ""}
-                          disabled={busy || client.hasPending}
-                          onChange={(e) =>
-                            void run(() =>
-                              command("assign", {
-                                principal_id: seat.principal_id,
-                                actor_ids: e.target.value
-                                  ? [e.target.value]
-                                  : [],
-                              }),
-                            )
-                          }
-                        >
-                          <option value="">Choose character</option>
-                          {lobby.graph.actors
-                            .filter(
-                              (a) =>
-                                !lobby.graph!.npc_actor_ids.includes(
-                                  a.actor_id,
-                                ),
-                            )
-                            .map((a) => (
-                              <option key={a.actor_id} value={a.actor_id}>
-                                {a.actor_id}
-                              </option>
-                            ))}
-                        </select>
-                      </label>
-                    )}
-                  </li>
-                ))}
-              </ul>
               {editable && (
                 <div className="context-actions">
                   <Button
@@ -696,26 +865,6 @@ export function SetupLobby({
                     Validate and mark ready
                   </Button>
                 </div>
-              )}
-              {editable && host && (
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    void run(() => command("invite", { principal_id: invite }));
-                  }}
-                >
-                  <label>
-                    Invite player ID
-                    <input
-                      required
-                      value={invite}
-                      onChange={(e) => setInvite(e.target.value)}
-                    />
-                  </label>
-                  <Button disabled={busy || client.hasPending}>
-                    Invite player
-                  </Button>
-                </form>
               )}
               <div className="context-actions">
                 {host &&
@@ -739,36 +888,18 @@ export function SetupLobby({
                     </Button>
                   ))}
                 {lobby.phase === "active" && (
-                  <Button
-                    disabled={busy}
-                    onClick={() =>
-                      onOpen(
-                        new NetworkPlayTransport({
-                          origin: location.origin,
-                          credential: token,
-                          principalId: principal,
-                          initialCampaignId: lobby.id,
-                          engineControls: lobby.engine_controls ?? false,
-                        }),
-                      )
-                    }
-                  >
+                  <Button disabled={busy} onClick={() => open(lobby)}>
                     Open playing scene
                   </Button>
                 )}
               </div>
-              <Button
-                variant="outline"
-                disabled={busy || client.hasPending}
-                onClick={() => {
-                  setLobby(undefined);
-                  setGraph(null);
-                  setBrief(blank);
-                }}
-              >
+              <Button variant="outline" disabled={busy} onClick={restart}>
                 Create another game
               </Button>
             </>
+          )}
+          {step === "Ready" && !lobby && (
+            <p>Create or open a game draft before marking a party ready.</p>
           )}
           {client.hasPending && (
             <Button

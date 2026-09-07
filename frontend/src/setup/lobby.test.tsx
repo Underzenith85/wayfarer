@@ -406,17 +406,21 @@ it("creates a game with an exact rules profile and disables unsupported ones", a
   await user.click(
     screen.getByRole("button", { name: "Load games and invitations" }),
   );
+  await user.click(await screen.findByRole("button", { name: "Rules" }));
   const select = await screen.findByLabelText("Rules profile");
   const unsupported = screen.getByRole("option", {
     name: /GURPS Lite, Fourth Edition \(2004\) \(v1\) · unavailable: 2 unverified capabilities/,
   });
   expect(unsupported).toBeDisabled();
   await user.selectOptions(select, "profile:wayfarer-lite@1");
+  await user.click(screen.getByRole("button", { name: "Adventure" }));
   await user.selectOptions(
     screen.getByLabelText("Adventure and starting party"),
     "beacon-1",
   );
   await user.click(screen.getByRole("button", { name: "Create game draft" }));
+  // Creating a draft replaces the step view; the pin is on the rules step.
+  await user.click(await screen.findByRole("button", { name: "Rules" }));
   expect(
     await screen.findByText("Campaign rules: Wayfarer prototype rules (v1)"),
   ).toBeInTheDocument();

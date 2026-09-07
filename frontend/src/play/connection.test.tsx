@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, it, vi } from "vitest";
@@ -7,30 +6,37 @@ import { ConnectedApp } from "./connection";
 import { PlayProvider } from "./context";
 import { usePlay } from "./use-play";
 import { disconnectedTransport, type PlayTransport } from "./transport";
+import type { SetupSession } from "../setup/lobby";
 
 vi.mock("../setup/lobby", () => ({
-  SetupLobby: ({ onOpen }: { onOpen: (transport: PlayTransport) => void }) => {
-    const [token, setToken] = useState("");
-    const [campaign, setCampaign] = useState("");
-    return (
-      <section>
-        <label>
-          Access token
-          <input value={token} onChange={(e) => setToken(e.target.value)} />
-        </label>
-        <label>
-          Selected campaign
-          <input
-            value={campaign}
-            onChange={(e) => setCampaign(e.target.value)}
-          />
-        </label>
-        <button onClick={() => onOpen(disconnectedTransport)}>
-          Open campaign
-        </button>
-      </section>
-    );
-  },
+  SetupLobby: ({
+    onOpen,
+    initialSession,
+    onSession,
+  }: {
+    onOpen: (transport: PlayTransport) => void;
+    initialSession?: SetupSession;
+    onSession?: (value: SetupSession | undefined) => void;
+  }) => (
+    <section>
+      <p>Signed in as {initialSession?.principal ?? "nobody"}</p>
+      <button
+        onClick={() =>
+          onSession?.({
+            token: "alice-token",
+            principal: "alice",
+            generationAvailable: false,
+            legacyAvailable: false,
+          })
+        }
+      >
+        Load games and invitations
+      </button>
+      <button onClick={() => onOpen(disconnectedTransport)}>
+        Open campaign
+      </button>
+    </section>
+  ),
 }));
 function Expire() {
   const { store } = usePlay();
@@ -40,31 +46,45 @@ vi.mock("../app", () => ({
   App: ({
     transport,
     onSessionEnded,
+    onNewGame,
+    onSwitchCampaign,
   }: {
     transport: PlayTransport;
     onSessionEnded?: () => void;
+    onNewGame?: () => void;
+    onSwitchCampaign?: () => void;
   }) => (
     <QueryClientProvider client={new QueryClient()}>
       <PlayProvider transport={transport} onSessionEnded={onSessionEnded}>
         <Expire />
+        <button onClick={onNewGame}>New game</button>
+        <button onClick={onSwitchCampaign}>Switch campaign</button>
       </PlayProvider>
     </QueryClientProvider>
   ),
 }));
-it("preserves the authenticated lobby on return but clears it on revocation", async () => {
+it("replaces the setup shell with the game shell and keeps the session on return", async () => {
   const user = userEvent.setup();
   render(<ConnectedApp />);
-  await user.type(screen.getByLabelText("Access token"), "alice-token");
-  await user.type(screen.getByLabelText("Selected campaign"), "courier");
+  await user.click(
+    screen.getByRole("button", { name: "Load games and invitations" }),
+  );
   await user.click(screen.getByRole("button", { name: "Open campaign" }));
-  expect(screen.getByLabelText("Access token")).not.toBeVisible();
-  await user.click(screen.getByRole("button", { name: "Continue game" }));
-  expect(screen.getByLabelText("Access token")).toHaveValue("alice-token");
-  expect(screen.getByLabelText("Selected campaign")).toHaveValue("courier");
+  // Play is its own shell: no launcher and no setup panel above it.
+  expect(screen.queryByRole("button", { name: "Continue game" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Open campaign" })).toBeNull();
+  await user.click(screen.getByRole("button", { name: "Switch campaign" }));
+  expect(screen.getByText("Signed in as alice")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Continue game" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
   await user.click(screen.getByRole("button", { name: "Open campaign" }));
   await user.click(screen.getByRole("button", { name: "Revoke access" }));
-  expect(screen.getByLabelText("Access token")).toHaveValue("");
-  await user.click(screen.getByRole("button", { name: "Continue game" }));
-  expect(screen.getByLabelText("Access token")).toHaveValue("");
-  expect(screen.getByLabelText("Selected campaign")).toHaveValue("");
+  await user.click(screen.getByRole("button", { name: "New game" }));
+  expect(screen.getByText("Signed in as nobody")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "New game" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
 });

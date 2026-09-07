@@ -22,13 +22,13 @@ uv run --frozen wayfarer
 Open [Wayfarer](http://127.0.0.1:8000). The normal command serves the production frontend and the authoritative `/setups` and `/api/v1` services together.
 
 1. Click **New game**, enter your access token, and select **Load games and invitations**. The server identifies your player name; no campaign ID is required.
-2. Choose **The Last Beacon (solo)** under **Adventure and starting party**. Review the brief and the legal starting character, then **Create game draft**.
-3. Assign Mira to your player name. Click **Validate and mark ready**, then **Start game**.
-4. The opening scene loads immediately. Use **Wait one tick** or **Travel to The Beacon** to play without an AI provider. Free-text interpretation and generated narration require a provider.
+2. Setup runs as a stepper — **Concept**, **Adventure**, **Rules**, **Party** and **Ready** — showing one step at a time. On **Adventure**, choose **The Last Beacon (solo)** under **Adventure and starting party**. Review the brief and the legal starting character, then **Create game draft**.
+3. The draft opens on **Party**. Assign Mira to your player name, then on **Ready** click **Validate and mark ready** followed by **Start game**.
+4. The opening scene loads immediately, replacing the setup shell: the game shell starts at the top of every page. Use **Wait one tick** or **Travel to The Beacon** to play without an AI provider. Free-text interpretation and generated narration require a provider.
 
 For multiplayer, add distinct token-to-player entries to `WAYFARER_TOKENS`, restart the server, and choose the two-player scenario. Invite the other player's name. They use **Join game** and their own token to accept; the host assigns Mira and Iven, both players mark ready, and the host starts. Tokens are never shared between players.
 
-**Continue game** lists authorized saved games and unfinished setups. After a page refresh, authenticate again and open your saved game. Tokens are kept in memory. Uncertain setup commands are retained in that tab's session storage under the authenticated player name; **Retry original setup request** resends the same command, including after refresh. Validation errors leave the draft editable; stale revisions require **Reload games / reconcile**. Setup edits clear assignments and readiness.
+**Campaign** in the play header reopens setup with **Switch campaign** (which returns to the campaign you were playing) or **New game**; setup and play are never shown at once. **Continue game** lists authorized saved games and unfinished setups. After a page refresh, authenticate again and open your saved game. Tokens are kept in memory. Uncertain setup commands are retained in that tab's session storage under the authenticated player name; **Retry original setup request** resends the same command, including after refresh. Validation errors leave the draft editable; stale revisions require **Reload games / reconcile**. Setup edits clear assignments and readiness.
 
 SQLite saves campaigns and drafts under `data/wayfarer.sqlite3`; durable player-API receipts use `data/wayfarer.v1.sqlite3`. Back up both databases together. Restarting the server retains drafts and active play. You do not need seed scripts, fixtures, SQL, or pre-existing campaign IDs.
 

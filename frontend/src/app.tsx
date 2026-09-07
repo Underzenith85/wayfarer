@@ -1,6 +1,6 @@
 import { CharacterPage, InventoryPage } from "./character/pages";
 import { ConnectionStatus } from "./multiplayer/panel";
-import { useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import {
   createRootRoute,
   createRoute,
@@ -19,6 +19,7 @@ import {
   Flag,
   SunMoon,
   PanelRight,
+  Menu,
 } from "lucide-react";
 import { disconnectedTransport, type PlayTransport } from "./play/transport";
 import { PlayProvider } from "./play/context";
@@ -31,6 +32,11 @@ import {
 } from "./play/workspace";
 import { Button } from "./components/ui/button";
 import { Sheet } from "./components/ui/sheet";
+/** Setup is a separate shell; the play header is the way back to it. */
+const CampaignMenu = createContext<{
+  onNewGame?: (() => void) | undefined;
+  onSwitchCampaign?: (() => void) | undefined;
+}>({});
 const destinations = [
   { path: "/", name: "Play", icon: Compass },
   { path: "/character", name: "Character", icon: UserRound },
@@ -40,6 +46,7 @@ const destinations = [
 ] as const;
 function Shell() {
   const { state, store } = usePlay();
+  const { onNewGame, onSwitchCampaign } = useContext(CampaignMenu);
   const pathname = useLocation({ select: (location) => location.pathname });
   const previousPathname = useRef(pathname);
   const [dark, setDark] = useState(() => {
@@ -89,6 +96,25 @@ function Shell() {
           WAYFARER
         </Link>
         <span className="session-label">Campaign companion</span>
+        {(onSwitchCampaign || onNewGame) && (
+          <Sheet
+            title="Games"
+            description="Setup is a separate shell. Leaving the table keeps this campaign saved."
+            trigger={
+              <Button variant="outline">
+                <Menu size={18} aria-hidden="true" />
+                <span>Games</span>
+              </Button>
+            }
+          >
+            <div className="context-actions">
+              {onSwitchCampaign && (
+                <Button onClick={onSwitchCampaign}>Switch campaign</Button>
+              )}
+              {onNewGame && <Button onClick={onNewGame}>New game</Button>}
+            </div>
+          </Sheet>
+        )}
         <Button
           variant="outline"
           aria-label="Toggle dark theme"
@@ -201,12 +227,18 @@ function makeRouter() {
 export function App({
   transport = disconnectedTransport,
   onSessionEnded,
+  onNewGame,
+  onSwitchCampaign,
 }: {
   transport?: PlayTransport;
-  onSessionEnded?: () => void;
+  onSessionEnded?: (() => void) | undefined;
+  onNewGame?: (() => void) | undefined;
+  onSwitchCampaign?: (() => void) | undefined;
 }) {
   const [client] = useState(() => new QueryClient());
   const [router] = useState(() => makeRouter());
+  // Held stable so route components never re-render on a new callback identity.
+  const [menu] = useState(() => ({ onNewGame, onSwitchCampaign }));
   return (
     <QueryClientProvider client={client}>
       <PlayProvider
@@ -214,7 +246,9 @@ export function App({
         transport={transport}
         onSessionEnded={onSessionEnded}
       >
-        <RouterProvider router={router} />
+        <CampaignMenu.Provider value={menu}>
+          <RouterProvider router={router} />
+        </CampaignMenu.Provider>
       </PlayProvider>
     </QueryClientProvider>
   );

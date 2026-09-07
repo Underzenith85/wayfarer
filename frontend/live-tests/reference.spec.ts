@@ -131,7 +131,12 @@ test("reference adventure: reviewed voice, negotiation, saved epilogue and succe
     });
     expect(await privateView.text()).not.toContain("secretly owes");
     const conclusion = await login(a, "alice", id);
-    await a.getByRole("button", { name: "Continue game", exact: true }).click();
+    // Setup is reached from the play header; it reopens the played campaign.
+    await a.getByRole("button", { name: "Games", exact: true }).click();
+    await a
+      .getByRole("dialog", { name: "Games" })
+      .getByRole("button", { name: "Switch campaign", exact: true })
+      .click();
     await conclusion
       .getByRole("button", { name: "complete", exact: true })
       .click();
