@@ -34,7 +34,11 @@ def test_basic_set_gate_exposes_capability_source_and_inventory_blockers() -> No
     )
     assert size.owner_issue == 192
     assert any(blocker.identifier.startswith("source:") for blocker in result.blockers)
-    assert any(blocker.owner_issue == 119 for blocker in result.blockers if blocker.kind == "inventory")
+    assert any(
+        blocker.owner_issue == 119
+        for blocker in result.blockers
+        if blocker.kind == "inventory"
+    )
 
 
 def test_basic_set_release_rejects_current_incomplete_evidence() -> None:
