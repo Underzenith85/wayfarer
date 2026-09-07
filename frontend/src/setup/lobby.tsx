@@ -120,10 +120,12 @@ export function SetupLobby({
     if (operation === "activate" || operation === "resume") open(result);
   };
   const rehydrated = useRef(false);
+  const [resuming, setResuming] = useState(!!restored);
   useEffect(() => {
     if (!restored || rehydrated.current) return;
     rehydrated.current = true;
-    void run(() => authenticate(restored));
+    setResuming(true);
+    void run(() => authenticate(restored)).finally(() => setResuming(false));
     // The restored credential is signed in once, on mount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [restored]);
@@ -138,8 +140,17 @@ export function SetupLobby({
             ? "Continue game"
             : "Join game"}
       </h2>
-      <p>Sign in with your own access token. No campaign ID is needed.</p>
-      {!client ? (
+      {!resuming && (
+        <p>Sign in with your own access token. No campaign ID is needed.</p>
+      )}
+      {resuming ? (
+        // The tab already holds a credential; asking for it again would undo
+        // the point of remembering the session.
+        <div role="status" aria-busy="true">
+          <h3>Restoring your session…</h3>
+          <div className="skeleton" />
+        </div>
+      ) : !client ? (
         <form
           onSubmit={(e) => {
             e.preventDefault();

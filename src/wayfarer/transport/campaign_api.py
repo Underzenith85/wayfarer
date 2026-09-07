@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hmac
 import json
+import re
 import time
 import uuid
 from collections import deque
@@ -35,6 +36,19 @@ from wayfarer.rules.catalog import reference
 from wayfarer.rules.profiles import DEFAULT_REGISTRY
 from wayfarer.simulation.resources import Record
 from wayfarer.simulation.studio import ScenarioGraph
+
+# The single-page application's own entry routes. Each view is addressable
+# bare and per campaign, so a bookmarked or shared link resolves to the app,
+# which then authenticates its own requests.
+FRONTEND_PAGES = ("/character", "/inventory", "/journal", "/campaign")
+FRONTEND_ROUTES = ("/", *FRONTEND_PAGES)
+CAMPAIGN_ROUTE = re.compile(rf"/c/[^/]+({'|'.join(FRONTEND_PAGES)})?")
+
+
+def _entry_document(path: str) -> bool:
+    """True for a route that serves the application shell rather than data."""
+    return path in FRONTEND_ROUTES or CAMPAIGN_ROUTE.fullmatch(path) is not None
+
 
 ORCHESTRATOR_KEY = web.AppKey("campaign-orchestrator", Orchestrator)
 PROVIDER_STATUS_KEY = web.AppKey("provider-status", deque[ProviderStatus])
@@ -72,14 +86,11 @@ async def boundary(
         return await handler(request)
     request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
     try:
-        if request.path not in (
-            "/health",
-            "/",
-            "/character",
-            "/inventory",
-            "/journal",
-            "/campaign",
-        ) and not request.path.startswith("/assets/"):
+        if (
+            request.path != "/health"
+            and not _entry_document(request.path)
+            and not request.path.startswith("/assets/")
+        ):
             identity = _identity(request)
             now = time.monotonic()
             start, count = request.app[LIMITS_KEY].get(identity, (now, 0))
@@ -469,9 +480,8 @@ def create_campaign_app(
         async def frontend(_: web.Request) -> web.FileResponse:
             return web.FileResponse(frontend_dir / "index.html")
 
-        pages = ("/character", "/inventory", "/journal", "/campaign")
-        # Every view is also addressable per campaign so links and bookmarks resolve.
-        for path in ("/", *pages, "/c/{campaign}", *(f"/c/{{campaign}}{page}" for page in pages)):
+        scoped = ("/c/{campaign}", *(f"/c/{{campaign}}{page}" for page in FRONTEND_PAGES))
+        for path in (*FRONTEND_ROUTES, *scoped):
             app.router.add_get(path, frontend)
         app.router.add_static("/assets", frontend_dir / "assets")
     app.router.add_get("/health", health)

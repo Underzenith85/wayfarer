@@ -115,8 +115,9 @@ async def test_campaign_scoped_routes_serve_the_application_entry(tmp_path: Path
             response = await client.get(path)
             assert response.status == 200, path
             assert "Production entry" in await response.text()
-        for path in ("/c", "/c/abc-1/nowhere"):
-            assert (await client.get(path)).status == 404, path
+        # Anything outside those routes still needs a credential.
+        for path in ("/c", "/c/abc-1/nowhere", "/campaigns/abc-1"):
+            assert (await client.get(path)).status == 401, path
 
 
 def test_missing_build_and_credentials_are_actionable(tmp_path: Path) -> None:

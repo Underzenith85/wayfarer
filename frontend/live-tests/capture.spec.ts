@@ -42,8 +42,12 @@ test("independent captive and rescuer choices survive reconnect and reunite priv
   await expect(
     a.getByRole("button", { name: "observe: observe", exact: true }),
   ).toBeEnabled();
+  // The reloaded tab restores its own session and campaign, with no sign-in.
   await a.reload();
-  await connect(a, "alice");
+  await expect(a.getByLabel("Access token", { exact: true })).toHaveCount(0);
+  await expect(
+    a.getByRole("heading", { name: "Scene decisions" }),
+  ).toBeVisible();
   await b.waitForTimeout(5500);
   await b.getByRole("button", { name: "Wait one tick", exact: true }).click();
   await expect(
