@@ -190,7 +190,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.recovery.medical_treatment` | no | yes | partial | [#109 details](gurps-recovery.md) |
 | `gurps.world.physical_feats` | yes | yes | partial | #110; [bounded authoritative procedures](gurps-hazards.md) |
 | `gurps.world.environmental_hazards` | yes | yes | partial | #110; [persistent exposure schedules](gurps-hazards.md) |
-| `gurps.magic.spellcasting` | no | yes | absent | #117 |
+| `gurps.magic.spellcasting` | no | yes | partial | #117; durable lifecycle, play effects remain blocked |
 | `gurps.supernatural.abilities` | no | yes | absent | #118 |
 | `gurps.vehicles.movement` | no | yes | absent | #120 |
 | `gurps.vehicles.combat` | no | yes | absent | #120 |
@@ -448,3 +448,39 @@ approve, activate, award and advance; committed command retries do not repeat
 awards or purchases. Browser viewport/batch isolation retains all evidence while
 keeping production rate limits unchanged. Full profile certification remains
 separate from this generic workshop integration.
+
+
+## Provisional spell lifecycle (#117)
+
+`simulation.spells` records named casts and typed effects in the existing resource
+event/receipt ledger. It uses the existing success scorer, fatigue reducer and
+shared clock: no second pool, dice engine or timer. `orchestration.spells` supplies
+a private director-only CAS transaction seam, with target perception and profile
+checks. It does not expose a gameplay API or make either GURPS profile selectable.
+
+The representative records are Light (regular), Daze (HT-resisted), Fireball
+(held missile energy), and Create Fire (radius-scaled area). Provisional mechanics
+cover learned prerequisites and Magery requirements, no/low/normal/high mana,
+skill-based time/energy reduction, spell-on/range/shock penalties, casting failure
+and resistance (one casting roll, Rule of 16 margin cap), critical-success energy,
+maintenance exactly at expiry, cancellation and persisted distraction/interruption.
+Expired effects are filtered by the shared clock after restart. A second command
+cannot reuse a cast identity, prepay maintenance or resurrect an expired cast.
+Energy settlement uses the existing FP receipt and persists atomically with results.
+
+`tests/test_spells.py` contains hand-entered timing, cost, mana, resistance, area,
+missile, interruption and retry expectations. `tests/test_spell_service.py` adds
+SQLite restart, simultaneous lost-response retries, CAS, authority and private
+trace evidence. Intended provenance is Characters Fourth Edition first printing
+(2004), B235-241, B246-247 and B250, with the selected 2007-01-26 errata. These
+references are provisional under the owner-authorized model-knowledge policy;
+the exact frozen source has not been inspected for this implementation.
+
+Coverage remains **partial**: these are lifecycle records, not execution of light
+visibility, daze restrictions, missile impacts or area fire exposure. The catalog,
+combat turn adapter, effect consumers, critical-failure table, very-high mana and
+HP-powered casting remain required follow-up work in #171. Combat dispatch and unsupported
+mana variants reject; there is no player route or arbitrary LLM spell definition.
+A critical failure is recorded explicitly, without inventing its table consequence.
+Full spellcasting and #117 remain open until those paths and source certification
+are complete.
