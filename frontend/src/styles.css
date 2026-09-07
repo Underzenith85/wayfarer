@@ -1256,3 +1256,27 @@ details summary {
 .narration-controls button {
   margin: 0.5rem 0.5rem 0.5rem 0;
 }
+
+/* Keep touch controls usable at text zoom and in narrow standalone windows. */
+input:not([type="radio"]):not([type="checkbox"]),
+select,
+textarea {
+  min-height: 44px;
+  max-width: 100%;
+  font-size: 1rem;
+}
+.topbar {
+  height: auto;
+  min-height: 80px;
+  flex-wrap: wrap;
+  padding-block: 0.75rem;
+}
+@media (max-width: 600px) {
+  .topbar {
+    gap: 0.5rem;
+    padding-inline: 1rem;
+  }
+  .session-label {
+    display: none;
+  }
+}

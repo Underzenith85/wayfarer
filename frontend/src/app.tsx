@@ -39,7 +39,7 @@ const destinations = [
   { path: "/campaign", name: "Campaign", icon: Flag },
 ] as const;
 function Shell() {
-  const { state } = usePlay();
+  const { state, store } = usePlay();
   const pathname = useLocation({ select: (location) => location.pathname });
   const previousPathname = useRef(pathname);
   const [dark, setDark] = useState(() => {
@@ -97,6 +97,17 @@ function Shell() {
         >
           <SunMoon size={20} />
         </Button>
+        {!state.expired && (
+          <Button
+            variant="outline"
+            onClick={() => {
+              store.expire();
+              if (!store.transport.sample) location.assign("/");
+            }}
+          >
+            End session
+          </Button>
+        )}
       </header>
       {!online && (
         <div role="status" className="offline-banner">

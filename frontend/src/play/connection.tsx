@@ -31,15 +31,18 @@ export function ConnectedApp() {
           ))}
         </nav>
       </header>
-      <div hidden={!!transport}>
-        <SetupLobby
-          mode={mode}
-          onOpen={(next) => {
-            if (location.pathname !== "/") history.replaceState(null, "", "/");
-            setTransport(next);
-          }}
-        />
-      </div>
+      {!transport && (
+        <div>
+          <SetupLobby
+            mode={mode}
+            onOpen={(next) => {
+              if (location.pathname !== "/")
+                history.replaceState(null, "", "/");
+              setTransport(next);
+            }}
+          />
+        </div>
+      )}
       {transport && (
         <App
           key={`${transport.principalId}:${transport.initialCampaignId}`}
