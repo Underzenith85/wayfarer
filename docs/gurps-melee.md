@@ -31,9 +31,20 @@ explicit injury/fatigue pools requires migration, not implicit conversion.
   torso critical hits execute the numeric B556 table, including extra damage,
   reduced DR, forced major wounds, double shock and dropped held equipment.
 - Basic critical misses execute unready/drop, balance penalties and falling.
-  Rows requiring weapon quality/destruction, self-inflicted limb injury,
-  shoulder disability or flying-weapon collisions persist their table roll and
+  Rows requiring weapon quality/destruction or flying-weapon collisions persist their table roll and
   block the encounter with `adjudication_required` and `blocked_reason`.
+  The blocked event also preserves immutable weapon modes and damage, build
+  revision, equipment digest, HT, position/facing, limb DR, held items and any
+  deferred incoming attack. Retrying or restarting reads the same record; it
+  cannot replace the original table roll or recalculate context from later gear.
+  Ordinary failed-parry consequences still allow the incoming attack to hit.
+- With explicit human anatomy and canonical hand bindings, critical self-wounds
+  execute through the location injury reducer, including DR, half damage,
+  crippling, dropped grips and lasting-injury state. Impaling/piercing self-wound
+  exceptions record exactly one additional table roll. Shoulder strain disables
+  the wielding arm for 30 minutes while retaining the weapon, and cancels any
+  remaining attack that requires that arm. Parrying weapons with multiple damage
+  modes remain blocked for self-wounds until a canonical mode is selected.
 
 ## Evidence and remaining blockers
 
@@ -56,3 +67,11 @@ tracks the remaining Basic critical consequences and their dependencies on
 remain #104; unarmed/grappling #108; ranged attacks #106. Weapon breakage against
 heavy parries and advantage-specific defense exceptions remain unavailable.
 The full GURPS profile remains unavailable until those capability gates pass.
+
+The durable critical context is an internal handoff, not a GM override or a
+client-supplied damage command. Breakage needs canonical quality/destruction,
+missing anatomy or wielding bindings preserve the limb blocker, and flying
+weapons need authoritative collision handling. No generic retry may reroll a
+recorded miss. All-Out Defense's second critical parry also captures its own
+weapon and deferred incoming attack; unsupported head-hit effects remain on
+their separate head-table blocker.

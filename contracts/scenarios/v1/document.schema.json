@@ -389,6 +389,39 @@
           "minimum": 0,
           "title": "Available At",
           "type": "integer"
+        },
+        "body": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/HumanBody"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "held_item_hands": {
+          "default": [],
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  "left-hand",
+                  "right-hand"
+                ],
+                "type": "string"
+              }
+            ],
+            "type": "array"
+          },
+          "title": "Held Item Hands",
+          "type": "array"
         }
       },
       "required": [
@@ -512,18 +545,39 @@
       "properties": {
         "locations": {
           "items": {
-            "enum": [
-              "torso",
-              "skull",
-              "face",
-              "neck",
-              "arms",
-              "hands",
-              "legs",
-              "feet",
-              "groin"
-            ],
-            "type": "string"
+            "anyOf": [
+              {
+                "enum": [
+                  "torso",
+                  "vitals",
+                  "skull",
+                  "face",
+                  "neck",
+                  "groin",
+                  "left-arm",
+                  "right-arm",
+                  "left-leg",
+                  "right-leg",
+                  "left-hand",
+                  "right-hand",
+                  "left-foot",
+                  "right-foot",
+                  "left-eye",
+                  "right-eye"
+                ],
+                "type": "string"
+              },
+              {
+                "enum": [
+                  "arms",
+                  "hands",
+                  "legs",
+                  "feet",
+                  "eyes"
+                ],
+                "type": "string"
+              }
+            ]
           },
           "minItems": 1,
           "title": "Locations",
@@ -1276,6 +1330,25 @@
           ],
           "title": "Damage Type",
           "type": "string"
+        },
+        "armor_divisor": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "default": "1",
+          "title": "Armor Divisor"
+        },
+        "tight_beam": {
+          "default": false,
+          "title": "Tight Beam",
+          "type": "boolean"
         }
       },
       "required": [
@@ -1692,6 +1765,27 @@
       "title": "GridPoint",
       "type": "object"
     },
+    "HumanBody": {
+      "additionalProperties": false,
+      "description": "Trusted scenario anatomy; absence never selects a human implicitly.",
+      "properties": {
+        "anatomy": {
+          "const": "human",
+          "title": "Anatomy",
+          "type": "string"
+        },
+        "male_groin": {
+          "default": false,
+          "title": "Male Groin",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "anatomy"
+      ],
+      "title": "HumanBody",
+      "type": "object"
+    },
     "InitialResources": {
       "additionalProperties": false,
       "description": "Only initial resources; runtime history and elapsed time are forbidden.",
@@ -1863,6 +1957,32 @@
           "minimum": 0,
           "title": "Shock Expires",
           "type": "integer"
+        },
+        "anatomy": {
+          "anyOf": [
+            {
+              "const": "human",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Anatomy"
+        },
+        "male_groin": {
+          "default": false,
+          "title": "Male Groin",
+          "type": "boolean"
+        },
+        "lasting_injuries": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/LastingInjury"
+          },
+          "title": "Lasting Injuries",
+          "type": "array"
         }
       },
       "required": [
@@ -1928,6 +2048,92 @@
         "owner_id"
       ],
       "title": "Item",
+      "type": "object"
+    },
+    "LastingInjury": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "location": {
+          "enum": [
+            "torso",
+            "vitals",
+            "skull",
+            "face",
+            "neck",
+            "groin",
+            "left-arm",
+            "right-arm",
+            "left-leg",
+            "right-leg",
+            "left-hand",
+            "right-hand",
+            "left-foot",
+            "right-foot",
+            "left-eye",
+            "right-eye"
+          ],
+          "title": "Location",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "crippled",
+            "destroyed",
+            "severed",
+            "disabled"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "duration": {
+          "enum": [
+            "pending",
+            "temporary",
+            "lasting",
+            "permanent",
+            "timed"
+          ],
+          "title": "Duration",
+          "type": "string"
+        },
+        "inflicted_at": {
+          "minimum": 0,
+          "title": "Inflicted At",
+          "type": "integer"
+        },
+        "injury": {
+          "minimum": 0,
+          "title": "Injury",
+          "type": "integer"
+        },
+        "recovery_at": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Recovery At"
+        }
+      },
+      "required": [
+        "id",
+        "location",
+        "kind",
+        "duration",
+        "inflicted_at",
+        "injury"
+      ],
+      "title": "LastingInjury",
       "type": "object"
     },
     "MeleeMode": {

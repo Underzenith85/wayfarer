@@ -1,8 +1,10 @@
 """Persisted injury facts; mechanics are in simulation.injury."""
 
-from typing import Literal
+from typing import Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from wayfarer.rules.location_types import LastingInjury
 
 
 class InjuryStatus(BaseModel):
@@ -19,6 +21,21 @@ class InjuryStatus(BaseModel):
     turn: int = Field(default=0, ge=0)
     phase: Literal["between", "acting"] = "between"
     shock_expires: int = Field(default=0, ge=0)
+    anatomy: Literal["human"] | None = None
+    male_groin: bool = False
+    lasting_injuries: tuple[LastingInjury, ...] = ()
+
+    @model_validator(mode="after")
+    def anatomy_consistent(self) -> Self:
+        if self.lasting_injuries and (
+            self.anatomy != "human" or self.profile_id != "gurps-basic-set-4e-2004"
+        ):
+            raise ValueError("Lasting locations require explicit Basic Set human anatomy")
+        if self.male_groin and self.anatomy != "human":
+            raise ValueError("Groin sensitivity requires explicit human anatomy")
+        if len({w.id for w in self.lasting_injuries}) != len(self.lasting_injuries):
+            raise ValueError("Duplicate lasting injury ID")
+        return self
 
     @property
     def incapacitated(self) -> bool:

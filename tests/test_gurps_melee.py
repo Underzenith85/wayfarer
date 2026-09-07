@@ -33,6 +33,7 @@ from wayfarer.rules.catalog import (
     RulesCatalog,
 )
 from wayfarer.rules.checks import RecordedDice
+from wayfarer.rules.location_types import HumanBody
 from wayfarer.rules.recovery_types import RecoveryTask
 from wayfarer.rules.skill_types import ControllingAttribute, Difficulty, SkillDefault, SkillSpec
 from wayfarer.simulation.actions import ActionEngine, ActionRules, ActorSetup
@@ -57,6 +58,7 @@ async def setup(
     *,
     trained: bool = True,
     ability_defense: bool = False,
+    human: bool = False,
     ranged_fixture: bool = False,
     ready_after_attack: bool = False,
 ) -> tuple[str, PlayService]:
@@ -247,6 +249,13 @@ async def setup(
     actors = tuple(
         ActorSetup(
             actor_id=a,
+            body=HumanBody(anatomy="human") if human else None,
+            held_item_hands=(
+                (f"sword-{a}", "right-hand"),
+                *(((("shield-b", "left-hand"),)) if a == "b" else ()),
+            )
+            if human
+            else (),
             proposal=CharacterProposal(
                 draft=gurps_draft(
                     *purchases,

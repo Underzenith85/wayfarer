@@ -115,6 +115,15 @@ class SceneService:
         destination = scene
         event_kind: Literal["entered", "exited", "discovered", "observed"] = "observed"
         if isinstance(command, TravelScene):
+            from wayfarer.orchestration.location_combat import disabled
+
+            if disabled(state, command.actor_id) & {
+                "left-leg",
+                "right-leg",
+                "left-foot",
+                "right-foot",
+            }:
+                raise ValidationError("Scene travel requires supported mobility after crippling")
             selected = next((value for value in scene.exits if value.id == command.exit_id), None)
             if selected is None:
                 raise ValidationError("Unknown exit from current scene")

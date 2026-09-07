@@ -14,6 +14,7 @@ from pydantic import Field, model_validator
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.rules.checks import CheckTrace
 from wayfarer.rules.effects import DerivedValue
+from wayfarer.rules.location_types import HitLocation, HumanLocation
 from wayfarer.simulation.gurps_equipment import EquipmentCatalog
 from wayfarer.simulation.maneuvers import (
     ATTACK_MANEUVERS,
@@ -104,6 +105,10 @@ class InjuryTrace(Record):
     rules_version: str
     critical_table: tuple[int, ...] = ()
     adjudication_required: str | None = None
+    location: HumanLocation | None = None
+    location_dice: tuple[int, ...] = ()
+    effect_dice: tuple[int, ...] = ()
+    lasting_injury_ids: tuple[str, ...] = ()
 
 
 class CombatConsequence(Record):
@@ -162,6 +167,7 @@ class Combatant(Record):
     defense_penalty: int = Field(default=0, ge=-20, le=0)
     last_maneuver: Maneuver | None = None
     last_attack_item_id: str | None = None
+    hand_bindings: tuple[tuple[str, Literal["left-hand", "right-hand"]], ...] = ()
     forced_do_nothing: bool = False
     maneuver_state: ManeuverState = Field(default_factory=ManeuverState)
 
@@ -175,6 +181,7 @@ class PendingDefense(Record):
     opened_round: int = Field(ge=1)
     opened_turn: int = Field(ge=0)
     mode_id: str | None = None
+    hit_location: HitLocation | None = None
 
 
 class DefenseChoice(Record):

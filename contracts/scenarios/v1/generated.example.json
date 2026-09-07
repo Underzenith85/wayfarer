@@ -25,7 +25,7 @@
     "author": "Wayfarer example author",
     "source": null,
     "generator": "synthetic-example (no live model call)",
-    "source_digest": "83fcb4e9826b1e0599470c4177ab268557ac05ecd571a93c9849c0466771b6aa"
+    "source_digest": "edd472e696e473a1965e7ec57e89580ecb009d5e0944332e736990be5d0cf193"
   },
   "compatibility": {
     "rules": {
@@ -946,7 +946,9 @@
         "warehouse"
       ],
       "conditions": [],
-      "available_at": 0
+      "available_at": 0,
+      "body": null,
+      "held_item_hands": []
     }
   ],
   "pregenerated": [
