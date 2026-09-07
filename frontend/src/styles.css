@@ -1174,9 +1174,24 @@ details summary {
   }
 }
 
-.connection-form {
-  max-width: 44rem;
+/* The header and the panel its tabs control are one column, so they take their
+   width from one declaration and centre together; two maxima maintained apart
+   left the edges of the first screen's stacked cards 80px out of line (#254). */
+.connection-form,
+.setup-lobby {
+  max-width: 54rem;
   margin: 1rem auto;
+}
+/* The header carries a wordmark, one line of copy and the tab row - about a
+   quarter of the scene card's 350px floor, which is sized for a panel of
+   content and left the rest of the card empty. The tab row then closes the
+   card, so its own rail would double the card's bottom border (#254). */
+.lobby-header {
+  min-height: 0;
+  padding-bottom: 0;
+}
+.lobby-header .mode-tabs {
+  border-bottom: none;
 }
 .connection-form label,
 .character-workshop label,
@@ -1316,10 +1331,6 @@ details summary {
   margin-bottom: 0.6rem;
 }
 
-.setup-lobby {
-  max-width: 54rem;
-  margin: 1rem auto;
-}
 /* The games list leads; signing out and refreshing it are upkeep beneath it. */
 .lobby-heading {
   margin-top: 0;

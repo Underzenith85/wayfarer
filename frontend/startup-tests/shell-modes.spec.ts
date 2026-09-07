@@ -120,3 +120,28 @@ test("the setup stepper stays one readable line at 320px (#206)", async ({
     ),
   ).toBe(true);
 });
+test("the lobby header is sized to its content and aligned with the panel (#254)", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const header = page.getByRole("banner");
+  const panel = page.getByRole("region", { name: "New game and lobby" });
+  const tabs = page.getByRole("tablist", { name: "Game menu" });
+  await expect(tabs).toBeVisible();
+  const [card, below, rail] = await Promise.all([
+    header.boundingBox(),
+    panel.boundingBox(),
+    tabs.boundingBox(),
+  ]);
+  // Two stacked cards read as one column only if they share both edges.
+  expect(Math.round(card!.x)).toBe(Math.round(below!.x));
+  expect(Math.round(card!.x + card!.width)).toBe(
+    Math.round(below!.x + below!.width),
+  );
+  // The tab row closes the header: no empty card below it, and none of the
+  // scene card's 350px floor, which held a wordmark and three tabs.
+  expect(card!.y + card!.height - (rail!.y + rail!.height)).toBeLessThanOrEqual(
+    8,
+  );
+  expect(card!.height).toBeLessThan(300);
+});

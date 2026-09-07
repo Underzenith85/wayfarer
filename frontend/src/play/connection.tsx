@@ -162,7 +162,7 @@ export function ConnectedApp() {
     );
   return (
     <>
-      <header className="scene-card connection-form">
+      <header className="scene-card connection-form lobby-header">
         <h1>Wayfarer</h1>
         <p>Start an adventure or return to your table.</p>
         <div className="mode-tabs" role="tablist" aria-label="Game menu">
