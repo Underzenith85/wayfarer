@@ -83,10 +83,23 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("report", type=Path)
     parser.add_argument("--output", type=Path, default=Path("artifacts/release"))
-    parser.add_argument("--product", action="store_true")
+    scope = parser.add_mutually_exclusive_group()
+    scope.add_argument("--product", action="store_true")
+    scope.add_argument("--gurps-lite", action="store_true")
     parser.add_argument("--gurps-source-audit", action="store_true")
     parser.add_argument("--gurps-basic-set", action="store_true")
     args = parser.parse_args()
+    if args.gurps_lite:
+        from scripts.lite_certification import evaluate_lite
+
+        result = evaluate_lite(args.report)
+        result["revision"] = os.environ.get("GITHUB_SHA", "local")
+        args.output.mkdir(parents=True, exist_ok=True)
+        (args.output / "lite-certification.json").write_text(json.dumps(result, indent=2) + "\n")
+        if not result["passed"]:
+            raise SystemExit(f"Lite certification blocked: {result['errors']}")
+        print("Required Lite certification evidence passed; report published.")
+        return
     rows, errors = evaluate(args.report)
     approved = json.loads((ROOT / "tests/fixtures/approved_rules.json").read_text())
     current = {
