@@ -1,0 +1,511 @@
+{
+  "ProfileSelection": {
+    "additionalProperties": false,
+    "description": "An exact registered profile. There is no latest-version selection.",
+    "properties": {
+      "id": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Id",
+        "type": "string"
+      },
+      "version": {
+        "minimum": 1,
+        "title": "Version",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "id",
+      "version"
+    ],
+    "title": "ProfileSelection",
+    "type": "object"
+  },
+  "ProfileView": {
+    "$defs": {
+      "PackageView": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "version": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Version",
+            "type": "string"
+          },
+          "digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Digest",
+            "type": "string"
+          },
+          "dependencies": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Dependencies",
+            "type": "array"
+          },
+          "source_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Source Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "digest"
+        ],
+        "title": "PackageView",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "id": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Id",
+        "type": "string"
+      },
+      "version": {
+        "minimum": 1,
+        "title": "Version",
+        "type": "integer"
+      },
+      "title": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Title",
+        "type": "string"
+      },
+      "edition": {
+        "maxLength": 100,
+        "minLength": 1,
+        "title": "Edition",
+        "type": "string"
+      },
+      "digest": {
+        "pattern": "^[0-9a-f]{64}$",
+        "title": "Digest",
+        "type": "string"
+      },
+      "supported": {
+        "title": "Supported",
+        "type": "boolean"
+      },
+      "conformance_profile_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Conformance Profile Id"
+      },
+      "packages": {
+        "items": {
+          "$ref": "#/$defs/PackageView"
+        },
+        "minItems": 1,
+        "title": "Packages",
+        "type": "array"
+      },
+      "policy_id": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Policy Id",
+        "type": "string"
+      },
+      "policy_version": {
+        "minimum": 1,
+        "title": "Policy Version",
+        "type": "integer"
+      },
+      "required_capabilities": {
+        "default": [],
+        "items": {
+          "type": "string"
+        },
+        "title": "Required Capabilities",
+        "type": "array"
+      },
+      "unverified_capabilities": {
+        "default": [],
+        "items": {
+          "type": "string"
+        },
+        "title": "Unverified Capabilities",
+        "type": "array"
+      },
+      "optional_rules": {
+        "default": [],
+        "items": {
+          "type": "string"
+        },
+        "title": "Optional Rules",
+        "type": "array"
+      }
+    },
+    "required": [
+      "id",
+      "version",
+      "title",
+      "edition",
+      "digest",
+      "supported",
+      "packages",
+      "policy_id",
+      "policy_version"
+    ],
+    "title": "ProfileView",
+    "type": "object"
+  },
+  "ProfileMigrationPreview": {
+    "$defs": {
+      "BuildDiff": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "old_revision": {
+            "title": "Old Revision",
+            "type": "string"
+          },
+          "new_revision": {
+            "title": "New Revision",
+            "type": "string"
+          },
+          "old_spent": {
+            "title": "Old Spent",
+            "type": "integer"
+          },
+          "new_spent": {
+            "title": "New Spent",
+            "type": "integer"
+          },
+          "added": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Added",
+            "type": "array"
+          },
+          "removed": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Removed",
+            "type": "array"
+          },
+          "changed_values": {
+            "default": [],
+            "items": {
+              "maxItems": 3,
+              "minItems": 3,
+              "prefixItems": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Changed Values",
+            "type": "array"
+          }
+        },
+        "required": [
+          "actor_id",
+          "old_revision",
+          "new_revision",
+          "old_spent",
+          "new_spent"
+        ],
+        "title": "BuildDiff",
+        "type": "object"
+      },
+      "Incompatibility": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "character",
+              "resource",
+              "scenario"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "reference": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Reference",
+            "type": "string"
+          },
+          "message": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "reference",
+          "message"
+        ],
+        "title": "Incompatibility",
+        "type": "object"
+      },
+      "ProfileSelection": {
+        "additionalProperties": false,
+        "description": "An exact registered profile. There is no latest-version selection.",
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version"
+        ],
+        "title": "ProfileSelection",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "campaign_id": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Campaign Id",
+        "type": "string"
+      },
+      "revision": {
+        "minimum": 0,
+        "title": "Revision",
+        "type": "integer"
+      },
+      "from_profile": {
+        "$ref": "#/$defs/ProfileSelection"
+      },
+      "to_profile": {
+        "$ref": "#/$defs/ProfileSelection"
+      },
+      "from_digest": {
+        "title": "From Digest",
+        "type": "string"
+      },
+      "to_digest": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "To Digest"
+      },
+      "actor_diffs": {
+        "default": [],
+        "items": {
+          "$ref": "#/$defs/BuildDiff"
+        },
+        "title": "Actor Diffs",
+        "type": "array"
+      },
+      "incompatibilities": {
+        "default": [],
+        "items": {
+          "$ref": "#/$defs/Incompatibility"
+        },
+        "title": "Incompatibilities",
+        "type": "array"
+      }
+    },
+    "required": [
+      "campaign_id",
+      "revision",
+      "from_profile",
+      "to_profile",
+      "from_digest"
+    ],
+    "title": "ProfileMigrationPreview",
+    "type": "object"
+  },
+  "MigrateProfile": {
+    "$defs": {
+      "ProfileSelection": {
+        "additionalProperties": false,
+        "description": "An exact registered profile. There is no latest-version selection.",
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version"
+        ],
+        "title": "ProfileSelection",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "description": "Explicit host approval. Retries with the same ID replay the original receipt.",
+    "properties": {
+      "id": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Id",
+        "type": "string"
+      },
+      "expected_revision": {
+        "minimum": 0,
+        "title": "Expected Revision",
+        "type": "integer"
+      },
+      "profile": {
+        "$ref": "#/$defs/ProfileSelection"
+      },
+      "expected_from_digest": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Expected From Digest",
+        "type": "string"
+      },
+      "reason": {
+        "maxLength": 2000,
+        "minLength": 1,
+        "title": "Reason",
+        "type": "string"
+      }
+    },
+    "required": [
+      "id",
+      "expected_revision",
+      "profile",
+      "expected_from_digest",
+      "reason"
+    ],
+    "title": "MigrateProfile",
+    "type": "object"
+  },
+  "MigrationEntry": {
+    "additionalProperties": false,
+    "properties": {
+      "id": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Id",
+        "type": "string"
+      },
+      "actor_id": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Actor Id",
+        "type": "string"
+      },
+      "revision": {
+        "minimum": 1,
+        "title": "Revision",
+        "type": "integer"
+      },
+      "from_digest": {
+        "title": "From Digest",
+        "type": "string"
+      },
+      "to_digest": {
+        "title": "To Digest",
+        "type": "string"
+      },
+      "reason": {
+        "maxLength": 2000,
+        "minLength": 1,
+        "title": "Reason",
+        "type": "string"
+      },
+      "from_profile": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "From Profile"
+      },
+      "to_profile": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "To Profile"
+      }
+    },
+    "required": [
+      "id",
+      "actor_id",
+      "revision",
+      "from_digest",
+      "to_digest",
+      "reason"
+    ],
+    "title": "MigrationEntry",
+    "type": "object"
+  }
+}

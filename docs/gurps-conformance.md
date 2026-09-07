@@ -76,7 +76,7 @@ Every mechanics PR in #94 must update the inventory and add independent cases fo
 
 No optional rule is enabled by default, and arbitrary optional-rule names are not accepted. Cinematic rules, influencing success rolls, bleeding, accumulated wounds, extra effort in combat and optional magic/psi systems need individually identified capability entries and a reviewed profile revision before activation. Broad family entries below describe future implementation targets, not permission to enable every variant. Tactical hex rules are a Basic target and are outside Lite. A future profile integration (#96) must preserve this distinction and record all enabled options explicitly.
 
-These helpers expose a fail-closed contract for future scenario/character validators. Existing validators and campaign persistence still use the prototype package; this PR does not claim that they are already wired to a new GURPS runtime. #96 owns selection and migration, and mechanics implementation belongs to its existing owners.
+These helpers expose a fail-closed contract for scenario/character validators. #96 wires selection through them: `wayfarer.rules.profiles` registers `profile:gurps-lite-4e-2004@1` and `profile:gurps-basic-set-4e-2004@1` with exactly the required capability sets above, and a profile is selectable only when every required capability is `verified`. Today neither GURPS profile is selectable; new campaigns that name one are rejected with the unverified capability list, existing campaigns keep the prototype pins, and switching a paused campaign requires the explicit migration described in [rules profiles](rules-profiles.md). Mechanics implementation still belongs to the owners in the matrix, and each mechanics PR must move its capabilities to `verified` before its profile can activate.
 
 ## Independent evidence
 
@@ -106,7 +106,7 @@ Explicit engine interpretations, recorded here because the frozen sources do not
 - Critical results have no separate clause in the published Quick Contest text, so contests decide by margin only; a critical success can lose to a larger ordinary margin.
 - Margin of victory when both contestants fail is the difference of their margins of failure, extending the published mixed and both-succeed definitions.
 
-Integration boundary: campaign play still resolves through the prototype package. Selecting a GURPS profile for a saved campaign is #96's explicit migration; these services are ready for it and for the scenario/character validators, but nothing in this change alters existing campaign behaviour.
+Integration boundary: campaign play still resolves through the prototype package. Selecting a GURPS profile for a saved campaign is the explicit migration in [rules profiles](rules-profiles.md), which stays rejected until every required capability of that profile is verified; these services are ready for it and for the scenario/character validators, but nothing in this change alters existing campaign behaviour.
 
 ## Outstanding acceptance blockers
 
@@ -170,3 +170,9 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.supernatural.abilities` | no | yes | absent | #118 |
 | `gurps.vehicles.movement` | no | yes | absent | #120 |
 | `gurps.vehicles.combat` | no | yes | absent | #120 |
+
+Profile registration and explicit migration (#96) are infrastructure, not
+mechanics: they add no row and change no state above. Both GURPS profiles remain
+unsupported while any `lite_required` or `basic_required` entry is still
+`absent`, `partial` or `manual`; the verified `gurps.check.*` rows alone do not
+make either profile selectable.
