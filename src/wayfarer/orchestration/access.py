@@ -265,7 +265,7 @@ class CampaignAccess:
                     )
                     try:
                         recovery.assess(state, candidate)
-                    except (ValidationError, ConflictError):
+                    except ValidationError, ConflictError:
                         continue
                     choices.append(
                         {
