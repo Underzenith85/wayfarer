@@ -937,3 +937,75 @@ details summary {
   margin: 0.4rem 0.4rem 0.4rem 0;
   min-height: 44px;
 }
+
+.multiplayer-panel,
+.connection-status {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  background: var(--surface);
+  margin-bottom: 1rem;
+}
+.multiplayer-heading,
+.presence-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.multiplayer-panel h2 {
+  font-size: 1.15rem;
+}
+.multiplayer-panel label {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+.multiplayer-panel select,
+.multiplayer-panel textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  color: inherit;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 0.65rem;
+  font: inherit;
+}
+.multiplayer-panel p {
+  line-height: 1.6;
+}
+.presence-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 0.7rem;
+}
+.presence-list span {
+  font-size: 0.9rem;
+}
+.group-controls,
+.ooc-panel {
+  border-top: 1px solid var(--border);
+  margin-top: 1rem;
+  padding-top: 1rem;
+}
+.group-controls summary {
+  cursor: pointer;
+  padding: 0.5rem 0;
+}
+.ooc-panel > label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.ooc-panel input {
+  width: 20px;
+  height: 20px;
+}
+.ooc-panel li {
+  overflow-wrap: anywhere;
+  margin-bottom: 0.6rem;
+}

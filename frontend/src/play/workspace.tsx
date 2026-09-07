@@ -6,6 +6,7 @@ import { Button } from "../components/ui/button";
 import { usePlay } from "./use-play";
 import type { Entry } from "./store";
 import type { Channel } from "./transport";
+import { MultiplayerPanel } from "../multiplayer/panel";
 export function CampaignHome() {
   const { state, store } = usePlay();
   const navigate = useNavigate();
@@ -155,7 +156,11 @@ function Clarification({ entry }: { entry: Entry }) {
   const [answer, setAnswer] = useState("");
   const a = entry.action;
   if (a?.status !== "needs_clarification") return null;
-  const disabled = state.busy || !!state.retry;
+  const disabled =
+    state.connection !== "online" ||
+    state.busy ||
+    !!state.retry ||
+    !!state.tableRetry;
   return (
     <section className="clarification" aria-label="Pending choice">
       <h3>A detail before we continue</h3>
@@ -293,22 +298,24 @@ function Composer() {
       <fieldset disabled={state.busy || !!state.retry}>
         <legend>Message channel</legend>
         <div className="channel-picker">
-          {(["action", "dialogue", "ooc"] as const).map((value) => (
-            <label key={value}>
-              <input
-                type="radio"
-                name="channel"
-                value={value}
-                checked={channel === value}
-                onChange={() => setChannel(value)}
-              />
-              {value === "action"
-                ? "Action"
-                : value === "dialogue"
-                  ? "Dialogue"
-                  : "OOC"}
-            </label>
-          ))}
+          {(["action", "dialogue", "ooc"] as const)
+            .filter((value) => !store.transport.multiplayer || value !== "ooc")
+            .map((value) => (
+              <label key={value}>
+                <input
+                  type="radio"
+                  name="channel"
+                  value={value}
+                  checked={channel === value}
+                  onChange={() => setChannel(value)}
+                />
+                {value === "action"
+                  ? "Action"
+                  : value === "dialogue"
+                    ? "Dialogue"
+                    : "OOC"}
+              </label>
+            ))}
         </div>
       </fieldset>
       <label htmlFor="play-draft">
@@ -388,6 +395,7 @@ export function PlayWorkspace() {
   return (
     <div className="play-workspace">
       <LiveControls />
+      <MultiplayerPanel />
       {store.transport.sample && (
         <p className="sample-note">Sample story · Fixed outcomes for preview</p>
       )}
