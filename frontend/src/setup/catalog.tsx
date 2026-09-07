@@ -12,6 +12,20 @@ type Summary = {
   published: boolean;
   archived: boolean;
 };
+type Finding = { code: string; message: string };
+type GenerationJob = {
+  id: string;
+  scenario_id: string;
+  owner_id: string;
+  base_revision: number;
+  base_version: number;
+  instruction: string;
+  section: "all" | "public" | "graph" | "party" | "gm_notes";
+  status: "queued" | "running" | "needs_review" | "failed" | "cancelled";
+  proposal_json: string | null;
+  report: { status: string; findings: Finding[] } | null;
+  error: string | null;
+};
 type View = {
   entry: Summary;
   revision: {
@@ -20,15 +34,18 @@ type View = {
   };
   current_report: {
     status: string;
-    findings: { code: string; message: string }[];
+    findings: Finding[];
   };
+  generation_jobs: GenerationJob[];
 };
 
 export function ScenarioCatalog({
   token,
+  generationAvailable,
   onCreate,
 }: {
   token: string;
+  generationAvailable: boolean;
   onCreate: (lobby: Lobby) => void;
 }) {
   const [entries, setEntries] = useState<Summary[]>([]);
@@ -37,6 +54,9 @@ export function ScenarioCatalog({
   >([]);
   const [view, setView] = useState<View>();
   const [source, setSource] = useState("");
+  const [instruction, setInstruction] = useState("");
+  const [section, setSection] = useState<GenerationJob["section"]>("all");
+  const [job, setJob] = useState<GenerationJob>();
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState<{
@@ -80,6 +100,8 @@ export function ScenarioCatalog({
     );
     setView(next);
     setSource(next.revision.draft.content_json);
+    setJob(next.generation_jobs.at(-1));
+    return next;
   };
   useEffect(() => {
     let cancelled = false;
@@ -150,6 +172,43 @@ export function ScenarioCatalog({
         },
       });
     });
+  const startGeneration = async () => {
+    if (!instruction.trim()) throw new Error("Describe the change you want first.");
+    let target = view;
+    if (!target) {
+      if (!source.trim())
+        throw new Error("Choose a bundled template as a safe rules baseline first.");
+      const saved = await request<Summary>("", {
+        id: crypto.randomUUID(),
+        operation: "create",
+        expected_version: 0,
+        content_json: source,
+      });
+      await reload();
+      target = await open(saved.id, saved.revision);
+    }
+    const next = await request<GenerationJob>(`/${target.entry.id}/generate`, {
+      id: crypto.randomUUID(),
+      expected_version: target.entry.version,
+      revision: target.revision.draft.edit,
+      instruction: instruction.trim(),
+      section,
+    });
+    setJob(next);
+  };
+  const refreshJob = async () => {
+    if (!view || !job) return;
+    setJob(
+      await request<GenerationJob>(
+        `/${view.entry.id}/generation-jobs/${job.id}`,
+      ),
+    );
+  };
+  const staleProposal =
+    !!view &&
+    !!job &&
+    (job.base_version !== view.entry.version ||
+      job.base_revision !== view.revision.draft.edit);
   return (
     <section aria-label="Scenario catalog">
       <h3>Scenario catalog</h3>
@@ -167,6 +226,7 @@ export function ScenarioCatalog({
             const template = templates[Number(e.target.value)];
             if (template) {
               setView(undefined);
+              setJob(undefined);
               setSource(JSON.stringify(template, null, 2));
             }
           }}
@@ -189,6 +249,7 @@ export function ScenarioCatalog({
         disabled={busy || !!pending}
         onClick={() => {
           setView(undefined);
+          setJob(undefined);
           setSource("");
         }}
       >
@@ -199,7 +260,7 @@ export function ScenarioCatalog({
           <li key={entry.id}>
             <Button
               disabled={busy || !!pending}
-              onClick={() => void run(() => open(entry.id))}
+              onClick={() => void run(() => open(entry.id).then(() => undefined))}
             >
               {entry.title} · {entry.status} ·{" "}
               {entry.published ? "published" : "draft"}
@@ -216,7 +277,9 @@ export function ScenarioCatalog({
             value={view.revision.draft.edit}
             disabled={busy || !!pending}
             onChange={(e) =>
-              void run(() => open(view.entry.id, Number(e.target.value)))
+              void run(() =>
+                open(view.entry.id, Number(e.target.value)).then(() => undefined),
+              )
             }
           >
             {Array.from({ length: view.entry.revision }, (_, i) => (
@@ -257,6 +320,119 @@ export function ScenarioCatalog({
           </ul>
         </>
       )}
+      <article aria-label="AI scenario co-creation">
+        <h4>Create or refine with AI</h4>
+        <p>
+          Describe the game or revision you want. The model can only propose a
+          standard scenario document; it cannot publish, approve characters, or
+          start play. You review the proposal before saving it.
+        </p>
+        {!generationAvailable && (
+          <p role="status">
+            AI authoring is unavailable on this server. Templates, saved
+            scenarios, manual editing, import/export, and game creation remain
+            available.
+          </p>
+        )}
+        <label>
+          What kind of game do you want?
+          <textarea
+            value={instruction}
+            maxLength={4000}
+            placeholder="A tense two-hour investigation with a rescue route, low lethality, and no supernatural horror."
+            disabled={!generationAvailable || busy || !!pending}
+            onChange={(e) => setInstruction(e.target.value)}
+          />
+        </label>
+        <label>
+          Refine section
+          <select
+            value={section}
+            disabled={!generationAvailable || busy || !!pending}
+            onChange={(e) => setSection(e.target.value as GenerationJob["section"])}
+          >
+            <option value="all">Whole scenario</option>
+            <option value="public">Premise, genre, tone, boundaries and opening hook</option>
+            <option value="graph">Scenes, objectives, alternatives and consequences</option>
+            <option value="party">Party requirements and capabilities</option>
+            <option value="gm_notes">Private GM notes</option>
+          </select>
+        </label>
+        <div className="context-actions">
+          <Button
+            disabled={!generationAvailable || busy || !!pending || view?.entry.archived}
+            onClick={() => void run(startGeneration)}
+          >
+            Generate proposal
+          </Button>
+          {job && (
+            <Button disabled={busy} onClick={() => void run(refreshJob)}>
+              Refresh proposal status
+            </Button>
+          )}
+          {view && job && (job.status === "queued" || job.status === "running") && (
+            <Button
+              disabled={busy}
+              onClick={() =>
+                void run(async () => {
+                  setJob(
+                    await request<GenerationJob>(
+                      `/${view.entry.id}/generation-jobs/${job.id}/cancel`,
+                      { id: crypto.randomUUID() },
+                    ),
+                  );
+                })
+              }
+            >
+              Cancel generation
+            </Button>
+          )}
+        </div>
+        {job && (
+          <p role="status">
+            Proposal {job.status} · section {job.section}
+            {job.error ? ` · ${job.error}` : ""}
+          </p>
+        )}
+        {job?.report && (
+          <ul>
+            {job.report.findings.map((f, i) => (
+              <li key={i}>
+                {f.code}: {f.message}
+              </li>
+            ))}
+          </ul>
+        )}
+        {job?.status === "needs_review" && job.proposal_json && (
+          <>
+            <label>
+              AI proposal JSON — review before accepting
+              <textarea
+                aria-label="AI proposal JSON"
+                rows={12}
+                readOnly
+                value={job.proposal_json}
+              />
+            </label>
+            {staleProposal && (
+              <p role="alert">
+                This proposal was generated from an older saved revision. Your
+                newer edits are preserved; generate again from the current revision.
+              </p>
+            )}
+            <Button
+              disabled={busy || staleProposal || view?.entry.archived}
+              onClick={() => setSource(job.proposal_json ?? source)}
+            >
+              Accept proposal into editor
+            </Button>
+            <p>
+              Accepting only loads the proposal into the editor. Use Save scenario
+              draft, Validate, Publish, and Create game explicitly below.
+            </p>
+          </>
+        )}
+      </article>
       <div className="context-actions">
         <Button
           disabled={busy || !!pending || view?.entry.archived}
