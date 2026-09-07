@@ -4,6 +4,7 @@ import { usePlay } from "../play/use-play";
 import type { AdventurePort, DecisionCommand, JournalKind } from "./model";
 import type { Scope } from "../multiplayer/model";
 import { Button } from "../components/ui/button";
+import { Link } from "@tanstack/react-router";
 
 function Boundary({
   children,
@@ -47,6 +48,208 @@ export function EncounterPanel() {
         />
       )}
     </Boundary>
+  );
+}
+export function SessionClosure() {
+  return (
+    <Boundary>
+      {(port, scope, epoch) => (
+        <ClosureContents
+          key={key(scope, epoch)}
+          port={port}
+          scope={scope}
+          epoch={epoch}
+        />
+      )}
+    </Boundary>
+  );
+}
+function ClosureContents({
+  port,
+  scope,
+  epoch,
+}: {
+  port: AdventurePort;
+  scope: Scope;
+  epoch: string;
+}) {
+  const { store } = usePlay();
+  const client = useQueryClient();
+  const [selections, setSelections] = useState<Record<string, string>>({});
+  const [retry, setRetry] = useState<import("./model").ClosureCommand | null>(
+    null,
+  );
+  const [error, setError] = useState<string | null>(null);
+  const result = useQuery({
+    queryKey: [
+      "adventure",
+      store.transport.principalId,
+      key(scope, epoch),
+      "closure",
+    ],
+    queryFn: ({ signal }) => port.closure(scope, epoch, signal),
+  });
+  async function settle(command: import("./model").ClosureCommand) {
+    setError(null);
+    try {
+      await port.settle(command, new AbortController().signal);
+      setRetry(null);
+      await client.invalidateQueries({
+        queryKey: ["adventure", store.transport.principalId],
+      });
+    } catch (cause) {
+      setRetry(command);
+      setError(
+        cause instanceof Error ? cause.message : "Settlement unavailable.",
+      );
+    }
+  }
+  if (result.isPending) return <p role="status">Loading session closure…</p>;
+  if (result.error || !result.data)
+    return (
+      <p role="alert">
+        Session closure unavailable.{" "}
+        <Button onClick={() => void result.refetch()}>Retry</Button>
+      </p>
+    );
+  const view = result.data;
+  return (
+    <div className="closure-stack">
+      <section className="scene-card closure-hero">
+        <div className="card-top">
+          <span className={`outcome outcome-${view.outcome}`}>
+            {view.outcome} outcome
+          </span>
+          <span className="eyebrow">
+            Session {view.session.status} · Campaign {view.campaign.status}
+          </span>
+        </div>
+        <h2>
+          {view.session.status === "paused"
+            ? "The story pauses here"
+            : "Adventure complete"}
+        </h2>
+        <p className="scene-description">{view.session.summary}</p>
+        {view.epilogue.map((line) => (
+          <p key={line}>{line}</p>
+        ))}
+        {view.campaign.canContinue && (
+          <p>
+            <strong>
+              This adventure’s outcome is not the end of the campaign.
+            </strong>
+          </p>
+        )}
+      </section>
+      <section className="scene-card closure-section">
+        <h2>Known objective outcomes</h2>
+        {view.objectives.map((objective) => (
+          <article key={objective.id} className="closure-row">
+            <span className={`outcome outcome-${objective.outcome}`}>
+              {objective.outcome}
+            </span>
+            <div>
+              <h3>{objective.title}</h3>
+              <p>{objective.detail}</p>
+            </div>
+          </article>
+        ))}
+      </section>
+      <section className="scene-card closure-section">
+        <h2>Rewards and lasting consequences</h2>
+        {view.rewards.length ? (
+          view.rewards.map((reward) => (
+            <p key={reward.id}>
+              <strong>{reward.label}</strong> · {reward.detail}
+            </p>
+          ))
+        ) : (
+          <p>No rewards were authorized for this outcome.</p>
+        )}
+        {view.consequences.map((item) => (
+          <p key={item.id}>
+            <strong>{item.kind}</strong> · {item.detail}
+          </p>
+        ))}
+        <p className="sample-note">
+          Outcomes and rewards come from the campaign authority. This screen
+          cannot create them.
+        </p>
+      </section>
+      <section className="scene-card closure-section">
+        <h2>Downtime and advancement</h2>
+        {view.advancement.map((item) => (
+          <fieldset
+            key={item.id}
+            disabled={view.settlement.status === "settled"}
+          >
+            <legend>{item.label}</legend>
+            {item.options.map((option) => (
+              <label className="advancement-option" key={option.id}>
+                <input
+                  type="radio"
+                  name={item.id}
+                  checked={
+                    (view.settlement.status === "settled"
+                      ? item.selectedId
+                      : selections[item.id]) === option.id
+                  }
+                  onChange={() =>
+                    setSelections({ ...selections, [item.id]: option.id })
+                  }
+                />
+                <span>
+                  <strong>{option.label}</strong>
+                  <small>{option.detail}</small>
+                </span>
+              </label>
+            ))}
+          </fieldset>
+        ))}
+        {view.settlement.status === "settled" ? (
+          <p role="status">
+            <strong>Rewards settled.</strong> This settlement cannot be claimed
+            again.
+          </p>
+        ) : (
+          <Button
+            disabled={view.advancement.some((item) => !selections[item.id])}
+            onClick={() =>
+              void settle({
+                commandId: crypto.randomUUID(),
+                scope,
+                epoch,
+                version: view.version,
+                settlementId: view.settlement.id,
+                selections: view.advancement.map((item) => ({
+                  advancementId: item.id,
+                  optionId: selections[item.id]!,
+                })),
+              })
+            }
+          >
+            Settle rewards and choices
+          </Button>
+        )}
+        {retry && (
+          <Button variant="outline" onClick={() => void settle(retry)}>
+            Retry recorded settlement
+          </Button>
+        )}
+        {error && <p role="alert">{error}</p>}
+      </section>
+      {view.nextAdventure && (
+        <section className="scene-card closure-section">
+          <span className="eyebrow">Next adventure preview</span>
+          <h2>{view.nextAdventure.title}</h2>
+          <p>{view.nextAdventure.premise}</p>
+          <p>
+            <strong>Known hook:</strong> {view.nextAdventure.knownHook}
+          </p>
+          <Link to="/">Continue campaign</Link>
+        </section>
+      )}
+    </div>
   );
 }
 function useOverview(port: AdventurePort, scope: Scope, epoch: string) {

@@ -24,6 +24,43 @@ function setup() {
   return { table, authority, scope, epoch, overview, command };
 }
 describe("proposed adventure authority", () => {
+  it("settles only server-authored rewards and advancement once", () => {
+    const f = setup();
+    const before = f.authority.closure("captive", f.scope, f.epoch, "failure");
+    expect(before.outcome).toBe("failure");
+    expect(before.campaign.canContinue).toBe(true);
+    expect(before.rewards).toEqual([]);
+    expect(before.consequences[0]?.kind).toBe("custody");
+    const command = {
+      commandId: crypto.randomUUID(),
+      scope: f.scope,
+      epoch: f.epoch,
+      version: before.version,
+      settlementId: before.settlement.id,
+      selections: [{ advancementId: "downtime", optionId: "recover" }],
+    };
+    const settled = f.authority.settle("captive", command);
+    expect(settled.settlement.status).toBe("settled");
+    expect(settled.advancement[0]?.selectedId).toBe("recover");
+    expect(f.authority.settle("captive", command).settlement.status).toBe(
+      "settled",
+    );
+    expect(() =>
+      f.authority.settle("captive", {
+        ...command,
+        commandId: crypto.randomUUID(),
+      }),
+    ).toThrow("already claimed");
+  });
+  it("reports partial completion separately from campaign end", () => {
+    const f = setup();
+    const closure = f.authority.closure("captive", f.scope, f.epoch, "partial");
+    expect(closure.outcome).toBe("partial");
+    expect(closure.session.status).toBe("completed");
+    expect(closure.campaign.status).toBe("active");
+    expect(closure.campaign.canContinue).toBe(true);
+    expect(closure.nextAdventure?.title).toBe("Beyond the Alder Ford");
+  });
   it("commits defense once, rejects stale or illegal decisions, and resumes pending choices", () => {
     const f = setup();
     const command = f.command();

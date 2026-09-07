@@ -1,7 +1,11 @@
 import { OnboardingPanel } from "../onboarding/panel";
 import { VoicePanel } from "../voice/panel";
 import { LiveControls } from "./live-controls";
-import { EncounterPanel, DiscoveryJournal } from "../adventure/pages";
+import {
+  EncounterPanel,
+  DiscoveryJournal,
+  SessionClosure,
+} from "../adventure/pages";
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowUp, ChevronRight, MessageCircle, Sparkles } from "lucide-react";
@@ -70,6 +74,7 @@ export function CampaignHome() {
           not a live game.
         </p>
       )}
+      {store.transport.adventure && <SessionClosure />}
     </section>
   );
 }

@@ -118,3 +118,50 @@ test("lost decision acknowledgement retries once and recap resumes after its che
     page.getByText("Deflected the guard’s strike.", { exact: true }),
   ).toHaveCount(0);
 });
+
+test("partial closure settles offered downtime once and continues the campaign", async ({
+  page,
+}) => {
+  const room = crypto.randomUUID();
+  await page.goto(`/campaign?adventure=true&closure=partial&room=${room}`);
+  await expect(
+    page.getByRole("heading", { name: "Adventure complete" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("partial outcome", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText(/not the end of the campaign/)).toBeVisible();
+  await expect(
+    page.getByText("2 points authorized by the campaign record"),
+  ).toBeVisible();
+  await page.getByLabel("Research").check();
+  await page
+    .getByRole("button", { name: "Settle rewards and choices" })
+    .click();
+  await expect(
+    page.getByText(/This settlement cannot be claimed again/),
+  ).toBeVisible();
+  await page.reload();
+  await expect(page.getByLabel("Research")).toBeChecked();
+  await expect(
+    page.getByText(/This settlement cannot be claimed again/),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Continue campaign" }),
+  ).toBeVisible();
+});
+
+test("archived success is final and has no continuation action", async ({
+  page,
+}) => {
+  await page.goto(
+    `/campaign?adventure=true&closure=archive&room=${crypto.randomUUID()}`,
+  );
+  await expect(page.getByText(/Campaign archived/)).toBeVisible();
+  await expect(
+    page.getByText("success outcome", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Continue campaign" }),
+  ).toHaveCount(0);
+});
