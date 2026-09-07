@@ -18,7 +18,9 @@ from wayfarer.simulation.actions import ACTION_ADAPTER, PlayState
 
 
 class CampaignAccess:
-    def __init__(self, play: PlayService, medical_environment: EnvironmentResolver | None = None) -> None:
+    def __init__(
+        self, play: PlayService, medical_environment: EnvironmentResolver | None = None
+    ) -> None:
         self.play = play
         self.medical_environment = medical_environment
 
