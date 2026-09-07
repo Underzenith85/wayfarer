@@ -34,7 +34,11 @@ control-transfer workflow, never a silent replacement. Players cannot alter
 other players' readiness or grant themselves characters.
 
 Setup states are draft → ready → active ⇄ paused → completed → archived.
-Editing the scenario/party clears assignments and readiness. Inviting or
+Editing the brief/scenario/party clears readiness and retains controller
+assignments only for characters still present as PCs. An omitted `graph` in an
+edit preserves the saved adventure; explicit `graph: null` removes it and its
+assignments. A brief that no longer matches the adventure cannot become ready
+until the host saves a compatible graph. Inviting or
 assigning players clears readiness. Completion requires an engine-determined
 terminal objective outcome. Pausing or completing waits for in-flight director
 turns; encounter decisions survive pause/resume. Archived campaigns are readable

@@ -166,7 +166,16 @@ class SetupService:
         current = await self.play.store.read(cid)
         self.seat(self.load(current), principal_id)
         payload = json.dumps(
-            {"principal": principal_id, "command": command.model_dump(mode="json")}, sort_keys=True
+            {
+                "principal": principal_id,
+                "command": command.model_dump(
+                    mode="json",
+                    exclude={"graph"}
+                    if command.operation == "edit" and "graph" not in command.model_fields_set
+                    else None,
+                ),
+            },
+            sort_keys=True,
         )
         key = "setup:" + command.id
 
@@ -188,10 +197,27 @@ class SetupService:
                     raise ConflictError(
                         "Edit the catalog and create a new game to change a pinned scenario"
                     )
+                # An omitted graph leaves the saved adventure intact; explicit null
+                # clears it. Keep controllers for characters that still exist,
+                # but require everyone to review the edited setup again.
+                graph = command.graph if "graph" in command.model_fields_set else setup.graph
                 setup = setup.model_copy(
-                    update={"brief": command.brief or setup.brief, "graph": command.graph}
+                    update={"brief": command.brief or setup.brief, "graph": graph}
                 )
-                seats = [s.model_copy(update={"ready": False, "actor_ids": ()}) for s in seats]
+                player_ids = (
+                    {a.actor_id for a in graph.actors} - set(graph.npc_actor_ids)
+                    if graph
+                    else set()
+                )
+                seats = [
+                    s.model_copy(
+                        update={
+                            "ready": False,
+                            "actor_ids": tuple(a for a in s.actor_ids if a in player_ids),
+                        }
+                    )
+                    for s in seats
+                ]
             elif op == "invite":
                 if not command.principal_id or any(
                     s.principal_id == command.principal_id for s in seats
