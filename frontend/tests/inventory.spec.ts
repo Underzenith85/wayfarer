@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-async function open(page: Page, journey = "inventory") {
+async function openInventory(page: Page, journey: string) {
   await page.goto(`/campaign?inventory=${journey}`);
   await page
     .getByRole("article")
@@ -13,6 +13,9 @@ async function open(page: Page, journey = "inventory") {
     .getByRole("navigation")
     .getByRole("link", { name: "Inventory", exact: true })
     .click();
+}
+async function open(page: Page, journey = "inventory") {
+  await openInventory(page, journey);
   await expect(
     page.getByRole("button", { name: "View Bandage", exact: true }),
   ).toBeVisible();
@@ -190,4 +193,25 @@ test("authorized recovery refresh restores custody and use affordance", async ({
   await expect(
     page.getByRole("dialog").getByRole("button", { name: "Confirm use" }),
   ).toBeEnabled();
+});
+test("an empty inventory offers no search or location filter", async ({
+  page,
+}) => {
+  await openInventory(page, "empty");
+  await expect(page.getByText("No items in this inventory.")).toBeVisible();
+  await expect(page.getByLabel("Find an item")).toHaveCount(0);
+  await expect(page.getByLabel("Location", { exact: true })).toHaveCount(0);
+});
+test("inventory fields are no wider than the content they hold", async ({
+  page,
+}) => {
+  await open(page);
+  const search = await page.getByLabel("Find an item").boundingBox();
+  expect(search!.width).toBeLessThanOrEqual(480);
+  await operation(page, "Bandage", "use_item");
+  const quantity = await page
+    .getByRole("dialog")
+    .getByLabel("Quantity", { exact: true })
+    .boundingBox();
+  expect(quantity!.width).toBeLessThanOrEqual(96);
 });
