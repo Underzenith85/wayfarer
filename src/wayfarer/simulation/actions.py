@@ -16,6 +16,7 @@ from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.rules.catalog import SKILLS, DefinitionKind, ImplementationStatus
 from wayfarer.rules.checks import CheckTrace, Modifier, Outcome, RandomSource, success_check
 from wayfarer.rules.effects import DerivedValue, EffectEvaluator, MechanicalTarget
+from wayfarer.rules.hazard_types import require_hazards_settled
 from wayfarer.rules.location_types import Hand, HumanBody, disabled_locations
 from wayfarer.simulation.ability_types import AbilityRules
 from wayfarer.simulation.access import CampaignMember
@@ -678,6 +679,9 @@ class ActionEngine:
             return result("rejected", "combat.command_required")
         if isinstance(command, Question) or command.hypothetical:
             return result("question", "action.no_effect")
+        require_hazards_settled(
+            state.resources.hazards, frozenset({command.actor_id}), state.resources.game_time
+        )
         if actor.approval is None:
             return result("rejected", "character.approval_required")
         pools = {p.id: p for p in state.resources.pools}

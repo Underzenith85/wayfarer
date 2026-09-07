@@ -308,7 +308,9 @@
       "fired": [],
       "receipts": [],
       "events": [],
-      "recovery_tasks": []
+      "recovery_tasks": [],
+      "hazards": [],
+      "illnesses": []
     },
     "npc_actor_ids": [
       "warden"

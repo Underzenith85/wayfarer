@@ -9,6 +9,7 @@ from wayfarer.orchestration.gurps_melee import injury_turn
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.recovery import guard
 from wayfarer.rules.abilities import fatigue_cost, validate_binding
+from wayfarer.rules.hazard_types import require_hazards_settled
 from wayfarer.rules.recovery_types import interrupt_tasks
 from wayfarer.rules.traits import TraitOptions
 from wayfarer.simulation.abilities import (
@@ -33,6 +34,9 @@ class AbilityService:
         guard(state, command.actor_id, "ability")
         if command.kind != "cancel":
             synchronous(state, command.actor_id)
+            require_hazards_settled(
+                state.resources.hazards, frozenset({command.actor_id}), state.resources.game_time
+            )
         rules = self.play.engine.rules.abilities
         if rules is None:
             raise ValidationError("Campaign has no executable ability bindings")
@@ -61,6 +65,9 @@ class AbilityService:
                 state.resources.recovery_tasks,
                 frozenset({channel.target_id}),
                 state.resources.game_time,
+            )
+            require_hazards_settled(
+                state.resources.hazards, frozenset({channel.target_id}), state.resources.game_time
             )
         target = next(
             (a for a in state.actors if channel and a.actor_id == channel.target_id), None

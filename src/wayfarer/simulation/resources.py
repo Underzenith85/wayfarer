@@ -21,6 +21,7 @@ from wayfarer.rules.catalog import (
     RulesCatalog,
 )
 from wayfarer.rules.effects import Effect
+from wayfarer.rules.hazard_types import HazardSchedule, RecoveryRestriction, require_hazards_settled
 from wayfarer.rules.injury_types import InjuryStatus
 from wayfarer.rules.recovery_types import FatigueStatus, RecoveryTask, require_settled, retire_tasks
 from wayfarer.world import EntityKind, World
@@ -126,9 +127,28 @@ class ResourceState(Record):
     receipts: tuple[Receipt, ...] = ()
     events: tuple[ResourceEvent, ...] = ()
     recovery_tasks: tuple[RecoveryTask, ...] = ()
+    hazards: tuple[HazardSchedule, ...] = ()
+    illnesses: tuple[RecoveryRestriction, ...] = ()
 
     @model_validator(mode="after")
     def validate_recovery_tasks(self) -> ResourceState:
+        if len({h.id for h in self.hazards}) != len(self.hazards):
+            raise ValueError("Duplicate hazard schedule ID")
+        if len({i.id for i in self.illnesses}) != len(self.illnesses):
+            raise ValueError("Duplicate illness restriction ID")
+        if any(h.due < h.started or h.started > self.game_time for h in self.hazards):
+            raise ValueError("Invalid hazard timeline")
+        pools = {p.id: p for p in self.pools}
+        for hazard in self.hazards:
+            hp = pools.get("hp:" + hazard.actor_id)
+            if hp is None or hp.injury is None or hp.injury.profile_id != hazard.spec.profile_id:
+                raise ValueError("Hazard requires a matching profile actor")
+            if (
+                hazard.active
+                and not hp.injury.dead
+                and (hazard.remaining == 0 or hazard.due < self.game_time)
+            ):
+                raise ValueError("Active hazard cannot have expired or exhausted cycles")
         if len({task.id for task in self.recovery_tasks}) != len(self.recovery_tasks):
             raise ValueError("Duplicate recovery task ID")
         for task in self.recovery_tasks:
@@ -379,6 +399,7 @@ class ResourceEngine:
             raise ConflictError("Resource revision changed")
         if not isinstance(command, Advance):
             require_settled(state.recovery_tasks, frozenset({command.actor_id}), state.game_time)
+            require_hazards_settled(state.hazards, frozenset({command.actor_id}), state.game_time)
         items = {i.id: i for i in state.items}
         updated = state
         if isinstance(command, (Transfer, Consume, Equip, Unequip)):
@@ -454,6 +475,13 @@ class ResourceEngine:
         elif isinstance(command, Advance):
             if command.to < state.game_time:
                 raise ValidationError("Game time cannot move backwards")
+            living = {
+                p.id.removeprefix("hp:") for p in state.pools if p.injury and not p.injury.dead
+            }
+            if any(h.active and h.actor_id in living and h.due < command.to for h in state.hazards):
+                raise ConflictError(
+                    "Advance to the hazard deadline and resolve it before continuing"
+                )
             if any(
                 p.injury is not None
                 and p.injury.mortal_wound
