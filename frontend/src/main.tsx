@@ -9,7 +9,14 @@ async function start() {
     const params = new URLSearchParams(location.search);
     const identity = params.get("multiplayer");
     const inventory = params.get("inventory");
-    if (identity === "captive" || identity === "rescuer") {
+    if (params.get("adventure") === "true") {
+      const { AdventureFixtureTransport } =
+        await import("./adventure/fixture-transport");
+      transport = new AdventureFixtureTransport(
+        identity === "rescuer" ? "rescuer" : "captive",
+        params.get("room") ?? "adventure-demo",
+      );
+    } else if (identity === "captive" || identity === "rescuer") {
       const { MultiplayerFixtureTransport } =
         await import("./multiplayer/fixture-transport");
       transport = new MultiplayerFixtureTransport(

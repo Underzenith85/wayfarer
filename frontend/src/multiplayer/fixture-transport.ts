@@ -28,7 +28,7 @@ export class MultiplayerFixtureTransport
   ) {
     this.principalId = `mock:${room}:${identity}`;
   }
-  private async request<T>(body: unknown, signal: AbortSignal): Promise<T> {
+  protected async request<T>(body: unknown, signal: AbortSignal): Promise<T> {
     let response: Response;
     try {
       response = await fetch("/__fixtures/multiplayer", {

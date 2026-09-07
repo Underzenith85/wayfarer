@@ -1,4 +1,5 @@
 import { LiveControls } from "./live-controls";
+import { EncounterPanel, DiscoveryJournal } from "../adventure/pages";
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowUp, ChevronRight, MessageCircle, Sparkles } from "lucide-react";
@@ -139,17 +140,18 @@ export function CharacterSummary() {
   );
 }
 export function Journal() {
-  const { state } = usePlay();
-  return (
-    <section className="scene-card">
-      <span className="eyebrow">Last time at the table</span>
-      <h2>Session recap</h2>
-      <p>
-        {state.snapshot?.session?.summary ??
-          "No session recap is available yet."}
-      </p>
-    </section>
-  );
+  const { store, state } = usePlay();
+  if (!store.transport.adventure)
+    return (
+      <section className="scene-card">
+        <h2>Session recap</h2>
+        <p>
+          {state.snapshot?.session?.summary ??
+            "No session recap is available yet."}
+        </p>
+      </section>
+    );
+  return <DiscoveryJournal />;
 }
 function Clarification({ entry }: { entry: Entry }) {
   const { state, store } = usePlay();
@@ -396,6 +398,7 @@ export function PlayWorkspace() {
     <div className="play-workspace">
       <LiveControls />
       <MultiplayerPanel />
+      <EncounterPanel />
       {store.transport.sample && (
         <p className="sample-note">Sample story · Fixed outcomes for preview</p>
       )}
