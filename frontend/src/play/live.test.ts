@@ -136,3 +136,34 @@ describe("authenticated engine adapter", () => {
     });
   });
 });
+
+it("keeps a scheduled turn waiting until its durable activity resolves", async () => {
+  const turn = {
+    id: "scheduled",
+    actor_id: "a",
+    text: "wait",
+    phase: "waiting",
+    committed: false,
+    narration: "Waiting for shared-time coordination.",
+    narration_available: false,
+  };
+  const waiting = { ...fixture, director: [turn] };
+  const fetcher = vi
+    .spyOn(globalThis, "fetch")
+    .mockResolvedValueOnce(new Response(JSON.stringify(waiting)))
+    .mockResolvedValueOnce(new Response("{}"))
+    .mockResolvedValueOnce(new Response(JSON.stringify(waiting)));
+  const transport = new LiveTransport("alice", fixture.campaign_id, "token");
+  const result = await transport.getAction(
+    fixture.campaign_id,
+    "scheduled",
+    new AbortController().signal,
+  );
+  expect(result.status).toBe("resolving");
+  expect(result.waitingForSharedTime).toBe(true);
+  expect(JSON.parse(String(fetcher.mock.calls[1]?.[1]?.body))).toEqual({
+    actor_id: "a",
+    command_id: "scheduled",
+    text: "wait",
+  });
+});

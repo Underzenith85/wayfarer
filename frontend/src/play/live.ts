@@ -326,6 +326,8 @@ export class LiveTransport implements PlayTransport {
         created_at: "1970-01-01T00:00:00Z",
         updated_at: "1970-01-01T00:00:00Z",
       };
+    if (t.phase === "waiting")
+      return { ...common, status: "resolving", waitingForSharedTime: true };
     if (t.committed || t.phase === "complete")
       return {
         ...common,

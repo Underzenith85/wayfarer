@@ -161,9 +161,14 @@ class DirectorService:
             if turn.phase == "interpretation":
                 context, session, revision = await self.llm.context(cid, principal_id, actor_id)
                 if session != turn.session_id:
-                    raise ConflictError(
-                        "Subgroup changed; pending interpretation needs cancellation"
+                    turn = turn.model_copy(
+                        update={
+                            "phase": "clarification",
+                            "narration": "Your subgroup changed. Submit a fresh action.",
+                        }
                     )
+                    await self._save(cid, turn, revision)
+                    continue
                 try:
                     intent = Intent.model_validate_json(
                         await self.llm._call(
@@ -269,10 +274,12 @@ class DirectorService:
                     )
                 else:
                     # Only metadata enters narration; hidden raw event payloads are excluded.
+                    queued = any(q.id == command["id"] for q in state.party.queue)
                     turn = turn.model_copy(
                         update={
-                            "phase": "narration",
-                            "committed": True,
+                            "phase": "waiting" if queued else "narration",
+                            "committed": not queued,
+                            "narration": "Waiting for shared-time coordination." if queued else "",
                             "trace_json": receipt.event["outcome"]
                             if receipt.event["action"] in ("typed-action", "combat", "scene")
                             else None,
@@ -288,6 +295,72 @@ class DirectorService:
                 if checkpoint:
                     checkpoint(turn.phase)
                 continue
+            if turn.phase == "waiting" or (
+                turn.phase == "narration" and turn.command_json is not None
+            ):
+                # A queue receipt commits scheduling, not the eventual action. Only
+                # the scheduler's durable outcome permits success narration.
+                command = json.loads(turn.command_json or "{}")
+                activity = next((q for q in state.party.queue if q.id == command.get("id")), None)
+                settled = next((r for r in state.party.receipts if r.id == command.get("id")), None)
+                if activity is not None:
+                    if turn.phase != "waiting":
+                        turn = turn.model_copy(
+                            update={
+                                "phase": "waiting",
+                                "committed": False,
+                                "narration": "Waiting for shared-time coordination.",
+                                "narration_available": False,
+                            }
+                        )
+                        await self._save(cid, turn, state.revision)
+                        if checkpoint:
+                            checkpoint("waiting")
+                    return TurnResponse(
+                        committed=False,
+                        projection=await self.access.read(cid, principal_id=principal_id),
+                        narration=turn.narration,
+                        narration_available=False,
+                    )
+                if settled is not None:
+                    turn = turn.model_copy(
+                        update={
+                            "phase": "narration"
+                            if settled.status == "committed"
+                            else "clarification",
+                            "committed": settled.status == "committed",
+                            "outcome_json": settled.model_dump_json(),
+                            "narration": "" if settled.status == "committed" else settled.code,
+                        }
+                    )
+                    if turn.phase == "clarification":
+                        await self._save(cid, turn, state.revision)
+                        continue
+                elif turn.phase == "waiting":
+                    raise ValidationError("Missing scheduled activity outcome")
+                recovery = next(
+                    (d for d in state.recovery.decisions if d.id == command.get("id")), None
+                )
+                if recovery is not None:
+                    # A resolved check may fail, and scheduling a recovery option
+                    # may require adjudication. Preserve that distinction in prose.
+                    turn = turn.model_copy(
+                        update={
+                            "outcome_json": recovery.model_dump_json(
+                                include={"status", "option_id", "due"}
+                            )
+                        }
+                    )
+                    if recovery.status in ("rejected", "adjudication_required"):
+                        turn = turn.model_copy(
+                            update={
+                                "phase": "clarification",
+                                "committed": False,
+                                "narration": f"Recovery {recovery.status}. Submit a fresh choice.",
+                            }
+                        )
+                        await self._save(cid, turn, state.revision)
+                        continue
             context, session, revision = await self.llm.context(cid, principal_id, actor_id)
             narration, available = (
                 (

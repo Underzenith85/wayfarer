@@ -102,3 +102,28 @@ browser download; the service and adapter tests passed.
 #23 remains an integration milestone: #54/#55 and the final two-browser live
 capture/rescue acceptance flows must finish before closing it. This change adds
 live integration to the existing dashboard; it does not close those child issues.
+
+## Issue #39 completion: scheduled outcomes and recovery
+
+The director persists `waiting` while its domain command remains in the shared-time
+queue. A scheduling receipt is not an action outcome: no success narration is
+requested until the scheduler writes an activity receipt. Repeated waiting polls
+leave the revision and clock unchanged. Another subgroup can continue independently;
+retrying the original turn after synchronization consumes the saved outcome without
+resubmitting the action. Rejected activities return clarification. Recovery narration
+receives the actual decision status, including failed checks; rejected or unsupported
+recovery choices remain visible as clarification instead of false success.
+
+The dashboard projects this phase as a resolving action with an explicit shared-time
+waiting label and resumes it with its original identity. A subgroup change before
+interpretation retires the stale turn into clarification, allowing a fresh action
+without reusing the old provider session. Changes during provider calls retain CAS
+protection. Cancellation during either interpretation or narration is resumable.
+
+`tests/test_director_completion.py` covers restarts after queue commit and the waiting
+checkpoint, idle polling, two authenticated actors, scheduler rejection, capture →
+observation → rescue/inside assistance → equipment recovery → atomic reunion,
+private director histories, exact replay, unsupported recovery and provider
+cancellation. The existing `test_wave11.py` tests retain phase-boundary restart,
+noncombat/scene/objective reward settlement, combat defense and narration-failure
+coverage. Domain event ordering and deadline policy remain owned by their reducers.
