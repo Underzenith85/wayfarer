@@ -27,12 +27,13 @@ def test_basic_set_gate_exposes_capability_source_and_inventory_blockers() -> No
     assert result.certified is False
     kinds = {blocker.kind for blocker in result.blockers}
     assert {"source", "capability", "inventory"} <= kinds
-    size = next(
-        blocker
-        for blocker in result.blockers
-        if blocker.identifier == "gurps.character.size_modifier_costs"
+    capabilities = [blocker for blocker in result.blockers if blocker.kind == "capability"]
+    assert capabilities
+    assert all(blocker.owner_issue is not None for blocker in capabilities)
+    # #192 verified Size Modifier costs, so that capability no longer blocks certification.
+    assert not any(
+        blocker.identifier == "gurps.character.size_modifier_costs" for blocker in capabilities
     )
-    assert size.owner_issue == 192
     assert any(blocker.identifier.startswith("source:") for blocker in result.blockers)
     assert any(
         blocker.owner_issue == 119 for blocker in result.blockers if blocker.kind == "inventory"
