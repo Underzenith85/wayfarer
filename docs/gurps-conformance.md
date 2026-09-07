@@ -145,7 +145,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | --- | --- | --- | --- | --- |
 | `gurps.character.primary_attributes` | yes | yes | verified | #97 |
 | `gurps.character.secondary_characteristics` | yes | yes | verified | #97 |
-| `gurps.character.size_modifier_costs` | no | yes | absent | #97 (follow-up) |
+| `gurps.character.size_modifier_costs` | no | yes | absent | #192 |
 | `gurps.character.skill_difficulty` | yes | yes | verified | #98 |
 | `gurps.character.skill_defaults` | yes | yes | verified | #98 |
 | `gurps.character.specialties` | no | yes | verified | #98 |
@@ -659,6 +659,15 @@ result nor this partial adapter certifies these missing paths or unblocks #119's
 hard #117 prerequisite.
 
 
+## Spell execution completion (#171)
+
+[The execution guide](gurps-spell-execution.md) records the opt-in execution
+version 2, profile version 5 prerequisite correction, source review, concrete
+backfires, HP energy, mana refunds, manipulation, held missiles, Wait and fire
+crossings. The earlier “remaining paths” lists above describe historical slices;
+use the execution guide for current behavior and the explicitly unsupported
+variants. Full `gurps.magic.spellcasting` certification remains partial under #119.
+
 ## Geometry and injury follow-up (#105/#107)
 
 The hex adapter now supports fractional authored elevations, explicit stair
@@ -706,3 +715,17 @@ mount loss-table/fall consequences, and atomic tactical/object synchronization.
 also depends on #181. This foundation alone does not satisfy #120 acceptance.
 #207 tracks the additional Basic Set locomotion, collision and ejection audit and
 remains a blocker for #122. Nothing here certifies full vehicle or Basic Set coverage.
+
+## Executable source audit (#191)
+
+[The source audit](gurps-source-audit.md) records inspected printing metadata,
+item-inventory ownership, optional decisions and every expectation-ledger case's
+review disposition. Its report separates later-printing comparisons from frozen
+source verification. Eighteen Basic statistics fixtures have been compared;
+exhaustive rule/item enumeration and baseline reconciliation remain incomplete.
+Statistics boundary gaps discovered by this comparison are tracked in #215.
+
+CI now checks this document's full capability table against the registry. Aim
+and environmental hazards are reconciled to partial; Size Modifier cost ownership
+is #192. Existing verified runtime entries are not promoted into source or whole
+profile certification by this audit.
