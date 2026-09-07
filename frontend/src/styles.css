@@ -1069,3 +1069,38 @@ details summary {
   border: 1px solid var(--border);
   border-radius: 0.4rem;
 }
+
+.onboarding-panel label {
+  display: grid;
+  gap: 0.4rem;
+  margin: 1rem 0;
+}
+.onboarding-panel input,
+.onboarding-panel textarea,
+.onboarding-panel select {
+  width: 100%;
+  min-width: 0;
+  padding: 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+}
+.onboarding-panel textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+.onboarding-panel button {
+  margin: 0.3rem 0.4rem 0.3rem 0;
+}
+.onboarding-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 0 1rem;
+}
+.onboarding-character {
+  border-top: 1px solid var(--border);
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+}

@@ -33,6 +33,7 @@ export interface PlayTransport {
   readonly initialCampaignId?: string;
   readonly principalId: string;
   readonly sample: boolean;
+  readonly onboarding?: import("../onboarding/model").OnboardingPort;
   readonly inventoryPreview?: InventoryPreviewTransport;
   readonly multiplayer?: MultiplayerPort;
   readonly adventure?: import("../adventure/model").AdventurePort;
