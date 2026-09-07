@@ -6,6 +6,7 @@ import json
 from dataclasses import asdict, replace
 from typing import Literal
 
+from wayfarer.character.compiler import pool_limits
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, Event
 from wayfarer.orchestration.advancement import (
@@ -607,7 +608,7 @@ class RecoveryService:
                 revision=state.revision,
             )
             build = review.compilation.build
-            values = {v.target: int(v.value) for v in build.sheet.values}
+            limits = pool_limits(build)
             resources = resources.model_copy(
                 update={
                     "owners": tuple(
@@ -621,12 +622,8 @@ class RecoveryService:
                     "pools": tuple(
                         p.model_copy(
                             update={
-                                "maximum": values[
-                                    "attribute:st" if p.id.startswith("hp:") else "attribute:ht"
-                                ],
-                                "current": values[
-                                    "attribute:st" if p.id.startswith("hp:") else "attribute:ht"
-                                ],
+                                "maximum": limits[p.id.split(":", 1)[0]],
+                                "current": limits[p.id.split(":", 1)[0]],
                             }
                         )
                         if p.id in (f"hp:{actor_id}", f"fp:{actor_id}")

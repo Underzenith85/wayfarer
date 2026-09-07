@@ -117,7 +117,12 @@ def runtime_engine(profile: RegisteredProfile = PROTOTYPE_PROFILE) -> ActionEngi
     catalog = profile.catalog
     return ActionEngine(
         PowerReviewer(
-            CharacterCompiler(catalog, profile.rules, profile.policy),
+            CharacterCompiler(
+                catalog,
+                profile.rules,
+                profile.policy,
+                statistics_profile=profile.conformance_profile_id,
+            ),
             PowerPolicy(id="starter-power", version=1),
             frozenset(),
         ),

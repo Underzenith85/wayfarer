@@ -17,7 +17,7 @@ from typing import Final
 
 from wayfarer.errors import ValidationError
 from wayfarer.models import RulesReference
-from wayfarer.rules import conformance
+from wayfarer.rules import conformance, gurps_characters
 from wayfarer.rules.catalog import (
     DEFAULT_POLICY,
     DEFAULT_RULES,
@@ -215,32 +215,35 @@ GURPS_CAMPAIGNS_SOURCE: Final = SourceReference(
     citation="Steve Jackson Games, 2004 Fourth Edition, first printing; errata 2007-01-26",
 )
 
-# Packages register identity, edition, provenance and dependencies now. Definitions
-# arrive with the mechanics issues that own them (#97 onward) as new versions.
+# Packages register identity, edition, provenance and dependencies. Definitions
+# arrive with the mechanics issues that own them as new package versions: 0.2.0
+# carries the #97 attributes and secondary characteristics (identifiers and
+# costs only); later issues add skills, traits and equipment.
 GURPS_LITE_PACKAGE: Final = RulesPackage(
     id="package:gurps-lite-4e-2004",
-    version="0.1.0",
+    version="0.2.0",
     edition=GURPS_EDITION,
     sources=(GURPS_LITE_SOURCE,),
-    definitions=(),
+    definitions=gurps_characters.definitions("gurps-lite-4e-2004"),
 )
 GURPS_CHARACTERS_PACKAGE: Final = RulesPackage(
     id="package:gurps-basic-set-characters-4e-2004",
-    version="0.1.0",
+    version="0.2.0",
     edition=GURPS_EDITION,
     sources=(GURPS_CHARACTERS_SOURCE,),
-    definitions=(),
+    definitions=gurps_characters.definitions("gurps-basic-set-4e-2004"),
 )
 GURPS_CAMPAIGNS_PACKAGE: Final = RulesPackage(
     id="package:gurps-basic-set-campaigns-4e-2004",
-    version="0.1.0",
+    version="0.2.0",
     edition=GURPS_EDITION,
     sources=(GURPS_CAMPAIGNS_SOURCE,),
     definitions=(),
     dependencies=(GURPS_CHARACTERS_PACKAGE.id,),
 )
 
-# Budgets are campaign policy defaults, not published rules; #97 owns attribute costs.
+# Budgets and ceilings are campaign policy defaults, not published rules; attribute
+# and secondary costs come from the package definitions and gurps_characters.
 GURPS_LITE_POLICY: Final = CampaignPolicy(
     id="policy:gurps-lite-4e-2004",
     version=1,
@@ -262,7 +265,7 @@ GURPS_BASIC_POLICY: Final = CampaignPolicy(
 
 GURPS_LITE_PROFILE: Final = RegisteredProfile(
     id="profile:gurps-lite-4e-2004",
-    version=1,
+    version=2,
     title="GURPS Lite, Fourth Edition (2004)",
     rules=CampaignRules(
         edition=GURPS_EDITION,
@@ -277,7 +280,7 @@ GURPS_LITE_PROFILE: Final = RegisteredProfile(
 )
 GURPS_BASIC_PROFILE: Final = RegisteredProfile(
     id="profile:gurps-basic-set-4e-2004",
-    version=1,
+    version=2,
     title="GURPS Basic Set, Fourth Edition (2004, first printing)",
     rules=CampaignRules(
         edition=GURPS_EDITION,

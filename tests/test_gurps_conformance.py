@@ -63,18 +63,21 @@ def test_unknown_capability_fails_closed() -> None:
 
 
 def test_unverified_capability_fails_closed() -> None:
-    entry = CAPABILITIES["gurps.character.secondary_characteristics"]
+    entry = CAPABILITIES["gurps.character.skill_defaults"]
     assert entry.status is CoverageStatus.ABSENT
     with pytest.raises(ValidationError, match="not verified"):
         require_verified(entry.id)
 
 
-def test_only_check_capabilities_are_verified_by_issue_99() -> None:
+def test_verified_capabilities_belong_to_landed_mechanics_issues() -> None:
     verified = {
         entry.id for entry in CAPABILITIES.values() if entry.status is CoverageStatus.VERIFIED
     }
-    assert verified == CHECK_CAPABILITIES
-    assert all(CAPABILITIES[identifier].owner_issue == 99 for identifier in verified)
+    assert verified == CHECK_CAPABILITIES | {
+        "gurps.character.primary_attributes",
+        "gurps.character.secondary_characteristics",
+    }
+    assert all(CAPABILITIES[identifier].owner_issue in (97, 99) for identifier in verified)
 
 
 def test_conformance_fixture_contract_is_source_referenced_and_independent() -> None:
@@ -145,6 +148,22 @@ def test_every_verified_check_capability_has_independent_cases_in_both_evidence_
         if CAPABILITIES[identifier].lite_required and identifier != "gurps.check.resistance":
             assert "gurps-lite-4e-2004" in profiles, identifier
         assert "gurps-basic-set-4e-2004" in profiles, identifier
+
+
+def test_verified_capabilities_carry_executable_evidence() -> None:
+    """A verified entry needs fixture cases for every profile that requires it."""
+
+    data = json.loads(FIXTURE.read_text())
+    covered = {(case["capability_id"], case["profile"]) for case in data["cases"]}
+    for entry in CAPABILITIES.values():
+        if entry.status is not CoverageStatus.VERIFIED:
+            continue
+        assert (entry.id, "gurps-basic-set-4e-2004") in covered, entry.id
+        # The frozen Lite artifact has no resisted supernatural attacks to cite.
+        if entry.lite_required and entry.id != "gurps.check.resistance":
+            assert (entry.id, "gurps-lite-4e-2004") in covered, entry.id
+    assert CAPABILITIES["gurps.character.size_modifier_costs"].status is CoverageStatus.ABSENT
+    assert not CAPABILITIES["gurps.character.size_modifier_costs"].lite_required
 
 
 def test_current_inventory_does_not_claim_gurps_certification() -> None:

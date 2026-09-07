@@ -7,10 +7,23 @@ import json
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from decimal import Decimal
+from types import MappingProxyType
+from typing import Final
 
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic import ValidationError as SchemaError
 
+from wayfarer.character import statistics
+from wayfarer.character.statistics import (
+    ATTRIBUTE_IDS,
+    SECONDARY_IDS,
+    Attribute,
+    CharacterStatistics,
+    PrimaryAttributes,
+    Secondary,
+    SecondaryLevels,
+    StatisticsError,
+)
 from wayfarer.errors import ValidationError
 from wayfarer.rules.catalog import (
     SKILLS,
@@ -69,6 +82,7 @@ class ValidatedBuild:
     sheet: DerivedSheet
     name: str
     backstory: str
+    statistics: CharacterStatistics | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -78,6 +92,30 @@ class RuntimeState:
     build_revision: str
     hp: int
     fp: int
+
+
+_PROTOTYPE_POOLS: Final = MappingProxyType({"hp": "attribute:st", "fp": "attribute:ht"})
+_PROFILE_POOLS: Final = MappingProxyType({"hp": "secondary:hp", "fp": "secondary:fp"})
+
+
+def pool_limits(build: ValidatedBuild) -> dict[str, int]:
+    """Runtime pool maxima a build implies; the only place that mapping is decided.
+
+    Prototype builds keep the original ST/HT initialization. Profile builds use
+    the purchased HP and FP from the statistics projection, after effects.
+    """
+
+    values = {v.target: v.value for v in build.sheet.values}
+    targets = _PROTOTYPE_POOLS if build.statistics is None else _PROFILE_POOLS
+    if not set(targets.values()) <= values.keys():
+        raise ValidationError("No implemented runtime resource initialization")
+    limits: dict[str, int] = {}
+    for kind, target in targets.items():
+        value = values[target]
+        if not value.is_finite() or value != value.to_integral_value() or value < 0:
+            raise ValidationError(f"Runtime pool limit is not a whole number: {kind}")
+        limits[kind] = int(value)
+    return limits
 
 
 @dataclass(frozen=True, slots=True)
@@ -111,6 +149,7 @@ class CharacterCompiler:
         rules: CampaignRules,
         policy: CampaignPolicy,
         effects: tuple[tuple[str, Effect], ...] = (),
+        statistics_profile: str | None = None,
     ) -> None:
         self.rules, self.policy = rules, policy
         if (rules.policy_id, rules.policy_version) != (policy.id, policy.version):
@@ -129,6 +168,26 @@ class CharacterCompiler:
         }
         if len(self.definitions) != len(definitions):
             raise ValidationError("Ambiguous definition IDs")
+        # Exact profile selection: statistics never activate from a package name,
+        # and a package cannot smuggle secondary characteristics without a profile.
+        self.statistics_profile = statistics_profile
+        self.statistics = (
+            None if statistics_profile is None else statistics.rules(statistics_profile)
+        )
+        if self.statistics is None:
+            if any(d.kind is DefinitionKind.SECONDARY for d in definitions):
+                raise ValidationError("Secondary characteristics require a selected rules profile")
+        else:
+            for expected in statistics.definitions(self.statistics.profile_id):
+                actual = self.definitions.get(expected.id)
+                if actual is None or (actual.kind, actual.point_cost, actual.status) != (
+                    expected.kind,
+                    expected.point_cost,
+                    expected.status,
+                ):
+                    raise ValidationError(
+                        f"Pinned packages do not carry profile statistics: {expected.id}"
+                    )
         if any(
             type(v) is not int or v < 0
             for v in (
@@ -174,6 +233,8 @@ class CharacterCompiler:
         seen: set[str] = set()
         entries: list[PurchasedEntry] = []
         bases: dict[str, Decimal] = {}
+        secondary_levels: dict[Secondary, int] = {}
+        deferred: list[tuple[str, int]] = []
         spent = disadvantages = 0
 
         def error(code: str, index: int, message: str) -> None:
@@ -207,11 +268,24 @@ class CharacterCompiler:
                 error("purchase.exclusion", i, "Mutually exclusive purchases")
             cost = definition.point_cost
             if definition.kind is DefinitionKind.ATTRIBUTE:
-                if not 8 <= amount <= self.policy.attribute_ceiling:
+                minimum = 8 if self.statistics is None else self.statistics.attribute_minimum
+                if not minimum <= amount <= self.policy.attribute_ceiling:
                     error("attribute.range", i, "Attribute is outside campaign bounds")
-                if cost is not None:
+                if self.statistics is not None and key in ATTRIBUTE_IDS:
+                    cost = statistics.attribute_cost(
+                        self.statistics.profile_id, ATTRIBUTE_IDS[key], max(amount, minimum)
+                    )
+                elif cost is not None:
                     cost *= amount - 10
                 bases[key] = Decimal(amount)
+            elif definition.kind is DefinitionKind.SECONDARY:
+                if self.statistics is None or key not in SECONDARY_IDS:
+                    error("secondary.unsupported", i, "No selected profile compiles this value")
+                    continue
+                # Costs depend on the effective attributes, so they resolve below.
+                secondary_levels[SECONDARY_IDS[key]] = amount
+                deferred.append((key, amount))
+                continue
             elif definition.kind is DefinitionKind.SKILL:
                 # This curve is explicitly the original prototype package's mechanic.
                 if definition.name not in SKILLS or "character.skill" not in definition.hooks:
@@ -239,6 +313,16 @@ class CharacterCompiler:
             key: attribute_evaluator.evaluate(key, base, effects, context={}, at=0).value
             for key, base in bases.items()
         }
+        projection = None
+        if self.statistics is not None:
+            projection = self._statistics(effective_attributes, secondary_levels, diagnostics)
+            if projection is not None:
+                for key, amount in deferred:
+                    cost = projection.costs.secondaries[SECONDARY_IDS[key]]
+                    spent += cost
+                    disadvantages += max(0, -cost)
+                    entries.append(PurchasedEntry(key, amount, cost))
+                bases.update(projection.target_values())
         for purchase in draft.purchases:
             definition = self.definitions.get(purchase.definition_id)
             if definition and definition.kind is DefinitionKind.SKILL and definition.name in SKILLS:
@@ -303,6 +387,8 @@ class CharacterCompiler:
                 "entries": [asdict(e) for e in entries],
                 "sheet": asdict(sheet),
             }
+            if projection is not None:
+                payload["statistics"] = asdict(projection)
             revision = hashlib.sha256(
                 json.dumps(payload, sort_keys=True, default=str, separators=(",", ":")).encode()
             ).hexdigest()
@@ -315,8 +401,49 @@ class CharacterCompiler:
                 sheet,
                 draft.name,
                 draft.backstory,
+                projection,
             )
         return Compilation(tuple(diagnostics), spent, self.policy.point_budget - spent, build)
+
+    def _statistics(
+        self,
+        effective: dict[str, Decimal],
+        levels: dict[Secondary, int],
+        diagnostics: list[Diagnostic],
+    ) -> CharacterStatistics | None:
+        assert self.statistics is not None
+        attributes: dict[Attribute, int] = {}
+        for key, attribute in ATTRIBUTE_IDS.items():
+            value = effective.get(key)
+            if value is None:
+                return None  # attribute.required already reported
+            if not value.is_finite() or value != value.to_integral_value():
+                diagnostics.append(
+                    Diagnostic("derived.range", ("sheet", key), "Attribute must be a whole number")
+                )
+                return None
+            attributes[attribute] = int(value)
+        try:
+            return statistics.compile_statistics(
+                self.statistics.profile_id,
+                PrimaryAttributes(
+                    attributes[Attribute.ST],
+                    attributes[Attribute.DX],
+                    attributes[Attribute.IQ],
+                    attributes[Attribute.HT],
+                ),
+                SecondaryLevels(
+                    hp=levels.get(Secondary.HP),
+                    will=levels.get(Secondary.WILL),
+                    per=levels.get(Secondary.PER),
+                    fp=levels.get(Secondary.FP),
+                    basic_speed=levels.get(Secondary.BASIC_SPEED),
+                    basic_move=levels.get(Secondary.BASIC_MOVE),
+                ),
+            )
+        except StatisticsError as exc:
+            diagnostics.append(Diagnostic(exc.code, ("sheet",), str(exc)))
+            return None
 
     def activate(
         self, value: object, *, authorize: Callable[[ValidatedBuild], None]
@@ -326,12 +453,8 @@ class CharacterCompiler:
         if result.build is None:
             raise ValidationError("; ".join(d.code for d in result.diagnostics))
         authorize(result.build)
-        values = {v.target: v.value for v in result.build.sheet.values}
-        if not {"attribute:st", "attribute:ht"} <= values.keys():
-            raise ValidationError("No implemented runtime resource initialization")
-        return result.build, RuntimeState(
-            result.build.revision, int(values["attribute:st"]), int(values["attribute:ht"])
-        )
+        limits = pool_limits(result.build)
+        return result.build, RuntimeState(result.build.revision, limits["hp"], limits["fp"])
 
     def repair(self, value: object) -> RepairProposal | None:
         """Offer a duplicate-removal candidate only when the entire result revalidates."""

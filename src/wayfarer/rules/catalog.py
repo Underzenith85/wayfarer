@@ -39,6 +39,7 @@ class ImplementationStatus(StrEnum):
 
 class DefinitionKind(StrEnum):
     ATTRIBUTE = "attribute"
+    SECONDARY = "secondary"
     SKILL = "skill"
     TRAIT = "trait"
     EQUIPMENT = "equipment"

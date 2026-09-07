@@ -29,16 +29,23 @@ fallback from a GURPS profile to the prototype package.
 | Profile | Version | Edition | Packages | Status |
 | --- | --- | --- | --- | --- |
 | `profile:wayfarer-lite` | 1 | `wayfarer-lite` | `package:wayfarer-lite@1.0.0` | supported; pins identical to the pre-#96 default |
-| `profile:gurps-lite-4e-2004` | 1 | `gurps-4e-2004` | `package:gurps-lite-4e-2004@0.1.0` | unsupported until every Lite capability is verified |
-| `profile:gurps-basic-set-4e-2004` | 1 | `gurps-4e-2004` | `package:gurps-basic-set-characters-4e-2004@0.1.0`, `package:gurps-basic-set-campaigns-4e-2004@0.1.0` (depends on the Characters package) | unsupported until every Basic Set capability is verified |
+| `profile:gurps-lite-4e-2004` | 2 | `gurps-4e-2004` | `package:gurps-lite-4e-2004@0.2.0` | unsupported until every Lite capability is verified |
+| `profile:gurps-basic-set-4e-2004` | 2 | `gurps-4e-2004` | `package:gurps-basic-set-characters-4e-2004@0.2.0`, `package:gurps-basic-set-campaigns-4e-2004@0.2.0` (depends on the Characters package) | unsupported until every Basic Set capability is verified |
 
-The GURPS packages register identity, edition, source provenance and dependencies
-only. Their definitions are empty; the mechanics issues (#97 onward) add
-definitions as new package versions and new profile versions. Sources cite the
-frozen artifacts from `docs/gurps-conformance.md` with rights
-`user-supplied-reference`, and `tests/test_profiles.py` checks those citations
-against the independent fixture metadata. GURPS policy budgets reuse the prototype
-defaults until #97 defines attribute costs; they are campaign policy, not rules.
+The GURPS packages register identity, edition, source provenance and dependencies.
+Version 0.2.0 of the Lite and Characters packages carries the #97 attribute and
+secondary-characteristic definitions from `wayfarer.rules.gurps_characters`
+(identifiers and per-level costs only); later mechanics issues add skills, traits
+and equipment as further package versions and profile versions. Version 1 of each
+GURPS profile was never supported, so no campaign can reference it and it is not
+kept registered. Sources cite the frozen artifacts from
+`docs/gurps-conformance.md` with rights `user-supplied-reference`, and
+`tests/test_profiles.py` checks those citations against the independent fixture
+metadata. GURPS policy budgets and ceilings reuse the prototype defaults; they are
+campaign policy, not rules. The runtime engine factory passes each profile's
+conformance target to `CharacterCompiler(statistics_profile=...)`, so a GURPS
+profile compiles characters through the statistics module and the prototype
+profile keeps its original path.
 
 A profile is **supported** only when every required conformance capability is
 `verified`. The registry rejects `require_supported` for anything else and lists

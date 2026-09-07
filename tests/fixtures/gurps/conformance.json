@@ -124,7 +124,8 @@
       "rounding": "none",
       "prototype_divergence": null,
       "evidence_kind": "published-example",
-      "provenance": "Manually entered expected result; not generated from engine output."
+      "provenance": "Manually entered expected result; not generated from engine output.",
+      "operation": "attribute_cost"
     },
     {
       "id": "lite-attribute-dx-cost",
@@ -143,7 +144,8 @@
       "rounding": "none",
       "prototype_divergence": "Wayfarer prototype exposes the same per-level DX cost, but that coincidence is not conformance evidence.",
       "evidence_kind": "published-example",
-      "provenance": "Manually entered expected result; not generated from engine output."
+      "provenance": "Manually entered expected result; not generated from engine output.",
+      "operation": "attribute_cost"
     },
     {
       "id": "lite-secondary-basic-speed",
@@ -159,9 +161,10 @@
         "basic_speed": "5.75"
       },
       "rounding": "none",
-      "prototype_divergence": "Prototype character compilation does not yet expose the published secondary-characteristic calculation.",
+      "prototype_divergence": null,
       "evidence_kind": "published-example",
-      "provenance": "Manually entered expected result; not generated from engine output."
+      "provenance": "Manually entered expected result; not generated from engine output.",
+      "operation": "basic_speed"
     },
     {
       "id": "lite-secondary-basic-move",
@@ -179,7 +182,8 @@
       "rounding": "floor",
       "prototype_divergence": null,
       "evidence_kind": "published-example",
-      "provenance": "Manually entered expected result; not generated from engine output."
+      "provenance": "Manually entered expected result; not generated from engine output.",
+      "operation": "basic_move_from_speed"
     },
     {
       "id": "basic-hex-step-unit",
@@ -1397,6 +1401,1471 @@
       "prototype_divergence": null,
       "evidence_kind": "published-example",
       "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "lite-attribute-iq-cost",
+      "capability_id": "gurps.character.primary_attributes",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Attributes section, per-level costs",
+      "operation": "attribute_cost",
+      "input": {
+        "attribute": "IQ",
+        "from": 10,
+        "to": 13
+      },
+      "expected": {
+        "point_cost": 60
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-attribute-ht-reduced",
+      "capability_id": "gurps.character.primary_attributes",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Attributes section, per-level costs",
+      "operation": "attribute_cost",
+      "input": {
+        "attribute": "HT",
+        "from": 10,
+        "to": 8
+      },
+      "expected": {
+        "point_cost": -20
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "basic-attribute-dx-reduced",
+      "capability_id": "gurps.character.primary_attributes",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B14-B15, Basic Attributes",
+      "operation": "attribute_cost",
+      "input": {
+        "attribute": "DX",
+        "from": 10,
+        "to": 9
+      },
+      "expected": {
+        "point_cost": -20
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "basic-attribute-st-high",
+      "capability_id": "gurps.character.primary_attributes",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B14-B15, Basic Attributes",
+      "operation": "attribute_cost",
+      "input": {
+        "attribute": "ST",
+        "from": 10,
+        "to": 17
+      },
+      "expected": {
+        "point_cost": 70
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-secondary-defaults",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Secondary Characteristics section",
+      "operation": "secondary",
+      "input": {
+        "ST": 10,
+        "DX": 11,
+        "IQ": 12,
+        "HT": 12,
+        "purchased": {}
+      },
+      "expected": {
+        "hp": 10,
+        "will": 12,
+        "per": 12,
+        "fp": 12,
+        "basic_speed": "5.75",
+        "basic_move": 5,
+        "dodge": 8,
+        "point_cost": 0
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-secondary-hp-purchased",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Secondary Characteristics section",
+      "operation": "secondary",
+      "input": {
+        "ST": 10,
+        "DX": 10,
+        "IQ": 10,
+        "HT": 10,
+        "purchased": {
+          "hp": 13
+        }
+      },
+      "expected": {
+        "hp": 13,
+        "point_cost": 6
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-secondary-hp-reduced",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Secondary Characteristics section",
+      "operation": "secondary",
+      "input": {
+        "ST": 12,
+        "DX": 10,
+        "IQ": 10,
+        "HT": 10,
+        "purchased": {
+          "hp": 10
+        }
+      },
+      "expected": {
+        "hp": 10,
+        "point_cost": -4
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-secondary-will-purchased",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Secondary Characteristics section",
+      "operation": "secondary",
+      "input": {
+        "ST": 10,
+        "DX": 10,
+        "IQ": 12,
+        "HT": 10,
+        "purchased": {
+          "will": 14
+        }
+      },
+      "expected": {
+        "will": 14,
+        "per": 12,
+        "point_cost": 10
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-secondary-per-reduced",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Secondary Characteristics section",
+      "operation": "secondary",
+      "input": {
+        "ST": 10,
+        "DX": 10,
+        "IQ": 12,
+        "HT": 10,
+        "purchased": {
+          "per": 10
+        }
+      },
+      "expected": {
+        "per": 10,
+        "will": 12,
+        "point_cost": -10
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-secondary-fp-purchased",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Secondary Characteristics section",
+      "operation": "secondary",
+      "input": {
+        "ST": 10,
+        "DX": 10,
+        "IQ": 10,
+        "HT": 11,
+        "purchased": {
+          "fp": 13
+        }
+      },
+      "expected": {
+        "fp": 13,
+        "point_cost": 6
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-secondary-basic-speed-purchased",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Secondary Characteristics section",
+      "operation": "secondary",
+      "input": {
+        "ST": 10,
+        "DX": 11,
+        "IQ": 10,
+        "HT": 12,
+        "purchased": {
+          "basic_speed_quarters": 24
+        }
+      },
+      "expected": {
+        "basic_speed": "6",
+        "basic_move": 6,
+        "dodge": 9,
+        "point_cost": 5
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-secondary-basic-speed-fraction-kept",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Secondary Characteristics section",
+      "operation": "secondary",
+      "input": {
+        "ST": 10,
+        "DX": 10,
+        "IQ": 10,
+        "HT": 13,
+        "purchased": {}
+      },
+      "expected": {
+        "basic_speed": "5.75",
+        "basic_move": 5,
+        "dodge": 8,
+        "point_cost": 0
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-secondary-basic-speed-whole",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Secondary Characteristics section",
+      "operation": "secondary",
+      "input": {
+        "ST": 10,
+        "DX": 12,
+        "IQ": 10,
+        "HT": 12,
+        "purchased": {}
+      },
+      "expected": {
+        "basic_speed": "6",
+        "basic_move": 6,
+        "dodge": 9,
+        "point_cost": 0
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-secondary-basic-move-purchased",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Secondary Characteristics section",
+      "operation": "secondary",
+      "input": {
+        "ST": 10,
+        "DX": 11,
+        "IQ": 10,
+        "HT": 12,
+        "purchased": {
+          "basic_move": 7
+        }
+      },
+      "expected": {
+        "basic_speed": "5.75",
+        "basic_move": 7,
+        "dodge": 8,
+        "point_cost": 10
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-secondary-basic-move-reduced",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Secondary Characteristics section",
+      "operation": "secondary",
+      "input": {
+        "ST": 10,
+        "DX": 11,
+        "IQ": 10,
+        "HT": 12,
+        "purchased": {
+          "basic_move": 4
+        }
+      },
+      "expected": {
+        "basic_move": 4,
+        "point_cost": -5
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-basic-lift-st-10",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Basic Lift section",
+      "operation": "basic_lift",
+      "input": {
+        "ST": 10
+      },
+      "expected": {
+        "basic_lift": "20",
+        "unit": "pound"
+      },
+      "rounding": "nearest",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-basic-lift-st-7-fraction",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Basic Lift section",
+      "operation": "basic_lift",
+      "input": {
+        "ST": 7
+      },
+      "expected": {
+        "basic_lift": "9.8",
+        "unit": "pound"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-basic-lift-st-11",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Basic Lift section",
+      "operation": "basic_lift",
+      "input": {
+        "ST": 11
+      },
+      "expected": {
+        "basic_lift": "24",
+        "unit": "pound"
+      },
+      "rounding": "nearest",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-basic-lift-st-12",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Basic Lift section",
+      "operation": "basic_lift",
+      "input": {
+        "ST": 12
+      },
+      "expected": {
+        "basic_lift": "29",
+        "unit": "pound"
+      },
+      "rounding": "nearest",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-basic-lift-st-13",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Basic Lift section",
+      "operation": "basic_lift",
+      "input": {
+        "ST": 13
+      },
+      "expected": {
+        "basic_lift": "34",
+        "unit": "pound"
+      },
+      "rounding": "nearest",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "basic-basic-lift-st-8",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15, Basic Lift",
+      "operation": "basic_lift",
+      "input": {
+        "ST": 8
+      },
+      "expected": {
+        "basic_lift": "13",
+        "unit": "pound"
+      },
+      "rounding": "nearest",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "basic-basic-lift-st-20",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15, Basic Lift",
+      "operation": "basic_lift",
+      "input": {
+        "ST": 20
+      },
+      "expected": {
+        "basic_lift": "80",
+        "unit": "pound"
+      },
+      "rounding": "nearest",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-encumbrance-bl20-20lb",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Encumbrance and Move section",
+      "operation": "encumbrance",
+      "input": {
+        "basic_lift": "20",
+        "carried": 20,
+        "unit": "pound"
+      },
+      "expected": {
+        "encumbrance": "none"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-encumbrance-bl20-21lb",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Encumbrance and Move section",
+      "operation": "encumbrance",
+      "input": {
+        "basic_lift": "20",
+        "carried": 21,
+        "unit": "pound"
+      },
+      "expected": {
+        "encumbrance": "light"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-encumbrance-bl20-40lb",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Encumbrance and Move section",
+      "operation": "encumbrance",
+      "input": {
+        "basic_lift": "20",
+        "carried": 40,
+        "unit": "pound"
+      },
+      "expected": {
+        "encumbrance": "light"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-encumbrance-bl20-41lb",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Encumbrance and Move section",
+      "operation": "encumbrance",
+      "input": {
+        "basic_lift": "20",
+        "carried": 41,
+        "unit": "pound"
+      },
+      "expected": {
+        "encumbrance": "medium"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-encumbrance-bl20-60lb",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Encumbrance and Move section",
+      "operation": "encumbrance",
+      "input": {
+        "basic_lift": "20",
+        "carried": 60,
+        "unit": "pound"
+      },
+      "expected": {
+        "encumbrance": "medium"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-encumbrance-bl20-61lb",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Encumbrance and Move section",
+      "operation": "encumbrance",
+      "input": {
+        "basic_lift": "20",
+        "carried": 61,
+        "unit": "pound"
+      },
+      "expected": {
+        "encumbrance": "heavy"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-encumbrance-bl20-120lb",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Encumbrance and Move section",
+      "operation": "encumbrance",
+      "input": {
+        "basic_lift": "20",
+        "carried": 120,
+        "unit": "pound"
+      },
+      "expected": {
+        "encumbrance": "heavy"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-encumbrance-bl20-121lb",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Encumbrance and Move section",
+      "operation": "encumbrance",
+      "input": {
+        "basic_lift": "20",
+        "carried": 121,
+        "unit": "pound"
+      },
+      "expected": {
+        "encumbrance": "extra-heavy"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-encumbrance-bl20-200lb",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Encumbrance and Move section",
+      "operation": "encumbrance",
+      "input": {
+        "basic_lift": "20",
+        "carried": 200,
+        "unit": "pound"
+      },
+      "expected": {
+        "encumbrance": "extra-heavy"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-encumbrance-bl20-201lb",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Encumbrance and Move section",
+      "operation": "encumbrance",
+      "input": {
+        "basic_lift": "20",
+        "carried": 201,
+        "unit": "pound"
+      },
+      "expected": {
+        "encumbrance": null
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-encumbered-move-5-none",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Encumbrance and Move section",
+      "operation": "encumbered_move",
+      "input": {
+        "basic_move": 5,
+        "dodge": 8,
+        "encumbrance": "none"
+      },
+      "expected": {
+        "move": 5,
+        "dodge": 8,
+        "unit": "yard/second"
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-encumbered-move-5-light",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Encumbrance and Move section",
+      "operation": "encumbered_move",
+      "input": {
+        "basic_move": 5,
+        "dodge": 8,
+        "encumbrance": "light"
+      },
+      "expected": {
+        "move": 4,
+        "dodge": 7,
+        "unit": "yard/second"
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-encumbered-move-5-medium",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Encumbrance and Move section",
+      "operation": "encumbered_move",
+      "input": {
+        "basic_move": 5,
+        "dodge": 8,
+        "encumbrance": "medium"
+      },
+      "expected": {
+        "move": 3,
+        "dodge": 6,
+        "unit": "yard/second"
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-encumbered-move-5-heavy",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Encumbrance and Move section",
+      "operation": "encumbered_move",
+      "input": {
+        "basic_move": 5,
+        "dodge": 8,
+        "encumbrance": "heavy"
+      },
+      "expected": {
+        "move": 2,
+        "dodge": 5,
+        "unit": "yard/second"
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-encumbered-move-5-extra-heavy",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Encumbrance and Move section",
+      "operation": "encumbered_move",
+      "input": {
+        "basic_move": 5,
+        "dodge": 8,
+        "encumbrance": "extra-heavy"
+      },
+      "expected": {
+        "move": 1,
+        "dodge": 4,
+        "unit": "yard/second"
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-encumbered-move-6-medium",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Encumbrance and Move section",
+      "operation": "encumbered_move",
+      "input": {
+        "basic_move": 6,
+        "dodge": 8,
+        "encumbrance": "medium"
+      },
+      "expected": {
+        "move": 3,
+        "dodge": 6,
+        "unit": "yard/second"
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-encumbered-move-6-heavy",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Encumbrance and Move section",
+      "operation": "encumbered_move",
+      "input": {
+        "basic_move": 6,
+        "dodge": 8,
+        "encumbrance": "heavy"
+      },
+      "expected": {
+        "move": 2,
+        "dodge": 5,
+        "unit": "yard/second"
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-encumbered-move-6-extra-heavy",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Encumbrance and Move section",
+      "operation": "encumbered_move",
+      "input": {
+        "basic_move": 6,
+        "dodge": 8,
+        "encumbrance": "extra-heavy"
+      },
+      "expected": {
+        "move": 1,
+        "dodge": 4,
+        "unit": "yard/second"
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-encumbered-move-4-extra-heavy",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Encumbrance and Move section",
+      "operation": "encumbered_move",
+      "input": {
+        "basic_move": 4,
+        "dodge": 8,
+        "encumbrance": "extra-heavy"
+      },
+      "expected": {
+        "move": 1,
+        "dodge": 4,
+        "unit": "yard/second"
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-encumbered-move-7-light",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Encumbrance and Move section",
+      "operation": "encumbered_move",
+      "input": {
+        "basic_move": 7,
+        "dodge": 8,
+        "encumbrance": "light"
+      },
+      "expected": {
+        "move": 5,
+        "dodge": 7,
+        "unit": "yard/second"
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-damage-st-1",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Damage Table",
+      "operation": "damage",
+      "input": {
+        "ST": 1
+      },
+      "expected": {
+        "thrust": "1d-6",
+        "swing": "1d-5"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-damage-st-5",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Damage Table",
+      "operation": "damage",
+      "input": {
+        "ST": 5
+      },
+      "expected": {
+        "thrust": "1d-4",
+        "swing": "1d-3"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-damage-st-8",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Damage Table",
+      "operation": "damage",
+      "input": {
+        "ST": 8
+      },
+      "expected": {
+        "thrust": "1d-3",
+        "swing": "1d-2"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-damage-st-9",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Damage Table",
+      "operation": "damage",
+      "input": {
+        "ST": 9
+      },
+      "expected": {
+        "thrust": "1d-2",
+        "swing": "1d-1"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-damage-st-10",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Damage Table",
+      "operation": "damage",
+      "input": {
+        "ST": 10
+      },
+      "expected": {
+        "thrust": "1d-2",
+        "swing": "1d"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-damage-st-11",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Damage Table",
+      "operation": "damage",
+      "input": {
+        "ST": 11
+      },
+      "expected": {
+        "thrust": "1d-1",
+        "swing": "1d+1"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-damage-st-12",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Damage Table",
+      "operation": "damage",
+      "input": {
+        "ST": 12
+      },
+      "expected": {
+        "thrust": "1d-1",
+        "swing": "1d+2"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-damage-st-13",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Damage Table",
+      "operation": "damage",
+      "input": {
+        "ST": 13
+      },
+      "expected": {
+        "thrust": "1d",
+        "swing": "2d-1"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-damage-st-14",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Damage Table",
+      "operation": "damage",
+      "input": {
+        "ST": 14
+      },
+      "expected": {
+        "thrust": "1d",
+        "swing": "2d"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-damage-st-16",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Damage Table",
+      "operation": "damage",
+      "input": {
+        "ST": 16
+      },
+      "expected": {
+        "thrust": "1d+1",
+        "swing": "2d+2"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-damage-st-17",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Damage Table",
+      "operation": "damage",
+      "input": {
+        "ST": 17
+      },
+      "expected": {
+        "thrust": "1d+2",
+        "swing": "3d-1"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-damage-st-19",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Damage Table",
+      "operation": "damage",
+      "input": {
+        "ST": 19
+      },
+      "expected": {
+        "thrust": "2d-1",
+        "swing": "3d+1"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "lite-damage-st-20",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Damage Table",
+      "operation": "damage",
+      "input": {
+        "ST": 20
+      },
+      "expected": {
+        "thrust": "2d-1",
+        "swing": "3d+2"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "basic-damage-st-21",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16, Damage Table",
+      "operation": "damage",
+      "input": {
+        "ST": 21
+      },
+      "expected": {
+        "thrust": "2d",
+        "swing": "4d-1"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "basic-damage-st-25",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16, Damage Table",
+      "operation": "damage",
+      "input": {
+        "ST": 25
+      },
+      "expected": {
+        "thrust": "2d+2",
+        "swing": "5d-1"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "basic-damage-st-27",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16, Damage Table",
+      "operation": "damage",
+      "input": {
+        "ST": 27
+      },
+      "expected": {
+        "thrust": "3d-1",
+        "swing": "5d+1"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "basic-damage-st-30",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16, Damage Table",
+      "operation": "damage",
+      "input": {
+        "ST": 30
+      },
+      "expected": {
+        "thrust": "3d",
+        "swing": "5d+2"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "basic-damage-st-40",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16, Damage Table",
+      "operation": "damage",
+      "input": {
+        "ST": 40
+      },
+      "expected": {
+        "thrust": "4d+1",
+        "swing": "7d-1"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "basic-damage-st-45",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16, Damage Table",
+      "operation": "damage",
+      "input": {
+        "ST": 45
+      },
+      "expected": {
+        "thrust": "5d",
+        "swing": "7d+1"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "basic-damage-st-50",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16, Damage Table",
+      "operation": "damage",
+      "input": {
+        "ST": 50
+      },
+      "expected": {
+        "thrust": "5d+2",
+        "swing": "8d-1"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "basic-damage-st-60",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16, Damage Table",
+      "operation": "damage",
+      "input": {
+        "ST": 60
+      },
+      "expected": {
+        "thrust": "7d-1",
+        "swing": "9d"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "basic-damage-st-75",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16, Damage Table",
+      "operation": "damage",
+      "input": {
+        "ST": 75
+      },
+      "expected": {
+        "thrust": "8d+2",
+        "swing": "10d+2"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "basic-damage-st-100",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16, Damage Table",
+      "operation": "damage",
+      "input": {
+        "ST": 100
+      },
+      "expected": {
+        "thrust": "11d",
+        "swing": "13d"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "basic-secondary-hp-guideline-exceeded",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15-B17, Secondary Characteristics",
+      "operation": "secondary",
+      "input": {
+        "ST": 10,
+        "DX": 10,
+        "IQ": 10,
+        "HT": 10,
+        "purchased": {
+          "hp": 14
+        }
+      },
+      "expected": {
+        "hp": 14,
+        "point_cost": 8,
+        "advisories": [
+          "hp.beyond-30-percent-of-st"
+        ]
+      },
+      "rounding": "none",
+      "prototype_divergence": "Source requires GM permission beyond this band; recorded as an advisory, not a hard failure.",
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "basic-secondary-hp-guideline-boundary",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15-B17, Secondary Characteristics",
+      "operation": "secondary",
+      "input": {
+        "ST": 10,
+        "DX": 10,
+        "IQ": 10,
+        "HT": 10,
+        "purchased": {
+          "hp": 13
+        }
+      },
+      "expected": {
+        "hp": 13,
+        "point_cost": 6,
+        "advisories": []
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "basic-secondary-will-above-20",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15-B17, Secondary Characteristics",
+      "operation": "secondary",
+      "input": {
+        "ST": 10,
+        "DX": 10,
+        "IQ": 16,
+        "HT": 10,
+        "purchased": {
+          "will": 21
+        }
+      },
+      "expected": {
+        "will": 21,
+        "point_cost": 25,
+        "advisories": [
+          "will.above-20"
+        ]
+      },
+      "rounding": "none",
+      "prototype_divergence": "Source requires GM permission above this value; recorded as an advisory, not a hard failure.",
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
+    },
+    {
+      "id": "basic-secondary-fp-guideline-exceeded",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15-B17, Secondary Characteristics",
+      "operation": "secondary",
+      "input": {
+        "ST": 10,
+        "DX": 10,
+        "IQ": 10,
+        "HT": 10,
+        "purchased": {
+          "fp": 6
+        }
+      },
+      "expected": {
+        "fp": 6,
+        "point_cost": -12,
+        "advisories": [
+          "fp.beyond-30-percent-of-ht"
+        ]
+      },
+      "rounding": "none",
+      "prototype_divergence": "Source requires GM permission beyond this band; recorded as an advisory, not a hard failure.",
+      "evidence_kind": "published-example",
+      "provenance": "Entered by hand from the frozen source reference; not generated from engine output."
     }
   ]
 }
