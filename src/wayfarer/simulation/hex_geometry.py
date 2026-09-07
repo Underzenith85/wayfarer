@@ -1,0 +1,332 @@
+"""Pure tactical geometry for the frozen Basic Set profile; no campaign mutation.
+
+One axial hex is one yard. See docs/tactical-geometry.md for source provenance,
+edge conventions, limitations, and the explicit integration/migration boundary.
+"""
+
+from __future__ import annotations
+
+from fractions import Fraction
+from typing import Literal
+
+from pydantic import Field, model_validator
+
+from wayfarer.errors import ValidationError
+from wayfarer.rules.conformance import BASELINE_ID
+from wayfarer.simulation.resources import Id, Record
+
+Facing = Literal[0, 1, 2, 3, 4, 5]
+Posture = Literal["standing", "crouching", "kneeling", "crawling", "sitting", "lying"]
+Arc = Literal["front", "right", "rear", "left", "close"]
+DIRECTIONS = ((1, 0), (0, 1), (-1, 1), (-1, 0), (0, -1), (1, -1))
+
+
+class Hex(Record):
+    q: int = Field(ge=-1000, le=1000)
+    r: int = Field(ge=-1000, le=1000)
+
+    @property
+    def cube(self) -> tuple[int, int, int]:
+        return self.q, self.r, -self.q - self.r
+
+
+def distance(a: Hex, b: Hex) -> int:
+    return max(abs(x - y) for x, y in zip(a.cube, b.cube, strict=True))
+
+
+def neighbor(origin: Hex, facing: int) -> Hex:
+    if type(facing) is not int or facing not in range(6):
+        raise ValidationError("Facing must be one of six hex directions")
+    q, r = DIRECTIONS[facing]
+    return Hex(q=origin.q + q, r=origin.r + r)
+
+
+class Pose(Record):
+    position: Hex
+    facing: Facing
+    posture: Posture = "standing"
+
+    @model_validator(mode="before")
+    @classmethod
+    def strict_facing(cls, value: object) -> object:
+        if isinstance(value, dict) and type(value.get("facing")) is not int:
+            raise ValueError("Facing must be an integer")
+        return value
+
+
+def arc(observer: Pose, target: Hex) -> Arc:
+    """Nearest hex direction; exact sector edges use the less favorable arc."""
+    if observer.position == target:
+        return "close"
+    dq = target.q - observer.position.q
+    dr = target.r - observer.position.r
+    # Dot products in the axial basis, multiplied by two to keep them integral.
+    dots = tuple((2 * dq + dr) * q + (dq + 2 * dr) * r for q, r in DIRECTIONS)
+    arcs: tuple[Arc, ...] = ("front", "front", "right", "rear", "left", "front")
+    candidates = [arcs[(i - observer.facing) % 6] for i, dot in enumerate(dots) if dot == max(dots)]
+    priority: dict[Arc, int] = {"front": 0, "left": 1, "right": 1, "rear": 2, "close": 3}
+    return max(candidates, key=priority.__getitem__)
+
+
+class Cell(Record):
+    position: Hex
+    elevation: int = Field(default=0, ge=-1000, le=1000, description="Yards above map datum")
+    blocked: bool = False
+    extra_cost: int = Field(default=0, ge=0, le=100, description="Authored terrain MP surcharge")
+    opaque_height: int = Field(default=0, ge=0, le=1000, description="Yards above ground")
+
+
+class HexBattlefield(Record):
+    """New tagged contract. Legacy square maps cannot validate as hex maps."""
+
+    id: Id
+    coordinate_system: Literal["hex-axial-v1"]
+    profile_id: Literal["gurps-basic-set-4e-2004"]
+    baseline_id: Literal["gurps-4e-2004-first-printing+errata-2007-01-26"]
+    cells: tuple[Cell, ...] = Field(min_length=1, max_length=10000)
+
+    @model_validator(mode="after")
+    def distinct_cells(self) -> HexBattlefield:
+        if len({cell.position for cell in self.cells}) != len(self.cells):
+            raise ValueError("Duplicate hex cell")
+        return self
+
+    def cell(self, position: Hex) -> Cell:
+        for cell in self.cells:
+            if cell.position == position:
+                return cell
+        raise ValidationError("Hex is outside the battlefield")
+
+
+class Occupant(Record):
+    actor_id: Id
+    position: Hex
+
+
+class Movement(Record):
+    origin: Pose
+    destination: Pose
+    cost: int = Field(ge=0)
+    path: tuple[Hex, ...]
+    baseline_id: str = BASELINE_ID
+
+
+def step_allowance(move: int) -> int:
+    if type(move) is not int or move < 0:
+        raise ValidationError("Move must be a nonnegative integer")
+    return max(1, (move + 9) // 10)
+
+
+def posture_move(move: int, posture: Posture) -> int:
+    """B367/B387: crouching 2/3 Move; crawling 1/3; kneeling 1/3."""
+    step_allowance(move)  # shared validation
+    if posture == "standing":
+        return move
+    if posture == "crouching":
+        return move * 2 // 3
+    if posture in ("kneeling", "crawling"):
+        return move // 3
+    if posture in ("sitting", "lying"):
+        return 0
+    raise ValidationError("Unknown posture")
+
+
+def _occupancy(battlefield: HexBattlefield, occupants: tuple[Occupant, ...]) -> None:
+    if len({entry.actor_id for entry in occupants}) != len(occupants):
+        raise ValidationError("Duplicate occupant actor")
+    for entry in occupants:
+        if battlefield.cell(entry.position).blocked:
+            raise ValidationError("Occupant is in a blocked hex")
+
+
+def movement(
+    battlefield: HexBattlefield,
+    origin: Pose,
+    path: tuple[Hex, ...],
+    *,
+    move: int,
+    occupants: tuple[Occupant, ...] = (),
+    actor_id: str | None = None,
+    step: bool = False,
+    enter_close_combat: bool = False,
+    final_facing: Facing | None = None,
+    turns: tuple[Facing, ...] = (),
+) -> Movement:
+    """Validate a supplied path and return a receipt, never search or mutate.
+
+    Paths exclude the origin. Forward movement turns to its direction for free;
+    side/back movement preserves facing. Explicit final turn: one side free on
+    Move, any facing on Step. Occupied entry requires explicit close combat and
+    may only end a path. Elevation changes require a separate physical-feat ruling.
+    """
+    step_allowance(move)
+    _occupancy(battlefield, occupants)
+    if battlefield.cell(origin.position).blocked:
+        raise ValidationError("Origin is blocked")
+    if origin.posture in ("sitting", "lying") and path:
+        raise ValidationError("Posture requires a change before hex movement")
+    if path and move == 0:
+        raise ValidationError("Zero Move does not permit movement")
+    if turns and len(turns) != len(path):
+        raise ValidationError("Supply one pre-move facing per path hex")
+    budget = step_allowance(move) if step else posture_move(move, origin.posture)
+    pose = origin
+    total = 0
+    for index, target in enumerate(path):
+        if turns:
+            facing = turns[index]
+            updated = Pose(position=pose.position, facing=facing, posture=pose.posture)
+            total += 0 if step else min((facing - pose.facing) % 6, (pose.facing - facing) % 6)
+            pose = updated
+        if distance(pose.position, target) != 1:
+            raise ValidationError("Movement path must use adjacent hexes")
+        cell = battlefield.cell(target)
+        if cell.blocked:
+            raise ValidationError("Movement path is blocked")
+        if cell.elevation != battlefield.cell(pose.position).elevation:
+            raise ValidationError("Elevation transition requires physical-feat resolution")
+        occupied = any(o.position == target and o.actor_id != actor_id for o in occupants)
+        if occupied and not (enter_close_combat and index == len(path) - 1):
+            raise ValidationError("Occupied hex requires explicit close-combat entry")
+        direction = DIRECTIONS.index((target.q - pose.position.q, target.r - pose.position.r))
+        forward = (direction - pose.facing) % 6 in (0, 1, 5)
+        total += (1 if step or forward else 2) + cell.extra_cost
+        pose = Pose(
+            position=target,
+            facing=direction if forward and not step else pose.facing,  # type: ignore[arg-type]
+            posture=origin.posture,
+        )
+    if final_facing is not None:
+        updated = Pose(position=pose.position, facing=final_facing, posture=pose.posture)
+        turn = min((final_facing - pose.facing) % 6, (pose.facing - final_facing) % 6)
+        total += 0 if step else max(0, turn - 1)
+        pose = updated
+    if total > budget:
+        raise ValidationError("Movement exceeds allowance")
+    return Movement(origin=origin, destination=pose, cost=total, path=path)
+
+
+def in_reach(
+    battlefield: HexBattlefield,
+    attacker: Pose,
+    target: Hex,
+    *,
+    reaches: frozenset[int],
+) -> bool:
+    """B388 flat-ground reach, with C encoded as 0; elevation fails closed."""
+    if not reaches or any(type(value) is not int or value < 0 for value in reaches):
+        raise ValidationError("Reach must contain nonnegative integer distances")
+    start, end = battlefield.cell(attacker.position), battlefield.cell(target)
+    if start.elevation != end.elevation:
+        raise ValidationError("Unequal elevation requires combat-height resolution")
+    return (
+        not start.blocked
+        and not end.blocked
+        and distance(attacker.position, target) in reaches
+        and arc(attacker, target) in ("front", "close")
+    )
+
+
+class RetreatContext(Record):
+    """Authoritative turn/condition inputs, owned by the combat consumer."""
+
+    already_retreated: bool = False
+    stunned: bool = False
+    grappled: bool = False
+    maneuver_allows_retreat: bool = True
+    moved_more_than_basic_move: bool = False
+
+
+def can_retreat(
+    battlefield: HexBattlefield,
+    defender: Pose,
+    attacker: Hex,
+    destination: Hex,
+    *,
+    context: RetreatContext,
+    occupants: tuple[Occupant, ...] = (),
+) -> bool:
+    """One-hex retreat eligibility (B377, B391); no defense bonus or turn mutation."""
+    battlefield.cell(attacker)
+    battlefield.cell(defender.position)
+    _occupancy(battlefield, occupants)
+    if (
+        context.already_retreated
+        or context.stunned
+        or context.grappled
+        or not context.maneuver_allows_retreat
+        or context.moved_more_than_basic_move
+        or defender.posture in ("sitting", "lying")
+        or distance(defender.position, destination) != 1
+        or distance(attacker, destination) <= distance(attacker, defender.position)
+        or any(entry.position == destination for entry in occupants)
+    ):
+        return False
+    try:
+        movement(battlefield, defender, (destination,), move=1, step=True)
+    except ValidationError:
+        return False
+    return True
+
+
+def _intersection(a: Hex, b: Hex, cell: Hex) -> tuple[Fraction, Fraction] | None:
+    """Clip a center-to-center segment against a closed regular hex, exactly."""
+    low, high = Fraction(0), Fraction(1)
+    start = tuple(x - c for x, c in zip(a.cube, cell.cube, strict=True))
+    delta = tuple(y - x for x, y in zip(a.cube, b.cube, strict=True))
+    for i, j in ((0, 1), (1, 2), (2, 0)):
+        for sign in (-1, 1):
+            offset = sign * (start[i] - start[j])
+            slope = sign * (delta[i] - delta[j])
+            if slope == 0:
+                if offset > 1:
+                    return None
+            elif slope > 0:
+                high = min(high, Fraction(1 - offset, slope))
+            else:
+                low = max(low, Fraction(1 - offset, slope))
+            if low > high:
+                return None
+    return low, high
+
+
+class SightPoint(Record):
+    position: Hex
+    height: int = Field(ge=0, le=100, description="Height above ground in yards")
+
+
+def line_of_sight(battlefield: HexBattlefield, start: SightPoint, end: SightPoint) -> bool:
+    """Geometric visibility only; does not reveal entities or apply perception.
+
+    Closed hex boundaries block on either side. Missing cells are outside the
+    map and opaque. Ground and authored opaque columns occlude the exact ray;
+    blocked movement alone does not imply opaque terrain.
+    """
+    a, b = battlefield.cell(start.position), battlefield.cell(end.position)
+    z0, z1 = a.elevation + start.height, b.elevation + end.height
+    cells = {cell.position: cell for cell in battlefield.cells}
+    # Every intersected hex lies within one coordinate of a sample spaced at
+    # most one hex apart. This corridor is O(distance), not map bounding-box area.
+    count = max(1, distance(start.position, end.position))
+    candidates: set[Hex] = set()
+    for index in range(count + 1):
+        q0 = round(Fraction(start.position.q * (count - index) + end.position.q * index, count))
+        r0 = round(Fraction(start.position.r * (count - index) + end.position.r * index, count))
+        for q in range(max(-1000, q0 - 1), min(1000, q0 + 1) + 1):
+            for r in range(max(-1000, r0 - 1), min(1000, r0 + 1) + 1):
+                candidates.add(Hex(q=q, r=r))
+    for position in candidates:
+        interval = _intersection(start.position, end.position, position)
+        if interval is None:
+            continue
+        cell = cells.get(position)
+        if cell is None:
+            return False
+        low, high = interval
+        ray_low = min(z0 + low * (z1 - z0), z0 + high * (z1 - z0))
+        # Endpoint ground itself does not obscure an observer on the ground.
+        if position in (start.position, end.position) and cell.opaque_height == 0:
+            continue
+        if cell.elevation + cell.opaque_height >= ray_low:
+            return False
+    return True

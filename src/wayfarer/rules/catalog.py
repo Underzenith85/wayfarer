@@ -81,13 +81,17 @@ class RulesPackage:
     dependencies: tuple[str, ...] = ()
 
     @property
-    def digest(self) -> str:
+    def canonical_json(self) -> str:
+        """Stable package representation shared by pins and source approval gates."""
         data = asdict(self)
         for definition in data["definitions"]:
             if definition["trait_rules"] is None:
                 del definition["trait_rules"]
-        payload = json.dumps(data, sort_keys=True, separators=(",", ":"))
-        return hashlib.sha256(payload.encode()).hexdigest()
+        return json.dumps(data, sort_keys=True, separators=(",", ":"))
+
+    @property
+    def digest(self) -> str:
+        return hashlib.sha256(self.canonical_json.encode()).hexdigest()
 
 
 @dataclass(frozen=True, slots=True)

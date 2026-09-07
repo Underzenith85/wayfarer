@@ -182,9 +182,9 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.combat.rapid_fire` | no | yes | absent | #106 |
 | `gurps.combat.unarmed` | yes | yes | partial | #108 |
 | `gurps.combat.grappling` | yes | yes | absent | #108 |
-| `gurps.tactical.hex_movement` | no | yes | absent | #105 |
-| `gurps.tactical.facing` | no | yes | absent | #105 |
-| `gurps.tactical.visibility` | no | yes | absent | #105 |
+| `gurps.tactical.hex_movement` | no | yes | partial | #105 |
+| `gurps.tactical.facing` | no | yes | partial | #105 |
+| `gurps.tactical.visibility` | no | yes | partial | #105 |
 | `gurps.recovery.fatigue` | yes | yes | partial | #109 |
 | `gurps.recovery.healing` | yes | yes | partial | #109 |
 | `gurps.recovery.medical_treatment` | no | yes | absent | #109 |
@@ -215,6 +215,12 @@ self-control checks (#111), catalog content (#113), and supernatural execution
 (#118) remain visible blockers. Disadvantage-specific modifiers and non-percentage
 special constructions are unavailable; they require catalog-specific rules in
 #118 before activation. No generic hook or manual ruling certifies coverage.
+
+## Tactical geometry (#105)
+
+Tactical geometry (#105): [contracts, provenance and integration boundary](tactical-geometry.md).
+Hex movement, facing and geometric LOS have independent fixtures; the rows remain
+partial pending source audit and combat/API integration (#115).
 
 ## Typed equipment profiles (#101)
 
