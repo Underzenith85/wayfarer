@@ -78,6 +78,29 @@ No optional rule is enabled by default, and arbitrary optional-rule names are no
 
 These helpers expose a fail-closed contract for future scenario/character validators. Existing validators and campaign persistence still use the prototype package; this PR does not claim that they are already wired to a new GURPS runtime. #96 owns selection and migration, and mechanics implementation belongs to its existing owners.
 
+## Attributes and secondary characteristics (#97)
+
+`wayfarer.character.statistics` owns primary attributes and secondary characteristics for the two profiles. It is selected only by an exact profile ID (`gurps-lite-4e-2004` or `gurps-basic-set-4e-2004`) passed to `CharacterCompiler(statistics_profile=...)`; the prototype `package:wayfarer-lite` is not a profile, compiles exactly as before, and keeps its recorded build revisions (a regression test pins two of them). A compiler without a profile refuses any package that carries `secondary:*` definitions, and a compiler with a profile refuses packages whose attribute and secondary definitions do not match the profile's costs. The compiler also calls `require_capabilities` for both #97 capabilities, so the registry status gates activation.
+
+Implemented under both profiles, as catalog purchases whose `amount` is the purchased absolute level:
+
+- `attribute:st|dx|iq|ht`: per-level costs from 10; level 1 is the floor, the campaign policy ceiling still applies.
+- `secondary:hp`, `secondary:will`, `secondary:per`, `secondary:fp`: independently purchased; unpurchased values default to ST, IQ, IQ and HT at no cost.
+- `secondary:basic-speed`: purchased in quarter units (an `amount` of 23 is 5.75) because the source sells it in 0.25 steps; the default equals DX + HT quarters. Fractions are kept exactly.
+- `secondary:basic-move`: default is Basic Speed with the fraction dropped (`floor`), then purchased per yard/second.
+- Derived, not purchasable: Dodge (Basic Speed + 3, fraction dropped), Basic Lift (ST squared over five, in pounds; `nearest` from 10 up, exact fraction below, no tie is possible), encumbrance thresholds at 1, 2, 3, 6 and 10 times Basic Lift, encumbered Move (`floor`, minimum 1 when Basic Move is at least 1), encumbered Dodge, and thrust/swing damage from the ST table.
+
+The typed projection (`CharacterStatistics`) carries build values and point costs only. Runtime pools stay in `ResourceState`; the only bridge is `carry_over`, which preserves the existing deficit when a ceiling moves. `pool_limits(build)` is the single place that decides which sheet targets initialize HP and FP (`secondary:hp`/`secondary:fp` for profile builds, `attribute:st`/`attribute:ht` for the prototype), and advancement uses it so recompilation and purchases never heal an injured character (a replacement character still starts full). Effects may target `secondary:*` values through the existing evaluator.
+
+Fail-closed and advisory boundaries:
+
+- Damage lookup accepts only listed ST rows: 1 to 20 under the Lite profile, 1 to 40 and the listed five-point steps to 100 under Basic. Anything else is a `damage.unsupported_st` diagnostic rather than an interpolated guess.
+- The source's GM-permission guidelines (HP or FP more than 30% away from ST or HT, Will or Per above 20) are reported as `advisories` on the projection. They are not hard failures and not silently ignored; the power reviewer can turn them into review findings.
+- Engine invariants that are not rules claims: HP, FP, Will and Per compile to at least 1, Basic Move to at least 0.
+- Not implemented: the Basic Set Size Modifier discount on ST and HP costs. It is recorded as the Basic-only capability `gurps.character.size_modifier_costs` (`absent`) so it stays a visible certification blocker until a named follow-up implements it; Lifting ST, Striking ST and similar traits belong to #100.
+
+Fixture cases for both capabilities live in `tests/fixtures/gurps/conformance.json` with an `operation` field naming the executable check; `tests/test_statistics.py` runs every one of them plus property tests for fraction handling, rounding, load bands and pool carry-over.
+
 ## Independent evidence
 
 The test suite executes seven fixed success/critical examples through the existing authoritative check service. This demonstrates agreement only for those examples; coverage remains partial. A separate both-fail Quick Contest case records the published winner and the prototype's different result. It deliberately passes only while that documented divergence remains, so #99 must update both evidence and coverage when implementing the published behavior. The unknown-capability test is an application contract test, not a rulebook-derived mechanic.
@@ -94,8 +117,9 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 
 | Capability | Lite required | Basic required | State | Owner |
 | --- | --- | --- | --- | --- |
-| `gurps.character.primary_attributes` | yes | yes | partial | #97 |
-| `gurps.character.secondary_characteristics` | yes | yes | absent | #97 |
+| `gurps.character.primary_attributes` | yes | yes | verified | #97 |
+| `gurps.character.secondary_characteristics` | yes | yes | verified | #97 |
+| `gurps.character.size_modifier_costs` | no | yes | absent | #97 (follow-up) |
 | `gurps.character.skill_difficulty` | yes | yes | partial | #98 |
 | `gurps.character.skill_defaults` | yes | yes | absent | #98 |
 | `gurps.character.specialties` | no | yes | absent | #98 |

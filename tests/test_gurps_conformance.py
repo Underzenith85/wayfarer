@@ -82,6 +82,21 @@ def test_conformance_fixture_contract_is_source_referenced_and_independent() -> 
     }
 
 
+def test_verified_capabilities_carry_executable_evidence() -> None:
+    """A verified entry needs fixture cases for every profile that requires it."""
+
+    data = json.loads(FIXTURE.read_text())
+    covered = {(case["capability_id"], case["profile"]) for case in data["cases"]}
+    for entry in CAPABILITIES.values():
+        if entry.status is not CoverageStatus.VERIFIED:
+            continue
+        assert (entry.id, "gurps-basic-set-4e-2004") in covered, entry.id
+        if entry.lite_required:
+            assert (entry.id, "gurps-lite-4e-2004") in covered, entry.id
+    assert CAPABILITIES["gurps.character.size_modifier_costs"].status is CoverageStatus.ABSENT
+    assert not CAPABILITIES["gurps.character.size_modifier_costs"].lite_required
+
+
 def test_current_inventory_does_not_claim_gurps_certification() -> None:
     lite = [entry for entry in CAPABILITIES.values() if entry.lite_required]
     basic = [entry for entry in CAPABILITIES.values() if entry.basic_required]
@@ -156,7 +171,10 @@ def test_requirements_cannot_fall_back_to_another_profile() -> None:
         require_capabilities("gurps-lite-4e-2004", ("gurps.tactical.hex_movement",))
     with pytest.raises(ValidationError, match="Unknown rules capability"):
         require_capabilities("gurps-basic-set-4e-2004", ("gurps.invented",))
-    for identifier in CAPABILITIES:
+    for identifier, entry in CAPABILITIES.items():
+        if entry.status is CoverageStatus.VERIFIED:
+            require_capabilities("gurps-basic-set-4e-2004", (identifier,))
+            continue
         with pytest.raises(ValidationError, match="not verified"):
             require_capabilities("gurps-basic-set-4e-2004", (identifier,))
 

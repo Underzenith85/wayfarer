@@ -9,7 +9,7 @@ from typing import Annotated, Literal
 
 from pydantic import Field, TypeAdapter
 
-from wayfarer.character.compiler import ValidatedBuild
+from wayfarer.character.compiler import ValidatedBuild, pool_limits
 from wayfarer.character.power import Approval, CharacterProposal, PowerReviewer
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.rules.catalog import SKILLS, DefinitionKind, ImplementationStatus
@@ -437,9 +437,9 @@ class ActionEngine:
                 raise ValidationError("Resource prerequisites do not match the compiled build")
             values = {v.target: v.value for v in build.sheet.values}
             initiatives[actor.actor_id] = int(values["attribute:dx"])
-            for kind, attribute in (("hp", "attribute:st"), ("fp", "attribute:ht")):
+            for kind, maximum in pool_limits(build).items():
                 pool = pools.get(f"{kind}:{actor.actor_id}")
-                if pool is None or pool.maximum != values.get(attribute):
+                if pool is None or pool.maximum != maximum:
                     raise ValidationError("Runtime pool limit does not match the compiled build")
             entity = entities.get(actor.actor_id)
             if entity is None or entity.kind is not EntityKind.ACTOR:

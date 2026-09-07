@@ -33,8 +33,11 @@ class Capability:
 
 
 _CAPABILITIES: Final = (
-    Capability("gurps.character.primary_attributes", True, True, CoverageStatus.PARTIAL, 97),
-    Capability("gurps.character.secondary_characteristics", True, True, CoverageStatus.ABSENT, 97),
+    Capability("gurps.character.primary_attributes", True, True, CoverageStatus.VERIFIED, 97),
+    Capability(
+        "gurps.character.secondary_characteristics", True, True, CoverageStatus.VERIFIED, 97
+    ),
+    Capability("gurps.character.size_modifier_costs", False, True, CoverageStatus.ABSENT, 97),
     Capability("gurps.character.skill_difficulty", True, True, CoverageStatus.PARTIAL, 98),
     Capability("gurps.character.skill_defaults", True, True, CoverageStatus.ABSENT, 98),
     Capability("gurps.character.specialties", False, True, CoverageStatus.ABSENT, 98),

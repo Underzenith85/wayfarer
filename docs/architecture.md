@@ -13,7 +13,7 @@ implicit checkout imports, or global pip dependencies are required.
 | --- | --- | --- |
 | `models`, `validation` | Shared typed contracts and runtime structural schemas | Models |
 | `rules` | Closed demo catalog and checks | Models, validation, rules |
-| `character` | Character draft validation and preset | Models, validation, rules, character |
+| `character` | Character draft validation, preset, and profile-selected attribute/secondary statistics | Models, validation, rules, character |
 | `simulation` | Scenario validation and state transitions | Models, validation, rules, character, simulation |
 | `persistence` | SQLite schema, transactions and storage | Models, validation |
 | `orchestration` | LLM adapter, intent, application use cases | Domain packages, persistence |

@@ -19,3 +19,8 @@ Campaign policies independently constrain sources, point/disadvantage budgets,
 attribute and skill ceilings, technology level, supernatural access, and starting
 equipment. Updating a package or policy requires a new version and explicit
 campaign migration; existing campaign pins never float.
+
+Definition kinds are `attribute`, `secondary`, `skill`, `trait` and `equipment`.
+`secondary` entries (HP, Will, Per, FP, Basic Speed, Basic Move) compile only when
+the compiler is created with an exact GURPS conformance profile; see
+[GURPS conformance](gurps-conformance.md). The prototype package has none.

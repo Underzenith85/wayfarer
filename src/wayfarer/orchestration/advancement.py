@@ -7,8 +7,9 @@ import json
 from pydantic import Field
 from pydantic import ValidationError as SchemaError
 
-from wayfarer.character.compiler import CharacterDraft, ValidatedBuild
+from wayfarer.character.compiler import CharacterDraft, ValidatedBuild, pool_limits
 from wayfarer.character.power import CharacterProposal
+from wayfarer.character.statistics import RuntimePool, carry_over
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, Event
 from wayfarer.orchestration.play import PlayService
@@ -22,7 +23,7 @@ from wayfarer.simulation.advancement import (
     MigrationEntry,
     MigrationPreview,
 )
-from wayfarer.simulation.resources import Id, Record
+from wayfarer.simulation.resources import Id, Pool, Record
 
 
 class GrantPoints(Record):
@@ -81,6 +82,19 @@ def _diff(actor_id: str, before: ValidatedBuild, after: ValidatedBuild) -> Build
         removed=tuple(sorted(old.keys() - new.keys())),
         changed_values=changed,
     )
+
+
+def _refreshed(pool: Pool, maximum: int, build: ValidatedBuild) -> Pool:
+    """Move a pool ceiling for a recompiled build without healing anything.
+
+    The prototype package keeps its original clamp. Profile builds preserve the
+    deficit, so purchased HP or FP raise the current value by the same amount.
+    """
+
+    if build.statistics is None:
+        return pool.model_copy(update={"maximum": maximum, "current": min(pool.current, maximum)})
+    carried = carry_over(RuntimePool(pool.current, pool.maximum), maximum)
+    return pool.model_copy(update={"maximum": carried.maximum, "current": carried.current})
 
 
 def _balance(state: PlayState, actor_id: str) -> int:
@@ -211,17 +225,9 @@ class AdvancementService:
             else owner
             for owner in state.resources.owners
         )
-        maxima = {
-            "hp": int(next(v.value for v in after.sheet.values if v.target == "attribute:st")),
-            "fp": int(next(v.value for v in after.sheet.values if v.target == "attribute:ht")),
-        }
+        maxima = pool_limits(after)
         pools = tuple(
-            pool.model_copy(
-                update={
-                    "maximum": maxima[pool.id.split(":", 1)[0]],
-                    "current": min(pool.current, maxima[pool.id.split(":", 1)[0]]),
-                }
-            )
+            _refreshed(pool, maxima[pool.id.split(":", 1)[0]], after)
             if pool.id in (f"hp:{command.actor_id}", f"fp:{command.actor_id}")
             else pool
             for pool in state.resources.pools
