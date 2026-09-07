@@ -94,10 +94,22 @@ p {
 .brand svg {
   color: var(--accent);
 }
-.session-label {
-  margin-left: auto;
+/* A descriptor beside the logotype, deliberately unlike the controls: serif
+   italic prose weight, so nothing in the header reads as a control without
+   being one (#255). */
+.brand-tagline {
+  margin: 0;
   color: var(--muted);
-  font-size: 0.875rem;
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: 0.9375rem;
+  line-height: 1.2;
+}
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-left: auto;
 }
 .button {
   display: inline-flex;
@@ -316,11 +328,8 @@ main {
     height: 68px;
     padding: 0 1rem;
   }
-  .session-label {
+  .brand-tagline {
     display: none;
-  }
-  .topbar .button {
-    margin-left: auto;
   }
   .workspace {
     display: block;
@@ -1644,7 +1653,7 @@ textarea {
     gap: 0.5rem;
     padding-inline: 1rem;
   }
-  .session-label {
+  .brand-tagline {
     display: none;
   }
 }

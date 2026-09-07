@@ -96,6 +96,65 @@ test("\u201cAt a glance\u201d is a rail or a drawer trigger, never both", async 
     page.getByRole("dialog").getByRole("heading", { name: "At a glance" }),
   ).toBeVisible();
 });
+test("the header styles nothing as a control that is not one (#255)", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/");
+  const header = page.locator("header.topbar");
+  const tagline = header.getByText("Campaign companion", { exact: true });
+  await expect(tagline).toBeVisible();
+  // It describes the shell beside the logotype: prose, not a control, and
+  // outside the cluster the theme toggle and Session share.
+  expect(
+    await tagline.evaluate((node) => ({
+      href: node.getAttribute("href"),
+      role: node.getAttribute("role"),
+      tabindex: node.getAttribute("tabindex"),
+      focusable: node.tabIndex >= 0,
+      cursor: getComputedStyle(node).cursor,
+      inControls: !!node.closest(".topbar-actions"),
+    })),
+  ).toEqual({
+    href: null,
+    role: null,
+    tabindex: null,
+    focusable: false,
+    cursor: "auto",
+    inControls: false,
+  });
+  await expect(header.getByRole("link")).toHaveCount(1);
+  // The rule holds for the whole header, at every width the tagline shows.
+  for (const width of [1440, 820]) {
+    await page.setViewportSize({ width, height: 1000 });
+    expect(
+      await header.evaluate((node) =>
+        [...node.querySelectorAll("*")]
+          .filter(
+            (element) =>
+              getComputedStyle(element).cursor === "pointer" &&
+              !element.closest(
+                "a[href], button, [role='button'], [role='link'], [tabindex]",
+              ),
+          )
+          .map((element) => element.textContent?.trim() ?? ""),
+      ),
+    ).toEqual([]);
+  }
+  // Tab order runs skip link, logotype, then the real controls; the
+  // descriptor between them is never a stop.
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.keyboard.press("Tab");
+  await expect(
+    page.getByRole("link", { name: "Skip to content" }),
+  ).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(header.getByRole("link", { name: "WAYFARER" })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(
+    page.getByRole("button", { name: "Toggle dark theme" }),
+  ).toBeFocused();
+});
 test("theme persists and offline status recovers", async ({
   page,
   context,
