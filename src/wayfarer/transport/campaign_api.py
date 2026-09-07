@@ -7,6 +7,7 @@ import time
 import uuid
 from collections import deque
 from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
+from pathlib import Path
 
 from aiohttp import web
 from pydantic import Field
@@ -51,6 +52,8 @@ def _identity(request: web.Request) -> str:
 async def boundary(
     request: web.Request, handler: Callable[[web.Request], Awaitable[web.StreamResponse]]
 ) -> web.StreamResponse:
+    if request.path.startswith("/api/v1"):
+        return await handler(request)
     request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
     try:
         if request.path != "/health":
@@ -147,7 +150,14 @@ async def provider_status(request: web.Request) -> web.Response:
 
 
 def create_campaign_app(
-    play: CampaignAccess, tokens: Mapping[str, str], *, settings: Settings | None = None
+    play: CampaignAccess,
+    tokens: Mapping[str, str],
+    *,
+    settings: Settings | None = None,
+    v1_ledger_path: Path | None = None,
+    v1_origins: frozenset[str] = frozenset(),
+    v1_allow_no_origin: bool = False,
+    legacy_routes: bool = False,
 ) -> web.Application:
     if not tokens or any(not token or not principal for token, principal in tokens.items()):
         raise ValueError("Non-empty credentials required")
@@ -155,14 +165,39 @@ def create_campaign_app(
     app[ACCESS_KEY] = play
     app[TOKENS_KEY] = dict(tokens)
     app[LIMITS_KEY] = {}
-    app.add_routes(
-        [
-            web.get("/health", health),
-            web.get("/campaigns/{cid}", read_campaign),
-            web.post("/campaigns/{cid}/commands", command),
-            web.get("/campaigns/{cid}/events", events),
-        ]
+    app.router.add_get("/health", health)
+    if legacy_routes:
+        app.add_routes(
+            [
+                web.get("/campaigns/{cid}", read_campaign),
+                web.post("/campaigns/{cid}/commands", command),
+                web.get("/campaigns/{cid}/events", events),
+            ]
+        )
+    from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
+    from wayfarer.transport.v1.http import TOKENS, install
+    from wayfarer.transport.v1.live import CONNECTIONS
+
+    if v1_ledger_path is None:
+        if not isinstance(play.play.store, AsyncSQLiteStore):
+            raise ValueError("Configure v1_ledger_path for the durable API receipt database")
+        v1_ledger_path = play.play.store.path.with_suffix(".v1.sqlite3")
+    v1 = install(
+        app,
+        play.play,
+        tokens,
+        v1_ledger_path,
+        origins=v1_origins,
+        allow_no_origin=v1_allow_no_origin,
     )
+    app[TOKENS] = app[TOKENS_KEY]
+    app[CONNECTIONS] = {}
+
+    async def v1_lifespan(application: web.Application) -> AsyncIterator[None]:
+        await v1.start()
+        yield
+        await v1.close()
+
     if settings is not None:
         app[PROVIDER_STATUS_KEY] = deque(maxlen=256)
 
@@ -173,13 +208,18 @@ def create_campaign_app(
                 application[ORCHESTRATOR_KEY] = Orchestrator(
                     play, provider, timeout=min(settings.model_timeout_seconds, 120.0), attempts=1
                 )
+                from wayfarer.transport.v1.provider import bind_provider
+
+                bind_provider(v1, application[ORCHESTRATOR_KEY])
                 yield
 
         app.cleanup_ctx.append(lifespan)
-        app.add_routes(
-            [
-                web.post("/campaigns/{cid}/interpret", interpret),
-                web.get("/campaigns/{cid}/provider-status", provider_status),
-            ]
-        )
+        if legacy_routes:
+            app.add_routes(
+                [
+                    web.post("/campaigns/{cid}/interpret", interpret),
+                    web.get("/campaigns/{cid}/provider-status", provider_status),
+                ]
+            )
+    app.cleanup_ctx.append(v1_lifespan)
     return app

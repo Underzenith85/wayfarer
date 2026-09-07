@@ -66,6 +66,7 @@ EventAction = (
     Action
     | Literal[
         "resource",
+        "v1-membership",
         "typed-action",
         "power-approval",
         "request_ruling",

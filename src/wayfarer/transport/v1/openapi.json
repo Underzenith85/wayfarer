@@ -1,0 +1,1959 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Wayfarer player HTTP API",
+    "version": "1.0.0",
+    "description": "Target contract frozen by review of issue #47. This specification is not a claim of runtime conformance: see README.md and issue #50. Proposed surfaces are separate. HTTPS required outside loopback development."
+  },
+  "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
+  "servers": [
+    {
+      "url": "/api/v1"
+    }
+  ],
+  "paths": {
+    "/me": {
+      "get": {
+        "operationId": "getMe",
+        "summary": "getMe",
+        "x-contract-status": "frozen",
+        "x-authorization": "Authenticated principal; return self only.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas.json#/$defs/Principal"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        }
+      }
+    },
+    "/campaigns": {
+      "get": {
+        "operationId": "listCampaigns",
+        "summary": "listCampaigns",
+        "x-contract-status": "frozen",
+        "x-authorization": "Authenticated principal; list only current memberships.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas.json#/$defs/CampaignPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "410": {
+            "$ref": "#/components/responses/Error410"
+          }
+        },
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            }
+          }
+        ]
+      }
+    },
+    "/campaigns/{campaign_id}": {
+      "get": {
+        "operationId": "getCampaign",
+        "summary": "getCampaign",
+        "x-contract-status": "frozen",
+        "x-authorization": "Current campaign member. Return only the caller-permitted projection; absent and inaccessible IDs both return 404. GM membership does not imply control of a player actor.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas.json#/$defs/Campaign"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "parameters": [
+          {
+            "name": "campaign_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Id"
+            }
+          }
+        ]
+      }
+    },
+    "/campaigns/{campaign_id}/members": {
+      "get": {
+        "operationId": "listMembers",
+        "summary": "listMembers",
+        "x-contract-status": "frozen",
+        "x-authorization": "Current campaign member. Return only the caller-permitted projection; absent and inaccessible IDs both return 404. GM membership does not imply control of a player actor. Player/spectator views may see roster and public role, but other members actor_ids are empty unless that control relationship is visible.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas.json#/$defs/MembershipPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "410": {
+            "$ref": "#/components/responses/Error410"
+          }
+        },
+        "parameters": [
+          {
+            "name": "campaign_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            }
+          }
+        ]
+      }
+    },
+    "/campaigns/{campaign_id}/sessions/current": {
+      "get": {
+        "operationId": "getCurrentSession",
+        "summary": "getCurrentSession",
+        "x-contract-status": "frozen",
+        "x-authorization": "Current campaign member. Return only the caller-permitted projection; absent and inaccessible IDs both return 404. GM membership does not imply control of a player actor. Summary is knowledge-filtered; no session returns 404.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas.json#/$defs/Session"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "parameters": [
+          {
+            "name": "campaign_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Id"
+            }
+          }
+        ]
+      }
+    },
+    "/campaigns/{campaign_id}/characters": {
+      "get": {
+        "operationId": "listCharacters",
+        "summary": "listCharacters",
+        "x-contract-status": "frozen",
+        "x-authorization": "Current campaign member. Return only the caller-permitted projection; absent and inaccessible IDs both return 404. GM membership does not imply control of a player actor. Detailed sheets only for controlled characters, or GM. Spectator receives empty list.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas.json#/$defs/CharacterPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "410": {
+            "$ref": "#/components/responses/Error410"
+          }
+        },
+        "parameters": [
+          {
+            "name": "campaign_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            }
+          }
+        ]
+      }
+    },
+    "/campaigns/{campaign_id}/characters/{actor_id}": {
+      "get": {
+        "operationId": "getCharacter",
+        "summary": "getCharacter",
+        "x-contract-status": "frozen",
+        "x-authorization": "Current campaign member. Return only the caller-permitted projection; absent and inaccessible IDs both return 404. GM membership does not imply control of a player actor. Controlled character or GM; other detailed sheets return 404.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas.json#/$defs/Character"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "parameters": [
+          {
+            "name": "campaign_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Id"
+            }
+          },
+          {
+            "name": "actor_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Id"
+            }
+          }
+        ]
+      }
+    },
+    "/campaigns/{campaign_id}/characters/{actor_id}/inventory": {
+      "get": {
+        "operationId": "getInventory",
+        "summary": "getInventory",
+        "x-contract-status": "frozen",
+        "x-authorization": "Current campaign member. Return only the caller-permitted projection; absent and inaccessible IDs both return 404. GM membership does not imply control of a player actor. Controlled character or GM; hidden confiscated item locations never returned.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas.json#/$defs/Inventory"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "parameters": [
+          {
+            "name": "campaign_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Id"
+            }
+          },
+          {
+            "name": "actor_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Id"
+            }
+          }
+        ]
+      }
+    },
+    "/campaigns/{campaign_id}/scenes": {
+      "get": {
+        "operationId": "listScenes",
+        "summary": "listScenes",
+        "x-contract-status": "frozen",
+        "x-authorization": "Current campaign member. Return only the caller-permitted projection; absent and inaccessible IDs both return 404. GM membership does not imply control of a player actor. Only currently authorized scenes, not every active subgroup.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas.json#/$defs/ScenePage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "410": {
+            "$ref": "#/components/responses/Error410"
+          }
+        },
+        "parameters": [
+          {
+            "name": "campaign_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            }
+          }
+        ]
+      }
+    },
+    "/campaigns/{campaign_id}/scenes/{scene_id}": {
+      "get": {
+        "operationId": "getScene",
+        "summary": "getScene",
+        "x-contract-status": "frozen",
+        "x-authorization": "Current campaign member. Return only the caller-permitted projection; absent and inaccessible IDs both return 404. GM membership does not imply control of a player actor. Scene access required; observations and actors filtered by perspective.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas.json#/$defs/Scene"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "parameters": [
+          {
+            "name": "campaign_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Id"
+            }
+          },
+          {
+            "name": "scene_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Id"
+            }
+          }
+        ]
+      }
+    },
+    "/campaigns/{campaign_id}/actions": {
+      "post": {
+        "operationId": "submitAction",
+        "summary": "submitAction",
+        "x-contract-status": "frozen",
+        "x-authorization": "Current campaign member. Return only the caller-permitted projection; absent and inaccessible IDs both return 404. GM membership does not imply control of a player actor. Requires player role controlling the actor and authorized scene membership. Recheck at command acceptance and resolution; spectators and GM-only principals cannot submit player actions.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted action resource; poll until terminal.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas.json#/$defs/Action"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error415"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          }
+        },
+        "parameters": [
+          {
+            "name": "campaign_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas.json#/$defs/SubmitAction"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listActions",
+        "summary": "listActions",
+        "x-contract-status": "frozen",
+        "x-authorization": "Current campaign member. Return only the caller-permitted projection; absent and inaccessible IDs both return 404. GM membership does not imply control of a player actor. Own actions in the requested authorized scene, including pending and terminal records. GM inspection requires explicit GM role.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas.json#/$defs/ActionPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "410": {
+            "$ref": "#/components/responses/Error410"
+          }
+        },
+        "parameters": [
+          {
+            "name": "campaign_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            }
+          },
+          {
+            "name": "scene_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Id"
+            }
+          }
+        ]
+      }
+    },
+    "/campaigns/{campaign_id}/actions/{action_id}": {
+      "get": {
+        "operationId": "getAction",
+        "summary": "getAction",
+        "x-contract-status": "frozen",
+        "x-authorization": "Current campaign member. Return only the caller-permitted projection; absent and inaccessible IDs both return 404. GM membership does not imply control of a player actor. Owner controlling originating actor, or GM; recheck scene access.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas.json#/$defs/Action"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "parameters": [
+          {
+            "name": "campaign_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Id"
+            }
+          },
+          {
+            "name": "action_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Id"
+            }
+          }
+        ]
+      }
+    },
+    "/campaigns/{campaign_id}/actions/{action_id}/clarifications": {
+      "post": {
+        "operationId": "clarifyAction",
+        "summary": "clarifyAction",
+        "x-contract-status": "frozen",
+        "x-authorization": "Current campaign member. Return only the caller-permitted projection; absent and inaccessible IDs both return 404. GM membership does not imply control of a player actor. Requires player role controlling the actor and authorized scene membership. Recheck at command acceptance and resolution; spectators and GM-only principals cannot submit player actions. Only current clarification ID may be answered.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted action resource; poll until terminal.",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas.json#/$defs/Action"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error415"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          }
+        },
+        "parameters": [
+          {
+            "name": "campaign_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Id"
+            }
+          },
+          {
+            "name": "action_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas.json#/$defs/ClarifyAction"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/campaigns/{campaign_id}/actions/{action_id}/cancellation": {
+      "post": {
+        "operationId": "cancelAction",
+        "summary": "cancelAction",
+        "x-contract-status": "frozen",
+        "x-authorization": "Current campaign member. Return only the caller-permitted projection; absent and inaccessible IDs both return 404. GM membership does not imply control of a player actor. Requires player role controlling the actor and authorized scene membership. Recheck at command acceptance and resolution; spectators and GM-only principals cannot submit player actions. Only before resolving; after commit return 409 invalid_transition.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas.json#/$defs/Action"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error415"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          }
+        },
+        "parameters": [
+          {
+            "name": "campaign_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Id"
+            }
+          },
+          {
+            "name": "action_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas.json#/$defs/CancelAction"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/campaigns/{campaign_id}/invitations": {
+      "post": {
+        "operationId": "createInvitation",
+        "summary": "createInvitation",
+        "x-contract-status": "frozen",
+        "x-authorization": "Current campaign member. Return only the caller-permitted projection; absent and inaccessible IDs both return 404. GM membership does not imply control of a player actor. GM only; cannot invite a GM or silently assign character control.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas.json#/$defs/Invitation"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error415"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          }
+        },
+        "parameters": [
+          {
+            "name": "campaign_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas.json#/$defs/InvitationRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/invitations/redeem": {
+      "post": {
+        "operationId": "redeemInvitation",
+        "summary": "redeemInvitation",
+        "x-contract-status": "frozen",
+        "x-authorization": "Authenticated principal with unexpired single-use invitation token. Invalid/expired/revoked token returns generic 404. Redemption cannot elevate existing role.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./schemas.json#/$defs/Membership"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error415"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./schemas.json#/$defs/RedeemInvitation"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Opaque server-issued credential resolved to a principal. Never trust principal/role from input. Provisioning/login is outside this frozen slice."
+      }
+    },
+    "responses": {
+      "Error400": {
+        "description": "invalid_request, invalid_cursor",
+        "headers": {
+          "X-Request-ID": {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Error"
+            }
+          }
+        },
+        "x-error-codes": [
+          "invalid_request",
+          "invalid_cursor"
+        ]
+      },
+      "Error401": {
+        "description": "unauthenticated",
+        "headers": {
+          "X-Request-ID": {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          },
+          "WWW-Authenticate": {
+            "schema": {
+              "type": "string",
+              "const": "Bearer"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Error"
+            }
+          }
+        },
+        "x-error-codes": [
+          "unauthenticated"
+        ]
+      },
+      "Error403": {
+        "description": "forbidden",
+        "headers": {
+          "X-Request-ID": {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Error"
+            }
+          }
+        },
+        "x-error-codes": [
+          "forbidden"
+        ]
+      },
+      "Error404": {
+        "description": "not_found",
+        "headers": {
+          "X-Request-ID": {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Error"
+            }
+          }
+        },
+        "x-error-codes": [
+          "not_found"
+        ]
+      },
+      "Error409": {
+        "description": "stale_version, idempotency_conflict, invalid_transition",
+        "headers": {
+          "X-Request-ID": {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Error"
+            }
+          }
+        },
+        "x-error-codes": [
+          "stale_version",
+          "idempotency_conflict",
+          "invalid_transition"
+        ]
+      },
+      "Error410": {
+        "description": "cursor_expired",
+        "headers": {
+          "X-Request-ID": {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Error"
+            }
+          }
+        },
+        "x-error-codes": [
+          "cursor_expired"
+        ]
+      },
+      "Error413": {
+        "description": "payload_too_large",
+        "headers": {
+          "X-Request-ID": {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Error"
+            }
+          }
+        },
+        "x-error-codes": [
+          "payload_too_large"
+        ]
+      },
+      "Error415": {
+        "description": "unsupported_media_type",
+        "headers": {
+          "X-Request-ID": {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Error"
+            }
+          }
+        },
+        "x-error-codes": [
+          "unsupported_media_type"
+        ]
+      },
+      "Error422": {
+        "description": "unsupported_action, illegal_action",
+        "headers": {
+          "X-Request-ID": {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Error"
+            }
+          }
+        },
+        "x-error-codes": [
+          "unsupported_action",
+          "illegal_action"
+        ]
+      },
+      "Error429": {
+        "description": "rate_limited",
+        "headers": {
+          "X-Request-ID": {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          },
+          "Retry-After": {
+            "description": "Required integer delay in seconds.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3600
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Error"
+            }
+          }
+        },
+        "x-error-codes": [
+          "rate_limited"
+        ]
+      },
+      "Error500": {
+        "description": "internal_error",
+        "headers": {
+          "X-Request-ID": {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Error"
+            }
+          }
+        },
+        "x-error-codes": [
+          "internal_error"
+        ]
+      },
+      "Error503": {
+        "description": "service_unavailable",
+        "headers": {
+          "X-Request-ID": {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "Cache-Control": {
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          },
+          "Retry-After": {
+            "description": "Required integer delay in seconds.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3600
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "./schemas.json#/$defs/Error"
+            }
+          }
+        },
+        "x-error-codes": [
+          "service_unavailable"
+        ]
+      }
+    },
+    "schemas": {
+      "Id": {
+        "$ref": "./schemas.json#/$defs/Id"
+      },
+      "Version": {
+        "$ref": "./schemas.json#/$defs/Version"
+      },
+      "Timestamp": {
+        "$ref": "./schemas.json#/$defs/Timestamp"
+      },
+      "GameTime": {
+        "$ref": "./schemas.json#/$defs/GameTime"
+      },
+      "FieldError": {
+        "$ref": "./schemas.json#/$defs/FieldError"
+      },
+      "Error": {
+        "$ref": "./schemas.json#/$defs/Error"
+      },
+      "Principal": {
+        "$ref": "./schemas.json#/$defs/Principal"
+      },
+      "Membership": {
+        "$ref": "./schemas.json#/$defs/Membership"
+      },
+      "Campaign": {
+        "$ref": "./schemas.json#/$defs/Campaign"
+      },
+      "Pool": {
+        "$ref": "./schemas.json#/$defs/Pool"
+      },
+      "Stat": {
+        "$ref": "./schemas.json#/$defs/Stat"
+      },
+      "Condition": {
+        "$ref": "./schemas.json#/$defs/Condition"
+      },
+      "Character": {
+        "$ref": "./schemas.json#/$defs/Character"
+      },
+      "Item": {
+        "$ref": "./schemas.json#/$defs/Item"
+      },
+      "Inventory": {
+        "$ref": "./schemas.json#/$defs/Inventory"
+      },
+      "Observation": {
+        "$ref": "./schemas.json#/$defs/Observation"
+      },
+      "Scene": {
+        "$ref": "./schemas.json#/$defs/Scene"
+      },
+      "Clarification": {
+        "$ref": "./schemas.json#/$defs/Clarification"
+      },
+      "Check": {
+        "$ref": "./schemas.json#/$defs/Check"
+      },
+      "ResourceVersion": {
+        "$ref": "./schemas.json#/$defs/ResourceVersion"
+      },
+      "Resolution": {
+        "$ref": "./schemas.json#/$defs/Resolution"
+      },
+      "ExpectedVersions": {
+        "$ref": "./schemas.json#/$defs/ExpectedVersions"
+      },
+      "TextIntent": {
+        "$ref": "./schemas.json#/$defs/TextIntent"
+      },
+      "InspectIntent": {
+        "$ref": "./schemas.json#/$defs/InspectIntent"
+      },
+      "MoveIntent": {
+        "$ref": "./schemas.json#/$defs/MoveIntent"
+      },
+      "UseItemIntent": {
+        "$ref": "./schemas.json#/$defs/UseItemIntent"
+      },
+      "WaitIntent": {
+        "$ref": "./schemas.json#/$defs/WaitIntent"
+      },
+      "QuestionIntent": {
+        "$ref": "./schemas.json#/$defs/QuestionIntent"
+      },
+      "Intent": {
+        "$ref": "./schemas.json#/$defs/Intent"
+      },
+      "SubmitAction": {
+        "$ref": "./schemas.json#/$defs/SubmitAction"
+      },
+      "ClarifyAction": {
+        "$ref": "./schemas.json#/$defs/ClarifyAction"
+      },
+      "CancelAction": {
+        "$ref": "./schemas.json#/$defs/CancelAction"
+      },
+      "ActionSubmitted": {
+        "$ref": "./schemas.json#/$defs/ActionSubmitted"
+      },
+      "ActionNeedsClarification": {
+        "$ref": "./schemas.json#/$defs/ActionNeedsClarification"
+      },
+      "ActionResolving": {
+        "$ref": "./schemas.json#/$defs/ActionResolving"
+      },
+      "ActionSucceeded": {
+        "$ref": "./schemas.json#/$defs/ActionSucceeded"
+      },
+      "ActionRejected": {
+        "$ref": "./schemas.json#/$defs/ActionRejected"
+      },
+      "ActionCancelled": {
+        "$ref": "./schemas.json#/$defs/ActionCancelled"
+      },
+      "Action": {
+        "$ref": "./schemas.json#/$defs/Action"
+      },
+      "InvitationRequest": {
+        "$ref": "./schemas.json#/$defs/InvitationRequest"
+      },
+      "Invitation": {
+        "$ref": "./schemas.json#/$defs/Invitation"
+      },
+      "RedeemInvitation": {
+        "$ref": "./schemas.json#/$defs/RedeemInvitation"
+      },
+      "Session": {
+        "$ref": "./schemas.json#/$defs/Session"
+      },
+      "CampaignPage": {
+        "$ref": "./schemas.json#/$defs/CampaignPage"
+      },
+      "CharacterPage": {
+        "$ref": "./schemas.json#/$defs/CharacterPage"
+      },
+      "ScenePage": {
+        "$ref": "./schemas.json#/$defs/ScenePage"
+      },
+      "ActionPage": {
+        "$ref": "./schemas.json#/$defs/ActionPage"
+      },
+      "MembershipPage": {
+        "$ref": "./schemas.json#/$defs/MembershipPage"
+      }
+    }
+  }
+}

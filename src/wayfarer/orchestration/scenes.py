@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from dataclasses import replace
 from typing import Literal
 
@@ -42,7 +43,14 @@ class SceneService:
             raise ValidationError("Campaign scenes are not configured")
         return rules.scenes
 
-    async def execute(self, cid: str, value: object, *, authenticated_actor_id: str) -> SceneEvent:
+    async def execute(
+        self,
+        cid: str,
+        value: object,
+        *,
+        authenticated_actor_id: str,
+        authorize: Callable[[Campaign], None] | None = None,
+    ) -> SceneEvent:
         try:
             command = SCENE_ADAPTER.validate_python(value)
         except SchemaError as exc:
@@ -60,6 +68,8 @@ class SceneService:
             return result
 
         def resolve(campaign: Campaign) -> Event:
+            if authorize is not None:
+                authorize(campaign)
             state = self.play._load(campaign)
             if isinstance(command, TravelScene):
                 from wayfarer.simulation.party import synchronous

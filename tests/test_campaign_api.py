@@ -36,7 +36,9 @@ async def api(tmp_path: Path) -> AsyncIterator[tuple[str, str]]:
         ),
     )
     app = create_campaign_app(
-        CampaignAccess(play), {"alice-secret": "alice", "bob-secret": "bob", "gm-secret": "gm"}
+        CampaignAccess(play),
+        {"alice-secret": "alice", "bob-secret": "bob", "gm-secret": "gm"},
+        legacy_routes=True,
     )
     runner = web.AppRunner(app)
     await runner.setup()

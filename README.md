@@ -113,3 +113,9 @@ time coordination and bounded provider-independent orchestration. See the
 Codex subscription setup, NPC/faction activity, capture/rescue and recovery are
 covered in [the Wave 10 guide](docs/wave-10.md). The typed campaign app can select
 the Codex provider with a dedicated login; the legacy demo remains separate.
+
+## Frozen API runtime
+
+The authenticated campaign app also serves `/api/v1` and `/api/v1/live`.
+See [the v1 runtime guide](docs/api-v1-runtime.md) for credential/Origin setup,
+durable receipt storage, capability ownership and contract tests.
