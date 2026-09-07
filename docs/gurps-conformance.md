@@ -410,8 +410,11 @@ turn start, and stun recovery after Do Nothing. Rebuilds preserve the full injur
 deficit, and ordinary healing retains injury status. Low-HP Move/Dodge uses
 ceiling division. Turn ordering rejects repeated phases with new command IDs.
 
-Coverage remains **partial** pending source verification and the dependent combat
-adapter (#103) / maneuver timing (#104). Recovery from mortal wounds and elapsed
+Coverage remains **partial** pending source verification and complete maneuver
+timing (#104). The profile-selected melee adapter now persists deferred injury,
+turn-start consciousness and end-turn stun recovery through the existing CAS
+boundary; see [melee integration](gurps-melee.md) for #102/#103 evidence and
+remaining Basic critical consequences in #146. Recovery from mortal wounds and elapsed
 medical checks belong to #109; location effects to #107. Fatigue damage rejects
 until #109; corrosion's persistent armor destruction remains unavailable under
 #114. No generic damage multiplier implements those missing runtime effects.

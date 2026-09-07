@@ -6,6 +6,7 @@ profiles resolve checks, protection and injury atomically when that choice resum
 
 from __future__ import annotations
 
+import hashlib
 from typing import Literal
 
 from pydantic import Field, model_validator
@@ -13,6 +14,7 @@ from pydantic import Field, model_validator
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.rules.checks import CheckTrace
 from wayfarer.rules.effects import DerivedValue
+from wayfarer.simulation.gurps_equipment import EquipmentCatalog
 from wayfarer.simulation.resources import Equip, Id, Record, ResourceEngine, ResourceState
 from wayfarer.world import EntityKind, World
 
@@ -71,12 +73,14 @@ class InjuryTrace(Record):
     basic_damage: int = Field(default=0, ge=0)
     resistance: int = Field(default=0, ge=0)
     injury: int = Field(default=0, ge=0)
-    hp_before: int = Field(ge=0)
-    hp_after: int = Field(ge=0)
+    hp_before: int
+    hp_after: int
     incapacitated: bool = False
     stunned_until: int | None = None
     profile_id: Id
     rules_version: str
+    critical_table: tuple[int, ...] = ()
+    adjudication_required: str | None = None
 
 
 class CombatConsequence(Record):
@@ -101,6 +105,7 @@ class CombatRules(Record):
     consequences: tuple[CombatConsequence, ...] = Field(default=(), exclude=True)
     attacks: tuple[AttackProfile, ...] = Field(default=(), exclude=True)
     protection: tuple[ProtectionProfile, ...] = Field(default=(), exclude=True)
+    gurps_equipment: EquipmentCatalog | None = Field(default=None, exclude=True)
 
     @model_validator(mode="after")
     def validate_unique(self) -> CombatRules:
@@ -126,10 +131,14 @@ class Combatant(Record):
     facing: Facing
     posture: Posture = "standing"
     reach: int = Field(ge=1, le=20)
-    movement_allowance: int = Field(ge=1, le=100)
+    movement_allowance: int = Field(ge=0, le=100)
     ready_item_ids: tuple[str, ...] = ()
     reaction_available: bool = True
+    parries: tuple[str, ...] = ()
+    block_used: bool = False
+    defense_penalty: int = Field(default=0, ge=-20, le=0)
     last_maneuver: Maneuver | None = None
+    last_attack_item_id: str | None = None
 
 
 class PendingDefense(Record):
@@ -140,6 +149,7 @@ class PendingDefense(Record):
     allowed: tuple[Defense, ...] = Field(min_length=1)
     opened_round: int = Field(ge=1)
     opened_turn: int = Field(ge=0)
+    mode_id: str | None = None
 
 
 class DefenseChoice(Record):
@@ -160,6 +170,7 @@ class Encounter(Record):
     defense_history: tuple[DefenseChoice, ...] = ()
     completion_reason: str | None = None
     wounds: tuple[InjuryTrace, ...] = ()
+    blocked_reason: str | None = None
 
     @property
     def current_actor_id(self) -> str:
@@ -238,9 +249,12 @@ class CombatEngine:
             ):
                 raise ValidationError("Combatant position is blocked, occupied or out of bounds")
             occupied.add(participant.position)
-            if participant.movement_allowance != self.rules.movement_allowance:
+            if (
+                self.rules.gurps_equipment is None
+                and participant.movement_allowance != self.rules.movement_allowance
+            ):
                 raise ValidationError("Combat movement is not rules-authored")
-            if participant.reach != self.rules.default_reach:
+            if self.rules.gurps_equipment is None and participant.reach != self.rules.default_reach:
                 raise ValidationError("Combat reach is not rules-authored")
             expected_ready = tuple(
                 sorted(item_id for owner_id, item_id in ready if owner_id == participant.actor_id)
@@ -326,7 +340,7 @@ class CombatEngine:
         return encounter
 
     def available(self, encounter: Encounter, actor_id: str) -> tuple[str, ...]:
-        if encounter.status != "active":
+        if encounter.status != "active" or encounter.blocked_reason:
             return ()
         pending = encounter.pending_defense
         if pending is not None:
@@ -390,7 +404,14 @@ class CombatEngine:
                 "turn_index": index,
                 "round": round_number,
                 "participants": tuple(
-                    p.model_copy(update={"reaction_available": True})
+                    p.model_copy(
+                        update={
+                            "reaction_available": True,
+                            "parries": (),
+                            "block_used": False,
+                            "defense_penalty": 0,
+                        }
+                    )
                     if p.actor_id == encounter.turn_order[index]
                     else p
                     for p in encounter.participants
@@ -412,7 +433,13 @@ class CombatEngine:
         target_id: str | None = None,
         command_id: str,
     ) -> tuple[Encounter, ResourceState, CombatResult]:
-        if encounter.status != "active" or encounter.pending_defense is not None:
+        if self.rules.gurps_equipment is not None:
+            command_id = "combat:" + hashlib.sha256(command_id.encode()).hexdigest()
+        if (
+            encounter.status != "active"
+            or encounter.pending_defense is not None
+            or encounter.blocked_reason
+        ):
             raise ConflictError("Encounter cannot accept a maneuver now")
         if actor_id != encounter.current_actor_id:
             raise ConflictError("Combat action is out of turn")
@@ -497,10 +524,14 @@ class CombatEngine:
                 or self.distance(participant.position, target.position) > participant.reach
             ):
                 raise ValidationError("Attack target or weapon is unavailable or out of reach")
-            participant = participant.model_copy(update={"last_maneuver": maneuver})
+            participant = participant.model_copy(
+                update={"last_maneuver": maneuver, "last_attack_item_id": item_id}
+            )
             encounter = self._replace(encounter, participant)
             pending = PendingDefense(
-                id=f"{command_id}:defense",
+                id=("defense:" + hashlib.sha256(command_id.encode()).hexdigest())
+                if self.rules.gurps_equipment
+                else f"{command_id}:defense",
                 attacker_id=actor_id,
                 defender_id=target_id,
                 weapon_id=item_id,
@@ -549,7 +580,11 @@ class CombatEngine:
         if actor_id != pending.defender_id or selected not in pending.allowed:
             raise ValidationError("Defense is not available to this actor")
         defender = next(p for p in encounter.participants if p.actor_id == actor_id)
-        if not defender.reaction_available and selected != "none":
+        if (
+            self.rules.gurps_equipment is None
+            and not defender.reaction_available
+            and selected != "none"
+        ):
             raise ValidationError("Defender has no reaction available")
         defender = defender.model_copy(
             update={

@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 from pydantic import Field
 from pydantic import ValidationError as SchemaError
 
+from wayfarer.character.compiler import pool_limits
 from wayfarer.character.power import Approval
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, Event, Roll
@@ -17,6 +18,8 @@ from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
 from wayfarer.rules.catalog import reference
 from wayfarer.rules.checks import Outcome, RandomSource
+from wayfarer.rules.injury_types import InjuryStatus
+from wayfarer.rules.recovery_types import FatigueStatus
 from wayfarer.simulation.access import CampaignMember
 from wayfarer.simulation.actions import (
     ACTION_ADAPTER,
@@ -118,9 +121,18 @@ class PlayService:
             owners[actor.actor_id] = owners[actor.actor_id].model_copy(
                 update={"definitions": tuple(p.definition_id for p in build.purchases)}
             )
-            for name, attribute in (("hp", "attribute:st"), ("fp", "attribute:ht")):
+            for name, maximum in pool_limits(build).items():
                 key = f"{name}:{actor.actor_id}"
-                pools[key] = Pool(id=key, current=values[attribute], maximum=values[attribute])
+                injury = None
+                fatigue = None
+                profile = self.engine.reviewer.compiler.statistics_profile
+                if name == "hp" and profile in ("gurps-lite-4e-2004", "gurps-basic-set-4e-2004"):
+                    injury = InjuryStatus.model_validate({"profile_id": profile})
+                if name == "fp" and profile in ("gurps-lite-4e-2004", "gurps-basic-set-4e-2004"):
+                    fatigue = FatigueStatus.model_validate({"profile_id": profile})
+                pools[key] = Pool(
+                    id=key, current=maximum, maximum=maximum, injury=injury, fatigue=fatigue
+                )
             approval = None
             if review.status == "automatic":
                 approval = self.engine.reviewer.approve(

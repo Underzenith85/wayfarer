@@ -228,6 +228,33 @@ class ActionEngine:
                 if not -20 <= check.modifier + alternative.modifier <= 20:
                     raise ValidationError("Combined ruling modifier exceeds engine bounds")
         self.combat = CombatEngine(rules.combat, resources) if rules.combat is not None else None
+        if rules.combat is not None and rules.combat.gurps_equipment is not None:
+            equipment = rules.combat.gurps_equipment
+            if reviewer.compiler.statistics_profile != equipment.profile_id:
+                raise ValidationError("Combat and compiled statistics profiles must match")
+            if rules.combat.attacks or rules.combat.protection:
+                raise ValidationError("GURPS combat cannot use prototype attack profiles")
+            for entry in equipment.entries:
+                definition = reviewer.compiler.definitions.get(entry.definition_id)
+                if (
+                    definition is None
+                    or definition.kind is not DefinitionKind.EQUIPMENT
+                    or definition.source_id != entry.provenance.source_id
+                ):
+                    raise ValidationError(
+                        "Combat equipment source does not match pinned definitions"
+                    )
+                referenced = tuple(m.skill_id for m in entry.modes) + (
+                    (entry.shield.skill_id,) if entry.shield else ()
+                )
+                if any(
+                    key not in reviewer.compiler.definitions
+                    or reviewer.compiler.definitions[key].kind is not DefinitionKind.SKILL
+                    for key in referenced
+                ):
+                    raise ValidationError("Combat equipment requires pinned weapon/shield skills")
+            if resources.specs != {e.definition_id: e.inventory_spec() for e in equipment.entries}:
+                raise ValidationError("Combat requires exact profile inventory specifications")
         # Preserve the exact Wave 7 digest for campaigns that have not enabled
         # adjudication. Enabling or changing policy requires explicit migration.
         excluded = {
@@ -256,6 +283,11 @@ class ActionEngine:
                 else ""
             )
             + (rules.objectives.model_dump_json() if rules.objectives else "")
+            + (
+                rules.combat.gurps_equipment.model_dump_json()
+                if rules.combat and rules.combat.gurps_equipment
+                else ""
+            )
             + (rules.noncombat.model_dump_json() if rules.noncombat else "")
             + (rules.party.model_dump_json() if rules.party else "")
             + (rules.npcs.model_dump_json() if rules.npcs else "")

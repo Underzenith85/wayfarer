@@ -8,6 +8,7 @@ from pydantic import Field
 
 from wayfarer.simulation.actions import ActionRules, ActorSetup
 from wayfarer.simulation.combat import AttackProfile, CombatConsequence, ProtectionProfile
+from wayfarer.simulation.gurps_equipment import EquipmentCatalog
 from wayfarer.simulation.noncombat import NoncombatRules
 from wayfarer.simulation.npcs import NPCRules
 from wayfarer.simulation.objectives import ObjectiveRules
@@ -51,6 +52,9 @@ class ScenarioContent(Record):
     npc_actor_ids: tuple[Id, ...] = ()
     combat_consequences: tuple[CombatConsequence, ...] = ()
     combat_attacks: tuple[AttackProfile, ...] = ()
+    combat_equipment: EquipmentCatalog | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     combat_protection: tuple[ProtectionProfile, ...] = ()
     actions: ActionRules
     scenes: SceneRules
@@ -67,6 +71,7 @@ class ScenarioContent(Record):
                 "combat": self.actions.combat.model_copy(
                     update={
                         "attacks": self.combat_attacks,
+                        "gurps_equipment": self.combat_equipment,
                         "consequences": self.combat_consequences,
                         "protection": self.combat_protection,
                     }
