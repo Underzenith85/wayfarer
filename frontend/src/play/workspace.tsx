@@ -3,6 +3,7 @@ import { NetworkPlayTransport } from "../api/play-transport";
 import { OnboardingPanel } from "../onboarding/panel";
 import { VoicePanel } from "../voice/panel";
 import { LiveControls } from "./live-controls";
+import { TacticalControls } from "./tactical";
 import {
   EncounterPanel,
   DiscoveryJournal,
@@ -468,6 +469,7 @@ export function PlayWorkspace() {
   return (
     <div className="play-workspace">
       <LiveControls />
+      <TacticalControls />
       <MultiplayerPanel />
       <EncounterPanel />
       {store.transport.sample && (

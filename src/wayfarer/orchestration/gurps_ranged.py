@@ -81,14 +81,27 @@ def situation(encounter: Encounter, attacker: str, defender: str) -> RangedSitua
     )
     if value is None:
         raise ValidationError("Ranged attack requires declared scene distance, speed and size")
+    if encounter.hex_battlefield is not None:
+        from wayfarer.simulation.combat import CombatEngine
+        from wayfarer.simulation.tactical import attack_geometry
+
+        actor = next(p for p in encounter.participants if p.actor_id == attacker)
+        target = next(p for p in encounter.participants if p.actor_id == defender)
+        attack_geometry(encounter, actor, target)
+        distance = CombatEngine.distance(actor.position, target.position)
+        if distance == 0:
+            raise ValidationError("Ranged close-combat handling remains unsupported")
+        value = value.model_copy(update={"distance_yards": float(distance)})
     return value
 
 
 def validate_command(
     play: PlayService, state: PlayState, encounter: Encounter, command: TakeCombatTurn
 ) -> None:
-    if encounter.ranged_situations and (
-        command.destination is not None or command.maneuver == "move"
+    if (
+        encounter.hex_battlefield is None
+        and encounter.ranged_situations
+        and (command.destination is not None or command.maneuver == "move")
     ):
         raise ValidationError("Declared ranged scene movement requires the tactical adapter")
     if command.shots != 1 and (
@@ -224,6 +237,9 @@ def prepare(
         if candidate == "block" and not (weapon.thrown or weapon.blockable):
             continue
         try:
+            from wayfarer.simulation.tactical import defense_adjustment
+
+            defense_adjustment(encounter, actor, target)
             defense_value(play, state, target, candidate)
         except ValidationError:
             continue

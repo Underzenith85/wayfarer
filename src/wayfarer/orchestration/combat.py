@@ -13,6 +13,7 @@ from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, Event
 from wayfarer.orchestration.injury import resolve_injury
 from wayfarer.orchestration.play import PlayService
+from wayfarer.rules.checks import CheckTrace
 from wayfarer.rules.location_types import Hand, HitLocation
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.adjudication import expire_rulings
@@ -28,6 +29,7 @@ from wayfarer.simulation.combat import (
     Posture,
     RangedSituation,
 )
+from wayfarer.simulation.hex_geometry import Hex, HexBattlefield, Pose
 from wayfarer.simulation.maneuvers import ATTACK_MANEUVERS, AttackOption, DefenseOption, WaitTrigger
 from wayfarer.simulation.resources import Advance, Id, Record
 from wayfarer.simulation.unarmed import GrappleLocation, UnarmedAction, UnarmedSkill
@@ -64,6 +66,8 @@ class TakeCombatTurn(CombatCommand):
     attack_option: AttackOption | None = None
     defense_option: DefenseOption | None = None
     wait_trigger: WaitTrigger | None = None
+    hex_path: tuple[Hex, ...] = Field(default=(), max_length=100)
+    hex_facing: Literal[0, 1, 2, 3, 4, 5] | None = None
 
 
 class TakeUnarmedTurn(CombatCommand):
@@ -98,6 +102,19 @@ class ChooseDefense(CombatCommand):
     item_id: str | None = None
     second_defense: Defense | None = None
     second_item_id: str | None = None
+    retreat: Hex | None = None
+
+
+class HexPlacement(Record):
+    actor_id: Id
+    pose: Pose
+
+
+class MigrateEncounterHex(CombatCommand):
+    kind: Literal["migrate_encounter_hex"] = "migrate_encounter_hex"
+    encounter_id: Id
+    battlefield: HexBattlefield
+    placements: tuple[HexPlacement, ...] = Field(min_length=2, max_length=100)
 
 
 class JoinEncounter(CombatCommand):
@@ -121,7 +138,9 @@ TypedCombatCommand = Annotated[
     | EndEncounter
     | ResumeInterruptedTurn
     | TakeUnarmedTurn
-    | ResolveChokeEffects,
+    | ResolveChokeEffects
+    | MigrateEncounterHex,
+    # Migration is explicit and uses the same receipt and CAS as combat commands.
     Field(discriminator="kind"),
 ]
 COMBAT_ADAPTER: TypeAdapter[TypedCombatCommand] = TypeAdapter(TypedCombatCommand)
@@ -165,7 +184,7 @@ class CombatService:
         engine = self.play.engine.combat
         if engine is None:
             raise ValidationError("Campaign combat is not configured")
-        if isinstance(command, (StartEncounter, EndEncounter)) and (
+        if isinstance(command, (StartEncounter, EndEncounter, MigrateEncounterHex)) and (
             command.actor_id not in self.play.engine.reviewer.gm_ids
         ):
             raise ValidationError("Encounter lifecycle requires GM authority")
@@ -203,6 +222,8 @@ class CombatService:
                             "shots": 1,
                             "reload_ammunition_id": None,
                             "destination": None,
+                            "hex_path": (),
+                            "hex_facing": None,
                             "facing": None,
                             "posture": None,
                             "item_id": None,
@@ -338,10 +359,45 @@ class CombatService:
                 )
             else:
                 encounter = self._encounter(state, command.encounter_id)
+                if encounter.hex_battlefield is not None and isinstance(
+                    command, (TakeCombatTurn, TakeUnarmedTurn)
+                ):
+                    from wayfarer.orchestration.tactical_view import visible_actors
+
+                    if command.target_id is not None and command.target_id not in visible_actors(
+                        state, encounter, command.actor_id
+                    ):
+                        raise ValidationError("Target is unavailable")
+                    if isinstance(command, TakeCombatTurn) and command.wait_trigger is not None:
+                        trigger = command.wait_trigger
+                        visible = visible_actors(state, encounter, command.actor_id)
+                        if any(
+                            a is not None and a not in visible
+                            for a in (
+                                trigger.actor_id,
+                                trigger.target_id,
+                                trigger.reaction_target_id,
+                            )
+                        ):
+                            raise ValidationError("Target is unavailable")
                 from wayfarer.orchestration.unarmed import guard_control
 
                 guard_control(encounter, command)
-                if isinstance(command, ResolveChokeEffects):
+                from wayfarer.orchestration.tactical import prepare_defense
+
+                if isinstance(command, ChooseDefense):
+                    encounter = prepare_defense(self.play, state, encounter, command)
+                if isinstance(command, MigrateEncounterHex):
+                    from wayfarer.orchestration.tactical import migrate
+
+                    encounter = migrate(self.play, encounter, command)
+                    result = CombatResult(
+                        encounter_id=encounter.id,
+                        code="combat.hex_migrated",
+                        round=encounter.round,
+                        current_actor_id=encounter.current_actor_id,
+                    )
+                elif isinstance(command, ResolveChokeEffects):
                     from wayfarer.orchestration.unarmed import resolve_choke
 
                     state, result = resolve_choke(self.play, state, encounter, command)
@@ -354,6 +410,10 @@ class CombatService:
                     state, encounter, result = execute_unarmed(self.play, state, encounter, command)
                     resources = state.resources
                 elif isinstance(command, JoinEncounter):
+                    if encounter.hex_battlefield is not None:
+                        raise ValidationError(
+                            "Hex reinforcements require explicit placement support"
+                        )
                     from wayfarer.simulation.party import group_for
 
                     if encounter.status != "active" or encounter.pending_defense is not None:
@@ -552,6 +612,16 @@ class CombatService:
                         participant = next(
                             p for p in encounter.participants if p.actor_id == command.actor_id
                         )
+                        encounter = engine._replace(
+                            encounter,
+                            participant.model_copy(
+                                update={
+                                    "movement_allowance": movement(
+                                        self.play, state, command.actor_id
+                                    )
+                                }
+                            ),
+                        )
                         forced = participant.forced_do_nothing
                         if not forced and not (hp.injury and hp.injury.stunned):
                             preview, _, preview_result = engine.take_turn(
@@ -569,6 +639,8 @@ class CombatService:
                                 defense_option=command.defense_option,
                                 wait_trigger=command.wait_trigger,
                                 command_json=command.model_dump_json(),
+                                hex_path=command.hex_path,
+                                hex_facing=command.hex_facing,
                             )
                             if preview.pending_defense is not None:
                                 from wayfarer.orchestration.gurps_melee import prepare_attack
@@ -635,6 +707,8 @@ class CombatService:
                                     "mode_id": None,
                                     "target_id": None,
                                     "destination": None,
+                                    "hex_path": (),
+                                    "hex_facing": None,
                                     "facing": None,
                                     "posture": None,
                                     "attack_option": None,
@@ -663,6 +737,8 @@ class CombatService:
                         defense_option=command_for_turn.defense_option,
                         wait_trigger=command_for_turn.wait_trigger,
                         command_json=command_for_turn.model_dump_json(),
+                        hex_path=command_for_turn.hex_path,
+                        hex_facing=command_for_turn.hex_facing,
                     )
                     if (
                         command_for_turn.maneuver == "ready"
@@ -876,6 +952,10 @@ class CombatService:
                         round=encounter.round,
                         current_actor_id=encounter.current_actor_id,
                     )
+                if isinstance(command, ChooseDefense):
+                    from wayfarer.orchestration.tactical import finish_defense
+
+                    encounter = finish_defense(encounter, command)
                 encounters = tuple(
                     encounter if e.id == encounter.id else e for e in state.encounters
                 )
@@ -1010,6 +1090,30 @@ class CombatService:
                         system=True,
                     )
             revision = state.revision + 1
+            if encounter.hex_battlefield is not None:
+                from wayfarer.simulation.tactical import TacticalTrace
+
+                checks: tuple[CheckTrace, ...] = (result.injury.attack,) if result.injury else ()
+                if result.injury and result.injury.defense:
+                    checks += (result.injury.defense,)
+                if result.unarmed:
+                    checks = result.unarmed.checks
+                trace = TacticalTrace(
+                    command_id=command.id,
+                    actor_id=command.actor_id,
+                    code=result.code,
+                    totals=tuple(c.total for c in checks),
+                    targets=tuple(c.effective_target for c in checks),
+                    injury=result.injury.injury
+                    if result.injury
+                    else result.unarmed.injury
+                    if result.unarmed
+                    else 0,
+                )
+                encounter = encounter.model_copy(
+                    update={"tactical_traces": (encounter.tactical_traces + (trace,))[-50:]}
+                )
+                encounters = tuple(encounter if e.id == encounter.id else e for e in encounters)
             resources = resources.model_copy(update={"revision": revision})
             updated = state.model_copy(
                 update={

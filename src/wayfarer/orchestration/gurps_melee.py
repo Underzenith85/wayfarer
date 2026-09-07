@@ -268,6 +268,7 @@ def defense_value(
     )
     penalty = (
         participant.defense_penalty
+        + participant.tactical_defense_bonus
         - 4 * int(participant.arm_locked)
         + (-1 if selected == "dodge" else -2) * int(participant.grappled)
         + (2 if participant.maneuver_state.enhanced_defense == selected else 0)
@@ -382,15 +383,16 @@ def prepare_attack(
         raise ValidationError("Strong requires ST-based melee damage")
     if attacker.maneuver_state.attacks_remaining and selected.ready_after_attack:
         raise ValidationError("Double attack requires a weapon usable twice without readying")
-    if (
-        abs(attacker.position.x - defender.position.x)
-        + abs(attacker.position.y - defender.position.y)
-        not in selected.reach
-    ):
+    from wayfarer.simulation.combat import CombatEngine
+    from wayfarer.simulation.tactical import attack_geometry, defense_adjustment
+
+    attack_geometry(encounter, attacker, defender, frozenset(selected.reach))
+    if CombatEngine.distance(attacker.position, defender.position) not in selected.reach:
         raise ValidationError("Target is outside selected weapon reach")
     allowed: list[Defense] = ["none"]
     for candidate in ("dodge", "parry", "block"):
         try:
+            defense_adjustment(encounter, attacker, defender)
             defense_value(play, state, defender, candidate)
         except ValidationError:
             continue

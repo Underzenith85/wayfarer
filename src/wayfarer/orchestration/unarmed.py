@@ -207,6 +207,24 @@ def validate_action(
     distance = (
         0 if command.enter_close_combat else CombatEngine.distance(actor.position, target.position)
     )
+    from wayfarer.simulation.tactical import attack_geometry
+
+    if command.action in ("punch", "kick", "grapple", "arm_lock"):
+        attack_geometry(encounter, actor, target)
+        if command.enter_close_combat and encounter.hex_battlefield is not None:
+            from wayfarer.simulation.hex_geometry import movement as hex_movement
+            from wayfarer.simulation.tactical import occupants, pose
+
+            hex_movement(
+                encounter.hex_battlefield,
+                pose(actor),
+                (pose(target).position,),
+                move=movement(play, state, actor.actor_id),
+                step=True,
+                occupants=occupants(encounter),
+                actor_id=actor.actor_id,
+                enter_close_combat=True,
+            )
     if command.action in ("punch", "kick", "grapple", "arm_lock"):
         if command.grip_id is not None and command.action != "arm_lock":
             raise ValidationError("Attack cannot name an existing grip")
@@ -465,6 +483,10 @@ def unarmed_defense(
         return None, None
     if actor.pinned or actor.maneuver_state.defense_forbidden:
         raise ValidationError("Actor cannot defend")
+    if encounter.hex_battlefield is not None and encounter.pending_unarmed is not None:
+        from wayfarer.simulation.tactical import defense_adjustment
+
+        defense_adjustment(encounter, fighter(encounter, encounter.pending_unarmed.actor_id), actor)
     if selected == "dodge":
         if item_id is not None:
             raise ValidationError("Dodge cannot select equipment")
@@ -495,6 +517,7 @@ def unarmed_defense(
     )
     penalty += (
         actor.defense_penalty
+        + actor.tactical_defense_bonus
         - 4 * int(actor.arm_locked)
         + (2 if actor.maneuver_state.enhanced_defense == "parry" else 0)
     )

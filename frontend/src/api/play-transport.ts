@@ -1,4 +1,5 @@
 import { LiveTransport } from "../play/live";
+import { TacticalClient } from "./tactical";
 import type { components } from "./contracts.generated";
 import type { ServerMessage } from "./events.generated";
 import { createApiClient } from "./client";
@@ -33,12 +34,14 @@ export interface NetworkOptions {
   sample?: boolean;
 }
 export class NetworkPlayTransport implements PlayTransport {
+  readonly tactical: TacticalClient;
   readonly engineTransport?: LiveTransport;
   readonly initialCampaignId?: string;
   readonly principalId: string;
   readonly sample: boolean;
   readonly api: ReturnType<typeof createApiClient>;
   constructor(private options: NetworkOptions) {
+    this.tactical = new TacticalClient(options.origin, options.credential);
     if (options.initialCampaignId)
       this.initialCampaignId = options.initialCampaignId;
     if (options.engineControls && options.initialCampaignId)

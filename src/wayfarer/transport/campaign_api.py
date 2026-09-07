@@ -468,6 +468,9 @@ def create_campaign_app(
     app[ACCESS_KEY] = play
     app[TOKENS_KEY] = dict(tokens)
     app[LIMITS_KEY] = {}
+    from wayfarer.transport.tactical_api import install as install_tactical
+
+    install_tactical(app)
     from wayfarer.orchestration.setup import SetupService
     from wayfarer.transport.setup_api import install as install_setup
 

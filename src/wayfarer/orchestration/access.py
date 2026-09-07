@@ -36,6 +36,8 @@ class CampaignAccess:
 
     @staticmethod
     def _projection(state: PlayState, member: CampaignMember) -> dict[str, object]:
+        from wayfarer.orchestration.tactical_view import legacy_encounter
+
         if member.role == "gm":
             return {
                 "campaign_id": state.campaign_id,
@@ -115,7 +117,7 @@ class CampaignAccess:
                 if e.actor_id in member.actor_ids
             ),
             "encounters": tuple(
-                e.model_dump(mode="json")
+                legacy_encounter(state, e, member)
                 for e in state.encounters
                 if set(e.turn_order) & set(member.actor_ids)
             ),

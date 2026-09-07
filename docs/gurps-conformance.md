@@ -220,7 +220,13 @@ special constructions are unavailable; they require catalog-specific rules in
 
 Tactical geometry (#105): [contracts, provenance and integration boundary](tactical-geometry.md).
 Hex movement, facing and geometric LOS have independent fixtures; the rows remain
-partial pending source audit and combat/API integration (#115).
+partial pending source audit and the remaining geometry/mechanics variants.
+The [tactical API and player view](tactical-play.md) (#115) integrates explicit
+hex migration, authoritative movement/reach/LOS/range/armed retreat, safe player
+projections, generated contracts, keyboard choices and reconnect receipts.
+`tests/test_tactical.py` and the desktop/phone live tactical browser journeys
+exercise these boundaries. This does not enable or certify the Basic Set profile;
+advanced maneuver, ranged and unarmed gaps remain #152, #173 and #176.
 
 ## Typed equipment profiles (#101)
 

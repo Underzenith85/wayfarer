@@ -16,6 +16,7 @@ from wayfarer.rules.checks import CheckTrace
 from wayfarer.rules.effects import DerivedValue
 from wayfarer.rules.location_types import HitLocation, HumanLocation
 from wayfarer.simulation.gurps_equipment import EquipmentCatalog
+from wayfarer.simulation.hex_geometry import Hex, HexBattlefield
 from wayfarer.simulation.maneuvers import (
     ATTACK_MANEUVERS,
     AttackOption,
@@ -25,6 +26,7 @@ from wayfarer.simulation.maneuvers import (
     WaitTrigger,
 )
 from wayfarer.simulation.resources import Equip, Id, Record, ResourceEngine, ResourceState
+from wayfarer.simulation.tactical import TacticalTrace
 from wayfarer.simulation.unarmed import Grip, PendingUnarmed, UnarmedTrace
 from wayfarer.world import EntityKind, World
 
@@ -160,8 +162,12 @@ class Placement(Record):
 class Combatant(Record):
     actor_id: Id
     initiative: int = Field(ge=0, le=100)
-    position: GridPoint
+    position: GridPoint | Hex
     facing: Facing
+    hex_facing: Literal[0, 1, 2, 3, 4, 5] | None = None
+    retreat_used: bool = False
+    retreat_attacker_id: str | None = None
+    tactical_defense_bonus: int = 0
     posture: Posture = "standing"
     reach: int = Field(ge=1, le=20)
     movement_allowance: int = Field(ge=0, le=100)
@@ -226,6 +232,8 @@ class Encounter(Record):
     pending_unarmed: PendingUnarmed | None = None
     unarmed_history: tuple[UnarmedTrace, ...] = ()
     ranged_situations: tuple[RangedSituation, ...] = ()
+    hex_battlefield: HexBattlefield | None = None
+    tactical_traces: tuple[TacticalTrace, ...] = ()
 
     @property
     def current_actor_id(self) -> str:
@@ -254,7 +262,13 @@ class CombatEngine:
         self.battlefields = {b.id: b for b in self.rules.battlefields}
 
     @staticmethod
-    def distance(left: GridPoint, right: GridPoint) -> int:
+    def distance(left: GridPoint | Hex, right: GridPoint | Hex) -> int:
+        if isinstance(left, Hex) and isinstance(right, Hex):
+            from wayfarer.simulation.hex_geometry import distance
+
+            return distance(left, right)
+        if not isinstance(left, GridPoint) or not isinstance(right, GridPoint):
+            raise ValidationError("Coordinate systems require explicit migration")
         return abs(left.x - right.x) + abs(left.y - right.y)
 
     def validate(
@@ -284,7 +298,11 @@ class CombatEngine:
         )
         if encounter.turn_order != expected_order:
             raise ValidationError("Turn order does not match initiative")
-        occupied: set[GridPoint] = set()
+        if encounter.hex_battlefield is not None:
+            from wayfarer.simulation.tactical import validate_hex_encounter
+
+            validate_hex_encounter(encounter, self.rules.gurps_equipment)
+        occupied: set[GridPoint | Hex] = set()
         blocked = set(battlefield.blocked)
         ready = {
             (item.owner_id, item.id) for item in resources.items if item.equipped and item.ready
@@ -298,8 +316,14 @@ class CombatEngine:
             ):
                 raise ValidationError("Combatant is not at the battlefield location")
             if (
-                participant.position.x >= battlefield.width
-                or participant.position.y >= battlefield.height
+                (
+                    isinstance(participant.position, GridPoint)
+                    and (
+                        participant.position.x >= battlefield.width
+                        or participant.position.y >= battlefield.height
+                    )
+                )
+                or (encounter.hex_battlefield is None and isinstance(participant.position, Hex))
                 or participant.position in blocked
                 or (
                     participant.position in occupied
@@ -525,6 +549,9 @@ class CombatEngine:
                             "parries": (),
                             "block_used": False,
                             "defense_penalty": 0,
+                            "retreat_used": False,
+                            "retreat_attacker_id": None,
+                            "tactical_defense_bonus": 0,
                             "maneuver_state": p.maneuver_state.new_turn(),
                         }
                     )
@@ -552,6 +579,8 @@ class CombatEngine:
         defense_option: DefenseOption | None = None,
         wait_trigger: WaitTrigger | None = None,
         command_json: str = "",
+        hex_path: tuple[Hex, ...] = (),
+        hex_facing: Literal[0, 1, 2, 3, 4, 5] | None = None,
     ) -> tuple[Encounter, ResourceState, CombatResult]:
         original, original_resources = encounter, resources
         interrupt = encounter.wait_interrupt
@@ -591,6 +620,8 @@ class CombatEngine:
             attack_option=attack_option,
             defense_option=defense_option,
             wait_trigger=wait_trigger,
+            hex_path=hex_path,
+            hex_facing=hex_facing,
         )
         if self.rules.gurps_equipment is not None and interrupt is None and command_json:
             action = "attack" if maneuver in ATTACK_MANEUVERS else maneuver
@@ -655,6 +686,8 @@ class CombatEngine:
         attack_option: AttackOption | None = None,
         defense_option: DefenseOption | None = None,
         wait_trigger: WaitTrigger | None = None,
+        hex_path: tuple[Hex, ...] = (),
+        hex_facing: Literal[0, 1, 2, 3, 4, 5] | None = None,
     ) -> tuple[Encounter, ResourceState, CombatResult]:
         if self.rules.gurps_equipment is not None:
             command_id = "combat:" + hashlib.sha256(command_id.encode()).hexdigest()
@@ -670,6 +703,19 @@ class CombatEngine:
             raise ValidationError("Concentration requires a bound ability command")
         participant = next(p for p in encounter.participants if p.actor_id == actor_id)
         battlefield = self.battlefields[encounter.battlefield_id]
+        if encounter.hex_battlefield is not None:
+            from wayfarer.simulation.tactical import move_hex
+
+            if destination is not None or facing is not None:
+                raise ValidationError("Hex encounters require explicit hex paths and facings")
+            if posture is not None and hex_path:
+                raise ValidationError("A posture step cannot also translate the actor")
+            participant = move_hex(
+                encounter, participant, maneuver, hex_path, hex_facing, defense_option
+            )
+            encounter = self._replace(encounter, participant)
+        elif hex_path or hex_facing is not None:
+            raise ValidationError("Hex movement requires explicit battlefield migration")
         if self.rules.gurps_equipment is None and (
             maneuver not in ("do_nothing", "move", "ready", "change_posture", "attack", "wait")
             or attack_option
@@ -843,7 +889,13 @@ class CombatEngine:
                     "all_out_defense",
                 ):
                     raise ValidationError("Maneuver does not permit a step")
-                occupied = {p.position for p in encounter.participants if p.actor_id != actor_id}
+                if not isinstance(participant.position, GridPoint):
+                    raise ValidationError("Square movement requires square coordinates")
+                occupied = {
+                    p.position
+                    for p in encounter.participants
+                    if p.actor_id != actor_id and isinstance(p.position, GridPoint)
+                }
                 if not self._reachable(
                     battlefield, participant.position, destination, limit, occupied
                 ):
@@ -865,7 +917,11 @@ class CombatEngine:
                         raise ValidationError("All-Out Attack movement must be forward")
                 participant = participant.model_copy(update={"position": destination})
                 destination = None
-        if maneuver == "move":
+        if maneuver == "move" and encounter.hex_battlefield is not None:
+            if any(value is not None for value in (posture, item_id, target_id)):
+                raise ValidationError("Move accepts only a path and facing")
+            participant = participant.model_copy(update={"last_maneuver": maneuver})
+        elif maneuver == "move":
             if destination is None or any(
                 value is not None for value in (posture, item_id, target_id)
             ):
@@ -875,7 +931,13 @@ class CombatEngine:
                 if participant.posture == "prone"
                 else participant.movement_allowance
             )
-            occupied = {p.position for p in encounter.participants if p.actor_id != actor_id}
+            if not isinstance(participant.position, GridPoint):
+                raise ValidationError("Square movement requires square coordinates")
+            occupied = {
+                p.position
+                for p in encounter.participants
+                if p.actor_id != actor_id and isinstance(p.position, GridPoint)
+            }
             if (
                 destination.x >= battlefield.width
                 or destination.y >= battlefield.height
