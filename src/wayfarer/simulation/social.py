@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 from typing import Literal
 
 from wayfarer.errors import ConflictError, ValidationError
@@ -19,7 +19,7 @@ from wayfarer.rules.gurps_social import (
 )
 from wayfarer.rules.traits import TraitOptions, TraitRules
 from wayfarer.simulation.resources import Command, Receipt, Record, ResourceEvent, ResourceState
-from wayfarer.world import World
+from wayfarer.world import EntityKind, World
 
 
 class SocialCommand(Command):
@@ -74,21 +74,38 @@ def apply_social(
         raise ValidationError("Social checks require authoritative trigger context")
     if not command.trigger_id or not command.subject_id:
         raise ValidationError("Social checks require stable subject and trigger IDs")
-    known = {f.id for f in world.perspective(command.subject_id).facts}
-    world.perspective(command.actor_id)
-    if not set(context.required_fact_ids) <= known:
-        raise ValidationError("Subject lacks the evidence required for this social trigger")
     digest = hashlib.sha256(command.model_dump_json().encode()).hexdigest()
-    event_id = f"social:{command.kind}:{command.subject_id}:{command.trigger_id}"
+    # Preserve legacy IDs for simple components; colon-bearing IDs must not alias
+    # another subject/trigger pair. The hash namespace cannot overlap legacy IDs.
+    identity = (command.kind, command.subject_id, command.trigger_id)
+    event_id = (
+        "social-key:" + hashlib.sha256(json.dumps(identity).encode()).hexdigest()
+        if any(":" in part for part in identity)
+        else "social:" + ":".join(identity)
+    )
     previous = next((r for r in state.receipts if r.command_id == command.id), None)
     if previous:
         if previous.digest != digest:
             raise ConflictError("Social command ID reused")
-        event = next(e for e in state.events if e.id == event_id)
+        legacy_id = "social:" + ":".join(identity)
+        event = next(
+            e
+            for e in state.events
+            if e.id in (event_id, legacy_id) and e.target_id == command.subject_id
+        )
         return state, SocialOutcome.model_validate_json(json.loads(event.kind)["public"])
+    actors = {e.id for e in world.entities if e.kind is EntityKind.ACTOR}
+    if not {command.actor_id, command.subject_id} <= actors:
+        raise ValidationError("Social checks require world actors")
+    known = {f.id for f in world.perspective(command.subject_id).facts}
+    if not set(context.required_fact_ids) <= known:
+        raise ValidationError("Subject lacks the evidence required for this social trigger")
     if state.revision != command.expected_revision:
         raise ConflictError("Resource revision changed")
-    if any(e.id == event_id for e in state.events):
+    if any(
+        e.id in (event_id, "social:" + ":".join(identity)) and e.target_id == command.subject_id
+        for e in state.events
+    ):
         raise ConflictError("Social trigger already resolved")
     details: object
     if command.kind == "reaction":
@@ -150,3 +167,55 @@ def apply_social(
             "events": state.events + (event,),
         }
     ), outcome
+
+
+@dataclass(frozen=True)
+class SocialDisclosure:
+    """A bounded server-authored NPC response, never a player/model fact request."""
+
+    fact_ids: tuple[str, ...] = ()
+    outcomes: tuple[str, ...] = ("good", "very-good", "excellent")
+
+
+def apply_interaction(
+    state: ResourceState,
+    world: World,
+    command: SocialCommand,
+    context: SocialContext,
+    disclosure: SocialDisclosure,
+    *,
+    rng: RandomSource,
+    system: bool = False,
+) -> tuple[ResourceState, World, SocialOutcome]:
+    """Resolve once and disclose only a configured fact the subject knows.
+
+    The caller must atomically persist both returned states. No player behavior,
+    approved character build, or NPC belief is changed by an outcome.
+    """
+    if not system:
+        raise ValidationError("Social interactions require authoritative trigger context")
+    replay = any(r.command_id == command.id for r in state.receipts)
+    if not replay and disclosure.fact_ids:
+        if command.kind not in ("reaction", "influence"):
+            raise ValidationError("Only NPC interactions can disclose facts")
+        known = {f.id for f in world.perspective(command.subject_id).facts}
+        if not set(disclosure.fact_ids) <= known:
+            raise ValidationError("NPC cannot communicate unknown facts")
+        if len(set(disclosure.fact_ids)) != len(disclosure.fact_ids):
+            raise ValidationError("Duplicate social disclosure fact")
+        if not disclosure.outcomes or not set(disclosure.outcomes) <= {
+            "disastrous",
+            "very-bad",
+            "bad",
+            "poor",
+            "neutral",
+            "good",
+            "very-good",
+            "excellent",
+        }:
+            raise ValidationError("Unsupported disclosure outcome")
+    updated, outcome = apply_social(state, world, command, context, rng=rng, system=True)
+    if not replay and outcome.outcome in disclosure.outcomes:
+        for fact_id in disclosure.fact_ids:
+            world = world.learn(command.actor_id, fact_id)
+    return updated, world, outcome
