@@ -1846,6 +1846,10 @@ input[type="number"] {
   align-items: center;
   gap: 0.25rem;
 }
+.purchase-stepper .step-button {
+  touch-action: none;
+  user-select: none;
+}
 .purchase-stepper input[type="number"] {
   width: 5rem;
   min-width: 0;

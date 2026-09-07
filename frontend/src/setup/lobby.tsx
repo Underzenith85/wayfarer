@@ -1,6 +1,7 @@
 import {
   CharacterDraftEditor,
   type Proposal,
+  type ProposalChange,
   type CharacterPreview,
 } from "../character/draft-editor";
 import { ScenarioCatalog } from "./catalog";
@@ -880,12 +881,21 @@ export function SetupLobby({
                                 proposal: a.proposal,
                               })),
                           )}
-                          onChange={(proposal) =>
-                            setGraph({
-                              ...graph,
-                              actors: graph.actors.map((a) =>
-                                a === actor ? { ...a, proposal } : a,
-                              ),
+                          onChange={(change: ProposalChange) =>
+                            setGraph((current) => {
+                              if (!current) return current;
+                              return {
+                                ...current,
+                                actors: current.actors.map((currentActor) => {
+                                  if (currentActor.actor_id !== actor.actor_id)
+                                    return currentActor;
+                                  const proposal =
+                                    typeof change === "function"
+                                      ? change(currentActor.proposal)
+                                      : change;
+                                  return { ...currentActor, proposal };
+                                }),
+                              };
                             })
                           }
                         />

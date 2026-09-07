@@ -9,6 +9,7 @@ type ProfilePreview = components["schemas"]["ProfilePreviewResult"];
 import {
   CharacterDraftEditor,
   type Proposal,
+  type ProposalChange,
   type CharacterPreview,
 } from "./draft-editor";
 interface Draft {
@@ -265,9 +266,12 @@ export function CharacterWorkshop() {
         proposal={proposal}
         preview={previewCharacter}
         disabled={busy}
-        onChange={(next) => {
+        onChange={(next: ProposalChange) => {
           setAdvancePreview(null);
-          setProposal(next);
+          setProposal((current) => {
+            if (!current) return current;
+            return typeof next === "function" ? next(current) : next;
+          });
         }}
       />
       <Button

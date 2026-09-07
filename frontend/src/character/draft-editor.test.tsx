@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
   act,
   cleanup,
+  fireEvent,
   render,
   screen,
   waitFor,
@@ -43,7 +44,10 @@ const result: CharacterPreview = {
   derived: [["secondary:hp", "13"]],
   breakdown: [{ definition_id: "attribute:st", amount: 10, cost: 23 }],
 };
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.useRealTimers();
+});
 function Editor({ preview }: { preview: PreviewCharacter }) {
   const [value, setValue] = useState(proposal);
   return (
@@ -89,6 +93,40 @@ it("shows service totals, per-purchase costs and derived statistics; edits reque
   expect(screen.getByText("10 points over budget")).toBeVisible();
   expect(screen.getByRole("alert")).toHaveTextContent("Point budget exceeded");
   expect(preview.mock.calls[1]![0].draft.purchases[0]!.amount).toBe(11);
+});
+it("applies every rapid step without remounting the control", () => {
+  const preview = vi.fn<PreviewCharacter>(() => new Promise(() => {}));
+  render(<Editor preview={preview} />);
+  const increase = screen.getByRole("button", { name: "Increase Strength" });
+  act(() => {
+    for (let click = 0; click < 5; click += 1) fireEvent.click(increase);
+  });
+  expect(screen.getByLabelText("Strength", { exact: true })).toHaveValue(15);
+  expect(screen.getByRole("button", { name: "Increase Strength" })).toBe(
+    increase,
+  );
+
+  const decrease = screen.getByRole("button", { name: "Decrease Strength" });
+  act(() => {
+    for (let click = 0; click < 3; click += 1) fireEvent.click(decrease);
+  });
+  expect(screen.getByLabelText("Strength", { exact: true })).toHaveValue(12);
+});
+it("repeats while held and stops on release", () => {
+  vi.useFakeTimers();
+  const preview = vi.fn<PreviewCharacter>(() => new Promise(() => {}));
+  render(<Editor preview={preview} />);
+  const increase = screen.getByRole("button", { name: "Increase Strength" });
+
+  fireEvent.pointerDown(increase, { button: 0, pointerId: 1 });
+  expect(screen.getByLabelText("Strength", { exact: true })).toHaveValue(11);
+  act(() => vi.advanceTimersByTime(650));
+  expect(screen.getByLabelText("Strength", { exact: true })).toHaveValue(14);
+
+  fireEvent.pointerUp(increase, { button: 0, pointerId: 1 });
+  fireEvent.click(increase);
+  act(() => vi.advanceTimersByTime(500));
+  expect(screen.getByLabelText("Strength", { exact: true })).toHaveValue(14);
 });
 it("ignores a late preview even when the transport does not honor cancellation", async () => {
   let resolveOld!: (value: CharacterPreview) => void;
