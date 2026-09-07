@@ -34,7 +34,9 @@ class Capability:
 
 _CAPABILITIES: Final = (
     Capability("gurps.character.primary_attributes", True, True, CoverageStatus.PARTIAL, 97),
-    Capability("gurps.character.secondary_characteristics", True, True, CoverageStatus.ABSENT, 97),
+    Capability(
+        "gurps.character.secondary_characteristics", True, True, CoverageStatus.ABSENT, 97
+    ),
     Capability("gurps.character.skill_difficulty", True, True, CoverageStatus.PARTIAL, 98),
     Capability("gurps.character.skill_defaults", True, True, CoverageStatus.ABSENT, 98),
     Capability("gurps.character.specialties", False, True, CoverageStatus.ABSENT, 98),
@@ -54,7 +56,9 @@ _CAPABILITIES: Final = (
     Capability("gurps.equipment.weapon_profiles", True, True, CoverageStatus.PARTIAL, 101),
     Capability("gurps.equipment.armor_profiles", True, True, CoverageStatus.PARTIAL, 101),
     Capability("gurps.equipment.catalog", True, True, CoverageStatus.PARTIAL, 114),
-    Capability("gurps.equipment.object_durability", False, True, CoverageStatus.ABSENT, 114),
+    Capability(
+        "gurps.equipment.object_durability", False, True, CoverageStatus.ABSENT, 114
+    ),
     Capability("gurps.injury.damage_types", True, True, CoverageStatus.PARTIAL, 102),
     Capability("gurps.injury.damage_resistance", True, True, CoverageStatus.PARTIAL, 102),
     Capability("gurps.injury.hp_thresholds", True, True, CoverageStatus.PARTIAL, 102),
@@ -85,7 +89,9 @@ _CAPABILITIES: Final = (
     Capability("gurps.vehicles.combat", False, True, CoverageStatus.ABSENT, 120),
 )
 
-CAPABILITIES: Final = MappingProxyType({capability.id: capability for capability in _CAPABILITIES})
+CAPABILITIES: Final = MappingProxyType(
+    {declared.id: declared for declared in _CAPABILITIES}
+)
 
 
 def capability(capability_id: str) -> Capability:
