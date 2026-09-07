@@ -92,6 +92,7 @@ class RangedMode(Record):
     recoil: Positive = 1
     ammunition_id: Id | None = None
     thrown: bool = False
+    blockable: bool = False
 
     @model_validator(mode="after")
     def valid_range(self) -> Self:

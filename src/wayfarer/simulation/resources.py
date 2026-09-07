@@ -115,6 +115,16 @@ class ResourceEvent(Record):
     target_id: str
 
 
+class AmmunitionLoad(Record):
+    """Reserved inventory rounds; they retain mass and cannot be traded/consumed."""
+
+    weapon_id: Id
+    mode_id: Id
+    ammunition_item_id: Id
+    rounds: int = Field(ge=0)
+    reload_progress: int = Field(default=0, ge=0)
+
+
 class ResourceState(Record):
     revision: Tick = 0
     game_time: Tick = 0
@@ -126,6 +136,8 @@ class ResourceState(Record):
     fired: tuple[str, ...] = ()
     receipts: tuple[Receipt, ...] = ()
     events: tuple[ResourceEvent, ...] = ()
+    ammunition_loads: tuple[AmmunitionLoad, ...] = ()
+    expended_items: tuple[Item, ...] = ()
     recovery_tasks: tuple[RecoveryTask, ...] = ()
     hazards: tuple[HazardSchedule, ...] = ()
     illnesses: tuple[RecoveryRestriction, ...] = ()
@@ -284,7 +296,7 @@ class ResourceEngine:
             if len(set(values)) != len(values):
                 raise ValidationError("Duplicate resource ID")
 
-        unique(tuple(i.id for i in state.items))
+        unique(tuple(i.id for i in state.items + state.expended_items))
         unique(tuple(o.actor_id for o in state.owners))
         unique(tuple(p.id for p in state.pools))
         unique(tuple(s.id for s in state.scheduled))
@@ -299,6 +311,21 @@ class ResourceEngine:
         if not set(owners) <= self.actors:
             raise ValidationError("Inventory owner is not a world actor")
         items = {i.id: i for i in state.items}
+        unique(tuple(load.weapon_id for load in state.ammunition_loads))
+        reserved: dict[str, int] = {}
+        for load in state.ammunition_loads:
+            weapon = items.get(load.weapon_id)
+            ammo = items.get(load.ammunition_item_id)
+            if weapon is None or ammo is None or weapon.owner_id != ammo.owner_id:
+                raise ValidationError("Loaded ammunition must remain with its weapon owner")
+            if (
+                ammo.definition_id not in self.specs
+                or not self.specs[ammo.definition_id].ammunition
+            ):
+                raise ValidationError("Loaded item must be ammunition")
+            reserved[ammo.id] = reserved.get(ammo.id, 0) + load.rounds
+        if any(items[key].quantity < amount for key, amount in reserved.items()):
+            raise ValidationError("Cannot consume or transfer reserved ammunition")
         occupied: set[tuple[str, str]] = set()
         for item in state.items:
             spec = self.specs.get(item.definition_id)

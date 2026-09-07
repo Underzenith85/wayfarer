@@ -258,3 +258,38 @@ the live rules engine. Existing MSW journeys and production connections retain
 their prior behavior. Live wiring remains gated by #16, #17, #34, #35 and #36,
 with integrated acceptance owned by #23/#24/#40/#41 and #59. No dependency changes
 were needed; this retains main’s TypeScript 7 compiler and dependency versions.
+
+## Presentation boundary for engine identifiers (#159)
+
+`src/presentation/labels.ts` is the single mapping from engine addressing to
+player-facing text. Engine keys (`attribute:st`), lifecycle enum values (`pause`),
+campaign phases, conditions and load bands are resolved there and nowhere else,
+so no raw identifier reaches a reader. Attributes render in canonical GURPS order
+(ST, DX, IQ, HT) with the short label shown and the full name — Strength,
+Dexterity, Intelligence, Health — as the tooltip and accessible name; ordering by
+the key itself would sort them alphabetically and break recognition. Statistics
+the mapping does not name keep an authored label when the service supplies prose,
+and otherwise fall back to a readable form of the key.
+
+Encumbrance is a display of the band the projection reported. The v1 projection
+marks the category unavailable rather than guessing it (see
+docs/api-v1-runtime.md), so the UI says **Encumbrance not reported** instead of
+printing the placeholder it received.
+
+Version digests are engine bookkeeping, not player information. The character
+sheet, inventory page and the At a glance rail keep them inside a collapsed
+**Technical details** disclosure (`src/components/technical-details.tsx`) rather
+than beside HP and FP.
+
+Setup lobby seats render as structured rows — player, assigned character,
+readiness — instead of a joined record string, and host lifecycle controls are
+labelled with the action taken (**Pause session**, **End campaign**) rather than
+the operation name sent to the service. The party editor labels each purchase by
+its definition name (`attribute:st` reads Strength) instead of the catalog key
+the input sends.
+
+The setup payload carries no display names for its actors, so seat rows, the
+assignment options and the party editor's legends show a readable form of the
+actor identifier rather than an authored character name. The saved-conclusion
+recovery pools still print pool identifiers (`hp:b`) for the same reason: naming
+those needs a service change, not a presentation mapping.

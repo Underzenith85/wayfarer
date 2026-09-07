@@ -1741,6 +1741,49 @@
         "title": "ActorSetup",
         "type": "object"
       },
+      "AmmunitionLoad": {
+        "additionalProperties": false,
+        "description": "Reserved inventory rounds; they retain mass and cannot be traded/consumed.",
+        "properties": {
+          "weapon_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Weapon Id",
+            "type": "string"
+          },
+          "mode_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Mode Id",
+            "type": "string"
+          },
+          "ammunition_item_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Ammunition Item Id",
+            "type": "string"
+          },
+          "rounds": {
+            "minimum": 0,
+            "title": "Rounds",
+            "type": "integer"
+          },
+          "reload_progress": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Reload Progress",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "weapon_id",
+          "mode_id",
+          "ammunition_item_id",
+          "rounds"
+        ],
+        "title": "AmmunitionLoad",
+        "type": "object"
+      },
       "Approach": {
         "additionalProperties": false,
         "properties": {
@@ -3395,6 +3438,22 @@
             "title": "Events",
             "type": "array"
           },
+          "ammunition_loads": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/AmmunitionLoad"
+            },
+            "title": "Ammunition Loads",
+            "type": "array"
+          },
+          "expended_items": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/Item"
+            },
+            "title": "Expended Items",
+            "type": "array"
+          },
           "recovery_tasks": {
             "default": [],
             "items": {
@@ -5003,6 +5062,11 @@
           "thrown": {
             "default": false,
             "title": "Thrown",
+            "type": "boolean"
+          },
+          "blockable": {
+            "default": false,
+            "title": "Blockable",
             "type": "boolean"
           }
         },

@@ -8,7 +8,7 @@ from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.location_types import Hand, HitLocation, HumanLocation, disabled_locations
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import Combatant, Encounter, Posture
-from wayfarer.simulation.gurps_equipment import MeleeMode
+from wayfarer.simulation.gurps_equipment import MeleeMode, RangedMode
 from wayfarer.simulation.hit_locations import part, require_location, wound_factor
 from wayfarer.simulation.injury import ResolveCrippling, apply_injury
 
@@ -43,7 +43,7 @@ def validate_target(
     encounter: Encounter,
     attacker_id: str,
     defender_id: str,
-    selected: MeleeMode,
+    selected: MeleeMode | RangedMode,
     location: HitLocation | None,
 ) -> None:
     """Reject unsupported location intent before consciousness/exertion dice."""
@@ -61,7 +61,14 @@ def validate_target(
     )
     if any(h in occupied_hands for _, h in attacker.hand_bindings):
         raise ValidationError("Selected weapon hand is controlled by a grapple")
-    if attacker.position == defender.position and 0 not in selected.reach:
+    if isinstance(selected, RangedMode):
+        if attacker.position == defender.position or any(
+            attacker_id in (g.holder_id, g.target_id) for g in encounter.grips
+        ):
+            raise ValidationError(
+                "Ranged attacks while in close combat require further integration"
+            )
+    elif attacker.position == defender.position and 0 not in selected.reach:
         raise ValidationError("Weapon does not support close-combat reach")
     hp = next(p for p in state.resources.pools if p.id == f"hp:{defender_id}")
     if hp.injury is None:

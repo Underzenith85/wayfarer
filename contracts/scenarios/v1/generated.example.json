@@ -25,7 +25,7 @@
     "author": "Wayfarer example author",
     "source": null,
     "generator": "synthetic-example (no live model call)",
-    "source_digest": "e48f6aa2963eff94a0bbd5c5519e70d36d565eb82c5b4d1a1ecf5db568cafbe4"
+    "source_digest": "fc02d464f9845425aa968db5ba53b0298b6132d12ad56334e2cd7c7ded5ca6c5"
   },
   "compatibility": {
     "rules": {
@@ -308,6 +308,8 @@
       "fired": [],
       "receipts": [],
       "events": [],
+      "ammunition_loads": [],
+      "expended_items": [],
       "recovery_tasks": [],
       "hazards": [],
       "illnesses": []

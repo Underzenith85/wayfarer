@@ -5,6 +5,12 @@ import type { Campaign } from "../play/transport";
 import { useState } from "react";
 import { Button } from "../components/ui/button";
 import { NetworkPlayTransport } from "../api/play-transport";
+import {
+  campaignPhaseLabel,
+  definitionLabel,
+  humanize,
+  lifecycleOperationLabel,
+} from "../presentation/labels";
 import type { PlayTransport } from "../play/transport";
 import {
   SetupClient,
@@ -217,7 +223,7 @@ export function SetupLobby({
                     })
                   }
                 >
-                  {value.title} · {value.phase}
+                  {value.title} · {campaignPhaseLabel(value.phase)}
                 </Button>
               </li>
             ))}
@@ -269,7 +275,8 @@ export function SetupLobby({
           {!lobby && <p>Create a game, or open an invitation above.</p>}
           {lobby && (
             <p role="status">
-              {lobby.title} · {lobby.phase} · revision {lobby.revision}
+              {lobby.title} · {campaignPhaseLabel(lobby.phase)} · revision{" "}
+              {lobby.revision}
             </p>
           )}
           {editable && (!lobby || host) && !lobby?.scenario_pinned && (
@@ -428,11 +435,11 @@ export function SetupLobby({
                 .filter((a) => !graph.npc_actor_ids.includes(a.actor_id))
                 .map((actor) => (
                   <fieldset key={actor.actor_id}>
-                    <legend>Character {actor.actor_id}</legend>
+                    <legend>Character {humanize(actor.actor_id)}</legend>
                     <div className="numeric-fields">
                       {actor.proposal.draft.purchases.map((purchase, index) => (
                         <label key={index}>
-                          {purchase.definition_id}
+                          {definitionLabel(purchase.definition_id)}
                           <input
                             type="number"
                             min={0}
@@ -640,12 +647,21 @@ export function SetupLobby({
                 </p>
                 <pre>{JSON.stringify(lobby.rules, null, 2)}</pre>
               </details>
-              <ul>
+              <ul className="seat-list" aria-label="Players">
                 {lobby.seats.map((seat) => (
-                  <li key={seat.principal_id}>
-                    {seat.principal_id} · {seat.joined ? "Joined" : "Invited"} ·{" "}
-                    {seat.ready ? "Ready" : "Not ready"} ·{" "}
-                    {seat.actor_ids.join(", ") || "No character"}
+                  <li key={seat.principal_id} className="seat-row">
+                    <span className="seat-player">{seat.principal_id}</span>
+                    <span className="seat-character">
+                      {seat.actor_ids.map(humanize).join(", ") ||
+                        "No character assigned"}
+                    </span>
+                    <span className="seat-status">
+                      {!seat.joined
+                        ? "Invited"
+                        : seat.ready
+                          ? "Ready"
+                          : "Not ready"}
+                    </span>
                     {host && editable && seat.joined && lobby.graph && (
                       <label>
                         Assign character to {seat.principal_id}
@@ -674,7 +690,7 @@ export function SetupLobby({
                             )
                             .map((a) => (
                               <option key={a.actor_id} value={a.actor_id}>
-                                {a.actor_id}
+                                {humanize(a.actor_id)}
                               </option>
                             ))}
                         </select>
@@ -737,7 +753,7 @@ export function SetupLobby({
                       disabled={busy || client.hasPending}
                       onClick={() => void run(() => command(operation))}
                     >
-                      {operation === "activate" ? "Start game" : operation}
+                      {lifecycleOperationLabel(operation)}
                     </Button>
                   ))}
                 {lobby.phase === "active" && (

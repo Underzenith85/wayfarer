@@ -38,7 +38,14 @@ from wayfarer.rules.location_types import HumanBody
 from wayfarer.rules.recovery_types import RecoveryTask
 from wayfarer.rules.skill_types import ControllingAttribute, Difficulty, SkillDefault, SkillSpec
 from wayfarer.simulation.actions import ActionEngine, ActionRules, ActorSetup
-from wayfarer.simulation.combat import Battlefield, CombatRules, Defense, GridPoint, Placement
+from wayfarer.simulation.combat import (
+    Battlefield,
+    CombatRules,
+    Defense,
+    GridPoint,
+    Placement,
+    RangedSituation,
+)
 from wayfarer.simulation.fatigue import FatigueCost, apply_fatigue
 from wayfarer.simulation.gurps_equipment import (
     LITE_EQUIPMENT,
@@ -61,6 +68,8 @@ async def setup(
     ability_defense: bool = False,
     human: bool = False,
     ranged_fixture: bool = False,
+    ranged_mode: RangedMode | None = None,
+    ranged_scene: tuple[RangedSituation, ...] = (),
     ready_after_attack: bool = False,
     unarmed_fixture: bool = False,
     third_actor: bool = False,
@@ -125,6 +134,25 @@ async def setup(
                 )
             }
         )
+    if ranged_mode is not None:
+        entries = tuple(
+            e.model_copy(update={"modes": e.modes + (ranged_mode,)})
+            if e.definition_id == "equipment:broadsword"
+            else e
+            for e in equipment.entries
+        )
+        if ranged_mode.ammunition_id:
+            entries += (
+                EquipmentProfile(
+                    definition_id=ranged_mode.ammunition_id,
+                    provenance=LITE_SOURCE,
+                    weight_millipounds=10,
+                    price=1,
+                    technology_level=1,
+                    ammunition=True,
+                ),
+            )
+        equipment = equipment.model_copy(update={"entries": entries})
     source = "sjg:gurps-lite-4e-2004" if profile == LITE else "sjg:basic-set-characters-4e-2004"
     if profile == BASIC:
         equipment = equipment.model_copy(
@@ -322,6 +350,20 @@ async def setup(
             ),
         ),
     )
+    if ranged_mode is not None and ranged_mode.ammunition_id:
+        seed = seed.model_copy(
+            update={
+                "items": seed.items
+                + (
+                    Item(
+                        id="ammo-a",
+                        definition_id=ranged_mode.ammunition_id,
+                        owner_id="a",
+                        quantity=10,
+                    ),
+                )
+            }
+        )
     await play.create(initial, test_world, seed, actors)
     await CombatService(play).execute(
         initial["id"],
@@ -331,6 +373,7 @@ async def setup(
             expected_revision=0,
             encounter_id="fight",
             battlefield_id="dock",
+            ranged_situations=ranged_scene,
             placements=(
                 Placement(actor_id="a", position=GridPoint(x=0, y=0), facing="east"),
                 Placement(actor_id="b", position=GridPoint(x=1, y=0), facing="west"),
