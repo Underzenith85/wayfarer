@@ -30,7 +30,6 @@ from wayfarer.rules.catalog import (
     SourceReference,
     reference,
 )
-from wayfarer.rules.spell_catalog import projectile_definition
 
 
 @dataclass(frozen=True, slots=True)
@@ -341,25 +340,25 @@ GURPS_MAGIC_PROFILE: Final = replace(
     ),
 )
 
-# B235 source correction is an explicit new catalog selection, preserving v4.
-
-GURPS_MAGIC_PACKAGE_V5: Final = replace(
-    GURPS_CHARACTERS_PACKAGE,
+# #192 adds a Basic-only construction context as another immutable pin. Existing
+# v2-v4 campaigns remain resolvable and unchanged; only v5 carries the definition.
+GURPS_SIZE_PACKAGE: Final = replace(
+    GURPS_MAGIC_PACKAGE,
     version="0.5.0",
-    definitions=GURPS_CHARACTERS_PACKAGE.definitions
-    + gurps_magic.definitions(2)
-    + (projectile_definition(),),
+    definitions=GURPS_MAGIC_PACKAGE.definitions + (gurps_characters.size_modifier_definition(),),
 )
-GURPS_MAGIC_PROFILE_V5: Final = replace(
+GURPS_SIZE_PROFILE: Final = replace(
     GURPS_MAGIC_PROFILE,
     version=5,
-    packages=(GURPS_MAGIC_PACKAGE_V5, GURPS_CAMPAIGNS_PACKAGE),
+    packages=(GURPS_SIZE_PACKAGE, GURPS_CAMPAIGNS_PACKAGE),
     rules=replace(
         GURPS_MAGIC_PROFILE.rules,
-        packages=(_pin(GURPS_MAGIC_PACKAGE_V5), _pin(GURPS_CAMPAIGNS_PACKAGE)),
+        packages=(_pin(GURPS_SIZE_PACKAGE), _pin(GURPS_CAMPAIGNS_PACKAGE)),
     ),
 )
 
+# Keep the new pin opt-in while the overall Basic Set profile still has unrelated
+# unverified blockers. Historic default-registry entries stay byte-for-byte resolvable.
 DEFAULT_REGISTRY: Final = ProfileRegistry(
     (
         PROTOTYPE_PROFILE,
@@ -368,9 +367,11 @@ DEFAULT_REGISTRY: Final = ProfileRegistry(
         GURPS_LITE_PROFILE,
         GURPS_BASIC_PROFILE,
         GURPS_MAGIC_PROFILE,
-        GURPS_MAGIC_PROFILE_V5,
     )
 )
 GURPS_PROFILES: Final = MappingProxyType(
-    {profile.id: profile for profile in (GURPS_LITE_PROFILE, GURPS_BASIC_PROFILE)}
+    {
+        GURPS_LITE_PROFILE.id: GURPS_LITE_PROFILE,
+        GURPS_SIZE_PROFILE.id: GURPS_SIZE_PROFILE,
+    }
 )

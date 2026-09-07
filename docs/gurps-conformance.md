@@ -97,7 +97,7 @@ Fail-closed and advisory boundaries:
 - Damage lookup accepts only listed ST rows: 1 to 20 under the Lite profile, 1 to 40 and the listed five-point steps to 100 under Basic. Anything else is a `damage.unsupported_st` diagnostic rather than an interpolated guess.
 - The source's GM-permission guidelines (HP or FP more than 30% away from ST or HT, Will or Per above 20) are reported as `advisories` on the projection. They are not hard failures and not silently ignored; the power reviewer can turn them into review findings.
 - Engine invariants that are not rules claims: HP, FP, Will and Per compile to at least 1, Basic Move to at least 0.
-- Not implemented: the Basic Set Size Modifier discount on ST and HP costs. It is recorded as the Basic-only capability `gurps.character.size_modifier_costs` (`absent`) so it stays a visible certification blocker until a named follow-up implements it; Lifting ST, Striking ST and similar traits belong to #100.
+- Implemented by #192: the Basic Set Size Modifier construction context and the associated discounts on eligible ST and HP purchases. The Basic-only capability `gurps.character.size_modifier_costs` is now `verified`; Lifting ST, Striking ST and similar traits remain under #100.
 
 Fixture cases for both capabilities live in `tests/fixtures/gurps/conformance.json` with an `operation` field naming the executable check; `tests/test_statistics.py` runs every one of them plus property tests for fraction handling, rounding, load bands and pool carry-over.
 
@@ -145,7 +145,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | --- | --- | --- | --- | --- |
 | `gurps.character.primary_attributes` | yes | yes | verified | #97 |
 | `gurps.character.secondary_characteristics` | yes | yes | verified | #97 |
-| `gurps.character.size_modifier_costs` | no | yes | absent | #192 |
+| `gurps.character.size_modifier_costs` | no | yes | verified | #192 |
 | `gurps.character.skill_difficulty` | yes | yes | verified | #98 |
 | `gurps.character.skill_defaults` | yes | yes | verified | #98 |
 | `gurps.character.specialties` | no | yes | verified | #98 |

@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from collections.abc import Callable
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from decimal import Decimal
 from types import MappingProxyType
 from typing import Final
@@ -14,6 +14,8 @@ from pydantic import BaseModel, ConfigDict, Field
 from pydantic import ValidationError as SchemaError
 
 from wayfarer.character import statistics
+from wayfarer.character.size_modifier import SizeModifierCost
+from wayfarer.character.size_modifier import cost as size_modifier_cost
 from wayfarer.character.skills import SkillCompiler, SkillError
 from wayfarer.character.statistics import (
     ATTRIBUTE_IDS,
@@ -35,6 +37,7 @@ from wayfarer.rules.catalog import (
     RulesCatalog,
 )
 from wayfarer.rules.effects import DerivedValue, Effect, EffectEvaluator, MechanicalTarget
+from wayfarer.rules.gurps_characters import SIZE_MODIFIER_DEFINITION_ID
 from wayfarer.rules.traits import TraitOptions
 from wayfarer.rules.traits import cost as trait_cost
 
@@ -88,6 +91,7 @@ class ValidatedBuild:
     backstory: str
     statistics: CharacterStatistics | None = None
     trait_purchases: tuple[Purchase, ...] = ()
+    cost_provenance: tuple[SizeModifierCost, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -256,6 +260,21 @@ class CharacterCompiler:
                 None,
             )
         selected = {p.definition_id for p in draft.purchases}
+        size_purchase = next(
+            (p for p in draft.purchases if p.definition_id == SIZE_MODIFIER_DEFINITION_ID), None
+        )
+        size_definition = self.definitions.get(SIZE_MODIFIER_DEFINITION_ID)
+        size_modifier = (
+            size_purchase.amount
+            if size_purchase is not None
+            and size_purchase.trait is None
+            and size_definition is not None
+            and size_definition.trait_rules is not None
+            and size_definition.trait_rules.profile_id == self.statistics_profile
+            and "character.size_modifier" in size_definition.hooks
+            else 0
+        )
+        cost_provenance: list[SizeModifierCost] = []
         seen: set[str] = set()
         entries: list[PurchasedEntry] = []
         bases: dict[str, Decimal] = {}
@@ -303,6 +322,12 @@ class CharacterCompiler:
                     cost = statistics.attribute_cost(
                         self.statistics.profile_id, ATTRIBUTE_IDS[key], max(amount, minimum)
                     )
+                    if key == "attribute:st" and size_modifier:
+                        priced = size_modifier_cost(
+                            self.statistics.profile_id, "attribute:st", cost, size_modifier
+                        )
+                        cost = priced.adjusted_cost
+                        cost_provenance.append(priced)
                 elif cost is not None:
                     cost *= amount - 10
                 bases[key] = Decimal(amount)
@@ -373,6 +398,27 @@ class CharacterCompiler:
         if self.statistics is not None:
             projection = self._statistics(effective_attributes, secondary_levels, diagnostics)
             if projection is not None:
+                if size_modifier:
+                    attribute_costs = dict(projection.costs.attributes)
+                    attribute_costs[Attribute.ST] = size_modifier_cost(
+                        self.statistics.profile_id,
+                        "attribute:st",
+                        attribute_costs[Attribute.ST],
+                        size_modifier,
+                    ).adjusted_cost
+                    secondary_costs = dict(projection.costs.secondaries)
+                    hp_price = size_modifier_cost(
+                        self.statistics.profile_id,
+                        "secondary:hp",
+                        secondary_costs[Secondary.HP],
+                        size_modifier,
+                    )
+                    secondary_costs[Secondary.HP] = hp_price.adjusted_cost
+                    cost_provenance.append(hp_price)
+                    projection = replace(
+                        projection,
+                        costs=statistics.PointCosts(attribute_costs, secondary_costs),
+                    )
                 for key, amount in deferred:
                     cost = projection.costs.secondaries[SECONDARY_IDS[key]]
                     spent += cost
@@ -512,6 +558,8 @@ class CharacterCompiler:
                 "entries": [asdict(e) for e in entries],
                 "sheet": asdict(sheet),
             }
+            if cost_provenance:
+                payload["cost_provenance"] = [asdict(entry) for entry in cost_provenance]
             if projection is not None:
                 payload["statistics"] = asdict(projection)
             revision = hashlib.sha256(
@@ -527,7 +575,13 @@ class CharacterCompiler:
                 draft.name,
                 draft.backstory,
                 projection,
-                tuple(p for p in draft.purchases if self.definitions[p.definition_id].trait_rules),
+                tuple(
+                    p
+                    for p in draft.purchases
+                    if self.definitions.get(p.definition_id) is not None
+                    and self.definitions[p.definition_id].trait_rules
+                ),
+                tuple(cost_provenance),
             )
         return Compilation(tuple(diagnostics), spent, self.policy.point_budget - spent, build)
 

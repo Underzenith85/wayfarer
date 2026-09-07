@@ -241,7 +241,6 @@ def test_default_registry_preserves_prototype_pins_and_rejects_gurps_until_verif
         "profile:gurps-lite-4e-2004",
         "profile:gurps-basic-set-4e-2004",
         "profile:gurps-basic-set-4e-2004",
-        "profile:gurps-basic-set-4e-2004",
     ]
     assert PROTOTYPE_PROFILE.rules == DEFAULT_RULES
     assert PROTOTYPE_PROFILE.reference == reference(DEFAULT_RULES)
