@@ -28,6 +28,9 @@ class MigrationEntry(Record):
     from_digest: str
     to_digest: str
     reason: str = Field(min_length=1, max_length=2000)
+    # Registered profile identities, when the migration selected a profile.
+    from_profile: str | None = None
+    to_profile: str | None = None
 
 
 class BuildDiff(Record):

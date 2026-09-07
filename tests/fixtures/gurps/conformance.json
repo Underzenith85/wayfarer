@@ -80,7 +80,8 @@
       "rounding": "none",
       "prototype_divergence": null,
       "evidence_kind": "published-example",
-      "provenance": "Manually entered expected result; not generated from engine output."
+      "provenance": "Manually entered expected result; not generated from engine output.",
+      "service": "success"
     },
     {
       "id": "lite-success-basic-fail",
@@ -103,7 +104,8 @@
       "rounding": "none",
       "prototype_divergence": null,
       "evidence_kind": "published-example",
-      "provenance": "Manually entered expected result; not generated from engine output."
+      "provenance": "Manually entered expected result; not generated from engine output.",
+      "service": "success"
     },
     {
       "id": "lite-attribute-st-cost",
@@ -222,7 +224,8 @@
       "rounding": "none",
       "prototype_divergence": null,
       "evidence_kind": "prototype-comparison",
-      "provenance": "Hand-entered boundary example, not engine-generated."
+      "provenance": "Hand-entered boundary example, not engine-generated.",
+      "service": "success"
     },
     {
       "id": "five-at-14",
@@ -245,7 +248,8 @@
       "rounding": "none",
       "prototype_divergence": null,
       "evidence_kind": "prototype-comparison",
-      "provenance": "Hand-entered boundary example, not engine-generated."
+      "provenance": "Hand-entered boundary example, not engine-generated.",
+      "service": "success"
     },
     {
       "id": "seventeen-at-16",
@@ -268,7 +272,8 @@
       "rounding": "none",
       "prototype_divergence": null,
       "evidence_kind": "prototype-comparison",
-      "provenance": "Hand-entered boundary example, not engine-generated."
+      "provenance": "Hand-entered boundary example, not engine-generated.",
+      "service": "success"
     },
     {
       "id": "seventeen-at-15",
@@ -291,7 +296,8 @@
       "rounding": "none",
       "prototype_divergence": null,
       "evidence_kind": "prototype-comparison",
-      "provenance": "Hand-entered boundary example, not engine-generated."
+      "provenance": "Hand-entered boundary example, not engine-generated.",
+      "service": "success"
     },
     {
       "id": "eighteen-at-20",
@@ -314,7 +320,8 @@
       "rounding": "none",
       "prototype_divergence": null,
       "evidence_kind": "prototype-comparison",
-      "provenance": "Hand-entered boundary example, not engine-generated."
+      "provenance": "Hand-entered boundary example, not engine-generated.",
+      "service": "success"
     },
     {
       "id": "quick-contest-both-fail",
@@ -341,9 +348,1059 @@
         "winner": null
       },
       "rounding": "none",
-      "prototype_divergence": "Prototype contest discards failed rolls; published quick contest compares margins when both fail.",
+      "prototype_divergence": "Prototype package:wayfarer-lite contest discards failed rolls; the GURPS profile Quick Contest compares margins of failure. Both behaviours remain recorded because saved prototype campaigns are not migrated.",
       "evidence_kind": "prototype-divergence",
-      "provenance": "Hand-entered expected winner and separately recorded prototype behavior."
+      "provenance": "Hand-entered expected winner and separately recorded prototype behavior.",
+      "service": "quick_contest"
+    },
+    {
+      "id": "lite-success-typed-modifiers",
+      "capability_id": "gurps.check.success",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Success Rolls / Modifiers",
+      "service": "success",
+      "input": {
+        "target": 12,
+        "modifiers": [
+          {
+            "value": -3,
+            "kind": "situational"
+          },
+          {
+            "value": 1,
+            "kind": "equipment"
+          }
+        ],
+        "roll": [
+          2,
+          3,
+          4
+        ]
+      },
+      "expected": {
+        "effective_target": 10,
+        "success": true,
+        "margin": 1,
+        "outcome": "success"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "lite-margin-of-success",
+      "capability_id": "gurps.check.margin",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Success Rolls / Margin of Success",
+      "service": "success",
+      "input": {
+        "target": 13,
+        "roll": [
+          2,
+          3,
+          4
+        ]
+      },
+      "expected": {
+        "margin": 4,
+        "success": true
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "lite-margin-of-failure",
+      "capability_id": "gurps.check.margin",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Success Rolls / Margin of Failure",
+      "service": "success",
+      "input": {
+        "target": 9,
+        "roll": [
+          4,
+          4,
+          5
+        ]
+      },
+      "expected": {
+        "margin": -4,
+        "success": false
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "lite-critical-success-three",
+      "capability_id": "gurps.check.critical",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Success Rolls / Critical Success",
+      "service": "success",
+      "input": {
+        "target": 8,
+        "roll": [
+          1,
+          1,
+          1
+        ]
+      },
+      "expected": {
+        "outcome": "critical-success",
+        "margin": 5
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "lite-critical-success-four",
+      "capability_id": "gurps.check.critical",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Success Rolls / Critical Success",
+      "service": "success",
+      "input": {
+        "target": 5,
+        "roll": [
+          1,
+          1,
+          2
+        ]
+      },
+      "expected": {
+        "outcome": "critical-success",
+        "margin": 1
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "lite-critical-success-six-at-16",
+      "capability_id": "gurps.check.critical",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Success Rolls / Critical Success",
+      "service": "success",
+      "input": {
+        "target": 16,
+        "roll": [
+          1,
+          2,
+          3
+        ]
+      },
+      "expected": {
+        "outcome": "critical-success",
+        "margin": 10
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "lite-six-at-15-is-ordinary",
+      "capability_id": "gurps.check.critical",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Success Rolls / Critical Success",
+      "service": "success",
+      "input": {
+        "target": 15,
+        "roll": [
+          1,
+          2,
+          3
+        ]
+      },
+      "expected": {
+        "outcome": "success",
+        "margin": 9
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "lite-critical-failure-eighteen",
+      "capability_id": "gurps.check.critical",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Success Rolls / Critical Failure",
+      "service": "success",
+      "input": {
+        "target": 12,
+        "roll": [
+          6,
+          6,
+          6
+        ]
+      },
+      "expected": {
+        "outcome": "critical-failure",
+        "margin": -6
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "lite-critical-failure-by-ten",
+      "capability_id": "gurps.check.critical",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Success Rolls / Critical Failure",
+      "service": "success",
+      "input": {
+        "target": 6,
+        "roll": [
+          5,
+          5,
+          6
+        ]
+      },
+      "expected": {
+        "outcome": "critical-failure",
+        "margin": -10
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "lite-failure-by-nine-is-ordinary",
+      "capability_id": "gurps.check.critical",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Success Rolls / Critical Failure",
+      "service": "success",
+      "input": {
+        "target": 7,
+        "roll": [
+          5,
+          5,
+          6
+        ]
+      },
+      "expected": {
+        "outcome": "failure",
+        "margin": -9
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "lite-seventeen-always-fails",
+      "capability_id": "gurps.check.critical",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Success Rolls / Critical Failure",
+      "service": "success",
+      "input": {
+        "target": 17,
+        "roll": [
+          5,
+          6,
+          6
+        ]
+      },
+      "expected": {
+        "outcome": "failure",
+        "success": false
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Automatic failure at 17 is published; the source defines no numeric margin for it, so none is pinned."
+    },
+    {
+      "id": "basic-repeated-single-chance",
+      "capability_id": "gurps.check.success",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Repeated Attempts",
+      "service": "repeated_attempt",
+      "input": {
+        "policy": "single-chance",
+        "target": 10,
+        "attempts": [
+          [
+            4,
+            4,
+            4
+          ],
+          [
+            3,
+            3,
+            3
+          ]
+        ]
+      },
+      "expected": {
+        "attempts_resolved": 1,
+        "second_attempt": "rejected"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-repeated-retry-until-success",
+      "capability_id": "gurps.check.success",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Repeated Attempts",
+      "service": "repeated_attempt",
+      "input": {
+        "policy": "retry-until-success",
+        "target": 10,
+        "attempts": [
+          [
+            4,
+            4,
+            4
+          ],
+          [
+            5,
+            4,
+            4
+          ],
+          [
+            3,
+            3,
+            3
+          ]
+        ]
+      },
+      "expected": {
+        "attempts_resolved": 3,
+        "final_success": true,
+        "hazards": 0
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-repeated-unknown-until-later",
+      "capability_id": "gurps.check.success",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Repeated Attempts",
+      "service": "repeated_attempt",
+      "input": {
+        "policy": "unknown-until-later",
+        "target": 10,
+        "attempts": [
+          [
+            4,
+            4,
+            4
+          ],
+          [
+            3,
+            3,
+            3
+          ]
+        ]
+      },
+      "expected": {
+        "attempts_resolved": 1,
+        "revealed": false,
+        "second_attempt": "rejected"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-repeated-hazardous-failure",
+      "capability_id": "gurps.check.success",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Repeated Attempts",
+      "service": "repeated_attempt",
+      "input": {
+        "policy": "hazardous-failure",
+        "target": 10,
+        "attempts": [
+          [
+            4,
+            4,
+            4
+          ],
+          [
+            3,
+            3,
+            3
+          ]
+        ]
+      },
+      "expected": {
+        "attempts_resolved": 2,
+        "hazards": 1,
+        "final_success": true
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "lite-quick-contest-success-over-failure",
+      "capability_id": "gurps.check.quick_contest",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Contests of Skill / Quick Contests",
+      "service": "quick_contest",
+      "input": {
+        "first_target": 12,
+        "second_target": 14,
+        "roll": [
+          3,
+          4,
+          5,
+          5,
+          5,
+          5
+        ]
+      },
+      "expected": {
+        "winner": "first",
+        "decision": "success-over-failure",
+        "victory_margin": 1
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "lite-quick-contest-margin-of-success",
+      "capability_id": "gurps.check.quick_contest",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Contests of Skill / Quick Contests",
+      "service": "quick_contest",
+      "input": {
+        "first_target": 12,
+        "second_target": 14,
+        "roll": [
+          2,
+          3,
+          4,
+          3,
+          4,
+          5
+        ]
+      },
+      "expected": {
+        "winner": "first",
+        "decision": "margin-of-success",
+        "victory_margin": 1
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "lite-quick-contest-tie",
+      "capability_id": "gurps.check.quick_contest",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Contests of Skill / Quick Contests",
+      "service": "quick_contest",
+      "input": {
+        "first_target": 12,
+        "second_target": 12,
+        "roll": [
+          3,
+          3,
+          3,
+          4,
+          4,
+          1
+        ]
+      },
+      "expected": {
+        "winner": null,
+        "decision": "tie",
+        "victory_margin": 0
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-quick-contest-both-fail-tie",
+      "capability_id": "gurps.check.quick_contest",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests",
+      "service": "quick_contest",
+      "input": {
+        "first_target": 10,
+        "second_target": 8,
+        "roll": [
+          4,
+          4,
+          5,
+          4,
+          4,
+          3
+        ]
+      },
+      "expected": {
+        "winner": null,
+        "decision": "tie"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-quick-contest-victory-margin-mixed",
+      "capability_id": "gurps.check.quick_contest",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests / margin of victory",
+      "service": "quick_contest",
+      "input": {
+        "first_target": 12,
+        "second_target": 12,
+        "roll": [
+          3,
+          3,
+          4,
+          5,
+          5,
+          5
+        ]
+      },
+      "expected": {
+        "winner": "first",
+        "victory_margin": 5
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-quick-contest-margin-not-critical",
+      "capability_id": "gurps.check.quick_contest",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests",
+      "service": "quick_contest",
+      "input": {
+        "first_target": 16,
+        "second_target": 20,
+        "roll": [
+          1,
+          2,
+          3,
+          2,
+          2,
+          3
+        ]
+      },
+      "expected": {
+        "first_outcome": "critical-success",
+        "winner": "second",
+        "victory_margin": 3
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-rule",
+      "provenance": "The published Quick Contest text decides by margin only; a critical result has no separate clause."
+    },
+    {
+      "id": "basic-regular-contest-second-round",
+      "capability_id": "gurps.check.regular_contest",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Regular Contests",
+      "service": "regular_contest",
+      "input": {
+        "first_target": 12,
+        "second_target": 12,
+        "roll": [
+          3,
+          3,
+          3,
+          3,
+          3,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          5
+        ]
+      },
+      "expected": {
+        "rounds": 2,
+        "winner": "first",
+        "adjusted_targets": [
+          12,
+          12
+        ]
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-regular-contest-both-fail-continues",
+      "capability_id": "gurps.check.regular_contest",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Regular Contests",
+      "service": "regular_contest",
+      "input": {
+        "first_target": 8,
+        "second_target": 8,
+        "roll": [
+          4,
+          4,
+          4,
+          3,
+          4,
+          4,
+          2,
+          2,
+          2,
+          4,
+          4,
+          4
+        ]
+      },
+      "expected": {
+        "rounds": 2,
+        "winner": "first",
+        "adjusted_targets": [
+          8,
+          8
+        ]
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-regular-contest-high-skill-levelling",
+      "capability_id": "gurps.check.regular_contest",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Regular Contests / very high skills",
+      "service": "regular_contest",
+      "input": {
+        "first_target": 18,
+        "second_target": 16,
+        "roll": [
+          5,
+          5,
+          5,
+          4,
+          4,
+          4
+        ]
+      },
+      "expected": {
+        "rounds": 1,
+        "winner": "second",
+        "adjusted_targets": [
+          14,
+          12
+        ]
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-regular-contest-low-skill-levelling",
+      "capability_id": "gurps.check.regular_contest",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Regular Contests / very low skills",
+      "service": "regular_contest",
+      "input": {
+        "first_target": 5,
+        "second_target": 3,
+        "roll": [
+          3,
+          3,
+          2,
+          3,
+          3,
+          3
+        ]
+      },
+      "expected": {
+        "rounds": 1,
+        "winner": "first",
+        "adjusted_targets": [
+          8,
+          6
+        ]
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-regular-contest-no-levelling-at-14",
+      "capability_id": "gurps.check.regular_contest",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Regular Contests / very high skills",
+      "service": "regular_contest",
+      "input": {
+        "first_target": 14,
+        "second_target": 16,
+        "roll": [
+          5,
+          5,
+          5,
+          5,
+          5,
+          5
+        ]
+      },
+      "expected": {
+        "rounds": 1,
+        "winner": "second",
+        "adjusted_targets": [
+          14,
+          16
+        ]
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-resistance-attacker-wins",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348-349, Resistance Rolls",
+      "service": "resistance",
+      "input": {
+        "attacker_target": 14,
+        "resister_target": 12,
+        "rule_of_16": false,
+        "roll": [
+          3,
+          3,
+          4,
+          3,
+          3,
+          3
+        ]
+      },
+      "expected": {
+        "affected": true,
+        "victory_margin": 1
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-resistance-tie-resists",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348-349, Resistance Rolls",
+      "service": "resistance",
+      "input": {
+        "attacker_target": 14,
+        "resister_target": 12,
+        "rule_of_16": false,
+        "roll": [
+          3,
+          4,
+          4,
+          3,
+          3,
+          3
+        ]
+      },
+      "expected": {
+        "affected": false,
+        "decision": "tie"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-resistance-both-fail",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348-349, Resistance Rolls",
+      "service": "resistance",
+      "input": {
+        "attacker_target": 12,
+        "resister_target": 10,
+        "rule_of_16": false,
+        "roll": [
+          4,
+          4,
+          5,
+          4,
+          4,
+          5
+        ]
+      },
+      "expected": {
+        "affected": true,
+        "decision": "margin-of-failure"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-rule-of-16-caps-attacker",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Rule of 16",
+      "service": "resistance",
+      "input": {
+        "attacker_target": 20,
+        "resister_target": 12,
+        "rule_of_16": true,
+        "roll": [
+          5,
+          5,
+          5,
+          4,
+          4,
+          4
+        ]
+      },
+      "expected": {
+        "attacker_effective_target": 16,
+        "attacker_margin": 1,
+        "affected": true,
+        "victory_margin": 1
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-rule-of-16-high-resistance",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Rule of 16",
+      "service": "resistance",
+      "input": {
+        "attacker_target": 20,
+        "resister_target": 18,
+        "rule_of_16": true,
+        "roll": [
+          5,
+          5,
+          6,
+          5,
+          5,
+          5
+        ]
+      },
+      "expected": {
+        "attacker_effective_target": 18,
+        "affected": false
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-rule-of-16-below-cap",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Rule of 16",
+      "service": "resistance",
+      "input": {
+        "attacker_target": 14,
+        "resister_target": 12,
+        "rule_of_16": true,
+        "roll": [
+          3,
+          3,
+          4,
+          4,
+          4,
+          4
+        ]
+      },
+      "expected": {
+        "attacker_effective_target": 14,
+        "affected": true
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-rule-of-16-not-declared",
+      "capability_id": "gurps.check.resistance",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B349, Rule of 16 / scope",
+      "service": "resistance",
+      "input": {
+        "attacker_target": 20,
+        "resister_target": 12,
+        "rule_of_16": false,
+        "roll": [
+          5,
+          5,
+          5,
+          4,
+          4,
+          4
+        ]
+      },
+      "expected": {
+        "attacker_effective_target": 20,
+        "affected": true,
+        "victory_margin": 5
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-margin-of-success",
+      "capability_id": "gurps.check.margin",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B347, Margin of Success",
+      "service": "success",
+      "input": {
+        "target": 16,
+        "roll": [
+          3,
+          3,
+          3
+        ]
+      },
+      "expected": {
+        "margin": 7,
+        "success": true
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-margin-of-failure",
+      "capability_id": "gurps.check.margin",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B347, Margin of Failure",
+      "service": "success",
+      "input": {
+        "target": 11,
+        "roll": [
+          5,
+          5,
+          5
+        ]
+      },
+      "expected": {
+        "margin": -4,
+        "success": false
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
+    },
+    {
+      "id": "basic-margin-with-typed-modifiers",
+      "capability_id": "gurps.check.margin",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B347, Margin of Success / Modifiers",
+      "service": "success",
+      "input": {
+        "target": 13,
+        "modifiers": [
+          {
+            "value": -2,
+            "kind": "time"
+          },
+          {
+            "value": 2,
+            "kind": "trait"
+          },
+          {
+            "value": -1,
+            "kind": "situational"
+          }
+        ],
+        "roll": [
+          4,
+          4,
+          3
+        ]
+      },
+      "expected": {
+        "effective_target": 12,
+        "margin": 1,
+        "success": true
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result from the frozen source; not generated from engine output."
     },
     {
       "id": "lite-attribute-iq-cost",

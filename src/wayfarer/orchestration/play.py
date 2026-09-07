@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import secrets
 from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 from pydantic import Field
 from pydantic import ValidationError as SchemaError
@@ -31,6 +32,9 @@ from wayfarer.simulation.resources import Pool, Record, ResourceState
 from wayfarer.simulation.scenes import ActorScene, JournalEntry, SceneEvent
 from wayfarer.world import World
 
+if TYPE_CHECKING:
+    from wayfarer.orchestration.profiles import ProfileRuntime
+
 
 class ApproveCharacter(Record):
     id: str = Field(min_length=1, max_length=100)
@@ -47,10 +51,22 @@ class PlayService:
         engine: ActionEngine,
         *,
         rng: RandomSource = secrets,
+        profiles: ProfileRuntime | None = None,
     ) -> None:
         self.store, self.engine, self.rng = store, engine, rng
+        # When present, campaigns pinned to another registered profile dispatch to
+        # that profile's service. Without a runtime, mismatched pins fail closed.
+        self.profiles = profiles
 
     def for_campaign(self, campaign: Campaign) -> PlayService:
+        """Dispatch to the campaign's exact registered profile, then bind its scenario."""
+        if self.profiles is not None and campaign.get("rules_ref") != reference(
+            self.engine.resources.rules
+        ):
+            return self.profiles.for_campaign(campaign)
+        return self.bind(campaign)
+
+    def bind(self, campaign: Campaign) -> PlayService:
         """Bind a saved scenario without sharing mutable per-campaign runtime state."""
         from wayfarer.simulation.studio import ScenarioGraph
 
@@ -68,7 +84,7 @@ class PlayService:
             and engine.resources.actors == self.engine.resources.actors
         ):
             return self
-        return PlayService(self.store, engine, rng=self.rng)
+        return PlayService(self.store, engine, rng=self.rng, profiles=self.profiles)
 
     def initial_state(
         self,

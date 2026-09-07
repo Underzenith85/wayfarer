@@ -8,10 +8,10 @@ from wayfarer.character.compiler import CharacterCompiler, CharacterDraft, Purch
 from wayfarer.character.power import CharacterProposal, PowerPolicy, PowerReviewer
 from wayfarer.config import Settings
 from wayfarer.orchestration.access import CampaignAccess
-from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.profiles import ProfileRuntime
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
-from wayfarer.rules.catalog import DEFAULT_POLICY, DEFAULT_RULES, PROTOTYPE_PACKAGE, RulesCatalog
+from wayfarer.rules.profiles import DEFAULT_REGISTRY, PROTOTYPE_PROFILE, RegisteredProfile
 from wayfarer.simulation.actions import ActionEngine, ActionRules, ActorSetup
 from wayfarer.simulation.objectives import Objective, ObjectiveRules, Predicate
 from wayfarer.simulation.party import PartyRules
@@ -112,15 +112,21 @@ def starting_scenario(players: int = 1) -> ScenarioGraph:
     )
 
 
-def runtime_engine() -> ActionEngine:
-    catalog = RulesCatalog((PROTOTYPE_PACKAGE,))
+def runtime_engine(profile: RegisteredProfile = PROTOTYPE_PROFILE) -> ActionEngine:
+    """Build the play engine for one exact registered profile; pins never float."""
+    catalog = profile.catalog
     return ActionEngine(
         PowerReviewer(
-            CharacterCompiler(catalog, DEFAULT_RULES, DEFAULT_POLICY),
+            CharacterCompiler(
+                catalog,
+                profile.rules,
+                profile.policy,
+                statistics_profile=profile.conformance_profile_id,
+            ),
             PowerPolicy(id="starter-power", version=1),
             frozenset(),
         ),
-        ResourceEngine(starting_scenario().world, catalog, DEFAULT_RULES, DEFAULT_POLICY, ()),
+        ResourceEngine(starting_scenario().world, catalog, profile.rules, profile.policy, ()),
         ActionRules(id="starter-actions", version=1),
     )
 
@@ -139,8 +145,9 @@ def create_runtime_app(settings: Settings, frontend_dir: Path) -> web.Applicatio
         if settings.database_url
         else AsyncSQLiteStore(settings.db, settings.db_timeout_seconds)
     )
+    runtime = ProfileRuntime(DEFAULT_REGISTRY, store, runtime_engine, PROTOTYPE_PROFILE)
     return create_campaign_app(
-        CampaignAccess(PlayService(store, runtime_engine())),
+        CampaignAccess(runtime.play),
         {token: principal for token, principal in settings.tokens.items()},
         settings=settings if settings.llm_provider == "codex" or settings.llm_enabled else None,
         frontend_dir=frontend_dir,

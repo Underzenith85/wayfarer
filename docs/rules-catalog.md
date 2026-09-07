@@ -20,6 +20,10 @@ attribute and skill ceilings, technology level, supernatural access, and startin
 equipment. Updating a package or policy requires a new version and explicit
 campaign migration; existing campaign pins never float.
 
+Registered [rules profiles](rules-profiles.md) bundle exact pins, a policy and an
+optional GURPS conformance target so new campaigns select a profile by ID and
+version, and campaigns change profile only through explicit migration.
+
 Definition kinds are `attribute`, `secondary`, `skill`, `trait` and `equipment`.
 `secondary` entries (HP, Will, Per, FP, Basic Speed, Basic Move) compile only when
 the compiler is created with an exact GURPS conformance profile; see

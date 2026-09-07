@@ -5,6 +5,7 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.simulation.continuation import AdventureSnapshot
+from wayfarer.simulation.profiles import ProfileSelection
 from wayfarer.simulation.resources import Id, Record
 from wayfarer.simulation.studio import GenerationBrief, ScenarioGraph
 
@@ -33,6 +34,8 @@ class CreateSetup(Record):
     id: Id
     brief: GenerationBrief
     graph: ScenarioGraph | None = None
+    # Omitted means the server default profile; the saved pin never floats afterwards.
+    rules_profile: ProfileSelection | None = None
 
 
 class SetupCommand(Record):

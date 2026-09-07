@@ -21,7 +21,10 @@ Run `VITE_PLAY_FIXTURES=true pnpm dev` in `frontend`, then open
 browser contexts. These are explicitly simulated identities, not credentials.
 
 The host chooses name, premise, tone, duration, difficulty, pinned rules,
-party relationship and scenario. Create an invitation and copy its code to the
+party relationship and scenario. In the production lobby, the **Rules profile**
+select lists registered profiles from `/setups/profiles`; unsupported profiles
+are shown disabled with their unverified capability count, and the server
+default applies when nothing is chosen (see [rules profiles](rules-profiles.md)). Create an invitation and copy its code to the
 guest's join form. Invitations are single-use; regenerating one invalidates the
 old code. Refresh the lobby to reconcile another player's changes. Only the
 host may issue invitations, assign unclaimed slots, approve builds or start play.

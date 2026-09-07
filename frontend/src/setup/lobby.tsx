@@ -5,7 +5,13 @@ import { useState } from "react";
 import { Button } from "../components/ui/button";
 import { NetworkPlayTransport } from "../api/play-transport";
 import type { PlayTransport } from "../play/transport";
-import { SetupClient, type Brief, type Graph, type Lobby } from "./client";
+import {
+  SetupClient,
+  type Brief,
+  type Graph,
+  type Lobby,
+  type RulesProfile,
+} from "./client";
 const blank: Brief = {
   premise: "",
   genre: "Fantasy",
@@ -31,6 +37,8 @@ export function SetupLobby({
     [lobby, setLobby] = useState<Lobby>();
   const [templates, setTemplates] = useState<Graph[]>([]),
     [graph, setGraph] = useState<Graph | null>(null);
+  const [profiles, setProfiles] = useState<RulesProfile[]>([]),
+    [profile, setProfile] = useState("");
   const [brief, setBrief] = useState(blank),
     [invite, setInvite] = useState("");
   const [error, setError] = useState(""),
@@ -111,9 +119,12 @@ export function SetupLobby({
               setGames(games);
               const values = await next.request<Lobby[]>("");
               const available = await next.request<Graph[]>("/templates");
+              const registered =
+                await next.request<RulesProfile[]>("/profiles");
               setClient(next);
               setLobbies(values);
               setTemplates(available);
+              setProfiles(registered);
             });
           }}
         >
@@ -256,10 +267,21 @@ export function SetupLobby({
                 e.preventDefault();
                 void run(async () => {
                   if (!lobby) {
+                    const selected = profiles.find(
+                      (p) => `${p.id}@${p.version}` === profile,
+                    );
                     const result = await client.write("", {
                       id: crypto.randomUUID(),
                       brief,
                       graph: graph ? { ...graph, brief } : null,
+                      ...(selected
+                        ? {
+                            rules_profile: {
+                              id: selected.id,
+                              version: selected.version,
+                            },
+                          }
+                        : {}),
                     });
                     choose(result);
                     setLobbies([...lobbies, result]);
@@ -367,6 +389,29 @@ export function SetupLobby({
                   No authored adventures are installed. Save your premise, then
                   generate an adventure if a provider is configured.
                 </p>
+              )}
+              {!lobby && profiles.length > 0 && (
+                <label>
+                  Rules profile
+                  <select
+                    value={profile}
+                    onChange={(e) => setProfile(e.target.value)}
+                  >
+                    <option value="">Server default</option>
+                    {profiles.map((p) => (
+                      <option
+                        key={`${p.id}@${p.version}`}
+                        value={`${p.id}@${p.version}`}
+                        disabled={!p.supported}
+                      >
+                        {p.title} (v{p.version})
+                        {p.supported
+                          ? ""
+                          : ` · unavailable: ${p.unverified_capabilities.length} unverified capabilities`}
+                      </option>
+                    ))}
+                  </select>
+                </label>
               )}
               {graph?.actors
                 .filter((a) => !graph.npc_actor_ids.includes(a.actor_id))
@@ -570,7 +615,16 @@ export function SetupLobby({
                 </p>
               )}
               <details>
-                <summary>Campaign rules</summary>
+                <summary>
+                  Campaign rules
+                  {lobby.rules_profile
+                    ? `: ${lobby.rules_profile.title} (v${lobby.rules_profile.version})`
+                    : ""}
+                </summary>
+                <p>
+                  Saved games keep their exact rules pins. Changing profiles is
+                  an explicit host migration of a paused game.
+                </p>
                 <pre>{JSON.stringify(lobby.rules, null, 2)}</pre>
               </details>
               <ul>
