@@ -150,3 +150,25 @@ test("the session menu opens on one activation, from pointer and keyboard (#205)
   await page.keyboard.press("Enter");
   await expect(dialog).toBeVisible();
 });
+test("the header shares the column and gutters of the body (#253)", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const brand = page.getByRole("link", { name: "WAYFARER" });
+  const session = page.getByRole("button", { name: "Session", exact: true });
+  const destinations = page.locator("aside.navigation-panel");
+  const rail = page.getByRole("complementary", { name: "At a glance" });
+  // Above the width where the rail collapses, so both column edges exist.
+  for (const width of [2304, 1600, 1280]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await expect(rail).toBeVisible();
+    const [logo, menu, left, right] = await Promise.all([
+      brand.boundingBox(),
+      session.boundingBox(),
+      destinations.boundingBox(),
+      rail.boundingBox(),
+    ]);
+    expect(logo!.x).toBeCloseTo(left!.x, 0);
+    expect(menu!.x + menu!.width).toBeCloseTo(right!.x + right!.width, 0);
+  }
+});

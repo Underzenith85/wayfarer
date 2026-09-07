@@ -10,6 +10,10 @@
   --accent: #94451d;
   --accent-soft: #f8e9df;
   --focus: #075dc8;
+  /* One column for the whole shell: the workspace grid is this wide, and the
+     full-bleed chrome above it pads itself to the same edges (#253). */
+  --shell-column: 1600px;
+  --shell-gutter: 2rem;
   background: var(--surface);
   color: var(--foreground);
 }
@@ -76,12 +80,25 @@ p {
   line-height: 1.75;
   color: var(--muted);
 }
+/* Chrome that spans the viewport but whose content belongs to the column
+   below it: the padding resolves to the shell gutter while the column is
+   narrower than the viewport, and grows with the leftover space beyond
+   that, so the logotype sits on the navigation panel's left edge and the
+   trailing controls on the rail's right edge (#253). */
+.topbar,
+.offline-banner,
+.availability-banner {
+  padding-inline: max(
+    var(--shell-gutter),
+    calc((100% - var(--shell-column)) / 2)
+  );
+}
 .topbar {
   height: 80px;
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 0 2rem;
+  padding-block: 0;
   border-bottom: 1px solid var(--border);
 }
 .brand {
@@ -128,7 +145,8 @@ p {
 .workspace {
   display: grid;
   grid-template-columns: 210px minmax(0, 1fr) 260px;
-  max-width: 1600px;
+  max-width: calc(var(--shell-column) + 2 * var(--shell-gutter));
+  padding-inline: var(--shell-gutter);
   margin: auto;
   min-height: calc(100dvh - 80px);
 }
@@ -259,13 +277,13 @@ main {
   top: 1rem;
 }
 .offline-banner {
-  padding: 0.75rem 2rem;
+  padding-block: 0.75rem;
   background: var(--accent-soft);
   color: var(--foreground);
   line-height: 1.5;
 }
 .availability-banner {
-  padding: 0.75rem 2rem;
+  padding-block: 0.75rem;
   background: var(--accent-soft);
   color: var(--foreground);
   line-height: 1.5;
@@ -312,9 +330,13 @@ main {
   }
 }
 @media (max-width: 700px) {
+  /* The phone shell has no centred column: main and the navigation bar own
+     the full width, so the chrome tightens to their padding. */
+  :root {
+    --shell-gutter: 1rem;
+  }
   .topbar {
     height: 68px;
-    padding: 0 1rem;
   }
   .session-label {
     display: none;
@@ -324,6 +346,7 @@ main {
   }
   .workspace {
     display: block;
+    padding-inline: 0;
     min-height: calc(100dvh - 68px);
   }
   main {
