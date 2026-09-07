@@ -41,6 +41,34 @@ class InstantiateRevision(Record):
     party: tuple[PregeneratedCharacter, ...] | None = None
 
 
+class AssistScenario(Record):
+    """Start one bounded provider proposal against an immutable saved revision."""
+
+    id: Id
+    expected_version: int = Field(ge=1)
+    revision: int = Field(ge=1)
+    instruction: str = Field(min_length=1, max_length=4000)
+    section: Literal["all", "public", "graph", "party", "gm_notes"] = "all"
+
+
+class CancelGeneration(Record):
+    id: Id
+
+
+class GenerationJob(Record):
+    id: Id
+    scenario_id: Id
+    owner_id: Id
+    base_revision: int = Field(ge=1)
+    base_version: int = Field(ge=1)
+    instruction: str = Field(min_length=1, max_length=4000)
+    section: Literal["all", "public", "graph", "party", "gm_notes"]
+    status: Literal["queued", "running", "needs_review", "failed", "cancelled"]
+    proposal_json: str | None = Field(default=None, max_length=2_000_000)
+    report: DocumentReport | None = None
+    error: str | None = Field(default=None, max_length=1000)
+
+
 class CatalogSummary(Record):
     id: Id
     owner_id: Id
@@ -57,3 +85,4 @@ class RevisionView(Record):
     entry: CatalogSummary
     revision: CatalogRevision
     current_report: DocumentReport
+    generation_jobs: tuple[GenerationJob, ...] = ()
