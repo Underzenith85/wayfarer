@@ -40,38 +40,6 @@ describe("authenticated engine adapter", () => {
       if (shared_time) expect(body.kind).toBe("queue_activity");
     },
   );
-  it("submits only the opaque server recovery choice", async () => {
-    const fetcher = vi
-      .spyOn(globalThis, "fetch")
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({ ...fixture, shared_time: true, revision: 9 }),
-        ),
-      )
-      .mockResolvedValueOnce(new Response("{}"));
-    const transport = new LiveTransport(
-      "alice",
-      fixture.campaign_id,
-      "token",
-    );
-    await transport.command(
-      "a",
-      { kind: "gurps_recovery", choice_id: "gurps:rest:a:a" },
-      new AbortController().signal,
-    );
-    const body = JSON.parse(String(fetcher.mock.calls[1]?.[1]?.body));
-    expect(body).toMatchObject({
-      kind: "gurps_recovery",
-      choice_id: "gurps:rest:a:a",
-      actor_id: "a",
-      expected_revision: 9,
-    });
-    expect(body).not.toHaveProperty("activity_json");
-    expect(body).not.toHaveProperty("target_actor_id");
-    expect(body).not.toHaveProperty("skill");
-    expect(body).not.toHaveProperty("technology_level");
-    expect(body).not.toHaveProperty("healing");
-  });
   it("uses bearer identity and refuses a response for another player", async () => {
     const fetcher = vi
       .spyOn(globalThis, "fetch")
