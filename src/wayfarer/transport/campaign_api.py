@@ -21,6 +21,15 @@ from wayfarer.orchestration.director import DirectorService
 from wayfarer.orchestration.provider_runtime import provider_runtime
 from wayfarer.orchestration.providers import Orchestrator
 from wayfarer.orchestration.workshop import DraftCommand, WorkshopService
+from wayfarer.orchestration.workshop_options import (
+    ProfilePreviewRequest,
+    WorkshopOptions,
+    catalog_options,
+    preview_profile,
+    profile_option,
+)
+from wayfarer.rules.catalog import reference
+from wayfarer.rules.profiles import DEFAULT_REGISTRY
 from wayfarer.simulation.resources import Record
 from wayfarer.simulation.studio import ScenarioGraph
 
@@ -250,14 +259,53 @@ async def workshop_start(request: web.Request) -> web.Response:
         None,
     )
     compiler = access.play.engine.reviewer.compiler
+    build = compiler.compile(actor.proposal.draft).build
+    active = DEFAULT_REGISTRY.find(reference(compiler.rules))
+    options = WorkshopOptions(
+        active_profile=active.id if active else compiler.statistics_profile,
+        profiles=tuple(profile_option(p) for p in DEFAULT_REGISTRY.profiles),
+        catalog=catalog_options(compiler),
+        build_revision=build.revision if build else None,
+        points_available=sum(e.points for e in state.advancement if e.actor_id == actor_id),
+        can_approve=member.role == "gm"
+        and member.principal_id in access.play.engine.reviewer.gm_ids,
+    )
     return web.json_response(
         {
             "revision": state.revision,
+            "options": options.model_dump(mode="json"),
             "proposal": actor.proposal.model_dump(mode="json"),
             "draft": WorkshopService(access)._preview(draft) if draft else None,
             "catalog": [{"id": d.id, "name": d.name} for d in compiler.definitions.values()],
         }
     )
+
+
+async def workshop_profile_preview(request: web.Request) -> web.Response:
+    access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
+    state = access.play._load(await access.play.store.read(request.match_info["cid"]))
+    access._member(state, _identity(request))
+    body = ProfilePreviewRequest.model_validate_json(json.dumps(await _json(request)))
+    return web.json_response(preview_profile(body).model_dump(mode="json"))
+
+
+async def workshop_advance(request: web.Request) -> web.Response:
+    from wayfarer.orchestration.advancement import AdvanceCharacter, AdvancementService
+
+    access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
+    cid = request.match_info["cid"]
+    state = access.play._load(await access.play.store.read(cid))
+    body = AdvanceCharacter.model_validate_json(json.dumps(await _json(request)))
+    access._control(access._member(state, _identity(request)), body.actor_id)
+    service = AdvancementService(access.play)
+    if request.match_info["operation"] == "preview":
+        result = await service.preview(cid, body, authenticated_actor_id=body.actor_id)
+    elif request.match_info["operation"] == "apply":
+        entry = await service.advance(cid, body, authenticated_actor_id=body.actor_id)
+        return web.json_response(entry.model_dump(mode="json"))
+    else:
+        raise ValidationError("Unknown advancement operation")
+    return web.json_response(result.model_dump(mode="json"))
 
 
 async def read_draft(request: web.Request) -> web.Response:
@@ -373,6 +421,8 @@ def create_campaign_app(
                 web.get("/campaigns/{cid}/events", events),
                 web.get("/campaigns/{cid}/drafts/{did}", read_draft),
                 web.get("/campaigns/{cid}/workshop/{aid}", workshop_start),
+                web.post("/campaigns/{cid}/workshop-profile-preview", workshop_profile_preview),
+                web.post("/campaigns/{cid}/workshop-advancement/{operation}", workshop_advance),
                 web.post("/campaigns/{cid}/drafts", save_draft),
                 web.post("/campaigns/{cid}/scenario-validation", validate_scenario),
                 web.post("/campaigns/{cid}/drafts/{did}/activate-scenario", activate_scenario),

@@ -159,9 +159,9 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.check.quick_contest` | yes | yes | verified | #99 |
 | `gurps.check.regular_contest` | no | yes | verified | #99 |
 | `gurps.check.resistance` | yes | yes | verified | #99 |
-| `gurps.social.reaction` | yes | yes | absent | #111 |
-| `gurps.social.influence` | yes | yes | absent | #111 |
-| `gurps.social.fright` | no | yes | absent | #111 |
+| `gurps.social.reaction` | yes | yes | partial | #111 |
+| `gurps.social.influence` | yes | yes | partial | #111 |
+| `gurps.social.fright` | no | yes | partial | #111 |
 | `gurps.equipment.weapon_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; source audit pending) |
 | `gurps.equipment.armor_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; source audit pending) |
 | `gurps.equipment.catalog` | yes | yes | partial | #114 |
@@ -334,6 +334,33 @@ medical procedure, vehicle or weapon. Independent tests sample difficulty classe
 Will-based targets, optional/required specialties, techniques, reference integrity
 and unavailable/unknown IDs. Full specialty expansion and runtime availability
 remain visible item-level blockers under #112 and the indicated mechanics owners.
+
+## Provisional social procedures (#111)
+
+`rules.gurps_social` implements reaction bands and typed status/reputation/
+appearance modifiers, influence contests with Diplomacy fallback and Sex Appeal
+outcomes, self-control from catalog-validated TraitOptions, and Basic-only fright
+checks with the Rule of 14. References are reconstructed from model knowledge
+under the owner's explicit authorization: Lite 3-4/10/24, B120-121, B359-362,
+B494-495, using the frozen 2004/2007-errata baseline; source audit is pending.
+
+`simulation.social` stores results and private traces in the existing resource
+receipt/event ledger for atomic checkpoint commits. Duplicate command IDs replay;
+a second command cannot reroll the same subject/trigger. NPC trigger evidence is
+checked against the subject's knowledge. The explicit public projection excludes
+all roll targets, hidden modifier values and source IDs. No player choice or
+world knowledge is modified by a social outcome.
+
+Reaction/influence/fright coverage remains **partial**, and runtime self-control
+is partial: these are server-only procedures, with full NPC play dispatch and
+timed consequence execution in #137. The complete numeric fright table is
+represented by typed FrightEffect records: durations, recovery attributes and
+intervals, HP/FP losses, aftermath penalties, permanent attribute losses and
+explicit GM trait/panic choices. Each row has executable tests. Table effects
+are persisted in the private receipt; applying timed effects to live characters
+remains an explicit integration blocker in #137. Coverage does not claim that
+recording an effect already executes it. These blockers remain visible for #122.
+
 ## Provisional implementation policy (2026-09-07)
 
 The project owner explicitly authorized implementation from model knowledge while
@@ -366,3 +393,20 @@ until #109; corrosion's persistent armor destruction remains unavailable under
 #114. No generic damage multiplier implements those missing runtime effects.
 The intended source is Lite August 2004 pp. 28-30 and Basic Set Campaigns first
 printing B378-381, B419-423 plus the selected 2007-01-26 errata; source audit pending.
+
+## Character workshop integration (#116)
+
+The additive workshop contract in `contracts/workshop/v1` describes profile
+previews, catalog metadata and advancement input separately from frozen gameplay
+v1. Generated TypeScript types drive skill difficulty/default/specialty/technique
+and typed trait parameter/self-control/modifier controls. Prices and derived
+values come from CharacterCompiler; no client formula decides point totals.
+
+Profile previews are read-only. Selecting another profile cannot switch a saved
+campaign or bypass its explicit migration/capability gate. Save and generation
+operate on the active campaign compiler. Approval is separate from legality;
+unsaved edits disable activation, and saved edits invalidate the prior approval.
+The existing CAS/build revision/earned-points ledger handles advancement previews
+and purchases. Setup activation preserves depleted HP/FP rather than healing via
+rebuild. Full GURPS campaign activation still requires its outstanding mechanics;
+the workshop exposes those blockers and never silently substitutes prototype rules.

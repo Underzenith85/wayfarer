@@ -12,6 +12,7 @@ from wayfarer.character.power import Approval, CharacterProposal
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.models import Campaign, Event
 from wayfarer.orchestration.access import CampaignAccess
+from wayfarer.orchestration.advancement import _refreshed
 from wayfarer.orchestration.providers import Orchestrator, ProviderRequest
 from wayfarer.rules.catalog import CampaignPolicy
 from wayfarer.simulation.actions import PlayState
@@ -70,6 +71,14 @@ class WorkshopService:
                 if compilation.build
                 else [],
                 "patch": self._patch(draft),
+                "statistics": json.loads(
+                    TypeAdapter(type(compilation.build.statistics)).dump_json(
+                        compilation.build.statistics
+                    )
+                )
+                if compilation.build and compilation.build.statistics
+                else None,
+                "build_revision": compilation.build.revision if compilation.build else None,
             }
         )
         return result
@@ -209,15 +218,10 @@ class WorkshopService:
                                         for o in current.resources.owners
                                     ),
                                     "pools": tuple(
-                                        p.model_copy(
-                                            update={
-                                                "maximum": runtime.hp
-                                                if p.id.startswith("hp:")
-                                                else runtime.fp,
-                                                "current": runtime.hp
-                                                if p.id.startswith("hp:")
-                                                else runtime.fp,
-                                            }
+                                        _refreshed(
+                                            p,
+                                            runtime.hp if p.id.startswith("hp:") else runtime.fp,
+                                            build,
                                         )
                                         if p.id in (f"hp:{old.actor_id}", f"fp:{old.actor_id}")
                                         else p
