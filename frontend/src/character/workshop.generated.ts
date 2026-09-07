@@ -194,6 +194,11 @@ export interface components {
       points_available: number;
       /** Can Approve */
       can_approve: boolean;
+      /**
+       * Can Edit
+       * @default true
+       */
+      can_edit: boolean;
     };
     /** CharacterDraft */
     CharacterDraft: {
@@ -314,7 +319,7 @@ export interface components {
        * @default save
        * @enum {string}
        */
-      operation: "save" | "approve" | "activate";
+      operation: "save" | "submit" | "approve" | "activate";
       /**
        * Kind
        * @default character
@@ -330,6 +335,52 @@ export interface components {
        * Reason
        * @default
        */
+      reason: string;
+    };
+    /** ReviewActor */
+    ReviewActor: {
+      /** Actor Id */
+      actor_id: string;
+      /** Name */
+      name: string;
+    };
+    /** ReviewSubmission */
+    ReviewSubmission: {
+      /** Draft Id */
+      draft_id: string;
+      /** Actor Id */
+      actor_id: string;
+      /** Owner Id */
+      owner_id: string;
+      /** Name */
+      name: string;
+      /** Draft Revision */
+      draft_revision: number;
+      /** Approved */
+      approved: boolean;
+    };
+    /** WorkshopReviewQueue */
+    WorkshopReviewQueue: {
+      /** Revision */
+      revision: number;
+      /** Submissions */
+      submissions: components["schemas"]["ReviewSubmission"][];
+      /** Actors */
+      actors: components["schemas"]["ReviewActor"][];
+    };
+    /** GrantPoints */
+    GrantPoints: {
+      /** Id */
+      id: string;
+      /** Actor Id */
+      actor_id: string;
+      /** Target Actor Id */
+      target_actor_id: string;
+      /** Expected Revision */
+      expected_revision: number;
+      /** Points */
+      points: number;
+      /** Reason */
       reason: string;
     };
   };

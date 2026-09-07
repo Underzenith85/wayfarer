@@ -30,6 +30,8 @@ interface Draft {
   derived: { target: string; value: string }[];
   repair: Proposal["draft"] | null;
   activated_revision: number | null;
+  submitted_revision: number | null;
+  approved: boolean;
 }
 interface Workshop {
   options: Options;
@@ -149,7 +151,7 @@ export function CharacterWorkshop() {
     }
   };
   const submit = async (
-    operation: "save" | "activate" | "approve",
+    operation: "save" | "submit" | "activate" | "approve",
     generate = false,
   ) => {
     setBusy(true);
@@ -197,6 +199,34 @@ export function CharacterWorkshop() {
     <section className="scene-card character-workshop">
       <h2>Character workshop</h2>
       <p>Draft changes are separate from your active character.</p>
+      <Button
+        disabled={busy}
+        onClick={() => {
+          setBusy(true);
+          setError("");
+          void transport
+            .request(
+              `/workshop/${encodeURIComponent(actor)}`,
+              new AbortController().signal,
+            )
+            .then((value) => {
+              const loaded = value as Workshop;
+              setData(loaded);
+              setProposal(
+                loaded.draft?.activated_revision == null && loaded.draft
+                  ? (JSON.parse(loaded.draft.content_json) as Proposal)
+                  : loaded.proposal,
+              );
+              setAdvancePreview(null);
+            })
+            .catch((e: unknown) =>
+              setError(e instanceof Error ? e.message : "Refresh failed"),
+            )
+            .finally(() => setBusy(false));
+        }}
+      >
+        Reload saved character
+      </Button>
       <label htmlFor="workshop-profile">Rules profile</label>
       <select
         id="workshop-profile"
@@ -489,6 +519,28 @@ export function CharacterWorkshop() {
             disabled={
               busy ||
               foreignProfile ||
+              data.draft.activated_revision !== null ||
+              data.draft.status === "illegal" ||
+              data.draft.status === "blocked" ||
+              JSON.stringify(proposal) !==
+                JSON.stringify(JSON.parse(data.draft.content_json))
+            }
+            onClick={() => void submit("submit")}
+          >
+            Submit for GM review
+          </Button>
+          {data.draft.submitted_revision !== null && (
+            <p>
+              {data.draft.approved
+                ? "GM approved this draft"
+                : "Awaiting GM approval"}
+            </p>
+          )}
+          <Button
+            disabled={
+              busy ||
+              foreignProfile ||
+              (data.draft.submitted_revision != null && !data.draft.approved) ||
               JSON.stringify(proposal) !==
                 JSON.stringify(JSON.parse(data.draft.content_json)) ||
               data.draft.status === "illegal" ||

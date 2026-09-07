@@ -35,6 +35,27 @@ class WorkshopOptions(Record):
     build_revision: str | None
     points_available: int
     can_approve: bool
+    can_edit: bool = True
+
+
+class ReviewSubmission(Record):
+    draft_id: str
+    actor_id: str
+    owner_id: str
+    name: str
+    draft_revision: int
+    approved: bool
+
+
+class ReviewActor(Record):
+    actor_id: str
+    name: str
+
+
+class WorkshopReviewQueue(Record):
+    revision: int
+    submissions: tuple[ReviewSubmission, ...]
+    actors: tuple[ReviewActor, ...]
 
 
 class ProfilePreviewRequest(Record):

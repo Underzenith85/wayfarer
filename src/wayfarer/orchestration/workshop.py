@@ -26,7 +26,7 @@ class DraftCommand(Record):
     actor_id: Id
     expected_revision: int = Field(ge=0)
     expected_draft_revision: int = Field(ge=0)
-    operation: Literal["save", "approve", "activate"] = "save"
+    operation: Literal["save", "submit", "approve", "activate"] = "save"
     kind: Literal["character", "scenario"] = "character"
     content_json: str | None = Field(default=None, max_length=100000)
     reason: str = Field(default="", max_length=2000)
@@ -39,7 +39,15 @@ class WorkshopService:
     def _get(self, state: PlayState, draft_id: str, principal_id: str) -> AuthorDraft:
         member = self.access._member(state, principal_id)
         draft = next((d for d in state.drafts if d.id == draft_id), None)
-        if draft is None or (draft.owner_id != principal_id and member.role != "gm"):
+        if draft is None or (
+            draft.owner_id != principal_id
+            and (
+                member.role != "gm"
+                or principal_id not in self.play.engine.reviewer.gm_ids
+                or draft.kind == "character"
+                and draft.submitted_revision is None
+            )
+        ):
             raise AuthorizationError("Draft unavailable")
         return draft
 
@@ -154,7 +162,19 @@ class WorkshopService:
                     raise ValidationError("Character draft required")
                 proposal = CharacterProposal.model_validate_json(old.content_json)
                 reviewer = self.play.engine.reviewer
-                if command.operation == "approve":
+                if command.operation == "submit":
+                    review = reviewer.review(proposal)
+                    if review.status in ("illegal", "blocked"):
+                        raise ValidationError("Only legal, unblocked drafts can be submitted")
+                    draft = old.model_copy(
+                        update={
+                            "submitted_revision": old.revision + 1,
+                            "revision": old.revision + 1,
+                        }
+                    )
+                elif command.operation == "approve":
+                    if old.submitted_revision is None:
+                        raise ValidationError("Submit the draft before GM approval")
                     approval = reviewer.approve(
                         proposal,
                         campaign_id=cid,
@@ -170,6 +190,8 @@ class WorkshopService:
                         }
                     )
                 else:
+                    if old.submitted_revision is not None and old.approval_json is None:
+                        raise ValidationError("Submitted draft requires explicit GM approval")
                     # Creation is separate from advancement: never reset spent resources or bypass XP.
                     if (
                         current.resources.game_time

@@ -1,8 +1,14 @@
 import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "./live-tests",
-  testMatch: "*.spec.ts",
-  testIgnore: "reference.spec.ts",
+  testMatch:
+    process.env.WAYFARER_LIVE_BATCH === "workshop"
+      ? "workshop.spec.ts"
+      : "*.spec.ts",
+  testIgnore:
+    process.env.WAYFARER_LIVE_BATCH === "regular"
+      ? ["reference.spec.ts", "workshop.spec.ts"]
+      : "reference.spec.ts",
   timeout: 60000,
   fullyParallel: false,
   use: { baseURL: "http://127.0.0.1:4174", trace: "retain-on-failure" },

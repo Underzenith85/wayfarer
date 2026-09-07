@@ -434,3 +434,14 @@ The existing CAS/build revision/earned-points ledger handles advancement preview
 and purchases. Setup activation preserves depleted HP/FP rather than healing via
 rebuild. Full GURPS campaign activation still requires its outstanding mechanics;
 the workshop exposes those blockers and never silently substitutes prototype rules.
+
+The G4 follow-up adds explicit draft submission and a typed GM review queue in
+the authenticated lobby. Unsubmitted edits remain private, editing invalidates
+submission/approval, and submitted drafts require explicit GM approval before
+activation. Review does not grant control of another player's character. GM
+point awards and player purchases use the existing advancement ledger and CAS.
+HTTP and live browser journeys cover submit, stale approval rejection, resubmit,
+approve, activate, award and advance; committed command retries do not repeat
+awards or purchases. Browser viewport/batch isolation retains all evidence while
+keeping production rate limits unchanged. Full profile certification remains
+separate from this generic workshop integration.
