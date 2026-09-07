@@ -825,7 +825,21 @@ class ActionEngine:
         if feasible.status != "feasible":
             return state, feasible
         world, resources = state.world, state.resources
+        if not isinstance(command, Wait):
+            from wayfarer.rules.recovery_types import interrupt_tasks
+
+            resources = resources.model_copy(
+                update={
+                    "recovery_tasks": interrupt_tasks(
+                        resources.recovery_tasks, frozenset({command.actor_id}), resources.game_time
+                    )
+                }
+            )
         if not isinstance(command, Wait) and self.rules.fatigue_cost:
+            if any(
+                p.id == f"fp:{command.actor_id}" and p.fatigue is not None for p in resources.pools
+            ):
+                raise ValidationError("Profile fatigue costs require the GURPS exertion adapter")
             resources = resources.model_copy(
                 update={
                     "pools": tuple(

@@ -15,6 +15,7 @@ from pydantic import Field
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.rules.gurps_checks import success_roll
+from wayfarer.rules.recovery_types import interrupt_tasks, require_settled, retire_tasks
 from wayfarer.simulation.gurps_equipment import DamageType
 from wayfarer.simulation.resources import (
     Command,
@@ -97,6 +98,7 @@ def apply_injury(
         return state, InjuryResult.model_validate_json(event.kind)
     if state.revision != command.expected_revision:
         raise ConflictError("Resource revision changed")
+    require_settled(state.recovery_tasks, frozenset({command.actor_id}), state.game_time)
     pool = next((p for p in state.pools if p.id == f"hp:{command.actor_id}"), None)
     if pool is None or pool.injury is None:
         raise ValidationError("Explicit GURPS HP pool required; prototype pools are unchanged")
@@ -127,6 +129,14 @@ def apply_injury(
         penetration = max(0, command.basic_damage - command.resistance)
         numerator, denominator = _FACTORS[command.damage_type]
         injury = max(1, penetration * numerator // denominator) if penetration else 0
+        if injury:
+            state = state.model_copy(
+                update={
+                    "recovery_tasks": interrupt_tasks(
+                        state.recovery_tasks, frozenset({command.actor_id}), state.game_time
+                    )
+                }
+            )
         current -= injury
         if injury and not status.dead:
             shock = injury // max(1, pool.maximum // 10)
@@ -193,6 +203,14 @@ def apply_injury(
                 }
             )
     updated_pool = Pool(id=pool.id, current=current, maximum=pool.maximum, injury=status)
+    if status.dead:
+        state = state.model_copy(
+            update={
+                "recovery_tasks": retire_tasks(
+                    state.recovery_tasks, frozenset({command.actor_id}), state.game_time
+                )
+            }
+        )
     result = InjuryResult(
         penetration=penetration, injury=injury, checks=tuple(checks), dropped_ready_items=dropped
     )
