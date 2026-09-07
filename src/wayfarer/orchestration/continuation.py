@@ -84,7 +84,7 @@ def prepare(
         }
     )
     graph = graph.model_copy(update={"world": world, "resources": resources})
-    studio = ScenarioStudio(play)
+    studio = ScenarioStudio(play, npc_reviewer=play.engine.reviewer)
     # Validate full runtime graph. The seed compiler creates pools; we restore them below.
     report = studio.validate(graph)
     if not report.valid:

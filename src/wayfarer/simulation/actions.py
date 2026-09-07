@@ -244,7 +244,12 @@ class ActionEngine:
             + (rules.scenes.model_dump_json() if rules.scenes is not None else "")
             + (
                 "".join(
-                    p.model_dump_json() for p in (*rules.combat.attacks, *rules.combat.protection)
+                    p.model_dump_json()
+                    for p in (
+                        *rules.combat.attacks,
+                        *rules.combat.protection,
+                        *rules.combat.consequences,
+                    )
                 )
                 if rules.combat is not None
                 else ""
@@ -266,6 +271,21 @@ class ActionEngine:
             raise ValidationError("Play configuration changed; explicit migration required")
         if state.revision != state.resources.revision:
             raise ValidationError("Play and resource revisions diverged")
+        if self.rules.combat:
+            consequence_actors = {a.actor_id for a in state.actors}
+            facts = {f.id for f in state.world.facts}
+            fields = {b.id for b in self.rules.combat.battlefields}
+            consequences = self.rules.combat.consequences
+            if len({c.id for c in consequences}) != len(consequences):
+                raise ValidationError("Duplicate combat consequence")
+            if any(
+                c.battlefield_id not in fields
+                or c.defeated_actor_id not in consequence_actors
+                or not set(c.recipient_actor_ids) <= consequence_actors
+                or not set(c.fact_ids) <= facts
+                for c in consequences
+            ):
+                raise ValidationError("Invalid combat consequence references")
         if self.rules.objectives is not None:
             self.rules.objectives.validate_state(state, frozenset(self.resources.specs))
         if self.rules.noncombat is not None:

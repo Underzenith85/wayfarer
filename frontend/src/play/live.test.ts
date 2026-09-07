@@ -3,6 +3,43 @@ import fixture from "./live-fixture.json";
 import { LiveTransport } from "./live";
 
 describe("authenticated engine adapter", () => {
+  it.each([false, true])(
+    "submits provider-free choices with shared time %s",
+    async (shared_time) => {
+      const fetcher = vi
+        .spyOn(globalThis, "fetch")
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({ ...fixture, shared_time, revision: 7 }),
+          ),
+        )
+        .mockResolvedValueOnce(new Response("{}"));
+      const transport = new LiveTransport(
+        "alice",
+        fixture.campaign_id,
+        "token",
+      );
+      await transport.command(
+        "a",
+        { kind: "wait", ticks: 1 },
+        new AbortController().signal,
+      );
+      expect(fetcher.mock.calls[1]?.[0]).toBe(
+        `/campaigns/${fixture.campaign_id}/commands`,
+      );
+      const body = JSON.parse(String(fetcher.mock.calls[1]?.[1]?.body));
+      expect(body.actor_id).toBe("a");
+      expect(body.expected_revision).toBe(7);
+      const action = shared_time ? JSON.parse(body.activity_json) : body;
+      expect(action).toMatchObject({
+        kind: "wait",
+        ticks: 1,
+        actor_id: "a",
+        expected_revision: 7,
+      });
+      if (shared_time) expect(body.kind).toBe("queue_activity");
+    },
+  );
   it("uses bearer identity and refuses a response for another player", async () => {
     const fetcher = vi
       .spyOn(globalThis, "fetch")

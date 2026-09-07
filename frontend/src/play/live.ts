@@ -19,6 +19,12 @@ export interface EngineTurn {
   narration_available: boolean;
 }
 export interface EngineProjection {
+  scene_choices?: {
+    id: string;
+    actor_id: string;
+    label: string;
+    command: Record<string, unknown>;
+  }[];
   lifecycle?: "active" | "paused" | "completed" | "archived";
   shared_time: boolean;
   campaign_id: string;
@@ -405,11 +411,34 @@ export class LiveTransport implements PlayTransport {
     signal: AbortSignal,
   ) {
     if (!this.current) await this.readEngine(signal);
-    await this.request("/interpret", signal, {
+    const command = {
+      ...fields,
+      id: crypto.randomUUID(),
       actor_id,
-      command_id: crypto.randomUUID(),
-      text: String(fields.kind),
-      proposal: { ...fields, expected_revision: this.current!.revision },
-    });
+      expected_revision: this.current!.revision,
+    };
+    const queued =
+      this.current!.shared_time &&
+      [
+        "inspect",
+        "social",
+        "use_item",
+        "wait",
+        "travel_scene",
+        "approach_noncombat",
+      ].includes(String(fields.kind));
+    await this.request(
+      "/commands",
+      signal,
+      queued
+        ? {
+            id: command.id,
+            actor_id,
+            expected_revision: command.expected_revision,
+            kind: "queue_activity",
+            activity_json: JSON.stringify(command),
+          }
+        : command,
+    );
   }
 }

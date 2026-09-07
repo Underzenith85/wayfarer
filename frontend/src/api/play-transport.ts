@@ -1,3 +1,4 @@
+import { LiveTransport } from "../play/live";
 import type { components } from "./contracts.generated";
 import type { ServerMessage } from "./events.generated";
 import { createApiClient } from "./client";
@@ -24,6 +25,7 @@ function data<T>(result: Result<T>): T {
   return result.data;
 }
 export interface NetworkOptions {
+  engineControls?: boolean;
   initialCampaignId?: string;
   origin: string;
   credential: string;
@@ -31,6 +33,7 @@ export interface NetworkOptions {
   sample?: boolean;
 }
 export class NetworkPlayTransport implements PlayTransport {
+  readonly engineTransport?: LiveTransport;
   readonly initialCampaignId?: string;
   readonly principalId: string;
   readonly sample: boolean;
@@ -38,6 +41,12 @@ export class NetworkPlayTransport implements PlayTransport {
   constructor(private options: NetworkOptions) {
     if (options.initialCampaignId)
       this.initialCampaignId = options.initialCampaignId;
+    if (options.engineControls && options.initialCampaignId)
+      this.engineTransport = new LiveTransport(
+        options.principalId,
+        options.initialCampaignId,
+        options.credential,
+      );
     this.principalId = options.principalId;
     this.sample = options.sample ?? false;
     this.api = createApiClient(`${options.origin}/api/v1`, options.credential);
