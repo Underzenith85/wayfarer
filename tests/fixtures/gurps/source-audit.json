@@ -1,0 +1,2454 @@
+{
+  "schema_version": 1,
+  "baseline_id": "gurps-4e-2004-first-printing+errata-2007-01-26",
+  "sources": [
+    {
+      "id": "sjg:gurps-lite-4e-2004",
+      "target": "August 2004 electronic edition, Rev. 07/12/04",
+      "observed": "Exact selected artifact not available",
+      "reference": "https://www.sjgames.com/gurps/lite/",
+      "status": "unavailable",
+      "sha256": null,
+      "blockers": [
+        191
+      ],
+      "note": "Official entry point returned HTTP 403 on 2026-09-07; revision identity and rule/item enumeration remain unresolved."
+    },
+    {
+      "id": "sjg:basic-set-characters-4e-2004",
+      "target": "2004 hardcover, first printing + errata 2007-01-26",
+      "observed": "Third printing, February 2008",
+      "reference": "Publication/printing statement, PDF page 2",
+      "status": "different-printing",
+      "sha256": "872b5fece8f4013bf46825b397ef52b52c865fa2879f4544f055d9b6caecf47e",
+      "blockers": [
+        191
+      ],
+      "note": "Printing metadata visually reviewed 2026-09-07; numeric agreement with later printings does not establish the frozen baseline."
+    },
+    {
+      "id": "sjg:basic-set-characters-4e-2004:errata-2007-01-26",
+      "target": "First-printing corrections dated 2007-01-26",
+      "observed": "Official search metadata matches title/date; correction contents unavailable",
+      "reference": "https://www.sjgames.com/errata/gurps/4e/basic-set-characters.html",
+      "status": "unavailable",
+      "sha256": null,
+      "blockers": [
+        191
+      ],
+      "note": "Direct retrieval and browser retrieval returned HTTP 403 on 2026-09-07. No correction is asserted reviewed or applied."
+    },
+    {
+      "id": "sjg:basic-set-campaigns-4e-2004",
+      "target": "2004 hardcover, first printing + errata 2007-01-26",
+      "observed": "Fourth printing",
+      "reference": "Publication/printing statement, PDF page 2",
+      "status": "different-printing",
+      "sha256": "79cff8f75b91b4ba72e7947320bf98e184515e60108bda0f0891d379b3c96e80",
+      "blockers": [
+        191
+      ],
+      "note": "Printing metadata visually reviewed 2026-09-07; numeric agreement with later printings does not establish the frozen baseline."
+    },
+    {
+      "id": "sjg:basic-set-campaigns-4e-2004:errata-2007-01-26",
+      "target": "First-printing corrections dated 2007-01-26",
+      "observed": "Official search metadata matches title/date; correction contents unavailable",
+      "reference": "https://www.sjgames.com/errata/gurps/4e/basic-set-campaigns.html",
+      "status": "unavailable",
+      "sha256": null,
+      "blockers": [
+        191
+      ],
+      "note": "Direct retrieval and browser retrieval returned HTTP 403 on 2026-09-07. No correction is asserted reviewed or applied."
+    }
+  ],
+  "scopes": [
+    {
+      "id": "lite-rules-and-catalog",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "August 2004 Lite, pp. 1-32",
+      "owner": 191,
+      "decision": "required",
+      "reviewed": false,
+      "reason": "Complete rule and item enumeration requires the exact revision; existing representative definitions do not establish completeness."
+    },
+    {
+      "id": "basic-uncatalogued-rules",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B1-336",
+      "owner": 191,
+      "decision": "unresolved",
+      "reviewed": false,
+      "reason": "Page coverage placeholder for rules outside reconciled item inventories, including character construction, advancement, templates, modifiers and tables. This is an unresolved scope, not a claim that every rule is mapped."
+    },
+    {
+      "id": "basic-campaign-rules",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B337-576",
+      "owner": 191,
+      "decision": "unresolved",
+      "reviewed": false,
+      "reason": "Chapter/table/rule enumeration and printing delta review remain required; capability families are not individual source rules."
+    },
+    {
+      "id": "mundane-skills",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B168-233",
+      "owner": 112,
+      "decision": "required",
+      "reviewed": false,
+      "reason": "Consume the source-indexed skill inventory. Required specialty/TL expansions and frozen printing deltas remain explicit blockers."
+    },
+    {
+      "id": "mundane-traits",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B32-165",
+      "owner": 113,
+      "decision": "required",
+      "reviewed": false,
+      "reason": "Selected constructions and backgrounds are integrated; remaining traits, perks, quirks and variable constructions must be enumerated by the owner."
+    },
+    {
+      "id": "supernatural-skills",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B168-233",
+      "owner": 119,
+      "decision": "required",
+      "reviewed": false,
+      "reason": "Exclusions from the mundane inventory remain Basic requirements owned by the supernatural inventory; they are not profile exclusions."
+    },
+    {
+      "id": "supernatural-catalog",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B32-165; B234-257",
+      "owner": 119,
+      "decision": "required",
+      "reviewed": false,
+      "reason": "Representative abilities and seven learned spells do not enumerate the complete supernatural catalog or modifiers."
+    },
+    {
+      "id": "equipment-catalog",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B264-289",
+      "owner": 180,
+      "decision": "required",
+      "reviewed": false,
+      "reason": "Registered equipment is representative; full item/mode/TL/armor/gear enumeration and errata reconciliation remain required."
+    },
+    {
+      "id": "vehicle-catalog",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B464-469",
+      "owner": 207,
+      "decision": "required",
+      "reviewed": false,
+      "reason": "Catalog rows and additional locomotion/collision rules remain owned by #207 and runtime #120."
+    },
+    {
+      "id": "optional-influencing-success",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B347",
+      "owner": 191,
+      "decision": "optional-disabled",
+      "reviewed": false,
+      "reason": "Disabled in the frozen default profiles; requires an explicit reviewed profile revision before activation. Exact optional scope still requires source review."
+    },
+    {
+      "id": "optional-bleeding",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B420",
+      "owner": 209,
+      "decision": "optional-disabled",
+      "reviewed": false,
+      "reason": "Disabled in the frozen default profiles; requires an explicit reviewed profile revision before activation. Exact optional scope still requires source review."
+    },
+    {
+      "id": "optional-accumulated-wounds",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B420",
+      "owner": 107,
+      "decision": "optional-disabled",
+      "reviewed": false,
+      "reason": "Disabled in the frozen default profiles; requires an explicit reviewed profile revision before activation. Exact optional scope still requires source review."
+    },
+    {
+      "id": "optional-extra-effort-combat",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B357",
+      "owner": 109,
+      "decision": "optional-disabled",
+      "reviewed": false,
+      "reason": "Disabled in the frozen default profiles; requires an explicit reviewed profile revision before activation. Exact optional scope still requires source review."
+    },
+    {
+      "id": "optional-cinematic-combat",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B417",
+      "owner": 191,
+      "decision": "optional-disabled",
+      "reviewed": false,
+      "reason": "Disabled in the frozen default profiles; requires an explicit reviewed profile revision before activation. Exact optional scope still requires source review."
+    },
+    {
+      "id": "optional-optional-magic-psi",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B234-257",
+      "owner": 119,
+      "decision": "optional-disabled",
+      "reviewed": false,
+      "reason": "Disabled in the frozen default profiles; requires an explicit reviewed profile revision before activation. Exact optional scope still requires source review."
+    },
+    {
+      "id": "excluded-later-printings",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "Frozen baseline source selection",
+      "owner": 191,
+      "decision": "excluded",
+      "reviewed": true,
+      "reason": "Outside the selected historical baseline; may be comparison evidence but cannot silently replace the target."
+    },
+    {
+      "id": "excluded-supplements-and-faq",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "Frozen baseline source selection",
+      "owner": 191,
+      "decision": "excluded",
+      "reviewed": true,
+      "reason": "Outside the selected historical baseline; may be comparison evidence but cannot silently replace the target."
+    },
+    {
+      "id": "statistics-boundaries",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15-17, third printing",
+      "owner": 215,
+      "decision": "required",
+      "reviewed": false,
+      "reason": "Source comparison identified unimplemented high-ST damage progression and secondary-characteristic permission boundaries. Runtime follow-up #215; frozen printing reconciliation remains #191."
+    }
+  ],
+  "fixtures": [
+    {
+      "id": "lite-success-basic-pass",
+      "sha256": "3dee1c378f2960db15d26d44ee62fdbbf98785c44aad659cbf8045a9a4051ea1",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "lite-success-basic-fail",
+      "sha256": "d93df742c276e0490db902a3fcd2094f77162f356dfe27750b25c53bb7cbc608",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "lite-attribute-st-cost",
+      "sha256": "d4a1206c714c1243d4fc449e5a7f2e83853ecdfc3a8ebc8648e17b55983bbc61",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_attribute_costs"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-attribute-dx-cost",
+      "sha256": "21b6671d1582e158f4b6a65377a7e56cc80138a9e97eeb217f3424509b092cbc",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_attribute_costs"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-secondary-basic-speed",
+      "sha256": "b4a07280bb37989578a0e93bb3983ab32af13be2881484a7470adecbca8dbb70",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_basic_speed_keeps_fractions"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-secondary-basic-move",
+      "sha256": "dc15bc9e7af125c54eff3ecc62cda71b629d81eba427ed29f40c9d5acb166efd",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_basic_move_drops_fractions"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-hex-step-unit",
+      "sha256": "e697b64e4bdb56d33bfa1e7ece499ff2a3b1f7928d6aad53915b0206120de3b3",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_source_audit.py::test_step_fixture_executes"
+      ],
+      "owner": 105
+    },
+    {
+      "id": "critical-five-at-15",
+      "sha256": "a87d9b96c259c721c8b0da3ab4329040e9bbe15db5934ec58f4e7cf691ebfec4",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "five-at-14",
+      "sha256": "72c0888849cf0842646a5c4c7fef334d78f33392e3fd109cb6c0c4cb24487383",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "seventeen-at-16",
+      "sha256": "6f206666fdf36a8633aa768c506ff4a2cf25a288e9c8bef9dad163c9e8382194",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "seventeen-at-15",
+      "sha256": "fa92090ed55d95dc621e4ac3ce4436e91328261293bc74770d78d6a276ea90b7",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "eighteen-at-20",
+      "sha256": "daa5ff0fd4a36129d81368e61f098aa7d6bf8029314b4f4cfeb347962dd5157f",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "quick-contest-both-fail",
+      "sha256": "f2317d4e181a5fbf95683ff4d2b6aad8de5037943ee1ce83492824d2d370797e",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_quick_contest_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "lite-success-typed-modifiers",
+      "sha256": "cec55526820f307f39e18174d9f4d8de9c4b226c2cd46b339dac26b47db21583",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "lite-margin-of-success",
+      "sha256": "54f14937f803b46613b0b79201c5e4ea449d8f8b1d37ee07b07b148d9a6769a4",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "lite-margin-of-failure",
+      "sha256": "b11814a39ea342c622a1b1700ece21ab185cb39779583e2a4b4356f029442c01",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "lite-critical-success-three",
+      "sha256": "33c39c73f18dcdfb536c2c119ecd4c63613bed7e427fdd224a2e95edb5158d69",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "lite-critical-success-four",
+      "sha256": "4eac302048daa6038b7018250ced99ebab6d40886064792d4de920ec36a17428",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "lite-critical-success-six-at-16",
+      "sha256": "40b3b7677a4e4b6123eac3c97265f3cdfc6b1b378c5ce2b975a75e40bd8f6a0d",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "lite-six-at-15-is-ordinary",
+      "sha256": "ee5c1bb05d4fe3e1e847542d5ce4bb2f7a380fc45f15c110b7f8eb2391b6ac5d",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "lite-critical-failure-eighteen",
+      "sha256": "f749e2c657bc2d1c70593ff29d1a8912247988e18ac19016c26fe2e3efbd1e84",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "lite-critical-failure-by-ten",
+      "sha256": "d71acf19e3a247f42699d3111dfc8a5d48e175289e69cda9d3376c51e5ac3bcb",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "lite-failure-by-nine-is-ordinary",
+      "sha256": "18a4f06f4b0a602c9ccdcb612d7837c3e6ae82869d83cebeae2ee113dbdc18c5",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "lite-seventeen-always-fails",
+      "sha256": "65f88d0c869729ada6bea1c16fe06ba3f4af93361c3271e22178bc01352d9faf",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-repeated-single-chance",
+      "sha256": "6e0658a815fce353a801527616f276c3ad944c57ee2591ece3e3560e31d62c7a",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_repeated_attempt_cases_follow_declared_policy"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-repeated-retry-until-success",
+      "sha256": "849e939288ae20cf4b04ef469f75cd3fbb023b3a1ca57a7c569e6eaf7c62c607",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_repeated_attempt_cases_follow_declared_policy"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-repeated-unknown-until-later",
+      "sha256": "1b7240f6b2f208c8e302449870d85efaa588f010359b7a140fca20386056f91d",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_repeated_attempt_cases_follow_declared_policy"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-repeated-hazardous-failure",
+      "sha256": "b6c7d308ad00f5f43fb4ac9a1e4acaeae7630b094b32dcac9501e32323b49d39",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_repeated_attempt_cases_follow_declared_policy"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "lite-quick-contest-success-over-failure",
+      "sha256": "7a3c8b746a82e64814dfdcdf21bb6dc34798347890e7ed6a0a3fc12781d13ce9",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_quick_contest_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "lite-quick-contest-margin-of-success",
+      "sha256": "04aaf7375adc21aafebbf9c6ba37f0f167a4eda5e63de94659e10ae1bf608b21",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_quick_contest_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "lite-quick-contest-tie",
+      "sha256": "ed367d542d3ed39c260bdc92eb74f3e6f54b4c331027b0cfcf25a6027538d093",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_quick_contest_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-quick-contest-both-fail-tie",
+      "sha256": "262c1cf07879b305c8a8b1ac70a088f2a3612d491635f26046d3a4370ab44e56",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_quick_contest_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-quick-contest-victory-margin-mixed",
+      "sha256": "de0963df1daea70695bd83825d3f7d72d5c2d50733cdec2d55691dc7aef51b22",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_quick_contest_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-quick-contest-margin-not-critical",
+      "sha256": "de521f1bd9661a7a8a6ea425afc750505592635cade8f3b0e42a01fb1b709f8d",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_quick_contest_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-regular-contest-second-round",
+      "sha256": "a20f96914febfdabfa741194fd44a284479451558fc7e231403a8d5b4c55eef8",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-regular-contest-both-fail-continues",
+      "sha256": "404159dae05ac9300cadcc0c7115f63d7a03984e6d270be5a5a7d78874911176",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-regular-contest-high-skill-levelling",
+      "sha256": "f18e013f078dd1c8b8d5ea86bc9198796d70ecfca2de79de5a952306815f5600",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-regular-contest-low-skill-levelling",
+      "sha256": "556f501261ca11c38a3f0a498adc56fcc51fd7e449a7183734953a8493c72690",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-regular-contest-no-levelling-at-14",
+      "sha256": "0f6bdb72fe7d9bb3db56d10bcea975b887bbef2a871a7b318c2bd342afbd6fc2",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_regular_contest_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-resistance-attacker-wins",
+      "sha256": "1c2b3227761751dbfe250ea35b5e029f459ba5b075964393db2cdb491917714e",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-resistance-tie-resists",
+      "sha256": "8654e3a1117f4ea66b13a92c78db1cf331a66dc2fd421deb4c7803ec91cfa140",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-resistance-both-fail",
+      "sha256": "e617af1edcb5cbc67d7501079c7ae358e3c1e8fed24517187439e216ed5836be",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-rule-of-16-caps-attacker",
+      "sha256": "f236dd42ec0140f2fdd51cefe24e5cd523d1a9c79f18a8a11b5c876e737a9c12",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-rule-of-16-high-resistance",
+      "sha256": "1806a2c960fb9631e15de67c6328e11fec70828b7198ebc49da8a8625d001002",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-rule-of-16-below-cap",
+      "sha256": "39db01528a012c5dfe2114f1c40959d7a3b5036dd3291ac01217840568b9526d",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-rule-of-16-not-declared",
+      "sha256": "cc2f37fe0ab0f9e8c046ad3e70705e37bc42e5a85846ec01c568b2e748089039",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_resistance_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-margin-of-success",
+      "sha256": "7d4c2c101627b1f7d10a5348960e9cb2edac7a5e2aea072a46c33e68e0c3e00f",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-margin-of-failure",
+      "sha256": "fbfca5bdbedc08c6b04746a1840196e743c8af2d52ba204172489e1551e2c866",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "basic-margin-with-typed-modifiers",
+      "sha256": "eddee1e3bc113f31a164599e6ac445cbbfb581e7b8441c9cb2754f1532150d51",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_conformance.py::test_success_cases_match_published_expectations"
+      ],
+      "owner": 99
+    },
+    {
+      "id": "lite-attribute-iq-cost",
+      "sha256": "b18952837d5a5d5ce665cecb14e408ba337c18236fb4eddf293549d8aa30253d",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_attribute_costs"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-attribute-ht-reduced",
+      "sha256": "5fb8b3d66d445eae3abff8deaa6543fca83597309c7f17c34f8ff0d52627d838",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_attribute_costs"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-attribute-dx-reduced",
+      "sha256": "a3d6a15d52d7df921641b82ed5c6d09bec69df530c0b03cf41c9862530610bdf",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-07",
+      "evidence": "Characters, Fourth Edition, third printing, B14: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "tests": [
+        "tests/test_statistics.py::test_attribute_costs"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-attribute-st-high",
+      "sha256": "1ee796f36ae7129151ca070d5419fbc06b547ad4689da12f4b16e39cc2133384",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-07",
+      "evidence": "Characters, Fourth Edition, third printing, B14: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "tests": [
+        "tests/test_statistics.py::test_attribute_costs"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-secondary-defaults",
+      "sha256": "a1adc6eb6f8d2d73f5ba0dd10b82c84b51380e91201d1e7a5426a5c1fe1a73af",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-secondary-hp-purchased",
+      "sha256": "62ad4987bfd973a1a0a88e4ae5cbb5ff011a4584097dac1669323ed38b65e339",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-secondary-hp-reduced",
+      "sha256": "e4942ffc39ef467f91bb99cd767c1b8a8b6ed6f76036d11ce6e6ab60e7746de0",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-secondary-will-purchased",
+      "sha256": "0dcad06a2a2cd48e7a253b9e5c613b8e2e1b64a690ae5f2ccff5376ecd5e84ea",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-secondary-per-reduced",
+      "sha256": "50a280f8251c1102399599f5611bfd6db45c9c289e36afe85efbef8db39db6a9",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-secondary-fp-purchased",
+      "sha256": "e0c7eeb8362f9cf597665fb9de3b2cd00af022f42f3ba17a6951ad79532ce4d1",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-secondary-basic-speed-purchased",
+      "sha256": "43f8c9a776337c472bedd6fee8fdeb7a260c95f31cf46f0b5ab247aab28f21c0",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-secondary-basic-speed-fraction-kept",
+      "sha256": "07543c3e5163ff60038947dad432b626e6120301d4c4ff37480b08e66c516ae1",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-secondary-basic-speed-whole",
+      "sha256": "7a75e107e37440175dd90af1f233fab2fc604d60d1e29ee5cbe680c17c045b91",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-secondary-basic-move-purchased",
+      "sha256": "fb3aba6af5ca17b2143d83c40f9ab04c16c1d6afdf755222d8da685e2378fb04",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-secondary-basic-move-reduced",
+      "sha256": "fa11fd33cf0358a3df1e75aecbfafe35c38e341bed6cf3685ef42e9aea7d433e",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-basic-lift-st-10",
+      "sha256": "6fd23814b1842dd69ead3e2eac6df84eb2805cd1aaf783ae61d78fe4466d92a8",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_basic_lift_rounding_point"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-basic-lift-st-7-fraction",
+      "sha256": "6d15386b40b78b64d82411b78cef490374513ac8779540c7ad3d4bba3bb59ec1",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_basic_lift_rounding_point"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-basic-lift-st-11",
+      "sha256": "de6118f6921bf7be95ffc18b8879f695c8fe77f5a4c09c54d261d4ae2fcddf6c",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_basic_lift_rounding_point"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-basic-lift-st-12",
+      "sha256": "82e24c3ed2e3b317a0249cb6596cf162d725555564cb52733767db5cdbb549c1",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_basic_lift_rounding_point"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-basic-lift-st-13",
+      "sha256": "cea33c9139dfe1639258cc733ce87afa500074de0600fce976064c461014dc2d",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_basic_lift_rounding_point"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-basic-lift-st-8",
+      "sha256": "b5f4e959d2211ca83389f3f335501f900989b0db0554df21267e2429096e0c50",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-07",
+      "evidence": "Characters, Fourth Edition, third printing, B15, B17: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "tests": [
+        "tests/test_statistics.py::test_basic_lift_rounding_point"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-basic-lift-st-20",
+      "sha256": "09493347233fb14205673573a3150d175a1883e5b4e705706caf0e94206a50df",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-07",
+      "evidence": "Characters, Fourth Edition, third printing, B15, B17: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "tests": [
+        "tests/test_statistics.py::test_basic_lift_rounding_point"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-encumbrance-bl20-20lb",
+      "sha256": "504698eea74de33c40a5e3a6899a37e1b4f81a1a87a61f0affe25f15c4bf6fb1",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_encumbrance_bands"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-encumbrance-bl20-21lb",
+      "sha256": "0d601c6ec03ce45a922d52504800e39047890fa4acfb1ff6fd9ca74875f19de9",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_encumbrance_bands"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-encumbrance-bl20-40lb",
+      "sha256": "c1f247a99dee8a142de0100ec1606b27568a12ca1efc480c89599c6cf6708a83",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_encumbrance_bands"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-encumbrance-bl20-41lb",
+      "sha256": "87a6697cf5962e810e9a4b0a2f254d4e558adffc0f69cb1caf4f3d8eacfdf3eb",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_encumbrance_bands"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-encumbrance-bl20-60lb",
+      "sha256": "14a2f46434a1ef80df8eb0720d8d9b14a4c223c6fc058722f2098b56a6f30493",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_encumbrance_bands"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-encumbrance-bl20-61lb",
+      "sha256": "606ed31bd285e277b62bf448d67b841a6e4d3ce9843b08bfbad0cf01e90f6200",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_encumbrance_bands"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-encumbrance-bl20-120lb",
+      "sha256": "dfa82cd24dc1a685c5f77ad1138db392c9cca98a04f8a1368081766a27d9a156",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_encumbrance_bands"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-encumbrance-bl20-121lb",
+      "sha256": "47f96395f4e030fd4ffce410a4b81e14d4aa19f060bb7a2587c61a06e094be55",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_encumbrance_bands"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-encumbrance-bl20-200lb",
+      "sha256": "5a18a0686b29fb02477fa93d221073bf4798581b8852270fafe37bbf110adf1e",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_encumbrance_bands"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-encumbrance-bl20-201lb",
+      "sha256": "69ab43b780cfbbeb3728d90a6663d2dcc1a5a817c79fad0574bdcab489450505",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_encumbrance_bands"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-encumbered-move-5-none",
+      "sha256": "322e33efc0252fdf3a4db6a14d6948dfd6507275f801241fa62fffe78f91636e",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_encumbered_move_and_dodge"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-encumbered-move-5-light",
+      "sha256": "2f3e8652010d00febc813dac1119fe89e8d954255a779e266842a18c32796899",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_encumbered_move_and_dodge"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-encumbered-move-5-medium",
+      "sha256": "c66bd43c95852e2cdeace1758a14f9b099abeddd1d2ab81e804d0b80ea22e787",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_encumbered_move_and_dodge"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-encumbered-move-5-heavy",
+      "sha256": "e014b71d7a80197f2c73ee4a5ca7b02fa1dac79a04cab3dca488d8a680620fa7",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_encumbered_move_and_dodge"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-encumbered-move-5-extra-heavy",
+      "sha256": "4eddaa5a29858af744b297159e836ee79798ae900df60d39c63050a392aece82",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_encumbered_move_and_dodge"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-encumbered-move-6-medium",
+      "sha256": "18a07bc91da18001865c8fffa9d555181bc5326edadac445460a14ce3c33ccce",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_encumbered_move_and_dodge"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-encumbered-move-6-heavy",
+      "sha256": "c78649e60d7d493dc257f0333b6030376adb745619fdc56e7d5d831e0ce865f4",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_encumbered_move_and_dodge"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-encumbered-move-6-extra-heavy",
+      "sha256": "a14c5c4a2081a8f779d4783c21e7b0bf1afe556c5726c96cf29744385a5573a1",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_encumbered_move_and_dodge"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-encumbered-move-4-extra-heavy",
+      "sha256": "3052c695fe06e07d22ed6e1264deabe299bfa60ebc91104a3959debe2ab42882",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_encumbered_move_and_dodge"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-encumbered-move-7-light",
+      "sha256": "1ae8f92c5611ec9deea5d79f3dc75ccf59309963f25f6f9158087fadee81bbf1",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_encumbered_move_and_dodge"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-damage-st-1",
+      "sha256": "32b06a579cbb83fdd2246e15a87755cb37398a29836ab83c1f89fd711deffb2d",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-damage-st-5",
+      "sha256": "91ecbfa7738d365d909b066b530abc3671e976d3de87f037343ed4bf16ca7b0e",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-damage-st-8",
+      "sha256": "461847b8fb04d41958d04cd3e0a8ba3b5a92b9f51c464e68dccc9836ca75b7aa",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-damage-st-9",
+      "sha256": "3f2ef3b7c73525c90e012d71ead546fc7601148cb0db5027b981ec8f5d131b57",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-damage-st-10",
+      "sha256": "01d23910a85110f6d35d00a8d1ed398d98a726783f6e1f700d7e4555310f23a5",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-damage-st-11",
+      "sha256": "d18dcf609f81e87773177095e5c32d182c26bf5a156e5439cbcf12e4b3bab3ce",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-damage-st-12",
+      "sha256": "ea6247b734ce03ac521c21bcb7108c1afbb575cc7f86e31cf1ed0339532f38b5",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-damage-st-13",
+      "sha256": "2fb76bb3fe0efa36264d18f207768957bb233e735400e7a04310c40328c44662",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-damage-st-14",
+      "sha256": "3a823015b7fed0e62b415a7cb27ac9f60993ec0fd59ef8b5ad74e1e9f6bf42ac",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-damage-st-16",
+      "sha256": "ff3733add3e385fd4825132e9eb99041e8c165f9955788e6d2f7c8b52a21f9eb",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-damage-st-17",
+      "sha256": "d6eeac11612b916341dcb435085c5d8cdb7fc6ea0c406800cb12d3d7c8d0deb3",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-damage-st-19",
+      "sha256": "f6472e85e886de8cf4a21d66c11f864f49f6c9a707f4a05c5e0e28d0f6a3d1f7",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "lite-damage-st-20",
+      "sha256": "c799e86a3e74e76945224c91eb6427ec18b7a10e16e8c58fa3ce9751c6cad90e",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-damage-st-21",
+      "sha256": "40ad561cd9ac9b259640b2d0bc429fb0c25ddaa70e218b614c6090475e2425ce",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-07",
+      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-damage-st-25",
+      "sha256": "d71f068cab14171b6b90cf2706bfb63de1362aff05623fdb898000f02ebfa0c5",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-07",
+      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-damage-st-27",
+      "sha256": "2421aeb75574fa8828afaaddf3f33ff9889c0eebc9d025e250f94e73919b327a",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-07",
+      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-damage-st-30",
+      "sha256": "4dc2098734aa089338c33b1b8101644e0ba4e69722e5465ba3f81106cbe25bdf",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-07",
+      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-damage-st-40",
+      "sha256": "13bbec30d9c37452752e4a461130774f42adc2691c4ecc58b394080e6f5f59cf",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-07",
+      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-damage-st-45",
+      "sha256": "ff2f8407c5584730f5151c886d6a2124a958f4f1d40a9d0aba71b156976d2e7b",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-07",
+      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-damage-st-50",
+      "sha256": "7124b5504cfc0093dacf766f6e72b8622e4df14fd4e2dbec920577e6ea32f73d",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-07",
+      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-damage-st-60",
+      "sha256": "e573b145ecfedbc9057a97ff1fdb9f2322bacfc6ebb481cc639261face0cb306",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-07",
+      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-damage-st-75",
+      "sha256": "e2024e71e5a6e8b1ec79256e0976a80998cd49902a4886e4014af0a3c77f47e9",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-07",
+      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-damage-st-100",
+      "sha256": "73c99f726181851789dfef62a2d3c429be9ff43b935a2df17c4820befbdf6d01",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-07",
+      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-secondary-hp-guideline-exceeded",
+      "sha256": "e18a40bf906d8b98bb34b56445624530ce25af0eb83acef2b102174d68f5fe0f",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-07",
+      "evidence": "Characters, Fourth Edition, third printing, B16-17: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-secondary-hp-guideline-boundary",
+      "sha256": "b872f3299602e236e88c047a00a16728b292ff6c5c9c90f0cd5e2510740b2a5c",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-07",
+      "evidence": "Characters, Fourth Edition, third printing, B16-17: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-secondary-will-above-20",
+      "sha256": "c2a3b552e77e03e555fb871b4e8b2d1e13de5289f1291be7c3abcd86d800935f",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-07",
+      "evidence": "Characters, Fourth Edition, third printing, B16-17: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "basic-secondary-fp-guideline-exceeded",
+      "sha256": "a6ea2b7f9fddc33a6fd90052cfdc76f5d03cec7bb8973851b8e27ac7b6103924",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-07",
+      "evidence": "Characters, Fourth Edition, third printing, B16-17: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 97
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-easy-1",
+      "sha256": "a9a815140a2140fefa98c32385dd81dab905f3796af4e48d64c8b7a737224fb5",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-easy-2",
+      "sha256": "45da77115bfd9789b3d8e74b11d892192148dfc60da5673ea3ad69cb89ade362",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-easy-3",
+      "sha256": "578ed8751d23fe88f51dd2d813d99ea6ad8a0d0e79aff976f45efb445c124ea7",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-easy-4",
+      "sha256": "d6132bd5010a856eda9ca54eb180fb9129122f6bd53a9b5a3688e0a79171bb7e",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-easy-7",
+      "sha256": "ff4043dd4f0c63cc8e9a4bf473d3384f7485a9fe23f8420429a28c752fc1763d",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-easy-8",
+      "sha256": "a5995aff1f5181a8828b6f15343173b0ca305bf4dcf3d789700a04d272b6844a",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-easy-12",
+      "sha256": "564d5efe8570773ac9210232e46e1e4b15ce72d7612333a628fa3bf4c0056a55",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-easy-20",
+      "sha256": "86e9d7575627a04c67c5dd3d7ae241b58a50449010513f7a3c6ba21cbae754ed",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-average-1",
+      "sha256": "b36a43be1087c02dd063fd2297a140aceddc36fac191989799eade3503d59999",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-average-2",
+      "sha256": "20799ca3757f8eff4faf4815399048ae702f0d3e16e30ff465521ee117245862",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-average-3",
+      "sha256": "cbe685858554ff43eda7f3630e3396a95d91f4723c285add8e5b5456e2d1cf7c",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-average-4",
+      "sha256": "4bfbdc4583e2c14fea0ec82f9ca29e095b69976ba3c4b2519c5cc530e3f49630",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-average-7",
+      "sha256": "54cd4643094e01a4703dd1578c52e79dedfdc4d4f8253c42badad36c4ca81954",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-average-8",
+      "sha256": "698d050cd068263da80354bf1264dc335629459d068ef382025ccb255d81a51f",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-average-12",
+      "sha256": "15fdac6d5782f48880c2d49e244156feeddb696ab833e7d98356de4770dde033",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-average-20",
+      "sha256": "578e1014138e7ab792ddfffb892610923a66568a61befc71d622f57383c4c681",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-hard-1",
+      "sha256": "34b3fa9fe0833e75be490327b7afb70d2cee8587f7e080b9ad9b737a70a56d83",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-hard-2",
+      "sha256": "14080adf1623f94ae985f215529b1b4eaf35779b452e74b6bcc37347af917eaf",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-hard-3",
+      "sha256": "73ad17f0247dd6661b32dc0d75896889d4df844d1232790463a12b9aa86fe10c",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-hard-4",
+      "sha256": "736b3c247b662bb0e9e9cb410628e071ec890072496d3815834d5aac1cf5f61b",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-hard-7",
+      "sha256": "b1f88ec5a03b79e9395dce7afc1234a86375714c1a5182829fdea5958c268fe4",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-hard-8",
+      "sha256": "d0617226c6871dd45241d35d48d5cf8159e590ac25ef29db0ba45008a18d50d7",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-hard-12",
+      "sha256": "2d511b8b742e9edba6d5ad9aecd4fce010fa28f017010bbc3d066843746a86e3",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-hard-20",
+      "sha256": "0c231816627b2999db2c7a7fd3dd7f10b5bc2fdcaec7946c28d7ed7df608de1b",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-easy-1",
+      "sha256": "94331586f36d728a8419193c609e7477f485d38640088a701631fd78e65f7cee",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-easy-2",
+      "sha256": "077b8a3cecac9d0105e3e7c4f0d5e8e6d4d7d155985a07a6a304af2a24b6e18c",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-easy-3",
+      "sha256": "a3089588b2930a5f62a10d2898d10e7e535f1a0dbec9a881fcfcbea114a146cb",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-easy-4",
+      "sha256": "09609b7776e6c73d5666c93dfa3121c1f183fde60138ff1466a080336da5e7a9",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-easy-7",
+      "sha256": "0fdda17a844f5065678b419d81b2ac005eb731e93d9cb8c6566ff2da35a2354e",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-easy-8",
+      "sha256": "958e45d998d9ac3f8873405f04d814906e3dd206f78e98c6597d3afe19994b4a",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-easy-12",
+      "sha256": "ebd39997ce3f8c67e236566f6e936d63fa8c34197c608f95b8c6569185813c64",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-easy-20",
+      "sha256": "f76c5ec170a14e0d681fd7b157d98887bca90a2006ce113db031eade5d0e28c5",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-average-1",
+      "sha256": "8c97456661271f7629aefc3d5db5e0d50639f4146aeddbe2ce642e12bf4b9b6a",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-average-2",
+      "sha256": "da2fde86a0da930a1fab6220b75b32081b00aaa057d1b3f3e028488c2da84ece",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-average-3",
+      "sha256": "8bc23c64c644725a0b9d5c8c5ed49b1c650a67ba99da743e3375288ae303fd62",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-average-4",
+      "sha256": "98e64d3c2788e486a3eb2717f97c2d25066079bdd9ef6b7b73a5bb4525fb9292",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-average-7",
+      "sha256": "0902dc72cc4da281f7a81fd20d231858b57ef348eea51c38cdbb4931f67559e0",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-average-8",
+      "sha256": "56d3a388e787871f92a47a16d8738b0e680e8971b4e154e88b7d9c9cccaa3373",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-average-12",
+      "sha256": "e69433f175935e9ba1cd903b0443dea5f57408bcc7710428c1703471e959c201",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-average-20",
+      "sha256": "02264fa79aecfab70f363046258b6839103b4ed0335efe6216e6f4ab92fa3ec2",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-hard-1",
+      "sha256": "333408fa36173147a1daf4c98d7c10d302ce85e87896a9662eb331109f1174fd",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-hard-2",
+      "sha256": "b4b0ed5060976df29dba73e13cb5d6b9e0f59e656d33ae22cd7eb52ba54704b7",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-hard-3",
+      "sha256": "ee33342211f7796efba439fb83fb6a215183363301c1737432ec1bbefeafdac5",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-hard-4",
+      "sha256": "9b0faaccc98e579db7d00c849276b44582aa0abd7810935e4cd78bcb2d26f497",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-hard-7",
+      "sha256": "bc4bf9226384809ea73b5e9d530de5c620a62f4637c09abf4fee50c1eb32c92f",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-hard-8",
+      "sha256": "ebfcb1888b35adf6d9c96fbde03de98b1aa7a71f13c6678922a51411259c66b0",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-hard-12",
+      "sha256": "9d3b4907a98eb53c501220788f2935c51a8a2d0b93392ed6a89a083ae1b114d2",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-hard-20",
+      "sha256": "fe65467d52079d71e1f30e3d29cc26f2c5c7dfc0c84cc2301e4c4c19e60f18bc",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-very-hard-1",
+      "sha256": "5e4939445133505f5bd4ffaf56ecf96585da832f32020695e55e17a8e8be7909",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-very-hard-2",
+      "sha256": "e1e985e9cedc7a5a95e89f27ad5574a1623d2ab11128df3eba3492f37179c446",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-very-hard-3",
+      "sha256": "cb764979502a74d760fdee774d5d6edea12b8dd9fbbedc2a3b5b11ac2ecbf519",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-very-hard-4",
+      "sha256": "d061ed0861c7ee1492cfde942b6b471fee041f91cb9d757e72552af8a3b541d5",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-very-hard-7",
+      "sha256": "35902e377b881168e7da13e2edd2b25eec0cc938e7aa79607cc9b15e598be8e9",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-very-hard-8",
+      "sha256": "5a4e1e3fb308cf8cdf9717f02a8444a92a6c59d40b3a62a19059db747b69e97f",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-very-hard-12",
+      "sha256": "83f0df7c6c12fab9ea5c080cfcd1e747d13b4cfc3b875f4aabb60119024430e0",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-very-hard-20",
+      "sha256": "a9cc6c9ec0c8c8a4d49dbf469a604132766c42b44b108e8cdfb6b05997b6406d",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-best-attribute",
+      "sha256": "7265742a6c29867933c63c4639921bdd54b860e90e6f841ee3a1e66dcda30658",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-attribute-cap",
+      "sha256": "4a45aa7aa515359695414f116ed0d4e20baa75dab60404c03e9b84564142fb5c",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-lite-4e-2004-changed-attribute",
+      "sha256": "28d90b06550631cc1d993922ab99fbf9329cb4ffa095a9a40471dc92f96fd9c7",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-best-attribute",
+      "sha256": "0a0bbc6fee5a57ed3ea4483f45b45f6b9c6228ee0877a174e4d6d7f3613bfce8",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-attribute-cap",
+      "sha256": "1fbe5a7d54448c579aa71b58694f545edffac3a0bdac33cd55d45d9a6a43be92",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-gurps-basic-set-4e-2004-changed-attribute",
+      "sha256": "7b18f3326e635f7376180f5a9258d93ea610e354b54cf345f8de850c95746cd3",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-default",
+      "sha256": "f46da84fcecb55c5d9918cc8627476e032bcaafbb8d597dc95502ab6a8125dd5",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-credit",
+      "sha256": "cbfa0195e045c679a5157cec804d60d639e3c001a6a380d7c35bc4f5ca37062c",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-partial-credit",
+      "sha256": "58be8bf513852617a643d417c8a196479bb64d8acdebe2a28618d161800b1502",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-required-specialty",
+      "sha256": "64f7f47c6cbf4f06818634d1269c46fd3b784b5f4a57ec8e89529a2881eb3db7",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-optional-specialty",
+      "sha256": "9d2ee650e80610bb1049b773bd76c723c2fcf101627a6d67159a7d8017acca5f",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-optional-general-default",
+      "sha256": "201a31d07bf83c71b6a7cf64af9fc7cd26ffa8189faf89598f422d27d9ea3955",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-general-optional-default",
+      "sha256": "762b4836e5b0b2e2acfcba3361e3e2d32f28c9074b12c7bb6f26ec40b3c15430",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-hard-default",
+      "sha256": "aeafc64b3a21f68d943c47cdfdad6c75780a8c9cd324cea47cfd446985660546",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-hard-first",
+      "sha256": "dc60c154210838bd3d94e2776566ac0d89b0f8ec2f471e35478abcb74b6bc21c",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-hard-cap",
+      "sha256": "42eb6e5f1f222b7eca1c6482f05e124c3146b170708450452b27e5061bf1c444",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-hard-over-cap",
+      "sha256": "1541cc56d0e0ec0148624a3f8b40d3b23ed8ee9b5c5c47ae5e98d366c677d299",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-hard-one-point",
+      "sha256": "3364f2e417e02e26900a1be41b4b291b8a103c27febea5b02dee5067bc49cdaf",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-hard-no-parent",
+      "sha256": "15c55fe11419febd60b39896e865da594d970333f1d027432faac56f7c654b51",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-average-first",
+      "sha256": "2a998403f6bc64666a1338716161572fa14a2eadb0289c8207214b3b8eef2508",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-average-cap",
+      "sha256": "e21f450bd547d76c2c5a45b44d0e8aadcb89feb2c8abb8bc78f867b848540549",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "skill-average-over-cap",
+      "sha256": "b0f67acb65c8aedc80c69bb7473e63c9c47147406517227b0ae2ff4b9ff1e037",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_skills.py::test_source_referenced_golden_cases"
+      ],
+      "owner": 98
+    },
+    {
+      "id": "unarmed-karate-bonus",
+      "sha256": "8d599bd258bd77147edfff61bdc9003dcfea4f7d386c5e953ab7106a3bc8c48c",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_unarmed.py::test_shared_independent_unarmed_ledger"
+      ],
+      "owner": 108
+    },
+    {
+      "id": "grapple-wrestling-st",
+      "sha256": "fafa75870209feba66c1633a07faf7c6608ca794cdc3504d3be0a16dd50630b3",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_unarmed.py::test_shared_independent_unarmed_ledger"
+      ],
+      "owner": 108
+    },
+    {
+      "id": "grapple-two-hand-escape",
+      "sha256": "8e973bd0b4861f67623318066ba9925756cf9e613348864fa92a0c8e3ae12859",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_unarmed.py::test_shared_independent_unarmed_ledger"
+      ],
+      "owner": 108
+    },
+    {
+      "id": "grapple-pin-undecided",
+      "sha256": "e8b324801722bfd86665cb3c406d7436fc1a744cbbaf4bb05c9c33a822bb137d",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_unarmed.py::test_shared_independent_unarmed_ledger"
+      ],
+      "owner": 108
+    },
+    {
+      "id": "basic-height-three-feet-head",
+      "sha256": "2e6420697734b762e7b43e08612bbe558711f50d95139cb829faad9aa75e5619",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_geometry_injury_followups.py::test_followup_fixture_ledger_executes_independent_expectations"
+      ],
+      "owner": 105
+    },
+    {
+      "id": "basic-unliving-torso-piercing",
+      "sha256": "7b9fb9d1760b21388f659529d8f4b5d9b8066693811b7a66fd301b473a2e5f40",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_geometry_injury_followups.py::test_followup_fixture_ledger_executes_independent_expectations"
+      ],
+      "owner": 107
+    }
+  ]
+}

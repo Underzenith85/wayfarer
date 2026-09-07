@@ -7,6 +7,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from wayfarer.rules.catalog import PROTOTYPE_PACKAGE
+from wayfarer.source_audit import report as source_audit_report
 
 ROOT = Path(__file__).resolve().parents[1]
 # All cases in each required module must pass, including every parametrized backend/route.
@@ -82,6 +83,7 @@ def main() -> None:
     parser.add_argument("report", type=Path)
     parser.add_argument("--output", type=Path, default=Path("artifacts/release"))
     parser.add_argument("--product", action="store_true")
+    parser.add_argument("--gurps-source-audit", action="store_true")
     args = parser.parse_args()
     rows, errors = evaluate(args.report)
     approved = json.loads((ROOT / "tests/fixtures/approved_rules.json").read_text())
@@ -97,6 +99,12 @@ def main() -> None:
             f"Product prerequisite pending: #{item['issue']} {item['reason']}"
             for item in product["pending"]
         )
+    if args.gurps_source_audit:
+        audit = source_audit_report(ROOT)
+        if not audit["audit_complete"]:
+            errors.append(
+                "Frozen GURPS source audit incomplete; see scripts/audit_gurps_sources.py"
+            )
     args.output.mkdir(parents=True, exist_ok=True)
     result = {
         "revision": os.environ.get("GITHUB_SHA", "local"),
