@@ -528,4 +528,23 @@ PlayService combat transaction: automatic stress scheduling, object targeting,
 shield interception, weapon critical breakage, encounter synchronization,
 shock, diffuse/fragile/sentient objects, residual broken-weapon modes and repairs
 remain #181 completion blockers. Do not invoke resource-only writes against a
-live encounter. #107 remains the hard merge prerequisite declared by #114.
+live encounter. #106 and #107 remain the hard merge prerequisites declared by #114.
+
+## Shared supernatural concentration (#117, #118, #171)
+
+Spells and abilities use one pending concentration guard. An actor cannot start
+another spell, ability activation or Detect analysis while either service has a
+pending commitment. Reducers enforce the same rule as orchestration; rejection
+precedes injury rolls and energy settlement. Cancellation or another action
+releases concentration, while a distraction or missed spell deadline still
+requires resolution or cancellation. Active maintained effects do not block a
+new cast. Initial scenarios cannot seed execution events from either service.
+
+`tests/test_supernatural_concentration.py` exercises both directions, direct
+reducers, concurrent CAS, persisted retries, cancellation and event injection.
+These are integration invariants, not independent rulebook certification cases.
+The ability capability is reconciled from `absent` to `partial` to reflect the
+four representative runtime families already merged in #150. It remains a
+Basic Set certification blocker. #117/#171 still require catalog and combat
+bindings, concrete spell effects and the remaining magic variants; #118 and
+#119 still require source reconciliation. No manual entry becomes verified.
