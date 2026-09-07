@@ -35,6 +35,11 @@ class ProviderError(WayfarerError):
     status = 502
 
 
+class ProviderUnavailableError(ProviderError):
+    code = "provider_unavailable"
+    status = 503
+
+
 class ProviderTimeoutError(ProviderError):
     code = "provider_timeout"
     status = 504
