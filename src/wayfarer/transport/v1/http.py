@@ -84,7 +84,7 @@ async def boundary(
         code = "not_found" if exc.status == 404 else "invalid_request"
         status = 404 if exc.status == 404 else 400
         return response(Fault(status, code).wire(request_id), request_id, status)
-    except (ValueError, TypeError, KeyError):
+    except ValueError, TypeError, KeyError:
         return response(Fault(400, "invalid_request").wire(request_id), request_id, 400)
     except WayfarerError:
         return response(Fault(503, "service_unavailable").wire(request_id), request_id, 503)
