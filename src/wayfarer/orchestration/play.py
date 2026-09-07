@@ -180,6 +180,9 @@ class PlayService:
             from wayfarer.simulation.party import migrate
 
             state = migrate(state)
+        from wayfarer.orchestration.npcs import initialize
+
+        state = initialize(self, state)
         self.engine.validate(state)
         stored = campaign.copy()
         stored["play_json"] = state.model_dump_json()
@@ -202,9 +205,14 @@ class PlayService:
         self.engine.validate(state)
         return state
 
-    def checkpoint(self, state: PlayState, *, before: PlayState | None = None) -> PlayState:
+    def checkpoint(
+        self, state: PlayState, *, before: PlayState | None = None, run_npcs: bool = True
+    ) -> PlayState:
+        from wayfarer.orchestration.npcs import checkpoint as npc_checkpoint
         from wayfarer.orchestration.objectives import checkpoint
 
+        if run_npcs:
+            state = npc_checkpoint(self, state)
         return checkpoint(self, state, before=before)
 
     @staticmethod

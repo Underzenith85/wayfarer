@@ -1,7 +1,7 @@
 """Validated application configuration."""
 
 from pathlib import Path
-from typing import ClassVar, Self
+from typing import ClassVar, Literal, Self
 
 from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -19,6 +19,11 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     openai_api_key: SecretStr | None = None
     openai_model: str | None = None
+    llm_provider: Literal["responses", "codex"] = "responses"
+    codex_model: str = "gpt-5.6-terra"
+    codex_effort: Literal["low", "medium", "high"] = "low"
+    codex_home: Path = Path("data/codex")
+    codex_sessions: Path = Path("data/codex-sessions.sqlite3")
     model_timeout_seconds: float = Field(default=45.0, gt=0, le=300)
     db_timeout_seconds: float = Field(default=10.0, gt=0, le=60)
 
