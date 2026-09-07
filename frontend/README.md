@@ -309,6 +309,34 @@ modal never dims the page to repeat what is already beside it. `tests/shell.spec
 asserts the exclusivity on both sides of the breakpoint, and a test that wants
 the summary reads it from whichever presentation the viewport has.
 
+## Lifecycle controls ask, or offer a way back (#163)
+
+Ending a campaign and pausing it sat side by side on the setup panel, next to
+**Open playing scene**, with nothing between a mis-click and the end of a
+campaign. The two are now told apart by what they cost.
+
+`complete` is irreversible — a finished campaign can be archived or continued,
+never returned to play — so it asks first. `ConfirmDialog`
+(`src/components/ui/confirm.tsx`) names the campaign in its title, states in the
+body what ending does and what cannot be undone, and offers **Keep playing**
+first so the focus Radix moves into the dialog, Escape, and a click on the
+overlay all land on the safe answer. Only **End this campaign** sends the
+operation; the panel's own **End campaign** button opens the question. The
+irreversible operations are the `irreversible` set in `src/setup/lobby.tsx`, and
+the button for one carries the `danger` variant, which is the only place that
+variant is used.
+
+`pause` is reversible, so it stays a single press and answers with an undo
+instead: pausing shows a status line naming the paused campaign with **Undo
+pause** beside it, which resumes the campaign and — unlike **Resume session** —
+leaves the host on the panel rather than entering play (`command`'s `enter`
+option). The notice belongs to the pause that raised it and is cleared by the
+next lifecycle result.
+
+Lifecycle controls are grouped in their own bordered `Campaign lifecycle`
+region; **Open playing scene** and **Create another game** move below it as
+navigation, so a press meant for one group is not spent on the other.
+
 ## One composer for one turn (#195-#198)
 
 The play screen offers one composer with one primary action. Everything a turn

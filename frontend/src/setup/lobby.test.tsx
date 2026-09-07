@@ -705,3 +705,170 @@ it("names every step at every width and numbers them for narrow rows (#206)", as
   expect(steps[0]).toHaveAttribute("aria-current", "step");
   expect(screen.getByText("Step 1 of 5: Concept")).toBeVisible();
 });
+
+describe("campaign lifecycle safety (#163)", () => {
+  const active = {
+    id: "c",
+    revision: 4,
+    host_id: "alice",
+    title: "Courier",
+    phase: "active",
+    brief: {
+      premise: "Find the courier",
+      genre: "Mystery",
+      tone: "Tense",
+      duration_minutes: 90,
+      difficulty: "standard",
+      restrictions: [],
+    },
+    graph: null,
+    party: [{ actor_id: "a", name: "Mira" }],
+    seats: [
+      { principal_id: "alice", joined: true, ready: true, actor_ids: ["a"] },
+    ],
+    rules: {},
+  };
+  /** Serves the host's own active campaign and echoes each lifecycle write. */
+  const serve = () => {
+    let current: Record<string, unknown> = active;
+    return vi
+      .spyOn(globalThis, "fetch")
+      .mockImplementation(async (input, init) => {
+        const path = input instanceof Request ? input.url : String(input);
+        if (path.endsWith("/session"))
+          return new Response(
+            JSON.stringify({
+              principal_id: "alice",
+              generation_available: false,
+              legacy_available: false,
+            }),
+          );
+        if (path.endsWith("/api/v1/campaigns"))
+          return new Response(JSON.stringify({ items: [], next_cursor: null }));
+        if (init?.method === "POST") {
+          const { operation } = JSON.parse(String(init.body)) as {
+            operation: string;
+          };
+          const phase = {
+            pause: "paused",
+            resume: "active",
+            complete: "completed",
+          }[operation];
+          current = {
+            ...current,
+            revision: (current.revision as number) + 1,
+            ...(phase ? { phase } : {}),
+          };
+          return new Response(JSON.stringify(current));
+        }
+        return new Response(
+          JSON.stringify(
+            path.endsWith("/templates") || path.endsWith("/profiles")
+              ? []
+              : path.endsWith("/c")
+                ? current
+                : [current],
+          ),
+        );
+      });
+  };
+  const openPanel = async (user: ReturnType<typeof userEvent.setup>) => {
+    await user.type(screen.getByLabelText("Access token"), "secret");
+    await user.click(screen.getByRole("button", { name: "Sign in" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Courier · In play" }),
+    );
+  };
+  const writes = (fetcher: ReturnType<typeof serve>) =>
+    fetcher.mock.calls
+      .filter(([, init]) => init?.method === "POST")
+      .map(
+        ([, init]) => JSON.parse(String(init?.body)) as { operation?: string },
+      )
+      .filter((body) => !!body.operation);
+
+  it("ends a campaign only after a confirmation that names it", async () => {
+    const fetcher = serve();
+    const user = userEvent.setup();
+    render(<SetupLobby onOpen={vi.fn()} />);
+    await openPanel(user);
+    await user.click(screen.getByRole("button", { name: "End campaign" }));
+    // The press opens the question; nothing has been sent to the service yet.
+    expect(writes(fetcher)).toEqual([]);
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText("End “Courier”?")).toBeVisible();
+    expect(
+      within(dialog).getByText(/cannot be returned to play/),
+    ).toBeVisible();
+    await user.click(
+      within(dialog).getByRole("button", { name: "Keep playing" }),
+    );
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(writes(fetcher)).toEqual([]);
+    expect(
+      screen.getByRole("button", { name: "Open playing scene" }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "End campaign" }));
+    await user.click(
+      within(await screen.findByRole("dialog")).getByRole("button", {
+        name: "End this campaign",
+      }),
+    );
+    expect(writes(fetcher)).toMatchObject([
+      { operation: "complete", expected_revision: 4 },
+    ]);
+    expect(
+      await screen.findByRole("button", { name: "Archive campaign" }),
+    ).toBeInTheDocument();
+  });
+
+  it("pauses in one press and offers an undo that stays in setup", async () => {
+    const fetcher = serve();
+    const onOpen = vi.fn();
+    const user = userEvent.setup();
+    render(<SetupLobby onOpen={onOpen} />);
+    await openPanel(user);
+    // Reaching an active campaign from the list enters play, so the undo is
+    // measured against the entries made before it, not against none at all.
+    await user.click(screen.getByRole("button", { name: "Pause session" }));
+    const entered = onOpen.mock.calls.length;
+    expect(screen.queryByRole("dialog")).toBeNull();
+    const undone = await screen.findByText(/Paused “Courier”/);
+    expect(undone).toBeVisible();
+    expect(writes(fetcher)).toMatchObject([{ operation: "pause" }]);
+    await user.click(screen.getByRole("button", { name: "Undo pause" }));
+    expect(writes(fetcher)).toMatchObject([
+      { operation: "pause", expected_revision: 4 },
+      { operation: "resume", expected_revision: 5 },
+    ]);
+    // Undo restores the campaign where it was; it does not enter play, and the
+    // notice it belongs to is gone with the pause it undid.
+    expect(onOpen).toHaveBeenCalledTimes(entered);
+    expect(
+      await screen.findByRole("button", { name: "Pause session" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Paused “Courier”/)).toBeNull();
+  });
+
+  it("separates lifecycle controls from the navigation beside them", async () => {
+    serve();
+    const user = userEvent.setup();
+    render(<SetupLobby onOpen={vi.fn()} />);
+    await openPanel(user);
+    const lifecycle = await screen.findByRole("region", {
+      name: "Campaign lifecycle",
+    });
+    expect(
+      within(lifecycle).getByRole("button", { name: "End campaign" }),
+    ).toHaveClass("button-danger");
+    expect(
+      within(lifecycle).getByRole("button", { name: "Pause session" }),
+    ).toBeInTheDocument();
+    expect(
+      within(lifecycle).queryByRole("button", { name: "Open playing scene" }),
+    ).toBeNull();
+    expect(
+      within(lifecycle).queryByRole("button", { name: "Create another game" }),
+    ).toBeNull();
+  });
+});
