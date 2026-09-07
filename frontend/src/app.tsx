@@ -1,4 +1,5 @@
 import { CharacterPage, InventoryPage } from "./character/pages";
+import { ConnectionStatus } from "./multiplayer/panel";
 import { useEffect, useRef, useState } from "react";
 import {
   createRootRoute,
@@ -144,6 +145,7 @@ function Shell() {
               <CharacterSummary />
             </Sheet>
           </div>
+          <ConnectionStatus />
           <Outlet />
           <footer className="scene-footer">
             The engine keeps the facts. The story brings them to life.

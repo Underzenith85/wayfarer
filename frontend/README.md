@@ -168,3 +168,66 @@ Inventory fixture journeys (initial-load `inventory` query parameter):
 Tests cover these lifecycle/resource boundaries, frozen-schema validity,
 role/affordance restrictions, keyboard/touch operations and responsive layouts.
 No new dependencies were needed for #53; the TypeScript 7 stack remains intact.
+
+## Multiplayer scenes and recovery (#54)
+
+Start `VITE_PLAY_FIXTURES=true pnpm dev` and open two independent browser profiles:
+
+- `/campaign?multiplayer=captive&room=demo` controls Mara in a private cell.
+- `/campaign?multiplayer=rescuer&room=demo` controls Ivo and Sera in their own scenes.
+
+The same room joins both profiles to one development-server mock authority. The
+mock identity headers are demonstration credentials only. The fixture endpoint is
+registered only when fixture mode is explicitly enabled on the Vite development
+server; it is absent from preview/production servers, and secret fixture data is
+not bundled into the frontend. No backend or model credentials are needed.
+
+The Scene & companions panel provides owned-character selection, scoped presence,
+readiness, and explicit split/transfer/rejoin forms using only permitted
+destinations. Unseen groups and captive locations are omitted by the authority
+before delivery. Readiness never chooses a consequential action for a player.
+Presence becomes away after six seconds without a mock heartbeat; it has no
+mechanical effect. OOC chat is opt-in for display and deliberately table-wide. It
+never updates character knowledge, submits a game action, or copies scene history.
+
+Browser offline events and transport disconnection pause all authoritative
+commands while retaining drafts under principal/campaign/scene/actor/channel keys.
+Reconnect clears cached views, rereads the authorized snapshot and receipts, then
+restarts the scoped subscription. An accepted request appears once; an unaccepted
+request retains its exact identity for explicit retry. Neither reconnection nor
+readiness automatically resubmits a new action. Revocation and control loss erase
+private views, drafts, pending requests, and query caches. An old subscription or
+in-flight response cannot repopulate another scope.
+
+`MultiplayerPort` is a normalized adapter boundary, not a new production HTTP or
+WebSocket protocol. Atomic views carry opaque cursors and visibility epochs from
+one principal/scene/actor perspective. TanStack cache keys include all these scope
+components. Duplicate checkpoints are ignored; any changed, gapped, reordered or
+reset event causes a fresh authoritative view rather than applying speculative
+deltas or sorting opaque versions. The mock adapter polls invalidations. The #49
+live adapter must map #48's scoped subscriptions and atomic snapshot/ready barrier
+to this interface, validate incoming schemas, and bind callbacks to their actual
+subscription. Presence, readiness, group commands and OOC remain proposed
+presentation contracts; they are not added to the frozen v1 schema here.
+
+The development-only scenario driver accepts POST `/__fixtures/multiplayer` with
+`x-mock-identity: captive|rescuer`, `x-mock-room: demo`, and
+`{"op":"scenario","scenario":"rescue"}` to permit a scripted rendezvous. Both
+players then explicitly rejoin after resolving their own pending decisions.
+`missed` changes a checkpoint; `revoke` and `reassign` remove the selected mock
+identity's control. Tests create unique rooms. These are fixed acceptance events,
+not an alternative travel or rescue rules engine; restart Vite to reset rooms.
+
+### Live integration gate
+
+#45's engine work is merged, but #49/#50 transport integration remains open.
+Mock completion of #54 does **not** establish live multiplayer authorization.
+Before #59 signs off (with #23/#24/#40/#41 owning their integrations), run the same
+two-browser scenarios against independently authenticated real principals and the
+#45-backed API: verify payload-level secrecy before and after reunion, server
+rejection of foreign actors/remote destinations/stale membership, independent
+pending choices, heartbeat disconnect, retained/expired replay cursors, visibility
+reset, control reassignment and revocation during in-flight requests, and exactly
+one receipt after an accepted command loses its acknowledgement. Client filtering
+is never the authorization gate. The frontend tests exercise these privacy and
+recovery boundaries against the server-side fixture authority only.

@@ -6,8 +6,16 @@ async function start() {
   let transport: PlayTransport = disconnectedTransport;
   if (import.meta.env.VITE_PLAY_FIXTURES === "true") {
     const params = new URLSearchParams(location.search);
+    const identity = params.get("multiplayer");
     const inventory = params.get("inventory");
-    if (inventory) {
+    if (identity === "captive" || identity === "rescuer") {
+      const { MultiplayerFixtureTransport } =
+        await import("./multiplayer/fixture-transport");
+      transport = new MultiplayerFixtureTransport(
+        identity,
+        params.get("room") ?? "demo",
+      );
+    } else if (inventory) {
       const { InventoryFixtureTransport, inventoryJourneys } =
         await import("./character/fixtures");
       const selected = inventoryJourneys.find((j) => j === inventory);

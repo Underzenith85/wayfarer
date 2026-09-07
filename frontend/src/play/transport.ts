@@ -4,6 +4,7 @@ import type {
   InventoryPreviewTransport,
 } from "../character/presentation";
 import type { components } from "../api/contracts.generated";
+import type { MultiplayerPort } from "../multiplayer/model";
 type Schemas = components["schemas"];
 export type Campaign = Schemas["Campaign"];
 export type Action = Schemas["Action"];
@@ -32,6 +33,7 @@ export interface PlayTransport {
   readonly principalId: string;
   readonly sample: boolean;
   readonly inventoryPreview?: InventoryPreviewTransport;
+  readonly multiplayer?: MultiplayerPort;
   listCampaigns(signal: AbortSignal): Promise<Campaign[]>;
   readSnapshot(campaignId: string, signal: AbortSignal): Promise<Snapshot>;
   submitAction(
