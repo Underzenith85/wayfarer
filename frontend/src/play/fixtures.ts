@@ -1,3 +1,4 @@
+import { enrichSnapshot } from "../character/sample-data";
 import type { components } from "../api/contracts.generated";
 import {
   TransportError,
@@ -248,7 +249,7 @@ export class FixtureTransport implements PlayTransport {
   }
   async readSnapshot(id: string, signal: AbortSignal) {
     await wait(this.latency, signal);
-    return fixtureSnapshot(id, this.committed.has(id));
+    return enrichSnapshot(fixtureSnapshot(id, this.committed.has(id)));
   }
   async submitAction(
     campaignId: string,

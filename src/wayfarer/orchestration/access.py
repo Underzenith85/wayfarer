@@ -109,6 +109,19 @@ class CampaignAccess:
                 e.model_dump(mode="json") for e in state.noncombat if e.actor_id in member.actor_ids
             ),
             "objectives": visible_objectives,
+            "captivity": tuple(
+                c.model_dump(mode="json")
+                for c in state.recovery.captivity
+                if c.actor_id in member.actor_ids
+            ),
+            "recovery_decisions": tuple(
+                d.model_dump(mode="json")
+                for d in state.recovery.decisions
+                if d.actor_id in member.actor_ids
+            ),
+            "dead_actor_ids": tuple(
+                a for a in state.recovery.dead_actor_ids if a in member.actor_ids
+            ),
         }
 
     async def read(self, cid: str, *, principal_id: str) -> dict[str, object]:
@@ -121,9 +134,29 @@ class CampaignAccess:
         if not isinstance(value, dict):
             raise ValidationError("Invalid typed campaign command")
         kind = value.get("kind")
+        from wayfarer.orchestration.recovery import guard
+
+        if isinstance(value.get("actor_id"), str) and isinstance(kind, str):
+            guard(state, str(value["actor_id"]), kind)
         raw = json.dumps(value)
         try:
-            if kind in (
+            if kind in ("apply_setback", "choose_recovery"):
+                from wayfarer.orchestration.recovery import RecoveryCommand, RecoveryService
+
+                recovery = RecoveryCommand.model_validate_json(raw)
+                self._control(member, recovery.actor_id)
+                await RecoveryService(self.play).execute(
+                    cid, recovery, authenticated_actor_id=recovery.actor_id
+                )
+            elif kind == "propose_npc":
+                from wayfarer.orchestration.npcs import NPCProposal, NPCService
+
+                proposal = NPCProposal.model_validate_json(raw)
+                self._control(member, proposal.actor_id)
+                await NPCService(self.play).propose(
+                    cid, proposal, authenticated_gm_id=proposal.actor_id
+                )
+            elif kind in (
                 "start_encounter",
                 "take_combat_turn",
                 "choose_defense",

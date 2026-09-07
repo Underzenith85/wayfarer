@@ -123,6 +123,9 @@ class CombatService:
 
         def resolve(campaign: Campaign) -> Event:
             state = self.play._load(campaign)
+            from wayfarer.orchestration.recovery import guard
+
+            guard(state, command.actor_id, command.kind)
             initial_state = state
             if command.expected_revision != state.revision:
                 raise ConflictError("Play revision changed")

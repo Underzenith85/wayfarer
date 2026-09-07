@@ -141,6 +141,8 @@ class PartyService:
         if not state.party.groups:
             return state
         frontier = min(g.ready_through for g in state.party.groups)
+        from wayfarer.orchestration.npcs import due_times
+
         times = sorted(
             {q.due for q in state.party.queue if q.due <= frontier}
             | {e.due for e in state.party.effects if e.due <= frontier}
@@ -149,6 +151,7 @@ class PartyService:
                 for e in state.resources.scheduled
                 if e.id not in state.resources.fired and e.due <= frontier
             }
+            | due_times(self.play, state, frontier)
             | {frontier}
         )
         objective_rules = self.play.engine.rules.objectives
@@ -174,7 +177,7 @@ class PartyService:
             state = state.model_copy(
                 update={"resources": resources.model_copy(update={"revision": state.revision})}
             )
-            state = self.play.checkpoint(state)
+            state = self.play.checkpoint(state, run_npcs=False)
             for effect in sorted(
                 (e for e in state.party.effects if e.due == at), key=lambda e: e.id
             ):
@@ -244,6 +247,12 @@ class PartyService:
                                 "last_result": result.model_copy(update={"revision": revision}),
                             }
                         )
+                    elif activity.family == "recovery":
+                        from wayfarer.orchestration.recovery import RecoveryCommand, RecoveryService
+
+                        state = RecoveryService(self.play).finish(
+                            before, RecoveryCommand.model_validate_json(activity.command_json)
+                        )
                     elif activity.family == "scene":
                         scene_command = TravelScene.model_validate_json(activity.command_json)
                         state = SceneService(self.play).reduce(
@@ -268,10 +277,14 @@ class PartyService:
                         )
                     }
                 )
-                state = self.play.checkpoint(state)
+                state = self.play.checkpoint(state, run_npcs=False)
+            state = self.play.checkpoint(state)
         return state
 
     def reduce(self, state: PlayState, command: PartyCommand) -> PlayState:
+        from wayfarer.orchestration.recovery import guard
+
+        guard(state, command.actor_id, command.kind)
         state = migrate(state)
         group = group_for(state, command.actor_id)
         groups = state.party.groups

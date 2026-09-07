@@ -233,6 +233,8 @@ def event_action(value: object) -> EventAction:
             | "objectives"
             | "noncombat"
             | "party"
+            | "npc"
+            | "recovery"
         ):
             return value
         case _:

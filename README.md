@@ -107,3 +107,9 @@ Wave 9 adds combat outcomes, objectives/rewards, noncombat encounters, subgroup
 time coordination and bounded provider-independent orchestration. See the
 [Wave 9 contracts and supported subset](docs/wave-9.md).
 
+
+### Wave 10
+
+Codex subscription setup, NPC/faction activity, capture/rescue and recovery are
+covered in [the Wave 10 guide](docs/wave-10.md). The typed campaign app can select
+the Codex provider with a dedicated login; the legacy demo remains separate.
