@@ -12,6 +12,12 @@ async function login(page: Page, player = "alice") {
   await expect(page.getByText(/Signed in as/)).toContainText(player);
   return page.getByRole("region", { name: "New game and lobby" });
 }
+/** After a reload the tab is still signed in; no access token is asked for. */
+async function resumed(page: Page, player = "alice") {
+  await expect(page.getByText(/Signed in as/)).toContainText(player);
+  await expect(page.getByLabel("Access token", { exact: true })).toHaveCount(0);
+  return page.getByRole("region", { name: "New game and lobby" });
+}
 /** Setup shows one step at a time; each step is reached from its own control. */
 async function step(lobby: Locator, name: string) {
   await lobby.getByRole("button", { name, exact: true }).click();
@@ -99,7 +105,7 @@ test("solo production entry, illegal party, stale edit, lost activation, refresh
   ).toBeEnabled();
   await page.unroute(`**/setups/${cid}`);
   await page.reload();
-  await login(page);
+  await resumed(page);
   const retry = page.waitForRequest(
     (r) => r.method() === "POST" && r.url().endsWith(`/setups/${cid}`),
   );
@@ -118,8 +124,9 @@ test("solo production entry, illegal party, stale edit, lost activation, refresh
     page.getByText("Game time: 1 ticks", { exact: true }),
   ).toBeVisible();
   await page.reload();
-  const again = await login(page);
-  await again.locator(`[data-campaign-id="${cid}"]`).click();
+  // The open campaign and its route survive the refresh, with no sign-in.
+  await expect(page).toHaveURL(new RegExp(`/c/${cid}$`));
+  await expect(page.getByLabel("Access token", { exact: true })).toHaveCount(0);
   await expect(
     page.getByRole("heading", { name: "Stormbound Harbor" }),
   ).toBeVisible();

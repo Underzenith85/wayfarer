@@ -1,26 +1,132 @@
 import { SetupLobby, type SetupSession } from "../setup/lobby";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { App } from "../app";
 import { Button } from "../components/ui/button";
+import { NetworkPlayTransport } from "../api/play-transport";
+import { SetupClient } from "../setup/client";
+import { LiveTransport } from "./live";
+import { pagePath, parsePath } from "../routes";
+import {
+  forgetSession,
+  readSession,
+  rememberCampaign,
+  rememberPrincipal,
+  rememberRequestedPath,
+  takeRequestedPath,
+} from "./session";
 import type { PlayTransport } from "./transport";
+
+/**
+ * Rebuilds the tab's session without asking for the access token again. The URL
+ * wins over the remembered campaign, so a pasted link opens the view it names;
+ * with no campaign to open, setup simply starts already signed in.
+ */
+async function restore(): Promise<{
+  session: SetupSession;
+  transport: PlayTransport | null;
+} | null> {
+  const saved = readSession();
+  if (!saved) return null;
+  const auth = await new SetupClient(saved.credential).request<{
+    principal_id: string;
+    generation_available: boolean;
+    legacy_available: boolean;
+  }>("/session");
+  const session: SetupSession = {
+    token: saved.credential,
+    principal: auth.principal_id,
+    generationAvailable: auth.generation_available,
+    legacyAvailable: auth.legacy_available,
+  };
+  const campaignId =
+    parsePath(location.pathname)?.campaignId ?? saved.campaignId;
+  if (!campaignId) return { session, transport: null };
+  rememberCampaign(campaignId);
+  return {
+    session,
+    transport: session.legacyAvailable
+      ? new LiveTransport(session.principal, campaignId, session.token)
+      : new NetworkPlayTransport({
+          origin: location.origin,
+          credential: session.token,
+          principalId: session.principal,
+          initialCampaignId: campaignId,
+        }),
+  };
+}
 
 /**
  * Setup and play are separate shells. Opening a campaign unmounts the launcher
  * and the setup panel, so the game shell starts at the top of every route; the
- * authenticated setup session is kept here so returning needs no second sign-in.
+ * authenticated setup session is kept here, and in this tab's session storage,
+ * so returning or reloading needs no second sign-in.
  */
 export function ConnectedApp() {
   const [session, setSession] = useState<SetupSession>();
   const [transport, setTransport] = useState<PlayTransport>();
   const [opened, setOpened] = useState<string>();
   const [mode, setMode] = useState<"new" | "continue" | "join">("new");
-  const clearSession = useCallback(() => setSession(undefined), []);
+  const [restoring, setRestoring] = useState(() => readSession() !== null);
+  const remember = useCallback((value: SetupSession | undefined) => {
+    setSession(value);
+    if (value) rememberPrincipal(value.token, value.principal);
+    else forgetSession();
+  }, []);
+  const clearSession = useCallback(() => {
+    forgetSession();
+    setSession(undefined);
+  }, []);
   const leave = useCallback((next: "new" | "continue") => {
+    // Leaving play drops the campaign from the URL and from what a reload opens.
     if (location.pathname !== "/") history.replaceState(null, "", "/");
+    rememberCampaign(null);
     if (next === "new") setOpened(undefined);
     setMode(next);
     setTransport(undefined);
   }, []);
+  useEffect(() => {
+    if (!restoring) return;
+    let active = true;
+    void restore()
+      .then((next) => {
+        if (!active || !next) return;
+        setSession(next.session);
+        if (next.transport) {
+          setOpened(next.transport.initialCampaignId);
+          setTransport(next.transport);
+        }
+      })
+      .catch(() => {
+        // A revoked or expired credential simply falls back to signing in.
+        forgetSession();
+      })
+      .finally(() => {
+        if (active) setRestoring(false);
+      });
+    return () => {
+      active = false;
+    };
+    // Rehydration runs once per tab, on boot.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  // Hold the requested view so signing in returns to it instead of the default.
+  useEffect(() => {
+    if (restoring || transport) return;
+    if (location.pathname !== "/")
+      rememberRequestedPath(location.pathname + location.search);
+  }, [restoring, transport]);
+  // A reload restores the session in the background; showing the sign-in form
+  // here would ask for an access token the tab already holds.
+  if (restoring)
+    return (
+      <section className="scene-card connection-form">
+        <h1>Wayfarer</h1>
+        <div role="status" aria-busy="true">
+          <h2>Restoring your session…</h2>
+          <div className="skeleton" />
+        </div>
+      </section>
+    );
   if (transport)
     return (
       <App
@@ -56,9 +162,17 @@ export function ConnectedApp() {
         mode={mode}
         initialSession={session}
         initialCampaignId={opened}
-        onSession={setSession}
+        onSession={remember}
         onOpen={(next) => {
-          if (location.pathname !== "/") history.replaceState(null, "", "/");
+          const requested = takeRequestedPath();
+          const segment = requested
+            ? (parsePath(new URL(requested, location.origin).pathname)
+                ?.segment ?? "")
+            : "";
+          const target = pagePath(next.initialCampaignId ?? null, segment);
+          if (location.pathname !== target)
+            history.replaceState(null, "", target);
+          if (next.initialCampaignId) rememberCampaign(next.initialCampaignId);
           setOpened(next.initialCampaignId);
           setTransport(next);
         }}
