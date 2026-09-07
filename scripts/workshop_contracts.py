@@ -4,12 +4,13 @@ import argparse
 import json
 from pathlib import Path
 
-from wayfarer.orchestration.advancement import AdvanceCharacter
+from wayfarer.orchestration.advancement import AdvanceCharacter, GrantPoints
 from wayfarer.orchestration.workshop import DraftCommand
 from wayfarer.orchestration.workshop_options import (
     ProfilePreviewRequest,
     ProfilePreviewResult,
     WorkshopOptions,
+    WorkshopReviewQueue,
 )
 
 
@@ -21,6 +22,8 @@ def contract() -> str:
         ProfilePreviewResult,
         AdvanceCharacter,
         DraftCommand,
+        WorkshopReviewQueue,
+        GrantPoints,
     ):
         schema = model.model_json_schema()
         schemas.update(schema.pop("$defs", {}))

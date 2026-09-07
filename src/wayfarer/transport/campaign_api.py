@@ -14,7 +14,7 @@ from aiohttp import web
 from pydantic import Field
 
 from wayfarer.config import Settings
-from wayfarer.errors import AuthenticationError, ValidationError, WayfarerError
+from wayfarer.errors import AuthenticationError, AuthorizationError, ValidationError, WayfarerError
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.codex import ProviderStatus
 from wayfarer.orchestration.director import DirectorService
@@ -23,7 +23,10 @@ from wayfarer.orchestration.providers import Orchestrator
 from wayfarer.orchestration.workshop import DraftCommand, WorkshopService
 from wayfarer.orchestration.workshop_options import (
     ProfilePreviewRequest,
+    ReviewActor,
+    ReviewSubmission,
     WorkshopOptions,
+    WorkshopReviewQueue,
     catalog_options,
     preview_profile,
     profile_option,
@@ -246,18 +249,27 @@ async def workshop_start(request: web.Request) -> web.Response:
     state = access.play._load(await access.play.store.read(request.match_info["cid"]))
     actor_id = request.match_info["aid"]
     member = access._member(state, _identity(request))
-    access._control(member, actor_id)
-    actor = next(a for a in state.actors if a.actor_id == actor_id)
+    reviewing = member.role == "gm" and member.principal_id in access.play.engine.reviewer.gm_ids
+    if not reviewing:
+        access._control(member, actor_id)
+    actor = next((a for a in state.actors if a.actor_id == actor_id), None)
+    if actor is None:
+        raise AuthorizationError("Character unavailable")
     draft = next(
         (
             d
             for d in reversed(state.drafts)
             if d.actor_id == actor_id
-            and d.owner_id == member.principal_id
+            and (
+                d.owner_id == member.principal_id or reviewing and d.submitted_revision is not None
+            )
             and d.kind == "character"
+            and (not request.query.get("draft_id") or d.id == request.query["draft_id"])
         ),
         None,
     )
+    if reviewing and draft is None:
+        raise AuthorizationError("Submitted draft unavailable")
     compiler = access.play.engine.reviewer.compiler
     build = compiler.compile(actor.proposal.draft).build
     active = DEFAULT_REGISTRY.find(reference(compiler.rules))
@@ -269,6 +281,7 @@ async def workshop_start(request: web.Request) -> web.Response:
         points_available=sum(e.points for e in state.advancement if e.actor_id == actor_id),
         can_approve=member.role == "gm"
         and member.principal_id in access.play.engine.reviewer.gm_ids,
+        can_edit=actor_id in member.actor_ids,
     )
     return web.json_response(
         {
@@ -279,6 +292,53 @@ async def workshop_start(request: web.Request) -> web.Response:
             "catalog": [{"id": d.id, "name": d.name} for d in compiler.definitions.values()],
         }
     )
+
+
+async def workshop_reviews(request: web.Request) -> web.Response:
+    access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
+    state = access.play._load(await access.play.store.read(request.match_info["cid"]))
+    member = access._member(state, _identity(request))
+    if member.role != "gm" or member.principal_id not in access.play.engine.reviewer.gm_ids:
+        raise AuthorizationError("Workshop review requires campaign GM")
+    from wayfarer.character.power import CharacterProposal
+
+    controlled = {a for m in state.members if m.role == "player" for a in m.actor_ids}
+    result = WorkshopReviewQueue(
+        revision=state.revision,
+        submissions=tuple(
+            ReviewSubmission(
+                draft_id=d.id,
+                actor_id=d.actor_id,
+                owner_id=d.owner_id,
+                name=CharacterProposal.model_validate_json(d.content_json).draft.name,
+                draft_revision=d.revision,
+                approved=d.approval_json is not None,
+            )
+            for d in state.drafts
+            if d.kind == "character"
+            and d.submitted_revision is not None
+            and d.activated_revision is None
+        ),
+        actors=tuple(
+            ReviewActor(actor_id=a.actor_id, name=a.proposal.draft.name)
+            for a in state.actors
+            if a.actor_id in controlled
+        ),
+    )
+    return web.json_response(result.model_dump(mode="json"))
+
+
+async def workshop_grant(request: web.Request) -> web.Response:
+    from wayfarer.orchestration.advancement import AdvancementService, GrantPoints
+
+    access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
+    cid, principal = request.match_info["cid"], _identity(request)
+    state = access.play._load(await access.play.store.read(cid))
+    if access._member(state, principal).role != "gm":
+        raise AuthorizationError("Point grants require campaign GM")
+    body = GrantPoints.model_validate_json(json.dumps(await _json(request)))
+    result = await AdvancementService(access.play).grant(cid, body, authenticated_gm_id=principal)
+    return web.json_response(result.model_dump(mode="json"))
 
 
 async def workshop_profile_preview(request: web.Request) -> web.Response:
@@ -421,6 +481,8 @@ def create_campaign_app(
                 web.get("/campaigns/{cid}/events", events),
                 web.get("/campaigns/{cid}/drafts/{did}", read_draft),
                 web.get("/campaigns/{cid}/workshop/{aid}", workshop_start),
+                web.get("/campaigns/{cid}/workshop-reviews", workshop_reviews),
+                web.post("/campaigns/{cid}/workshop-grants", workshop_grant),
                 web.post("/campaigns/{cid}/workshop-profile-preview", workshop_profile_preview),
                 web.post("/campaigns/{cid}/workshop-advancement/{operation}", workshop_advance),
                 web.post("/campaigns/{cid}/drafts", save_draft),

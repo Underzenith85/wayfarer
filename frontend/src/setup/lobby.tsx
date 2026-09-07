@@ -1,4 +1,5 @@
 import { ScenarioCatalog } from "./catalog";
+import { WorkshopReviewQueue } from "../character/review-queue";
 import { LiveTransport } from "../play/live";
 import type { Campaign } from "../play/transport";
 import { useState } from "react";
@@ -243,6 +244,14 @@ export function SetupLobby({
                   >
                     Continue {game.name}
                   </Button>
+                  {legacyAvailable && game.membership.role === "gm" && (
+                    <WorkshopReviewQueue
+                      key={`${principal}:${game.id}`}
+                      campaignId={game.id}
+                      principal={principal}
+                      token={token}
+                    />
+                  )}
                 </li>
               ))}
           </ul>

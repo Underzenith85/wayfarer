@@ -26,6 +26,7 @@ class DirectorTurn(Record):
 
 
 class AuthorDraft(Record):
+    submitted_revision: int | None = Field(default=None, ge=1)
     id: Id
     owner_id: Id
     actor_id: Id

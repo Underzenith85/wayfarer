@@ -455,6 +455,11 @@
           "can_approve": {
             "title": "Can Approve",
             "type": "boolean"
+          },
+          "can_edit": {
+            "default": true,
+            "title": "Can Edit",
+            "type": "boolean"
           }
         },
         "required": [
@@ -810,6 +815,7 @@
             "default": "save",
             "enum": [
               "save",
+              "submit",
               "approve",
               "activate"
             ],
@@ -853,6 +859,144 @@
           "expected_draft_revision"
         ],
         "title": "DraftCommand",
+        "type": "object"
+      },
+      "ReviewActor": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_id": {
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "actor_id",
+          "name"
+        ],
+        "title": "ReviewActor",
+        "type": "object"
+      },
+      "ReviewSubmission": {
+        "additionalProperties": false,
+        "properties": {
+          "draft_id": {
+            "title": "Draft Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "owner_id": {
+            "title": "Owner Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "draft_revision": {
+            "title": "Draft Revision",
+            "type": "integer"
+          },
+          "approved": {
+            "title": "Approved",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "draft_id",
+          "actor_id",
+          "owner_id",
+          "name",
+          "draft_revision",
+          "approved"
+        ],
+        "title": "ReviewSubmission",
+        "type": "object"
+      },
+      "WorkshopReviewQueue": {
+        "additionalProperties": false,
+        "properties": {
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "submissions": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewSubmission"
+            },
+            "title": "Submissions",
+            "type": "array"
+          },
+          "actors": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewActor"
+            },
+            "title": "Actors",
+            "type": "array"
+          }
+        },
+        "required": [
+          "revision",
+          "submissions",
+          "actors"
+        ],
+        "title": "WorkshopReviewQueue",
+        "type": "object"
+      },
+      "GrantPoints": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "target_actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Target Actor Id",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "points": {
+            "maximum": 10000,
+            "minimum": 1,
+            "title": "Points",
+            "type": "integer"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "target_actor_id",
+          "expected_revision",
+          "points",
+          "reason"
+        ],
+        "title": "GrantPoints",
         "type": "object"
       }
     }
