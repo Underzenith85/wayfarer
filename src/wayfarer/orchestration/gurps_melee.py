@@ -496,6 +496,7 @@ def resolve_melee(
     second_trace = None
     hit = attack.outcome.succeeded
     critical_dice: tuple[int, ...] = ()
+    critical_tables: tuple[tuple[int, ...], ...] = ()
     critical = 0
     blocked = None
     location: HumanLocation | None = None
@@ -521,7 +522,17 @@ def resolve_melee(
         ):
             critical_dice = tuple(play.rng.randbelow(6) + 1 for _ in range(3))
             blocked = f"basic-critical-miss:{sum(critical_dice)}:{'attacker' if defense.outcome.succeeded else 'defender'}"
-            hit = False
+            hit = defense.outcome is Outcome.CRITICAL_FAILURE and sum(critical_dice) in (
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                16,
+            )
         elif defense.outcome is Outcome.CRITICAL_FAILURE:
             if selected == "dodge":
                 defender = defender.model_copy(update={"posture": "prone"})
@@ -578,6 +589,7 @@ def resolve_melee(
                 critical_dice = tuple(play.rng.randbelow(6) + 1 for _ in range(3))
                 blocked = f"basic-critical-miss:{sum(critical_dice)}:defender"
                 defense_item = second_item
+                hit = sum(critical_dice) in (7, 8, 9, 10, 11, 12, 13, 14, 16)
             elif second_item:
                 state = state.model_copy(
                     update={
@@ -606,6 +618,42 @@ def resolve_melee(
         ):
             critical_dice = tuple(play.rng.randbelow(6) + 1 for _ in range(3))
             blocked = f"basic-critical-miss:{sum(critical_dice)}:attacker"
+    if blocked and blocked.startswith("basic-critical-miss:"):
+        from wayfarer.orchestration.critical_limbs import resolve_limb
+
+        encounter = encounter.model_copy(
+            update={
+                "participants": tuple(
+                    defender if p.actor_id == defender.actor_id else p
+                    for p in encounter.participants
+                )
+            }
+        )
+        parry_miss = blocked.endswith(":defender")
+        state, encounter, limb = resolve_limb(
+            play,
+            state,
+            encounter,
+            table=critical_dice,
+            defender_item=defense_item,
+            blocker=blocked,
+        )
+        critical_tables = limb.table_rolls
+        critical_dice = critical_tables[-1]
+        effect_dice += tuple(d for roll in critical_tables[1:] for d in roll)
+        effect_dice += limb.location_dice + limb.damage_dice
+        lasting_ids += limb.lasting_injury_ids
+        attacker = next(p for p in encounter.participants if p.actor_id == attacker.actor_id)
+        defender = next(p for p in encounter.participants if p.actor_id == defender.actor_id)
+        if limb.resolved:
+            blocked = None
+            hit = parry_miss
+        elif len(critical_tables) > 1:
+            suffix = (
+                ":defender" if parry_miss else ":attacker" if blocked.endswith(":attacker") else ""
+            )
+            blocked = f"basic-critical-miss:{sum(critical_dice)}{suffix}"
+            hit = parry_miss and sum(critical_dice) in (7, 8, 9, 10, 11, 12, 13, 14, 16)
     if hit and pending.hit_location:
         from wayfarer.orchestration.location_combat import from_behind
 
@@ -726,7 +774,7 @@ def resolve_melee(
         )
         injury = result.injury
         resistance = result.effective_resistance
-        lasting_ids = result.lasting_injury_ids
+        lasting_ids += result.lasting_injury_ids
         effect_dice += result.location_dice
         if head and critical in (12, 13) and result.injury:
             blocked = f"basic-critical-head:{critical}"
@@ -843,6 +891,43 @@ def resolve_melee(
                 "blocked_reason": blocked,
             }
         )
+    if blocked and blocked.startswith("basic-critical-miss:"):
+        from wayfarer.orchestration.critical_context import capture_critical
+        from wayfarer.orchestration.location_combat import from_behind
+        from wayfarer.simulation.critical import IncomingWound
+
+        incoming = (
+            IncomingWound(
+                actor_id=defender.actor_id,
+                dice=dice_count,
+                adds=adds,
+                damage_type=weapon.damage.damage_type,
+                resistance=resistance,
+                ht=defend_build.statistics.ht,
+                dx=defend_build.statistics.dx,
+                hit_location=pending.hit_location,
+                armor_divisor=weapon.damage.armor_divisor,
+                tight_beam=weapon.damage.tight_beam,
+                from_behind=from_behind(attacker, defender),
+                held_item_ids=held,
+                hand_bindings=defender.hand_bindings,
+                shield_item_ids=tuple(
+                    i.id
+                    for i in state.resources.items
+                    if i.id in held and entries[i.definition_id].shield
+                ),
+            )
+            if blocked.endswith(":defender")
+            else None
+        )
+        state = capture_critical(
+            play,
+            state,
+            encounter,
+            tables=critical_tables or (critical_dice,),
+            defender_item=defense_item,
+            incoming=incoming,
+        )
     trace = InjuryTrace(
         attack=attack,
         defense=defense,
@@ -898,8 +983,23 @@ def resolve_melee(
                 )
             }
         )
-    if actor.maneuver_state.attacks_remaining and not any(
-        i.id == pending.weapon_id and i.equipped and i.ready for i in state.resources.items
+    from wayfarer.orchestration.location_combat import unavailable_hand
+
+    attacker_status = next(
+        p.injury for p in state.resources.pools if p.id == f"hp:{actor.actor_id}"
+    )
+    attack_disabled = bool(
+        attacker_status and (attacker_status.incapacitated or attacker_status.stunned)
+    ) or any(
+        unavailable_hand(disabled(state, actor.actor_id), hand)
+        for item_id, hand in actor.hand_bindings
+        if item_id == pending.weapon_id
+    )
+    if actor.maneuver_state.attacks_remaining and (
+        attack_disabled
+        or not any(
+            i.id == pending.weapon_id and i.equipped and i.ready for i in state.resources.items
+        )
     ):
         encounter = encounter.model_copy(
             update={
