@@ -7,6 +7,7 @@ import { Button } from "../components/ui/button";
 import { NetworkPlayTransport } from "../api/play-transport";
 import {
   campaignPhaseLabel,
+  definitionLabel,
   humanize,
   lifecycleOperationLabel,
 } from "../presentation/labels";
@@ -434,10 +435,10 @@ export function SetupLobby({
                 .filter((a) => !graph.npc_actor_ids.includes(a.actor_id))
                 .map((actor) => (
                   <fieldset key={actor.actor_id}>
-                    <legend>Character {actor.actor_id}</legend>
+                    <legend>Character {humanize(actor.actor_id)}</legend>
                     {actor.proposal.draft.purchases.map((purchase, index) => (
                       <label key={index}>
-                        {purchase.definition_id}
+                        {definitionLabel(purchase.definition_id)}
                         <input
                           type="number"
                           min={0}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   campaignPhaseLabel,
+  definitionLabel,
   conditionLabel,
   encumbranceLabel,
   humanize,
@@ -108,6 +109,15 @@ describe("encumbranceLabel", () => {
     ).toBeNull();
     expect(encumbranceLabel("")).toBeNull();
     expect(encumbranceLabel(undefined)).toBeNull();
+  });
+});
+describe("definitionLabel", () => {
+  it("names a purchasable attribute in full", () => {
+    expect(definitionLabel("attribute:st")).toBe("Strength");
+  });
+  it("reads any engine namespace, not a fixed list of them", () => {
+    expect(definitionLabel("trait:combat-reflexes")).toBe("Combat Reflexes");
+    expect(definitionLabel("equipment:travel-coat")).toBe("Travel Coat");
   });
 });
 describe("humanize", () => {

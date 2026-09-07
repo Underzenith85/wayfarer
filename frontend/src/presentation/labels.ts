@@ -53,18 +53,10 @@ const ORDER = [
   "parry",
   "block",
 ];
-const PREFIXES = [
-  "attribute:",
-  "secondary:",
-  "skill:",
-  "defense:",
-  "movement:",
-  "pool:",
-];
+const NAMESPACE = /^[a-z][a-z0-9_-]*:/i;
 /** Drops the engine namespace so `attribute:st` and `st` resolve identically. */
 export function engineKey(id: string): string {
-  const prefix = PREFIXES.find((p) => id.startsWith(p));
-  return (prefix ? id.slice(prefix.length) : id).toLowerCase();
+  return id.replace(NAMESPACE, "").toLowerCase();
 }
 /** Readable fallback for identifiers this mapping does not name explicitly. */
 export function humanize(id: string): string {
@@ -108,6 +100,13 @@ export function presentStats(
     value: stat.value,
     ...statLabel(stat),
   }));
+}
+/**
+ * Full name for a catalog definition a player buys or edits: an attribute,
+ * secondary characteristic, skill, trait or piece of equipment.
+ */
+export function definitionLabel(id: string): string {
+  return statLabel({ id }).full;
 }
 /** Host controls over the campaign lifecycle, phrased as the action taken. */
 export const lifecycleLabel: Record<string, string> = {

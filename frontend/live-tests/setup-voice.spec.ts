@@ -183,7 +183,7 @@ test("two identities activate a saved party and review speech through the live d
     await lobby
       .getByRole("button", { name: "Archive campaign", exact: true })
       .click();
-    await expect(lobby.getByRole("status")).toContainText("archived");
+    await expect(lobby.getByRole("status")).toContainText("Archived");
     await expect(
       lobby.getByText(
         "Archived games are read-only. Unarchive returns to the conclusion, where you can continue.",
@@ -202,7 +202,7 @@ test("two identities activate a saved party and review speech through the live d
     await lobby
       .getByRole("button", { name: "Continue to next adventure", exact: true })
       .click();
-    await expect(lobby.getByRole("status")).toContainText("active");
+    await expect(lobby.getByRole("status")).toContainText("In play");
     await expect(
       lobby.getByRole("article", { name: "Adventure conclusion" }),
     ).toContainText("Courier · success");
