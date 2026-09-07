@@ -68,7 +68,8 @@ first-aid tables, repeated treatment, injury interruption, and natural recovery.
 shared-clock waiting, movement interruption, authorization, and heart-attack
 deadline execution. Existing prototype tests remain regression evidence.
 
-Still unsupported: surgery, resuscitation, mortal-wound stabilization, illness-
+Advanced resuscitation and stabilization are described in
+[advanced treatment](gurps-advanced-treatment.md). Still unsupported: illness-
 specific healing restrictions, and trait-specific recovery rates. First-aid and
 Physician commands require an available approved skill definition; the separate
 catalog coverage gates are not bypassed. Exact Lite-specific source certification,

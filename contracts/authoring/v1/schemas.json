@@ -1699,6 +1699,39 @@
             "minimum": 0,
             "title": "Available At",
             "type": "integer"
+          },
+          "body": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/HumanBody"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "held_item_hands": {
+            "default": [],
+            "items": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "string"
+                },
+                {
+                  "enum": [
+                    "left-hand",
+                    "right-hand"
+                  ],
+                  "type": "string"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Held Item Hands",
+            "type": "array"
           }
         },
         "required": [
@@ -1822,18 +1855,39 @@
         "properties": {
           "locations": {
             "items": {
-              "enum": [
-                "torso",
-                "skull",
-                "face",
-                "neck",
-                "arms",
-                "hands",
-                "legs",
-                "feet",
-                "groin"
-              ],
-              "type": "string"
+              "anyOf": [
+                {
+                  "enum": [
+                    "torso",
+                    "vitals",
+                    "skull",
+                    "face",
+                    "neck",
+                    "groin",
+                    "left-arm",
+                    "right-arm",
+                    "left-leg",
+                    "right-leg",
+                    "left-hand",
+                    "right-hand",
+                    "left-foot",
+                    "right-foot",
+                    "left-eye",
+                    "right-eye"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "enum": [
+                    "arms",
+                    "hands",
+                    "legs",
+                    "feet",
+                    "eyes"
+                  ],
+                  "type": "string"
+                }
+              ]
             },
             "minItems": 1,
             "title": "Locations",
@@ -2586,6 +2640,25 @@
             ],
             "title": "Damage Type",
             "type": "string"
+          },
+          "armor_divisor": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "default": "1",
+            "title": "Armor Divisor"
+          },
+          "tight_beam": {
+            "default": false,
+            "title": "Tight Beam",
+            "type": "boolean"
           }
         },
         "required": [
@@ -3002,6 +3075,249 @@
         "title": "GridPoint",
         "type": "object"
       },
+      "HazardSchedule": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "spec": {
+            "$ref": "#/$defs/HazardSpec"
+          },
+          "started": {
+            "minimum": 0,
+            "title": "Started",
+            "type": "integer"
+          },
+          "due": {
+            "minimum": 0,
+            "title": "Due",
+            "type": "integer"
+          },
+          "remaining": {
+            "minimum": 0,
+            "title": "Remaining",
+            "type": "integer"
+          },
+          "ht": {
+            "minimum": 1,
+            "title": "Ht",
+            "type": "integer"
+          },
+          "will": {
+            "minimum": 1,
+            "title": "Will",
+            "type": "integer"
+          },
+          "swimming": {
+            "minimum": 1,
+            "title": "Swimming",
+            "type": "integer"
+          },
+          "resistance": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Resistance",
+            "type": "integer"
+          },
+          "active": {
+            "default": true,
+            "title": "Active",
+            "type": "boolean"
+          },
+          "cycle": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Cycle",
+            "type": "integer"
+          },
+          "successes": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Successes",
+            "type": "integer"
+          },
+          "stage": {
+            "default": "cycles",
+            "enum": [
+              "exposure",
+              "cycles",
+              "struggling",
+              "recovering",
+              "swimming"
+            ],
+            "title": "Stage",
+            "type": "string"
+          },
+          "no_air_since": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "No Air Since"
+          },
+          "next_check_at": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Next Check At"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "spec",
+          "started",
+          "due",
+          "remaining",
+          "ht",
+          "will",
+          "swimming"
+        ],
+        "title": "HazardSchedule",
+        "type": "object"
+      },
+      "HazardSpec": {
+        "additionalProperties": false,
+        "description": "Scenario-owned configuration, never accepted as a player command payload.",
+        "properties": {
+          "id": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "profile_id": {
+            "const": "gurps-basic-set-4e-2004",
+            "default": "gurps-basic-set-4e-2004",
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "cold",
+              "heat",
+              "fire",
+              "suffocation",
+              "drowning",
+              "poison",
+              "disease"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "scene_id": {
+            "title": "Scene Id",
+            "type": "string"
+          },
+          "delay": {
+            "default": 0,
+            "maximum": 31536000,
+            "minimum": 0,
+            "title": "Delay",
+            "type": "integer"
+          },
+          "interval": {
+            "default": 1,
+            "maximum": 31536000,
+            "minimum": 1,
+            "title": "Interval",
+            "type": "integer"
+          },
+          "cycles": {
+            "default": 1,
+            "maximum": 100000,
+            "minimum": 1,
+            "title": "Cycles",
+            "type": "integer"
+          },
+          "resistance_modifier": {
+            "default": 0,
+            "maximum": 30,
+            "minimum": -30,
+            "title": "Resistance Modifier",
+            "type": "integer"
+          },
+          "damage_dice": {
+            "default": 0,
+            "maximum": 100,
+            "minimum": 0,
+            "title": "Damage Dice",
+            "type": "integer"
+          },
+          "damage_add": {
+            "default": 1,
+            "maximum": 1000,
+            "minimum": -10,
+            "title": "Damage Add",
+            "type": "integer"
+          },
+          "resistible": {
+            "default": true,
+            "title": "Resistible",
+            "type": "boolean"
+          },
+          "reference": {
+            "minLength": 1,
+            "title": "Reference",
+            "type": "string"
+          },
+          "recovery_successes": {
+            "default": 1,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Recovery Successes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "scene_id",
+          "reference"
+        ],
+        "title": "HazardSpec",
+        "type": "object"
+      },
+      "HumanBody": {
+        "additionalProperties": false,
+        "description": "Trusted scenario anatomy; absence never selects a human implicitly.",
+        "properties": {
+          "anatomy": {
+            "const": "human",
+            "title": "Anatomy",
+            "type": "string"
+          },
+          "male_groin": {
+            "default": false,
+            "title": "Male Groin",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "anatomy"
+        ],
+        "title": "HumanBody",
+        "type": "object"
+      },
       "InitialResources": {
         "additionalProperties": false,
         "description": "Only initial resources; runtime history and elapsed time are forbidden.",
@@ -3086,6 +3402,22 @@
             },
             "title": "Recovery Tasks",
             "type": "array"
+          },
+          "hazards": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/HazardSchedule"
+            },
+            "title": "Hazards",
+            "type": "array"
+          },
+          "illnesses": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/RecoveryRestriction"
+            },
+            "title": "Illnesses",
+            "type": "array"
           }
         },
         "title": "InitialResources",
@@ -3129,6 +3461,25 @@
             "title": "Mortal Wound",
             "type": "boolean"
           },
+          "mortal_wound_due": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Mortal Wound Due"
+          },
+          "mortal_wound_started": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Mortal Wound Started",
+            "type": "integer"
+          },
           "dead": {
             "default": false,
             "title": "Dead",
@@ -3154,6 +3505,32 @@
             "minimum": 0,
             "title": "Shock Expires",
             "type": "integer"
+          },
+          "anatomy": {
+            "anyOf": [
+              {
+                "const": "human",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Anatomy"
+          },
+          "male_groin": {
+            "default": false,
+            "title": "Male Groin",
+            "type": "boolean"
+          },
+          "lasting_injuries": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/LastingInjury"
+            },
+            "title": "Lasting Injuries",
+            "type": "array"
           }
         },
         "required": [
@@ -3221,6 +3598,92 @@
         "title": "Item",
         "type": "object"
       },
+      "LastingInjury": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "location": {
+            "enum": [
+              "torso",
+              "vitals",
+              "skull",
+              "face",
+              "neck",
+              "groin",
+              "left-arm",
+              "right-arm",
+              "left-leg",
+              "right-leg",
+              "left-hand",
+              "right-hand",
+              "left-foot",
+              "right-foot",
+              "left-eye",
+              "right-eye"
+            ],
+            "title": "Location",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "crippled",
+              "destroyed",
+              "severed",
+              "disabled"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "duration": {
+            "enum": [
+              "pending",
+              "temporary",
+              "lasting",
+              "permanent",
+              "timed"
+            ],
+            "title": "Duration",
+            "type": "string"
+          },
+          "inflicted_at": {
+            "minimum": 0,
+            "title": "Inflicted At",
+            "type": "integer"
+          },
+          "injury": {
+            "minimum": 0,
+            "title": "Injury",
+            "type": "integer"
+          },
+          "recovery_at": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Recovery At"
+          }
+        },
+        "required": [
+          "id",
+          "location",
+          "kind",
+          "duration",
+          "inflicted_at",
+          "injury"
+        ],
+        "title": "LastingInjury",
+        "type": "object"
+      },
       "MeleeMode": {
         "additionalProperties": false,
         "properties": {
@@ -3278,6 +3741,11 @@
               }
             ],
             "default": null
+          },
+          "ready_after_attack": {
+            "default": false,
+            "title": "Ready After Attack",
+            "type": "boolean"
           }
         },
         "required": [
@@ -4770,6 +5238,57 @@
         "title": "RecoveryOption",
         "type": "object"
       },
+      "RecoveryRestriction": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "active": {
+            "default": true,
+            "title": "Active",
+            "type": "boolean"
+          },
+          "hp_debt": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Hp Debt",
+            "type": "integer"
+          },
+          "fp_debt": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Fp Debt",
+            "type": "integer"
+          },
+          "blocks_natural_healing": {
+            "default": true,
+            "title": "Blocks Natural Healing",
+            "type": "boolean"
+          },
+          "blocks_physician_healing": {
+            "default": false,
+            "title": "Blocks Physician Healing",
+            "type": "boolean"
+          },
+          "blocks_rest": {
+            "default": false,
+            "title": "Blocks Rest",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id"
+        ],
+        "title": "RecoveryRestriction",
+        "type": "object"
+      },
       "RecoveryRules": {
         "additionalProperties": false,
         "properties": {
@@ -4839,7 +5358,9 @@
               "natural",
               "bandage",
               "first-aid",
-              "physician"
+              "physician",
+              "resuscitate",
+              "stabilize"
             ],
             "title": "Kind",
             "type": "string"
@@ -4965,6 +5486,11 @@
             ],
             "default": null,
             "title": "Skill"
+          },
+          "treatment_modifier": {
+            "default": 0,
+            "title": "Treatment Modifier",
+            "type": "integer"
           },
           "ordinary_entitlement": {
             "default": 0,

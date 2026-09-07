@@ -73,9 +73,7 @@ it("shows a saved conclusion and restores an archive to completed", async () => 
   const user = userEvent.setup();
   render(<SetupLobby onOpen={vi.fn()} />);
   await user.type(screen.getByLabelText("Access token"), "secret");
-  await user.click(
-    screen.getByRole("button", { name: "Load games and invitations" }),
-  );
+  await user.click(screen.getByRole("button", { name: "Sign in" }));
   await user.click(
     await screen.findByRole("button", { name: "Courier · Archived" }),
   );
@@ -148,9 +146,7 @@ it("renders seats as structured rows and lifecycle controls as actions", async (
   const user = userEvent.setup();
   render(<SetupLobby onOpen={vi.fn()} />);
   await user.type(screen.getByLabelText("Access token"), "secret");
-  await user.click(
-    screen.getByRole("button", { name: "Load games and invitations" }),
-  );
+  await user.click(screen.getByRole("button", { name: "Sign in" }));
   await user.click(
     await screen.findByRole("button", { name: "Courier · In play" }),
   );
@@ -250,9 +246,7 @@ describe("grounded ending journeys", () => {
       const user = userEvent.setup();
       render(<SetupLobby onOpen={vi.fn()} />);
       await user.type(screen.getByLabelText("Access token"), "secret");
-      await user.click(
-        screen.getByRole("button", { name: "Load games and invitations" }),
-      );
+      await user.click(screen.getByRole("button", { name: "Sign in" }));
       await user.click(
         await screen.findByRole("button", { name: "Courier · Finished" }),
       );
@@ -362,9 +356,7 @@ describe("grounded ending journeys", () => {
     const user = userEvent.setup();
     render(<SetupLobby onOpen={vi.fn()} />);
     await user.type(screen.getByLabelText("Access token"), "secret");
-    await user.click(
-      screen.getByRole("button", { name: "Load games and invitations" }),
-    );
+    await user.click(screen.getByRole("button", { name: "Sign in" }));
     await user.click(
       await screen.findByRole("button", { name: "Courier · Finished" }),
     );
@@ -481,9 +473,7 @@ it("creates a game with an exact rules profile and disables unsupported ones", a
   const user = userEvent.setup();
   render(<SetupLobby onOpen={vi.fn()} />);
   await user.type(screen.getByLabelText("Access token"), "secret");
-  await user.click(
-    screen.getByRole("button", { name: "Load games and invitations" }),
-  );
+  await user.click(screen.getByRole("button", { name: "Sign in" }));
   const select = await screen.findByLabelText("Rules profile");
   const unsupported = screen.getByRole("option", {
     name: /GURPS Lite, Fourth Edition \(2004\) \(v1\) · unavailable: 2 unverified capabilities/,

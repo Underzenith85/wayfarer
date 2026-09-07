@@ -19,6 +19,7 @@ export const inventoryJourneys = [
   "capture",
   "recovery",
   "inventory-conflict",
+  "empty",
 ] as const;
 export type InventoryJourney = (typeof inventoryJourneys)[number];
 type Request = SubmitAction | InventoryCommand;
@@ -39,6 +40,15 @@ export function inventorySnapshot(
   const inventory = s.inventories[0]!,
     actor = s.characters[0]!,
     details = s.inventoryDetails![actor.id]!;
+  if (journey === "empty") {
+    inventory.items = [];
+    inventory.total_weight_grams = 0;
+    inventory.encumbrance = "none";
+    details.items = {};
+    details.containers = [];
+    actor.equipped_item_ids = [];
+    s.characterDetails![actor.id]!.effects = [];
+  }
   if (journey === "capture" || journey === "recovery") {
     inventory.items.forEach((item) => {
       item.location = "confiscated";

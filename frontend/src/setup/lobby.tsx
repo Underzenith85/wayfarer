@@ -145,7 +145,7 @@ export function SetupLobby({
               onChange={(e) => setToken(e.target.value)}
             />
           </label>
-          <Button disabled={busy}>Load games and invitations</Button>
+          <Button disabled={busy}>Sign in</Button>
         </form>
       ) : (
         <>
@@ -436,46 +436,48 @@ export function SetupLobby({
                 .map((actor) => (
                   <fieldset key={actor.actor_id}>
                     <legend>Character {humanize(actor.actor_id)}</legend>
-                    {actor.proposal.draft.purchases.map((purchase, index) => (
-                      <label key={index}>
-                        {definitionLabel(purchase.definition_id)}
-                        <input
-                          type="number"
-                          min={0}
-                          value={purchase.amount}
-                          onChange={(e) =>
-                            setGraph({
-                              ...graph,
-                              actors: graph.actors.map((a) =>
-                                a !== actor
-                                  ? a
-                                  : {
-                                      ...a,
-                                      proposal: {
-                                        ...a.proposal,
-                                        draft: {
-                                          ...a.proposal.draft,
-                                          purchases:
-                                            a.proposal.draft.purchases.map(
-                                              (p, i) =>
-                                                i === index
-                                                  ? {
-                                                      ...p,
-                                                      amount: Number(
-                                                        e.target.value,
-                                                      ),
-                                                    }
-                                                  : p,
-                                            ),
+                    <div className="numeric-fields">
+                      {actor.proposal.draft.purchases.map((purchase, index) => (
+                        <label key={index}>
+                          {definitionLabel(purchase.definition_id)}
+                          <input
+                            type="number"
+                            min={0}
+                            value={purchase.amount}
+                            onChange={(e) =>
+                              setGraph({
+                                ...graph,
+                                actors: graph.actors.map((a) =>
+                                  a !== actor
+                                    ? a
+                                    : {
+                                        ...a,
+                                        proposal: {
+                                          ...a.proposal,
+                                          draft: {
+                                            ...a.proposal.draft,
+                                            purchases:
+                                              a.proposal.draft.purchases.map(
+                                                (p, i) =>
+                                                  i === index
+                                                    ? {
+                                                        ...p,
+                                                        amount: Number(
+                                                          e.target.value,
+                                                        ),
+                                                      }
+                                                    : p,
+                                              ),
+                                          },
                                         },
                                       },
-                                    },
-                              ),
-                            })
-                          }
-                        />
-                      </label>
-                    ))}
+                                ),
+                              })
+                            }
+                          />
+                        </label>
+                      ))}
+                    </div>
                   </fieldset>
                 ))}
               <p>
