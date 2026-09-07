@@ -15,6 +15,7 @@ from wayfarer.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.rules.hazard_types import require_hazards_settled
 from wayfarer.rules.recovery_types import interrupt_tasks, require_settled
+from wayfarer.simulation.concentration import require_idle_concentration
 from wayfarer.simulation.fatigue import FatigueCost, apply_fatigue
 from wayfarer.simulation.resources import Command, Id, Receipt, Record, ResourceEvent, ResourceState
 
@@ -257,10 +258,7 @@ def apply_spell(
     if command.kind == "start":
         if effect is not None:
             raise ConflictError("Cast identity already used")
-        if any(
-            e.actor_id == command.actor_id and e.phase == "casting" for e in latest(state).values()
-        ):
-            raise ConflictError("Caster is already concentrating")
+        require_idle_concentration(state, command.actor_id)
         if command.spell_id not in context.learned or not set(spec.prerequisites) <= set(
             context.learned
         ):

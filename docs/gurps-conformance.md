@@ -489,3 +489,22 @@ Early cancellation costs 1 FP regardless of skill; aborting an unfinished cast o
 letting its duration expire is free. The [publisher-hosted cancellation discussion](https://forums.sjgames.com/showthread.php?t=109197)
 corroborates the B237 reference but does not replace the frozen-source audit.
 Held missile disposal remains rejected pending its concrete adapter in #171.
+
+## Shared supernatural concentration (#117, #118, #171)
+
+Spells and abilities use one pending concentration guard. An actor cannot start
+another spell, ability activation or Detect analysis while either service has a
+pending commitment. Reducers enforce the same rule as orchestration; rejection
+precedes injury rolls and energy settlement. Cancellation or another action
+releases concentration, while a distraction or missed spell deadline still
+requires resolution or cancellation. Active maintained effects do not block a
+new cast. Initial scenarios cannot seed execution events from either service.
+
+`tests/test_supernatural_concentration.py` exercises both directions, direct
+reducers, concurrent CAS, persisted retries, cancellation and event injection.
+These are integration invariants, not independent rulebook certification cases.
+The ability capability is reconciled from `absent` to `partial` to reflect the
+four representative runtime families already merged in #150. It remains a
+Basic Set certification blocker. #117/#171 still require catalog and combat
+bindings, concrete spell effects and the remaining magic variants; #118 and
+#119 still require source reconciliation. No manual entry becomes verified.

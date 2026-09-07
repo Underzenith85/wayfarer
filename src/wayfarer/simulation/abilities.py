@@ -181,6 +181,10 @@ def apply_ability(
         raise ValidationError("Ability execution requires exact Basic Set authority")
     if resources.revision != command.expected_revision:
         raise ConflictError("Ability revision changed")
+    if command.kind in ("activate", "analyze"):
+        from wayfarer.simulation.concentration import require_idle_concentration
+
+        require_idle_concentration(resources, command.actor_id)
     validate_binding(spec, context.level, context.options)
     if command.ability_id != spec.definition_id:
         raise ValidationError("Ability binding changed")
