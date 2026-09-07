@@ -355,6 +355,13 @@ class ActionEngine:
             raise ValidationError("Play and resource revisions diverged")
         if self.rules.spells:
             entities = {e.id: e for e in state.world.entities}
+            spell_actor_ids = {a.actor_id for a in state.actors}
+            if any(
+                t not in spell_actor_ids
+                for option in self.rules.spells.backfire_alternatives
+                for t in option.target_ids
+            ):
+                raise ValidationError("Backfire alternatives require approved campaign actors")
             for spell_channel in self.rules.spells.channels:
                 if (
                     spell_channel.actor_id not in entities
@@ -1026,9 +1033,9 @@ class ActionEngine:
             derived, dependencies = self._target(state, actor.actor_id, build, rule)
             if not derived.value.is_finite() or derived.value != derived.value.to_integral_value():
                 raise ValidationError("Check target must be a finite integer")
-            from wayfarer.simulation.spell_effects import illuminated
+            from wayfarer.simulation.spell_effects import lighting_penalty
 
-            darkness = 0 if illuminated(state, rule.target_id) else rule.darkness_penalty
+            darkness = lighting_penalty(state, rule.target_id, rule.darkness_penalty)
             trace = success_check(
                 int(derived.value),
                 (Modifier(rule.modifier, rule.id, rule.definition_id, rule.package_version),)

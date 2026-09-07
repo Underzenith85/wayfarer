@@ -109,8 +109,14 @@ def injury_turn(
     hp = next(p for p in state.resources.pools if p.id == f"hp:{actor_id}")
     if hp.injury is None or hp.injury.profile_id != compiled.statistics.profile_id:
         raise ValidationError("GURPS injury requires explicit migration")
+    from wayfarer.simulation.spell_backfires import clear_stun, mental_stun, refund_due
+
+    resources = state.resources
+    if start:
+        resources = refund_due(resources, actor_id, turn=hp.injury.turn + 1)
+    was_mental = mental_stun(resources, actor_id)
     resources, _ = apply_injury(
-        state.resources,
+        resources,
         InjuryTurn(
             id=f"injury-{'start' if start else 'end'}:"
             + hashlib.sha256(command_id.encode()).hexdigest(),
@@ -121,9 +127,13 @@ def injury_turn(
             do_nothing=do_nothing,
         ),
         ht=compiled.statistics.ht,
+        stun_iq=compiled.statistics.iq if was_mental else None,
         rng=play.rng,
         system=True,
     )
+    after_hp = next(p for p in resources.pools if p.id == f"hp:{actor_id}")
+    if was_mental and after_hp.injury and not after_hp.injury.stunned:
+        resources = clear_stun(resources, actor_id, command_id)
     return state.model_copy(update={"resources": resources})
 
 

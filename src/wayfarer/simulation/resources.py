@@ -537,6 +537,15 @@ class ResourceEngine:
                 raise ValidationError("Effect already has an expiration")
             updated = state.model_copy(update={"scheduled": state.scheduled + (entry,)})
         elif isinstance(command, Advance):
+            from wayfarer.simulation.spell_backfires import backfires
+
+            if any(
+                b.stunned
+                and b.stun_due_at is not None
+                and state.game_time < b.stun_due_at < command.to
+                for b in backfires(state)
+            ):
+                raise ConflictError("Advance to the mental-stun recovery deadline first")
             if command.to < state.game_time:
                 raise ValidationError("Game time cannot move backwards")
             living = {

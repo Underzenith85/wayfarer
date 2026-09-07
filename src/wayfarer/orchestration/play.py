@@ -100,7 +100,10 @@ class PlayService:
         """Trusted scenario input; player drafts never supply approval records."""
         if campaign["revision"] != 0 or resources.revision != 0:
             raise ValidationError("Initial revisions must be zero")
-        if any(event.id.startswith(("ability:", "spell:")) for event in resources.events):
+        if any(
+            event.id.startswith(("ability:", "spell:", "spell-backfire:", "mana-refund:"))
+            for event in resources.events
+        ):
             raise ValidationError("Initial resources cannot seed supernatural execution receipts")
         if campaign.get("rules_ref") != reference(self.engine.resources.rules):
             raise ValidationError("Campaign rules do not match the play engine")
@@ -281,9 +284,26 @@ class PlayService:
     ) -> PlayState:
         from wayfarer.orchestration.npcs import checkpoint as npc_checkpoint
         from wayfarer.orchestration.objectives import checkpoint
+        from wayfarer.orchestration.spell_backfires import perceive, recover_stuns
         from wayfarer.orchestration.spell_effects import checkpoint as spell_checkpoint
+        from wayfarer.simulation.spell_backfires import refund_due
 
+        resources = state.resources
+        for actor in state.actors:
+            resources = refund_due(resources, actor.actor_id)
+        state = state.model_copy(update={"resources": resources})
+        from wayfarer.orchestration.held_missiles import checkpoint as held_checkpoint
+        from wayfarer.orchestration.held_missiles import concentration_checkpoint
+
+        if before is not None:
+            state = concentration_checkpoint(self, state, before)
+            state = held_checkpoint(self, state, before)
+        before_fire = state
         state = spell_checkpoint(self, state)
+        state = perceive(state)
+        state = recover_stuns(self, state)
+        state = concentration_checkpoint(self, state, before_fire)
+        state = held_checkpoint(self, state, before_fire)
         if run_npcs:
             state = npc_checkpoint(self, state)
         return checkpoint(self, state, before=before)

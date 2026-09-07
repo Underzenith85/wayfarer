@@ -725,6 +725,142 @@
       "title": "AttackProfile",
       "type": "object"
     },
+    "BackfireAlternative": {
+      "additionalProperties": false,
+      "description": "Campaign-authored interpretation of a contextual B236 result.",
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "spell_id": {
+          "enum": [
+            "light",
+            "daze",
+            "fireball",
+            "create-fire"
+          ],
+          "title": "Spell Id",
+          "type": "string"
+        },
+        "rows": {
+          "items": {
+            "type": "integer"
+          },
+          "maxItems": 18,
+          "minItems": 1,
+          "title": "Rows",
+          "type": "array"
+        },
+        "severity": {
+          "default": "normal",
+          "enum": [
+            "normal",
+            "disaster"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "effect": {
+          "enum": [
+            "retarget",
+            "reverse",
+            "damage",
+            "summon",
+            "waive",
+            "reroll"
+          ],
+          "title": "Effect",
+          "type": "string"
+        },
+        "target_ids": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Target Ids",
+          "type": "array"
+        },
+        "relationship": {
+          "default": "any",
+          "enum": [
+            "caster",
+            "companion",
+            "foe",
+            "any"
+          ],
+          "title": "Relationship",
+          "type": "string"
+        },
+        "damage_dice": {
+          "default": 1,
+          "maximum": 20,
+          "minimum": 0,
+          "title": "Damage Dice",
+          "type": "integer"
+        },
+        "damage_add": {
+          "default": 0,
+          "maximum": 100,
+          "minimum": -20,
+          "title": "Damage Add",
+          "type": "integer"
+        },
+        "damage_type": {
+          "default": "burn",
+          "enum": [
+            "burn",
+            "cr",
+            "tox"
+          ],
+          "title": "Damage Type",
+          "type": "string"
+        },
+        "position": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position"
+        },
+        "reason": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "spell_id",
+        "rows",
+        "effect",
+        "target_ids",
+        "reason"
+      ],
+      "title": "BackfireAlternative",
+      "type": "object"
+    },
     "Battlefield": {
       "additionalProperties": false,
       "properties": {
@@ -5258,6 +5394,20 @@
           ],
           "title": "Mana",
           "type": "string"
+        },
+        "light_radius": {
+          "default": 2,
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Light Radius",
+          "type": "integer"
+        },
+        "light_penalty": {
+          "default": -3,
+          "maximum": 0,
+          "minimum": -9,
+          "title": "Light Penalty",
+          "type": "integer"
         }
       },
       "required": [
@@ -5273,6 +5423,15 @@
     "SpellRules": {
       "additionalProperties": false,
       "properties": {
+        "execution_version": {
+          "default": 1,
+          "enum": [
+            1,
+            2
+          ],
+          "title": "Execution Version",
+          "type": "integer"
+        },
         "id": {
           "maxLength": 200,
           "minLength": 1,
@@ -5295,6 +5454,14 @@
             "$ref": "#/$defs/SpellChannel"
           },
           "title": "Channels",
+          "type": "array"
+        },
+        "backfire_alternatives": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/BackfireAlternative"
+          },
+          "title": "Backfire Alternatives",
           "type": "array"
         }
       },

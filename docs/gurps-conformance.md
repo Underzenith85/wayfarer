@@ -659,6 +659,15 @@ result nor this partial adapter certifies these missing paths or unblocks #119's
 hard #117 prerequisite.
 
 
+## Spell execution completion (#171)
+
+[The execution guide](gurps-spell-execution.md) records the opt-in execution
+version 2, profile version 5 prerequisite correction, source review, concrete
+backfires, HP energy, mana refunds, manipulation, held missiles, Wait and fire
+crossings. The earlier “remaining paths” lists above describe historical slices;
+use the execution guide for current behavior and the explicitly unsupported
+variants. Full `gurps.magic.spellcasting` certification remains partial under #119.
+
 ## Geometry and injury follow-up (#105/#107)
 
 The hex adapter now supports fractional authored elevations, explicit stair
