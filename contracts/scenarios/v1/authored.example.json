@@ -308,6 +308,8 @@
       "fired": [],
       "receipts": [],
       "events": [],
+      "ammunition_loads": [],
+      "expended_items": [],
       "recovery_tasks": [],
       "hazards": [],
       "illnesses": []

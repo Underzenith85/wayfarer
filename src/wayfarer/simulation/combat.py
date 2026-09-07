@@ -109,6 +109,10 @@ class InjuryTrace(Record):
     location_dice: tuple[int, ...] = ()
     effect_dice: tuple[int, ...] = ()
     lasting_injury_ids: tuple[str, ...] = ()
+    shots_fired: int = Field(default=0, ge=0)
+    hits: int = Field(default=0, ge=0)
+    per_hit_damage: tuple[int, ...] = ()
+    per_hit_injury: tuple[int, ...] = ()
 
 
 class CombatConsequence(Record):
@@ -178,6 +182,7 @@ class PendingDefense(Record):
     defender_id: Id
     weapon_id: Id
     allowed: tuple[Defense, ...] = Field(min_length=1)
+    shots: int = Field(default=1, ge=1)
     opened_round: int = Field(ge=1)
     opened_turn: int = Field(ge=0)
     mode_id: str | None = None
@@ -188,6 +193,14 @@ class DefenseChoice(Record):
     pending: PendingDefense
     selected: Defense
     chosen_by: Id
+
+
+class RangedSituation(Record):
+    attacker_id: Id
+    defender_id: Id
+    distance_yards: float = Field(gt=0, allow_inf_nan=False)
+    speed_yards_per_second: float = Field(default=0, ge=0, allow_inf_nan=False)
+    size_modifier: int = 0
 
 
 class Encounter(Record):
@@ -204,6 +217,7 @@ class Encounter(Record):
     wounds: tuple[InjuryTrace, ...] = ()
     blocked_reason: str | None = None
     wait_interrupt: WaitInterrupt | None = None
+    ranged_situations: tuple[RangedSituation, ...] = ()
 
     @property
     def current_actor_id(self) -> str:
@@ -644,6 +658,11 @@ class CombatEngine:
             if maneuver in ATTACK_MANEUVERS or maneuver == "feint":
                 commitment = commitment.model_copy(
                     update={
+                        "aim_item_id": old.aim_item_id,
+                        "aim_target_id": old.aim_target_id,
+                        "aim_mode_id": old.aim_mode_id,
+                        "aim_seconds": old.aim_seconds if participant.last_maneuver == "aim" else 0,
+                        "aim_accuracy": old.aim_accuracy,
                         "evaluate_target_id": old.evaluate_target_id,
                         "evaluate_bonus": old.evaluate_bonus,
                         "feint_target_id": old.feint_target_id,
@@ -668,6 +687,11 @@ class CombatEngine:
             if maneuver in ATTACK_MANEUVERS:
                 commitment = commitment.model_copy(
                     update={
+                        "aim_item_id": old.aim_item_id,
+                        "aim_target_id": old.aim_target_id,
+                        "aim_mode_id": old.aim_mode_id,
+                        "aim_seconds": old.aim_seconds if participant.last_maneuver == "aim" else 0,
+                        "aim_accuracy": old.aim_accuracy,
                         "evaluate_target_id": old.evaluate_target_id,
                         "evaluate_bonus": old.evaluate_bonus,
                         "feint_target_id": old.feint_target_id,
@@ -888,7 +912,13 @@ class CombatEngine:
                 target is None
                 or target.actor_id == actor_id
                 or item_id not in participant.ready_item_ids
-                or self.distance(participant.position, target.position) > participant.reach
+                or (
+                    self.distance(participant.position, target.position) > participant.reach
+                    and not any(
+                        s.attacker_id == actor_id and s.defender_id == target_id
+                        for s in encounter.ranged_situations
+                    )
+                )
             ):
                 raise ValidationError("Attack target or weapon is unavailable or out of reach")
             participant = participant.model_copy(
