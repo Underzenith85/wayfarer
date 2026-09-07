@@ -29,8 +29,15 @@ export interface Entry {
   id: string;
   channel: Channel;
   text: string;
+  /** When this turn was taken; the action's own time replaces it on receipt. */
+  at: string;
   action: Action | null;
   narration: Narration | null;
+}
+/** A draft held for this scope, with the moment it was last written. */
+export interface Draft {
+  text: string;
+  savedAt: string | null;
 }
 type Command =
   | {
@@ -51,7 +58,7 @@ export interface PlayState {
   connection: "online" | "offline" | "recovering";
   multiplayer: MultiplayerView | null;
   tableRetry: TableCommand | null;
-  drafts: Record<Channel, string>;
+  drafts: Record<Channel, Draft>;
   campaigns: Campaign[];
   snapshot: Snapshot | null;
   selectedId: string | null;
@@ -69,7 +76,11 @@ const initial: PlayState = {
   connection: "online",
   multiplayer: null,
   tableRetry: null,
-  drafts: { action: "", dialogue: "", ooc: "" },
+  drafts: {
+    action: { text: "", savedAt: null },
+    dialogue: { text: "", savedAt: null },
+    ooc: { text: "", savedAt: null },
+  },
   campaigns: [],
   snapshot: null,
   selectedId: null,
@@ -128,31 +139,63 @@ export class PlayStore {
   private active(generation: number) {
     return generation === this.generation && !this.controller.signal.aborted;
   }
-  private storageKey() {
+  /**
+   * Private storage is scoped to the principal, campaign, scene and character a
+   * draft or a turn belongs to, so nothing written for one scene reappears in
+   * another, and ending the session clears every prefix at once.
+   */
+  private scopedKey(kind: "draft" | "log") {
     const s = this.state.snapshot;
     return s && this.state.actorId
-      ? `wayfarer:draft:${this.transport.principalId}:${s.campaign.id}:${s.scene.id}:${this.state.actorId}`
+      ? `wayfarer:${kind}:${this.transport.principalId}:${s.campaign.id}:${s.scene.id}:${this.state.actorId}`
       : null;
   }
-  readDraft(channel: Channel) {
+  readDraft(channel: Channel): Draft {
+    const empty: Draft = { text: "", savedAt: null };
     try {
-      const key = this.storageKey();
-      return key ? (localStorage.getItem(`${key}:${channel}`) ?? "") : "";
+      const key = this.scopedKey("draft");
+      const stored = key ? localStorage.getItem(`${key}:${channel}`) : null;
+      if (!stored) return empty;
+      // Drafts written before they carried a time still open as drafts; they
+      // simply have no age to state.
+      const value: unknown = JSON.parse(stored);
+      if (typeof value === "string") return { text: value, savedAt: null };
+      if (
+        value &&
+        typeof value === "object" &&
+        typeof (value as Draft).text === "string"
+      )
+        return {
+          text: (value as Draft).text,
+          savedAt:
+            typeof (value as Draft).savedAt === "string"
+              ? (value as Draft).savedAt
+              : null,
+        };
+      return empty;
     } catch {
-      return "";
+      return empty;
     }
   }
   saveDraft(channel: Channel, text: string) {
-    this.patch({ drafts: { ...this.state.drafts, [channel]: text } });
+    const draft: Draft = text
+      ? { text, savedAt: new Date().toISOString() }
+      : { text: "", savedAt: null };
+    this.patch({ drafts: { ...this.state.drafts, [channel]: draft } });
     try {
-      const key = this.storageKey();
+      const key = this.scopedKey("draft");
       if (key) {
-        if (text) localStorage.setItem(`${key}:${channel}`, text);
+        if (text)
+          localStorage.setItem(`${key}:${channel}`, JSON.stringify(draft));
         else localStorage.removeItem(`${key}:${channel}`);
       }
     } catch {
       /* Drafts still work in memory when storage is disabled. */
     }
+  }
+  /** One interaction throws a draft away, here and on this device (#201). */
+  discardDraft(channel: Channel) {
+    this.saveDraft(channel, "");
   }
   private hydrateDrafts() {
     this.patch({
@@ -163,12 +206,53 @@ export class PlayStore {
       },
     });
   }
+  /**
+   * What this device submitted, by action id. The frozen v1 action carries no
+   * intent text, so a reloaded transcript would otherwise be a column of
+   * identical placeholders (#202). It is private, scoped and capped like a
+   * draft, and its absence is stated rather than filled in.
+   */
+  private readSubmissions(): Record<
+    string,
+    { channel: Channel; text: string }
+  > {
+    try {
+      const key = this.scopedKey("log");
+      const stored = key ? localStorage.getItem(key) : null;
+      const value: unknown = stored ? JSON.parse(stored) : null;
+      return value && typeof value === "object" && !Array.isArray(value)
+        ? (value as Record<string, { channel: Channel; text: string }>)
+        : {};
+    } catch {
+      return {};
+    }
+  }
+  private rememberSubmission(actionId: string, channel: Channel, text: string) {
+    if (!text) return;
+    try {
+      const key = this.scopedKey("log");
+      if (!key) return;
+      const entries = Object.entries({
+        ...this.readSubmissions(),
+        [actionId]: { channel, text },
+      });
+      localStorage.setItem(
+        key,
+        JSON.stringify(Object.fromEntries(entries.slice(-200))),
+      );
+    } catch {
+      /* The transcript still reads correctly for this session in memory. */
+    }
+  }
   private clearPrivateStorage() {
     forgetSession();
     try {
-      const prefix = `wayfarer:draft:${this.transport.principalId}:`;
+      const prefixes = (["draft", "log"] as const).map(
+        (kind) => `wayfarer:${kind}:${this.transport.principalId}:`,
+      );
       for (const key of Object.keys(localStorage))
-        if (key.startsWith(prefix)) localStorage.removeItem(key);
+        if (prefixes.some((prefix) => key.startsWith(prefix)))
+          localStorage.removeItem(key);
       sessionStorage.removeItem(
         `wayfarer:resume:${this.transport.principalId}`,
       );
@@ -223,7 +307,11 @@ export class PlayStore {
       error: null,
       retry: null,
       actorId: null,
-      drafts: { action: "", dialogue: "", ooc: "" },
+      drafts: {
+        action: { text: "", savedAt: null },
+        dialogue: { text: "", savedAt: null },
+        ooc: { text: "", savedAt: null },
+      },
     });
     try {
       const view = this.transport.multiplayer
@@ -271,14 +359,19 @@ export class PlayStore {
           )?.id ??
           null,
       });
+      const submitted = this.readSubmissions();
       this.patch({
-        entries: actions.map((action) => ({
-          id: action.id,
-          channel: "action",
-          text: "Previously submitted action",
-          action,
-          narration: null,
-        })),
+        entries: actions.map((action) => {
+          const recorded = submitted[action.id];
+          return {
+            id: action.id,
+            channel: recorded?.channel ?? "action",
+            text: recorded?.text ?? "",
+            at: action.created_at,
+            action,
+            narration: null,
+          };
+        }),
       });
       this.hydrateDrafts();
       if (view)
@@ -314,7 +407,8 @@ export class PlayStore {
             {
               id: recover.entryId,
               channel: "action",
-              text: "Request awaiting acknowledgement",
+              text: "",
+              at: new Date().toISOString(),
               action: null,
               narration: null,
             },
@@ -514,16 +608,19 @@ export class PlayStore {
           );
           // Replace authorized data atomically without unmounting controls during a click.
           // Cursors/versions are opaque: even reordered or gapped events reread current state.
+          const submitted = this.readSubmissions();
           const entries = next.actions.map((action) => {
             const old = this.state.entries.find(
               (e) => e.action?.id === action.id,
             );
+            const recorded = submitted[action.id];
             return old
               ? { ...old, action }
               : {
                   id: action.id,
-                  channel: "action" as const,
-                  text: "Previously submitted action",
+                  channel: recorded?.channel ?? ("action" as const),
+                  text: recorded?.text ?? "",
+                  at: action.created_at,
                   action,
                   narration: null,
                 };
@@ -725,7 +822,14 @@ export class PlayStore {
     this.patch({
       entries: [
         ...this.state.entries,
-        { id: entryId, channel, text, action: null, narration: null },
+        {
+          id: entryId,
+          channel,
+          text,
+          at: new Date().toISOString(),
+          action: null,
+          narration: null,
+        },
       ],
     });
     await this.execute({
@@ -842,7 +946,14 @@ export class PlayStore {
     this.patch({
       entries: [
         ...this.state.entries,
-        { id: entryId, channel: "action", text, action: null, narration: null },
+        {
+          id: entryId,
+          channel: "action",
+          text,
+          at: new Date().toISOString(),
+          action: null,
+          narration: null,
+        },
       ],
     });
     await this.execute({ kind: "inventory", request, entryId });
@@ -972,10 +1083,13 @@ export class PlayStore {
       if (!this.active(g)) return;
       this.patch({ retry: null });
       this.entry(command.entryId, { action });
-      if (command.kind === "submit" && command.clearDraft) {
-        const e = this.state.entries.find((e) => e.id === command.entryId);
-        if (e) this.saveDraft(e.channel, "");
-      }
+      const submitted = this.state.entries.find(
+        (e) => e.id === command.entryId,
+      );
+      if (submitted && command.kind !== "clarify")
+        this.rememberSubmission(action.id, submitted.channel, submitted.text);
+      if (command.kind === "submit" && command.clearDraft && submitted)
+        this.saveDraft(submitted.channel, "");
       await this.followAction(command.entryId, action, g);
       if (this.active(g)) this.patch({ busy: false });
     } catch (error) {

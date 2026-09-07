@@ -68,6 +68,12 @@ provider, structured commands work and text capability is omitted. Narration is
 separate ephemeral output over a committed result. Failure or interruption stops
 prose while preserving the authoritative result.
 
+A scene projection carries a required, non-empty `description`, but the authored
+scene graph holds no prose for one: the projection repeats the location name
+there. Clients treat a description identical to the title as absent and print
+the name once rather than twice (#203). Giving scenes real authored prose is a
+scene-graph and contract change, not a projection fix.
+
 ## Scoped live data
 
 A snapshot pins one engine checkpoint and the API action records under the ledger

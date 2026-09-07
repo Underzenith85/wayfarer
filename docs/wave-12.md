@@ -75,8 +75,8 @@ resume, complete, archive. Strict Pydantic models are in `simulation/setup.py`.
 Host edits may save an invalid draft; readiness and activation enforce the
 scenario studio's compatibility/legality checks. New game creation uses a
 principal-plus-command deterministic identity. Browser write failures retain the
-original request for **Retry original setup request**; **Reload games /
-reconcile** fetches canonical state before allowing a replacement operation.
+original request for **Retry original setup request**; **Refresh this list**
+fetches canonical state before allowing a replacement operation.
 Credentials and unreviewed speech are never persisted by this feature.
 
 ## Voice and text

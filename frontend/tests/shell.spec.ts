@@ -136,3 +136,17 @@ test("skip link reaches main with reduced motion and enlarged text", async ({
     ),
   ).toBe(true);
 });
+test("the session menu opens on one activation, from pointer and keyboard (#205)", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const trigger = page.getByRole("button", { name: "Session", exact: true });
+  await trigger.click();
+  const dialog = page.getByRole("dialog", { name: "Session" });
+  await expect(dialog).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await trigger.focus();
+  await page.keyboard.press("Enter");
+  await expect(dialog).toBeVisible();
+});

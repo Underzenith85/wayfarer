@@ -212,7 +212,7 @@ describe("authoritative item operations", () => {
     const { store } = await setup();
     store.saveDraft("action", "A plan for the locked door");
     await store.sendInventory({ kind: "inspect", target_id: "sword-1" });
-    expect(store.readDraft("action")).toBe("A plan for the locked door");
+    expect(store.readDraft("action").text).toBe("A plan for the locked door");
     expect(store.getSnapshot().snapshot?.inventories[0]?.version).toBe("i1");
   });
   it("does not send proposed intents through a connection lacking the preview seam", async () => {

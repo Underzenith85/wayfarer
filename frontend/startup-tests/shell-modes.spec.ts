@@ -37,7 +37,9 @@ test("play replaces setup, and a second draft replaces the step view", async ({
     .selectOption("beacon-1");
   await create(lobby);
   await expect(lobby.getByRole("status")).toContainText("revision 0");
-  await lobby.getByRole("button", { name: "New draft", exact: true }).click();
+  await lobby
+    .getByRole("button", { name: "Start a new game", exact: true })
+    .click();
   await expect(lobby.getByRole("status")).toHaveCount(0);
   await lobby.getByRole("button", { name: "Adventure", exact: true }).click();
   // A second draft replaces the step view instead of appending another form.
@@ -92,4 +94,29 @@ test("play replaces setup, and a second draft replaces the step view", async ({
   await expect(
     page.getByRole("heading", { name: "Stormbound Harbor" }),
   ).toBeVisible();
+});
+test("the setup stepper stays one readable line at 320px (#206)", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 900 });
+  const lobby = await login(page);
+  const steps = lobby.getByRole("navigation", { name: "Setup steps" });
+  await expect(steps.getByText("Step 1 of 5: Concept")).toBeVisible();
+  const chips = steps.getByRole("listitem");
+  await expect(chips).toHaveCount(5);
+  // One row, no staircase: every chip shares a top edge, and none of it forces
+  // the page to scroll sideways.
+  const tops = await chips.evaluateAll((items) =>
+    items.map((item) => Math.round(item.getBoundingClientRect().top)),
+  );
+  expect(new Set(tops).size).toBe(1);
+  // The label still names the step it stands for.
+  await expect(
+    steps.getByRole("button", { name: "Adventure", exact: true }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
 });
