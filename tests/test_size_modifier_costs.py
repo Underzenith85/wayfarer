@@ -12,6 +12,7 @@ from test_statistics import BASIC, LITE, gurps_draft, profile_compiler, profile_
 from wayfarer.character.compiler import CharacterCompiler, Purchase, ValidatedBuild, pool_limits
 from wayfarer.character.size_modifier import SizeModifierError, cost
 from wayfarer.character.statistics import Attribute
+from wayfarer.errors import ValidationError
 from wayfarer.orchestration.advancement import _refreshed
 from wayfarer.rules.conformance import CoverageStatus, capability
 from wayfarer.rules.gurps_characters import (
@@ -19,7 +20,7 @@ from wayfarer.rules.gurps_characters import (
     SIZE_MODIFIER_DEFINITION_ID,
     size_modifier_definition,
 )
-from wayfarer.rules.profiles import DEFAULT_REGISTRY, GURPS_SIZE_PROFILE
+from wayfarer.rules.profiles import DEFAULT_REGISTRY, GURPS_SIZE_PROFILE, ProfileRegistry
 from wayfarer.rules.traits import TraitOptions
 from wayfarer.simulation.resources import Pool
 
@@ -159,10 +160,14 @@ def test_repricing_does_not_change_hp_pool_maximum_or_heal_damage() -> None:
 
 
 def test_new_profile_pin_carries_context_without_mutating_historic_pins() -> None:
-    newest = DEFAULT_REGISTRY.get("profile:gurps-basic-set-4e-2004", 5)
+    newest = GURPS_SIZE_PROFILE
     historic = DEFAULT_REGISTRY.get("profile:gurps-basic-set-4e-2004", 4)
-    assert newest is GURPS_SIZE_PROFILE
+    assert newest.version == 5
     assert newest.rules.packages[0].version == "0.5.0"
     assert historic.rules.packages[0].version == "0.4.0"
     assert SIZE_MODIFIER_DEFINITION_ID in {d.id for d in newest.packages[0].definitions}
     assert SIZE_MODIFIER_DEFINITION_ID not in {d.id for d in historic.packages[0].definitions}
+    with pytest.raises(ValidationError, match="Unknown rules profile"):
+        DEFAULT_REGISTRY.get(newest.id, newest.version)
+    isolated = ProfileRegistry((newest,))
+    assert isolated.get(newest.id, newest.version) is newest
