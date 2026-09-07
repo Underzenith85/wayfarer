@@ -455,3 +455,45 @@ async def test_natural_healing_cannot_be_banked_for_future_injury(tmp_path: Path
         system=True,
     )
     assert next(p.current for p in state.pools if p.id == "hp:a") == 8
+
+
+async def test_exertion_interrupts_rest_and_death_cannot_deadlock_clock(tmp_path: Path) -> None:
+    from wayfarer.simulation.fatigue import ContinueExertion, apply_fatigue
+    from wayfarer.simulation.medical import CareContext, apply_recovery
+    from wayfarer.simulation.resources import Advance
+
+    cid, play, _ = await setup(tmp_path)
+    state = play._load(await play.store.read(cid)).resources
+    state = state.model_copy(
+        update={
+            "pools": tuple(
+                p.model_copy(update={"current": 0}) if p.id == "fp:a" else p for p in state.pools
+            )
+        }
+    )
+    state, _ = apply_recovery(
+        state,
+        BeginRecovery(
+            id="rest", actor_id="a", target_id="a", kind="rest", seconds=600, expected_revision=0
+        ),
+        CareContext("gurps-basic-set-4e-2004", 10),
+        rng=RecordedDice([]),
+        system=True,
+    )
+    state, _ = apply_fatigue(
+        state,
+        ContinueExertion(id="act", actor_id="a", expected_revision=1),
+        ht=10,
+        will=10,
+        rng=RecordedDice([6, 6, 6, 5, 5, 5]),
+        system=True,
+    )
+    assert state.recovery_tasks[0].status == "interrupted"
+    state = play.engine.resources.apply(
+        state, Advance(id="death", actor_id="a", expected_revision=2, to=600), system=True
+    )
+    assert state.recovery_tasks[0].status == "cancelled" and state.recovery_tasks[0].settled
+    state = play.engine.resources.apply(
+        state, Advance(id="continue", actor_id="a", expected_revision=3, to=601), system=True
+    )
+    assert state.game_time == 601

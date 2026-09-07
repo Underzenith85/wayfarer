@@ -15,7 +15,7 @@ from pydantic import Field
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.rules.gurps_checks import success_roll
-from wayfarer.rules.recovery_types import interrupt_tasks, require_settled
+from wayfarer.rules.recovery_types import interrupt_tasks, require_settled, retire_tasks
 from wayfarer.simulation.gurps_equipment import DamageType
 from wayfarer.simulation.resources import (
     Command,
@@ -203,6 +203,14 @@ def apply_injury(
                 }
             )
     updated_pool = Pool(id=pool.id, current=current, maximum=pool.maximum, injury=status)
+    if status.dead:
+        state = state.model_copy(
+            update={
+                "recovery_tasks": retire_tasks(
+                    state.recovery_tasks, frozenset({command.actor_id}), state.game_time
+                )
+            }
+        )
     result = InjuryResult(
         penetration=penetration, injury=injury, checks=tuple(checks), dropped_ready_items=dropped
     )

@@ -41,7 +41,7 @@ class RecoveryTask(BaseModel):
     kind: Literal["rest", "natural", "bandage", "first-aid", "physician"]
     start: int = Field(ge=0)
     due: int = Field(ge=0)
-    status: Literal["pending", "completed", "interrupted"] = "pending"
+    status: Literal["pending", "completed", "interrupted", "cancelled"] = "pending"
     interrupted_at: int | None = Field(default=None, ge=0)
     settled: bool = False
     wound_id: str | None = None
@@ -109,6 +109,20 @@ def interrupt_tasks(
         and actor_ids & {task.actor_id, task.target_id}
         else task.model_copy(update={"physician_id": None, "physician_skill": None})
         if task.status == "pending" and at < task.due and task.physician_id in actor_ids
+        else task
+        for task in tasks
+    )
+
+
+def retire_tasks(
+    tasks: tuple[RecoveryTask, ...], actor_ids: frozenset[str], at: int
+) -> tuple[RecoveryTask, ...]:
+    """Death cancels unfinished work; it must never hold the shared clock open."""
+    return tuple(
+        task.model_copy(update={"status": "cancelled", "settled": True, "interrupted_at": at})
+        if not task.settled and actor_ids & {task.actor_id, task.target_id}
+        else task.model_copy(update={"physician_id": None, "physician_skill": None})
+        if task.physician_id in actor_ids
         else task
         for task in tasks
     )

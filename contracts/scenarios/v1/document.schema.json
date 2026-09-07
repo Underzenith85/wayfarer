@@ -2918,7 +2918,8 @@
           "enum": [
             "pending",
             "completed",
-            "interrupted"
+            "interrupted",
+            "cancelled"
           ],
           "title": "Status",
           "type": "string"

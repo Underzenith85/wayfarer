@@ -22,7 +22,7 @@ from wayfarer.rules.catalog import (
 )
 from wayfarer.rules.effects import Effect
 from wayfarer.rules.injury_types import InjuryStatus
-from wayfarer.rules.recovery_types import FatigueStatus, RecoveryTask, require_settled
+from wayfarer.rules.recovery_types import FatigueStatus, RecoveryTask, require_settled, retire_tasks
 from wayfarer.world import EntityKind, World
 
 Id = Annotated[str, Field(min_length=1, max_length=200)]
@@ -525,6 +525,19 @@ class ResourceEngine:
             )
             from wayfarer.simulation.medical import accrue_rest
 
+            updated = updated.model_copy(
+                update={
+                    "recovery_tasks": retire_tasks(
+                        updated.recovery_tasks,
+                        frozenset(
+                            p.id.removeprefix("hp:")
+                            for p in updated.pools
+                            if p.injury is not None and p.injury.dead
+                        ),
+                        command.to,
+                    )
+                }
+            )
             updated = accrue_rest(updated, command.to)
         updated = updated.model_copy(
             update={

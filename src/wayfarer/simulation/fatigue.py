@@ -84,6 +84,13 @@ def apply_fatigue(
     allowed = True
     injury = None
     if isinstance(command, ContinueExertion):
+        state = state.model_copy(
+            update={
+                "recovery_tasks": interrupt_tasks(
+                    state.recovery_tasks, frozenset({command.actor_id}), state.game_time
+                )
+            }
+        )
         allowed = not (
             status.collapsed
             or status.unconscious
