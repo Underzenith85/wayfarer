@@ -82,7 +82,7 @@ _CAPABILITIES: Final = (
     Capability("gurps.tactical.visibility", False, True, CoverageStatus.PARTIAL, 105),
     Capability("gurps.recovery.fatigue", True, True, CoverageStatus.PARTIAL, 109),
     Capability("gurps.recovery.healing", True, True, CoverageStatus.PARTIAL, 109),
-    Capability("gurps.recovery.medical_treatment", False, True, CoverageStatus.ABSENT, 109),
+    Capability("gurps.recovery.medical_treatment", False, True, CoverageStatus.PARTIAL, 109),
     Capability("gurps.world.physical_feats", True, True, CoverageStatus.PARTIAL, 110),
     Capability("gurps.world.environmental_hazards", True, True, CoverageStatus.ABSENT, 110),
     Capability("gurps.magic.spellcasting", False, True, CoverageStatus.ABSENT, 117),

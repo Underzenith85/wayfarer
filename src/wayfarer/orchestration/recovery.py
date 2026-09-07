@@ -556,6 +556,12 @@ class RecoveryService:
                     ),
                 )
         elif option.kind == "rest":
+            if any(
+                p.id in (f"hp:{actor_id}", f"fp:{actor_id}")
+                and (p.injury is not None or p.fatigue is not None)
+                for p in resources.pools
+            ):
+                raise ValidationError("Profile recovery requires a timed GURPS recovery task")
             resources = resources.model_copy(
                 update={
                     "pools": tuple(

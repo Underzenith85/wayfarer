@@ -25,7 +25,7 @@
     "author": "Wayfarer example author",
     "source": null,
     "generator": "synthetic-example (no live model call)",
-    "source_digest": "c74eb665a50725a04f0d025e4bdc3a06d79826d07972649b50b0a212f5479ebb"
+    "source_digest": "83fcb4e9826b1e0599470c4177ab268557ac05ecd571a93c9849c0466771b6aa"
   },
   "compatibility": {
     "rules": {
@@ -307,7 +307,8 @@
       "scheduled": [],
       "fired": [],
       "receipts": [],
-      "events": []
+      "events": [],
+      "recovery_tasks": []
     },
     "npc_actor_ids": [
       "warden"

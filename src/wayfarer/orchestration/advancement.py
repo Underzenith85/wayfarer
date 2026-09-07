@@ -93,7 +93,9 @@ def _refreshed(pool: Pool, maximum: int, build: ValidatedBuild) -> Pool:
 
     if build.statistics is None:
         return pool.model_copy(update={"maximum": maximum, "current": min(pool.current, maximum)})
-    if pool.injury is not None:
+    if pool.fatigue is not None and maximum - (pool.maximum - pool.current) < -maximum:
+        raise ValidationError("FP reduction requires resolving the outstanding fatigue deficit")
+    if pool.injury is not None or pool.fatigue is not None:
         return pool.model_copy(
             update={"maximum": maximum, "current": maximum - (pool.maximum - pool.current)}
         )

@@ -15,6 +15,7 @@ from pydantic import Field
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.rules.gurps_checks import success_roll
+from wayfarer.rules.recovery_types import interrupt_tasks
 from wayfarer.simulation.gurps_equipment import DamageType
 from wayfarer.simulation.resources import (
     Command,
@@ -127,6 +128,14 @@ def apply_injury(
         penetration = max(0, command.basic_damage - command.resistance)
         numerator, denominator = _FACTORS[command.damage_type]
         injury = max(1, penetration * numerator // denominator) if penetration else 0
+        if injury:
+            state = state.model_copy(
+                update={
+                    "recovery_tasks": interrupt_tasks(
+                        state.recovery_tasks, frozenset({command.actor_id}), state.game_time
+                    )
+                }
+            )
         current -= injury
         if injury and not status.dead:
             shock = injury // max(1, pool.maximum // 10)

@@ -22,6 +22,7 @@ from wayfarer.rules.catalog import (
 )
 from wayfarer.rules.effects import Effect
 from wayfarer.rules.injury_types import InjuryStatus
+from wayfarer.rules.recovery_types import FatigueStatus, RecoveryTask
 from wayfarer.world import EntityKind, World
 
 Id = Annotated[str, Field(min_length=1, max_length=200)]
@@ -70,15 +71,26 @@ class Pool(Record):
     current: int
     maximum: int = Field(ge=0)
     injury: InjuryStatus | None = None
+    fatigue: FatigueStatus | None = None
 
     @model_validator(mode="after")
     def validate_limits(self) -> Pool:
         if self.current > self.maximum:
             raise ValueError("Pool exceeds maximum")
-        if self.injury is None and self.current < 0:
+        if self.injury is None and self.fatigue is None and self.current < 0:
             raise ValueError("Prototype and fatigue pools cannot be negative")
         if self.injury is not None and (not self.id.startswith("hp:") or self.maximum < 1):
             raise ValueError("Profile injury requires a positive-maximum HP pool")
+        if self.fatigue is not None:
+            if not self.id.startswith("fp:") or self.maximum < 1 or self.injury is not None:
+                raise ValueError("Fatigue status requires a positive FP pool")
+            if self.current < -self.maximum:
+                raise ValueError("FP cannot fall below negative maximum")
+            if (
+                sum((self.fatigue.starvation, self.fatigue.dehydration, self.fatigue.sleep))
+                > self.maximum - self.current
+            ):
+                raise ValueError("Restricted fatigue exceeds lost FP")
         return self
 
 
@@ -113,6 +125,22 @@ class ResourceState(Record):
     fired: tuple[str, ...] = ()
     receipts: tuple[Receipt, ...] = ()
     events: tuple[ResourceEvent, ...] = ()
+    recovery_tasks: tuple[RecoveryTask, ...] = ()
+
+    @model_validator(mode="after")
+    def validate_recovery_tasks(self) -> ResourceState:
+        if len({task.id for task in self.recovery_tasks}) != len(self.recovery_tasks):
+            raise ValueError("Duplicate recovery task ID")
+        for task in self.recovery_tasks:
+            if task.due <= task.start or task.start > self.game_time:
+                raise ValueError("Invalid recovery task timeline")
+            if task.status == "interrupted" and (
+                task.interrupted_at is None or not task.start <= task.interrupted_at < task.due
+            ):
+                raise ValueError("Interrupted recovery requires its interruption time")
+            if task.status == "completed" and (not task.settled or task.due > self.game_time):
+                raise ValueError("Completed recovery must be due and settled")
+        return self
 
 
 class Command(Record):
@@ -428,12 +456,41 @@ class ResourceEngine:
                 (s for s in state.scheduled if s.due <= command.to), key=lambda s: (s.due, s.id)
             )
             pools = {p.id: p for p in state.pools}
+            terminal_events: list[ResourceEvent] = []
+            for fp_pool in state.pools:
+                fatigue = fp_pool.fatigue
+                if (
+                    fatigue is None
+                    or not fatigue.heart_attack
+                    or fatigue.heart_attack_deadline is None
+                    or fatigue.heart_attack_deadline > command.to
+                ):
+                    continue
+                actor_id = fp_pool.id.removeprefix("fp:")
+                hp_pool = pools.get(f"hp:{actor_id}")
+                if hp_pool is None or hp_pool.injury is None or hp_pool.injury.dead:
+                    continue
+                pools[hp_pool.id] = hp_pool.model_copy(
+                    update={"injury": hp_pool.injury.model_copy(update={"dead": True})}
+                )
+                terminal_events.append(
+                    ResourceEvent(
+                        id=f"heart-attack:{actor_id}:{fatigue.heart_attack_deadline}",
+                        at=fatigue.heart_attack_deadline,
+                        target_id=actor_id,
+                        kind="heart-attack-death",
+                    )
+                )
             effects = set(state.active_effect_ids)
             for entry in due:
                 if entry.kind == "expire":
                     effects.remove(entry.target_id)
                 elif entry.kind == "recover":
                     pool = pools[entry.target_id]
+                    if pool.injury is not None or pool.fatigue is not None:
+                        raise ValidationError(
+                            "Profile recovery requires a timed GURPS recovery task"
+                        )
                     pools[pool.id] = Pool(
                         id=pool.id,
                         current=min(pool.maximum, pool.current + entry.amount),
@@ -448,6 +505,7 @@ class ResourceEngine:
                     "scheduled": tuple(s for s in state.scheduled if s.due > command.to),
                     "fired": state.fired + tuple(s.id for s in due),
                     "events": state.events
+                    + tuple(terminal_events)
                     + tuple(
                         ResourceEvent(
                             id=f"schedule:{s.id}", at=s.due, kind=s.kind, target_id=s.target_id

@@ -2429,6 +2429,70 @@
         "title": "Fact",
         "type": "object"
       },
+      "FatigueStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "profile_id": {
+            "enum": [
+              "gurps-lite-4e-2004",
+              "gurps-basic-set-4e-2004"
+            ],
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "collapsed": {
+            "default": false,
+            "title": "Collapsed",
+            "type": "boolean"
+          },
+          "unconscious": {
+            "default": false,
+            "title": "Unconscious",
+            "type": "boolean"
+          },
+          "heart_attack": {
+            "default": false,
+            "title": "Heart Attack",
+            "type": "boolean"
+          },
+          "heart_attack_deadline": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Heart Attack Deadline"
+          },
+          "starvation": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Starvation",
+            "type": "integer"
+          },
+          "dehydration": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Dehydration",
+            "type": "integer"
+          },
+          "sleep": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Sleep",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "profile_id"
+        ],
+        "title": "FatigueStatus",
+        "type": "object"
+      },
       "GenerationBrief": {
         "additionalProperties": false,
         "properties": {
@@ -2583,6 +2647,14 @@
             "maxItems": 0,
             "minItems": 0,
             "title": "Events",
+            "type": "array"
+          },
+          "recovery_tasks": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/RecoveryTask"
+            },
+            "title": "Recovery Tasks",
             "type": "array"
           }
         },
@@ -3435,6 +3507,17 @@
               }
             ],
             "default": null
+          },
+          "fatigue": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/FatigueStatus"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           }
         },
         "required": [
@@ -4092,6 +4175,157 @@
           "version"
         ],
         "title": "RecoveryRules",
+        "type": "object"
+      },
+      "RecoveryTask": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "target_id": {
+            "title": "Target Id",
+            "type": "string"
+          },
+          "profile_id": {
+            "enum": [
+              "gurps-lite-4e-2004",
+              "gurps-basic-set-4e-2004"
+            ],
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "rest",
+              "natural",
+              "bandage",
+              "first-aid",
+              "physician"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "start": {
+            "minimum": 0,
+            "title": "Start",
+            "type": "integer"
+          },
+          "due": {
+            "minimum": 0,
+            "title": "Due",
+            "type": "integer"
+          },
+          "status": {
+            "default": "pending",
+            "enum": [
+              "pending",
+              "completed",
+              "interrupted"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "interrupted_at": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Interrupted At"
+          },
+          "settled": {
+            "default": false,
+            "title": "Settled",
+            "type": "boolean"
+          },
+          "wound_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Wound Id"
+          },
+          "bandaged_hp": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Bandaged Hp",
+            "type": "integer"
+          },
+          "technology_level": {
+            "default": 8,
+            "maximum": 12,
+            "minimum": 0,
+            "title": "Technology Level",
+            "type": "integer"
+          },
+          "food": {
+            "default": false,
+            "title": "Food",
+            "type": "boolean"
+          },
+          "water": {
+            "default": false,
+            "title": "Water",
+            "type": "boolean"
+          },
+          "sleep": {
+            "default": false,
+            "title": "Sleep",
+            "type": "boolean"
+          },
+          "physician_skill": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Physician Skill"
+          },
+          "physician_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Physician Id"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "target_id",
+          "profile_id",
+          "kind",
+          "start",
+          "due"
+        ],
+        "title": "RecoveryTask",
         "type": "object"
       },
       "Reward": {

@@ -185,9 +185,9 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.tactical.hex_movement` | no | yes | partial | #105 |
 | `gurps.tactical.facing` | no | yes | partial | #105 |
 | `gurps.tactical.visibility` | no | yes | partial | #105 |
-| `gurps.recovery.fatigue` | yes | yes | partial | #109 |
-| `gurps.recovery.healing` | yes | yes | partial | #109 |
-| `gurps.recovery.medical_treatment` | no | yes | absent | #109 |
+| `gurps.recovery.fatigue` | yes | yes | partial | [#109 details](gurps-recovery.md) |
+| `gurps.recovery.healing` | yes | yes | partial | [#109 details](gurps-recovery.md) |
+| `gurps.recovery.medical_treatment` | no | yes | partial | [#109 details](gurps-recovery.md) |
 | `gurps.world.physical_feats` | yes | yes | partial | #110 |
 | `gurps.world.environmental_hazards` | yes | yes | absent | #110 |
 | `gurps.magic.spellcasting` | no | yes | absent | #117 |
