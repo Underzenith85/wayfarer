@@ -150,9 +150,9 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.character.skill_defaults` | yes | yes | verified | #98 |
 | `gurps.character.specialties` | no | yes | verified | #98 |
 | `gurps.character.techniques` | no | yes | verified | #98 |
-| `gurps.character.traits` | yes | yes | manual | #100 |
-| `gurps.character.self_control` | yes | yes | absent | #100 |
-| `gurps.character.ability_modifiers` | no | yes | absent | #100 |
+| `gurps.character.traits` | yes | yes | partial | #100 |
+| `gurps.character.self_control` | yes | yes | partial | #100 |
+| `gurps.character.ability_modifiers` | no | yes | partial | #100 |
 | `gurps.check.success` | yes | yes | verified | #99 |
 | `gurps.check.margin` | yes | yes | verified | #99 |
 | `gurps.check.critical` | yes | yes | verified | #99 |
@@ -200,6 +200,21 @@ mechanics: they add no row and change no state above. Both GURPS profiles remain
 unsupported while any `lite_required` or `basic_required` entry is still
 `absent`, `partial` or `manual`; the verified `gurps.check.*` rows alone do not
 make either profile selectable.
+
+### Trait compilation (#100)
+
+`tests/test_traits.py` supplies independent representative construction arithmetic
+for Basic Set: Characters, Fourth Edition, 2004 first printing, B101-102 and
+B120-121, with the frozen 2007-01-26 errata baseline. It covers level multiplication,
+self-control multipliers (6/9/12/15), additive modifiers, the net -80% discount
+floor, and final rounding toward higher point cost, including negative totals.
+The rules are selected by exact profile; Basic Set modifiers cannot enter Lite.
+
+These three coverage rows remain **partial**: costing is implemented, but runtime
+self-control checks (#111), catalog content (#113), and supernatural execution
+(#118) remain visible blockers. Disadvantage-specific modifiers and non-percentage
+special constructions are unavailable; they require catalog-specific rules in
+#118 before activation. No generic hook or manual ruling certifies coverage.
 
 ## Tactical geometry (#105)
 

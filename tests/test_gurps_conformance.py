@@ -64,7 +64,7 @@ def test_unknown_capability_fails_closed() -> None:
 
 def test_unverified_capability_fails_closed() -> None:
     entry = CAPABILITIES["gurps.character.self_control"]
-    assert entry.status is CoverageStatus.ABSENT
+    assert entry.status is CoverageStatus.PARTIAL
     with pytest.raises(ValidationError, match="not verified"):
         require_verified(entry.id)
 

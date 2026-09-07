@@ -17,6 +17,7 @@ from typing import Final, Literal
 from wayfarer.errors import ValidationError
 from wayfarer.models import RulesPackagePin, RulesReference
 from wayfarer.rules.skill_types import SkillSpec
+from wayfarer.rules.traits import TraitRules, validate_metadata
 
 VERSION: Final = "wayfarer-lite-1"
 BUDGET: Final = 100
@@ -69,6 +70,7 @@ class RuleDefinition:
     parameters: tuple[str, ...] = ()
     hooks: tuple[str, ...] = ()
     skill: SkillSpec | None = None
+    trait_rules: TraitRules | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -81,12 +83,13 @@ class RulesPackage:
     dependencies: tuple[str, ...] = ()
 
     def canonical_json(self) -> str:
-        """Serialize the pinned declaration, preserving pre-extension packages."""
+        """Stable package representation shared by pins and source approval gates."""
         data = asdict(self)
-        # Absent extension metadata must not change historic package digests.
+        # Absent skill and trait metadata must not change historic package pins.
         for definition in data["definitions"]:
-            if definition["skill"] is None:
-                del definition["skill"]
+            for extension in ("skill", "trait_rules"):
+                if definition[extension] is None:
+                    del definition[extension]
         return json.dumps(data, sort_keys=True, separators=(",", ":"))
 
     @property
@@ -143,6 +146,14 @@ class RulesCatalog:
             if len(definitions) != len(package.definitions):
                 raise ValidationError(f"Package {package.id} has duplicate definition IDs")
             for definition in package.definitions:
+                if definition.trait_rules is not None:
+                    if definition.kind is not DefinitionKind.TRAIT:
+                        raise ValidationError("Trait metadata requires a trait definition")
+                    validate_metadata(definition.trait_rules)
+                    if definition.parameters and set(definition.parameters) != {
+                        p.name for p in definition.trait_rules.parameters
+                    }:
+                        raise ValidationError("Trait parameter declarations disagree")
                 if definition.source_id not in sources:
                     raise ValidationError(f"Definition {definition.id} has a missing source")
                 refs = (*definition.prerequisites, *definition.exclusions)

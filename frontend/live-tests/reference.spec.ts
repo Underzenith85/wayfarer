@@ -45,6 +45,14 @@ async function login(page: Page, principal: string, id: string) {
     .getByRole("button", { name: "Load games and invitations" })
     .click();
   await lobby.locator(`[data-campaign-id="${id}"]`).click();
+  // Joining loads the snapshot and its scene in separate requests. Do not let
+  // another player mutate the campaign until this player's join has completed.
+  await expect(
+    page.getByRole("region", { name: "Scene decisions" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Wait one tick", exact: true }),
+  ).toBeEnabled();
   return lobby;
 }
 

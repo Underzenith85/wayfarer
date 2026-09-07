@@ -1,17 +1,20 @@
 """The release checker must fail closed even when pytest itself exited successfully."""
 
 import json
+from dataclasses import replace
 from pathlib import Path
 from xml.etree.ElementTree import Element, ElementTree, SubElement
 
 import pytest
 
+from scripts import release_gates
 from scripts.release_gates import MECHANICS, ROOT, evaluate
+from wayfarer.rules.catalog import PROTOTYPE_PACKAGE
 
 
 @pytest.mark.parametrize("defect", ["none", "missing", "skipped", "failure", "error", "empty"])
 def test_release_evidence_rejects_incomplete_or_nonpassing_report(
-    tmp_path: Path, defect: str
+    tmp_path: Path, defect: str, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     root = Element("testsuites")
     suite = SubElement(root, "testsuite")
@@ -34,6 +37,21 @@ def test_release_evidence_rejects_incomplete_or_nonpassing_report(
     ElementTree(root).write(path)
     _, errors = evaluate(path)
     assert bool(errors) == (defect != "none")
+    if defect == "none":
+        output = tmp_path / "release"
+        monkeypatch.setattr("sys.argv", ["release_gates", str(path), "--output", str(output)])
+        release_gates.main()
+        assert json.loads((output / "mechanics.json").read_text())["passed"]
+        original = PROTOTYPE_PACKAGE
+        changed = replace(original.definitions[0], point_cost=11)
+        monkeypatch.setattr(
+            release_gates,
+            "PROTOTYPE_PACKAGE",
+            replace(original, definitions=(changed, *original.definitions[1:])),
+        )
+        with pytest.raises(SystemExit, match="Approved-source fixture differs"):
+            release_gates.main()
+        assert not json.loads((output / "mechanics.json").read_text())["passed"]
 
 
 @pytest.mark.parametrize(

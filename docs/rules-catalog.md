@@ -28,3 +28,28 @@ Definition kinds are `attribute`, `secondary`, `skill`, `trait` and `equipment`.
 `secondary` entries (HP, Will, Per, FP, Basic Speed, Basic Move) compile only when
 the compiler is created with an exact GURPS conformance profile; see
 [GURPS conformance](gurps-conformance.md). The prototype package has none.
+
+Trait definitions may carry immutable `TraitRules` metadata: exact profile ID,
+maximum level, self-control applicability, required typed parameters with allowed
+values, approved modifier IDs/percentages/exclusions, and required runtime hooks.
+Purchases use `amount` for level and optional `trait` options for parameters,
+self-control rating and modifier IDs. Model-supplied prices and formulas reject.
+Duplicate purchases and modifiers reject; separate approved modifier IDs stack
+additively. Prerequisites and exclusions use the existing compiler checks.
+
+Compilation retains typed trait purchases on the immutable build for trusted
+runtime consumers. Declared hooks, including `trait.self_control`, must be in the
+server-configured `trait_runtime_hooks` set; the default is empty. Binding a hook
+is an execution-service responsibility and does not certify conformance. Costs
+alone never make an unavailable trait executable. Point legality remains separate
+from power approval, and edits to any option invalidate the existing approval.
+Existing prototype package digests and option-free build revisions are preserved;
+new metadata changes the package digest and requires an explicit version/migration.
+No public frozen v1 HTTP contract or built-in campaign profile is changed.
+
+The **authoring and portable-scenario** schema snapshots explicitly add the
+optional `Purchase.trait` object and its `TraitOptions` definition in this change.
+Old documents serialize identically when no options are present. The frozen
+`contracts/v1` gameplay API and its generated TypeScript client are unchanged;
+the authoring UI currently passes scenario documents as JSON and gains no trait
+editor here (#116). Unknown options still fail schema validation on the server.
