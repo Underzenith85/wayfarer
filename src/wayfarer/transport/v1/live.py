@@ -508,7 +508,7 @@ async def live(request: web.Request) -> web.WebSocketResponse:
         await ws.close(
             code=4401 if code == "unauthenticated" else 4429 if code == "rate_limited" else 1002
         )
-    except (ValueError, TypeError, KeyError):
+    except ValueError, TypeError, KeyError:
         await ws.close(code=1002)
     finally:
         subscriptions.clear()
