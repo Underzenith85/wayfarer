@@ -104,9 +104,10 @@ def test_trauma_maintenance_uses_higher_target_and_hourly_cadence() -> None:
     assert hp.injury.mortal_wound and not hp.injury.dead
 
     reloaded = ResourceState.model_validate_json(state.model_dump_json())
-    assert apply_recovery_variant(
-        reloaded, finish, context, rng=RecordedDice([]), system=True
-    ) == (reloaded, result)
+    assert apply_recovery_variant(reloaded, finish, context, rng=RecordedDice([]), system=True) == (
+        reloaded,
+        result,
+    )
 
 
 def test_life_support_changes_maintenance_to_daily_checks() -> None:
@@ -358,9 +359,7 @@ def test_unclean_surgery_penalty_and_tl5_optional_infection_are_persisted() -> N
     state = state.model_copy(update={"game_time": 7200})
     state, result = apply_recovery_variant(
         state,
-        FinishRecoveryVariant(
-            id="finish", actor_id="b", expected_revision=1, task_id="repair"
-        ),
+        FinishRecoveryVariant(id="finish", actor_id="b", expected_revision=1, task_id="repair"),
         context,
         rng=RecordedDice([2, 2, 2, 5, 5, 5]),
         system=True,
@@ -429,9 +428,7 @@ def test_interrupted_surgery_never_rolls_or_changes_the_lasting_injury() -> None
     with pytest.raises(ConflictError):
         apply_recovery_variant(
             state,
-            FinishRecoveryVariant(
-                id="again", actor_id="b", expected_revision=2, task_id="repair"
-            ),
+            FinishRecoveryVariant(id="again", actor_id="b", expected_revision=2, task_id="repair"),
             context,
             rng=RecordedDice([]),
             system=True,
