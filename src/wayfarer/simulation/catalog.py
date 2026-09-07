@@ -60,9 +60,7 @@ class RevisionView(Record):
     current_report: DocumentReport
 
 
-GenerationStatus = Literal[
-    "queued", "running", "needs_review", "succeeded", "failed", "cancelled"
-]
+GenerationStatus = Literal["queued", "running", "needs_review", "succeeded", "failed", "cancelled"]
 GenerationSection = Literal["all", "brief", "opening", "world", "objectives", "characters"]
 
 

@@ -260,7 +260,9 @@ class ScenarioCatalog:
         raise ConflictError("Generation job changed; retry cancellation")
 
     @staticmethod
-    def _merge_section(current: ScenarioGraph, generated: ScenarioGraph, section: str) -> ScenarioGraph:
+    def _merge_section(
+        current: ScenarioGraph, generated: ScenarioGraph, section: str
+    ) -> ScenarioGraph:
         if section == "all":
             return generated
         fields: dict[str, tuple[str, ...]] = {
@@ -316,7 +318,14 @@ class ScenarioCatalog:
                     for name in {
                         "brief": ("title", "brief"),
                         "opening": ("opening_scene_id", "opening_action"),
-                        "world": ("world", "scenes", "actions", "approaches", "noncombat", "recovery"),
+                        "world": (
+                            "world",
+                            "scenes",
+                            "actions",
+                            "approaches",
+                            "noncombat",
+                            "recovery",
+                        ),
                         "objectives": ("objectives", "failure_consequence"),
                         "characters": ("actors", "npc_actor_ids", "resources", "npcs"),
                     }[request.section]

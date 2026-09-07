@@ -252,15 +252,11 @@ async def test_guided_generation_is_recoverable_and_never_overwrites_edits(
             "party_capabilities": ["observation"],
             "section": "all",
         }
-        response = await client.post(
-            PREFIX + "/generation-jobs", headers=HEADERS, json=request
-        )
+        response = await client.post(PREFIX + "/generation-jobs", headers=HEADERS, json=request)
         assert response.status == 202, await response.text()
         job = await response.json()
         for _ in range(20):
-            response = await client.get(
-                PREFIX + f"/generation-jobs/{job['id']}", headers=HEADERS
-            )
+            response = await client.get(PREFIX + f"/generation-jobs/{job['id']}", headers=HEADERS)
             job = await response.json()
             if job["status"] not in ("queued", "running"):
                 break
@@ -288,9 +284,7 @@ async def test_guided_generation_cancel_and_restart_recovery(config: Settings) -
     class Provider:
         async def complete(self, request: ProviderRequest) -> object:
             await gate.wait()
-            return ProviderReply(
-                payload_json=starting_scenario().model_dump_json(), usage=Usage()
-            )
+            return ProviderReply(payload_json=starting_scenario().model_dump_json(), usage=Usage())
 
     app = create_runtime_app(config, config.frontend_dir)
     app[ORCHESTRATOR_KEY] = Orchestrator(app[ACCESS_KEY], Provider())
@@ -312,9 +306,7 @@ async def test_guided_generation_cancel_and_restart_recovery(config: Settings) -
         assert (await response.json())["status"] == "cancelled"
         gate.set()
         await asyncio.sleep(0)
-        response = await client.get(
-            PREFIX + f"/generation-jobs/{job['id']}", headers=HEADERS
-        )
+        response = await client.get(PREFIX + f"/generation-jobs/{job['id']}", headers=HEADERS)
         assert (await response.json())["status"] == "cancelled"
 
 
