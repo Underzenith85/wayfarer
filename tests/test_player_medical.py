@@ -19,12 +19,12 @@ from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.rules.catalog import RulesCatalog
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.rules.injury_types import InjuryStatus
-from wayfarer.rules.recovery_types import FatigueStatus
+from wayfarer.rules.recovery_types import FatigueStatus, ProfileId
 from wayfarer.simulation.access import CampaignMember
 from wayfarer.simulation.actions import ActionEngine, ActionRules, ActorSetup, PlayState
 from wayfarer.simulation.resources import Owner, ResourceEngine, ResourceState
 
-PROFILE = "gurps-basic-set-4e-2004"
+PROFILE: ProfileId = "gurps-basic-set-4e-2004"
 
 
 def environment(_play: PlayService, _state: PlayState, _target: str) -> CareEnvironment:
@@ -162,7 +162,6 @@ async def test_pending_task_reconnect_and_finish_retry_are_exact_once(tmp_path: 
         }
     ]
 
-    # The same command can be retried after commit without starting another task.
     replayed = await access.execute(cid, start, principal_id="alice")
     assert replayed["revision"] == 1
     state = play._load(await play.store.read(cid))
