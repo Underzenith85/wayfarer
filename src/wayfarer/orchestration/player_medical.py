@@ -308,6 +308,13 @@ async def execute(
 ) -> None:
     """Resolve one opaque choice into an authoritative medical command."""
 
+    # The medical reducer owns an exact-once receipt. A transport retry can arrive
+    # after its choice disappeared because the task already started or settled.
+    # Treat the persisted receipt as the authoritative completed replay instead of
+    # re-deriving a now-obsolete choice or consuming randomness again.
+    if any(receipt.command_id == command.id for receipt in state.resources.receipts):
+        return
+
     resolver = environment or default_environment
     _public, _tasks, private = choices(play, state, controlled_actor_ids, resolver)
     selected = private.get(command.choice_id)
