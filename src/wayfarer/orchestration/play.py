@@ -280,7 +280,9 @@ class PlayService:
     ) -> PlayState:
         from wayfarer.orchestration.npcs import checkpoint as npc_checkpoint
         from wayfarer.orchestration.objectives import checkpoint
+        from wayfarer.orchestration.spell_effects import checkpoint as spell_checkpoint
 
+        state = spell_checkpoint(self, state)
         if run_npcs:
             state = npc_checkpoint(self, state)
         return checkpoint(self, state, before=before)

@@ -197,6 +197,7 @@ class PendingDefense(Record):
     opened_turn: int = Field(ge=0)
     mode_id: str | None = None
     hit_location: HitLocation | None = None
+    spell_cast_id: str | None = Field(default=None, exclude_if=lambda value: value is None)
 
 
 class DefenseChoice(Record):
@@ -366,6 +367,21 @@ class CombatEngine:
         )
         pending = encounter.pending_defense
         if pending is not None:
+            spell_weapon = False
+            if pending.spell_cast_id is not None:
+                from wayfarer.simulation.spells import active_spells
+
+                spell_weapon = any(
+                    e.execute_effects
+                    and e.spell_id == "fireball"
+                    and e.cast_id == pending.spell_cast_id
+                    and e.actor_id == pending.attacker_id
+                    and pending.weapon_id
+                    == "spell:" + hashlib.sha256(e.cast_id.encode()).hexdigest()
+                    for e in active_spells(resources)
+                )
+                if not spell_weapon:
+                    raise ValidationError("Pending missile has no held spell")
             if (
                 encounter.status != "active"
                 or pending.attacker_id != encounter.current_actor_id
@@ -374,7 +390,10 @@ class CombatEngine:
                 or pending.attacker_id == pending.defender_id
                 or pending.opened_round != encounter.round
                 or pending.opened_turn != encounter.turn_index
-                or pending.weapon_id not in participants[pending.attacker_id].ready_item_ids
+                or (
+                    not spell_weapon
+                    and pending.weapon_id not in participants[pending.attacker_id].ready_item_ids
+                )
                 or len(set(pending.allowed)) != len(pending.allowed)
                 or "none" not in pending.allowed
             ):

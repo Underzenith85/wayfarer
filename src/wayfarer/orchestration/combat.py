@@ -525,6 +525,10 @@ class CombatService:
                         current_actor_id=current_actor,
                     )
                 elif isinstance(command, TakeCombatTurn):
+                    from wayfarer.simulation.spell_effects import require_not_dazed
+
+                    if command.maneuver != "do_nothing":
+                        require_not_dazed(resources, command.actor_id)
                     from wayfarer.orchestration.gurps_ranged import validate_command
                     from wayfarer.simulation.abilities import interrupt_concentration
 
@@ -825,8 +829,10 @@ class CombatService:
                         resources = state.resources
                 elif isinstance(command, ChooseDefense):
                     from wayfarer.simulation.abilities import interrupt_concentration
+                    from wayfarer.simulation.spell_effects import require_not_dazed
 
                     if command.defense != "none":
+                        require_not_dazed(resources, command.actor_id)
                         resources = interrupt_concentration(
                             resources, command.actor_id, command.id, distraction=True
                         )

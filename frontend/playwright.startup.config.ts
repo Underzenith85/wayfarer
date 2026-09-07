@@ -19,6 +19,7 @@ export default defineConfig({
       WAYFARER_DB: database,
       WAYFARER_TOKENS: JSON.stringify({
         "alice-token": "alice",
+        "shell-alice-token": "shell-alice",
         "author-token": "author",
         "bob-token": "bob",
         "eve-token": "eve",
