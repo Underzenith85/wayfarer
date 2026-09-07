@@ -1,9 +1,12 @@
 """Player-facing recovery exposes only choices the authoritative GURPS state allows."""
 
 from pathlib import Path
+from typing import cast
 
 import pytest
-from test_actions import campaign, engine as prototype_engine, seed as prototype_seed, world
+from test_actions import campaign, world
+from test_actions import engine as prototype_engine
+from test_actions import seed as prototype_seed
 from test_statistics import gurps_draft, profile_compiler, profile_package
 
 from wayfarer.character.power import CharacterProposal, PowerPolicy, PowerReviewer
@@ -18,10 +21,18 @@ from wayfarer.rules.checks import RecordedDice
 from wayfarer.rules.injury_types import InjuryStatus
 from wayfarer.rules.recovery_types import FatigueStatus
 from wayfarer.simulation.access import CampaignMember
-from wayfarer.simulation.actions import ActionEngine, ActionRules, ActorSetup
+from wayfarer.simulation.actions import ActionEngine, ActionRules, ActorSetup, PlayState
 from wayfarer.simulation.resources import Owner, ResourceEngine, ResourceState
 
 PROFILE = "gurps-basic-set-4e-2004"
+
+
+def environment(_play: PlayService, _state: PlayState, _target: str) -> CareEnvironment:
+    return CareEnvironment(technology_level=8, food=True, water=True, sleep=True)
+
+
+def projected_list(projection: dict[str, object], key: str) -> list[dict[str, object]]:
+    return cast(list[dict[str, object]], projection[key])
 
 
 async def setup(tmp_path: Path) -> tuple[str, PlayService, CampaignAccess]:
@@ -73,9 +84,6 @@ async def setup(tmp_path: Path) -> tuple[str, PlayService, CampaignAccess]:
     engine.validate(state)
     initial["play_json"] = state.model_dump_json()
     await play.store.insert(initial)
-    environment = lambda _play, _state, _target: CareEnvironment(
-        technology_level=8, food=True, water=True, sleep=True
-    )
     return initial["id"], play, CampaignAccess(play, environment)
 
 
@@ -89,7 +97,10 @@ async def test_non_gurps_profile_exposes_no_medical_choices(tmp_path: Path) -> N
 async def test_player_can_submit_only_server_authorized_opaque_choice(tmp_path: Path) -> None:
     cid, play, access = await setup(tmp_path)
     projection = await access.read(cid, principal_id="alice")
-    offered = {choice["kind"]: choice for choice in projection["gurps_recovery_choices"]}
+    offered = {
+        choice["kind"]: choice
+        for choice in projected_list(projection, "gurps_recovery_choices")
+    }
     assert {"rest", "natural"} <= set(offered)
     assert "resuscitate" not in offered and "stabilize" not in offered
 
@@ -128,7 +139,9 @@ async def test_pending_task_reconnect_and_finish_retry_are_exact_once(tmp_path: 
     cid, play, access = await setup(tmp_path)
     projection = await access.read(cid, principal_id="alice")
     rest = next(
-        choice for choice in projection["gurps_recovery_choices"] if choice["kind"] == "rest"
+        choice
+        for choice in projected_list(projection, "gurps_recovery_choices")
+        if choice["kind"] == "rest"
     )
     start = {
         "id": "start-rest",
@@ -159,10 +172,7 @@ async def test_pending_task_reconnect_and_finish_retry_are_exact_once(tmp_path: 
     assert len(state.resources.recovery_tasks) == 1
 
     restarted = CampaignAccess(
-        PlayService(play.store, play.engine, rng=RecordedDice([])),
-        lambda _play, _state, _target: CareEnvironment(
-            technology_level=8, food=True, water=True, sleep=True
-        ),
+        PlayService(play.store, play.engine, rng=RecordedDice([])), environment
     )
     restored = await restarted.read(cid, principal_id="alice")
     assert restored["gurps_recovery_tasks"] == started["gurps_recovery_tasks"]
@@ -180,7 +190,7 @@ async def test_pending_task_reconnect_and_finish_retry_are_exact_once(tmp_path: 
     )
     finish = next(
         choice
-        for choice in after_wait["gurps_recovery_choices"]
+        for choice in projected_list(after_wait, "gurps_recovery_choices")
         if choice["kind"] == "finish-recovery"
     )
     finish_command = {
@@ -192,10 +202,10 @@ async def test_pending_task_reconnect_and_finish_retry_are_exact_once(tmp_path: 
     }
     completed = await restarted.execute(cid, finish_command, principal_id="alice")
     assert completed["revision"] == 3
-    fp = next(pool for pool in completed["pools"] if pool["id"] == "fp:a")
+    fp = next(pool for pool in projected_list(completed, "pools") if pool["id"] == "fp:a")
     assert fp["current"] == 6
 
     retried = await restarted.execute(cid, finish_command, principal_id="alice")
     assert retried["revision"] == 3
-    fp = next(pool for pool in retried["pools"] if pool["id"] == "fp:a")
+    fp = next(pool for pool in projected_list(retried, "pools") if pool["id"] == "fp:a")
     assert fp["current"] == 6
