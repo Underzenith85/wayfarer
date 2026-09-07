@@ -74,7 +74,6 @@ class ScenarioCatalog:
             entry=self.summary(entry),
             revision=selected,
             current_report=self.documents.validate(selected.draft.content_json),
-            generation_jobs=await self.store.jobs(cid, principal),
         )
 
     def source(self, source: str, cid: str, edit: int, *, importing: bool) -> str:
