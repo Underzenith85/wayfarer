@@ -86,7 +86,7 @@ def main() -> None:
     rows, errors = evaluate(args.report)
     approved = json.loads((ROOT / "tests/fixtures/approved_rules.json").read_text())
     current = {
-        "package": json.loads(PROTOTYPE_PACKAGE.canonical_json),
+        "package": json.loads(PROTOTYPE_PACKAGE.canonical_json()),
         "digest": PROTOTYPE_PACKAGE.digest,
     }
     if approved != current:

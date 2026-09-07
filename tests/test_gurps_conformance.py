@@ -63,8 +63,8 @@ def test_unknown_capability_fails_closed() -> None:
 
 
 def test_unverified_capability_fails_closed() -> None:
-    entry = CAPABILITIES["gurps.character.skill_defaults"]
-    assert entry.status is CoverageStatus.ABSENT
+    entry = CAPABILITIES["gurps.character.self_control"]
+    assert entry.status is CoverageStatus.PARTIAL
     with pytest.raises(ValidationError, match="not verified"):
         require_verified(entry.id)
 
@@ -76,8 +76,12 @@ def test_verified_capabilities_belong_to_landed_mechanics_issues() -> None:
     assert verified == CHECK_CAPABILITIES | {
         "gurps.character.primary_attributes",
         "gurps.character.secondary_characteristics",
+        "gurps.character.skill_difficulty",
+        "gurps.character.skill_defaults",
+        "gurps.character.specialties",
+        "gurps.character.techniques",
     }
-    assert all(CAPABILITIES[identifier].owner_issue in (97, 99) for identifier in verified)
+    assert all(CAPABILITIES[identifier].owner_issue in (97, 98, 99) for identifier in verified)
 
 
 def test_conformance_fixture_contract_is_source_referenced_and_independent() -> None:

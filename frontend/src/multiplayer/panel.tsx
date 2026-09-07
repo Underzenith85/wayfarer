@@ -13,6 +13,14 @@ export function ConnectionStatus() {
           ? "Disconnected · showing the last received scene. Drafts are saved; actions are paused."
           : "Reconciling your authorized scene…"}
       </p>
+      {state.lastSynchronized && (
+        <p>
+          Last synchronized:{" "}
+          <time dateTime={state.lastSynchronized}>
+            {new Date(state.lastSynchronized).toLocaleString()}
+          </time>
+        </p>
+      )}
       {state.error && <p role="alert">{state.error}</p>}
       <Button
         variant="outline"

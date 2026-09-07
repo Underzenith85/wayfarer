@@ -215,6 +215,42 @@ function Clarification({ entry }: { entry: Entry }) {
     </section>
   );
 }
+export function Transcript({ entries }: { entries: Entry[] }) {
+  const [page, setPage] = useState(0);
+  const pages = Math.max(1, Math.ceil(entries.length / 50));
+  const current = Math.min(page, pages - 1);
+  const end = entries.length - current * 50;
+  const start = Math.max(0, end - 50);
+  return (
+    <>
+      <div className="context-actions" aria-label="Transcript pages">
+        <Button
+          variant="outline"
+          disabled={current >= pages - 1}
+          onClick={() => setPage(current + 1)}
+        >
+          Older entries
+        </Button>
+        <p role="status">
+          Entries {start + 1}–{end} of {entries.length}
+        </p>
+        <Button
+          variant="outline"
+          disabled={current === 0}
+          onClick={() => setPage(current - 1)}
+        >
+          Newer entries
+        </Button>
+      </div>
+      <ol className="transcript" start={start + 1}>
+        {entries.slice(start, end).map((entry) => (
+          <ActionEntry key={entry.id} entry={entry} />
+        ))}
+      </ol>
+    </>
+  );
+}
+
 function ActionEntry({ entry }: { entry: Entry }) {
   const a = entry.action;
   const label = {
@@ -494,11 +530,10 @@ export function PlayWorkspace() {
             The scene is set. What happens next begins with you.
           </p>
         ) : (
-          <ol className="transcript">
-            {state.entries.map((entry) => (
-              <ActionEntry key={entry.id} entry={entry} />
-            ))}
-          </ol>
+          <Transcript
+            key={`${s.campaign.id}:${s.scene.id}:${state.actorId}`}
+            entries={state.entries}
+          />
         )}
       </section>
       {state.error && (

@@ -100,6 +100,11 @@ jobs:
         run: pnpm test:e2e:startup --reporter=list,junit
         env:
           PLAYWRIGHT_JUNIT_OUTPUT_FILE: reports/startup.xml
+      - name: Verify production PWA shell
+        if: matrix.node == '22'
+        run: pnpm exec playwright test --config playwright.pwa.config.ts --reporter=list,junit
+        env:
+          PLAYWRIGHT_JUNIT_OUTPUT_FILE: reports/pwa.xml
       - name: Require complete browser evidence
         if: always() && matrix.node == '22'
         run: python3 ../scripts/check_browser_evidence.py reports

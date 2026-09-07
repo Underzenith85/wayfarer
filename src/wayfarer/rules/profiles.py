@@ -11,13 +11,13 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from types import MappingProxyType
 from typing import Final
 
 from wayfarer.errors import ValidationError
 from wayfarer.models import RulesReference
-from wayfarer.rules import conformance, gurps_characters
+from wayfarer.rules import conformance, gurps_characters, gurps_skills
 from wayfarer.rules.catalog import (
     DEFAULT_POLICY,
     DEFAULT_RULES,
@@ -219,27 +219,27 @@ GURPS_CAMPAIGNS_SOURCE: Final = SourceReference(
 # arrive with the mechanics issues that own them as new package versions: 0.2.0
 # carries the #97 attributes and secondary characteristics (identifiers and
 # costs only); later issues add skills, traits and equipment.
-GURPS_LITE_PACKAGE: Final = RulesPackage(
+GURPS_LITE_PACKAGE_V2: Final = RulesPackage(
     id="package:gurps-lite-4e-2004",
     version="0.2.0",
     edition=GURPS_EDITION,
     sources=(GURPS_LITE_SOURCE,),
     definitions=gurps_characters.definitions("gurps-lite-4e-2004"),
 )
-GURPS_CHARACTERS_PACKAGE: Final = RulesPackage(
+GURPS_CHARACTERS_PACKAGE_V2: Final = RulesPackage(
     id="package:gurps-basic-set-characters-4e-2004",
     version="0.2.0",
     edition=GURPS_EDITION,
     sources=(GURPS_CHARACTERS_SOURCE,),
     definitions=gurps_characters.definitions("gurps-basic-set-4e-2004"),
 )
-GURPS_CAMPAIGNS_PACKAGE: Final = RulesPackage(
+GURPS_CAMPAIGNS_PACKAGE_V2: Final = RulesPackage(
     id="package:gurps-basic-set-campaigns-4e-2004",
     version="0.2.0",
     edition=GURPS_EDITION,
     sources=(GURPS_CAMPAIGNS_SOURCE,),
     definitions=(),
-    dependencies=(GURPS_CHARACTERS_PACKAGE.id,),
+    dependencies=(GURPS_CHARACTERS_PACKAGE_V2.id,),
 )
 
 # Budgets and ceilings are campaign policy defaults, not published rules; attribute
@@ -263,39 +263,75 @@ GURPS_BASIC_POLICY: Final = CampaignPolicy(
     permitted_sources=frozenset({GURPS_CHARACTERS_SOURCE.id, GURPS_CAMPAIGNS_SOURCE.id}),
 )
 
-GURPS_LITE_PROFILE: Final = RegisteredProfile(
+GURPS_LITE_PROFILE_V2: Final = RegisteredProfile(
     id="profile:gurps-lite-4e-2004",
     version=2,
     title="GURPS Lite, Fourth Edition (2004)",
     rules=CampaignRules(
         edition=GURPS_EDITION,
-        packages=(_pin(GURPS_LITE_PACKAGE),),
+        packages=(_pin(GURPS_LITE_PACKAGE_V2),),
         policy_id=GURPS_LITE_POLICY.id,
         policy_version=GURPS_LITE_POLICY.version,
     ),
     policy=GURPS_LITE_POLICY,
-    packages=(GURPS_LITE_PACKAGE,),
+    packages=(GURPS_LITE_PACKAGE_V2,),
     conformance_profile_id="gurps-lite-4e-2004",
     required_capabilities=conformance.PROFILES["gurps-lite-4e-2004"].required_capabilities,
 )
-GURPS_BASIC_PROFILE: Final = RegisteredProfile(
+GURPS_BASIC_PROFILE_V2: Final = RegisteredProfile(
     id="profile:gurps-basic-set-4e-2004",
     version=2,
     title="GURPS Basic Set, Fourth Edition (2004, first printing)",
     rules=CampaignRules(
         edition=GURPS_EDITION,
-        packages=(_pin(GURPS_CHARACTERS_PACKAGE), _pin(GURPS_CAMPAIGNS_PACKAGE)),
+        packages=(_pin(GURPS_CHARACTERS_PACKAGE_V2), _pin(GURPS_CAMPAIGNS_PACKAGE_V2)),
         policy_id=GURPS_BASIC_POLICY.id,
         policy_version=GURPS_BASIC_POLICY.version,
     ),
     policy=GURPS_BASIC_POLICY,
-    packages=(GURPS_CHARACTERS_PACKAGE, GURPS_CAMPAIGNS_PACKAGE),
+    packages=(GURPS_CHARACTERS_PACKAGE_V2, GURPS_CAMPAIGNS_PACKAGE_V2),
     conformance_profile_id="gurps-basic-set-4e-2004",
     required_capabilities=conformance.PROFILES["gurps-basic-set-4e-2004"].required_capabilities,
 )
 
+# #98 adds metadata only in new package/profile versions. Historic pins resolve
+# unchanged; switching a campaign still uses the existing explicit migration.
+GURPS_LITE_PACKAGE: Final = replace(
+    GURPS_LITE_PACKAGE_V2,
+    version="0.3.0",
+    definitions=GURPS_LITE_PACKAGE_V2.definitions + gurps_skills.definitions("gurps-lite-4e-2004"),
+)
+GURPS_CHARACTERS_PACKAGE: Final = replace(
+    GURPS_CHARACTERS_PACKAGE_V2,
+    version="0.3.0",
+    definitions=GURPS_CHARACTERS_PACKAGE_V2.definitions
+    + gurps_skills.definitions("gurps-basic-set-4e-2004"),
+)
+GURPS_CAMPAIGNS_PACKAGE: Final = GURPS_CAMPAIGNS_PACKAGE_V2
+GURPS_LITE_PROFILE: Final = replace(
+    GURPS_LITE_PROFILE_V2,
+    version=3,
+    packages=(GURPS_LITE_PACKAGE,),
+    rules=replace(GURPS_LITE_PROFILE_V2.rules, packages=(_pin(GURPS_LITE_PACKAGE),)),
+)
+GURPS_BASIC_PROFILE: Final = replace(
+    GURPS_BASIC_PROFILE_V2,
+    version=3,
+    packages=(GURPS_CHARACTERS_PACKAGE, GURPS_CAMPAIGNS_PACKAGE),
+    rules=replace(
+        GURPS_BASIC_PROFILE_V2.rules,
+        packages=(_pin(GURPS_CHARACTERS_PACKAGE), _pin(GURPS_CAMPAIGNS_PACKAGE)),
+    ),
+)
+
 DEFAULT_REGISTRY: Final = ProfileRegistry(
-    (PROTOTYPE_PROFILE, GURPS_LITE_PROFILE, GURPS_BASIC_PROFILE)
+    (
+        PROTOTYPE_PROFILE,
+        GURPS_LITE_PROFILE_V2,
+        GURPS_BASIC_PROFILE_V2,
+        GURPS_LITE_PROFILE,
+        GURPS_BASIC_PROFILE,
+    )
 )
 GURPS_PROFILES: Final = MappingProxyType(
     {profile.id: profile for profile in (GURPS_LITE_PROFILE, GURPS_BASIC_PROFILE)}

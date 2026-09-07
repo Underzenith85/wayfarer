@@ -16,7 +16,7 @@ from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.profiles import ProfileMigrations, ProfileRuntime
 from wayfarer.orchestration.setup import SetupService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules import conformance, gurps_characters
+from wayfarer.rules import conformance, gurps_characters, gurps_skills
 from wayfarer.rules.catalog import (
     DEFAULT_POLICY,
     DEFAULT_RULES,
@@ -238,6 +238,8 @@ def test_default_registry_preserves_prototype_pins_and_rejects_gurps_until_verif
         "profile:wayfarer-lite",
         "profile:gurps-lite-4e-2004",
         "profile:gurps-basic-set-4e-2004",
+        "profile:gurps-lite-4e-2004",
+        "profile:gurps-basic-set-4e-2004",
     ]
     assert PROTOTYPE_PROFILE.rules == DEFAULT_RULES
     assert PROTOTYPE_PROFILE.reference == reference(DEFAULT_RULES)
@@ -256,12 +258,16 @@ def test_default_registry_preserves_prototype_pins_and_rejects_gurps_until_verif
         }
         assert not profile.supported
         assert profile.rules.edition == "gurps-4e-2004"
-        # Version 2 packages carry only the #97 attribute and secondary definitions.
+        # Version 3 adds pinned #98 skill metadata; version 2 remains registered.
         carried = {d.id for p in profile.packages for d in p.definitions}
         assert carried == {
-            d.id for d in gurps_characters.definitions(profile.conformance_profile_id)
+            d.id
+            for d in (
+                gurps_characters.definitions(profile.conformance_profile_id)
+                + gurps_skills.definitions(profile.conformance_profile_id)
+            )
         }
-        assert profile.version == 2
+        assert profile.version == 3
         with pytest.raises(ValidationError, match="not supported"):
             DEFAULT_REGISTRY.require_supported(profile.id, profile.version)
     assert GURPS_BASIC_PROFILE.packages[1].dependencies == (GURPS_BASIC_PROFILE.packages[0].id,)
@@ -675,7 +681,7 @@ async def test_http_profile_listing_selection_and_migration(tmp_path: Path) -> N
         assert listed[("profile:test-extended", 1)]["packages"][1]["dependencies"] == [
             "package:wayfarer-lite"
         ]
-        lite = listed[("profile:gurps-lite-4e-2004", 2)]
+        lite = listed[("profile:gurps-lite-4e-2004", 3)]
         assert lite["supported"] is False and lite["conformance_profile_id"] == "gurps-lite-4e-2004"
         assert lite["unverified_capabilities"] == list(GURPS_LITE_PROFILE.unverified_capabilities)
         assert lite["packages"][0]["source_ids"] == ["sjg:gurps-lite-4e-2004"]
@@ -686,7 +692,7 @@ async def test_http_profile_listing_selection_and_migration(tmp_path: Path) -> N
                 "id": str(uuid.uuid4()),
                 "brief": graph["brief"],
                 "graph": graph,
-                "rules_profile": {"id": "profile:gurps-lite-4e-2004", "version": 2},
+                "rules_profile": {"id": "profile:gurps-lite-4e-2004", "version": 3},
             },
         )
         assert response.status == 400 and "not supported" in (await response.json())["error"]

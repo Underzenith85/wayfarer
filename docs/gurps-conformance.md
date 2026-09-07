@@ -146,10 +146,10 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.character.primary_attributes` | yes | yes | verified | #97 |
 | `gurps.character.secondary_characteristics` | yes | yes | verified | #97 |
 | `gurps.character.size_modifier_costs` | no | yes | absent | #97 (follow-up) |
-| `gurps.character.skill_difficulty` | yes | yes | partial | #98 |
-| `gurps.character.skill_defaults` | yes | yes | absent | #98 |
-| `gurps.character.specialties` | no | yes | absent | #98 |
-| `gurps.character.techniques` | no | yes | absent | #98 |
+| `gurps.character.skill_difficulty` | yes | yes | verified | #98 |
+| `gurps.character.skill_defaults` | yes | yes | verified | #98 |
+| `gurps.character.specialties` | no | yes | verified | #98 |
+| `gurps.character.techniques` | no | yes | verified | #98 |
 | `gurps.character.traits` | yes | yes | partial | #100 |
 | `gurps.character.self_control` | yes | yes | partial | #100 |
 | `gurps.character.ability_modifiers` | no | yes | partial | #100 |
@@ -258,3 +258,59 @@ conservation with stale-revision and idempotency checks. Combat damage, ST-use
 penalties, hand occupancy beyond the inventory slot, active defenses, hit-location
 resolution and ammunition consumption in attacks remain with #102, #103, #106
 and #107; these data structures do not authorize those unverified mechanics.
+
+## Skill compilation (#98)
+
+`character.skills.SkillCompiler` runs inside the existing `CharacterCompiler` and
+`ActionEngine`. Its typed `RuleDefinition.skill` metadata is included in package
+digests. No draft or action can supply a difficulty, default, prerequisite, or cap.
+The prototype four-skill dispatch and point restrictions are unchanged, including
+its package digest and build revision regression cases. A GURPS compiler rejects
+prototype-only skill definitions and missing skill metadata.
+
+Package 0.3.0 / profile version 3 adds representative skills to Lite and Characters.
+Version 2 remains registered with its original 0.2.0 pins and definitions. Existing
+campaigns do not acquire new definitions; the established explicit migration,
+approval, command receipt, and CAS path remains the way to switch profiles. Neither
+full GURPS profile is yet selectable. Frozen v1 transport schemas are unchanged.
+
+Implemented mechanics and evidence:
+
+- Easy, Average, Hard, and Basic-only Very Hard progression, including partial
+  investment and investment above 16 points; exact integer arithmetic (Lite 13,
+  B170). Primary attributes, Will, and Per are typed controlling attributes.
+- Explicit attribute and skill defaults, strongest eligible default selection,
+  the attribute default ceiling of 20, and Basic point-equivalent credit when
+  improving a skill default (Lite 14, B173). Untrained defaults cannot serve as
+  another default's source. Trained dependency chains resolve in dependency order.
+- Distinct required specialties and IQ/Hard or IQ/Very Hard optional specialties,
+  with the easier cost curve and general/specialized defaults (B169). Only named,
+  pinned specialties exist; missing specialties never fall back to a generic ID.
+- Trained minimum-level prerequisites, Average and Hard techniques, a two-point
+  first improvement for Hard techniques, and parent-relative maximum levels
+  (B169, B229-232). Technique purchases without a trained parent, overspending
+  beyond a cap, and bonuses that breach a cap are rejected.
+- Recompilation after attribute or point changes; permanent skill effects propagate
+  through defaults and technique parents. Actions recompute skill targets with
+  equipment effects and allow valid unpurchased defaults, while preserving existing
+  visibility, approval, and command boundaries.
+
+The independent numeric ledger in `tests/fixtures/gurps/conformance.json` is executed
+by `tests/test_skills.py`; additional tests cover invalid prerequisite graphs,
+unsupported definitions, prototype stability, package pin integrity, and actual
+action resolution. Capability status records this bounded mechanics evidence,
+not a completed skill catalog or full Basic Set certification.
+
+Catalog boundaries remain explicit under #112: only representative definitions
+are included; no full skill list, TL/familiarity catalog, cinematic skill rules,
+wildcard skills, or arbitrary LLM-authored specialties are supported. Reciprocal
+and cyclic declared defaults are rejected; they must be expanded into a reviewed
+acyclic selection before use, not silently resolved by dictionary order. Optional
+specialty reverse defaults use native trained levels to prevent feeding a default
+back into itself. Combat effects of techniques belong to #103; compiling their
+levels does not implement grappling or kicking actions.
+
+Sources retain the baseline edition/printing/errata above, with page references
+in each spec and fixture. The publisher pages were inaccessible during #98, so
+these numeric cases do not remove the existing exact-source-artifact review merge
+gate. No source prose is bundled.

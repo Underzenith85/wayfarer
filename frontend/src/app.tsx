@@ -39,7 +39,7 @@ const destinations = [
   { path: "/campaign", name: "Campaign", icon: Flag },
 ] as const;
 function Shell() {
-  const { state } = usePlay();
+  const { state, store } = usePlay();
   const pathname = useLocation({ select: (location) => location.pathname });
   const previousPathname = useRef(pathname);
   const [dark, setDark] = useState(() => {
@@ -97,6 +97,17 @@ function Shell() {
         >
           <SunMoon size={20} />
         </Button>
+        {!state.expired && (
+          <Button
+            variant="outline"
+            onClick={() => {
+              store.expire();
+              if (!store.transport.sample) location.assign("/");
+            }}
+          >
+            End session
+          </Button>
+        )}
       </header>
       {!online && (
         <div role="status" className="offline-banner">
@@ -189,14 +200,20 @@ function makeRouter() {
 }
 export function App({
   transport = disconnectedTransport,
+  onSessionEnded,
 }: {
   transport?: PlayTransport;
+  onSessionEnded?: () => void;
 }) {
   const [client] = useState(() => new QueryClient());
   const [router] = useState(() => makeRouter());
   return (
     <QueryClientProvider client={client}>
-      <PlayProvider key={transport.principalId} transport={transport}>
+      <PlayProvider
+        key={transport.principalId}
+        transport={transport}
+        onSessionEnded={onSessionEnded}
+      >
         <RouterProvider router={router} />
       </PlayProvider>
     </QueryClientProvider>

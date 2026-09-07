@@ -16,6 +16,7 @@ from typing import Final, Literal
 
 from wayfarer.errors import ValidationError
 from wayfarer.models import RulesPackagePin, RulesReference
+from wayfarer.rules.skill_types import SkillSpec
 from wayfarer.rules.traits import TraitRules, validate_metadata
 
 VERSION: Final = "wayfarer-lite-1"
@@ -68,6 +69,7 @@ class RuleDefinition:
     exclusions: tuple[str, ...] = ()
     parameters: tuple[str, ...] = ()
     hooks: tuple[str, ...] = ()
+    skill: SkillSpec | None = None
     trait_rules: TraitRules | None = None
 
 
@@ -80,18 +82,19 @@ class RulesPackage:
     definitions: tuple[RuleDefinition, ...]
     dependencies: tuple[str, ...] = ()
 
-    @property
     def canonical_json(self) -> str:
         """Stable package representation shared by pins and source approval gates."""
         data = asdict(self)
+        # Absent skill and trait metadata must not change historic package pins.
         for definition in data["definitions"]:
-            if definition["trait_rules"] is None:
-                del definition["trait_rules"]
+            for extension in ("skill", "trait_rules"):
+                if definition[extension] is None:
+                    del definition[extension]
         return json.dumps(data, sort_keys=True, separators=(",", ":"))
 
     @property
     def digest(self) -> str:
-        return hashlib.sha256(self.canonical_json.encode()).hexdigest()
+        return hashlib.sha256(self.canonical_json().encode()).hexdigest()
 
 
 @dataclass(frozen=True, slots=True)
