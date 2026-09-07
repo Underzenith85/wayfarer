@@ -24,9 +24,7 @@ def main() -> None:
         args.output.write_text(encoded)
     print(encoded, end="")
     if not result.certified:
-        raise SystemExit(
-            f"GURPS Basic Set certification blocked by {len(result.blockers)} item(s)"
-        )
+        raise SystemExit(f"GURPS Basic Set certification blocked by {len(result.blockers)} item(s)")
 
 
 if __name__ == "__main__":
