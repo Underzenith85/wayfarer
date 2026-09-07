@@ -507,3 +507,98 @@ async def test_v1_reads_activated_runtime_and_rejects_paused_actions(
         )
         assert response.status == 409
         monkeypatch.setattr(v1, "schedule", scheduled)
+
+
+async def test_brief_edit_preserves_adventure_and_controllers_but_requires_review(
+    tmp_path: Path,
+) -> None:
+    setup = service(tmp_path)
+    cid = await ready(setup)
+    graph = graph_fixture()
+    command = SetupCommand(
+        id="brief-only", expected_revision=3, operation="edit", brief=graph.brief
+    )
+    saved = await setup.execute(cid, command, principal_id="alice")
+    assert saved["graph"] == graph.model_dump(mode="json")
+    assert saved["phase"] == "draft"
+    assert setup.load(await setup.play.store.read(cid)).seats[0].actor_ids == ("a",)
+    assert not setup.load(await setup.play.store.read(cid)).seats[0].ready
+    assert await setup.execute(cid, command, principal_id="alice") == saved
+    # Explicit removal is different input, even when it reuses the same receipt ID.
+    with pytest.raises(ConflictError):
+        await setup.execute(cid, command.model_copy(update={"graph": None}), principal_id="alice")
+    restarted = service(tmp_path)
+    assert await restarted.read(cid, principal_id="alice") == saved
+    with pytest.raises(ConflictError):
+        await restarted.execute(
+            cid,
+            SetupCommand(id="early", expected_revision=4, operation="activate"),
+            principal_id="alice",
+        )
+    assert "play_json" not in await setup.play.store.read(cid)
+    await restarted.execute(
+        cid, SetupCommand(id="review", expected_revision=4, operation="ready"), principal_id="alice"
+    )
+    result = await restarted.execute(
+        cid,
+        SetupCommand(id="start", expected_revision=5, operation="activate"),
+        principal_id="alice",
+    )
+    assert result["phase"] == "active"
+
+
+async def test_replacing_or_clearing_adventure_drops_only_missing_controllers(
+    tmp_path: Path,
+) -> None:
+    setup = service(tmp_path)
+    cid = await ready(setup)
+    result = await setup.execute(
+        cid,
+        SetupCommand(id="replace", expected_revision=3, operation="edit", graph=two_player_graph()),
+        principal_id="alice",
+    )
+    assert result["phase"] == "draft"
+    assert setup.load(await setup.play.store.read(cid)).seats[0].actor_ids == ("a",)
+    result = await setup.execute(
+        cid,
+        SetupCommand(id="clear", expected_revision=4, operation="edit", graph=None),
+        principal_id="alice",
+    )
+    assert result["graph"] is None
+    assert result["party"] == []
+    assert setup.load(await setup.play.store.read(cid)).seats[0].actor_ids == ()
+
+
+async def test_brief_only_http_edit_preserves_graph_and_rejects_incompatibility(
+    tmp_path: Path,
+) -> None:
+    setup = service(tmp_path)
+    cid = await ready(setup)
+    graph = graph_fixture()
+    async with TestClient(
+        TestServer(create_campaign_app(setup.access, {"alice-token": "alice"}))
+    ) as client:
+        headers = {"Authorization": "Bearer alice-token"}
+        response = await client.post(
+            f"/setups/{cid}",
+            headers=headers,
+            json={
+                "id": "new-brief",
+                "expected_revision": 3,
+                "operation": "edit",
+                "brief": graph.brief.model_copy(update={"tone": "different"}).model_dump(
+                    mode="json"
+                ),
+            },
+        )
+        assert response.status == 200, await response.text()
+        assert (await response.json())["graph"] == graph.model_dump(mode="json")
+        saved = await setup.play.store.read(cid)
+        response = await client.post(
+            f"/setups/{cid}",
+            headers=headers,
+            json={"id": "ready-again", "expected_revision": 4, "operation": "ready"},
+        )
+        assert response.status == 400, await response.text()
+        assert await setup.play.store.read(cid) == saved
+        assert "play_json" not in saved
