@@ -200,14 +200,20 @@ function makeRouter() {
 }
 export function App({
   transport = disconnectedTransport,
+  onSessionEnded,
 }: {
   transport?: PlayTransport;
+  onSessionEnded?: () => void;
 }) {
   const [client] = useState(() => new QueryClient());
   const [router] = useState(() => makeRouter());
   return (
     <QueryClientProvider client={client}>
-      <PlayProvider key={transport.principalId} transport={transport}>
+      <PlayProvider
+        key={transport.principalId}
+        transport={transport}
+        onSessionEnded={onSessionEnded}
+      >
         <RouterProvider router={router} />
       </PlayProvider>
     </QueryClientProvider>

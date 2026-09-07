@@ -23,7 +23,9 @@ is no forced reload, skipWaiting, or client takeover. Activation removes only ol
 Wayfarer shell caches. Drafts are unaffected. End session clears the principal's
 private drafts, resume pointer, and query state and reloads the production app to
 release in-memory credentials. Revocation uses the same private-state cleanup;
-the setup form is unmounted while playing so it cannot retain a hidden token.
+the retained setup form is reset on session termination so it cannot retain a
+hidden token. Ordinary navigation back from play preserves the authenticated
+lobby and selected campaign.
 
 ## Verification targets
 

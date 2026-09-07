@@ -6,9 +6,11 @@ import { Context } from "./use-play";
 export function PlayProvider({
   transport,
   children,
+  onSessionEnded,
 }: {
   transport: PlayTransport;
   children: ReactNode;
+  onSessionEnded?: (() => void) | undefined;
 }) {
   const client = useQueryClient();
   const [store] = useState(
@@ -22,6 +24,15 @@ export function PlayProvider({
         },
       ),
   );
+  useEffect(() => {
+    let notified = false;
+    return store.subscribe(() => {
+      if (store.getSnapshot().expired && !notified) {
+        notified = true;
+        onSessionEnded?.();
+      }
+    });
+  }, [store, onSessionEnded]);
   useEffect(() => {
     let active = true;
     void store.loadCampaigns().then(() => {
