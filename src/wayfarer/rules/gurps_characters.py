@@ -24,11 +24,14 @@ from wayfarer.rules.catalog import (
     SourceReference,
 )
 from wayfarer.rules.conformance import profile
+from wayfarer.rules.traits import TraitRules
 
 CAPABILITY_IDS: Final = (
     "gurps.character.primary_attributes",
     "gurps.character.secondary_characteristics",
 )
+SIZE_MODIFIER_CAPABILITY_ID: Final = "gurps.character.size_modifier_costs"
+SIZE_MODIFIER_DEFINITION_ID: Final = "trait:size-modifier"
 
 
 class Attribute(StrEnum):
@@ -93,6 +96,8 @@ class StatisticsRules:
     )
     hp_fp_guideline_percent: int = 30
     will_per_guideline_maximum: int = 20
+    size_modifier_discount_per_level: int = 0
+    size_modifier_discount_cap: int = 0
 
 
 _ATTRIBUTE_COSTS: Final = MappingProxyType(
@@ -126,6 +131,8 @@ RULES: Final = MappingProxyType(
             _ATTRIBUTE_COSTS,
             _SECONDARY_COSTS,
             damage_table_maximum_st=100,
+            size_modifier_discount_per_level=10,
+            size_modifier_discount_cap=80,
         ),
     }
 )
@@ -184,3 +191,19 @@ def definitions(profile_id: str) -> tuple[RuleDefinition, ...]:
         for key, secondary in SECONDARY_IDS.items()
     )
     return attributes + secondaries
+
+
+def size_modifier_definition() -> RuleDefinition:
+    """Catalog-backed construction context added only by a new Basic Set package pin."""
+
+    selected = table("gurps-basic-set-4e-2004")
+    return RuleDefinition(
+        id=SIZE_MODIFIER_DEFINITION_ID,
+        kind=DefinitionKind.TRAIT,
+        name="Size Modifier",
+        source_id=selected.source_id,
+        point_cost=0,
+        status=ImplementationStatus.IMPLEMENTED,
+        hooks=("character.size_modifier",),
+        trait_rules=TraitRules(profile_id=selected.profile_id, maximum_level=10000),
+    )
