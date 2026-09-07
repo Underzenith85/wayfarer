@@ -15,6 +15,7 @@ from pydantic import Field
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.rules.gurps_checks import success_roll
+from wayfarer.rules.hazard_types import blocked_fp, blocked_hp, require_hazards_settled
 from wayfarer.rules.recovery_types import (
     ProfileId,
     RecoveryTask,
@@ -141,7 +142,15 @@ def accrue_rest(state: ResourceState, at: int) -> ResourceState:
         )
         earned = rest_entitlement(task, at)
         available = (
-            fp.maximum - fp.current - status.starvation - status.dehydration - status.sleep,
+            max(
+                0,
+                fp.maximum
+                - fp.current
+                - status.starvation
+                - status.dehydration
+                - status.sleep
+                - blocked_fp(state.illnesses, task.target_id),
+            ),
             status.starvation,
             status.dehydration,
             status.sleep,
@@ -216,7 +225,9 @@ def apply_recovery(
     if hp is None or hp.injury is None or hp.injury.profile_id != context.profile_id:
         raise ValidationError("Recovery requires matching profile HP")
     kind = command.kind if isinstance(command, BeginRecovery) else task.kind if task else ""
-    if hp.injury.dead or (hp.injury.mortal_wound and kind not in ("stabilize", "mortal-check")):
+    if hp.injury.dead or (
+        hp.injury.mortal_wound and kind not in ("stabilize", "mortal-check", "resuscitate")
+    ):
         raise ValidationError("Dead or mortally wounded patients require separate treatment")
     if kind in ("stabilize", "mortal-check") and (
         context.profile_id != "gurps-basic-set-4e-2004" or not hp.injury.mortal_wound
@@ -234,7 +245,12 @@ def apply_recovery(
             raise ValidationError(
                 "Resuscitation requires a living heart-attack patient before deadline"
             )
-    elif fp is not None and fp.fatigue is not None and fp.fatigue.heart_attack:
+    elif (
+        fp is not None
+        and fp.fatigue is not None
+        and fp.fatigue.heart_attack
+        and kind not in ("stabilize", "mortal-check")
+    ):
         raise ValidationError("Heart attack requires resuscitation, not ordinary recovery")
     check = None
     die = None
@@ -270,6 +286,10 @@ def apply_recovery(
     elif isinstance(command, BeginRecovery):
         assert command.kind != "mortal-check"
         assert hp.injury is not None
+        if command.kind not in ("resuscitate", "stabilize"):
+            require_hazards_settled(
+                state.hazards, frozenset({command.actor_id, target}), state.game_time
+            )
         require_settled(
             state.recovery_tasks, frozenset({command.actor_id, target}), state.game_time
         )
@@ -449,7 +469,14 @@ def apply_recovery(
             restricted = status.starvation + status.dehydration + status.sleep
             earned = rest_entitlement(task)
             ordinary = min(
-                max(0, earned[0] - task.ordinary_granted), fp.maximum - fp.current - restricted
+                max(0, earned[0] - task.ordinary_granted),
+                max(
+                    0,
+                    fp.maximum
+                    - fp.current
+                    - restricted
+                    - blocked_fp(state.illnesses, task.target_id),
+                ),
             )
             starvation = min(max(0, earned[1] - task.starvation_granted), status.starvation)
             dehydration = min(max(0, earned[2] - task.dehydration_granted), status.dehydration)
@@ -562,7 +589,11 @@ def apply_recovery(
             )
             hp = next(p for p in state.pools if p.id == hp.id)
         else:
-            healed = min(healed, hp.maximum - hp.current, task.hp_entitlement)
+            healed = min(
+                healed,
+                max(0, hp.maximum - hp.current - blocked_hp(state.illnesses, target, task.kind)),
+                task.hp_entitlement,
+            )
             hp = hp.model_copy(update={"current": hp.current + healed})
         status_result: Literal["completed", "interrupted"] = (
             "interrupted" if task.status == "interrupted" else "completed"

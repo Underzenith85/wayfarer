@@ -216,6 +216,7 @@ class CombatService:
 
             guard(state, command.actor_id, command.kind)
             if engine.rules.gurps_equipment is not None:
+                from wayfarer.rules.hazard_types import require_hazards_settled
                 from wayfarer.rules.recovery_types import require_settled
 
                 affected = {command.actor_id}
@@ -229,6 +230,9 @@ class CombatService:
                         affected.update((pending.attacker_id, pending.defender_id))
                 require_settled(
                     state.resources.recovery_tasks, frozenset(affected), state.resources.game_time
+                )
+                require_hazards_settled(
+                    state.resources.hazards, frozenset(affected), state.resources.game_time
                 )
             if command.expected_revision != state.revision:
                 raise ConflictError("Play revision changed")
