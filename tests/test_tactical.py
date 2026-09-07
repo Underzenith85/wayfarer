@@ -446,3 +446,62 @@ async def test_hex_ranged_distance_is_current_not_the_declared_nine_yards(tmp_pa
     )  # DX 10 + 12-point Average skill (+3), range 1 => 0.
     state = play._load(await play.store.read(cid))
     assert not any(i.id == "sword-a" and i.owner_id == "a" for i in state.resources.items)
+
+
+async def test_nonstanding_melee_and_unarmed_defense_use_level_difference(tmp_path: Path) -> None:
+    from wayfarer.orchestration.unarmed import unarmed_defense
+    from wayfarer.simulation.tactical import height_effect
+
+    cid, play = await setup(tmp_path, unarmed=True)
+    state = play._load(await play.store.read(cid))
+    encounter = state.encounters[0]
+    board = encounter.hex_battlefield
+    assert board is not None
+    raised = board.model_copy(
+        update={
+            "cells": tuple(
+                cell.model_copy(update={"elevation": 1}) if cell.position == Hex(q=1, r=0) else cell
+                for cell in board.cells
+            )
+        }
+    )
+    participants = tuple(
+        participant.model_copy(
+            update={"posture": "kneeling" if participant.actor_id == "a" else "prone"}
+        )
+        if participant.actor_id in ("a", "b")
+        else participant
+        for participant in encounter.participants
+    )
+    encounter = encounter.model_copy(update={"participants": participants})
+    raised_encounter = encounter.model_copy(update={"hex_battlefield": raised})
+    actor = next(p for p in raised_encounter.participants if p.actor_id == "a")
+    target = next(p for p in raised_encounter.participants if p.actor_id == "b")
+
+    effect = height_effect(raised_encounter, actor, target, reach=1, location="torso")
+    assert effect.attack_modifier == 0 and effect.defender_modifier == 1
+    flat_defense, _ = unarmed_defense(play, state, encounter, "b", "dodge", None, attacker_id="a")
+    raised_defense, _ = unarmed_defense(
+        play, state, raised_encounter, "b", "dodge", None, attacker_id="a"
+    )
+    assert flat_defense is not None and raised_defense == flat_defense + 1
+
+
+async def test_hex_ranged_distance_accounts_for_elevation(tmp_path: Path) -> None:
+    from wayfarer.orchestration.gurps_ranged import situation
+
+    cid, play = await setup(tmp_path)
+    state = play._load(await play.store.read(cid))
+    encounter = state.encounters[0]
+    board = encounter.hex_battlefield
+    assert board is not None
+    raised = board.model_copy(
+        update={
+            "cells": tuple(
+                cell.model_copy(update={"elevation": 2}) if cell.position == Hex(q=1, r=0) else cell
+                for cell in board.cells
+            )
+        }
+    )
+    encounter = encounter.model_copy(update={"hex_battlefield": raised})
+    assert situation(encounter, "a", "b").distance_yards == 3

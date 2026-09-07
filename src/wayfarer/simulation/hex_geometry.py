@@ -287,6 +287,29 @@ def in_reach(
     )
 
 
+def ranged_distance(
+    battlefield: HexBattlefield, attacker: Hex, target: Hex, *, beam: bool = False
+) -> Fraction:
+    """Return B407 effective range for a shot between two battlefield cells.
+
+    Hex distance is the real ground distance. Shooting uphill adds the full
+    elevation difference; shooting downhill subtracts half of it, but never
+    reduces effective range below half the ground distance.
+    """
+    start, end = battlefield.cell(attacker), battlefield.cell(target)
+    ground_distance = Fraction(distance(attacker, target))
+    if ground_distance == 0:
+        raise ValidationError("Ranged close-combat handling remains unsupported")
+    if beam:
+        return ground_distance
+    elevation = end.ground - start.ground
+    if elevation > 0:
+        return ground_distance + elevation
+    if elevation < 0:
+        return max(ground_distance / 2, ground_distance + elevation / 2)
+    return ground_distance
+
+
 class RetreatContext(Record):
     """Authoritative turn/condition inputs, owned by the combat consumer."""
 

@@ -32,6 +32,7 @@ from wayfarer.simulation.hex_geometry import (
     movement,
     neighbor,
     posture_move,
+    ranged_distance,
     step_allowance,
 )
 
@@ -192,6 +193,21 @@ def test_b388_reach_and_elevation_are_explicit() -> None:
     assert in_reach(elevated, pose, h(1, 0), reaches=frozenset({1}))
     with pytest.raises(ValidationError, match="Elevation"):
         movement(elevated, pose, (h(1, 0),), move=5)
+
+
+def test_b407_uphill_and_downhill_effective_range() -> None:
+    uphill = board(Cell(position=h(4, 0), elevation=2))
+    assert ranged_distance(uphill, h(0, 0), h(4, 0)) == 6
+    assert ranged_distance(uphill, h(4, 0), h(0, 0)) == 3
+    assert ranged_distance(uphill, h(0, 0), h(4, 0), beam=True) == 4
+
+    steep = board(Cell(position=h(4, 0), elevation=10))
+    assert ranged_distance(steep, h(4, 0), h(0, 0)) == 2
+    fractional = board(Cell(position=h(4, 0), elevation_inches=18))
+    assert ranged_distance(fractional, h(0, 0), h(4, 0)) == 4.5
+
+    with pytest.raises(ValidationError, match="close-combat"):
+        ranged_distance(board(), h(0, 0), h(0, 0))
 
 
 def test_b377_b391_retreat_paths() -> None:

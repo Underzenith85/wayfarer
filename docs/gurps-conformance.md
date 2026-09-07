@@ -219,8 +219,10 @@ special constructions are unavailable; they require catalog-specific rules in
 ## Tactical geometry (#105)
 
 Tactical geometry (#105): [contracts, provenance and integration boundary](tactical-geometry.md).
-Hex movement, facing and geometric LOS have independent fixtures; the rows remain
-partial pending source audit and the remaining geometry/mechanics variants.
+Hex movement, facing, geometric LOS, level-aware melee/unarmed combat, and
+uphill/downhill ranged distance have independent fixtures and live adapter tests.
+The bounded issue scope is complete; the rows remain partial with their broader
+combat and physical-feat capability families, not because #105 is unfinished.
 The [tactical API and player view](tactical-play.md) (#115) integrates explicit
 hex migration, authoritative movement/reach/LOS/range/armed retreat, safe player
 projections, generated contracts, keyboard choices and reconnect receipts.
@@ -671,9 +673,11 @@ variants. Full `gurps.magic.spellcasting` certification remains partial under #1
 ## Geometry and injury follow-up (#105/#107)
 
 The hex adapter now supports fractional authored elevations, explicit stair
-edges and standing armed melee height/location/defense rules. Tactical posture
-costs and final-facing allowances use B387 arithmetic. Existing square positions,
-profile pins and zero-offset hex maps retain their meanings.
+edges, posture-independent armed/unarmed melee height/location/defense rules, and
+B407 ranged elevation distance. Tactical posture costs and final-facing allowances
+use B387 arithmetic. Existing square positions, profile pins and zero-offset hex
+maps retain their meanings. Non-stair climbing/jumping/falling remains owned by
+#110 and cannot be authorized by a tactical path alone.
 
 Human-layout injury now executes the declared Injury Tolerance structures and
 missing-part variants, with distinct attack/area/internal injury sources and
@@ -682,8 +686,8 @@ lasting-wound registry entries are reconciled from absent to partial.
 
 See [geometry](tactical-geometry.md) and [injury](gurps-hit-locations.md) for
 independent fixture bindings, persistence evidence and remaining boundaries.
-The source review is fourth-printing evidence pending #191 reconciliation;
-no capability or whole profile is promoted to certified by these changes.
+The source inventory and audit disposition are recorded by #191; no capability
+or whole profile is promoted to certified by these changes.
 
 ### Ground transport foundation (#120; not acceptance-complete)
 
