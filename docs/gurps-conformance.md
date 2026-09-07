@@ -348,8 +348,10 @@ B494-495, using the frozen 2004/2007-errata baseline; source audit is pending.
 receipt/event ledger for atomic checkpoint commits. Duplicate command IDs replay;
 a second command cannot reroll the same subject/trigger. NPC trigger evidence is
 checked against the subject's knowledge. The explicit public projection excludes
-all roll targets, hidden modifier values and source IDs. No player choice or
-world knowledge is modified by a social outcome.
+all roll targets, hidden modifier values and source IDs. No player choice is
+modified by a social outcome. Explicit server-authored NPC disclosures can teach
+the initiating actor configured facts already known to the NPC; ordinary rolls
+do not reveal other facts or change NPC beliefs.
 
 Reaction/influence/fright coverage remains **partial**, and runtime self-control
 is partial: these are server-only procedures, with full NPC play dispatch and
@@ -360,6 +362,18 @@ explicit GM trait/panic choices. Each row has executable tests. Table effects
 are persisted in the private receipt; applying timed effects to live characters
 remains an explicit integration blocker in #137. Coverage does not claim that
 recording an effect already executes it. These blockers remain visible for #122.
+
+`orchestration.social.SocialService` binds a trusted trigger resolver and commits
+the resource receipt and bounded NPC disclosure together through the existing
+campaign transaction. It checks campaign GM membership and the exact compiler
+profile, and rejects reaction/influence dispatch against player-controlled
+subjects. Persisted retries do not re-run the resolver or recheck changed world
+knowledge. Colon-bearing trigger identities cannot alias, and legacy receipts
+remain readable. Player projections and event streams omit private traces.
+Fright dispatch rejects before rolling until timed consequence integration is
+available; its pure table resolver remains separately testable. Independent
+SQLite restart, stale command, failed disclosure, authority, and projection tests
+cover this boundary. The profile registry remains gated pending certification.
 
 ## Provisional implementation policy (2026-09-07)
 

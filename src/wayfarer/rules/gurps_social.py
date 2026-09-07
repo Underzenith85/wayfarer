@@ -61,11 +61,22 @@ def reaction_roll(
     profile_id: str, modifiers: tuple[ReactionModifier, ...], *, rng: RandomSource
 ) -> ReactionTrace:
     profile(profile_id)
-    if any(type(m.value) is not int or not m.source_id for m in modifiers):
-        raise ValidationError("Reaction modifiers require trusted integer values and provenance")
+    _validate_modifiers(modifiers)
     dice = draw_dice(rng)
     total = sum(dice) + sum(m.value for m in modifiers)
     return ReactionTrace(dice, modifiers, total, reaction_outcome(total))
+
+
+def _validate_modifiers(modifiers: tuple[ReactionModifier, ...]) -> None:
+    if any(
+        type(m.value) is not int
+        or not m.source_id
+        or m.kind not in ("status", "reputation", "appearance", "situation", "trait")
+        for m in modifiers
+    ):
+        raise ValidationError("Reaction modifiers require trusted integer values and provenance")
+    if len({(m.kind, m.source_id) for m in modifiers}) != len(modifiers):
+        raise ValidationError("Duplicate reaction modifier source")
 
 
 @dataclass(frozen=True)
@@ -102,6 +113,7 @@ def influence_roll(
     ):
         raise ValidationError("Unsupported influence skill")
     profile(profile_id)
+    _validate_modifiers(modifiers)
     contest = quick_contest(
         profile_id,
         Contestant(actor_id, target + sum(m.value for m in modifiers)),
