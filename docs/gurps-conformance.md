@@ -80,7 +80,33 @@ These helpers expose a fail-closed contract for future scenario/character valida
 
 ## Independent evidence
 
-The test suite executes seven fixed success/critical examples through the existing authoritative check service. This demonstrates agreement only for those examples; coverage remains partial. A separate both-fail Quick Contest case records the published winner and the prototype's different result. It deliberately passes only while that documented divergence remains, so #99 must update both evidence and coverage when implementing the published behavior. The unknown-capability test is an application contract test, not a rulebook-derived mechanic.
+`tests/test_gurps_conformance.py` drives every check, contest and resistance case in the fixture ledger through the profile-selected services in `wayfarer.rules.gurps_checks` with recorded dice, and asserts that each service consumed exactly the recorded dice. The both-fail Quick Contest case keeps its `prototype_expected` record: the prototype `package:wayfarer-lite` contest still discards failed rolls, the GURPS profile compares margins of failure, and the test fails if either behaviour drifts. `tests/test_gurps_checks.py` adds Hypothesis invariants (outcome boundaries, contest antisymmetry, levelling bounds, Rule of 16 cap) plus replay and fail-closed negative paths. The unknown-capability and unknown-profile tests are application contract tests, not rulebook-derived mechanics.
+
+Expected values in the ledger were entered by hand from the frozen sources and then checked against the implementation, never the reverse. Page references name sections without reproducing prose; confirming them against the physical artifacts remains part of the source audit below.
+
+## Success, contest and resistance services (#99)
+
+`wayfarer.rules.gurps_checks` implements the `gurps.check.*` capabilities on top of the existing authoritative scorer `wayfarer.rules.checks.evaluate_success`; there is no second dice engine. Every entry point takes an exact profile ID and calls `require_capabilities`, so an unknown profile, a capability outside the profile (Regular Contests on the Lite profile) or an unverified capability is rejected before any die is drawn.
+
+| Service | Behaviour | Receipt |
+| --- | --- | --- |
+| `success_roll` | 3d6 against base target plus typed modifiers; margin is target minus total; critical success on 3-4, on 5 at effective 15+, on 6 at effective 16+; critical failure on 18, on 17 at effective 15 or less, or on failure by 10 or more; 17 always fails | `CheckTrace` with `rules_package` = profile, `rules_version` = baseline, `rule_id` = capability |
+| `repeated_attempt` | Declared policy: single chance, retry until success, unknown until later, hazardous failure. Later attempts are rejected under single chance, unknown until later, or after a success; hazardous failures are flagged; unknown outcomes are marked unrevealed | `AttemptTrace` with attempt number, policy, reveal and hazard flags |
+| `quick_contest` | One roll each. Success beats failure; otherwise the larger margin of success or the smaller margin of failure wins; equal margins tie. Margin of victory is the difference between the two margins | `QuickContestTrace` with both traces, winner, decision reason and margin of victory |
+| `regular_contest` | Rounds continue until exactly one contestant succeeds. When both effective skills exceed 14 both are lowered so the higher becomes 14; when both are below 6 both are raised so the lower becomes 6, recorded as a `contest-adjustment` modifier. An undecided contest beyond the round limit raises instead of guessing | `RegularContestTrace` with every round and the levelling adjustment |
+| `resistance_roll` | Quick Contest of attacker against resister; the resister wins ties. With `rule_of_16` declared, the attacker's effective skill is capped at the higher of 16 and the resister's effective resistance, recorded as a `rule-of-16` modifier. The flag is rejected on the Lite profile because the frozen Lite artifact has no resisted supernatural attacks | `ResistanceTrace` with the contest and `affected` |
+
+Typed modifiers carry a `ModifierKind` (`situational`, `equipment`, `trait`, `time`, `repeated-attempt`, `contest-adjustment`, `rule-of-16`). Existing prototype call sites default to `situational`; persisted receipts gain the field with that default and are not migrated. Cumulative repeated-attempt penalties are GM rulings and are supplied as `repeated-attempt` modifiers rather than invented by the engine.
+
+Replay: `replay_success`, `replay_quick_contest`, `replay_regular_contest` and `replay_resistance` re-score the dice recorded in a receipt through `RecordedDice`, which refuses to invent a die and reports any unused die. Tests prove the replayed trace equals the original and that a live random source is never consulted.
+
+Explicit engine interpretations, recorded here because the frozen sources do not decide them:
+
+- A 17 or 18 at effective skill 17 or more is a failure whose numeric margin is simply target minus total; the sources define no separate margin of failure for automatic failures, so no fixture pins one.
+- Critical results have no separate clause in the published Quick Contest text, so contests decide by margin only; a critical success can lose to a larger ordinary margin.
+- Margin of victory when both contestants fail is the difference of their margins of failure, extending the published mixed and both-succeed definitions.
+
+Integration boundary: campaign play still resolves through the prototype package. Selecting a GURPS profile for a saved campaign is #96's explicit migration; these services are ready for it and for the scenario/character validators, but nothing in this change alters existing campaign behaviour.
 
 ## Outstanding acceptance blockers
 
@@ -103,12 +129,12 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.character.traits` | yes | yes | manual | #100 |
 | `gurps.character.self_control` | yes | yes | absent | #100 |
 | `gurps.character.ability_modifiers` | no | yes | absent | #100 |
-| `gurps.check.success` | yes | yes | partial | #99 |
-| `gurps.check.margin` | yes | yes | partial | #99 |
-| `gurps.check.critical` | yes | yes | partial | #99 |
-| `gurps.check.quick_contest` | yes | yes | absent | #99 |
-| `gurps.check.regular_contest` | no | yes | absent | #99 |
-| `gurps.check.resistance` | yes | yes | absent | #99 |
+| `gurps.check.success` | yes | yes | verified | #99 |
+| `gurps.check.margin` | yes | yes | verified | #99 |
+| `gurps.check.critical` | yes | yes | verified | #99 |
+| `gurps.check.quick_contest` | yes | yes | verified | #99 |
+| `gurps.check.regular_contest` | no | yes | verified | #99 |
+| `gurps.check.resistance` | yes | yes | verified | #99 |
 | `gurps.social.reaction` | yes | yes | absent | #111 |
 | `gurps.social.influence` | yes | yes | absent | #111 |
 | `gurps.social.fright` | no | yes | absent | #111 |

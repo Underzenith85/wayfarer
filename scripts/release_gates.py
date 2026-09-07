@@ -13,6 +13,10 @@ ROOT = Path(__file__).resolve().parents[1]
 # All cases in each required module must pass, including every parametrized backend/route.
 MECHANICS: dict[str, tuple[str, ...]] = {
     "Pinned sources and rules": ("test_rules",),
+    "GURPS profile checks, contests and resistance": (
+        "test_gurps_conformance",
+        "test_gurps_checks",
+    ),
     "Legality, effects and power approval": ("test_compiler", "test_power", "test_wave5"),
     "Resources, clocks and conservation": ("test_resources", "test_release_invariants"),
     "Deterministic actions and adjudication": ("test_actions", "test_adjudication"),
