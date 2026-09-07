@@ -333,6 +333,42 @@ world knowledge is modified by a social outcome.
 
 Reaction/influence/fright coverage remains **partial**, and runtime self-control
 is partial: these are server-only procedures, with full NPC play dispatch and
-fright-consequence execution in the named follow-up to #111. Fright records the
-numeric table result and requires adjudication; it does not fabricate persistent
-consequences. These blockers remain visible for Basic certification (#122).
+timed consequence execution in #137. The complete numeric fright table is
+represented by typed FrightEffect records: durations, recovery attributes and
+intervals, HP/FP losses, aftermath penalties, permanent attribute losses and
+explicit GM trait/panic choices. Each row has executable tests. Table effects
+are persisted in the private receipt; applying timed effects to live characters
+remains an explicit integration blocker in #137. Coverage does not claim that
+recording an effect already executes it. These blockers remain visible for #122.
+## Provisional implementation policy (2026-09-07)
+
+The project owner explicitly authorized implementation from model knowledge while
+source artifacts are unavailable. This permits engineering PRs to merge with
+passing tests; it does not certify source accuracy. References below identify the
+intended edition and pages, not an assertion that those pages were inspected.
+The independent source audit remains a certification task, not a merge gate for
+these explicitly authorized provisional implementations.
+
+## Torso injury reducer (#102)
+
+`simulation.injury.apply_injury` applies server-owned wounds and ordered injury
+turns to the existing ResourceState/Pool checkpoint. Pool.injury opts in to an
+exact GURPS profile; signed HP are rejected on prototype and FP pools. Resource
+receipts persist the check traces and make repeated/deferred hit commits safe
+across JSON reload. The caller persists the entire checkpoint with commit_turn
+and CAS. Prototype attack dispatch rejects profile HP rather than clamping it.
+
+Hand-entered tests cover DR penetration, rational wounding factors with floor and
+minimum penetrating injury, negative HP, each crossed death threshold, automatic
+death at -5 HP, mortal wounds, shock, major wounds, knockdown, consciousness at
+turn start, and stun recovery after Do Nothing. Rebuilds preserve the full injury
+deficit, and ordinary healing retains injury status. Low-HP Move/Dodge uses
+ceiling division. Turn ordering rejects repeated phases with new command IDs.
+
+Coverage remains **partial** pending source verification and the dependent combat
+adapter (#103) / maneuver timing (#104). Recovery from mortal wounds and elapsed
+medical checks belong to #109; location effects to #107. Fatigue damage rejects
+until #109; corrosion's persistent armor destruction remains unavailable under
+#114. No generic damage multiplier implements those missing runtime effects.
+The intended source is Lite August 2004 pp. 28-30 and Basic Set Campaigns first
+printing B378-381, B419-423 plus the selected 2007-01-26 errata; source audit pending.

@@ -59,11 +59,12 @@ def test_influence_diplomacy_and_sex_appeal() -> None:
 
 
 def test_fright_rule_of_fourteen_and_deferred_consequence() -> None:
-    result = fright_roll(PROFILE, 20, rng=RecordedDice([4, 5, 5, 3, 3, 3]))
+    result = fright_roll(PROFILE, 20, rng=RecordedDice([4, 5, 5, 3, 3, 3, 2]))
     assert not result.check.outcome.succeeded
     assert result.check.effective_target == 13
     assert result.table_total == 10
-    assert result.consequence_status == "awaiting-reviewed-table"
+    assert result.consequence_status == "resolved"
+    assert result.effect is not None and result.effect.duration_seconds == 2
     with pytest.raises(ValidationError):
         fright_roll("gurps-lite-4e-2004", 10, rng=RecordedDice([]))
 

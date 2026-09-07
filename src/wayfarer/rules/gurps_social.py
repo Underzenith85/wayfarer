@@ -12,6 +12,7 @@ from typing import Literal
 from wayfarer.errors import ValidationError
 from wayfarer.rules.checks import CheckTrace, RandomSource, draw_dice
 from wayfarer.rules.conformance import profile
+from wayfarer.rules.fright import FrightEffect, fright_effect
 from wayfarer.rules.gurps_checks import Contestant, QuickContestTrace, quick_contest, success_roll
 from wayfarer.rules.traits import TraitOptions, TraitRules, cost
 
@@ -137,14 +138,18 @@ class FrightTrace:
     check: CheckTrace
     table_dice: tuple[int, int, int] | None
     table_total: int | None
-    consequence_status: Literal["none", "awaiting-reviewed-table"]
+    consequence_status: Literal["none", "resolved"]
+    effect: FrightEffect | None = None
 
 
-def fright_roll(profile_id: str, will: int, modifier: int = 0, *, rng: RandomSource) -> FrightTrace:
+def fright_roll(
+    profile_id: str, will: int, modifier: int = 0, *, rng: RandomSource, ht: int = 10
+) -> FrightTrace:
     if profile_id != "gurps-basic-set-4e-2004":
         raise ValidationError("Fright checks require the Basic Set profile")
     check = success_roll(profile_id, min(13, will + modifier), rng=rng)
     if check.outcome.succeeded:
         return FrightTrace(check, None, None, "none")
     dice = draw_dice(rng)
-    return FrightTrace(check, dice, sum(dice) + max(0, -check.margin), "awaiting-reviewed-table")
+    total = sum(dice) + max(0, -check.margin)
+    return FrightTrace(check, dice, total, "resolved", fright_effect(total, ht, rng=rng))

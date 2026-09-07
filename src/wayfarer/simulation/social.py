@@ -45,6 +45,7 @@ class SocialContext:
         target: int,
         *,
         will: int = 10,
+        ht: int = 10,
         skill: InfluenceSkill = "diplomacy",
         modifiers: tuple[ReactionModifier, ...] = (),
         required_fact_ids: tuple[str, ...] = (),
@@ -54,6 +55,7 @@ class SocialContext:
         trait_rules: TraitRules | None = None,
     ) -> None:
         self.profile_id, self.target, self.will = profile_id, target, will
+        self.ht = ht
         self.skill, self.modifiers, self.required_fact_ids = skill, modifiers, required_fact_ids
         self.trait_base, self.trait_levels = trait_base, trait_levels
         self.trait_options, self.trait_rules = trait_options, trait_rules
@@ -107,13 +109,19 @@ def apply_social(
         outcome = SocialOutcome(kind=command.kind, outcome=influence.outcome)
         details = asdict(influence)
     elif command.kind == "fright":
-        fright = fright_roll(context.profile_id, context.target, rng=rng)
+        fright = fright_roll(context.profile_id, context.target, rng=rng, ht=context.ht)
         outcome = SocialOutcome(
             kind=command.kind,
             outcome="passed" if fright.check.outcome.succeeded else "failed",
-            requires_adjudication=fright.table_total is not None,
+            requires_adjudication=fright.effect is not None
+            and (fright.effect.trait_choice != "none" or fright.effect.condition == "panic"),
         )
-        details = asdict(fright)
+        details = {
+            "check": asdict(fright.check),
+            "table_dice": fright.table_dice,
+            "table_total": fright.table_total,
+            "effect": fright.effect.model_dump(mode="json") if fright.effect else None,
+        }
     else:
         if context.trait_rules is None or context.trait_options is None:
             raise ValidationError("Self-control requires approved trait options")
