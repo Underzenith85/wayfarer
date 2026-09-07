@@ -11,6 +11,12 @@ import {
   type InventoryIntent,
   type InventoryOperation,
 } from "./presentation";
+import { TechnicalDetails } from "../components/technical-details";
+import {
+  conditionLabel,
+  encumbranceLabel,
+  presentStats,
+} from "../presentation/labels";
 type Character = components["schemas"]["Character"];
 type Stat = components["schemas"]["Stat"];
 function EmptyCharacter() {
@@ -66,14 +72,23 @@ function ActorPicker() {
   );
 }
 function StatTable({ title, stats }: { title: string; stats: Stat[] }) {
+  const presented = presentStats(stats);
   return (
     <section className="sheet-section">
       <h3>{title}</h3>
-      {stats.length ? (
+      {presented.length ? (
         <dl className="sheet-stats">
-          {stats.map((stat) => (
+          {presented.map((stat) => (
             <div key={stat.id}>
-              <dt>{stat.label}</dt>
+              <dt>
+                {stat.short === stat.full ? (
+                  stat.short
+                ) : (
+                  <abbr title={stat.full} aria-label={stat.full}>
+                    {stat.short}
+                  </abbr>
+                )}
+              </dt>
               <dd>{stat.value}</dd>
             </div>
           ))}
@@ -120,7 +135,6 @@ export function CharacterPage() {
         <span className="eyebrow">Character sheet</span>
         <h2>{c.name}</h2>
         <p>{extra?.rulesLabel ?? "Authoritative character status"}</p>
-        <span className="resource-version">Version {c.version}</span>
       </header>
       <div className="pool-grid">
         <ResourcePool label="Hit points" pool={c.hp} />
@@ -133,12 +147,15 @@ export function CharacterPage() {
         </h3>
         {c.conditions.length ? (
           <ul className="condition-list">
-            {c.conditions.map((condition) => (
-              <li key={condition.id}>
-                <strong>{condition.label}</strong>
-                <p>{condition.description}</p>
-              </li>
-            ))}
+            {c.conditions.map((condition) => {
+              const shown = conditionLabel(condition);
+              return (
+                <li key={condition.id}>
+                  <strong>{shown.label}</strong>
+                  {shown.description && <p>{shown.description}</p>}
+                </li>
+              );
+            })}
           </ul>
         ) : (
           <p>No active conditions reported.</p>
@@ -226,6 +243,9 @@ export function CharacterPage() {
           </p>
         )}
       </section>
+      <TechnicalDetails
+        entries={[{ label: "Character version", value: c.version }]}
+      />
     </div>
   );
 }
@@ -482,8 +502,7 @@ function ItemOperations({ itemId }: { itemId: string }) {
           Confirm {operationLabel[kind].toLowerCase()}
         </Button>
         <p className="resource-version">
-          Uses inventory version {inventory.version}. The server validates every
-          operation.
+          The server validates every operation against the current inventory.
         </p>
       </form>
       <InventoryFeedback />
@@ -505,6 +524,7 @@ export function InventoryPage() {
   }, [inventory]);
   if (!s || !inventory || !state.actorId) return <EmptyCharacter />;
   const details = s.inventoryDetails?.[state.actorId];
+  const load = encumbranceLabel(inventory.encumbrance);
   const items = inventory.items.filter(
     (item) =>
       (filter === "all" || item.location === filter) &&
@@ -523,8 +543,9 @@ export function InventoryPage() {
         </h2>
         <div className="inventory-totals">
           <span>{inventory.total_weight_grams} g carried</span>
-          <strong>{inventory.encumbrance} encumbrance</strong>
-          <span className="resource-version">Version {inventory.version}</span>
+          <strong>
+            {load ? `Encumbrance: ${load}` : "Encumbrance not reported"}
+          </strong>
         </div>
         <Button
           variant="outline"
@@ -638,6 +659,9 @@ export function InventoryPage() {
           </ul>
         </section>
       ) : null}
+      <TechnicalDetails
+        entries={[{ label: "Inventory version", value: inventory.version }]}
+      />
     </div>
   );
 }

@@ -16,6 +16,8 @@ import { usePlay } from "./use-play";
 import type { Entry } from "./store";
 import type { Channel } from "./transport";
 import { MultiplayerPanel } from "../multiplayer/panel";
+import { TechnicalDetails } from "../components/technical-details";
+import { conditionLabel, encumbranceLabel } from "../presentation/labels";
 export function CampaignHome() {
   const { state, store } = usePlay();
   const navigate = useNavigate();
@@ -97,6 +99,7 @@ export function CharacterSummary() {
   const s = state.snapshot;
   const c = s?.characters.find((c) => c.id === state.actorId);
   const inventory = s?.inventories.find((i) => i.actor_id === state.actorId);
+  const load = encumbranceLabel(inventory?.encumbrance);
   return (
     <div className="context-details">
       <h3>{c?.name ?? "Character"}</h3>
@@ -116,9 +119,8 @@ export function CharacterSummary() {
               </dd>
             </div>
           </dl>
-          <p className="resource-version">Character version {c.version}</p>
           {c.conditions.length > 0 && (
-            <p>{c.conditions.map((x) => x.label).join(", ")}</p>
+            <p>{c.conditions.map((x) => conditionLabel(x).label).join(", ")}</p>
           )}
         </>
       ) : (
@@ -136,16 +138,19 @@ export function CharacterSummary() {
             ))}
           </ul>
           <p>
-            {inventory.encumbrance} encumbrance · {inventory.total_weight_grams}{" "}
-            g
-          </p>
-          <p className="resource-version">
-            Inventory version {inventory.version}
+            {load ? `Encumbrance: ${load}` : "Encumbrance not reported"} ·{" "}
+            {inventory.total_weight_grams} g
           </p>
         </>
       ) : (
         <p>Equipment will appear with your character.</p>
       )}
+      <TechnicalDetails
+        entries={[
+          { label: "Character version", value: c?.version ?? "" },
+          { label: "Inventory version", value: inventory?.version ?? "" },
+        ]}
+      />
     </div>
   );
 }

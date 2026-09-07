@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "../components/ui/button";
 import { usePlay } from "../play/use-play";
 import { LiveTransport } from "../play/live";
+import { orderStats, statLabel } from "../presentation/labels";
 import type { components } from "./workshop.generated";
 type Options = components["schemas"]["WorkshopOptions"];
 type ProfilePreview = components["schemas"]["ProfilePreviewResult"];
@@ -250,11 +251,13 @@ export function CharacterWorkshop() {
           {profilePreview.diagnostics.map((message, i) => (
             <p key={i}>{message}</p>
           ))}
-          {profilePreview.derived.map(([target, value]) => (
-            <p key={target}>
-              {target}: {value}
-            </p>
-          ))}
+          {orderStats(profilePreview.derived, ([target]) => target).map(
+            ([target, value]) => (
+              <p key={target}>
+                {statLabel({ id: target }).full}: {value}
+              </p>
+            ),
+          )}
           {foreignProfile && (
             <p>
               Preview only. Changing the campaign profile requires an explicit
@@ -351,7 +354,8 @@ export function CharacterWorkshop() {
               <>
                 {definition?.skill && (
                   <p>
-                    {definition.skill.attribute} / {definition.skill.difficulty}
+                    {statLabel({ id: definition.skill.attribute }).short} /{" "}
+                    {definition.skill.difficulty}
                     {definition.skill.specialty &&
                       ` · ${definition.skill.specialty.name}`}
                     {definition.skill.technique &&
@@ -496,9 +500,9 @@ export function CharacterWorkshop() {
           ))}
           <details>
             <summary>Derived statistics</summary>
-            {data.draft.derived.map((v) => (
+            {orderStats(data.draft.derived, (v) => v.target).map((v) => (
               <p key={v.target}>
-                {v.target}: {v.value}
+                {statLabel({ id: v.target }).full}: {v.value}
               </p>
             ))}
           </details>

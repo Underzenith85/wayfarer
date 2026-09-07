@@ -123,7 +123,7 @@ test("drop reconciles weight and focus after removing an item", async ({
     "1800 g carried",
   );
   await expect(page.locator(".inventory-totals")).toContainText(
-    "none encumbrance",
+    "Encumbrance: None",
   );
   await expect(page.locator("#inventory-title")).toBeFocused();
 });
@@ -158,7 +158,11 @@ test("version conflict requires review without resubmitting", async ({
   await dialog
     .getByRole("button", { name: "Review changed inventory" })
     .click();
-  await expect(page.locator(".inventory-totals")).toContainText("Version i2");
+  await expect(page.locator(".inventory-totals")).not.toContainText("i2");
+  await page.locator(".inventory-page > .technical-details summary").click();
+  await expect(
+    page.locator(".inventory-page > .technical-details"),
+  ).toContainText("Inventory version i2");
   await expect(
     page.getByRole("button", { name: "Retry same request" }),
   ).toHaveCount(0);
