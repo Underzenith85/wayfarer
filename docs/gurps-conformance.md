@@ -741,6 +741,7 @@ CI now checks this document's full capability table against the registry. Aim
 and environmental hazards are reconciled to partial; Size Modifier cost ownership
 is #192. Existing verified runtime entries are not promoted into source or whole
 profile certification by this audit.
+
 ## Complete supernatural inventory accounting (#119)
 
 [The supernatural catalog audit](gurps-supernatural-catalog.md) is the current
@@ -753,3 +754,35 @@ blocked, including narrower implemented subsets. Named runtime follow-ups
 #122. No family or profile is certified. The conformance gate consults this
 inventory before accepting either supernatural family as verified, so a family
 flag alone cannot bypass missing item evidence.
+
+## Lite certification gate (#121, preparation)
+
+`uv run python -m scripts.release_gates artifacts/pytest.xml --gurps-lite`
+produces `artifacts/release/lite-certification.json` and exits nonzero when
+certification is blocked. This is independent of the existing prototype release
+result. A green prototype run cannot satisfy this gate.
+
+The checked-in `tests/fixtures/gurps/lite-certification.json` freezes the exact
+registered Lite profile version/digest, source revision, fixture-ledger digest,
+and required mechanics subset. Every required capability must be verified and
+have source-referenced expected results bound to exact passing JUnit test IDs.
+The checker rejects missing, duplicate, skipped, failed, or errored evidence.
+Each bound testcase must record `profile_digest` and `baseline_id` JUnit
+properties for the profile actually exercised. Profile or fixture revisions
+require deliberate manifest updates; the checker never regenerates expectations.
+
+The existing coverage matrix above remains authoritative: no capabilities are
+promoted by this gate. The manifest deliberately retains pending source and
+item-level catalog audits, empty executable fixture bindings, and an empty
+real-service character-to-adventure journey list. Those are visible blockers,
+not successful tests or skipped acceptance criteria. Populate bindings only
+when their tests execute the corresponding independent fixtures; register the
+journey only when it creates and plays a character through real services under
+the exact supported Lite profile, without bypassing capability checks.
+
+This is certification infrastructure, **not completed certification**. Hard merge
+prerequisites still open at preparation time: #96, #99, #102, #103, #106, #109,
+#111, #116. Required partial/absent mechanics and #95's source inventory audit
+also remain blocking. Do not close #121 or merge its certification PR on the
+strength of unit tests of the checker. The source/catalog audits must identify
+any remaining bounded follow-ups and link them before certification can finish.
