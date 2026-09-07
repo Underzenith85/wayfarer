@@ -1,0 +1,43 @@
+{
+  "baseline_id": "gurps-4e-2004-first-printing+errata-2007-01-26",
+  "source_id": "sjg:basic-set-characters-4e-2004",
+  "capability_id": "gurps.character.size_modifier_costs",
+  "references": ["B9", "B15", "B16"],
+  "cases": [
+    {
+      "id": "st-sm-1",
+      "input": {"target": "attribute:st", "base_cost": 10, "size_modifier": 1},
+      "expected": {"adjusted_cost": 9, "discount_percent": 10}
+    },
+    {
+      "id": "st-sm-3",
+      "input": {"target": "attribute:st", "base_cost": 20, "size_modifier": 3},
+      "expected": {"adjusted_cost": 14, "discount_percent": 30}
+    },
+    {
+      "id": "hp-round-up",
+      "input": {"target": "secondary:hp", "base_cost": 2, "size_modifier": 3},
+      "expected": {"adjusted_cost": 2, "discount_percent": 30}
+    },
+    {
+      "id": "cap-at-sm-8",
+      "input": {"target": "attribute:st", "base_cost": 10, "size_modifier": 8},
+      "expected": {"adjusted_cost": 2, "discount_percent": 80}
+    },
+    {
+      "id": "cap-above-sm-8",
+      "input": {"target": "attribute:st", "base_cost": 10, "size_modifier": 12},
+      "expected": {"adjusted_cost": 2, "discount_percent": 80}
+    },
+    {
+      "id": "reduced-st-no-discount",
+      "input": {"target": "attribute:st", "base_cost": -10, "size_modifier": 4},
+      "expected": {"adjusted_cost": -10, "discount_percent": 0}
+    },
+    {
+      "id": "reduced-hp-no-discount",
+      "input": {"target": "secondary:hp", "base_cost": -2, "size_modifier": 4},
+      "expected": {"adjusted_cost": -2, "discount_percent": 0}
+    }
+  ]
+}
