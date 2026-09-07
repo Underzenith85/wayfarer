@@ -30,6 +30,7 @@ from wayfarer.simulation.injury import Wound, apply_injury
 from wayfarer.simulation.maneuvers import ManeuverState
 from wayfarer.simulation.unarmed import (
     BASIC,
+    GrappleLocation,
     Grip,
     PendingUnarmed,
     UnarmedTrace,
@@ -210,7 +211,15 @@ def validate_action(
     from wayfarer.simulation.tactical import attack_geometry
 
     if command.action in ("punch", "kick", "grapple", "arm_lock"):
-        attack_geometry(encounter, actor, target)
+        attack_geometry(
+            encounter,
+            actor,
+            target,
+            frozenset({0, 1})
+            if command.action == "kick" or command.enter_close_combat
+            else frozenset({0}),
+            location=command.location,
+        )
         if command.enter_close_combat and encounter.hex_battlefield is not None:
             from wayfarer.simulation.hex_geometry import movement as hex_movement
             from wayfarer.simulation.tactical import occupants, pose
@@ -412,7 +421,16 @@ def execute_unarmed(
             allowed_defenses: list[str] = ["none"]
             for choice in ("dodge", "parry"):
                 try:
-                    unarmed_defense(play, state, encounter, command.target_id, choice, None)
+                    unarmed_defense(
+                        play,
+                        state,
+                        encounter,
+                        command.target_id,
+                        choice,
+                        None,
+                        attacker_id=actor.actor_id,
+                        location=command.location,
+                    )
                 except ValidationError:
                     continue
                 allowed_defenses.insert(0, choice)
@@ -475,6 +493,8 @@ def unarmed_defense(
     actor_id: str,
     selected: str,
     item_id: str | None,
+    attacker_id: str | None = None,
+    location: GrappleLocation = "torso",
 ) -> tuple[int | None, str | None]:
     actor = fighter(encounter, actor_id)
     if selected == "none":
@@ -483,16 +503,27 @@ def unarmed_defense(
         return None, None
     if actor.pinned or actor.maneuver_state.defense_forbidden:
         raise ValidationError("Actor cannot defend")
-    if encounter.hex_battlefield is not None and encounter.pending_unarmed is not None:
-        from wayfarer.simulation.tactical import defense_adjustment
+    height_bonus = 0
+    if encounter.hex_battlefield is not None:
+        from wayfarer.simulation.tactical import defense_adjustment, height_effect
 
-        defense_adjustment(encounter, fighter(encounter, encounter.pending_unarmed.actor_id), actor)
+        source_id = (
+            encounter.pending_unarmed.actor_id
+            if encounter.pending_unarmed is not None
+            else attacker_id
+        )
+        if source_id is not None:
+            attacker = fighter(encounter, source_id)
+            defense_adjustment(encounter, attacker, actor)
+            height_bonus = height_effect(
+                encounter, attacker, actor, reach=1, location=location
+            ).defender_modifier
     if selected == "dodge":
         if item_id is not None:
             raise ValidationError("Dodge cannot select equipment")
         value, _ = defense_value(play, state, actor, "dodge")
         assert value is not None
-        return int(value.value), None
+        return int(value.value) + height_bonus, None
     if selected != "parry" or actor.maneuver_state.parry_forbidden:
         raise ValidationError("Only Dodge or an unarmed Parry is supported")
     # Weapon parry against an unarmed limb needs a separate damage stage; fail closed.
@@ -521,7 +552,7 @@ def unarmed_defense(
         - 4 * int(actor.arm_locked)
         + (2 if actor.maneuver_state.enhanced_defense == "parry" else 0)
     )
-    return max(targets) // 2 + 3 + penalty - 4 * actor.parries.count(hand), hand
+    return max(targets) // 2 + 3 + penalty + height_bonus - 4 * actor.parries.count(hand), hand
 
 
 def defend(
@@ -535,7 +566,13 @@ def defend(
     ):
         raise ValidationError("Defense is not authorized for this unarmed attack")
     defense_target, hand = unarmed_defense(
-        play, state, encounter, command.actor_id, command.defense, command.item_id
+        play,
+        state,
+        encounter,
+        command.actor_id,
+        command.defense,
+        command.item_id,
+        location=pending.location,
     )
     actor, target = fighter(encounter, pending.actor_id), fighter(encounter, pending.target_id)
     defenses = [(defense_target, hand)]
@@ -552,7 +589,13 @@ def defend(
         if command.second_defense not in pending.allowed:
             raise ValidationError("Second defense is not available against this attack")
         second_target, second_hand = unarmed_defense(
-            play, state, encounter, command.actor_id, command.second_defense, command.second_item_id
+            play,
+            state,
+            encounter,
+            command.actor_id,
+            command.second_defense,
+            command.second_item_id,
+            location=pending.location,
         )
         if command.defense == command.second_defense and not (
             command.defense == "parry" and hand != second_hand
@@ -574,6 +617,12 @@ def defend(
         if pending.action == "grapple"
         else 0
     )
+    if encounter.hex_battlefield is not None:
+        from wayfarer.simulation.tactical import height_effect
+
+        value += height_effect(
+            encounter, actor, target, reach=1, location=pending.location
+        ).attack_modifier
     attack = success_roll(BASIC, value, rng=play.rng)
     checks: tuple[CheckTrace, ...] = (attack,)
     hit = attack.outcome.succeeded

@@ -78,7 +78,12 @@ def declare(
     return encounter.model_copy(update={"ranged_situations": situations})
 
 
-def situation(encounter: Encounter, attacker: str, defender: str) -> RangedSituation:
+def situation(
+    encounter: Encounter,
+    attacker: str,
+    defender: str,
+    weapon: RangedMode | None = None,
+) -> RangedSituation:
     value = next(
         (
             s
@@ -90,15 +95,18 @@ def situation(encounter: Encounter, attacker: str, defender: str) -> RangedSitua
     if value is None:
         raise ValidationError("Ranged attack requires declared scene distance, speed and size")
     if encounter.hex_battlefield is not None:
-        from wayfarer.simulation.combat import CombatEngine
-        from wayfarer.simulation.tactical import attack_geometry
+        from wayfarer.simulation.hex_geometry import ranged_distance
+        from wayfarer.simulation.tactical import attack_geometry, pose
 
         actor = next(p for p in encounter.participants if p.actor_id == attacker)
         target = next(p for p in encounter.participants if p.actor_id == defender)
         attack_geometry(encounter, actor, target)
-        distance = CombatEngine.distance(actor.position, target.position)
-        if distance == 0:
-            raise ValidationError("Ranged close-combat handling remains unsupported")
+        distance = ranged_distance(
+            encounter.hex_battlefield,
+            pose(actor).position,
+            pose(target).position,
+            beam=bool(weapon and weapon.damage.tight_beam),
+        )
         value = value.model_copy(update={"distance_yards": float(distance)})
     return value
 
@@ -247,7 +255,7 @@ def prepare(
     assert pending is not None
     actor = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     target = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
-    scene = situation(encounter, actor.actor_id, target.actor_id)
+    scene = situation(encounter, actor.actor_id, target.actor_id, weapon)
     from wayfarer.orchestration.location_combat import disabled
 
     if len(disabled(state, actor.actor_id) & {"left-eye", "right-eye"}) == 2:
@@ -402,7 +410,7 @@ def resolve(
     actor = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     target = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
     original_target = target
-    scene = situation(encounter, actor.actor_id, target.actor_id)
+    scene = situation(encounter, actor.actor_id, target.actor_id, weapon)
     equipment = catalog(play)
     compiled = build(play, state, actor.actor_id)
     defender_build = build(play, state, target.actor_id)

@@ -88,11 +88,6 @@ def attack_geometry(
     board = encounter.hex_battlefield
     if board is None:
         return
-    if (
-        reaches is None
-        and board.cell(pose(actor).position).ground != board.cell(pose(target).position).ground
-    ):
-        raise ValidationError("Unequal-height combat requires the combat-height adapter")
     if reaches is not None:
         height_effect(encounter, actor, target, reach=max(reaches), location=location)
     if not sight(encounter, actor, target) or arc(pose(actor), pose(target).position) not in (
@@ -119,8 +114,6 @@ def height_effect(
         return HeightEffect()
     start = board.cell(pose(actor).position).ground
     end = board.cell(pose(target).position).ground
-    if start != end and (actor.posture != "standing" or target.posture != "standing"):
-        raise ValidationError("Unequal-height melee requires standing poses")
     return melee_height(start, end, reach=reach, location=location)
 
 
