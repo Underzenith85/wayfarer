@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import secrets
+from collections.abc import Callable
 
 from pydantic import Field
 from pydantic import ValidationError as SchemaError
@@ -246,7 +247,12 @@ class PlayService:
         return self.engine.assess(self._load(await self.store.read(cid)), command)
 
     async def execute(
-        self, cid: str, value: object, *, authenticated_actor_id: str
+        self,
+        cid: str,
+        value: object,
+        *,
+        authenticated_actor_id: str,
+        authorize: Callable[[Campaign], None] | None = None,
     ) -> ActionResult:
         command = self.propose(value)
         self._authorize(command, authenticated_actor_id)
@@ -272,6 +278,8 @@ class PlayService:
         def resolve(campaign: Campaign) -> Event:
             from wayfarer.simulation.party import synchronous
 
+            if authorize is not None:
+                authorize(campaign)
             current = self._load(campaign)
             synchronous(current, command.actor_id)
             state, result = self.engine.resolve(current, command, rng=self.rng)

@@ -17,7 +17,7 @@ async def application() -> web.Application:
     _, play = await prepare(directory)
     access = CampaignAccess(play)
     app = create_campaign_app(
-        access, {"alice-token": "alice", "bob-token": "bob", "gm-token": "gm"}
+        access, {"alice-token": "alice", "bob-token": "bob", "gm-token": "gm"}, legacy_routes=True
     )
     app[ORCHESTRATOR_KEY] = Orchestrator(access, FakeProvider())
     app.router.add_post("/campaigns/{cid}/interpret", interpret)

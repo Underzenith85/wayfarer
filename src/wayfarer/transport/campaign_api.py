@@ -55,6 +55,8 @@ def _identity(request: web.Request) -> str:
 async def boundary(
     request: web.Request, handler: Callable[[web.Request], Awaitable[web.StreamResponse]]
 ) -> web.StreamResponse:
+    if request.path.startswith("/api/v1"):
+        return await handler(request)
     request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
     try:
         if request.path not in (
@@ -333,6 +335,10 @@ def create_campaign_app(
     tokens: Mapping[str, str],
     *,
     settings: Settings | None = None,
+    v1_ledger_path: Path | None = None,
+    v1_origins: frozenset[str] = frozenset(),
+    v1_allow_no_origin: bool = False,
+    legacy_routes: bool = False,
     frontend_dir: Path | None = None,
 ) -> web.Application:
     if not tokens or any(not token or not principal for token, principal in tokens.items()):
@@ -349,19 +355,44 @@ def create_campaign_app(
         for path in ("/", "/character", "/inventory", "/journal", "/campaign"):
             app.router.add_get(path, frontend)
         app.router.add_static("/assets", frontend_dir / "assets")
-    app.add_routes(
-        [
-            web.get("/health", health),
-            web.get("/campaigns/{cid}", read_campaign),
-            web.post("/campaigns/{cid}/commands", command),
-            web.get("/campaigns/{cid}/events", events),
-            web.get("/campaigns/{cid}/drafts/{did}", read_draft),
-            web.get("/campaigns/{cid}/workshop/{aid}", workshop_start),
-            web.post("/campaigns/{cid}/drafts", save_draft),
-            web.post("/campaigns/{cid}/scenario-validation", validate_scenario),
-            web.post("/campaigns/{cid}/drafts/{did}/activate-scenario", activate_scenario),
-        ]
+    app.router.add_get("/health", health)
+    if legacy_routes:
+        app.add_routes(
+            [
+                web.get("/campaigns/{cid}", read_campaign),
+                web.post("/campaigns/{cid}/commands", command),
+                web.get("/campaigns/{cid}/events", events),
+                web.get("/campaigns/{cid}/drafts/{did}", read_draft),
+                web.get("/campaigns/{cid}/workshop/{aid}", workshop_start),
+                web.post("/campaigns/{cid}/drafts", save_draft),
+                web.post("/campaigns/{cid}/scenario-validation", validate_scenario),
+                web.post("/campaigns/{cid}/drafts/{did}/activate-scenario", activate_scenario),
+            ]
+        )
+    from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
+    from wayfarer.transport.v1.http import TOKENS, install
+    from wayfarer.transport.v1.live import CONNECTIONS
+
+    if v1_ledger_path is None:
+        if not isinstance(play.play.store, AsyncSQLiteStore):
+            raise ValueError("Configure v1_ledger_path for the durable API receipt database")
+        v1_ledger_path = play.play.store.path.with_suffix(".v1.sqlite3")
+    v1 = install(
+        app,
+        play.play,
+        tokens,
+        v1_ledger_path,
+        origins=v1_origins,
+        allow_no_origin=v1_allow_no_origin,
     )
+    app[TOKENS] = app[TOKENS_KEY]
+    app[CONNECTIONS] = {}
+
+    async def v1_lifespan(application: web.Application) -> AsyncIterator[None]:
+        await v1.start()
+        yield
+        await v1.close()
+
     if settings is not None:
         app[PROVIDER_STATUS_KEY] = deque(maxlen=256)
 
@@ -372,15 +403,20 @@ def create_campaign_app(
                 application[ORCHESTRATOR_KEY] = Orchestrator(
                     play, provider, timeout=min(settings.model_timeout_seconds, 120.0), attempts=1
                 )
+                from wayfarer.transport.v1.provider import bind_provider
+
+                bind_provider(v1, application[ORCHESTRATOR_KEY])
                 yield
 
         app.cleanup_ctx.append(lifespan)
-        app.add_routes(
-            [
-                web.post("/campaigns/{cid}/interpret", interpret),
-                web.post("/campaigns/{cid}/generate-draft", generate_draft),
-                web.post("/campaigns/{cid}/generate-scenario", generate_scenario_draft),
-                web.get("/campaigns/{cid}/provider-status", provider_status),
-            ]
-        )
+        if legacy_routes:
+            app.add_routes(
+                [
+                    web.post("/campaigns/{cid}/interpret", interpret),
+                    web.post("/campaigns/{cid}/generate-draft", generate_draft),
+                    web.post("/campaigns/{cid}/generate-scenario", generate_scenario_draft),
+                    web.get("/campaigns/{cid}/provider-status", provider_status),
+                ]
+            )
+    app.cleanup_ctx.append(v1_lifespan)
     return app

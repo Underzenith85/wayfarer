@@ -1624,9 +1624,11 @@ source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },
     { name = "aiosqlite" },
+    { name = "jsonschema" },
     { name = "openai-codex" },
     { name = "psycopg", extra = ["binary"] },
     { name = "pydantic-settings" },
+    { name = "referencing" },
     { name = "structlog" },
 ]
 
@@ -1648,9 +1650,11 @@ dev = [
 requires-dist = [
     { name = "aiohttp", specifier = ">=3.14.3" },
     { name = "aiosqlite", specifier = ">=0.22.1" },
+    { name = "jsonschema", specifier = "==4.26.0" },
     { name = "openai-codex", specifier = ">=0.147.0" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.3.2" },
     { name = "pydantic-settings", specifier = ">=2.15.0" },
+    { name = "referencing", specifier = "==0.37.0" },
     { name = "structlog", specifier = ">=26.1.0" },
 ]
 
