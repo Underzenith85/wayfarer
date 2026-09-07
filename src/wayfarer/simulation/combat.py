@@ -15,12 +15,34 @@ from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.rules.checks import CheckTrace
 from wayfarer.rules.effects import DerivedValue
 from wayfarer.simulation.gurps_equipment import EquipmentCatalog
+from wayfarer.simulation.maneuvers import (
+    ATTACK_MANEUVERS,
+    AttackOption,
+    DefenseOption,
+    ManeuverState,
+    WaitInterrupt,
+    WaitTrigger,
+)
 from wayfarer.simulation.resources import Equip, Id, Record, ResourceEngine, ResourceState
 from wayfarer.world import EntityKind, World
 
 Facing = Literal["north", "east", "south", "west"]
 Posture = Literal["standing", "kneeling", "prone"]
-Maneuver = Literal["do_nothing", "move", "ready", "change_posture", "attack", "wait", "concentrate"]
+Maneuver = Literal[
+    "do_nothing",
+    "move",
+    "ready",
+    "change_posture",
+    "attack",
+    "wait",
+    "concentrate",
+    "aim",
+    "evaluate",
+    "feint",
+    "all_out_attack",
+    "all_out_defense",
+    "move_and_attack",
+]
 Defense = Literal["dodge", "parry", "block", "none"]
 
 
@@ -67,6 +89,7 @@ class ProtectionProfile(Record):
 class InjuryTrace(Record):
     attack: CheckTrace
     defense: CheckTrace | None = None
+    second_defense: CheckTrace | None = None
     attack_value: DerivedValue
     defense_value: DerivedValue | None = None
     damage_dice: tuple[int, ...] = ()
@@ -139,6 +162,8 @@ class Combatant(Record):
     defense_penalty: int = Field(default=0, ge=-20, le=0)
     last_maneuver: Maneuver | None = None
     last_attack_item_id: str | None = None
+    forced_do_nothing: bool = False
+    maneuver_state: ManeuverState = Field(default_factory=ManeuverState)
 
 
 class PendingDefense(Record):
@@ -171,6 +196,7 @@ class Encounter(Record):
     completion_reason: str | None = None
     wounds: tuple[InjuryTrace, ...] = ()
     blocked_reason: str | None = None
+    wait_interrupt: WaitInterrupt | None = None
 
     @property
     def current_actor_id(self) -> str:
@@ -345,9 +371,32 @@ class CombatEngine:
         pending = encounter.pending_defense
         if pending is not None:
             return tuple(pending.allowed) if actor_id == pending.defender_id else ()
+        interrupt = encounter.wait_interrupt
+        if interrupt is not None:
+            if interrupt.ready:
+                return ("resume_interrupted_turn",) if actor_id == interrupt.actor_id else ()
+            waiter = next(p for p in encounter.participants if p.actor_id == interrupt.waiter_id)
+            reaction = (
+                "attack"
+                if interrupt.declaration.reaction == "all_out_attack"
+                and waiter.maneuver_state.defended
+                else interrupt.declaration.reaction
+            )
+            return (reaction, "do_nothing") if actor_id == interrupt.waiter_id else ()
         if actor_id != encounter.current_actor_id:
             return ()
-        return ("do_nothing", "move", "ready", "change_posture", "attack", "wait")
+        base = ("do_nothing", "move", "ready", "change_posture", "attack", "wait")
+        if self.rules.gurps_equipment is not None:
+            return base + (
+                "aim",
+                "evaluate",
+                "feint",
+                "all_out_attack",
+                "all_out_defense",
+                "move_and_attack",
+                "concentrate",
+            )
+        return base
 
     @staticmethod
     def _replace(encounter: Encounter, participant: Combatant) -> Encounter:
@@ -394,6 +443,16 @@ class CombatEngine:
 
     @staticmethod
     def _advance(encounter: Encounter) -> Encounter:
+        interrupt = encounter.wait_interrupt
+        if interrupt is not None and interrupt.reacting:
+            return encounter.model_copy(
+                update={
+                    "turn_index": interrupt.turn_index,
+                    "wait_interrupt": interrupt.model_copy(
+                        update={"reacting": False, "ready": True}
+                    ),
+                }
+            )
         index = encounter.turn_index + 1
         round_number = encounter.round
         if index == len(encounter.turn_order):
@@ -410,6 +469,7 @@ class CombatEngine:
                             "parries": (),
                             "block_used": False,
                             "defense_penalty": 0,
+                            "maneuver_state": p.maneuver_state.new_turn(),
                         }
                     )
                     if p.actor_id == encounter.turn_order[index]
@@ -432,6 +492,113 @@ class CombatEngine:
         item_id: str | None = None,
         target_id: str | None = None,
         command_id: str,
+        attack_option: AttackOption | None = None,
+        defense_option: DefenseOption | None = None,
+        wait_trigger: WaitTrigger | None = None,
+        command_json: str = "",
+    ) -> tuple[Encounter, ResourceState, CombatResult]:
+        original, original_resources = encounter, resources
+        interrupt = encounter.wait_interrupt
+        if interrupt is not None:
+            if interrupt.ready or interrupt.reacting or actor_id != interrupt.waiter_id:
+                raise ConflictError("Resolve the interrupted Wait before another action")
+            declaration = interrupt.declaration
+            reacting_waiter = next(p for p in encounter.participants if p.actor_id == actor_id)
+            if declaration.reaction == "all_out_attack" and reacting_waiter.maneuver_state.defended:
+                declaration = declaration.model_copy(
+                    update={"reaction": "attack", "attack_option": None}
+                )
+            if maneuver != "do_nothing" and (maneuver, item_id, target_id, attack_option) != (
+                declaration.reaction,
+                declaration.item_id,
+                declaration.reaction_target_id,
+                declaration.attack_option,
+            ):
+                raise ValidationError("Wait reaction must match its recorded declaration")
+            encounter = encounter.model_copy(
+                update={
+                    "turn_index": encounter.turn_order.index(actor_id),
+                    "wait_interrupt": interrupt.model_copy(update={"reacting": True}),
+                }
+            )
+        result = self._take_turn(
+            encounter,
+            actor_id=actor_id,
+            maneuver=maneuver,
+            resources=resources,
+            destination=destination,
+            facing=facing,
+            posture=posture,
+            item_id=item_id,
+            target_id=target_id,
+            command_id=command_id,
+            attack_option=attack_option,
+            defense_option=defense_option,
+            wait_trigger=wait_trigger,
+        )
+        if self.rules.gurps_equipment is not None and interrupt is None and command_json:
+            action = "attack" if maneuver in ATTACK_MANEUVERS else maneuver
+            waiters = {p.actor_id: p for p in original.participants if p.actor_id != actor_id}
+            for waiter_id in original.turn_order:
+                waiter = waiters.get(waiter_id)
+                trigger = waiter.maneuver_state.wait if waiter else None
+                if (
+                    trigger
+                    and trigger.actor_id == actor_id
+                    and trigger.action == action
+                    and (trigger.target_id is None or trigger.target_id == target_id)
+                ):
+                    assert waiter is not None
+                    paused = self._replace(
+                        original,
+                        waiter.model_copy(
+                            update={
+                                "maneuver_state": waiter.maneuver_state.model_copy(
+                                    update={"wait": None}
+                                )
+                            }
+                        ),
+                    )
+                    paused = paused.model_copy(
+                        update={
+                            "wait_interrupt": WaitInterrupt(
+                                waiter_id=waiter_id,
+                                actor_id=actor_id,
+                                turn_index=original.turn_index,
+                                command_json=command_json,
+                                declaration=trigger,
+                            )
+                        }
+                    )
+                    return (
+                        paused,
+                        original_resources,
+                        CombatResult(
+                            encounter_id=paused.id,
+                            code="combat.wait_triggered",
+                            round=paused.round,
+                            current_actor_id=actor_id,
+                            available=self.available(paused, waiter_id),
+                        ),
+                    )
+        return result
+
+    def _take_turn(
+        self,
+        encounter: Encounter,
+        *,
+        actor_id: str,
+        maneuver: Maneuver,
+        resources: ResourceState,
+        command_id: str,
+        destination: GridPoint | None = None,
+        facing: Facing | None = None,
+        posture: Posture | None = None,
+        item_id: str | None = None,
+        target_id: str | None = None,
+        attack_option: AttackOption | None = None,
+        defense_option: DefenseOption | None = None,
+        wait_trigger: WaitTrigger | None = None,
     ) -> tuple[Encounter, ResourceState, CombatResult]:
         if self.rules.gurps_equipment is not None:
             command_id = "combat:" + hashlib.sha256(command_id.encode()).hexdigest()
@@ -443,10 +610,195 @@ class CombatEngine:
             raise ConflictError("Encounter cannot accept a maneuver now")
         if actor_id != encounter.current_actor_id:
             raise ConflictError("Combat action is out of turn")
-        if maneuver == "concentrate":
+        if maneuver == "concentrate" and self.rules.gurps_equipment is None:
             raise ValidationError("Concentration requires a bound ability command")
         participant = next(p for p in encounter.participants if p.actor_id == actor_id)
         battlefield = self.battlefields[encounter.battlefield_id]
+        if self.rules.gurps_equipment is None and (
+            maneuver not in ("do_nothing", "move", "ready", "change_posture", "attack", "wait")
+            or attack_option
+            or defense_option
+            or wait_trigger
+        ):
+            raise ValidationError("Maneuver requires exact GURPS profile dispatch")
+        if (
+            (attack_option is not None and maneuver != "all_out_attack")
+            or (defense_option is not None and maneuver != "all_out_defense")
+            or (wait_trigger is not None and maneuver != "wait")
+        ):
+            raise ValidationError("Maneuver options do not match the maneuver")
+        if self.rules.gurps_equipment is not None:
+            old = participant.maneuver_state
+            if participant.last_maneuver != "evaluate":
+                old = old.model_copy(update={"evaluate_target_id": None, "evaluate_bonus": 0})
+            if participant.last_maneuver != "feint":
+                old = old.model_copy(update={"feint_target_id": None, "feint_penalty": 0})
+            commitment = ManeuverState()
+            if maneuver in ATTACK_MANEUVERS or maneuver == "feint":
+                commitment = commitment.model_copy(
+                    update={
+                        "evaluate_target_id": old.evaluate_target_id,
+                        "evaluate_bonus": old.evaluate_bonus,
+                        "feint_target_id": old.feint_target_id,
+                        "feint_penalty": old.feint_penalty,
+                    }
+                )
+            if maneuver == "all_out_attack":
+                if attack_option is None:
+                    raise ValidationError("Choose an All-Out Attack option")
+                commitment = commitment.model_copy(
+                    update={
+                        "defense_forbidden": True,
+                        "attack_bonus": 4 if attack_option == "determined" else 0,
+                        "strong": attack_option == "strong",
+                        "attacks_remaining": int(attack_option == "double"),
+                    }
+                )
+            if maneuver == "move_and_attack":
+                commitment = commitment.model_copy(
+                    update={"attack_bonus": -4, "attack_cap": 9, "parry_forbidden": True}
+                )
+            if maneuver in ATTACK_MANEUVERS:
+                commitment = commitment.model_copy(
+                    update={
+                        "evaluate_target_id": old.evaluate_target_id,
+                        "evaluate_bonus": old.evaluate_bonus,
+                        "feint_target_id": old.feint_target_id,
+                        "feint_penalty": old.feint_penalty,
+                    }
+                )
+            if maneuver == "concentrate":
+                commitment = commitment.model_copy(
+                    update={
+                        "concentrating": True,
+                        "concentration_seconds": old.concentration_seconds + 1
+                        if old.concentrating
+                        else 1,
+                    }
+                )
+            if maneuver == "all_out_defense":
+                if defense_option is None:
+                    raise ValidationError("Choose the enhanced active defense")
+                commitment = commitment.model_copy(update={"enhanced_defense": defense_option})
+            if maneuver == "wait":
+                if (
+                    wait_trigger is None
+                    or wait_trigger.actor_id not in encounter.turn_order
+                    or wait_trigger.actor_id == actor_id
+                ):
+                    raise ValidationError("Wait requires an observable other combatant trigger")
+                if (
+                    wait_trigger.item_id not in participant.ready_item_ids
+                    and wait_trigger.reaction != "ready"
+                ):
+                    raise ValidationError("Wait attack requires a ready weapon")
+                if (
+                    wait_trigger.reaction != "ready"
+                    and wait_trigger.reaction_target_id not in encounter.turn_order
+                ):
+                    raise ValidationError("Wait attack requires a declared target")
+                if (wait_trigger.reaction == "all_out_attack") != (
+                    wait_trigger.attack_option is not None
+                ):
+                    raise ValidationError("Wait All-Out Attack requires its option in advance")
+                commitment = commitment.model_copy(update={"wait": wait_trigger})
+            if maneuver in ("evaluate", "aim", "feint"):
+                target = next((p for p in encounter.participants if p.actor_id == target_id), None)
+                if target is None or target.actor_id == actor_id:
+                    raise ValidationError("Maneuver requires another combatant target")
+                reach = participant.reach + (
+                    participant.movement_allowance if maneuver == "evaluate" else 0
+                )
+                if (
+                    maneuver != "aim"
+                    and self.distance(participant.position, target.position) > reach
+                ):
+                    raise ValidationError("Maneuver target is outside melee reach")
+                if maneuver == "evaluate":
+                    commitment = commitment.model_copy(
+                        update={
+                            "evaluate_target_id": target_id,
+                            "evaluate_bonus": min(3, old.evaluate_bonus + 1)
+                            if old.evaluate_target_id == target_id
+                            else 1,
+                        }
+                    )
+                elif maneuver == "aim":
+                    if item_id not in participant.ready_item_ids:
+                        raise ValidationError("Aim requires a ready ranged weapon")
+                    commitment = commitment.model_copy(
+                        update={
+                            "aim_item_id": item_id,
+                            "aim_target_id": target_id,
+                            "aim_seconds": min(3, old.aim_seconds + 1)
+                            if (old.aim_item_id, old.aim_target_id) == (item_id, target_id)
+                            else 1,
+                        }
+                    )
+            participant = participant.model_copy(update={"maneuver_state": commitment})
+            step_maneuvers = {
+                "attack",
+                "aim",
+                "evaluate",
+                "feint",
+                "ready",
+                "concentrate",
+                "all_out_defense",
+            }
+            if facing is not None and maneuver in step_maneuvers:
+                participant = participant.model_copy(update={"facing": facing})
+                facing = None
+            if posture is not None and maneuver in step_maneuvers:
+                if destination is not None or {posture, participant.posture} != {
+                    "standing",
+                    "kneeling",
+                }:
+                    raise ValidationError(
+                        "A posture step only switches standing and kneeling in place"
+                    )
+                participant = participant.model_copy(update={"posture": posture})
+                posture = None
+            # A single destination is one movement allowance, never a second action.
+            if destination is not None and maneuver != "move":
+                limit = max(1, (participant.movement_allowance + 9) // 10)
+                if maneuver == "move_and_attack":
+                    limit = participant.movement_allowance
+                elif maneuver == "all_out_attack" or (
+                    maneuver == "all_out_defense" and defense_option == "dodge"
+                ):
+                    limit = participant.movement_allowance // 2
+                elif maneuver not in (
+                    "attack",
+                    "aim",
+                    "evaluate",
+                    "feint",
+                    "ready",
+                    "concentrate",
+                    "all_out_defense",
+                ):
+                    raise ValidationError("Maneuver does not permit a step")
+                occupied = {p.position for p in encounter.participants if p.actor_id != actor_id}
+                if not self._reachable(
+                    battlefield, participant.position, destination, limit, occupied
+                ):
+                    raise ValidationError(
+                        "Maneuver movement exceeds allowance or terrain constraints"
+                    )
+                if maneuver == "all_out_attack":
+                    dx, dy = (
+                        destination.x - participant.position.x,
+                        destination.y - participant.position.y,
+                    )
+                    forward = {
+                        "north": dy < 0 and dx == 0,
+                        "south": dy > 0 and dx == 0,
+                        "east": dx > 0 and dy == 0,
+                        "west": dx < 0 and dy == 0,
+                    }
+                    if destination != participant.position and not forward[participant.facing]:
+                        raise ValidationError("All-Out Attack movement must be forward")
+                participant = participant.model_copy(update={"position": destination})
+                destination = None
         if maneuver == "move":
             if destination is None or any(
                 value is not None for value in (posture, item_id, target_id)
@@ -504,6 +856,12 @@ class CombatEngine:
                 }
             )
         elif maneuver == "change_posture":
+            if (
+                self.rules.gurps_equipment is not None
+                and participant.posture == "prone"
+                and posture == "standing"
+            ):
+                raise ValidationError("Rise from prone to kneeling before standing")
             if posture is None or any(
                 value is not None for value in (destination, facing, item_id, target_id)
             ):
@@ -511,7 +869,7 @@ class CombatEngine:
             participant = participant.model_copy(
                 update={"posture": posture, "last_maneuver": maneuver}
             )
-        elif maneuver == "attack":
+        elif maneuver in ATTACK_MANEUVERS:
             if (
                 target_id is None
                 or item_id is None
@@ -554,6 +912,14 @@ class CombatEngine:
                     available=tuple(pending.allowed),
                 ),
             )
+        elif maneuver in ("aim", "evaluate", "feint"):
+            if (
+                facing is not None
+                or posture is not None
+                or (maneuver == "evaluate" and item_id is not None)
+            ):
+                raise ValidationError("Unexpected observation maneuver parameters")
+            participant = participant.model_copy(update={"last_maneuver": maneuver})
         else:
             if any(
                 value is not None for value in (destination, facing, posture, item_id, target_id)
@@ -590,7 +956,10 @@ class CombatEngine:
             raise ValidationError("Defender has no reaction available")
         defender = defender.model_copy(
             update={
-                "reaction_available": False if selected != "none" else defender.reaction_available
+                "reaction_available": False if selected != "none" else defender.reaction_available,
+                "maneuver_state": defender.maneuver_state.model_copy(update={"defended": True})
+                if selected != "none"
+                else defender.maneuver_state,
             }
         )
         choice = DefenseChoice(pending=pending, selected=selected, chosen_by=actor_id)
@@ -600,7 +969,28 @@ class CombatEngine:
                 "defense_history": encounter.defense_history + (choice,),
             }
         )
-        encounter = self._advance(encounter)
+        attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
+        if (
+            self.rules.gurps_equipment is not None
+            and attacker.maneuver_state.attacks_remaining
+            and not encounter.blocked_reason
+        ):
+            attacker = attacker.model_copy(
+                update={
+                    "maneuver_state": attacker.maneuver_state.model_copy(
+                        update={"attacks_remaining": 0}
+                    )
+                }
+            )
+            encounter = self._replace(encounter, attacker).model_copy(
+                update={
+                    "pending_defense": pending.model_copy(
+                        update={"id": "second:" + hashlib.sha256(pending.id.encode()).hexdigest()}
+                    )
+                }
+            )
+        else:
+            encounter = self._advance(encounter)
         return (
             encounter,
             CombatResult(

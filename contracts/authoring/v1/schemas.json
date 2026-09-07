@@ -3297,6 +3297,11 @@
               }
             ],
             "default": null
+          },
+          "ready_after_attack": {
+            "default": false,
+            "title": "Ready After Attack",
+            "type": "boolean"
           }
         },
         "required": [

@@ -62,6 +62,7 @@ class MeleeMode(Record):
     damage: Damage
     reach: tuple[Nonnegative, ...] = Field(min_length=1)  # 0 is close combat
     parry: Parry | None = None
+    ready_after_attack: bool = Field(default=False, exclude_if=lambda value: not value)
 
     @model_validator(mode="after")
     def unique_reach(self) -> Self:

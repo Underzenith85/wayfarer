@@ -348,6 +348,7 @@ class CampaignAccess:
             elif kind in (
                 "start_encounter",
                 "take_combat_turn",
+                "resume_interrupted_turn",
                 "choose_defense",
                 "end_encounter",
                 "join_encounter",

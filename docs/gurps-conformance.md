@@ -174,10 +174,10 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.injury.lasting_wounds` | no | yes | absent | #107 |
 | `gurps.combat.melee_attack` | yes | yes | partial | #103 |
 | `gurps.combat.active_defense` | yes | yes | partial | #103 |
-| `gurps.combat.maneuvers` | yes | yes | partial | #104 |
+| `gurps.combat.maneuvers` | yes | yes | partial | #104; [executable transitions and remaining scope](gurps-maneuvers.md) |
 | `gurps.combat.turn_timing` | yes | yes | partial | #104 |
 | `gurps.combat.ranged_attack` | yes | yes | partial | #106 |
-| `gurps.combat.aim` | yes | yes | absent | #106 |
+| `gurps.combat.aim` | yes | yes | partial | #104; target-bound accumulation and disruption; ranged resolution #106 |
 | `gurps.combat.ammunition` | yes | yes | absent | #106 |
 | `gurps.combat.rapid_fire` | no | yes | absent | #106 |
 | `gurps.combat.unarmed` | yes | yes | partial | #108 |
