@@ -1,5 +1,7 @@
 """Canonical world state, actor perspectives and narrative commitments."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass, replace
 from enum import StrEnum
 
@@ -132,7 +134,7 @@ class World:
             tuple(e for e in self.entities if e.id in visible_ids), facts, beliefs, commitments
         )
 
-    def learn(self, actor_id: str, fact_id: str) -> "World":
+    def learn(self, actor_id: str, fact_id: str) -> World:
         updated = replace(
             self, knowledge=tuple(sorted(set(self.knowledge) | {(actor_id, fact_id)}))
         )
