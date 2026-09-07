@@ -25,6 +25,7 @@ from wayfarer.rules.hazard_types import HazardSchedule, RecoveryRestriction, req
 from wayfarer.rules.injury_types import InjuryStatus
 from wayfarer.rules.object_types import ObjectCondition, ObjectProfile, ObjectResult
 from wayfarer.rules.recovery_types import FatigueStatus, RecoveryTask, require_settled, retire_tasks
+from wayfarer.rules.transport_types import Transport
 from wayfarer.world import EntityKind, World
 
 Id = Annotated[str, Field(min_length=1, max_length=200)]
@@ -144,6 +145,7 @@ class ResourceState(Record):
     recovery_tasks: tuple[RecoveryTask, ...] = ()
     hazards: tuple[HazardSchedule, ...] = ()
     illnesses: tuple[RecoveryRestriction, ...] = ()
+    transports: tuple[Transport, ...] = Field(default=(), exclude_if=lambda v: not v)
     object_results: tuple[ObjectResult, ...] = Field(default=(), exclude_if=lambda v: not v)
 
     @model_validator(mode="after")
@@ -154,6 +156,11 @@ class ResourceState(Record):
             raise ValueError("Duplicate illness restriction ID")
         if any(h.due < h.started or h.started > self.game_time for h in self.hazards):
             raise ValueError("Invalid hazard timeline")
+        if len({t.id for t in self.transports}) != len(self.transports):
+            raise ValueError("Duplicate transport ID")
+        manifest = [actor for t in self.transports for actor in (*t.occupants, t.body_id)]
+        if len(set(manifest)) != len(manifest):
+            raise ValueError("Transport bodies and occupants cannot be shared")
         pools = {p.id: p for p in self.pools}
         for hazard in self.hazards:
             hp = pools.get("hp:" + hazard.actor_id)

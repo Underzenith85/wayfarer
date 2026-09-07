@@ -347,6 +347,8 @@ class ActionEngine:
         self.digest = hashlib.sha256(payload.encode()).hexdigest()
 
     def validate(self, state: PlayState) -> None:
+        if state.resources.transports:
+            raise ValidationError("Live transport encounters require the #120 integration")
         if state.configuration_digest != self.digest:
             raise ValidationError("Play configuration changed; explicit migration required")
         if state.revision != state.resources.revision:

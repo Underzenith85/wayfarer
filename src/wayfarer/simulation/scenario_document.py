@@ -7,9 +7,11 @@ import json
 from typing import Annotated, Literal
 
 from pydantic import Field, model_validator
+from pydantic.json_schema import SkipJsonSchema
 
 from wayfarer.character.power import CharacterProposal
 from wayfarer.rules.catalog import CampaignRules
+from wayfarer.rules.transport_types import Transport
 from wayfarer.simulation.actions import ActorSetup
 from wayfarer.simulation.resources import Id, Record, ResourceState
 from wayfarer.simulation.studio import GenerationBrief, ScenarioContent, StudioFinding
@@ -95,6 +97,15 @@ class PregeneratedCharacter(Record):
 
 class InitialResources(ResourceState):
     """Only initial resources; runtime history and elapsed time are forbidden."""
+
+    # Internal runtime state is not an addition to the frozen v1 authoring API.
+    transports: SkipJsonSchema[tuple[Transport, ...]] = Field(default=(), exclude=True)
+
+    @model_validator(mode="after")
+    def reject_transport_input(self) -> InitialResources:
+        if "transports" in self.model_fields_set or self.transports:
+            raise ValueError("Transport authoring is not supported by scenario v1")
+        return self
 
     revision: Literal[0] = 0
     game_time: Literal[0] = 0
