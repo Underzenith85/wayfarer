@@ -4,7 +4,7 @@ import asyncio
 
 from aiohttp import web
 
-from wayfarer.errors import ProviderError, ValidationError
+from wayfarer.errors import ProviderUnavailableError, ValidationError
 from wayfarer.orchestration.assisted_authoring import AssistedAuthoring
 from wayfarer.orchestration.catalog import ScenarioCatalog
 from wayfarer.orchestration.scenario_documents import adapt_graph
@@ -115,7 +115,7 @@ async def generate(request: web.Request) -> web.Response:
     from wayfarer.transport.campaign_api import ORCHESTRATOR_KEY
 
     if ORCHESTRATOR_KEY not in request.app:
-        raise ProviderError(
+        raise ProviderUnavailableError(
             "Scenario generation is unavailable. Configure a backend provider or use manual/template authoring."
         )
     principal = _identity(request)
