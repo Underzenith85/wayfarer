@@ -1,0 +1,345 @@
+{
+  "schema_version": 1,
+  "baseline_id": "gurps-4e-2004-first-printing+errata-2007-01-26",
+  "sources": [
+    {
+      "id": "sjg:gurps-lite-4e-2004",
+      "title": "GURPS Lite, Fourth Edition",
+      "edition": "Fourth Edition",
+      "artifact": "August 2004 electronic edition",
+      "printing": null,
+      "publication_year": 2004,
+      "url": "https://www.sjgames.com/gurps/lite/",
+      "revision": "07/12/04",
+      "errata": []
+    },
+    {
+      "id": "sjg:basic-set-characters-4e-2004",
+      "title": "GURPS Basic Set: Characters",
+      "edition": "Fourth Edition",
+      "artifact": "2004 hardcover, first printing",
+      "printing": 1,
+      "publication_year": 2004,
+      "url": "https://www.sjgames.com/gurps/books/basic/",
+      "errata": [
+        {
+          "url": "https://www.sjgames.com/errata/gurps/4e/basic-set-characters.html",
+          "revision": "2007-01-26"
+        }
+      ]
+    },
+    {
+      "id": "sjg:basic-set-campaigns-4e-2004",
+      "title": "GURPS Basic Set: Campaigns",
+      "edition": "Fourth Edition",
+      "artifact": "2004 hardcover, first printing",
+      "printing": 1,
+      "publication_year": 2004,
+      "url": "https://www.sjgames.com/gurps/books/basic/",
+      "errata": [
+        {
+          "url": "https://www.sjgames.com/errata/gurps/4e/basic-set-campaigns.html",
+          "revision": "2007-01-26"
+        }
+      ]
+    }
+  ],
+  "units": {
+    "distance": "yard",
+    "mass": "pound",
+    "time": "second",
+    "money": "GURPS_$",
+    "dice": "Nd6+integer_add"
+  },
+  "rounding_modes": [
+    "none",
+    "floor",
+    "ceil",
+    "nearest",
+    "truncate"
+  ],
+  "cases": [
+    {
+      "id": "lite-success-basic-pass",
+      "capability_id": "gurps.check.success",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Success Rolls section",
+      "input": {
+        "target": 10,
+        "roll": [
+          3,
+          3,
+          4
+        ]
+      },
+      "expected": {
+        "success": true,
+        "margin": 0
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result; not generated from engine output."
+    },
+    {
+      "id": "lite-success-basic-fail",
+      "capability_id": "gurps.check.success",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Success Rolls section",
+      "input": {
+        "target": 10,
+        "roll": [
+          4,
+          4,
+          4
+        ]
+      },
+      "expected": {
+        "success": false,
+        "margin": -2
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result; not generated from engine output."
+    },
+    {
+      "id": "lite-attribute-st-cost",
+      "capability_id": "gurps.character.primary_attributes",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Attributes section",
+      "input": {
+        "attribute": "ST",
+        "from": 10,
+        "to": 12
+      },
+      "expected": {
+        "point_cost": 20
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result; not generated from engine output."
+    },
+    {
+      "id": "lite-attribute-dx-cost",
+      "capability_id": "gurps.character.primary_attributes",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Attributes section",
+      "input": {
+        "attribute": "DX",
+        "from": 10,
+        "to": 12
+      },
+      "expected": {
+        "point_cost": 40
+      },
+      "rounding": "none",
+      "prototype_divergence": "Wayfarer prototype exposes the same per-level DX cost, but that coincidence is not conformance evidence.",
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result; not generated from engine output."
+    },
+    {
+      "id": "lite-secondary-basic-speed",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Secondary Characteristics section",
+      "input": {
+        "DX": 11,
+        "HT": 12
+      },
+      "expected": {
+        "basic_speed": "5.75"
+      },
+      "rounding": "none",
+      "prototype_divergence": "Prototype character compilation does not yet expose the published secondary-characteristic calculation.",
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result; not generated from engine output."
+    },
+    {
+      "id": "lite-secondary-basic-move",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-lite-4e-2004",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "Secondary Characteristics section",
+      "input": {
+        "basic_speed": "5.75"
+      },
+      "expected": {
+        "basic_move": 5,
+        "unit": "yard/second"
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result; not generated from engine output."
+    },
+    {
+      "id": "basic-hex-step-unit",
+      "capability_id": "gurps.tactical.hex_movement",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "Tactical Combat / movement on a hex map",
+      "input": {
+        "hexes": 3
+      },
+      "expected": {
+        "distance": 3,
+        "unit": "yard"
+      },
+      "rounding": "none",
+      "prototype_divergence": "Prototype positioning is not a complete hex/facing model.",
+      "evidence_kind": "published-example",
+      "provenance": "Manually entered expected result; not generated from engine output."
+    },
+    {
+      "id": "critical-five-at-15",
+      "capability_id": "gurps.check.critical",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B347-348, Degree of Success or Failure",
+      "input": {
+        "target": 15,
+        "roll": [
+          1,
+          2,
+          2
+        ]
+      },
+      "expected": {
+        "outcome": "critical-success",
+        "margin": 10
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "prototype-comparison",
+      "provenance": "Hand-entered boundary example, not engine-generated."
+    },
+    {
+      "id": "five-at-14",
+      "capability_id": "gurps.check.critical",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B347-348, Degree of Success or Failure",
+      "input": {
+        "target": 14,
+        "roll": [
+          1,
+          2,
+          2
+        ]
+      },
+      "expected": {
+        "outcome": "success",
+        "margin": 9
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "prototype-comparison",
+      "provenance": "Hand-entered boundary example, not engine-generated."
+    },
+    {
+      "id": "seventeen-at-16",
+      "capability_id": "gurps.check.critical",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B347-348, Degree of Success or Failure",
+      "input": {
+        "target": 16,
+        "roll": [
+          5,
+          6,
+          6
+        ]
+      },
+      "expected": {
+        "outcome": "failure",
+        "margin": -1
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "prototype-comparison",
+      "provenance": "Hand-entered boundary example, not engine-generated."
+    },
+    {
+      "id": "seventeen-at-15",
+      "capability_id": "gurps.check.critical",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B347-348, Degree of Success or Failure",
+      "input": {
+        "target": 15,
+        "roll": [
+          5,
+          6,
+          6
+        ]
+      },
+      "expected": {
+        "outcome": "critical-failure",
+        "margin": -2
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "prototype-comparison",
+      "provenance": "Hand-entered boundary example, not engine-generated."
+    },
+    {
+      "id": "eighteen-at-20",
+      "capability_id": "gurps.check.critical",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B347-348, Degree of Success or Failure",
+      "input": {
+        "target": 20,
+        "roll": [
+          6,
+          6,
+          6
+        ]
+      },
+      "expected": {
+        "outcome": "critical-failure",
+        "margin": 2
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "prototype-comparison",
+      "provenance": "Hand-entered boundary example, not engine-generated."
+    },
+    {
+      "id": "quick-contest-both-fail",
+      "capability_id": "gurps.check.quick_contest",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B348, Quick Contests",
+      "input": {
+        "first_target": 10,
+        "second_target": 10,
+        "roll": [
+          4,
+          4,
+          4,
+          5,
+          4,
+          4
+        ]
+      },
+      "expected": {
+        "winner": "first"
+      },
+      "prototype_expected": {
+        "winner": null
+      },
+      "rounding": "none",
+      "prototype_divergence": "Prototype contest discards failed rolls; published quick contest compares margins when both fail.",
+      "evidence_kind": "prototype-divergence",
+      "provenance": "Hand-entered expected winner and separately recorded prototype behavior."
+    }
+  ]
+}
