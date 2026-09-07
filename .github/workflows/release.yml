@@ -1,0 +1,41 @@
+name: Product release gates
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  engine:
+    uses: ./.github/workflows/package.yml
+  browser:
+    uses: ./.github/workflows/frontend.yml
+  readiness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require completed product acceptance evidence
+        run: |
+          python - <<'PYTHON'
+          import json
+          from pathlib import Path
+          pending = json.loads(Path("docs/product-release.json").read_text())["pending"]
+          for item in pending:
+              print(f"::error::Pending #{item['issue']}: {item['reason']}")
+          if pending:
+              raise SystemExit(1)
+          PYTHON
+  release:
+    if: always()
+    needs: [engine, browser, readiness]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every release gate to succeed
+        env:
+          ENGINE: ${{ needs.engine.result }}
+          BROWSER: ${{ needs.browser.result }}
+          READINESS: ${{ needs.readiness.result }}
+        run: test "$ENGINE" = success && test "$BROWSER" = success && test "$READINESS" = success

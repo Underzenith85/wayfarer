@@ -1,0 +1,183 @@
+{
+  "package": {
+    "id": "package:wayfarer-lite",
+    "version": "1.0.0",
+    "edition": "wayfarer-lite",
+    "sources": [
+      {
+        "id": "source:wayfarer-original",
+        "title": "Wayfarer prototype rules",
+        "rights": "original",
+        "citation": null
+      }
+    ],
+    "definitions": [
+      {
+        "id": "attribute:st",
+        "kind": "attribute",
+        "name": "ST",
+        "source_id": "source:wayfarer-original",
+        "point_cost": 10,
+        "status": "implemented",
+        "prerequisites": [],
+        "exclusions": [],
+        "parameters": [],
+        "hooks": [
+          "character.attribute"
+        ]
+      },
+      {
+        "id": "attribute:dx",
+        "kind": "attribute",
+        "name": "DX",
+        "source_id": "source:wayfarer-original",
+        "point_cost": 20,
+        "status": "implemented",
+        "prerequisites": [],
+        "exclusions": [],
+        "parameters": [],
+        "hooks": [
+          "character.attribute"
+        ]
+      },
+      {
+        "id": "attribute:iq",
+        "kind": "attribute",
+        "name": "IQ",
+        "source_id": "source:wayfarer-original",
+        "point_cost": 20,
+        "status": "implemented",
+        "prerequisites": [],
+        "exclusions": [],
+        "parameters": [],
+        "hooks": [
+          "character.attribute"
+        ]
+      },
+      {
+        "id": "attribute:ht",
+        "kind": "attribute",
+        "name": "HT",
+        "source_id": "source:wayfarer-original",
+        "point_cost": 10,
+        "status": "implemented",
+        "prerequisites": [],
+        "exclusions": [],
+        "parameters": [],
+        "hooks": [
+          "character.attribute"
+        ]
+      },
+      {
+        "id": "skill:stealth",
+        "kind": "skill",
+        "name": "Stealth",
+        "source_id": "source:wayfarer-original",
+        "point_cost": null,
+        "status": "implemented",
+        "prerequisites": [],
+        "exclusions": [],
+        "parameters": [],
+        "hooks": [
+          "character.skill",
+          "check.target"
+        ]
+      },
+      {
+        "id": "skill:observation",
+        "kind": "skill",
+        "name": "Observation",
+        "source_id": "source:wayfarer-original",
+        "point_cost": null,
+        "status": "implemented",
+        "prerequisites": [],
+        "exclusions": [],
+        "parameters": [],
+        "hooks": [
+          "character.skill",
+          "check.target"
+        ]
+      },
+      {
+        "id": "skill:diplomacy",
+        "kind": "skill",
+        "name": "Diplomacy",
+        "source_id": "source:wayfarer-original",
+        "point_cost": null,
+        "status": "implemented",
+        "prerequisites": [],
+        "exclusions": [],
+        "parameters": [],
+        "hooks": [
+          "character.skill",
+          "check.target"
+        ]
+      },
+      {
+        "id": "skill:survival",
+        "kind": "skill",
+        "name": "Survival",
+        "source_id": "source:wayfarer-original",
+        "point_cost": null,
+        "status": "implemented",
+        "prerequisites": [],
+        "exclusions": [],
+        "parameters": [],
+        "hooks": [
+          "character.skill",
+          "check.target"
+        ]
+      },
+      {
+        "id": "trait:keen-senses",
+        "kind": "trait",
+        "name": "Keen senses",
+        "source_id": "source:wayfarer-original",
+        "point_cost": 5,
+        "status": "manual-adjudication",
+        "prerequisites": [],
+        "exclusions": [],
+        "parameters": [],
+        "hooks": []
+      },
+      {
+        "id": "trait:fit",
+        "kind": "trait",
+        "name": "Fit",
+        "source_id": "source:wayfarer-original",
+        "point_cost": 5,
+        "status": "manual-adjudication",
+        "prerequisites": [],
+        "exclusions": [],
+        "parameters": [],
+        "hooks": []
+      },
+      {
+        "id": "trait:curious",
+        "kind": "trait",
+        "name": "Curious",
+        "source_id": "source:wayfarer-original",
+        "point_cost": -5,
+        "status": "manual-adjudication",
+        "prerequisites": [],
+        "exclusions": [],
+        "parameters": [],
+        "hooks": []
+      },
+      {
+        "id": "trait:code-of-honor",
+        "kind": "trait",
+        "name": "Code of honor",
+        "source_id": "source:wayfarer-original",
+        "point_cost": -10,
+        "status": "manual-adjudication",
+        "prerequisites": [],
+        "exclusions": [],
+        "parameters": [],
+        "hooks": []
+      }
+    ],
+    "dependencies": []
+  },
+  "digest": "fd2dd68a5339c2109f0b38b4f437a4b88736cfab5fe8db6a0cf8117dd67adfff"
+}

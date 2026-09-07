@@ -23,3 +23,7 @@ PostgreSQL transaction/replay work begins in #10. Its reproducible local service
 reserved now with `docker compose -f compose.test.yml up -d --wait`; future tests
 marked `integration` will read their test-only connection setting. The current
 SQLite integration suite does not require Docker.
+
+The integrated [Wave 15 release gates](release-gates.md) publish mechanics coverage,
+require reference-adventure and multiplayer evidence, and distinguish engine checks
+from full product readiness.

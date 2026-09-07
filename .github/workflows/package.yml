@@ -1,6 +1,7 @@
 name: Python package
 
 on:
+  workflow_call:
   push:
     paths:
       - "src/**"
@@ -11,6 +12,7 @@ on:
       - "pyproject.toml"
       - "uv.lock"
       - ".python-version"
+      - "docs/product-release.json"
       - ".github/workflows/package.yml"
   pull_request:
     paths:
@@ -22,6 +24,7 @@ on:
       - "pyproject.toml"
       - "uv.lock"
       - ".python-version"
+      - "docs/product-release.json"
       - ".github/workflows/package.yml"
 
 concurrency:
@@ -68,7 +71,16 @@ jobs:
       - run: uv run --frozen python scripts/check_quality_gates.py
       - run: uv run --frozen python scripts/validate_contracts.py
       - run: uv run --frozen python -m scripts.validate_live_contracts
-      - run: uv run --frozen pytest
+      - run: uv run --frozen pytest --junitxml=artifacts/pytest.xml --cov-report=xml:artifacts/coverage.xml --cov-report=term-missing
+      - name: Verify and publish mechanics evidence
+        if: always()
+        run: uv run --frozen python -m scripts.release_gates artifacts/pytest.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: engine-release-evidence
+          path: artifacts/
+          if-no-files-found: error
       - run: uv build
       - name: Install wheel into a separate environment
         run: |
