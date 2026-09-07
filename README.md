@@ -58,6 +58,6 @@ For the Codex provider using a supported ChatGPT login, follow the [Codex setup 
 
 ## Documentation
 
-See [architecture](docs/architecture.md), [UI onboarding](docs/ui-onboarding.md), [API runtime](docs/api-v1-runtime.md), [rules](docs/rules-catalog.md), [persistence](docs/persistence.md), [testing](docs/testing.md), and [contributing](CONTRIBUTING.md).
+See [architecture](docs/architecture.md), [UI onboarding](docs/ui-onboarding.md), [API runtime](docs/api-v1-runtime.md), [rules](docs/rules-catalog.md), [rules profiles](docs/rules-profiles.md), [persistence](docs/persistence.md), [testing](docs/testing.md), and [contributing](CONTRIBUTING.md).
 
 This is a limited GURPS-inspired implementation, not a complete or officially licensed GURPS ruleset. No proprietary rulebook text is included.

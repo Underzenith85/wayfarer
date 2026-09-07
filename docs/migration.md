@@ -32,3 +32,13 @@ have been verified.
 
 Future catalog/schema migrations require a separate versioned migration workflow
 (#18). Do not reinterpret existing demo data as official Fourth Edition builds.
+
+## Rules profile migration
+
+Saved campaigns keep their exact rules pins; #96 registers those pins as
+`profile:wayfarer-lite@1` without changing stored data. Selecting another
+registered, supported profile for a paused or completed game is an explicit host
+action through the rules-migration ledger: preview incompatibilities, then apply
+with a command receipt, expected revision and source digest. Failed migrations
+write nothing, and retries of the same command are idempotent. See
+[rules profiles](rules-profiles.md).

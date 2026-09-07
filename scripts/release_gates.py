@@ -22,7 +22,7 @@ MECHANICS: dict[str, tuple[str, ...]] = {
     "Deterministic actions and adjudication": ("test_actions", "test_adjudication"),
     "Combat and injury": ("test_combat", "test_wave9"),
     "Replay, concurrency and crash recovery": ("test_postgres", "test_release_invariants"),
-    "Advancement and explicit migration": ("test_advancement",),
+    "Advancement and explicit migration": ("test_advancement", "test_profiles"),
     "Authorization and knowledge isolation": ("test_campaign_api", "test_v1_api", "test_wave9"),
     "Provider attacks, degradation and narration authority": (
         "test_codex_provider",

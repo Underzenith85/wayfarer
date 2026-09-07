@@ -19,3 +19,7 @@ Campaign policies independently constrain sources, point/disadvantage budgets,
 attribute and skill ceilings, technology level, supernatural access, and starting
 equipment. Updating a package or policy requires a new version and explicit
 campaign migration; existing campaign pins never float.
+
+Registered [rules profiles](rules-profiles.md) bundle exact pins, a policy and an
+optional GURPS conformance target so new campaigns select a profile by ID and
+version, and campaigns change profile only through explicit migration.

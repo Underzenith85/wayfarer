@@ -28,6 +28,8 @@ class SetupService:
         self.engine_controls = engine_controls
         self.access = access
         self.play = access.play
+        # Registered-profile dispatch, when the play service was composed with one.
+        self.profiles = access.play.profiles
 
     @staticmethod
     def load(campaign: Campaign) -> Setup:
@@ -46,9 +48,15 @@ class SetupService:
         self, command: CreateSetup, *, principal_id: str, document_json: str | None = None
     ) -> dict[str, object]:
         cid = str(uuid5(NAMESPACE_URL, json.dumps([principal_id, command.id])))
-        payload = command.model_dump_json()
+        # Existing creation receipts predate profile selection; keep their payload bytes.
+        payload = command.model_dump_json(
+            exclude={"rules_profile"} if command.rules_profile is None else None
+        )
         if document_json is not None:
             payload = json.dumps([payload, document_json])
+        if command.rules_profile is not None and self.profiles is None:
+            raise ValidationError("Rules profile selection is unavailable on this server")
+        play = self.play if self.profiles is None else self.profiles.select(command.rules_profile)
         setup = Setup(
             host_id=principal_id,
             creation_json=payload,
@@ -60,7 +68,7 @@ class SetupService:
             id=cid,
             revision=0,
             rules="pinned",
-            rules_ref=reference(self.play.engine.resources.rules),
+            rules_ref=reference(play.engine.resources.rules),
             setup_json=setup.model_dump_json(),
             character={
                 "name": "Party",
@@ -140,6 +148,7 @@ class SetupService:
             if setup.graph and setup.phase in ("active", "paused", "completed")
             else None,
             "rules": campaign.get("rules_ref"),
+            "rules_profile": self.profile_summary(campaign),
             "adventures": [a.project(seat.actor_ids) for a in setup.adventures],
             "next_adventure": {
                 "id": setup.next_graph.id,
@@ -163,6 +172,7 @@ class SetupService:
         def resolve(campaign: Campaign) -> Event:
             setup = self.load(campaign)
             me = self.seat(setup, principal_id)
+            play = self.play.for_campaign(campaign)
             op = command.operation
             if op not in ("join", "ready") and setup.host_id != principal_id:
                 raise AuthorizationError("Only the host can change setup or lifecycle")
@@ -222,7 +232,7 @@ class SetupService:
             elif op == "ready":
                 if not me.joined or not me.actor_ids:
                     raise ValidationError("Join and select a legal character first")
-                self.validate(setup)
+                self.validate(setup, play)
                 seats = [
                     s.model_copy(update={"ready": command.ready}) if s == me else s for s in seats
                 ]
@@ -231,14 +241,14 @@ class SetupService:
                     raise ConflictError("Complete the adventure before previewing its successor")
                 from wayfarer.orchestration.continuation import prepare
 
-                graph, _ = prepare(self.play, campaign, setup, command.graph)
+                graph, _ = prepare(play, campaign, setup, command.graph)
                 setup = setup.model_copy(update={"next_graph": graph})
             elif op == "continue":
                 if setup.phase != "completed" or setup.next_graph is None:
                     raise ConflictError("Save and review a next-adventure preview first")
                 from wayfarer.orchestration.continuation import prepare
 
-                graph, state = prepare(self.play, campaign, setup, setup.next_graph)
+                graph, state = prepare(play, campaign, setup, setup.next_graph)
                 campaign["play_json"] = state.model_dump_json()
                 campaign["scenario_graph_json"] = graph.model_dump_json()
                 campaign["scenario"]["title"] = graph.title
@@ -255,14 +265,14 @@ class SetupService:
                     s.joined and s.ready and s.actor_ids for s in seats
                 ):
                     raise ConflictError("Every invited player must join and confirm readiness")
-                self.validate(setup)
+                self.validate(setup, play)
                 if "scenario_document_json" in campaign:
                     from wayfarer.orchestration.scenario_documents import ScenarioDocuments
                     from wayfarer.simulation.scenario_document import PregeneratedCharacter
 
                     assert setup.graph is not None
                     documents = ScenarioDocuments(
-                        ScenarioStudio(self.play, npc_reviewer=self.play.engine.reviewer)
+                        ScenarioStudio(play, npc_reviewer=play.engine.reviewer)
                     )
                     party = tuple(
                         PregeneratedCharacter(slot_id=a.actor_id, proposal=a.proposal)
@@ -283,8 +293,10 @@ class SetupService:
                     a.actor_id for a in graph.actors
                 } - set(graph.npc_actor_ids):
                     raise ValidationError("Every player character needs exactly one controller")
-                studio = ScenarioStudio(self.play, npc_reviewer=self.play.engine.reviewer)
-                activated = PlayService(self.play.store, studio.engine(graph), rng=self.play.rng)
+                studio = ScenarioStudio(play, npc_reviewer=play.engine.reviewer)
+                activated = PlayService(
+                    play.store, studio.engine(graph), rng=play.rng, profiles=play.profiles
+                )
                 seed = campaign.copy()
                 seed["revision"] = 0
                 members = tuple(
@@ -294,7 +306,7 @@ class SetupService:
                     for s in seats
                 ) + tuple(
                     CampaignMember(principal_id=gm, role="gm")
-                    for gm in sorted(self.play.engine.reviewer.gm_ids)
+                    for gm in sorted(play.engine.reviewer.gm_ids)
                     if gm not in {s.principal_id for s in seats}
                 )
                 state = activated.initial_state(
@@ -379,12 +391,22 @@ class SetupService:
         )
         return await self.read(cid, principal_id=principal_id)
 
-    def validate(self, setup: Setup) -> None:
+    def profile_summary(self, campaign: Campaign) -> dict[str, object] | None:
+        profile = None if self.profiles is None else self.profiles.profile_of(campaign)
+        if profile is None:
+            return None
+        return {
+            "id": profile.id,
+            "version": profile.version,
+            "title": profile.title,
+            "supported": profile.supported,
+        }
+
+    def validate(self, setup: Setup, play: PlayService | None = None) -> None:
+        play = self.play if play is None else play
         if setup.graph is None or setup.graph.brief != setup.brief:
             raise ValidationError("Select a scenario matching the saved setup brief")
-        report = ScenarioStudio(self.play, npc_reviewer=self.play.engine.reviewer).validate(
-            setup.graph
-        )
+        report = ScenarioStudio(play, npc_reviewer=play.engine.reviewer).validate(setup.graph)
         if not report.valid:
             raise ValidationError(
                 "; ".join(f.message for f in report.findings if f.severity == "error")
@@ -399,6 +421,7 @@ class SetupService:
         campaign = await self.play.store.read(cid)
         setup = self.load(campaign)
         self.seat(setup, principal_id)
+        play = self.play.for_campaign(campaign)
         if (
             command.operation not in ("edit", "preview")
             or command.brief
@@ -455,7 +478,7 @@ class SetupService:
                     {
                         "brief": setup.brief.model_dump(mode="json"),
                         "party": [a.model_dump(mode="json") for a in party],
-                        "catalog_ids": sorted(self.play.engine.reviewer.compiler.definitions),
+                        "catalog_ids": sorted(play.engine.reviewer.compiler.definitions),
                         "continuation": json.loads(campaign["play_json"])
                         if command.operation == "preview"
                         else None,
@@ -473,7 +496,7 @@ class SetupService:
         }:
             raise ValidationError("Generated adventure changed the selected party")
         if command.operation == "edit":
-            self.validate(setup.model_copy(update={"graph": graph}))
+            self.validate(setup.model_copy(update={"graph": graph}), play)
         # Provider failures and late replies leave the saved draft untouched.
         return await self.execute(
             cid,

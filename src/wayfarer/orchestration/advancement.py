@@ -298,10 +298,22 @@ class AdvancementService:
 
 
 class MigrationService:
-    def __init__(self, current: PlayService, target: PlayService) -> None:
+    def __init__(
+        self,
+        current: PlayService,
+        target: PlayService,
+        *,
+        authority: frozenset[str] | None = None,
+        from_profile: str | None = None,
+        to_profile: str | None = None,
+    ) -> None:
         if current.store is not target.store:
             raise ValidationError("Migration services must share a store")
         self.current, self.target = current, target
+        # Rules migration authority defaults to configured GM identities. A caller
+        # that owns another explicit boundary (the setup host) names it here.
+        self.authority = current.engine.reviewer.gm_ids if authority is None else authority
+        self.from_profile, self.to_profile = from_profile, to_profile
 
     async def preview(self, cid: str) -> MigrationPreview:
         state = self.current._load(await self.current.store.read(cid))
@@ -319,19 +331,21 @@ class MigrationService:
             actor_diffs=tuple(diffs),
         )
 
-    async def apply(self, cid: str, value: object, *, authenticated_gm_id: str) -> MigrationEntry:
+    async def apply(
+        self, cid: str, value: object, *, authenticated_gm_id: str, payload: str | None = None
+    ) -> MigrationEntry:
         try:
             command = ApplyMigration.model_validate(value)
         except SchemaError as exc:
             raise ValidationError("Invalid migration approval") from exc
-        if (
-            command.actor_id != authenticated_gm_id
-            or authenticated_gm_id not in self.current.engine.reviewer.gm_ids
-        ):
+        if command.actor_id != authenticated_gm_id or authenticated_gm_id not in self.authority:
             raise ValidationError("Rules migration requires GM authority")
         if command.expected_from_digest != self.current.engine.digest:
             raise ConflictError("Migration source configuration changed")
-        payload = AdvancementService._payload("rules-migration", command.model_dump(mode="json"))
+        if payload is None:
+            payload = AdvancementService._payload(
+                "rules-migration", command.model_dump(mode="json")
+            )
         duplicate = await self.current.store.duplicate(cid, command.id, payload)
         if duplicate is not None:
             state = PlayState.model_validate_json(duplicate["play_json"])
@@ -340,6 +354,10 @@ class MigrationService:
                 raise ConflictError("Command ID belongs to another operation")
             return entry
         preview = await self.preview(cid)
+
+        # A configured GM records GM approvals; any other authorized approver (the
+        # setup host) can only carry characters that stay within automatic limits.
+        gm = authenticated_gm_id in self.target.engine.reviewer.gm_ids
 
         def resolve(campaign: Campaign) -> Event:
             state = self.current._load(campaign)
@@ -351,8 +369,8 @@ class MigrationService:
                     campaign_id=cid,
                     actor_id=actor.actor_id,
                     revision=state.revision + 1,
-                    approver_id=authenticated_gm_id,
-                    reason=command.reason,
+                    approver_id=authenticated_gm_id if gm else None,
+                    reason=command.reason if gm else "",
                 )
                 approvals.append(approval)
                 actors.append(actor.model_copy(update={"approval": approval}))
@@ -363,6 +381,8 @@ class MigrationService:
                 from_digest=preview.from_digest,
                 to_digest=preview.to_digest,
                 reason=command.reason,
+                from_profile=self.from_profile,
+                to_profile=self.to_profile,
             )
             updated = AdvancementService._revision(
                 state,
