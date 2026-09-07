@@ -1,0 +1,53 @@
+"""The release checker must fail closed even when pytest itself exited successfully."""
+
+import json
+from pathlib import Path
+from xml.etree.ElementTree import Element, ElementTree, SubElement
+
+import pytest
+
+from scripts.release_gates import MECHANICS, ROOT, evaluate
+
+
+@pytest.mark.parametrize("defect", ["none", "missing", "skipped", "failure", "error", "empty"])
+def test_release_evidence_rejects_incomplete_or_nonpassing_report(
+    tmp_path: Path, defect: str
+) -> None:
+    root = Element("testsuites")
+    suite = SubElement(root, "testsuite")
+    modules = sorted({m for group in MECHANICS.values() for m in group})
+    if defect == "missing":
+        modules.remove("test_wave14")
+    if defect == "empty":
+        modules = []
+    for module in modules:
+        case = SubElement(suite, "testcase", classname=f"tests.{module}", name="test_example")
+        if module == "test_postgres" and defect in ("skipped", "failure", "error"):
+            SubElement(case, defect)
+    if defect != "empty":
+        for node in json.loads((ROOT / "tests/fixtures/release_cases.json").read_text()):
+            module, name = node.split("::")
+            if defect == "missing" and "test_wave14" in module:
+                continue
+            SubElement(suite, "testcase", classname=module[:-3].replace("/", "."), name=name)
+    path = tmp_path / "junit.xml"
+    ElementTree(root).write(path)
+    _, errors = evaluate(path)
+    assert bool(errors) == (defect != "none")
+
+
+@pytest.mark.parametrize("defect", ["none", "missing", "empty", "skipped", "failure"])
+def test_browser_gate_rejects_missing_or_skipped_journeys(tmp_path: Path, defect: str) -> None:
+    from scripts.check_browser_evidence import check
+
+    for name in ("browser", "live", "reference", "startup"):
+        if name == "reference" and defect == "missing":
+            continue
+        root = Element("testsuite")
+        if not (name == "reference" and defect == "empty"):
+            for index in range(2):
+                case = SubElement(root, "testcase", name=f"journey-{index}")
+                if name == "reference" and defect in ("skipped", "failure"):
+                    SubElement(case, defect)
+        ElementTree(root).write(tmp_path / f"{name}.xml")
+    assert bool(check(tmp_path)) == (defect != "none")

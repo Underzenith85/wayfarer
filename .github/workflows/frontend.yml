@@ -1,12 +1,14 @@
 name: Frontend
 
 on:
+  workflow_call:
   push:
     paths:
       - "frontend/**"
       - "contracts/**"
       - "src/wayfarer/adventures/**"
       - "tests/reference_provider.py"
+      - "scripts/check_browser_evidence.py"
       - ".github/workflows/frontend.yml"
   pull_request:
     paths:
@@ -14,6 +16,7 @@ on:
       - "contracts/**"
       - "src/wayfarer/adventures/**"
       - "tests/reference_provider.py"
+      - "scripts/check_browser_evidence.py"
       - ".github/workflows/frontend.yml"
 
 concurrency:
@@ -64,10 +67,14 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
       - name: Run desktop browser tests
         if: matrix.node == '22' && github.event_name == 'pull_request'
-        run: pnpm exec playwright test --project=desktop
+        run: pnpm exec playwright test --project=desktop --reporter=list,junit
+        env:
+          PLAYWRIGHT_JUNIT_OUTPUT_FILE: reports/browser.xml
       - name: Run full browser tests
-        if: matrix.node == '22' && github.event_name == 'push'
-        run: pnpm test:e2e
+        if: matrix.node == '22' && github.event_name != 'pull_request'
+        run: pnpm test:e2e --reporter=list,junit
+        env:
+          PLAYWRIGHT_JUNIT_OUTPUT_FILE: reports/browser.xml
       - uses: astral-sh/setup-uv@v6
         if: matrix.node == '22'
       - name: Install live-test backend
@@ -75,18 +82,31 @@ jobs:
         run: uv sync --project .. --frozen
       - name: Run desktop live browser tests
         if: matrix.node == '22' && github.event_name == 'pull_request'
-        run: pnpm exec playwright test --config playwright.live.config.ts --project=desktop
+        run: pnpm exec playwright test --config playwright.live.config.ts --project=desktop --reporter=list,junit
+        env:
+          PLAYWRIGHT_JUNIT_OUTPUT_FILE: reports/live.xml
       - name: Run full live browser tests
-        if: matrix.node == '22' && github.event_name == 'push'
-        run: pnpm test:e2e:live
+        if: matrix.node == '22' && github.event_name != 'pull_request'
+        run: pnpm test:e2e:live --reporter=list,junit
+        env:
+          PLAYWRIGHT_JUNIT_OUTPUT_FILE: reports/live.xml
       - name: Run reference adventure browser tests
         if: matrix.node == '22'
-        run: pnpm exec playwright test --config playwright.reference.config.ts
+        run: pnpm exec playwright test --config playwright.reference.config.ts --reporter=list,junit
+        env:
+          PLAYWRIGHT_JUNIT_OUTPUT_FILE: reports/reference.xml
       - name: Run production new-game browser tests
         if: matrix.node == '22'
-        run: pnpm test:e2e:startup
+        run: pnpm test:e2e:startup --reporter=list,junit
+        env:
+          PLAYWRIGHT_JUNIT_OUTPUT_FILE: reports/startup.xml
+      - name: Require complete browser evidence
+        if: always() && matrix.node == '22'
+        run: python3 ../scripts/check_browser_evidence.py reports
       - uses: actions/upload-artifact@v4
-        if: failure() && matrix.node == '22'
+        if: always() && matrix.node == '22'
         with:
           name: frontend-test-results-node-${{ matrix.node }}
-          path: frontend/test-results/
+          path: |
+            frontend/test-results/
+            frontend/reports/
