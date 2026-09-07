@@ -1,6 +1,14 @@
 import { CharacterPage, InventoryPage } from "./character/pages";
 import { ConnectionStatus } from "./multiplayer/panel";
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ComponentType,
+  type ReactNode,
+} from "react";
 import {
   createRootRoute,
   createRoute,
@@ -9,6 +17,7 @@ import {
   Outlet,
   RouterProvider,
   useLocation,
+  useNavigate,
 } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
@@ -30,6 +39,7 @@ import {
   Journal,
   PlayWorkspace,
 } from "./play/workspace";
+import { destinations, pagePath, parsePath, type Segment } from "./routes";
 import { Button } from "./components/ui/button";
 import { Sheet } from "./components/ui/sheet";
 /** Setup is a separate shell; the play header is the way back to it. */
@@ -37,17 +47,31 @@ const CampaignMenu = createContext<{
   onNewGame?: (() => void) | undefined;
   onSwitchCampaign?: (() => void) | undefined;
 }>({});
-const destinations = [
-  { path: "/", name: "Play", icon: Compass },
-  { path: "/character", name: "Character", icon: UserRound },
-  { path: "/inventory", name: "Inventory", icon: Backpack },
-  { path: "/journal", name: "Journal", icon: BookOpen },
-  { path: "/campaign", name: "Campaign", icon: Flag },
-] as const;
+const icons: Record<Segment, ComponentType<{ size?: number }>> = {
+  "": Compass,
+  character: UserRound,
+  inventory: Backpack,
+  journal: BookOpen,
+  campaign: Flag,
+};
+const pages: Record<Segment, () => ReactNode> = {
+  "": PlayWorkspace,
+  character: CharacterPage,
+  inventory: InventoryPage,
+  journal: Journal,
+  campaign: CampaignHome,
+};
 function Shell() {
   const { state, store } = usePlay();
   const { onNewGame, onSwitchCampaign } = useContext(CampaignMenu);
+  const navigate = useNavigate();
   const pathname = useLocation({ select: (location) => location.pathname });
+  const route = parsePath(pathname);
+  const scope = route?.campaignId ?? state.selectedId;
+  const title = route
+    ? (destinations.find((item) => item.segment === route.segment)?.name ??
+      "Page not found")
+    : "Page not found";
   const previousPathname = useRef(pathname);
   const [dark, setDark] = useState(() => {
     try {
@@ -77,21 +101,69 @@ function Shell() {
       /* Storage can be disabled. */
     }
   }, [dark]);
+  // A reloaded or pasted campaign URL opens that campaign for an authorized
+  // session. Only the address bar can name a campaign the store has not opened,
+  // so in-app navigation never contends with this.
   useEffect(() => {
-    document.title = `Wayfarer — ${destinations.find((item) => item.path === pathname)?.name ?? "Page not found"}`;
+    const current = parsePath(pathname);
+    const wanted = current?.campaignId;
+    if (
+      !current ||
+      !wanted ||
+      state.selectedId ||
+      state.expired ||
+      state.loading
+    )
+      return;
+    if (state.campaigns.some((campaign) => campaign.id === wanted))
+      void store.select(wanted);
+    else if (state.campaigns.length)
+      void navigate({
+        to: pagePath(null, current.segment),
+        search: true,
+        replace: true,
+      });
+  }, [
+    pathname,
+    state.campaigns,
+    state.selectedId,
+    state.expired,
+    state.loading,
+    store,
+    navigate,
+  ]);
+  // Keep the address bar on the open campaign so every view stays shareable.
+  useEffect(() => {
+    const current = parsePath(pathname);
+    if (
+      !current ||
+      !state.selectedId ||
+      current.campaignId === state.selectedId
+    )
+      return;
+    void navigate({
+      to: pagePath(state.selectedId, current.segment),
+      // Rewriting the scope must not drop a view's own query, such as a
+      // permanent journal-entry link.
+      search: true,
+      replace: true,
+    });
+  }, [pathname, state.selectedId, navigate]);
+  useEffect(() => {
+    document.title = `Wayfarer — ${title}`;
     // Preserve the initial tab order; announce only client-side navigation.
     if (previousPathname.current !== pathname) {
       document.getElementById("page-title")?.focus();
       previousPathname.current = pathname;
     }
-  }, [pathname]);
+  }, [pathname, title]);
   return (
     <>
       <a className="skip-link" href="#main">
         Skip to content
       </a>
       <header className="topbar">
-        <Link to="/" className="brand">
+        <Link to={pagePath(scope, "")} className="brand">
           <Compass aria-hidden="true" />
           WAYFARER
         </Link>
@@ -144,17 +216,20 @@ function Shell() {
         <aside className="navigation-panel">
           <p className="eyebrow desktop-only">Your table</p>
           <nav aria-label="Main navigation">
-            {destinations.map(({ path, name, icon: Icon }) => (
-              <Link
-                key={path}
-                to={path}
-                activeOptions={{ exact: true }}
-                activeProps={{ className: "active", "aria-current": "page" }}
-              >
-                <Icon size={21} aria-hidden="true" />
-                <span>{name}</span>
-              </Link>
-            ))}
+            {destinations.map(({ segment, name }) => {
+              const Icon = icons[segment];
+              return (
+                <Link
+                  key={segment}
+                  to={pagePath(scope, segment)}
+                  activeOptions={{ exact: true }}
+                  activeProps={{ className: "active", "aria-current": "page" }}
+                >
+                  <Icon size={21} aria-hidden="true" />
+                  <span>{name}</span>
+                </Link>
+              );
+            })}
           </nav>
           <div className="table-note desktop-only">
             <span className="eyebrow">Campaign</span>
@@ -166,8 +241,7 @@ function Shell() {
             <div>
               <span className="eyebrow">At the table</span>
               <h1 id="page-title" tabIndex={-1}>
-                {destinations.find((item) => item.path === pathname)?.name ??
-                  "Page not found"}
+                {title}
               </h1>
             </div>
             <Sheet
@@ -203,26 +277,27 @@ function makeRouter() {
       <p>This page doesn’t exist. Choose a destination from the navigation.</p>
     ),
   });
-  const play = createRoute({
-    getParentRoute: () => root,
-    path: "/",
-    component: PlayWorkspace,
-  });
-  const routes = destinations.slice(1).map(({ path }) =>
+  const unscoped = destinations.map(({ segment }) =>
     createRoute({
       getParentRoute: () => root,
-      path,
-      component:
-        path === "/campaign"
-          ? CampaignHome
-          : path === "/journal"
-            ? Journal
-            : path === "/character"
-              ? CharacterPage
-              : InventoryPage,
+      path: segment ? `/${segment}` : "/",
+      component: pages[segment],
     }),
   );
-  return createRouter({ routeTree: root.addChildren([play, ...routes]) });
+  const scoped = createRoute({
+    getParentRoute: () => root,
+    path: "/c/$campaignId",
+  });
+  const scopedPages = destinations.map(({ segment }) =>
+    createRoute({
+      getParentRoute: () => scoped,
+      path: segment ? `/${segment}` : "/",
+      component: pages[segment],
+    }),
+  );
+  return createRouter({
+    routeTree: root.addChildren([...unscoped, scoped.addChildren(scopedPages)]),
+  });
 }
 export function App({
   transport = disconnectedTransport,

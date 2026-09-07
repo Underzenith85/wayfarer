@@ -93,8 +93,16 @@ test("drafts survive campaign switching and reload without cross-campaign leakag
     .getByRole("button")
     .click();
   await expect(page.getByLabel("What do you do?")).toHaveValue("");
+  // The campaign is in the URL, so a reload returns to the same table.
+  await expect(page).toHaveURL(/\/c\/campaign-2$/);
   await page.reload();
-  await page.getByRole("link", { name: "Choose a campaign" }).click();
+  await expect(
+    page.getByRole("heading", { name: "The silent quay" }),
+  ).toBeVisible();
+  await page
+    .getByRole("navigation")
+    .getByRole("link", { name: "Campaign", exact: true })
+    .click();
   await page
     .getByRole("article")
     .filter({ has: page.getByRole("heading", { name: "The Missing Courier" }) })

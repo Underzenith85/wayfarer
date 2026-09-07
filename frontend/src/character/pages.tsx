@@ -1,6 +1,6 @@
 import { CharacterWorkshop } from "./workshop";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Link } from "@tanstack/react-router";
+import { ScopedLink } from "../scoped-link";
 import { Backpack, Heart, Shield, Footprints, Coins } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Sheet } from "../components/ui/sheet";
@@ -37,7 +37,7 @@ function EmptyCharacter() {
       </p>
       {!state.expired && (
         <Button asChild>
-          <Link to="/campaign">Choose a campaign</Link>
+          <ScopedLink segment="campaign">Choose a campaign</ScopedLink>
         </Button>
       )}
     </section>
@@ -282,7 +282,7 @@ export function InventoryFeedback() {
             )}
             {action?.status === "needs_clarification" && (
               <Button asChild>
-                <Link to="/">Answer in Play</Link>
+                <ScopedLink segment="">Answer in Play</ScopedLink>
               </Button>
             )}
           </>

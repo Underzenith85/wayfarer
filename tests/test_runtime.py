@@ -106,6 +106,20 @@ async def test_normal_runtime_restart_and_opening_action(tmp_path: Path) -> None
         assert response.status == 404
 
 
+async def test_campaign_scoped_routes_serve_the_application_entry(tmp_path: Path) -> None:
+    """A bookmarked or shared campaign URL must load the app, not a 404."""
+    config = settings(tmp_path)
+    app = create_runtime_app(config, config.frontend_dir)
+    async with TestClient(TestServer(app)) as client:
+        for path in ("/", "/character", "/journal", "/c/abc-1", "/c/abc-1/journal"):
+            response = await client.get(path)
+            assert response.status == 200, path
+            assert "Production entry" in await response.text()
+        # Anything outside those routes still needs a credential.
+        for path in ("/c", "/c/abc-1/nowhere", "/campaigns/abc-1"):
+            assert (await client.get(path)).status == 401, path
+
+
 def test_missing_build_and_credentials_are_actionable(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="Frontend build missing"):
         create_runtime_app(Settings(), tmp_path)

@@ -34,6 +34,26 @@ test("navigation is responsive and transfers focus to the page heading", async (
     page.getByRole("heading", { level: 1, name: "Play" }),
   ).toBeVisible();
 });
+test("campaign-scoped routes open a view directly and survive a reload", async ({
+  page,
+}) => {
+  await page.goto("/c/campaign-1/journal");
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Journal" }),
+  ).toBeVisible();
+  await page
+    .getByRole("navigation")
+    .getByRole("link", { name: "Play", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/c\/campaign-1$/);
+  await expect(
+    page.getByRole("heading", { name: "The courier\u2019s cellar" }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "The courier\u2019s cellar" }),
+  ).toBeVisible();
+});
 test("sheet traps keyboard focus, closes with Escape and restores trigger", async ({
   page,
 }) => {

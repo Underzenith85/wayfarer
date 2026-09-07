@@ -4,7 +4,7 @@ import { usePlay } from "../play/use-play";
 import type { AdventurePort, DecisionCommand, JournalKind } from "./model";
 import type { Scope } from "../multiplayer/model";
 import { Button } from "../components/ui/button";
-import { Link } from "@tanstack/react-router";
+import { ScopedLink } from "../scoped-link";
 
 function Boundary({
   children,
@@ -246,7 +246,7 @@ function ClosureContents({
           <p>
             <strong>Known hook:</strong> {view.nextAdventure.knownHook}
           </p>
-          <Link to="/">Continue campaign</Link>
+          <ScopedLink segment="">Continue campaign</ScopedLink>
         </section>
       )}
     </div>

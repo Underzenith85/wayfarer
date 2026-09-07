@@ -155,6 +155,14 @@ describe("scoped play journeys", () => {
   });
   it("clears scoped caches and all private drafts on session expiry", async () => {
     const { store, clear } = await start("expired");
+    sessionStorage.setItem(
+      "wayfarer:session",
+      JSON.stringify({
+        credential: "secret",
+        principalId: "player-1",
+        campaignId: "campaign-1",
+      }),
+    );
     store.saveDraft("action", "Private");
     await store.send("action", "Try action");
     expect(store.getSnapshot()).toMatchObject({
@@ -168,6 +176,8 @@ describe("scoped play journeys", () => {
     expect(
       Object.keys(localStorage).filter((k) => k.startsWith("wayfarer:draft")),
     ).toEqual([]);
+    // The remembered credential must not outlive the session it belongs to.
+    expect(sessionStorage.getItem("wayfarer:session")).toBeNull();
     expect(clear).toHaveBeenCalledTimes(2);
   });
   it("requires reconsideration on stale versions and retains the unsent draft", async () => {
