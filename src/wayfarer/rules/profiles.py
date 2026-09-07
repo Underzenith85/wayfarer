@@ -357,6 +357,8 @@ GURPS_SIZE_PROFILE: Final = replace(
     ),
 )
 
+# Keep the new pin opt-in while the overall Basic Set profile still has unrelated
+# unverified blockers. Historic default-registry entries stay byte-for-byte resolvable.
 DEFAULT_REGISTRY: Final = ProfileRegistry(
     (
         PROTOTYPE_PROFILE,
@@ -365,7 +367,6 @@ DEFAULT_REGISTRY: Final = ProfileRegistry(
         GURPS_LITE_PROFILE,
         GURPS_BASIC_PROFILE,
         GURPS_MAGIC_PROFILE,
-        GURPS_SIZE_PROFILE,
     )
 )
 GURPS_PROFILES: Final = MappingProxyType(
