@@ -1,4 +1,4 @@
-"""Hand-entered Basic Set B235-241, B246-247, B250 lifecycle examples.
+"""Hand-entered Basic Set B235-241, B246-247, B249-250 lifecycle examples.
 
 Provisional first-printing/2007-01-26 baseline; source verification pending.
 """
@@ -105,7 +105,7 @@ def test_success_retry_restart_maintain_cancel() -> None:
     ended, _ = apply_spell(
         maintained, command(3, kind="cancel"), context(), rng=RecordedDice([]), system=True
     )
-    assert not active_spells(ended) and ended.pools[1].current == 8
+    assert not active_spells(ended) and ended.pools[1].current == 7
     with pytest.raises(ConflictError):
         apply_spell(ended, command(4), context(), rng=RecordedDice([]), system=True)
 
@@ -296,4 +296,52 @@ def test_early_late_and_duplicate_maintenance_rejected() -> None:
     with pytest.raises(ConflictError):
         apply_spell(
             maintained, command(3, kind="maintain"), context(), rng=RecordedDice([]), system=True
+        )
+
+
+def test_cancellation_cost_is_not_reduced_by_skill_and_expiry_is_free() -> None:
+    ctx = context().model_copy(update={"skill": 20})
+    started, _ = apply_spell(state(), command(), ctx, rng=RecordedDice([]), system=True)
+    cast, _ = apply_spell(
+        started.model_copy(update={"game_time": 1}),
+        command(1, kind="complete"),
+        ctx,
+        rng=RecordedDice([3, 3, 3]),
+        system=True,
+    )
+    ended, result = apply_spell(
+        cast, command(2, kind="cancel"), ctx, rng=RecordedDice([]), system=True
+    )
+    assert result.energy_spent == 1 and ended.pools[1].current == 9
+    _, expired = apply_spell(
+        cast.model_copy(update={"game_time": 61}),
+        command(2, kind="cancel"),
+        ctx,
+        rng=RecordedDice([]),
+        system=True,
+    )
+    assert expired.energy_spent == 0
+    _, aborted = apply_spell(
+        started, command(1, kind="cancel"), ctx, rng=RecordedDice([]), system=True
+    )
+    assert aborted.energy_spent == 0
+
+
+def test_depleted_casting_energy_rejects_before_completion_dice() -> None:
+    started, _ = apply_spell(
+        state(), command(spell="daze"), context(), rng=RecordedDice([]), system=True
+    )
+    depleted = started.model_copy(
+        update={
+            "game_time": 2,
+            "pools": (started.pools[0], started.pools[1].model_copy(update={"current": 1})),
+        }
+    )
+    with pytest.raises(ConflictError, match="casting energy"):
+        apply_spell(
+            depleted,
+            command(1, kind="complete", spell="daze"),
+            context(),
+            rng=RecordedDice([]),
+            system=True,
         )

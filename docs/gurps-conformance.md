@@ -463,7 +463,7 @@ The representative records are Light (regular), Daze (HT-resisted), Fireball
 cover learned prerequisites and Magery requirements, no/low/normal/high mana,
 skill-based time/energy reduction, spell-on/range/shock penalties, casting failure
 and resistance (one casting roll, Rule of 16 margin cap), critical-success energy,
-maintenance exactly at expiry, cancellation and persisted distraction/interruption.
+maintenance exactly at expiry, paid early cancellation and persisted distraction/interruption.
 Expired effects are filtered by the shared clock after restart. A second command
 cannot reuse a cast identity, prepay maintenance or resurrect an expired cast.
 Energy settlement uses the existing FP receipt and persists atomically with results.
@@ -472,7 +472,7 @@ Energy settlement uses the existing FP receipt and persists atomically with resu
 missile, interruption and retry expectations. `tests/test_spell_service.py` adds
 SQLite restart, simultaneous lost-response retries, CAS, authority and private
 trace evidence. Intended provenance is Characters Fourth Edition first printing
-(2004), B235-241, B246-247 and B250, with the selected 2007-01-26 errata. These
+(2004), B235-241, B246-247 and B249-250, with the selected 2007-01-26 errata. These
 references are provisional under the owner-authorized model-knowledge policy;
 the exact frozen source has not been inspected for this implementation.
 
@@ -484,3 +484,8 @@ mana variants reject; there is no player route or arbitrary LLM spell definition
 A critical failure is recorded explicitly, without inventing its table consequence.
 Full spellcasting and #117 remain open until those paths and source certification
 are complete.
+
+Early cancellation costs 1 FP regardless of skill; aborting an unfinished cast or
+letting its duration expire is free. The [publisher-hosted cancellation discussion](https://forums.sjgames.com/showthread.php?t=109197)
+corroborates the B237 reference but does not replace the frozen-source audit.
+Held missile disposal remains rejected pending its concrete adapter in #171.

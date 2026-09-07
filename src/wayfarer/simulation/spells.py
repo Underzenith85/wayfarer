@@ -1,6 +1,6 @@
 """Provisional Basic Set spell lifecycle on the shared resource ledger.
 
-Intended source: Characters first printing B235-241, B245, B250-251,
+Intended source: Characters first printing B235-241, B246-247, B249-250,
 with 2007-01-26 errata. Numeric rules reconstructed under project policy;
 source audit and full play adapters remain certification blockers.
 """
@@ -317,6 +317,14 @@ def apply_spell(
         if effect is None or effect.phase == "ended":
             raise ConflictError("Cast is not available")
         if command.kind == "cancel":
+            if effect.phase == "active" and spec.kind == "missile":
+                raise ValidationError("Held missile disposal requires the missile adapter")
+            if (
+                effect.phase == "active"
+                and effect.expires_at is not None
+                and state.game_time < effect.expires_at
+            ):
+                spent = 1  # B237: ending a running spell early is not free.
             effect = effect.model_copy(update={"phase": "ended"})
             outcome = "cancelled"
         else:
