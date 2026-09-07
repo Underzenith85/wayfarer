@@ -1,3 +1,4 @@
+import { PwaStatus } from "./pwa";
 import { createRoot } from "react-dom/client";
 import { ConnectedApp } from "./play/connection";
 import { App } from "./app";
@@ -49,11 +50,14 @@ async function start() {
     }
   }
   createRoot(document.getElementById("root")!).render(
-    transport === disconnectedTransport ? (
-      <ConnectedApp />
-    ) : (
-      <App transport={transport} />
-    ),
+    <>
+      <PwaStatus />
+      {transport === disconnectedTransport ? (
+        <ConnectedApp />
+      ) : (
+        <App transport={transport} />
+      )}
+    </>,
   );
 }
 void start();

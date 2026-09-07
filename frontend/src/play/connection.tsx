@@ -1,10 +1,12 @@
 import { SetupLobby } from "../setup/lobby";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { App } from "../app";
 import { Button } from "../components/ui/button";
 import type { PlayTransport } from "./transport";
 
 export function ConnectedApp() {
+  const [session, setSession] = useState(0);
+  const clearSession = useCallback(() => setSession((value) => value + 1), []);
   const [transport, setTransport] = useState<PlayTransport>();
   const [mode, setMode] = useState<"new" | "continue" | "join">("new");
   return (
@@ -33,6 +35,7 @@ export function ConnectedApp() {
       </header>
       <div hidden={!!transport}>
         <SetupLobby
+          key={session}
           mode={mode}
           onOpen={(next) => {
             if (location.pathname !== "/") history.replaceState(null, "", "/");
@@ -44,6 +47,7 @@ export function ConnectedApp() {
         <App
           key={`${transport.principalId}:${transport.initialCampaignId}`}
           transport={transport}
+          onSessionEnded={clearSession}
         />
       )}
     </>

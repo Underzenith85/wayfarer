@@ -45,6 +45,7 @@ type Command =
       entryId: string;
     };
 export interface PlayState {
+  lastSynchronized: string | null;
   connection: "online" | "offline" | "recovering";
   multiplayer: MultiplayerView | null;
   tableRetry: TableCommand | null;
@@ -62,6 +63,7 @@ export interface PlayState {
   actorId: string | null;
 }
 const initial: PlayState = {
+  lastSynchronized: null,
   connection: "online",
   multiplayer: null,
   tableRetry: null,
@@ -102,6 +104,8 @@ export class PlayStore {
     };
   };
   private patch(value: Partial<PlayState>) {
+    if (value.snapshot !== undefined)
+      value.lastSynchronized = value.snapshot ? new Date().toISOString() : null;
     this.state = { ...this.state, ...value };
     this.listeners.forEach((fn) => fn());
   }
