@@ -335,6 +335,16 @@ Will-based targets, optional/required specialties, techniques, reference integri
 and unavailable/unknown IDs. Full specialty expansion and runtime availability
 remain visible item-level blockers under #112 and the indicated mechanics owners.
 
+The candidate `0.2.0` audit validates its inventory and exclusions with strict
+typed records. Defaults, prerequisites and specialty parents must reference
+accounted-for entries; required-specialty and TL flags survive into the report.
+The inventory now contains 257 records, including six Mathematics specialties,
+with 238 structured definitions and 28 exclusions. Twelve entries have complete
+unconditional default lists; conditional defaults remain explicitly blocked.
+Representative fallback definitions are normalized to unsupported just like newly
+indexed entries. These checks improve data integrity without making blocked
+skills playable or changing existing rule-package pins.
+
 ## Provisional social procedures (#111)
 
 `rules.gurps_social` implements reaction bands and typed status/reputation/
