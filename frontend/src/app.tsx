@@ -1,3 +1,4 @@
+import { CharacterPage, InventoryPage } from "./character/pages";
 import { useEffect, useRef, useState } from "react";
 import {
   createRootRoute,
@@ -177,11 +178,9 @@ function makeRouter() {
           ? CampaignHome
           : path === "/journal"
             ? Journal
-            : () => (
-                <section className="scene-card">
-                  <CharacterSummary />
-                </section>
-              ),
+            : path === "/character"
+              ? CharacterPage
+              : InventoryPage,
     }),
   );
   return createRouter({ routeTree: root.addChildren([play, ...routes]) });

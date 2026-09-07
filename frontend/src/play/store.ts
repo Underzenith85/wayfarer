@@ -1,3 +1,8 @@
+import type {
+  InventoryCommand,
+  InventoryIntent,
+  InventoryOperation,
+} from "../character/presentation";
 import {
   TransportError,
   wait,
@@ -19,7 +24,13 @@ export interface Entry {
   narration: Narration | null;
 }
 type Command =
-  | { kind: "submit"; request: SubmitAction; entryId: string }
+  | {
+      kind: "submit";
+      request: SubmitAction;
+      entryId: string;
+      clearDraft: boolean;
+    }
+  | { kind: "inventory"; request: InventoryCommand; entryId: string }
   | {
       kind: "clarify";
       actionId: string;
@@ -36,6 +47,7 @@ export interface PlayState {
   busy: boolean;
   error: string | null;
   expired: boolean;
+  needsRefresh: boolean;
   retry: Command | null;
   actorId: string | null;
 }
@@ -49,6 +61,7 @@ const initial: PlayState = {
   busy: false,
   error: null,
   expired: false,
+  needsRefresh: false,
   retry: null,
   actorId: null,
 };
@@ -167,6 +180,7 @@ export class PlayStore {
     const g = this.generation;
     this.patch({
       snapshot: null,
+      needsRefresh: false,
       selectedId: campaignId,
       entries: [],
       loading: true,
@@ -259,6 +273,8 @@ export class PlayStore {
       return;
     }
     this.patch({
+      needsRefresh:
+        error instanceof TransportError && error.code === "stale_version",
       error: error instanceof Error ? error.message : "The request failed.",
       loading: false,
       busy: false,
@@ -280,6 +296,7 @@ export class PlayStore {
     return (
       !!s &&
       !this.state.expired &&
+      !this.state.needsRefresh &&
       !this.state.loading &&
       !this.state.busy &&
       !this.state.retry &&
@@ -323,7 +340,112 @@ export class PlayStore {
         { id: entryId, channel, text, action: null, narration: null },
       ],
     });
-    await this.execute({ kind: "submit", request, entryId });
+    await this.execute({
+      kind: "submit",
+      request,
+      entryId,
+      clearDraft: !intent,
+    });
+  }
+  inventoryBlockReason(
+    itemId: string,
+    kind: InventoryOperation,
+  ): string | null {
+    const s = this.state.snapshot;
+    const item = s?.inventories
+      .find((i) => i.actor_id === this.state.actorId)
+      ?.items.find((i) => i.id === itemId);
+    if (!s || !item || !this.state.actorId)
+      return "Select a character and item first.";
+    if (this.state.expired) return "Your session has ended.";
+    if (this.state.needsRefresh)
+      return "Reload the changed inventory before trying again.";
+    if (this.state.loading || this.state.busy || this.state.retry)
+      return "Another action is pending. Finish or retry it first.";
+    if (
+      this.state.entries.some((e) => e.action?.status === "needs_clarification")
+    )
+      return "Answer the pending clarification in Play first.";
+    if (
+      s.campaign.membership.role !== "player" ||
+      !s.campaign.membership.actor_ids.includes(this.state.actorId) ||
+      !s.scene.visible_actor_ids.includes(this.state.actorId)
+    )
+      return "You do not control this character in the current scene.";
+    const detail = s.inventoryDetails?.[this.state.actorId]?.items[itemId];
+    const affordance = detail?.affordances.find((a) => a.kind === kind);
+    if (affordance && !affordance.allowed)
+      return affordance.reason ?? "This operation is not currently available.";
+    if (item.location === "confiscated" && kind !== "inspect")
+      return "Confiscated items are not in your custody.";
+    if (kind === "inspect" || kind === "use_item") {
+      if (
+        !item.allowed_actions.includes(kind) ||
+        !s.campaign.capabilities.includes(`actions.${kind}`)
+      )
+        return "This action is not permitted for this item.";
+    } else if (
+      !this.transport.sample ||
+      !this.transport.inventoryPreview ||
+      !affordance?.allowed
+    )
+      return "This operation is awaiting an integrated inventory contract.";
+    return null;
+  }
+  async sendInventory(intent: InventoryIntent) {
+    const itemId =
+      intent.kind === "inspect" ? intent.target_id : intent.item_id;
+    if (this.inventoryBlockReason(itemId, intent.kind)) return;
+    const s = this.state.snapshot!,
+      inventory = s.inventories.find((i) => i.actor_id === this.state.actorId)!;
+    const item = inventory.items.find((i) => i.id === itemId)!;
+    if (
+      "quantity" in intent &&
+      (!Number.isSafeInteger(intent.quantity) ||
+        intent.quantity < 1 ||
+        intent.quantity > item.quantity)
+    )
+      return;
+    const detail = s.inventoryDetails?.[this.state.actorId!];
+    if (
+      intent.kind === "equip" &&
+      !detail?.slots.some((x) => x.id === intent.slot_id)
+    )
+      return;
+    if (
+      intent.kind === "store" &&
+      !detail?.containers.some(
+        (x) => x.id === intent.container_id && x.accessible,
+      )
+    )
+      return;
+    if (
+      intent.kind === "transfer" &&
+      !detail?.recipients.some(
+        (x) => x.id === intent.recipient_actor_id && x.reachable,
+      )
+    )
+      return;
+    const text = `${intent.kind.replaceAll("_", " ")} ${item.name}`;
+    if (intent.kind === "inspect" || intent.kind === "use_item") {
+      await this.send("action", text, intent);
+      return;
+    }
+    const request: InventoryCommand = {
+      command_id: crypto.randomUUID(),
+      actor_id: this.state.actorId!,
+      scene_id: s.scene.id,
+      expected_versions: { ...this.versions(), inventory: inventory.version },
+      intent,
+    };
+    const entryId = crypto.randomUUID();
+    this.patch({
+      entries: [
+        ...this.state.entries,
+        { id: entryId, channel: "action", text, action: null, narration: null },
+      ],
+    });
+    await this.execute({ kind: "inventory", request, entryId });
   }
   async clarify(entryId: string, answer: ClarifyAction["answer"]) {
     const action = this.state.entries.find((e) => e.id === entryId)?.action;
@@ -419,16 +541,22 @@ export class PlayStore {
               command.request,
               signal,
             )
-          : await this.transport.clarifyAction(
-              campaignId,
-              command.actionId,
-              command.request,
-              signal,
-            );
+          : command.kind === "inventory"
+            ? await this.transport.inventoryPreview!.submitInventory(
+                campaignId,
+                command.request,
+                signal,
+              )
+            : await this.transport.clarifyAction(
+                campaignId,
+                command.actionId,
+                command.request,
+                signal,
+              );
       if (!this.active(g)) return;
       this.patch({ retry: null });
       this.entry(command.entryId, { action });
-      if (command.kind === "submit") {
+      if (command.kind === "submit" && command.clearDraft) {
         const e = this.state.entries.find((e) => e.id === command.entryId);
         if (e) this.saveDraft(e.channel, "");
       }

@@ -1,3 +1,8 @@
+import type {
+  CharacterDetails,
+  InventoryDetails,
+  InventoryPreviewTransport,
+} from "../character/presentation";
 import type { components } from "../api/contracts.generated";
 type Schemas = components["schemas"];
 export type Campaign = Schemas["Campaign"];
@@ -7,6 +12,8 @@ export type ClarifyAction = Schemas["ClarifyAction"];
 export type Intent = Schemas["Intent"];
 export type Channel = "action" | "dialogue" | "ooc";
 export interface Snapshot {
+  characterDetails?: Record<string, CharacterDetails>;
+  inventoryDetails?: Record<string, InventoryDetails>;
   campaign: Campaign;
   scene: Schemas["Scene"];
   characters: Schemas["Character"][];
@@ -24,6 +31,7 @@ export interface Narration {
 export interface PlayTransport {
   readonly principalId: string;
   readonly sample: boolean;
+  readonly inventoryPreview?: InventoryPreviewTransport;
   listCampaigns(signal: AbortSignal): Promise<Campaign[]>;
   readSnapshot(campaignId: string, signal: AbortSignal): Promise<Snapshot>;
   submitAction(

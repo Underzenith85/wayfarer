@@ -87,3 +87,48 @@ clarification, rejection, exact retry, narration failure after commit, draft
 persistence and expiry, plus the original keyboard/focus/overflow journeys.
 The frontend workflow runs contract drift, typing, lint, formatting, unit/schema
 tests, build and browser tests alongside the unchanged Python checks.
+
+## Character and inventory preview (#53)
+
+From `/campaign?inventory=inventory` in sample mode, open a campaign then choose
+Character or Inventory. The character page reads HP/FP, conditions, attributes,
+skills, defenses, movement and fixture-provided derived effects and advancement
+ledgers. Values and point balances are displayed, never calculated or spent by UI.
+Inventory includes search/location filters, item details, quantities, unit weights,
+server-reported carried weight/encumbrance, integer-minor-unit currency display,
+known containers and permitted ownership/custody descriptions.
+
+The item sheet confirms operations explicitly, validates integral quantity/known
+options, presents unavailable-action reasons, and shows server rejection/retry
+feedback inside the modal. Frozen inspect/use requests use v1 `SubmitAction`.
+Equip/drop/transfer/store are isolated behind `inventoryPreview` and only enabled
+in explicit sample transports. They never enter the frozen closed Intent union.
+`src/character/presentation.ts` records these proposed presentation shapes and
+preview commands; promotion to a live contract and #49 integration remain required.
+This PR does not close #53's dependency or the #8/#12/#18/#23 live acceptance gates.
+
+Request receipt identity survives exact retries. Pending work disables repeated
+confirmation. No local quantity/weight/HP deltas are applied: successful actions
+trigger authorized snapshot reads. A stale-version response blocks further writes
+until **Review changed inventory** reloads the projection; it never auto-resubmits.
+Contextual item actions preserve unrelated unsent play drafts. Confiscated items
+retain known identity with no invented hidden custodian/container/location; their
+mutation affordances stay disabled until an authorized recovery projection arrives.
+
+Inventory fixture journeys (initial-load `inventory` query parameter):
+
+- `inventory`: fixed success responses for inspect/use, equip the sword, drop the
+  coat, store one bandage in the satchel, or transfer one bandage to Sera. Reload
+  between independent fixture cases; these snapshots are not a persistent rules engine.
+- `illegal-equip`, `full-container`, `invalid-container`, `remote-transfer`: a
+  formerly available request is rejected after current-state validation.
+- `use-retry`: lost acknowledgement; exact retry consumes the one fixture bandage once.
+- `encumbrance`: dropping the coat returns a new weight/encumbrance/movement projection.
+- `capture`: known confiscated items are visible but cannot be mutated.
+- `recovery`: first read is confiscated; **Refresh inventory** returns the scripted
+  authorized recovery snapshot. This does not implement rescue mechanics.
+- `inventory-conflict`: stale request; review reloads a changed inventory without retry.
+
+Tests cover these lifecycle/resource boundaries, frozen-schema validity,
+role/affordance restrictions, keyboard/touch operations and responsive layouts.
+No new dependencies were needed for #53; the TypeScript 7 stack remains intact.
