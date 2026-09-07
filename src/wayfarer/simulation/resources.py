@@ -10,7 +10,7 @@ import hashlib
 from copy import copy
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
 
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.rules.catalog import (
@@ -21,6 +21,7 @@ from wayfarer.rules.catalog import (
     RulesCatalog,
 )
 from wayfarer.rules.effects import Effect
+from wayfarer.rules.injury_types import InjuryStatus
 from wayfarer.world import EntityKind, World
 
 Id = Annotated[str, Field(min_length=1, max_length=200)]
@@ -66,8 +67,19 @@ class Owner(Record):
 
 class Pool(Record):
     id: Id
-    current: int = Field(ge=0)
+    current: int
     maximum: int = Field(ge=0)
+    injury: InjuryStatus | None = None
+
+    @model_validator(mode="after")
+    def validate_limits(self) -> Pool:
+        if self.current > self.maximum:
+            raise ValueError("Pool exceeds maximum")
+        if self.injury is None and self.current < 0:
+            raise ValueError("Prototype and fatigue pools cannot be negative")
+        if self.injury is not None and (not self.id.startswith("hp:") or self.maximum < 1):
+            raise ValueError("Profile injury requires a positive-maximum HP pool")
+        return self
 
 
 class Scheduled(Record):
@@ -426,6 +438,7 @@ class ResourceEngine:
                         id=pool.id,
                         current=min(pool.maximum, pool.current + entry.amount),
                         maximum=pool.maximum,
+                        injury=pool.injury,
                     )
             updated = state.model_copy(
                 update={

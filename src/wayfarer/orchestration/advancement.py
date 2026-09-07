@@ -93,6 +93,10 @@ def _refreshed(pool: Pool, maximum: int, build: ValidatedBuild) -> Pool:
 
     if build.statistics is None:
         return pool.model_copy(update={"maximum": maximum, "current": min(pool.current, maximum)})
+    if pool.injury is not None:
+        return pool.model_copy(
+            update={"maximum": maximum, "current": maximum - (pool.maximum - pool.current)}
+        )
     carried = carry_over(RuntimePool(pool.current, pool.maximum), maximum)
     return pool.model_copy(update={"maximum": carried.maximum, "current": carried.current})
 

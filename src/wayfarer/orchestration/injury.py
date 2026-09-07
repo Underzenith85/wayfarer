@@ -47,6 +47,8 @@ def resolve_injury(
         raise ValidationError("Parry requires a supported ready weapon")
     attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     hp = next(p for p in state.resources.pools if p.id == f"hp:{pending.defender_id}")
+    if hp.injury is not None:
+        raise ValidationError("GURPS attack and defense dispatch requires the GURPS combat adapter")
     attack_value = combat_value(play, state, pending.attacker_id)
     attack = success_check(
         int(attack_value.value),
