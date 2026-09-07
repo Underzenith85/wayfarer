@@ -159,9 +159,9 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.check.quick_contest` | yes | yes | verified | #99 |
 | `gurps.check.regular_contest` | no | yes | verified | #99 |
 | `gurps.check.resistance` | yes | yes | verified | #99 |
-| `gurps.social.reaction` | yes | yes | absent | #111 |
-| `gurps.social.influence` | yes | yes | absent | #111 |
-| `gurps.social.fright` | no | yes | absent | #111 |
+| `gurps.social.reaction` | yes | yes | partial | #111 |
+| `gurps.social.influence` | yes | yes | partial | #111 |
+| `gurps.social.fright` | no | yes | partial | #111 |
 | `gurps.equipment.weapon_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; source audit pending) |
 | `gurps.equipment.armor_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; source audit pending) |
 | `gurps.equipment.catalog` | yes | yes | partial | #114 |
@@ -315,6 +315,31 @@ in each spec and fixture. The publisher pages were inaccessible during #98, so
 these numeric cases do not remove the existing exact-source-artifact review merge
 gate. No source prose is bundled.
 
+## Provisional social procedures (#111)
+
+`rules.gurps_social` implements reaction bands and typed status/reputation/
+appearance modifiers, influence contests with Diplomacy fallback and Sex Appeal
+outcomes, self-control from catalog-validated TraitOptions, and Basic-only fright
+checks with the Rule of 14. References are reconstructed from model knowledge
+under the owner's explicit authorization: Lite 3-4/10/24, B120-121, B359-362,
+B494-495, using the frozen 2004/2007-errata baseline; source audit is pending.
+
+`simulation.social` stores results and private traces in the existing resource
+receipt/event ledger for atomic checkpoint commits. Duplicate command IDs replay;
+a second command cannot reroll the same subject/trigger. NPC trigger evidence is
+checked against the subject's knowledge. The explicit public projection excludes
+all roll targets, hidden modifier values and source IDs. No player choice or
+world knowledge is modified by a social outcome.
+
+Reaction/influence/fright coverage remains **partial**, and runtime self-control
+is partial: these are server-only procedures, with full NPC play dispatch and
+timed consequence execution in #137. The complete numeric fright table is
+represented by typed FrightEffect records: durations, recovery attributes and
+intervals, HP/FP losses, aftermath penalties, permanent attribute losses and
+explicit GM trait/panic choices. Each row has executable tests. Table effects
+are persisted in the private receipt; applying timed effects to live characters
+remains an explicit integration blocker in #137. Coverage does not claim that
+recording an effect already executes it. These blockers remain visible for #122.
 ## Provisional implementation policy (2026-09-07)
 
 The project owner explicitly authorized implementation from model knowledge while
