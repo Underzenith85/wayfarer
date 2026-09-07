@@ -149,7 +149,7 @@ test("player submits, GM reviews without control, then player activates and spen
     const observation = page.locator(".context-actions").filter({
       has: page.locator('select option[value="skill:observation"]:checked'),
     });
-    await observation.getByLabel("Amount", { exact: true }).fill("8");
+    await observation.getByRole("spinbutton").fill("8");
     await page
       .getByLabel("Approval or advancement reason")
       .fill("Observation training");

@@ -205,7 +205,9 @@ export function CharacterDraftEditor({
                       </option>
                     ))}
                   </select>
-                  <label htmlFor={`${id}-amount-${i}`}>Amount</label>
+                  <label htmlFor={`${id}-amount-${i}`}>
+                    {definitionLabel(p.definition_id)}
+                  </label>
                   <div className="purchase-stepper">
                     <Button
                       type="button"

@@ -71,6 +71,7 @@ it("shows service totals, per-purchase costs and derived statistics; edits reque
   render(<Editor preview={preview} />);
   expect(await screen.findByText("73 / 150 points")).toBeVisible();
   expect(screen.getByText("23 pts")).toBeVisible();
+  expect(screen.getByLabelText("Strength", { exact: true })).toHaveValue(10);
   expect(
     within(
       screen.getByRole("region", { name: "Derived statistics" }),
