@@ -62,7 +62,7 @@ it("shows a saved conclusion and restores an archive to completed", async () => 
         JSON.stringify(
           init?.method === "POST"
             ? { ...lobby, phase: "completed", revision: 9 }
-            : path.endsWith("/templates")
+            : path.endsWith("/templates") || path.endsWith("/profiles")
               ? []
               : path.endsWith("/c")
                 ? lobby
@@ -167,7 +167,7 @@ describe("grounded ending journeys", () => {
           return new Response(JSON.stringify({ items: [], next_cursor: null }));
         return new Response(
           JSON.stringify(
-            path.endsWith("/templates")
+            path.endsWith("/templates") || path.endsWith("/profiles")
               ? []
               : path.endsWith("/c")
                 ? lobby
@@ -273,11 +273,13 @@ describe("grounded ending journeys", () => {
         }
         return new Response(
           JSON.stringify(
-            path.endsWith("/templates")
-              ? [sequel]
-              : path.endsWith("/c")
-                ? initial
-                : [initial],
+            path.endsWith("/profiles")
+              ? []
+              : path.endsWith("/templates")
+                ? [sequel]
+                : path.endsWith("/c")
+                  ? initial
+                  : [initial],
           ),
         );
       });
@@ -311,5 +313,114 @@ describe("grounded ending journeys", () => {
       expect(body).not.toHaveProperty("rewards");
     }
     expect(fetcher).toHaveBeenCalled();
+  });
+});
+
+it("creates a game with an exact rules profile and disables unsupported ones", async () => {
+  const brief = {
+    premise: "Carry the warning",
+    genre: "Fantasy",
+    tone: "Adventurous",
+    duration_minutes: 30,
+    difficulty: "gentle",
+    restrictions: [],
+  };
+  const template = {
+    id: "beacon-1",
+    title: "The Last Beacon",
+    brief,
+    npc_actor_ids: [],
+    actors: [],
+  };
+  const profiles = [
+    {
+      id: "profile:wayfarer-lite",
+      version: 1,
+      title: "Wayfarer prototype rules",
+      edition: "wayfarer-lite",
+      supported: true,
+      conformance_profile_id: null,
+      unverified_capabilities: [],
+    },
+    {
+      id: "profile:gurps-lite-4e-2004",
+      version: 1,
+      title: "GURPS Lite, Fourth Edition (2004)",
+      edition: "gurps-4e-2004",
+      supported: false,
+      conformance_profile_id: "gurps-lite-4e-2004",
+      unverified_capabilities: ["gurps.check.success", "gurps.check.margin"],
+    },
+  ];
+  const created = {
+    id: "c",
+    revision: 0,
+    host_id: "alice",
+    title: "The Last Beacon",
+    phase: "draft",
+    brief,
+    graph: null,
+    seats: [
+      { principal_id: "alice", joined: true, ready: false, actor_ids: [] },
+    ],
+    rules: { edition: "wayfarer-lite" },
+    rules_profile: {
+      id: "profile:wayfarer-lite",
+      version: 1,
+      title: "Wayfarer prototype rules",
+      supported: true,
+    },
+    next_adventure: null,
+    adventures: [],
+  };
+  const writes: Record<string, unknown>[] = [];
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+    const path = input instanceof Request ? input.url : String(input);
+    if (path.endsWith("/session"))
+      return new Response(
+        JSON.stringify({
+          principal_id: "alice",
+          generation_available: false,
+          legacy_available: false,
+        }),
+      );
+    if (path.endsWith("/api/v1/campaigns"))
+      return new Response(JSON.stringify({ items: [], next_cursor: null }));
+    if (init?.method === "POST") {
+      writes.push(JSON.parse(String(init.body)) as Record<string, unknown>);
+      return new Response(JSON.stringify(created), { status: 201 });
+    }
+    return new Response(
+      JSON.stringify(
+        path.endsWith("/profiles")
+          ? profiles
+          : path.endsWith("/templates")
+            ? [template]
+            : [],
+      ),
+    );
+  });
+  const user = userEvent.setup();
+  render(<SetupLobby onOpen={vi.fn()} />);
+  await user.type(screen.getByLabelText("Access token"), "secret");
+  await user.click(
+    screen.getByRole("button", { name: "Load games and invitations" }),
+  );
+  const select = await screen.findByLabelText("Rules profile");
+  const unsupported = screen.getByRole("option", {
+    name: /GURPS Lite, Fourth Edition \(2004\) \(v1\) · unavailable: 2 unverified capabilities/,
+  });
+  expect(unsupported).toBeDisabled();
+  await user.selectOptions(select, "profile:wayfarer-lite@1");
+  await user.selectOptions(
+    screen.getByLabelText("Adventure and starting party"),
+    "beacon-1",
+  );
+  await user.click(screen.getByRole("button", { name: "Create game draft" }));
+  expect(
+    await screen.findByText("Campaign rules: Wayfarer prototype rules (v1)"),
+  ).toBeInTheDocument();
+  expect(writes[0]).toMatchObject({
+    rules_profile: { id: "profile:wayfarer-lite", version: 1 },
   });
 });

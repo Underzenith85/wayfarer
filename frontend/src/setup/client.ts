@@ -19,6 +19,16 @@ export interface Graph {
   }[];
   [key: string]: unknown;
 }
+/** A registered, versioned rules profile. Selection is exact; pins never float. */
+export interface RulesProfile {
+  id: string;
+  version: number;
+  title: string;
+  edition: string;
+  supported: boolean;
+  conformance_profile_id: string | null;
+  unverified_capabilities: string[];
+}
 export interface Lobby {
   engine_controls?: boolean;
   scenario_pinned?: boolean;
@@ -36,6 +46,12 @@ export interface Lobby {
     actor_ids: string[];
   }[];
   rules: unknown;
+  rules_profile?: {
+    id: string;
+    version: number;
+    title: string;
+    supported: boolean;
+  } | null;
   adventures?: {
     adventure_id: string;
     title: string;
