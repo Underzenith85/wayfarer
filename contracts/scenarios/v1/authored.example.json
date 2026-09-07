@@ -946,7 +946,9 @@
         "warehouse"
       ],
       "conditions": [],
-      "available_at": 0
+      "available_at": 0,
+      "body": null,
+      "held_item_hands": []
     }
   ],
   "pregenerated": [

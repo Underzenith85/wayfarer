@@ -169,9 +169,9 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.injury.damage_types` | yes | yes | partial | #102 |
 | `gurps.injury.damage_resistance` | yes | yes | partial | #102 |
 | `gurps.injury.hp_thresholds` | yes | yes | partial | #102 |
-| `gurps.injury.hit_locations` | no | yes | absent | #107 |
-| `gurps.injury.armor_divisors` | no | yes | absent | #107 |
-| `gurps.injury.lasting_wounds` | no | yes | absent | #107 |
+| `gurps.injury.hit_locations` | no | yes | partial | #107; [living-human dispatch and blockers](gurps-hit-locations.md) |
+| `gurps.injury.armor_divisors` | no | yes | partial | #107; [numeric armor integration](gurps-hit-locations.md) |
+| `gurps.injury.lasting_wounds` | no | yes | partial | #107; [durable impairments and remaining effects](gurps-hit-locations.md) |
 | `gurps.combat.melee_attack` | yes | yes | partial | #103 |
 | `gurps.combat.active_defense` | yes | yes | partial | #103 |
 | `gurps.combat.maneuvers` | yes | yes | partial | #104; [executable transitions and remaining scope](gurps-maneuvers.md) |

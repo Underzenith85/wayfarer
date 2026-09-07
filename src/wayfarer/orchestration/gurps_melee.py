@@ -16,11 +16,18 @@ from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.checks import Outcome
 from wayfarer.rules.effects import DerivedValue
 from wayfarer.rules.gurps_checks import success_roll
+from wayfarer.rules.location_types import HitLocation, HumanLocation
 from wayfarer.rules.recovery_types import interrupt_tasks
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import Combatant, Defense, Encounter, InjuryTrace
 from wayfarer.simulation.fatigue import ContinueExertion, apply_fatigue, fatigue_value
 from wayfarer.simulation.gurps_equipment import EquipmentCatalog, MeleeMode, inventory_load
+from wayfarer.simulation.hit_locations import (
+    attack_penalty,
+    missing_location,
+    part,
+    select_location,
+)
 from wayfarer.simulation.injury import InjuryTurn, Wound, apply_injury, impaired_movement
 from wayfarer.simulation.maneuvers import ATTACK_MANEUVERS, attack_modifier
 
@@ -66,6 +73,11 @@ def exertion(
 
 
 def movement(play: PlayService, state: PlayState, actor_id: str) -> int:
+    from wayfarer.orchestration.location_combat import disabled
+
+    if any(part(p) in ("leg", "foot") for p in disabled(state, actor_id)):
+        # Supported combat movement is walking; crutches/crawling require an explicit mode.
+        return 0
     compiled = build(play, state, actor_id)
     assert compiled.statistics is not None
     loaded = inventory_load(
@@ -152,6 +164,23 @@ def mode(
     if len(modes) != 1:
         raise ValidationError("Select exactly one supported melee weapon mode")
     selected = modes[0]
+    if selected.damage.damage_type == "fat" or (
+        selected.damage.armor_divisor != 1 and catalog(play).profile_id != "gurps-basic-set-4e-2004"
+    ):
+        raise ValidationError("Weapon damage requires unsupported profile mechanics")
+    from wayfarer.orchestration.location_combat import disabled, item_hands, unavailable_hand
+
+    unavailable = disabled(state, actor_id)
+    hands = item_hands(state, actor_id, item_id)
+    hp = next(p for p in state.resources.pools if p.id == f"hp:{actor_id}")
+    if hp.injury and hp.injury.anatomy == "human" and len(hands) != selected.hands:
+        raise ValidationError("Human weapon mode requires explicit matching hand bindings")
+    if unavailable and (
+        len(hands) != selected.hands or any(unavailable_hand(unavailable, h) for h in hands)
+    ):
+        raise ValidationError(
+            "Selected grip uses a crippled hand or requires explicit hand bindings"
+        )
     held_others = sum(
         1
         for other in state.resources.items
@@ -201,12 +230,33 @@ def defense_value(
     shields = [
         (i, entries[i.definition_id].shield) for i in ready if entries[i.definition_id].shield
     ]
-    bonus = max((s.defense_bonus for _, s in shields if s is not None), default=0)
+    from wayfarer.orchestration.location_combat import disabled, item_hands
+
+    unavailable = disabled(state, participant.actor_id)
+    blind = "left-eye" in unavailable and "right-eye" in unavailable
+    bonus = max(
+        (
+            max(
+                0,
+                s.defense_bonus
+                - int(
+                    any(
+                        h.replace("hand", "arm") in unavailable
+                        for h in item_hands(state, participant.actor_id, i.id)
+                    )
+                ),
+            )
+            for i, s in shields
+            if s is not None
+        ),
+        default=0,
+    )
     penalty = (
         participant.defense_penalty
         + (2 if participant.maneuver_state.enhanced_defense == selected else 0)
         + (-4 if hp.injury.stunned else 0)
         + (-3 if participant.posture == "prone" else -2 if participant.posture == "kneeling" else 0)
+        + (-4 if blind else 0)
     )
     if selected == "dodge":
         loaded = inventory_load(
@@ -233,6 +283,10 @@ def defense_value(
             and entry.shield
             and entry.shield.can_block
             and not participant.block_used
+            and not any(
+                h.replace("hand", "arm") in unavailable
+                for h in item_hands(state, participant.actor_id, item.id)
+            )
         ):
             value = level(compiled, entry.shield.skill_id)
             candidates.append((int(value.value) // 2 + 3, item.id, entry.shield.skill_id))
@@ -283,13 +337,23 @@ def defense_value(
 
 
 def prepare_attack(
-    play: PlayService, state: PlayState, encounter: Encounter, mode_id: str | None
+    play: PlayService,
+    state: PlayState,
+    encounter: Encounter,
+    mode_id: str | None,
+    *,
+    hit_location: HitLocation | None = None,
 ) -> Encounter:
     pending = encounter.pending_defense
     assert pending is not None
     selected = mode(play, state, pending.attacker_id, pending.weapon_id, mode_id)
     attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     defender = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
+    from wayfarer.orchestration.location_combat import validate_target
+
+    validate_target(
+        play, state, encounter, pending.attacker_id, pending.defender_id, selected, hit_location
+    )
     if attacker.maneuver_state.strong and selected.damage.basis == "fixed":
         raise ValidationError("Strong requires ST-based melee damage")
     if attacker.maneuver_state.attacks_remaining and selected.ready_after_attack:
@@ -310,7 +374,11 @@ def prepare_attack(
     return encounter.model_copy(
         update={
             "pending_defense": pending.model_copy(
-                update={"mode_id": selected.id, "allowed": tuple(allowed)}
+                update={
+                    "mode_id": selected.id,
+                    "allowed": tuple(allowed),
+                    "hit_location": hit_location,
+                }
             )
         }
     )
@@ -399,6 +467,23 @@ def resolve_melee(
     attack_target -= (
         4 if attacker.posture == "prone" else 2 if attacker.posture == "kneeling" else 0
     )
+    from wayfarer.orchestration.location_combat import disabled
+
+    eyes = disabled(state, pending.attacker_id) & {"left-eye", "right-eye"}
+    attack_target -= 6 if len(eyes) == 2 else 1 if eyes else 0
+    if pending.hit_location:
+        entries = {e.definition_id: e for e in equipment.entries}
+        shield_side = next(
+            (
+                hand.split("-")[0]
+                for item, hand in defender.hand_bindings
+                if any(
+                    i.id == item and entries[i.definition_id].shield for i in state.resources.items
+                )
+            ),
+            None,
+        )
+        attack_target += attack_penalty(pending.hit_location, shield_side=shield_side)
     attack_target = attack_modifier(attacker.maneuver_state, defender.actor_id, attack_target)
     if defense_derived is not None and attacker.maneuver_state.feint_target_id == defender.actor_id:
         defense_derived = DerivedValue(
@@ -413,6 +498,10 @@ def resolve_melee(
     critical_dice: tuple[int, ...] = ()
     critical = 0
     blocked = None
+    location: HumanLocation | None = None
+    location_dice: tuple[int, ...] = ()
+    effect_dice: tuple[int, ...] = ()
+    lasting_ids: tuple[str, ...] = ()
     if (
         attack.outcome is Outcome.CRITICAL_FAILURE
         and equipment.profile_id == "gurps-basic-set-4e-2004"
@@ -517,6 +606,31 @@ def resolve_melee(
         ):
             critical_dice = tuple(play.rng.randbelow(6) + 1 for _ in range(3))
             blocked = f"basic-critical-miss:{sum(critical_dice)}:attacker"
+    if hit and pending.hit_location:
+        from wayfarer.orchestration.location_combat import from_behind
+
+        location, location_dice = select_location(
+            pending.hit_location, rng=play.rng, from_behind=from_behind(attacker, defender)
+        )
+        if pending.hit_location == "random" and missing_location(hp.injury, location):
+            location = "torso"
+    head = (
+        location in ("face", "skull", "left-eye", "right-eye")
+        and weapon.damage.damage_type != "tox"
+    )
+    critical_eye = False
+    if head and critical in (6, 7) and location in ("face", "skull"):
+        from wayfarer.orchestration.location_combat import from_behind
+
+        if from_behind(attacker, defender):
+            critical = 4
+        else:
+            eye_die = play.rng.randbelow(6) + 1
+            effect_dice += (eye_die,)
+            location = "right-eye" if eye_die <= 3 else "left-eye"
+            critical_eye = True
+    if head and critical == 8:
+        defender = defender.model_copy(update={"forced_do_nothing": True})
     expression = (
         attack_build.statistics.swing
         if weapon.damage.basis == "swing"
@@ -526,7 +640,7 @@ def resolve_melee(
     adds = weapon.damage.adds + (0 if weapon.damage.basis == "fixed" else expression.add)
     if attacker.maneuver_state.strong:
         adds += max(2, dice_count)
-    maximum = critical in (6, 15) or (
+    maximum = critical in ((3, 15) if head else (6, 15)) or (
         equipment.profile_id == "gurps-lite-4e-2004" and sum(attack.dice) <= 4
     )
     dice = (
@@ -540,7 +654,13 @@ def resolve_melee(
         if hit
         else 0
     )
-    basic *= 3 if critical in (3, 18) else 2 if critical in (5, 16) else 1
+    basic *= (
+        3
+        if critical in ((18,) if head else (3, 18))
+        else 2
+        if critical in ((16,) if head else (5, 16))
+        else 1
+    )
     entries = {e.definition_id: e for e in equipment.entries}
     resistance = max(
         (
@@ -548,7 +668,11 @@ def resolve_melee(
             for i in state.resources.items
             if i.owner_id == pending.defender_id and i.equipped
             for e in (entries[i.definition_id],)
-            if e.armor and "torso" in e.armor.locations
+            if e.armor
+            and (
+                (location or "torso") in e.armor.locations
+                or (part(location) + "s" if location else "torso") in e.armor.locations
+            )
         ),
         default=0,
     )
@@ -558,8 +682,7 @@ def resolve_melee(
         resistance += damage_resistance(
             state.resources, pending.defender_id, build_revision=defend_build.revision
         )
-    if critical in (4, 17):
-        resistance //= 2
+    half = critical in ((4, 5, 17) if head else (4, 17))
     injury = 0
     held = tuple(
         i.id
@@ -577,20 +700,53 @@ def resolve_melee(
                 basic_damage=basic,
                 resistance=resistance,
                 damage_type=weapon.damage.damage_type,
+                location=location,
+                armor_divisor=weapon.damage.armor_divisor,
+                tight_beam=weapon.damage.tight_beam,
+                critical_eye=critical_eye,
             ),
             ht=defend_build.statistics.ht,
             rng=play.rng,
             system=True,
             held_item_ids=held,
-            force_major_wound=critical in (7, 13, 14),
-            double_shock=critical == 8,
+            held_item_locations=tuple((i, h) for i, h in defender.hand_bindings if i in held),
+            shield_item_ids=tuple(
+                i
+                for i in held
+                if entries[
+                    next(item.definition_id for item in state.resources.items if item.id == i)
+                ].shield
+            ),
+            dx=defend_build.statistics.dx,
+            force_major_wound=critical in ((4, 5) if head else (7, 13, 14)),
+            double_shock=critical == 8 and not head,
+            funny_bone=critical == 8 and not head,
+            halve_dr=("up" if head else "down") if half else None,
+            ignore_dr=head and critical == 3,
         )
         injury = result.injury
+        resistance = result.effective_resistance
+        lasting_ids = result.lasting_injury_ids
+        effect_dice += result.location_dice
+        if head and critical in (12, 13) and result.injury:
+            blocked = f"basic-critical-head:{critical}"
         state = state.model_copy(update={"resources": resources})
     updated_hp = next(p for p in state.resources.pools if p.id == hp.id)
     status = updated_hp.injury
     assert status is not None
-    drops = held if critical == 12 else ()
+    drops = held if critical == 12 and not head else ()
+    weapons = tuple(
+        i
+        for i in held
+        if entries[next(item.definition_id for item in state.resources.items if item.id == i)].modes
+    )
+    if head and critical == 14 and weapons:
+        if len(weapons) > 1:
+            drop_die = play.rng.randbelow(6) + 1
+            effect_dice += (drop_die,)
+            drops = (weapons[0 if drop_die <= 3 else 1],)
+        else:
+            drops = weapons
     if drops:
         state = state.model_copy(
             update={
@@ -638,7 +794,7 @@ def resolve_melee(
             "blocked_reason": blocked,
         }
     )
-    if blocked:
+    if blocked and blocked.startswith("basic-critical-miss:"):
         number = sum(critical_dice)
         subject = defender if blocked.endswith(":defender") else attacker
         affected_item = defense_item if subject.actor_id == defender.actor_id else pending.weapon_id
@@ -704,6 +860,10 @@ def resolve_melee(
         rules_version="2004",
         critical_table=critical_dice,
         adjudication_required=blocked,
+        location=location,
+        location_dice=location_dice,
+        effect_dice=effect_dice,
+        lasting_injury_ids=lasting_ids,
     )
     from wayfarer.orchestration.gurps_maneuvers import distracted
 
