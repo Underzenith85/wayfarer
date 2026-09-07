@@ -1,4 +1,4 @@
-"""Persisted, profile-opted fatigue and timed medical work (B423-427)."""
+"""Persisted, profile-opted fatigue and timed medical work (B424-427)."""
 
 from typing import Literal
 
@@ -39,15 +39,7 @@ class RecoveryTask(BaseModel):
     target_id: str
     profile_id: ProfileId
     kind: Literal[
-        "rest",
-        "natural",
-        "bandage",
-        "first-aid",
-        "physician",
-        "resuscitate",
-        "stabilize",
-        "trauma-maintenance",
-        "repair-lasting",
+        "rest", "natural", "bandage", "first-aid", "physician", "resuscitate", "stabilize"
     ]
     start: int = Field(ge=0)
     due: int = Field(ge=0)
@@ -65,9 +57,6 @@ class RecoveryTask(BaseModel):
     ht: int = Field(default=10, ge=1)
     skill: int | None = Field(default=None, ge=1)
     treatment_modifier: int = 0
-    life_support: bool = False
-    infection_risk: bool = False
-    infection_modifier: int = Field(default=0, ge=-30, le=30)
     ordinary_entitlement: int = Field(default=0, ge=0)
     starvation_entitlement: int = Field(default=0, ge=0)
     dehydration_entitlement: int = Field(default=0, ge=0)
