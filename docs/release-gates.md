@@ -38,6 +38,7 @@ No licensed GURPS rule text is bundled or claimed to be verified.
 | Attributes, skills, costs, legality, effects and power | Compiler, rules, power and generated legality tests | Original prototype definitions |
 | Inventory, clocks, resource pools | Generated transfer/consume/retry sequences, durable transactions | Authored equipment and effects only |
 | Checks, combat and bounded rulings | Server dice, defense/replay, approval bounds | Implemented tactical subset |
+| GURPS profile checks, contests and resistance | Independent source-referenced fixtures, replay without rerolls, property tests | Profile-gated services; campaign pipelines still use the prototype package until #96 |
 | Multiplayer and knowledge | Concurrent writers, shared-time barriers, private projections/streams | Explicit sharing only |
 | Persistence | SQLite process death during writes, PostgreSQL rollback/concurrency, replay | Recorded authoritative projections; not re-rolling historical actions |
 | Adventure lifecycle | Every reference route, all endings, generated graph, capture/rescue, rewards and continuation | Authored and structurally validated scenarios |

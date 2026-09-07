@@ -13,6 +13,9 @@ from typing import Final
 
 from wayfarer.errors import ValidationError
 
+BASELINE_ID: Final = "gurps-4e-2004-first-printing+errata-2007-01-26"
+"""Frozen source baseline recorded in tests/fixtures/gurps/conformance.json."""
+
 
 class CoverageStatus(StrEnum):
     """Evidence state for one declared rules capability."""
@@ -42,12 +45,12 @@ _CAPABILITIES: Final = (
     Capability("gurps.character.traits", True, True, CoverageStatus.MANUAL, 100),
     Capability("gurps.character.self_control", True, True, CoverageStatus.ABSENT, 100),
     Capability("gurps.character.ability_modifiers", False, True, CoverageStatus.ABSENT, 100),
-    Capability("gurps.check.success", True, True, CoverageStatus.PARTIAL, 99),
-    Capability("gurps.check.margin", True, True, CoverageStatus.PARTIAL, 99),
-    Capability("gurps.check.critical", True, True, CoverageStatus.PARTIAL, 99),
-    Capability("gurps.check.quick_contest", True, True, CoverageStatus.ABSENT, 99),
-    Capability("gurps.check.regular_contest", False, True, CoverageStatus.ABSENT, 99),
-    Capability("gurps.check.resistance", True, True, CoverageStatus.ABSENT, 99),
+    Capability("gurps.check.success", True, True, CoverageStatus.VERIFIED, 99),
+    Capability("gurps.check.margin", True, True, CoverageStatus.VERIFIED, 99),
+    Capability("gurps.check.critical", True, True, CoverageStatus.VERIFIED, 99),
+    Capability("gurps.check.quick_contest", True, True, CoverageStatus.VERIFIED, 99),
+    Capability("gurps.check.regular_contest", False, True, CoverageStatus.VERIFIED, 99),
+    Capability("gurps.check.resistance", True, True, CoverageStatus.VERIFIED, 99),
     Capability("gurps.social.reaction", True, True, CoverageStatus.ABSENT, 111),
     Capability("gurps.social.influence", True, True, CoverageStatus.ABSENT, 111),
     Capability("gurps.social.fright", False, True, CoverageStatus.ABSENT, 111),
