@@ -31,6 +31,7 @@ describe("proposed adventure authority", () => {
     expect(before.campaign.canContinue).toBe(true);
     expect(before.rewards).toEqual([]);
     expect(before.consequences[0]?.kind).toBe("custody");
+    expect(JSON.stringify(before)).not.toContain("copper finch");
     const command = {
       commandId: crypto.randomUUID(),
       scope: f.scope,

@@ -32,6 +32,7 @@ class Setup(Record):
 class CreateSetup(Record):
     id: Id
     brief: GenerationBrief
+    graph: ScenarioGraph | None = None
 
 
 class SetupCommand(Record):

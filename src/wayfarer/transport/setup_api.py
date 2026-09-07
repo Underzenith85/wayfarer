@@ -9,7 +9,20 @@ from wayfarer.simulation.setup import CreateSetup, SetupCommand
 from wayfarer.simulation.studio import ScenarioGraph
 
 SETUP_KEY = web.AppKey("setup-service", SetupService)
+LEGACY_KEY = web.AppKey("setup-legacy", bool)
 TEMPLATES_KEY = web.AppKey("setup-templates", tuple[ScenarioGraph, ...])
+
+
+async def session(request: web.Request) -> web.Response:
+    from wayfarer.transport.campaign_api import ORCHESTRATOR_KEY, _identity
+
+    return web.json_response(
+        {
+            "principal_id": _identity(request),
+            "generation_available": ORCHESTRATOR_KEY in request.app,
+            "legacy_available": request.app.get(LEGACY_KEY, False),
+        }
+    )
 
 
 async def listing(request: web.Request) -> web.Response:
@@ -60,6 +73,7 @@ def install(app: web.Application, service: SetupService, graphs: tuple[ScenarioG
     app.add_routes(
         [
             web.get("/setups", listing),
+            web.get("/setups/session", session),
             web.post("/setups", create),
             web.get("/setups/templates", templates),
             web.get("/setups/{cid}", read),

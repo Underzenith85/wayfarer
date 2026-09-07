@@ -1,4 +1,15 @@
-# Campaign onboarding and character workshop (#56)
+# Live New Game entry (#81)
+
+The normal `wayfarer` launcher serves the built React UI and authoritative campaign API. Follow the [README setup](../README.md). Sign in with one access token; `/setups/session` returns the authenticated player identity and provider availability. Campaign selection never gates setup access.
+
+The Last Beacon ships in solo and two-player variants. Select a template, edit the brief and starting character purchases, save, assign characters, mark ready and explicitly start. The server's existing compiler and atomic setup activation remain authoritative. Invitations bind to distinct authenticated player names; guests never receive the host's private scenario graph.
+
+New setup creation can include a selected graph in the same idempotent write. Pending requests retain their original payload and command ID in tab-scoped session storage. Retrying or reconciling sends the original request; a lost activation acknowledgement cannot cause a second game. Definite validation/conflict responses allow corrections; stale state must be reloaded. After refresh, sign in again to reopen saved drafts, retry pending commands, or continue active games. Access tokens are not saved in browser storage.
+
+The production-build browser suite is `pnpm test:e2e:startup` in `frontend`. It launches the normal Python entry point with temporary test credentials and no AI provider, covers desktop/phone and keyboard activation, illegal party rejection, stale edits, lost acknowledgements, refresh, and independent invitation/readiness. `tests/test_runtime.py` separately verifies draft and active-play recovery across application restarts. Existing mocked onboarding and live capture/voice suites remain below.
+
+## Earlier onboarding presentation fixtures (#56)
+
 
 This is the frontend contract/mock delivery. Live acceptance remains with
 #21, #22, #40 and #59 Stage B. No production endpoints, authentication flows,

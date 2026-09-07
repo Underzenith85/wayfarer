@@ -6,6 +6,15 @@ async function open(page: import("@playwright/test").Page, room: string) {
     page.getByRole("region", { name: "Encounter", exact: true }),
   ).toBeVisible();
 }
+async function openClosure(
+  page: import("@playwright/test").Page,
+  room: string,
+  journey: "success" | "partial" | "failure" | "continue" | "archive",
+) {
+  await page.goto(`/campaign?adventure=true&closure=${journey}&room=${room}`);
+  await page.getByRole("button", { name: /^(Open|Resume) campaign$/ }).click();
+  await page.getByRole("link", { name: "Campaign", exact: true }).click();
+}
 test("defense, resumed noncombat decisions, objectives and searchable discoveries", async ({
   page,
 }) => {
@@ -123,9 +132,7 @@ test("partial closure settles offered downtime once and continues the campaign",
   page,
 }) => {
   const room = crypto.randomUUID();
-  await page.goto(`/campaign?adventure=true&closure=partial&room=${room}`);
-  await page.getByRole("button", { name: /^(Open|Resume) campaign$/ }).click();
-  await page.getByRole("link", { name: "Campaign", exact: true }).click();
+  await openClosure(page, room, "partial");
   await expect(
     page.getByRole("heading", { name: "Adventure complete" }),
   ).toBeVisible();
@@ -143,7 +150,7 @@ test("partial closure settles offered downtime once and continues the campaign",
   await expect(
     page.getByText(/This settlement cannot be claimed again/),
   ).toBeVisible();
-  await page.reload();
+  await openClosure(page, room, "partial");
   await expect(page.getByLabel("Research")).toBeChecked();
   await expect(
     page.getByText(/This settlement cannot be claimed again/),
@@ -156,11 +163,7 @@ test("partial closure settles offered downtime once and continues the campaign",
 test("archived success is final and has no continuation action", async ({
   page,
 }) => {
-  await page.goto(
-    `/campaign?adventure=true&closure=archive&room=${crypto.randomUUID()}`,
-  );
-  await page.getByRole("button", { name: /^(Open|Resume) campaign$/ }).click();
-  await page.getByRole("link", { name: "Campaign", exact: true }).click();
+  await openClosure(page, crypto.randomUUID(), "archive");
   await expect(page.getByText(/Campaign archived/)).toBeVisible();
   await expect(
     page.getByText("success outcome", { exact: true }),
@@ -168,4 +171,30 @@ test("archived success is final and has no continuation action", async ({
   await expect(
     page.getByRole("link", { name: "Continue campaign" }),
   ).toHaveCount(0);
+});
+
+test("success, failure and continuing failure remain distinct and spoiler-safe", async ({
+  page,
+}) => {
+  for (const journey of ["success", "failure", "continue"] as const) {
+    await openClosure(page, crypto.randomUUID(), journey);
+    const success = journey === "success";
+    await expect(
+      page.getByText(success ? "success outcome" : "failure outcome", {
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(page.locator("body")).not.toContainText("copper finch");
+    await expect(
+      page.getByText(
+        success
+          ? "2 points authorized by the campaign record"
+          : "No rewards were authorized for this outcome.",
+        { exact: true },
+      ),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Continue campaign" }),
+    ).toHaveCount(success ? 0 : 1);
+  }
 });

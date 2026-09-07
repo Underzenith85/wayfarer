@@ -2,7 +2,6 @@ import { test, expect, type Page } from "@playwright/test";
 async function login(page: Page, player: string) {
   await page.goto("/");
   const lobby = page.getByRole("region", { name: "New game and lobby" });
-  await lobby.getByLabel("Player ID", { exact: true }).fill(player);
   await lobby.getByLabel("Access token").fill(`${player}-token`);
   await lobby
     .getByRole("button", { name: "Load games and invitations" })
@@ -100,8 +99,9 @@ test("two identities activate a saved party and review speech through the live d
     await lobby
       .getByRole("button", { name: "Reload games / reconcile" })
       .click();
-    await lobby.getByRole("button", { name: "activate", exact: true }).click();
-    await lobby.getByRole("button", { name: "Open playing scene" }).click();
+    await lobby
+      .getByRole("button", { name: "Start game", exact: true })
+      .click();
 
     await expect(a.getByLabel("What do you do?")).toBeVisible();
     let requests = 0;
@@ -136,6 +136,56 @@ test("two identities activate a saved party and review speech through the live d
     };
     expect(view.actors).toEqual(["b"]);
     expect(view.director).toEqual([]);
+
+    await a.getByRole("button", { name: "Travel: alley-scene" }).click();
+    await expect(
+      a.getByText("Adventure success", { exact: true }),
+    ).toBeVisible();
+    await a.getByText("Campaign setup and lifecycle", { exact: true }).click();
+    await lobby
+      .getByRole("button", { name: "Reload games / reconcile" })
+      .click();
+    await lobby.getByRole("button", { name: "complete", exact: true }).click();
+    await expect(
+      lobby.getByRole("article", { name: "Adventure conclusion" }),
+    ).toContainText("Courier · success");
+    await expect(
+      lobby.getByRole("article", { name: "Adventure conclusion" }),
+    ).toContainText("hp:a:");
+
+    await blobby
+      .getByRole("button", { name: "Reload games / reconcile" })
+      .click();
+    const bobConclusion = blobby.getByRole("article", {
+      name: "Adventure conclusion",
+    });
+    await expect(bobConclusion).toContainText("Courier · success");
+    await expect(bobConclusion).toContainText("hp:b:");
+    await expect(bobConclusion).not.toContainText("hp:a:");
+    await expect(blobby.getByRole("button", { name: "archive" })).toHaveCount(
+      0,
+    );
+
+    await lobby.getByRole("button", { name: "archive", exact: true }).click();
+    await expect(lobby.getByRole("status")).toContainText("archived");
+    await expect(
+      lobby.getByText(
+        "Archived games are read-only. Unarchive returns to the conclusion, where you can continue.",
+      ),
+    ).toBeVisible();
+    await lobby.getByRole("button", { name: "unarchive", exact: true }).click();
+    await lobby.getByLabel("Authored next adventure").selectOption("sequel");
+    await lobby
+      .getByRole("button", { name: "Save next-adventure preview" })
+      .click();
+    await expect(
+      lobby.getByRole("article", { name: "Next adventure preview" }),
+    ).toContainText("Courier aftermath");
+    await lobby.getByRole("button", { name: "continue", exact: true }).click();
+    await expect(lobby.getByRole("status")).toContainText("active");
+    await expect(
+      lobby.getByRole("article", { name: "Adventure conclusion" }),
+    ).toContainText("Courier · success");
   } finally {
     await alice.close();
     await bob.close();

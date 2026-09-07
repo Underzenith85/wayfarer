@@ -75,6 +75,9 @@ jobs:
       - name: Run full live browser tests
         if: matrix.node == '22' && github.event_name == 'push'
         run: pnpm test:e2e:live
+      - name: Run production new-game browser tests
+        if: matrix.node == '22'
+        run: pnpm test:e2e:startup
       - uses: actions/upload-artifact@v4
         if: failure() && matrix.node == '22'
         with:

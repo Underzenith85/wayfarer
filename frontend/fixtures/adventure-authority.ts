@@ -121,7 +121,7 @@ export class AdventureAuthority {
       objectives,
       epilogue: [
         outcome === "failure"
-          ? "The cell door closes again. Mara keeps the copper finch password secret."
+          ? "The cell door closes again. Mara keeps what she learned to herself."
           : "Rain erases the party’s tracks along the marked route.",
       ],
       rewards:

@@ -353,6 +353,9 @@ def create_campaign_app(
     from wayfarer.transport.setup_api import install as install_setup
 
     install_setup(app, SetupService(play), scenario_templates)
+    from wayfarer.transport.setup_api import LEGACY_KEY
+
+    app[LEGACY_KEY] = legacy_routes
     if frontend_dir is not None:
 
         async def frontend(_: web.Request) -> web.FileResponse:

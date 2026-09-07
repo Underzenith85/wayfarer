@@ -24,6 +24,16 @@ def main() -> None:
             for key, value in os.environ.items()
             if key not in {"PYTHONPATH", "OPENAI_API_KEY", "OPENAI_MODEL"}
         }
+        frontend = Path(directory) / "frontend"
+        (frontend / "assets").mkdir(parents=True)
+        (frontend / "index.html").write_text("<h1>WAYFARER</h1>")
+        (frontend / "assets" / "smoke.js").write_text("// installed static mount")
+        env["WAYFARER_FRONTEND_DIR"] = str(frontend)
+        env["WAYFARER_TOKENS"] = '{"smoke-token":"smoke"}'
+        env["WAYFARER_LLM_PROVIDER"] = "responses"
+        env.pop("WAYFARER_OPENAI_API_KEY", None)
+        env.pop("WAYFARER_OPENAI_MODEL", None)
+        env.pop("WAYFARER_DATABASE_URL", None)
         with socket.socket() as probe:
             probe.bind(("127.0.0.1", 0))
             port = probe.getsockname()[1]
@@ -39,7 +49,7 @@ def main() -> None:
         deadline = time.monotonic() + 15
         while True:
             try:
-                with urllib.request.urlopen(base + "/api/bootstrap", timeout=0.5):
+                with urllib.request.urlopen(base + "/health", timeout=0.5):
                     break
             except OSError:
                 if process.poll() is not None or time.monotonic() >= deadline:
@@ -49,7 +59,12 @@ def main() -> None:
         try:
 
             def get(path: str) -> bytes:
-                with urllib.request.urlopen(base + path, timeout=5) as response:
+                with urllib.request.urlopen(
+                    urllib.request.Request(
+                        base + path, headers={"Authorization": "Bearer smoke-token"}
+                    ),
+                    timeout=5,
+                ) as response:
                     raw: object = response.read()
                     if not isinstance(raw, bytes):
                         raise TypeError("Expected bytes")
@@ -59,30 +74,37 @@ def main() -> None:
                 request = urllib.request.Request(
                     base + path,
                     data=json.dumps(data).encode(),
-                    headers={"Content-Type": "application/json"},
+                    headers={
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer smoke-token",
+                    },
                 )
                 with urllib.request.urlopen(request, timeout=5) as response:
                     return validation.mapping(validation.decode(response.read()))
 
             assert b"WAYFARER" in get("/")
-            assert get("/app.js") and get("/style.css")
-            bootstrap = validation.mapping(validation.decode(get("/api/bootstrap")))
+            assert get("/assets/smoke.js")
+            graphs = json.loads(get("/setups/templates"))
+            graph = graphs[0]
             campaign = post(
-                "/api/campaigns",
-                {"character": bootstrap["character"], "scenario": bootstrap["scenario"]},
+                "/setups", {"id": "wheel-smoke", "brief": graph["brief"], "graph": graph}
             )
-            path = "/api/campaigns/" + validation.string(campaign["id"])
-            command: dict[str, object] = {
-                "request_id": "wheel-smoke",
-                "revision": 0,
-                "text": "Rest",
-            }
-            first = post(path + "/turn", command)
-            assert first["minutes"] == 30 and first["revision"] == 1
-            assert post(path + "/turn", command) == first
+            path = "/setups/" + validation.string(campaign["id"])
+            commands: list[dict[str, object]] = [
+                {"operation": "assign", "principal_id": "smoke", "actor_ids": ["mira"]},
+                {"operation": "ready"},
+                {"operation": "activate"},
+            ]
+            for revision, fields in enumerate(commands):
+                command = {"id": f"smoke-{revision}", "expected_revision": revision, **fields}
+                first = post(path, command)
+                assert post(path, command) == first
+            assert first["phase"] == "active"
             assert json.loads(get(path)) == first
-            assert "secret" not in validation.mapping(first["scenario"])
-            print("Installed wheel smoke passed: assets, create, turn, retry, reload, secrets")
+            assert json.loads(get("/api/v1/campaigns"))["items"]
+            print(
+                "Installed wheel smoke passed: static mount, bundled scenario, create, activate, retry, reload"
+            )
         finally:
             process.terminate()
             try:
