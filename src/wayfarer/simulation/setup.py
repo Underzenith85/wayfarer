@@ -4,6 +4,7 @@ from typing import Literal
 
 from pydantic import Field
 
+from wayfarer.simulation.continuation import AdventureSnapshot
 from wayfarer.simulation.resources import Id, Record
 from wayfarer.simulation.studio import GenerationBrief, ScenarioGraph
 
@@ -24,6 +25,8 @@ class Setup(Record):
     phase: Phase = "draft"
     seats: tuple[Seat, ...]
     graph: ScenarioGraph | None = None
+    adventures: tuple[AdventureSnapshot, ...] = ()
+    next_graph: ScenarioGraph | None = None
 
 
 class CreateSetup(Record):
@@ -45,6 +48,9 @@ class SetupCommand(Record):
         "resume",
         "complete",
         "archive",
+        "unarchive",
+        "preview",
+        "continue",
     ]
     brief: GenerationBrief | None = None
     graph: ScenarioGraph | None = None
