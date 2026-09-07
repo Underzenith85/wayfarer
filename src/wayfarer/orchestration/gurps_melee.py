@@ -887,13 +887,19 @@ def resolve_melee(
             funny_bone=critical == 8 and not head,
             halve_dr=("up" if head else "down") if half else None,
             ignore_dr=head and critical == 3,
+            head_trauma=(
+                "deafened"
+                if head and critical in (12, 13) and weapon.damage.damage_type == "cr"
+                else "scarred"
+                if head and critical in (12, 13)
+                else None
+            ),
+            scar_levels=2 if weapon.damage.damage_type in ("burn", "cor") else 1,
         )
         injury = result.injury
         resistance = result.effective_resistance
         lasting_ids += result.lasting_injury_ids
         effect_dice += result.location_dice
-        if head and critical in (12, 13) and result.injury:
-            blocked = f"basic-critical-head:{critical}"
         state = state.model_copy(update={"resources": resources})
     updated_hp = next(p for p in state.resources.pools if p.id == hp.id)
     status = updated_hp.injury

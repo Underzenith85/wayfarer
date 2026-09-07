@@ -17,7 +17,14 @@ from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.rules.injury_types import InjuryStatus
-from wayfarer.rules.location_types import HitLocation, HumanBody, HumanLocation, disabled_locations
+from wayfarer.rules.location_types import (
+    HitLocation,
+    HumanBody,
+    HumanLocation,
+    appearance_levels_lost,
+    deafened,
+    disabled_locations,
+)
 from wayfarer.simulation.gurps_equipment import DamageType
 from wayfarer.simulation.hit_locations import attack_penalty, select_location
 from wayfarer.simulation.injury import (
@@ -186,6 +193,56 @@ def test_severing_and_funny_bone_thresholds() -> None:
     lasting = state.pools[0].injury.lasting_injuries[0]
     assert lasting.duration == "timed" and lasting.recovery_at == 4
     assert lasting.active(now=3, full_hp=True) and not lasting.active(now=4, full_hp=False)
+
+
+def test_critical_head_deafness_is_durable_and_uses_crippling_duration() -> None:
+    state, result = apply_injury(
+        human(),
+        wound("skull", 3, "cr"),
+        ht=12,
+        rng=RecordedDice([3, 3, 3]),
+        system=True,
+        head_trauma="deafened",
+    )
+    status = state.pools[0].injury
+    assert status and result.lasting_injury_ids == ("hit:head-trauma:deafened",)
+    assert deafened(status.lasting_injuries, now=0, full_hp=False)
+    assert "skull" not in disabled_locations(status.lasting_injuries, now=0, full_hp=False)
+
+    state, _ = apply_injury(
+        state,
+        ResolveCrippling(
+            id="hearing-duration",
+            actor_id="a",
+            expected_revision=1,
+            injury_id=result.lasting_injury_ids[0],
+        ),
+        ht=12,
+        rng=RecordedDice([3, 3, 3]),
+        system=True,
+    )
+    reloaded = ResourceState.model_validate_json(state.model_dump_json())
+    status = reloaded.pools[0].injury
+    assert status and not deafened(status.lasting_injuries, now=0, full_hp=True)
+
+
+@pytest.mark.parametrize(("kind", "levels"), [("cut", 1), ("burn", 2), ("cor", 2)])
+def test_critical_head_scarring_persists_and_supplies_appearance_loss(
+    kind: DamageType, levels: int
+) -> None:
+    state, result = apply_injury(
+        human(),
+        wound("face", 2, kind),
+        ht=12,
+        rng=RecordedDice([3, 3, 3]),
+        system=True,
+        head_trauma="scarred",
+        scar_levels=levels,
+    )
+    status = state.pools[0].injury
+    assert status and result.lasting_injury_ids == ("hit:head-trauma:scarred",)
+    assert appearance_levels_lost(status.lasting_injuries, now=10**9, full_hp=True) == levels
+    assert ResourceState.model_validate_json(state.model_dump_json()) == state
 
 
 @pytest.mark.parametrize(
@@ -411,6 +468,21 @@ async def test_critical_head_forces_exactly_one_do_nothing_turn(tmp_path: Path) 
     assert state.encounters[0].pending_defense is None
     assert not state.encounters[0].participants[1].forced_do_nothing
     assert state.encounters[0].participants[1].last_maneuver == "do_nothing"
+
+
+async def test_critical_head_scar_is_applied_without_adjudication_pause(tmp_path: Path) -> None:
+    cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004", human=True)
+    await target(cid, play, "face")
+    play.rng = RecordedDice([1, 1, 1, 4, 4, 4] + [1, 1, 1] * 10)
+    result = await CombatService(play).execute(cid, choice(), authenticated_actor_id="b")
+    assert result.injury and result.injury.critical_table == (4, 4, 4)
+    assert result.injury.adjudication_required is None
+    state = play._load(await play.store.read(cid))
+    hp = next(p for p in state.resources.pools if p.id == "hp:b")
+    assert hp.injury
+    scars = tuple(i for i in hp.injury.lasting_injuries if i.kind == "scarred")
+    assert len(scars) == 1 and scars[0].duration == "permanent"
+    assert appearance_levels_lost(hp.injury.lasting_injuries, now=0, full_hp=True) == 1
 
 
 @pytest.mark.parametrize("dx_dice,retained", [([3, 3, 3], True), ([5, 5, 5], False)])
