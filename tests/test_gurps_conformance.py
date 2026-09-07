@@ -29,6 +29,7 @@ from wayfarer.rules.gurps_checks import (
 )
 
 FIXTURE = Path("tests/fixtures/gurps/conformance.json")
+SIZE_FIXTURE = Path("tests/fixtures/gurps/size_modifier_costs.json")
 CHECK_CAPABILITIES = {
     "gurps.check.success",
     "gurps.check.margin",
@@ -76,12 +77,13 @@ def test_verified_capabilities_belong_to_landed_mechanics_issues() -> None:
     assert verified == CHECK_CAPABILITIES | {
         "gurps.character.primary_attributes",
         "gurps.character.secondary_characteristics",
+        "gurps.character.size_modifier_costs",
         "gurps.character.skill_difficulty",
         "gurps.character.skill_defaults",
         "gurps.character.specialties",
         "gurps.character.techniques",
     }
-    assert all(CAPABILITIES[identifier].owner_issue in (97, 98, 99) for identifier in verified)
+    assert all(CAPABILITIES[identifier].owner_issue in (97, 98, 99, 192) for identifier in verified)
 
 
 def test_conformance_fixture_contract_is_source_referenced_and_independent() -> None:
@@ -159,6 +161,8 @@ def test_verified_capabilities_carry_executable_evidence() -> None:
 
     data = json.loads(FIXTURE.read_text())
     covered = {(case["capability_id"], case["profile"]) for case in data["cases"]}
+    size_data = json.loads(SIZE_FIXTURE.read_text())
+    covered.add((size_data["capability_id"], "gurps-basic-set-4e-2004"))
     for entry in CAPABILITIES.values():
         if entry.status is not CoverageStatus.VERIFIED:
             continue
@@ -166,7 +170,7 @@ def test_verified_capabilities_carry_executable_evidence() -> None:
         # The frozen Lite artifact has no resisted supernatural attacks to cite.
         if entry.lite_required and entry.id != "gurps.check.resistance":
             assert (entry.id, "gurps-lite-4e-2004") in covered, entry.id
-    assert CAPABILITIES["gurps.character.size_modifier_costs"].status is CoverageStatus.ABSENT
+    assert CAPABILITIES["gurps.character.size_modifier_costs"].status is CoverageStatus.VERIFIED
     assert not CAPABILITIES["gurps.character.size_modifier_costs"].lite_required
 
 
