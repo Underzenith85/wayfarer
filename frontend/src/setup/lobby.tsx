@@ -36,6 +36,16 @@ const blank: Brief = {
   difficulty: "standard",
   restrictions: [],
 };
+const sameBrief = (left: Brief, right: Brief) =>
+  left.premise === right.premise &&
+  left.genre === right.genre &&
+  left.tone === right.tone &&
+  left.duration_minutes === right.duration_minutes &&
+  left.difficulty === right.difficulty &&
+  left.restrictions.length === right.restrictions.length &&
+  left.restrictions.every(
+    (value, index) => value === right.restrictions[index],
+  );
 /**
  * The authenticated setup session. The caller keeps it so the setup shell can
  * unmount while a campaign is being played without asking for the token again.
@@ -94,6 +104,10 @@ export function SetupLobby({
     [profile, setProfile] = useState("");
   const [brief, setBrief] = useState(blank),
     [invite, setInvite] = useState("");
+  // Once a concept came from a person (or was explicitly accepted from an
+  // adventure), selecting another adventure must not silently replace it.
+  const [conceptProtected, setConceptProtected] = useState(false),
+    [conceptBackup, setConceptBackup] = useState<Brief | null>(null);
   const [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
   const [step, setStep] = useState<Step>("Concept");
@@ -139,13 +153,37 @@ export function SetupLobby({
     setLobby(value);
     setBrief(value.brief);
     setGraph(value.graph);
+    setConceptProtected(true);
+    setConceptBackup(null);
   };
   const restart = () => {
     setLobby(undefined);
     setGraph(null);
     setBrief(blank);
+    setConceptProtected(false);
+    setConceptBackup(null);
     setStep("Concept");
   };
+  const editBrief = (value: Brief) => {
+    setBrief(value);
+    setConceptProtected(true);
+  };
+  const restoreConcept = conceptBackup && (
+    <div>
+      <p role="status">The adventure concept is in use.</p>
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => {
+          setBrief(conceptBackup);
+          setConceptBackup(null);
+          setConceptProtected(true);
+        }}
+      >
+        Restore previous concept
+      </Button>
+    </div>
+  );
   const run = async (work: () => Promise<void>) => {
     if (busy) return;
     setBusy(true);
@@ -206,6 +244,8 @@ export function SetupLobby({
           setLobby(current);
           setBrief(current.brief);
           setGraph(current.graph);
+          setConceptProtected(true);
+          setConceptBackup(null);
           setStep(landing(current, session.principal));
         }
       } catch (e) {
@@ -575,7 +615,7 @@ export function SetupLobby({
                     value={brief.premise}
                     maxLength={4000}
                     onChange={(e) =>
-                      setBrief({ ...brief, premise: e.target.value })
+                      editBrief({ ...brief, premise: e.target.value })
                     }
                   />
                 </label>
@@ -585,7 +625,7 @@ export function SetupLobby({
                     required
                     value={brief.genre}
                     onChange={(e) =>
-                      setBrief({ ...brief, genre: e.target.value })
+                      editBrief({ ...brief, genre: e.target.value })
                     }
                   />
                 </label>
@@ -595,7 +635,7 @@ export function SetupLobby({
                     required
                     value={brief.tone}
                     onChange={(e) =>
-                      setBrief({ ...brief, tone: e.target.value })
+                      editBrief({ ...brief, tone: e.target.value })
                     }
                   />
                 </label>
@@ -607,7 +647,7 @@ export function SetupLobby({
                     max={10000}
                     value={brief.duration_minutes}
                     onChange={(e) =>
-                      setBrief({
+                      editBrief({
                         ...brief,
                         duration_minutes: Number(e.target.value),
                       })
@@ -619,7 +659,7 @@ export function SetupLobby({
                   <select
                     value={brief.difficulty}
                     onChange={(e) =>
-                      setBrief({
+                      editBrief({
                         ...brief,
                         difficulty: e.target.value as Brief["difficulty"],
                       })
@@ -635,13 +675,14 @@ export function SetupLobby({
                   <textarea
                     value={brief.restrictions.join("\n")}
                     onChange={(e) =>
-                      setBrief({
+                      editBrief({
                         ...brief,
                         restrictions: e.target.value.split("\n"),
                       })
                     }
                   />
                 </label>
+                {restoreConcept}
                 {submit}
                 {lobby && session.generationAvailable && (
                   <Button
@@ -675,7 +716,14 @@ export function SetupLobby({
                           templates.find((t) => t.id === e.target.value) ??
                           null;
                         setGraph(selected);
-                        if (selected) setBrief(selected.brief);
+                        // A pristine setup may be seeded from its first
+                        // adventure. Once anything has supplied a concept,
+                        // changing adventures preserves it until the user
+                        // explicitly chooses the replacement below.
+                        if (selected && !conceptProtected) {
+                          setBrief(selected.brief);
+                          setConceptProtected(true);
+                        }
                       }}
                     >
                       <option value="">Choose an adventure</option>
@@ -686,6 +734,26 @@ export function SetupLobby({
                       ))}
                     </select>
                   </label>
+                  {graph && !sameBrief(brief, graph.brief) && (
+                    <div>
+                      <p role="status">
+                        Your Concept answers were kept. This adventure has a
+                        different suggested concept.
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setConceptBackup((value) => value ?? brief);
+                          setBrief(graph.brief);
+                          setConceptProtected(true);
+                        }}
+                      >
+                        Use adventure concept
+                      </Button>
+                    </div>
+                  )}
+                  {restoreConcept}
                   {!templates.length && (
                     <p>
                       No authored adventures are installed. Save your premise,
