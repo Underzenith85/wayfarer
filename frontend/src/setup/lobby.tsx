@@ -1,8 +1,13 @@
+import {
+  CharacterDraftEditor,
+  type Proposal,
+  type CharacterPreview,
+} from "../character/draft-editor";
 import { ScenarioCatalog } from "./catalog";
 import { WorkshopReviewQueue } from "../character/review-queue";
 import { LiveTransport } from "../play/live";
 import type { Campaign } from "../play/transport";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "../components/ui/button";
 import { ProviderBanner } from "../components/availability";
 import { providerReason } from "../presentation/availability";
@@ -10,7 +15,6 @@ import { TechnicalDetails } from "../components/technical-details";
 import { NetworkPlayTransport } from "../api/play-transport";
 import {
   campaignPhaseLabel,
-  definitionLabel,
   humanize,
   lifecycleOperationLabel,
 } from "../presentation/labels";
@@ -80,6 +84,18 @@ export function SetupLobby({
     () =>
       session ? new SetupClient(session.token, session.principal) : undefined,
     [session],
+  );
+  const previewPartyCharacter = useCallback(
+    async (proposal: Proposal, signal: AbortSignal) => {
+      if (!client || !lobby)
+        throw new Error("Save the game before editing its party.");
+      return client.request<CharacterPreview>(
+        `/${encodeURIComponent(lobby.id)}/character-preview`,
+        { proposal },
+        signal,
+      );
+    },
+    [client, lobby],
   );
   const remember = (value: SetupSession | undefined) => {
     setSession(value);
@@ -667,50 +683,30 @@ export function SetupLobby({
                     .map((actor) => (
                       <fieldset key={actor.actor_id}>
                         <legend>Character {humanize(actor.actor_id)}</legend>
-                        <div className="numeric-fields">
-                          {actor.proposal.draft.purchases.map(
-                            (purchase, index) => (
-                              <label key={index}>
-                                {definitionLabel(purchase.definition_id)}
-                                <input
-                                  type="number"
-                                  min={0}
-                                  value={purchase.amount}
-                                  onChange={(e) =>
-                                    setGraph({
-                                      ...graph,
-                                      actors: graph.actors.map((a) =>
-                                        a !== actor
-                                          ? a
-                                          : {
-                                              ...a,
-                                              proposal: {
-                                                ...a.proposal,
-                                                draft: {
-                                                  ...a.proposal.draft,
-                                                  purchases:
-                                                    a.proposal.draft.purchases.map(
-                                                      (p, i) =>
-                                                        i === index
-                                                          ? {
-                                                              ...p,
-                                                              amount: Number(
-                                                                e.target.value,
-                                                              ),
-                                                            }
-                                                          : p,
-                                                    ),
-                                                },
-                                              },
-                                            },
-                                      ),
-                                    })
-                                  }
-                                />
-                              </label>
-                            ),
+                        <CharacterDraftEditor
+                          proposal={actor.proposal}
+                          preview={previewPartyCharacter}
+                          disabled={busy || !!client?.hasPending}
+                          templates={templates.flatMap((template) =>
+                            template.actors
+                              .filter(
+                                (a) =>
+                                  !template.npc_actor_ids.includes(a.actor_id),
+                              )
+                              .map((a) => ({
+                                title: `${a.proposal.draft.name} · ${template.title}`,
+                                proposal: a.proposal,
+                              })),
                           )}
-                        </div>
+                          onChange={(proposal) =>
+                            setGraph({
+                              ...graph,
+                              actors: graph.actors.map((a) =>
+                                a === actor ? { ...a, proposal } : a,
+                              ),
+                            })
+                          }
+                        />
                       </fieldset>
                     ))}
                   <p>
