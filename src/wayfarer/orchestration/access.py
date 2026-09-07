@@ -7,6 +7,7 @@ from dataclasses import asdict, replace
 
 from wayfarer.errors import AuthorizationError, ConflictError, NotFoundError, ValidationError
 from wayfarer.orchestration.combat import COMBAT_ADAPTER, CombatService
+from wayfarer.orchestration.medical import EnvironmentResolver
 from wayfarer.orchestration.noncombat import NoncombatCommand, NoncombatService
 from wayfarer.orchestration.objectives import ObjectiveCommand, ObjectiveService
 from wayfarer.orchestration.party import PartyCommand, PartyService
@@ -17,14 +18,15 @@ from wayfarer.simulation.actions import ACTION_ADAPTER, PlayState
 
 
 class CampaignAccess:
-    def __init__(self, play: PlayService) -> None:
+    def __init__(self, play: PlayService, medical_environment: EnvironmentResolver | None = None) -> None:
         self.play = play
+        self.medical_environment = medical_environment
 
     async def runtime(self, cid: str) -> CampaignAccess:
         """Reconstruct an activated scenario's pinned runtime after restart."""
         campaign = await self.play.store.read(cid)
         play = self.play.for_campaign(campaign)
-        return self if play is self.play else CampaignAccess(play)
+        return self if play is self.play else CampaignAccess(play, self.medical_environment)
 
     @staticmethod
     def _member(state: PlayState, principal_id: str) -> CampaignMember:
@@ -264,6 +266,15 @@ class CampaignAccess:
                         }
                     )
         projection["recovery_choices"] = choices
+
+        from wayfarer.orchestration.player_medical import choices as medical_choices
+
+        medical, medical_tasks, _private = medical_choices(
+            self.play, state, member.actor_ids, self.medical_environment
+        )
+        projection["gurps_recovery_choices"] = medical
+        projection["gurps_recovery_tasks"] = medical_tasks
+
         scene_choices: list[dict[str, object]] = []
         entities = {e.id: e for e in state.world.entities}
         for actor in state.actors:
@@ -319,11 +330,30 @@ class CampaignAccess:
         kind = value.get("kind")
         from wayfarer.orchestration.recovery import guard
 
-        if isinstance(value.get("actor_id"), str) and isinstance(kind, str):
+        if (
+            isinstance(value.get("actor_id"), str)
+            and isinstance(kind, str)
+            and kind != "gurps_recovery"
+        ):
             guard(state, str(value["actor_id"]), kind)
         raw = json.dumps(value)
         try:
-            if kind in ("request_ruling", "decide_ruling", "execute_ruling"):
+            if kind == "gurps_recovery":
+                from wayfarer.orchestration.player_medical import (
+                    PlayerRecoveryCommand,
+                    execute as execute_medical,
+                )
+
+                recovery = PlayerRecoveryCommand.model_validate_json(raw)
+                self._control(member, recovery.actor_id)
+                await execute_medical(
+                    self.play,
+                    state,
+                    recovery,
+                    controlled_actor_ids=member.actor_ids,
+                    environment=self.medical_environment,
+                )
+            elif kind in ("request_ruling", "decide_ruling", "execute_ruling"):
                 from wayfarer.orchestration.adjudication import RULING_ADAPTER, AdjudicationService
 
                 ruling = RULING_ADAPTER.validate_json(raw)
