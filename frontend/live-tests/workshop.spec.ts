@@ -18,9 +18,14 @@ test("workshop validates edits, previews profiles and activates saved builds", a
     page.getByRole("heading", { name: "Character workshop" }),
   ).toBeVisible();
   await expect(page.locator(".point-budget")).toContainText("points remaining");
-  const strength = page.locator(".purchase-row").filter({
-    has: page.locator('select option[value="attribute:st"]:checked'),
-  });
+  // Primary attributes are fixed rows: named, stepped and never removable (#266).
+  const strength = page
+    .locator(".attribute-row")
+    .filter({ hasText: "Strength" });
+  await expect(strength.locator("select")).toHaveCount(0);
+  await expect(strength.getByRole("button", { name: /^Remove/ })).toHaveCount(
+    0,
+  );
   await strength.getByRole("button", { name: "Increase Strength" }).click();
   await expect(strength.locator(".purchase-cost")).toContainText("10 pts");
   await expect(
