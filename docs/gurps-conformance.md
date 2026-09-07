@@ -150,7 +150,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.character.skill_defaults` | yes | yes | verified | #98 |
 | `gurps.character.specialties` | no | yes | verified | #98 |
 | `gurps.character.techniques` | no | yes | verified | #98 |
-| `gurps.character.traits` | yes | yes | partial | #100 |
+| `gurps.character.traits` | yes | yes | partial | #100, #113 ([selected construction inventory](gurps-mundane-traits.md)) |
 | `gurps.character.self_control` | yes | yes | partial | #100 |
 | `gurps.character.ability_modifiers` | no | yes | partial | #100 |
 | `gurps.check.success` | yes | yes | verified | #99 |
