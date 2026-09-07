@@ -59,7 +59,9 @@ async def templates(request: web.Request) -> web.Response:
 
 async def read(request: web.Request) -> web.Response:
     revision = int(request.query["revision"]) if "revision" in request.query else None
-    value = await request.app[KEY].read(request.match_info["cid"], _identity(request), revision)
+    principal = _identity(request)
+    cid = request.match_info["cid"]
+    value = await request.app[KEY].read(cid, principal, revision)
     if request.path.endswith("/export"):
         return web.Response(text=value.revision.draft.content_json, content_type="application/json")
     if request.path.endswith("/preview"):
@@ -70,7 +72,12 @@ async def read(request: web.Request) -> web.Response:
         return web.json_response(
             ScenarioDocuments.player_export(value.revision.published).model_dump(mode="json")
         )
-    return web.json_response(value.model_dump(mode="json"))
+    payload = value.model_dump(mode="json")
+    payload["generation_jobs"] = [
+        job.model_dump(mode="json")
+        for job in await request.app[ASSIST_KEY].listing(cid, principal)
+    ]
+    return web.json_response(payload)
 
 
 async def execute(request: web.Request) -> web.Response:
