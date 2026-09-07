@@ -12,11 +12,28 @@ export function PlayProvider({
 }) {
   const client = useQueryClient();
   const [store] = useState(
-    () => new PlayStore(transport, () => client.clear()),
+    () =>
+      new PlayStore(
+        transport,
+        () => client.clear(),
+        1000,
+        (key, view) => {
+          client.setQueryData(key, view);
+        },
+      ),
   );
   useEffect(() => {
     void store.loadCampaigns();
-    return () => store.dispose();
+    const offline = () => store.disconnect();
+    const online = () => void store.reconnect();
+    window.addEventListener("offline", offline);
+    window.addEventListener("online", online);
+    if (!navigator.onLine) offline();
+    return () => {
+      window.removeEventListener("offline", offline);
+      window.removeEventListener("online", online);
+      store.dispose();
+    };
   }, [store]);
   return <Context.Provider value={store}>{children}</Context.Provider>;
 }
