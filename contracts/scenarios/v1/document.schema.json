@@ -342,6 +342,17 @@
             }
           ],
           "default": null
+        },
+        "spells": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SpellRules"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -942,6 +953,13 @@
           "default": 0,
           "minimum": 0,
           "title": "Not Before",
+          "type": "integer"
+        },
+        "darkness_penalty": {
+          "default": 0,
+          "maximum": 0,
+          "minimum": -9,
+          "title": "Darkness Penalty",
           "type": "integer"
         }
       },
@@ -3614,6 +3632,17 @@
           ],
           "default": null
         },
+        "spells": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SpellRules"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "approaches": {
           "default": [],
           "items": {
@@ -5106,6 +5135,109 @@
         "defense_bonus"
       ],
       "title": "Shield",
+      "type": "object"
+    },
+    "SpellChannel": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "actor_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "target_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Target Id",
+          "type": "string"
+        },
+        "location_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Location Id",
+          "type": "string"
+        },
+        "spell_id": {
+          "enum": [
+            "light",
+            "daze",
+            "fireball",
+            "create-fire"
+          ],
+          "title": "Spell Id",
+          "type": "string"
+        },
+        "distance_yards": {
+          "default": 0,
+          "maximum": 10000,
+          "minimum": 0,
+          "title": "Distance Yards",
+          "type": "integer"
+        },
+        "mana": {
+          "default": "normal",
+          "enum": [
+            "none",
+            "low",
+            "normal",
+            "high",
+            "very-high"
+          ],
+          "title": "Mana",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "actor_id",
+        "target_id",
+        "location_id",
+        "spell_id"
+      ],
+      "title": "SpellChannel",
+      "type": "object"
+    },
+    "SpellRules": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "version": {
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "profile_id": {
+          "const": "gurps-basic-set-4e-2004",
+          "default": "gurps-basic-set-4e-2004",
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "channels": {
+          "items": {
+            "$ref": "#/$defs/SpellChannel"
+          },
+          "title": "Channels",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "version",
+        "channels"
+      ],
+      "title": "SpellRules",
       "type": "object"
     },
     "TraitOptions": {

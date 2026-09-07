@@ -96,12 +96,19 @@ class SpellContext(Record):
     energy: int = Field(default=1, ge=1, le=100)
     distracted: bool = False
     unavailable: bool = False
+    execute_effects: bool = False
+    location_id: str | None = None
+    encounter_id: str | None = None
+    position: tuple[int, int] | None = None
 
 
 class SpellCommand(Command):
-    kind: Literal["start", "complete", "maintain", "cancel"]
+    kind: Literal["start", "concentrate", "complete", "maintain", "cancel", "expand", "release"]
     spell_id: SpellId
     cast_id: Id
+    channel_id: Id | None = Field(default=None, exclude_if=lambda value: value is None)
+    radius: int = Field(default=1, ge=1, le=100, exclude_if=lambda value: value == 1)
+    energy: int = Field(default=1, ge=1, le=100, exclude_if=lambda value: value == 1)
 
 
 class SpellEffect(Record):
@@ -121,11 +128,24 @@ class SpellEffect(Record):
     radius: int = 1
     energy: int = 1
     distracted: bool = False
+    execute_effects: bool = False
+    location_id: str | None = None
+    encounter_id: str | None = None
+    position: tuple[int, int] | None = None
+    concentration_seconds: int = 1
+    missile_seconds: int = 1
 
 
 class SpellResult(Record):
     outcome: Literal[
-        "casting", "active", "failed", "resisted", "cancelled", "interrupted", "critical-failure"
+        "casting",
+        "active",
+        "failed",
+        "resisted",
+        "cancelled",
+        "interrupted",
+        "critical-failure",
+        "released",
     ]
     energy_spent: int = 0
     checks: tuple[CheckTrace, ...] = ()
@@ -253,12 +273,24 @@ def apply_spell(
     checks: list[CheckTrace] = []
     spent = 0
     outcome: Literal[
-        "casting", "active", "failed", "resisted", "cancelled", "interrupted", "critical-failure"
+        "casting",
+        "active",
+        "failed",
+        "resisted",
+        "cancelled",
+        "interrupted",
+        "critical-failure",
+        "released",
     ]
     if command.kind == "start":
         if effect is not None:
             raise ConflictError("Cast identity already used")
         require_idle_concentration(state, command.actor_id)
+        if any(
+            e.actor_id == command.actor_id and e.spell_id == "fireball"
+            for e in active_spells(state)
+        ):
+            raise ConflictError("Release the held missile before casting another spell")
         if command.spell_id not in context.learned or not set(spec.prerequisites) <= set(
             context.learned
         ):
@@ -309,6 +341,10 @@ def apply_spell(
             hp_at_start=hp.current,
             radius=context.radius,
             energy=context.energy,
+            execute_effects=context.execute_effects,
+            location_id=context.location_id,
+            encounter_id=context.encounter_id,
+            position=context.position,
         )
         outcome = "casting"
     else:
@@ -331,7 +367,49 @@ def apply_spell(
                 or effect.target_id != context.target_id
             ):
                 raise ConflictError("Spell binding changed")
-            if command.kind == "maintain":
+            if command.kind == "release":
+                if (
+                    spec.kind != "missile"
+                    or effect.phase != "active"
+                    or state.game_time < effect.ready_at
+                ):
+                    raise ConflictError("Release requires a held missile")
+                outcome = "released"
+            elif command.kind == "expand":
+                if (
+                    spec.kind != "missile"
+                    or effect.phase != "active"
+                    or effect.missile_seconds >= 3
+                    or context.energy > context.magery
+                    or state.game_time != effect.ready_at
+                ):
+                    raise ConflictError(
+                        "Enlarge a held missile on the next casting second, at most three seconds"
+                    )
+                new_energy = effect.energy + context.energy
+                new_cost = max(0, new_energy - cost_reduction(context.skill))
+                spent = new_cost - effect.cost
+                effect = effect.model_copy(
+                    update={
+                        "energy": new_energy,
+                        "cost": new_cost,
+                        "missile_seconds": effect.missile_seconds + 1,
+                        "ready_at": state.game_time + 1,
+                    }
+                )
+                outcome = "active"
+            elif command.kind == "concentrate":
+                if (
+                    effect.phase != "casting"
+                    or state.game_time != effect.started_at + effect.concentration_seconds
+                    or state.game_time >= effect.ready_at
+                ):
+                    raise ConflictError("Concentrate on each consecutive casting second")
+                effect = effect.model_copy(
+                    update={"concentration_seconds": effect.concentration_seconds + 1}
+                )
+                outcome = "casting"
+            elif command.kind == "maintain":
                 if (
                     effect.phase != "active"
                     or effect.expires_at != state.game_time
@@ -345,6 +423,11 @@ def apply_spell(
             else:
                 if effect.phase != "casting" or state.game_time != effect.ready_at:
                     raise ConflictError("Complete concentration at its shared-clock deadline")
+                if (
+                    effect.execute_effects
+                    and effect.concentration_seconds != effect.ready_at - effect.started_at
+                ):
+                    raise ConflictError("Every casting second requires concentration")
                 if fp.current < effect.cost:
                     raise ConflictError("Caster no longer has casting energy")
                 interrupted = False
