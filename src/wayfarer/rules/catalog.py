@@ -80,15 +80,18 @@ class RulesPackage:
     definitions: tuple[RuleDefinition, ...]
     dependencies: tuple[str, ...] = ()
 
-    @property
-    def digest(self) -> str:
+    def canonical_json(self) -> str:
+        """Serialize the pinned declaration, preserving pre-extension packages."""
         data = asdict(self)
         # Absent extension metadata must not change historic package digests.
         for definition in data["definitions"]:
             if definition["skill"] is None:
                 del definition["skill"]
-        payload = json.dumps(data, sort_keys=True, separators=(",", ":"))
-        return hashlib.sha256(payload.encode()).hexdigest()
+        return json.dumps(data, sort_keys=True, separators=(",", ":"))
+
+    @property
+    def digest(self) -> str:
+        return hashlib.sha256(self.canonical_json().encode()).hexdigest()
 
 
 @dataclass(frozen=True, slots=True)
