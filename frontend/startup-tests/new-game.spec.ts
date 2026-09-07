@@ -123,6 +123,7 @@ test("solo production entry, illegal party, stale edit, lost activation, refresh
 test("separate invited identity joins, readies and starts without leaking a private setup", async ({
   page,
   browser,
+  baseURL,
 }) => {
   const { lobby } = await draft(page, 2);
   let cid = "";
@@ -135,7 +136,10 @@ test("separate invited identity joins, readies and starts without leaking a priv
     .getByRole("button", { name: "Invite player", exact: true })
     .click();
   await expect(lobby.getByRole("status")).toContainText("revision 1");
-  const guest = await browser.newPage();
+  const guest = await browser.newPage({
+    baseURL: baseURL ?? "http://127.0.0.1:4180",
+    viewport: page.viewportSize(),
+  });
   try {
     const invited = await login(guest, "bob");
     const privateRead = await guest.request.get(`/setups/${cid}`, {
