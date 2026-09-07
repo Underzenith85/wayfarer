@@ -7,6 +7,7 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.simulation.actions import ActionRules, ActorSetup
+from wayfarer.simulation.combat import AttackProfile, CombatConsequence, ProtectionProfile
 from wayfarer.simulation.noncombat import NoncombatRules
 from wayfarer.simulation.npcs import NPCRules
 from wayfarer.simulation.objectives import ObjectiveRules
@@ -47,6 +48,9 @@ class ScenarioGraph(Record):
     resources: ResourceState
     actors: tuple[ActorSetup, ...] = Field(min_length=1, max_length=30)
     npc_actor_ids: tuple[Id, ...] = ()
+    combat_consequences: tuple[CombatConsequence, ...] = ()
+    combat_attacks: tuple[AttackProfile, ...] = ()
+    combat_protection: tuple[ProtectionProfile, ...] = ()
     actions: ActionRules
     scenes: SceneRules
     objectives: ObjectiveRules
@@ -59,6 +63,15 @@ class ScenarioGraph(Record):
     def runtime_rules(self) -> ActionRules:
         return self.actions.model_copy(
             update={
+                "combat": self.actions.combat.model_copy(
+                    update={
+                        "attacks": self.combat_attacks,
+                        "consequences": self.combat_consequences,
+                        "protection": self.combat_protection,
+                    }
+                )
+                if self.actions.combat
+                else None,
                 "scenes": self.scenes,
                 "objectives": self.objectives,
                 "noncombat": self.noncombat,

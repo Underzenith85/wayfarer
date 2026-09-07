@@ -882,6 +882,10 @@ export class PlayStore {
       const snapshot = await this.transport.readSnapshot(campaignId, signal);
       if (!this.active(g)) return;
       this.patch({ snapshot });
+      // Narration is subscribed to the action's original scene. A successful
+      // journey changes that scope; show the destination and finish the action
+      // without waiting for narration on an inaccessible old scene.
+      if (snapshot.scene.id !== action.scene_id) return;
       try {
         for await (const narration of this.transport.narrate(
           campaignId,

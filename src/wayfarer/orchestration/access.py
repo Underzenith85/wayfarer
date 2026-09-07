@@ -262,6 +262,46 @@ class CampaignAccess:
                         }
                     )
         projection["recovery_choices"] = choices
+        scene_choices: list[dict[str, object]] = []
+        entities = {e.id: e for e in state.world.entities}
+        for actor in state.actors:
+            if actor.actor_id not in member.actor_ids:
+                continue
+            for check in self.play.engine.rules.checks:
+                target = entities[check.target_id]
+                if (
+                    check.action == "inspect"
+                    and check.target_id in actor.aware_of
+                    and target.location_id == entities[actor.actor_id].location_id
+                ):
+                    scene_choices.append(
+                        {
+                            "id": actor.actor_id + ":" + check.id,
+                            "actor_id": actor.actor_id,
+                            "label": "Inspect: " + target.name,
+                            "command": {"kind": "inspect", "target_id": target.id},
+                        }
+                    )
+            if self.play.engine.rules.noncombat:
+                cursor = next(c for c in state.actor_scenes if c.actor_id == actor.actor_id)
+                for rule in self.play.engine.rules.noncombat.encounters:
+                    encounter_id = actor.actor_id + ":" + rule.id
+                    if rule.scene_id == cursor.scene_id and not any(
+                        e.id == encounter_id for e in state.noncombat
+                    ):
+                        scene_choices.append(
+                            {
+                                "id": encounter_id,
+                                "actor_id": actor.actor_id,
+                                "label": "Begin: " + rule.id,
+                                "command": {
+                                    "kind": "start_noncombat",
+                                    "selection_id": rule.id,
+                                    "encounter_id": encounter_id,
+                                },
+                            }
+                        )
+        projection["scene_choices"] = scene_choices
         return projection
 
     async def execute(self, cid: str, value: object, *, principal_id: str) -> dict[str, object]:
@@ -313,7 +353,16 @@ class CampaignAccess:
                 "join_encounter",
             ):
                 combat = COMBAT_ADAPTER.validate_json(raw)
-                self._control(member, combat.actor_id)
+                from wayfarer.simulation.studio import ScenarioGraph
+
+                campaign = await self.play.store.read(cid)
+                graph = (
+                    ScenarioGraph.model_validate_json(campaign["scenario_graph_json"])
+                    if "scenario_graph_json" in campaign
+                    else None
+                )
+                if not (member.role == "gm" and graph and combat.actor_id in graph.npc_actor_ids):
+                    self._control(member, combat.actor_id)
                 await CombatService(self.play).execute(
                     cid, combat, authenticated_actor_id=combat.actor_id
                 )

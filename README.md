@@ -42,6 +42,8 @@ SQLite saves campaigns and drafts under `data/wayfarer.sqlite3`; durable player-
 
 For frontend development, run `pnpm --dir frontend dev` alongside the Python service and open the URL Vite prints. Vite proxies `/setups`, `/campaigns`, and `/api/v1` (including WebSockets) to port 8000. Normal play does not use `VITE_PLAY_FIXTURES`.
 
+For the playable two-player reference adventure, see [The Last Lantern](docs/wave-14.md): authored setup, investigation, negotiation, optional combat, capture/rescue, endings and continuation.
+
 ## Optional AI provider
 
 The bundled scenario path always works without an LLM. For an API-backed provider:

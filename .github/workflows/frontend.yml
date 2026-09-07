@@ -5,11 +5,15 @@ on:
     paths:
       - "frontend/**"
       - "contracts/**"
+      - "src/wayfarer/adventures/**"
+      - "tests/reference_provider.py"
       - ".github/workflows/frontend.yml"
   pull_request:
     paths:
       - "frontend/**"
       - "contracts/**"
+      - "src/wayfarer/adventures/**"
+      - "tests/reference_provider.py"
       - ".github/workflows/frontend.yml"
 
 concurrency:
@@ -75,6 +79,9 @@ jobs:
       - name: Run full live browser tests
         if: matrix.node == '22' && github.event_name == 'push'
         run: pnpm test:e2e:live
+      - name: Run reference adventure browser tests
+        if: matrix.node == '22'
+        run: pnpm exec playwright test --config playwright.reference.config.ts
       - name: Run production new-game browser tests
         if: matrix.node == '22'
         run: pnpm test:e2e:startup

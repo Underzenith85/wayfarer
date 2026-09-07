@@ -24,7 +24,8 @@ if TYPE_CHECKING:
 
 
 class SetupService:
-    def __init__(self, access: CampaignAccess) -> None:
+    def __init__(self, access: CampaignAccess, *, engine_controls: bool = False) -> None:
+        self.engine_controls = engine_controls
         self.access = access
         self.play = access.play
 
@@ -117,6 +118,7 @@ class SetupService:
         # The graph includes secrets. Only its author sees the editable graph.
         return {
             "id": cid,
+            "engine_controls": self.engine_controls,
             "revision": campaign["revision"],
             "host_id": setup.host_id,
             "phase": setup.phase,
@@ -249,7 +251,7 @@ class SetupService:
                     a.actor_id for a in graph.actors
                 } - set(graph.npc_actor_ids):
                     raise ValidationError("Every player character needs exactly one controller")
-                studio = ScenarioStudio(self.play)
+                studio = ScenarioStudio(self.play, npc_reviewer=self.play.engine.reviewer)
                 activated = PlayService(self.play.store, studio.engine(graph), rng=self.play.rng)
                 seed = campaign.copy()
                 seed["revision"] = 0
@@ -258,6 +260,10 @@ class SetupService:
                         principal_id=s.principal_id, role="player", actor_ids=s.actor_ids
                     )
                     for s in seats
+                ) + tuple(
+                    CampaignMember(principal_id=gm, role="gm")
+                    for gm in sorted(self.play.engine.reviewer.gm_ids)
+                    if gm not in {s.principal_id for s in seats}
                 )
                 state = activated.initial_state(
                     seed, graph.world, graph.resources, graph.actors, members
@@ -344,7 +350,9 @@ class SetupService:
     def validate(self, setup: Setup) -> None:
         if setup.graph is None or setup.graph.brief != setup.brief:
             raise ValidationError("Select a scenario matching the saved setup brief")
-        report = ScenarioStudio(self.play).validate(setup.graph)
+        report = ScenarioStudio(self.play, npc_reviewer=self.play.engine.reviewer).validate(
+            setup.graph
+        )
         if not report.valid:
             raise ValidationError(
                 "; ".join(f.message for f in report.findings if f.severity == "error")

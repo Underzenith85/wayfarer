@@ -164,6 +164,34 @@ class ScenarioStudio:
                 if trigger.scene_id in reached and trigger.phase == "entry":
                     known.add(trigger.fact_id)
                     sources.setdefault(trigger.fact_id, set()).add("automatic:" + trigger.scene_id)
+            # The same reachability closure includes supported authored encounter and
+            # recovery outcomes, rather than treating all clues as scene discoveries.
+            if graph.noncombat:
+                for encounter in graph.noncombat.encounters:
+                    if encounter.scene_id in reached:
+                        for encounter_approach in encounter.approaches:
+                            if encounter_approach.check_rule_id in available_checks:
+                                for fact_id in (
+                                    *encounter_approach.success_fact_ids,
+                                    *encounter.completion_fact_ids,
+                                ):
+                                    known.add(fact_id)
+                                    sources.setdefault(fact_id, set()).add(
+                                        "encounter:" + encounter.id
+                                    )
+            if graph.recovery:
+                for option in graph.recovery.options:
+                    if (
+                        option.scene_id in reached
+                        and option.supported
+                        and set(option.required_fact_ids) <= known
+                        and (
+                            option.check_rule_id is None or option.check_rule_id in available_checks
+                        )
+                    ):
+                        for fact_id in option.success_fact_ids:
+                            known.add(fact_id)
+                            sources.setdefault(fact_id, set()).add("recovery:" + option.id)
             for scene in graph.scenes.scenes:
                 if scene.id not in reached:
                     continue

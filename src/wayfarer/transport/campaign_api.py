@@ -352,7 +352,7 @@ def create_campaign_app(
     from wayfarer.orchestration.setup import SetupService
     from wayfarer.transport.setup_api import install as install_setup
 
-    install_setup(app, SetupService(play), scenario_templates)
+    install_setup(app, SetupService(play, engine_controls=legacy_routes), scenario_templates)
     from wayfarer.transport.setup_api import LEGACY_KEY
 
     app[LEGACY_KEY] = legacy_routes
