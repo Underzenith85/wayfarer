@@ -121,6 +121,17 @@ test("solo production entry, illegal party, stale edit, lost activation, refresh
   await expect(
     page.getByRole("heading", { name: "The Beacon", exact: true }),
   ).toBeVisible();
+  await page
+    .getByRole("listitem")
+    .filter({ hasText: "Travel to The Beacon" })
+    .getByText("Rolls and consequences", { exact: true })
+    .click();
+  await expect(
+    page.getByText("Game time: 3 ticks", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Session ended" }),
+  ).toHaveCount(0);
 });
 
 test("separate invited identity joins, readies and starts without leaking a private setup", async ({

@@ -21,7 +21,7 @@ from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.simulation.access import CampaignMember
 from wayfarer.simulation.resources import Owner
 from wayfarer.transport.campaign_api import create_campaign_app
-from wayfarer.transport.v1.common import Obj, array, obj, uid, validate
+from wayfarer.transport.v1.common import Fault, Obj, array, obj, uid, validate
 from wayfarer.transport.v1.http import SERVICE
 from wayfarer.transport.v1.service import V1Service
 
@@ -626,5 +626,12 @@ async def test_configured_scene_travel_uses_scene_engine(tmp_path: Path) -> None
         assert state.actor_scenes[0].scene_id == "alley-scene"
         assert state.revision == 1
         assert ("a", "alley-seen") in state.world.knowledge
+        async with service.ledger.transaction() as tx:
+            receipt = await service.action(tx, str(action["id"]), cid, "a")
+            assert obj(receipt["wire"])["status"] == "succeeded"
+            assert obj(receipt["wire"])["scene_id"] == "dock-scene"
+            assert receipt["receipt_scene_id"] == "alley-scene"
+            with pytest.raises(Fault):
+                await service.action(tx, str(action["id"]), cid, "another-player")
     finally:
         await service.close()
