@@ -17,7 +17,7 @@ from typing import Final
 
 from wayfarer.errors import ValidationError
 from wayfarer.models import RulesReference
-from wayfarer.rules import conformance, gurps_characters, gurps_skills
+from wayfarer.rules import conformance, gurps_characters, gurps_magic, gurps_skills
 from wayfarer.rules.catalog import (
     DEFAULT_POLICY,
     DEFAULT_RULES,
@@ -324,6 +324,22 @@ GURPS_BASIC_PROFILE: Final = replace(
     ),
 )
 
+# #171 is a new learning catalog, never a mutation of existing campaign pins.
+GURPS_MAGIC_PACKAGE: Final = replace(
+    GURPS_CHARACTERS_PACKAGE,
+    version="0.4.0",
+    definitions=GURPS_CHARACTERS_PACKAGE.definitions + gurps_magic.definitions(),
+)
+GURPS_MAGIC_PROFILE: Final = replace(
+    GURPS_BASIC_PROFILE,
+    version=4,
+    packages=(GURPS_MAGIC_PACKAGE, GURPS_CAMPAIGNS_PACKAGE),
+    rules=replace(
+        GURPS_BASIC_PROFILE.rules,
+        packages=(_pin(GURPS_MAGIC_PACKAGE), _pin(GURPS_CAMPAIGNS_PACKAGE)),
+    ),
+)
+
 DEFAULT_REGISTRY: Final = ProfileRegistry(
     (
         PROTOTYPE_PROFILE,
@@ -331,6 +347,7 @@ DEFAULT_REGISTRY: Final = ProfileRegistry(
         GURPS_BASIC_PROFILE_V2,
         GURPS_LITE_PROFILE,
         GURPS_BASIC_PROFILE,
+        GURPS_MAGIC_PROFILE,
     )
 )
 GURPS_PROFILES: Final = MappingProxyType(

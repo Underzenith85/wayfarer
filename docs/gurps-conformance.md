@@ -548,3 +548,36 @@ four representative runtime families already merged in #150. It remains a
 Basic Set certification blocker. #117/#171 still require catalog and combat
 bindings, concrete spell effects and the remaining magic variants; #118 and
 #119 still require source reconciliation. No manual entry becomes verified.
+
+
+## Approved spell learning bindings (#171, first implementation slice)
+
+Basic Set profile version 4 adds Characters package 0.4.0. Profile versions 2
+and 3 and the prototype retain their original package contents and pins. The new
+version remains unavailable for campaign activation while its required capabilities
+are unverified; the existing explicit migration gate is unchanged.
+
+The learning catalog compiles Magery 0 (5 points), additional Magery levels
+(10 points per level), and seven IQ/Hard spells through CharacterCompiler.
+Light, Daze, Fireball and Create Fire have lifecycle records; Foolishness,
+Ignite Fire and Shape Fire are learning prerequisites only. Learning metadata
+never advertises an executable effect. Trained spell prerequisites require
+skill 12, including Magery bonuses. Foolishness requires effective IQ 12;
+Fireball additionally requires Magery 1. Magery bonuses affect only purchased
+spells, propagate into prerequisite checks, combine with effects once, and obey
+the campaign skill ceiling. Nonmages may learn spells for high-mana use.
+
+The private SpellService no longer accepts a fabricated build revision, skill,
+learned-spell list, Magery, HT, Will or target HT from its resolver. Its resolver
+returns only typed world facts. Spell context comes from reactivated approved
+builds against exact catalog definitions. Unpurchased spells, missing approvals,
+invalid metadata, and unavailable casters reject before spell dice or costs.
+Retries still use the original persisted receipt without rerunning the resolver.
+
+This slice does **not complete #171**. Player dispatch, each-second combat
+concentration, concrete Light/Daze/Fireball/Create Fire effects, critical-failure
+consequences, very-high mana, HP-powered casting, and their PostgreSQL/live
+combat evidence remain required work. The service remains private and rejects
+combat dispatch. No transport contract or generated client has changed.
+Spellcasting remains partial. References B66-67, B235 and B246-250 are provisional;
+the independent frozen-source audit remains pending.
