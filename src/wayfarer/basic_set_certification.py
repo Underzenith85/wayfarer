@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Final, Literal
+from typing import Final, Literal, cast
 
 from wayfarer.errors import ValidationError
 from wayfarer.rules.conformance import CAPABILITIES, PROFILES, CoverageStatus
@@ -78,13 +78,16 @@ def evaluate(root: Path) -> CertificationReport:
     target = PROFILES[PROFILE_ID]
     selected = _latest_registered_profile()
     audit = source_audit_report(root)
+    audit_blockers = cast(list[str], audit["blockers"])
+    source_baseline = cast(str, audit["baseline_id"])
+    source_complete = cast(bool, audit["audit_complete"])
     blockers: list[CertificationBlocker] = []
 
-    for identifier in audit["blockers"]:
+    for identifier in audit_blockers:
         blockers.append(
             CertificationBlocker(
                 kind="source",
-                identifier=str(identifier),
+                identifier=identifier,
                 detail="Frozen source, scope or fixture review is incomplete or stale",
                 owner_issue=191,
             )
@@ -149,8 +152,8 @@ def evaluate(root: Path) -> CertificationReport:
         profile_id=selected.id,
         profile_version=selected.version,
         profile_digest=selected.digest,
-        source_baseline=str(audit["baseline_id"]),
-        source_audit_complete=bool(audit["audit_complete"]),
+        source_baseline=source_baseline,
+        source_audit_complete=source_complete,
         required_capabilities=len(required_capabilities),
         verified_capabilities=sum(
             CAPABILITIES[identifier].status is CoverageStatus.VERIFIED
