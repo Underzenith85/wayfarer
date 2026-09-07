@@ -53,7 +53,7 @@ Use a model available to your API account that supports Responses API structured
 outputs. Credentials remain server-side, and API usage is billed separately.
 
 For the dedicated Codex subscription login and typed campaign provider, follow the
-[Codex provider setup](wave-10.md#codex-subscription-setup).
+[Codex provider setup](docs/wave-10.md#codex-subscription-setup).
 
 ### Run the frontend
 
