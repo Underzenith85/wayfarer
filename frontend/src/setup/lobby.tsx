@@ -343,7 +343,6 @@ export function SetupLobby({
       {/* The mode tab above names this panel; repeating it as a heading made
           selecting a mode look as though nothing had happened (#200). */}
       <h2 className="visually-hidden">Game setup</h2>
-      <p>Sign in with your own access token. No campaign ID is needed.</p>
       {!session || !client ? (
         <form
           onSubmit={(e) => {
@@ -363,6 +362,7 @@ export function SetupLobby({
             });
           }}
         >
+          <p>Sign in with your own access token. No campaign ID is needed.</p>
           <label>
             Access token
             <input
@@ -377,55 +377,25 @@ export function SetupLobby({
         </form>
       ) : (
         <>
-          <div className="context-actions">
-            <Button
-              type="button"
-              onClick={() => {
-                remember(undefined);
-                setSecret("");
-                setGames([]);
-                setTemplates([]);
-                setProfiles([]);
-                setLobbies([]);
-                restart();
-              }}
-            >
-              Sign out of setup
-            </Button>
-            <Button
-              type="button"
-              disabled={busy}
-              onClick={() =>
-                void run(async () => {
-                  if (client.hasPending) {
-                    const recovered = await client.retry();
-                    choose(recovered);
-                    if (recovered.phase === "active") open(recovered);
-                  }
-                  const values = await client.request<Lobby[]>("");
-                  setLobbies(values);
-                  if (lobby)
-                    choose(await client.request<Lobby>(`/${lobby.id}`));
-                })
-              }
-            >
-              Reload games / reconcile
-            </Button>
-            <Button
-              type="button"
-              disabled={busy || client.hasPending}
-              onClick={restart}
-            >
-              New draft
-            </Button>
-          </div>
-          {!session.generationAvailable && <ProviderBanner />}
-          <p>
+          {/* The list this page exists to show comes first; keeping the shell's
+              own upkeep above it put maintenance ahead of content (#204). */}
+          <h3 className="lobby-heading">
             {mode === "join"
-              ? "Ask the host to invite your player name. Then reload to accept your invitation."
-              : "Your saved games and unfinished drafts"}{" "}
-            · Signed in as {session.principal}
-          </p>
+              ? "Invitations and games"
+              : "Your saved games and unfinished drafts"}
+          </h3>
+          {mode === "join" && (
+            <p>
+              Ask the host to invite your player name, then refresh this list to
+              accept your invitation.
+            </p>
+          )}
+          {!lobbies.length && !games.length && !busy && (
+            <p>
+              No saved games yet. Start one below, and it appears here for every
+              later visit.
+            </p>
+          )}
           <ul>
             {lobbies.map((value) => (
               <li key={value.id}>
@@ -484,6 +454,56 @@ export function SetupLobby({
                 </li>
               ))}
           </ul>
+          {/* Keeping the list current and leaving setup are upkeep, so they
+              read as upkeep: secondary, in user words, below the list (#204). */}
+          <p className="lobby-account">
+            Signed in as {session.principal}
+            <Button
+              type="button"
+              variant="outline"
+              disabled={busy}
+              onClick={() =>
+                void run(async () => {
+                  if (client.hasPending) {
+                    const recovered = await client.retry();
+                    choose(recovered);
+                    if (recovered.phase === "active") open(recovered);
+                  }
+                  const values = await client.request<Lobby[]>("");
+                  setLobbies(values);
+                  if (lobby)
+                    choose(await client.request<Lobby>(`/${lobby.id}`));
+                })
+              }
+            >
+              Refresh this list
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                remember(undefined);
+                setSecret("");
+                setGames([]);
+                setTemplates([]);
+                setProfiles([]);
+                setLobbies([]);
+                restart();
+              }}
+            >
+              Sign out
+            </Button>
+          </p>
+          {!session.generationAvailable && <ProviderBanner />}
+          <div className="context-actions">
+            <Button
+              type="button"
+              disabled={busy || client.hasPending}
+              onClick={restart}
+            >
+              Start a new game
+            </Button>
+          </div>
           {lobby ? (
             <p role="status">
               {lobby.title} · {campaignPhaseLabel(lobby.phase)} · revision{" "}
@@ -492,12 +512,16 @@ export function SetupLobby({
           ) : (
             <p>Create a game, or open an invitation above.</p>
           )}
+          {/* The line names the step; the chips below it are the same five
+              steps, shown as numbered dots where a labelled row cannot fit on
+              one line (#206). Every chip keeps its step name as its accessible
+              label at every width. */}
           <nav className="setup-steps" aria-label="Setup steps">
             <p className="eyebrow">
               Step {steps.indexOf(step) + 1} of {steps.length}: {step}
             </p>
             <ol>
-              {steps.map((value) => (
+              {steps.map((value, index) => (
                 <li key={value}>
                   <Button
                     type="button"
@@ -506,7 +530,10 @@ export function SetupLobby({
                     disabled={!reachable(value)}
                     onClick={() => setStep(value)}
                   >
-                    {value}
+                    <span className="step-index" aria-hidden="true">
+                      {index + 1}
+                    </span>
+                    <span className="step-name">{value}</span>
                   </Button>
                 </li>
               ))}

@@ -77,7 +77,9 @@ describe("reviewed, scope-bound voice", () => {
       scene_id: "cellar-1",
       intent: { kind: "text", text: "Dress the wound" },
     });
-    expect(play.getSnapshot().drafts.action).toBe("An unrelated typed draft");
+    expect(play.getSnapshot().drafts.action.text).toBe(
+      "An unrelated typed draft",
+    );
     expect(voice.getSnapshot().transcript).toBe("");
   });
   it.each(["not-allowed", "audio-capture", "network", "no-speech"])(

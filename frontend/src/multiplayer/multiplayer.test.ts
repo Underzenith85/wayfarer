@@ -145,10 +145,10 @@ describe("multiplayer authority and scoped recovery", () => {
     await vi.waitFor(() =>
       expect(r.store.getSnapshot().actorId).toBe("hero-3"),
     );
-    expect(r.store.getSnapshot().drafts.action).toBe("");
+    expect(r.store.getSnapshot().drafts.action.text).toBe("");
     r.store.chooseActor("hero-2");
     await vi.waitFor(() =>
-      expect(r.store.getSnapshot().drafts.action).toBe("Ivo's draft"),
+      expect(r.store.getSnapshot().drafts.action.text).toBe("Ivo's draft"),
     );
   });
   it("pauses every authoritative action offline and restores the scoped draft after missed changes", async () => {
@@ -167,7 +167,7 @@ describe("multiplayer authority and scoped recovery", () => {
     );
     h.authority.scenario("missed", "rescuer");
     await h.store.reconnect();
-    expect(h.store.getSnapshot().drafts.action).toBe("Keep searching");
+    expect(h.store.getSnapshot().drafts.action.text).toBe("Keep searching");
     expect(h.store.getSnapshot().multiplayer!.checkpoint.cursor).not.toBe(
       checkpoint,
     );
@@ -248,7 +248,7 @@ describe("multiplayer authority and scoped recovery", () => {
     h.authority.scenario("reassign", "rescuer");
     await h.store.reconnect();
     expect(h.store.getSnapshot().expired).toBe(true);
-    expect(h.store.getSnapshot().drafts.action).toBe("");
+    expect(h.store.getSnapshot().drafts.action.text).toBe("");
   });
   it("recovers an accepted request after lost acknowledgement without submitting again", async () => {
     const h = harness();

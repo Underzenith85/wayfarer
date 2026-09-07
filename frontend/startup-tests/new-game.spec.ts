@@ -83,7 +83,7 @@ test("solo production entry, illegal party, stale edit, lost activation, refresh
   await lobby.getByRole("button", { name: "Save setup draft" }).click();
   await expect(lobby.getByRole("alert")).toBeVisible();
   await page.unroute("**/setups/*");
-  await lobby.getByRole("button", { name: "Reload games / reconcile" }).click();
+  await lobby.getByRole("button", { name: "Refresh this list" }).click();
   await lobby.getByLabel("Assign character to alice").selectOption("mira");
   await step(lobby, "Ready");
   await lobby.getByRole("button", { name: "Validate and mark ready" }).click();
@@ -203,9 +203,7 @@ test("separate invited identity joins, readies and starts without leaking a priv
     await invited.locator(`[data-campaign-id="${cid}"]`).click();
     await invited.getByRole("button", { name: "Accept invitation" }).click();
     await expect(invited.getByRole("status")).toContainText("revision 2");
-    await lobby
-      .getByRole("button", { name: "Reload games / reconcile" })
-      .click();
+    await lobby.getByRole("button", { name: "Refresh this list" }).click();
     await lobby.getByLabel("Assign character to alice").selectOption("mira");
     await expect(lobby.getByRole("status")).toContainText("revision 3");
     await lobby.getByLabel("Assign character to bob").selectOption("iven");
@@ -215,25 +213,19 @@ test("separate invited identity joins, readies and starts without leaking a priv
       .getByRole("button", { name: "Validate and mark ready" })
       .click();
     await expect(lobby.getByRole("status")).toContainText("revision 5");
-    await invited
-      .getByRole("button", { name: "Reload games / reconcile" })
-      .click();
+    await invited.getByRole("button", { name: "Refresh this list" }).click();
     await invited
       .getByRole("button", { name: "Validate and mark ready" })
       .click();
     await expect(invited.getByRole("status")).toContainText("revision 6");
-    await lobby
-      .getByRole("button", { name: "Reload games / reconcile" })
-      .click();
+    await lobby.getByRole("button", { name: "Refresh this list" }).click();
     await lobby
       .getByRole("button", { name: "Start game", exact: true })
       .click();
     await expect(
       page.getByRole("heading", { name: "Stormbound Harbor" }),
     ).toBeVisible();
-    await invited
-      .getByRole("button", { name: "Reload games / reconcile" })
-      .click();
+    await invited.getByRole("button", { name: "Refresh this list" }).click();
     await invited.getByRole("button", { name: "Open playing scene" }).click();
     await expect(
       guest.getByRole("heading", { name: "Stormbound Harbor" }),

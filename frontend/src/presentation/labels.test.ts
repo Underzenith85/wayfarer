@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  ageLabel,
   campaignPhaseLabel,
   definitionLabel,
   conditionLabel,
@@ -8,7 +9,9 @@ import {
   lifecycleOperationLabel,
   poolLabel,
   presentStats,
+  sceneDescription,
   statLabel,
+  timestampLabel,
 } from "./labels";
 describe("statLabel", () => {
   it("names engine attribute keys without exposing them", () => {
@@ -136,5 +139,50 @@ describe("humanize", () => {
   it("reads engine identifiers as words", () => {
     expect(humanize("attribute:basic-move")).toBe("Basic Move");
     expect(humanize("mira")).toBe("Mira");
+  });
+});
+describe("sceneDescription", () => {
+  it("drops a description that only repeats the scene name (#203)", () => {
+    expect(
+      sceneDescription("Stormbound Harbor", "Stormbound Harbor"),
+    ).toBeNull();
+    expect(
+      sceneDescription("Stormbound Harbor", " stormbound harbor "),
+    ).toBeNull();
+    expect(sceneDescription("Stormbound Harbor", "  ")).toBeNull();
+  });
+  it("keeps a description the projection actually wrote", () => {
+    expect(
+      sceneDescription("Stormbound Harbor", "Rain hammers the empty quay."),
+    ).toBe("Rain hammers the empty quay.");
+  });
+});
+describe("timestampLabel", () => {
+  const now = new Date("2026-09-07T20:00:00Z");
+  it("gives an entry from today a time and an older one a date too", () => {
+    const today = timestampLabel("2026-09-07T09:30:00Z", now);
+    const older = timestampLabel("2026-09-04T09:30:00Z", now);
+    expect(today).not.toBe("");
+    expect(older).not.toBe("");
+    expect(older.length).toBeGreaterThan(today.length);
+  });
+  it("says nothing rather than something wrong about an unusable time", () => {
+    expect(timestampLabel("not a time", now)).toBe("");
+  });
+});
+describe("ageLabel", () => {
+  const now = Date.parse("2026-09-07T20:00:00Z");
+  const ago = (ms: number) => ageLabel(new Date(now - ms).toISOString(), now);
+  it("counts a draft's age in the units a player would use (#201)", () => {
+    expect(ago(5_000)).toBe("just now");
+    expect(ago(60_000)).toBe("1 minute ago");
+    expect(ago(20 * 60_000)).toBe("20 minutes ago");
+    expect(ago(3 * 3_600_000)).toBe("3 hours ago");
+    expect(ago(3 * 86_400_000)).toBe("3 days ago");
+  });
+  it("never reports a draft as saved in the future", () => {
+    expect(ageLabel(new Date(now + 60_000).toISOString(), now)).toBe(
+      "just now",
+    );
   });
 });
