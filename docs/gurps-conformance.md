@@ -145,7 +145,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | --- | --- | --- | --- | --- |
 | `gurps.character.primary_attributes` | yes | yes | verified | #97 |
 | `gurps.character.secondary_characteristics` | yes | yes | verified | #97 |
-| `gurps.character.size_modifier_costs` | no | yes | absent | #97 (follow-up) |
+| `gurps.character.size_modifier_costs` | no | yes | absent | #192 |
 | `gurps.character.skill_difficulty` | yes | yes | verified | #98 |
 | `gurps.character.skill_defaults` | yes | yes | verified | #98 |
 | `gurps.character.specialties` | no | yes | verified | #98 |
@@ -715,3 +715,17 @@ mount loss-table/fall consequences, and atomic tactical/object synchronization.
 also depends on #181. This foundation alone does not satisfy #120 acceptance.
 #207 tracks the additional Basic Set locomotion, collision and ejection audit and
 remains a blocker for #122. Nothing here certifies full vehicle or Basic Set coverage.
+
+## Executable source audit (#191)
+
+[The source audit](gurps-source-audit.md) records inspected printing metadata,
+item-inventory ownership, optional decisions and every expectation-ledger case's
+review disposition. Its report separates later-printing comparisons from frozen
+source verification. Eighteen Basic statistics fixtures have been compared;
+exhaustive rule/item enumeration and baseline reconciliation remain incomplete.
+Statistics boundary gaps discovered by this comparison are tracked in #215.
+
+CI now checks this document's full capability table against the registry. Aim
+and environmental hazards are reconciled to partial; Size Modifier cost ownership
+is #192. Existing verified runtime entries are not promoted into source or whole
+profile certification by this audit.
