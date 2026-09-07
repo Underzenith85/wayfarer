@@ -50,6 +50,11 @@ async def application() -> web.Application:
         await setback(cid, runtime, "capture")
         return web.json_response({"campaign_id": cid})
 
+    async def workshop_fixture(_: web.Request) -> web.Response:
+        cid, _ = await prepare(directory)
+        return web.json_response({"campaign_id": cid})
+
+    app.router.add_post("/test-workshop", workshop_fixture)
     app.router.add_post("/test-campaign", new_fixture)
     return app
 

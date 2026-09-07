@@ -115,6 +115,11 @@ class AdvancementService:
         command = self._advance(value, authenticated_actor_id)
         state = self.play._load(await self.play.store.read(cid))
         before = _build(self.play, state, command.actor_id)
+        if (
+            command.expected_revision != state.revision
+            or command.expected_build_revision != before.revision
+        ):
+            raise ConflictError("Advancement preview context changed")
         review = self.play.engine.reviewer.review(CharacterProposal(draft=command.draft))
         after = review.compilation.build
         if after is None or review.status in ("illegal", "blocked"):
@@ -253,7 +258,7 @@ class AdvancementService:
         self, cid: str, value: object, *, authenticated_actor_id: str
     ) -> AdvancementEntry:
         command = self._advance(value, authenticated_actor_id)
-        await self.preview(cid, command, authenticated_actor_id=authenticated_actor_id)
+        # Validate inside the transaction so a committed retry reaches its receipt first.
         payload = self._payload("advance", command.model_dump(mode="json"))
 
         def resolve(campaign: Campaign) -> Event:
