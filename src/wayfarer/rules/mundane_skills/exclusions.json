@@ -1,0 +1,145 @@
+{
+  "scope": "Basic Set Characters skill chapter; techniques represented separately",
+  "excluded": [
+    {
+      "name": "Alchemy",
+      "page": 174,
+      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+    },
+    {
+      "name": "Blind Fighting",
+      "page": 180,
+      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+    },
+    {
+      "name": "Body Control",
+      "page": 181,
+      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+    },
+    {
+      "name": "Breaking Blow",
+      "page": 182,
+      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+    },
+    {
+      "name": "Captivate",
+      "page": 191,
+      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+    },
+    {
+      "name": "Computer Hacking",
+      "page": 184,
+      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+    },
+    {
+      "name": "Enthrallment",
+      "page": 191,
+      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+    },
+    {
+      "name": "Flying Leap",
+      "page": 196,
+      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+    },
+    {
+      "name": "Herb Lore",
+      "page": 199,
+      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+    },
+    {
+      "name": "Immovable Stance",
+      "page": 201,
+      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+    },
+    {
+      "name": "Invisibility Art",
+      "page": 202,
+      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+    },
+    {
+      "name": "Kiai",
+      "page": 203,
+      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+    },
+    {
+      "name": "Light Walk",
+      "page": 205,
+      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+    },
+    {
+      "name": "Mental Strength",
+      "page": 209,
+      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+    },
+    {
+      "name": "Musical Influence",
+      "page": 210,
+      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+    },
+    {
+      "name": "Persuade",
+      "page": 191,
+      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+    },
+    {
+      "name": "Power Blow",
+      "page": 215,
+      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+    },
+    {
+      "name": "Pressure Points",
+      "page": 215,
+      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+    },
+    {
+      "name": "Pressure Secrets",
+      "page": 215,
+      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+    },
+    {
+      "name": "Push",
+      "page": 216,
+      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+    },
+    {
+      "name": "Ritual Magic",
+      "page": 218,
+      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+    },
+    {
+      "name": "Suggest",
+      "page": 191,
+      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+    },
+    {
+      "name": "Sway Emotions",
+      "page": 192,
+      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+    },
+    {
+      "name": "Symbol Drawing",
+      "page": 224,
+      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+    },
+    {
+      "name": "Thaumatology",
+      "page": 225,
+      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+    },
+    {
+      "name": "Throwing Art",
+      "page": 226,
+      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+    },
+    {
+      "name": "Weird Science",
+      "page": 228,
+      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+    },
+    {
+      "name": "Zen Archery",
+      "page": 228,
+      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+    }
+  ]
+}

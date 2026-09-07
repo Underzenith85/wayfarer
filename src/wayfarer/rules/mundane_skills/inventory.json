@@ -1,0 +1,5047 @@
+[
+  {
+    "id": "accounting",
+    "name": "Accounting",
+    "page": 174,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "acrobatics",
+    "name": "Acrobatics",
+    "page": 174,
+    "attribute": "DX",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "acting",
+    "name": "Acting",
+    "page": 174,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "administration",
+    "name": "Administration",
+    "page": 174,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "aerobatics",
+    "name": "Aerobatics",
+    "page": 174,
+    "blockers": [
+      "family-specialty-expansion"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "airshipman",
+    "name": "Airshipman",
+    "page": 174,
+    "blockers": [
+      "family-specialty-expansion"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "animal-handling",
+    "name": "Animal Handling",
+    "page": 175,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "anthropology",
+    "name": "Anthropology",
+    "page": 175,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "aquabatics",
+    "name": "Aquabatics",
+    "page": 176,
+    "blockers": [
+      "family-specialty-expansion"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "archaeology",
+    "name": "Archaeology",
+    "page": 176,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "architecture",
+    "name": "Architecture",
+    "page": 176,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "area-knowledge",
+    "name": "Area Knowledge",
+    "page": 176,
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "arm-lock-judo",
+    "name": "Arm Lock (Judo)",
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ],
+    "page": 230
+  },
+  {
+    "id": "armoury",
+    "name": "Armoury",
+    "page": 178,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "artillery",
+    "name": "Artillery",
+    "page": 178,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "artist",
+    "name": "Artist",
+    "page": 179,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "astronomy",
+    "name": "Astronomy",
+    "page": 179,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "prerequisite-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "autohypnosis",
+    "name": "Autohypnosis",
+    "page": 179,
+    "attribute": "Will",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "axe-mace",
+    "name": "Axe/Mace",
+    "page": 208,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "blockers": [
+      "weapon-default-audit",
+      "combat-procedure"
+    ],
+    "issues": [
+      103,
+      112
+    ]
+  },
+  {
+    "id": "bartender",
+    "name": "Bartender",
+    "page": 216,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "battlesuit",
+    "name": "Battlesuit",
+    "page": 179,
+    "blockers": [
+      "family-specialty-expansion"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "beam-weapons",
+    "name": "Beam Weapons",
+    "page": 179,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "bicycling",
+    "name": "Bicycling",
+    "page": 180,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "bioengineering",
+    "name": "Bioengineering",
+    "page": 180,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "biology",
+    "name": "Biology",
+    "page": 180,
+    "attribute": "IQ",
+    "difficulty": "very-hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "blowpipe",
+    "name": "Blowpipe",
+    "page": 180,
+    "attribute": "DX",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "boating",
+    "name": "Boating",
+    "page": 180,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "body-language",
+    "name": "Body Language",
+    "page": 181,
+    "attribute": "Per",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "body-sense",
+    "name": "Body Sense",
+    "page": 181,
+    "attribute": "DX",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "bolas",
+    "name": "Bolas",
+    "page": 181,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "bow",
+    "name": "Bow",
+    "page": 182,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "boxing",
+    "name": "Boxing",
+    "page": 182,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "brainwashing",
+    "name": "Brainwashing",
+    "page": 182,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults",
+      "prerequisite-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "brawling",
+    "name": "Brawling",
+    "page": 182,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "breath-control",
+    "name": "Breath Control",
+    "page": 182,
+    "attribute": "HT",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "broadsword",
+    "name": "Broadsword",
+    "page": 208,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "blockers": [
+      "weapon-default-audit",
+      "combat-procedure"
+    ],
+    "issues": [
+      103,
+      112
+    ]
+  },
+  {
+    "id": "camouflage",
+    "name": "Camouflage",
+    "page": 183,
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "carousing",
+    "name": "Carousing",
+    "page": 183,
+    "attribute": "HT",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "HT",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "carpentry",
+    "name": "Carpentry",
+    "page": 183,
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "cartography",
+    "name": "Cartography",
+    "page": 183,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "chemistry",
+    "name": "Chemistry",
+    "page": 183,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "climbing",
+    "name": "Climbing",
+    "page": 183,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      110,
+      112
+    ]
+  },
+  {
+    "id": "cloak",
+    "name": "Cloak",
+    "page": 184,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "combat-art",
+    "name": "Combat Art",
+    "page": 184,
+    "blockers": [
+      "variable-family-metadata"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "combat-sport",
+    "name": "Combat Sport",
+    "page": 184,
+    "blockers": [
+      "variable-family-metadata"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "computer-operation",
+    "name": "Computer Operation",
+    "page": 184,
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "computer-programming",
+    "name": "Computer Programming",
+    "page": 184,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "connoisseur",
+    "name": "Connoisseur",
+    "page": 185,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "cooking",
+    "name": "Cooking",
+    "page": 185,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "counterfeiting",
+    "name": "Counterfeiting",
+    "page": 185,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "crewman",
+    "name": "Crewman",
+    "page": 185,
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "criminology",
+    "name": "Criminology",
+    "page": 186,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "crossbow",
+    "name": "Crossbow",
+    "page": 186,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "cryptography",
+    "name": "Cryptography",
+    "page": 186,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "current-affairs",
+    "name": "Current Affairs",
+    "page": 186,
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "dancing",
+    "name": "Dancing",
+    "page": 187,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "detect-lies",
+    "name": "Detect Lies",
+    "page": 187,
+    "attribute": "Per",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "Perception",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "diagnosis",
+    "name": "Diagnosis",
+    "page": 187,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      109,
+      112
+    ]
+  },
+  {
+    "id": "diplomacy",
+    "name": "Diplomacy",
+    "page": 187,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      111,
+      112
+    ]
+  },
+  {
+    "id": "disguise",
+    "name": "Disguise",
+    "page": 187,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "diving-suit",
+    "name": "Diving Suit",
+    "page": 187,
+    "blockers": [
+      "family-specialty-expansion"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "dreaming",
+    "name": "Dreaming",
+    "page": 188,
+    "attribute": "Will",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "Will",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "driving",
+    "name": "Driving",
+    "page": 188,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "dropping",
+    "name": "Dropping",
+    "page": 189,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -3
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "economics",
+    "name": "Economics",
+    "page": 189,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "electrician",
+    "name": "Electrician",
+    "page": 189,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "electronics-operation",
+    "name": "Electronics Operation",
+    "page": 189,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "electronics-repair",
+    "name": "Electronics Repair",
+    "page": 190,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "engineer",
+    "name": "Engineer",
+    "page": 190,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context",
+      "conditional-or-skill-defaults",
+      "prerequisite-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "environment-suit",
+    "name": "Environment Suit",
+    "page": 192,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "erotic-art",
+    "name": "Erotic Art",
+    "page": 192,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "escape",
+    "name": "Escape",
+    "page": 192,
+    "attribute": "DX",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "esoteric-medicine",
+    "name": "Esoteric Medicine",
+    "page": 192,
+    "attribute": "Per",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "Perception",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "exorcism",
+    "name": "Exorcism",
+    "page": 193,
+    "attribute": "Will",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "Will",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "expert-skill",
+    "name": "Expert Skill",
+    "page": 193,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty_required": true,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "explosives",
+    "name": "Explosives",
+    "page": 194,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "falconry",
+    "name": "Falconry",
+    "page": 194,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "farming",
+    "name": "Farming",
+    "page": 194,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "fast-draw",
+    "name": "Fast-Draw",
+    "page": 194,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [],
+    "specialty_required": true,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "fast-talk",
+    "name": "Fast-Talk",
+    "page": 195,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      111,
+      112
+    ]
+  },
+  {
+    "id": "filch",
+    "name": "Filch",
+    "page": 195,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "finance",
+    "name": "Finance",
+    "page": 195,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "fire-eating",
+    "name": "Fire Eating",
+    "page": 195,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "first-aid",
+    "name": "First Aid",
+    "page": 195,
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      109,
+      112
+    ]
+  },
+  {
+    "id": "fishing",
+    "name": "Fishing",
+    "page": 195,
+    "attribute": "Per",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "Perception",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "flail",
+    "name": "Flail",
+    "page": 208,
+    "attribute": "DX",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "blockers": [
+      "weapon-default-audit",
+      "combat-procedure"
+    ],
+    "issues": [
+      103,
+      112
+    ]
+  },
+  {
+    "id": "flight",
+    "name": "Flight",
+    "page": 195,
+    "attribute": "HT",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "HT",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "prerequisite-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "force-sword",
+    "name": "Force Sword",
+    "page": 196,
+    "blockers": [
+      "family-specialty-expansion"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "force-whip",
+    "name": "Force Whip",
+    "page": 196,
+    "blockers": [
+      "family-specialty-expansion"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "forced-entry",
+    "name": "Forced Entry",
+    "page": 196,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "forensics",
+    "name": "Forensics",
+    "page": 196,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "forgery",
+    "name": "Forgery",
+    "page": 196,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "fortune-telling",
+    "name": "Fortune-Telling",
+    "page": 196,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "forward-observer",
+    "name": "Forward Observer",
+    "page": 196,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "free-fall",
+    "name": "Free Fall",
+    "page": 197,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "HT",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "freight-handling",
+    "name": "Freight Handling",
+    "page": 197,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "gambling",
+    "name": "Gambling",
+    "page": 197,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "games",
+    "name": "Games",
+    "page": 197,
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "gardening",
+    "name": "Gardening",
+    "page": 197,
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "garrote",
+    "name": "Garrote",
+    "page": 197,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "geography",
+    "name": "Geography",
+    "page": 198,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "geology",
+    "name": "Geology",
+    "page": 198,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "gesture",
+    "name": "Gesture",
+    "page": 198,
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "group-performance",
+    "name": "Group Performance",
+    "page": 198,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "gunner",
+    "name": "Gunner",
+    "page": 198,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "guns",
+    "name": "Guns",
+    "page": 198,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "hazardous-materials",
+    "name": "Hazardous Materials",
+    "page": 199,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "heraldry",
+    "name": "Heraldry",
+    "page": 199,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "hidden-lore",
+    "name": "Hidden Lore",
+    "page": 199,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "specialty_required": true,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "hiking",
+    "name": "Hiking",
+    "page": 200,
+    "attribute": "HT",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "HT",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      110,
+      112
+    ]
+  },
+  {
+    "id": "history",
+    "name": "History",
+    "page": 200,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "hobby-skill",
+    "name": "Hobby Skill",
+    "page": 200,
+    "blockers": [
+      "variable-family-metadata"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "holdout",
+    "name": "Holdout",
+    "page": 200,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "housekeeping",
+    "name": "Housekeeping",
+    "page": 200,
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "hypnotism",
+    "name": "Hypnotism",
+    "page": 201,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "innate-attack",
+    "name": "Innate Attack",
+    "page": 201,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "intelligence-analysis",
+    "name": "Intelligence Analysis",
+    "page": 201,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "interrogation",
+    "name": "Interrogation",
+    "page": 202,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "intimidation",
+    "name": "Intimidation",
+    "page": 202,
+    "attribute": "Will",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "Will",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      111,
+      112
+    ]
+  },
+  {
+    "id": "jeweler",
+    "name": "Jeweler",
+    "page": 203,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "jitte-sai",
+    "name": "Jitte/Sai",
+    "page": 203,
+    "blockers": [
+      "family-specialty-expansion"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "judo",
+    "name": "Judo",
+    "page": 203,
+    "attribute": "DX",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "jumping",
+    "name": "Jumping",
+    "page": 203,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      110,
+      112
+    ]
+  },
+  {
+    "id": "karate",
+    "name": "Karate",
+    "page": 203,
+    "attribute": "DX",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "kicking-karate",
+    "name": "Kicking (Karate)",
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ],
+    "page": 232
+  },
+  {
+    "id": "knife",
+    "name": "Knife",
+    "page": 208,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [],
+    "blockers": [
+      "weapon-default-audit",
+      "combat-procedure"
+    ],
+    "issues": [
+      103,
+      112
+    ]
+  },
+  {
+    "id": "knot-tying",
+    "name": "Knot-Tying",
+    "page": 203,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "kusari",
+    "name": "Kusari",
+    "page": 204,
+    "blockers": [
+      "family-specialty-expansion"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "lance",
+    "name": "Lance",
+    "page": 204,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults",
+      "prerequisite-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "lasso",
+    "name": "Lasso",
+    "page": 204,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "law",
+    "name": "Law",
+    "page": 204,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "leadership",
+    "name": "Leadership",
+    "page": 204,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "leatherworking",
+    "name": "Leatherworking",
+    "page": 205,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "lifting",
+    "name": "Lifting",
+    "page": 205,
+    "attribute": "HT",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "linguistics",
+    "name": "Linguistics",
+    "page": 205,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "lip-reading",
+    "name": "Lip Reading",
+    "page": 205,
+    "attribute": "Per",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "Perception",
+        "modifier": -10
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "liquid-projector",
+    "name": "Liquid Projector",
+    "page": 205,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "literature",
+    "name": "Literature",
+    "page": 205,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "lockpicking",
+    "name": "Lockpicking",
+    "page": 206,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "machinist",
+    "name": "Machinist",
+    "page": 206,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "main-gauche",
+    "name": "Main-Gauche",
+    "page": 208,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "blockers": [
+      "weapon-default-audit",
+      "combat-procedure"
+    ],
+    "issues": [
+      103,
+      112
+    ]
+  },
+  {
+    "id": "makeup",
+    "name": "Makeup",
+    "page": 206,
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "market-analysis",
+    "name": "Market Analysis",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "masonry",
+    "name": "Masonry",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "mathematics",
+    "name": "Mathematics",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "mechanic",
+    "name": "Mechanic",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "meditation",
+    "name": "Meditation",
+    "page": 207,
+    "attribute": "Will",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "Will",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "merchant",
+    "name": "Merchant",
+    "page": 209,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "metallurgy",
+    "name": "Metallurgy",
+    "page": 209,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "meteorology",
+    "name": "Meteorology",
+    "page": 209,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "mimicry",
+    "name": "Mimicry",
+    "page": 210,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "mind-block",
+    "name": "Mind Block",
+    "page": 210,
+    "attribute": "Will",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "Will",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "monowire-whip",
+    "name": "Monowire Whip",
+    "page": 209,
+    "attribute": "DX",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "blockers": [
+      "weapon-default-audit",
+      "combat-procedure"
+    ],
+    "issues": [
+      103,
+      112
+    ]
+  },
+  {
+    "id": "mount",
+    "name": "Mount",
+    "page": 210,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "musical-composition",
+    "name": "Musical Composition",
+    "page": 210,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "musical-instrument",
+    "name": "Musical Instrument",
+    "page": 211,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty_required": true,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "naturalist",
+    "name": "Naturalist",
+    "page": 211,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "navigation",
+    "name": "Navigation",
+    "page": 211,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "nbc-suit",
+    "name": "NBC Suit",
+    "page": 211,
+    "blockers": [
+      "family-specialty-expansion"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "net",
+    "name": "Net",
+    "page": 211,
+    "attribute": "DX",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "observation",
+    "name": "Observation",
+    "page": 211,
+    "attribute": "Per",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "Perception",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "occultism",
+    "name": "Occultism",
+    "page": 212,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "packing",
+    "name": "Packing",
+    "page": 212,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "paleontology",
+    "name": "Paleontology",
+    "page": 212,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "panhandling",
+    "name": "Panhandling",
+    "page": 212,
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "parachuting",
+    "name": "Parachuting",
+    "page": 212,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "parry-missile-weapons",
+    "name": "Parry Missile Weapons",
+    "page": 212,
+    "attribute": "DX",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "performance",
+    "name": "Performance",
+    "page": 212,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "pharmacy",
+    "name": "Pharmacy",
+    "page": 213,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      109,
+      112
+    ]
+  },
+  {
+    "id": "philosophy",
+    "name": "Philosophy",
+    "page": 213,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "photography",
+    "name": "Photography",
+    "page": 213,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "physician",
+    "name": "Physician",
+    "page": 213,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -7
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      109,
+      112
+    ]
+  },
+  {
+    "id": "physics",
+    "name": "Physics",
+    "page": 213,
+    "attribute": "IQ",
+    "difficulty": "very-hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "prerequisite-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "physics-acoustics",
+    "name": "Physics (Acoustics)",
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ],
+    "page": 213
+  },
+  {
+    "id": "physiology",
+    "name": "Physiology",
+    "page": 213,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "pickpocket",
+    "name": "Pickpocket",
+    "page": 213,
+    "attribute": "DX",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "piloting",
+    "name": "Piloting",
+    "page": 214,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "poetry",
+    "name": "Poetry",
+    "page": 214,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "poisons",
+    "name": "Poisons",
+    "page": 214,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "polearm",
+    "name": "Polearm",
+    "page": 208,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "blockers": [
+      "weapon-default-audit",
+      "combat-procedure"
+    ],
+    "issues": [
+      103,
+      112
+    ]
+  },
+  {
+    "id": "politics",
+    "name": "Politics",
+    "page": 215,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "professional-skill",
+    "name": "Professional Skill",
+    "page": 215,
+    "blockers": [
+      "variable-family-metadata"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "propaganda",
+    "name": "Propaganda",
+    "page": 216,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "prospecting",
+    "name": "Prospecting",
+    "page": 216,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "psychology",
+    "name": "Psychology",
+    "page": 216,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "public-speaking",
+    "name": "Public Speaking",
+    "page": 216,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "rapier",
+    "name": "Rapier",
+    "page": 208,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "blockers": [
+      "weapon-default-audit",
+      "combat-procedure"
+    ],
+    "issues": [
+      103,
+      112
+    ]
+  },
+  {
+    "id": "religious-ritual",
+    "name": "Religious Ritual",
+    "page": 217,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty_required": true,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "research",
+    "name": "Research",
+    "page": 217,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults",
+      "prerequisite-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "riding",
+    "name": "Riding",
+    "page": 217,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "running",
+    "name": "Running",
+    "page": 218,
+    "attribute": "HT",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "HT",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      110,
+      112
+    ]
+  },
+  {
+    "id": "saber",
+    "name": "Saber",
+    "page": 208,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "blockers": [
+      "weapon-default-audit",
+      "combat-procedure"
+    ],
+    "issues": [
+      103,
+      112
+    ]
+  },
+  {
+    "id": "savoir-faire",
+    "name": "Savoir-Faire",
+    "page": 218,
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      111,
+      112
+    ]
+  },
+  {
+    "id": "scrounging",
+    "name": "Scrounging",
+    "page": 218,
+    "attribute": "Per",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "Perception",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "scuba",
+    "name": "Scuba",
+    "page": 219,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults",
+      "prerequisite-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "seamanship",
+    "name": "Seamanship",
+    "page": 219,
+    "blockers": [
+      "family-specialty-expansion"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "search",
+    "name": "Search",
+    "page": 219,
+    "attribute": "Per",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "Perception",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "sewing",
+    "name": "Sewing",
+    "page": 219,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "sex-appeal",
+    "name": "Sex Appeal",
+    "page": 219,
+    "attribute": "HT",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "HT",
+        "modifier": -3
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      111,
+      112
+    ]
+  },
+  {
+    "id": "shadowing",
+    "name": "Shadowing",
+    "page": 219,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "shield",
+    "name": "Shield",
+    "page": 220,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "shiphandling",
+    "name": "Shiphandling",
+    "page": 220,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context",
+      "conditional-or-skill-defaults",
+      "prerequisite-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "shortsword",
+    "name": "Shortsword",
+    "page": 209,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "blockers": [
+      "weapon-default-audit",
+      "combat-procedure"
+    ],
+    "issues": [
+      103,
+      112
+    ]
+  },
+  {
+    "id": "singing",
+    "name": "Singing",
+    "page": 220,
+    "attribute": "HT",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "HT",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "skating",
+    "name": "Skating",
+    "page": 220,
+    "attribute": "HT",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "HT",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "skiing",
+    "name": "Skiing",
+    "page": 221,
+    "attribute": "HT",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "HT",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "sleight-of-hand",
+    "name": "Sleight of Hand",
+    "page": 221,
+    "attribute": "DX",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "sling",
+    "name": "Sling",
+    "page": 221,
+    "attribute": "DX",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "smallsword",
+    "name": "Smallsword",
+    "page": 209,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "blockers": [
+      "weapon-default-audit",
+      "combat-procedure"
+    ],
+    "issues": [
+      103,
+      112
+    ]
+  },
+  {
+    "id": "smith",
+    "name": "Smith",
+    "page": 221,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "smuggling",
+    "name": "Smuggling",
+    "page": 221,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "sociology",
+    "name": "Sociology",
+    "page": 221,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "soldier",
+    "name": "Soldier",
+    "page": 221,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "spacer",
+    "name": "Spacer",
+    "page": 222,
+    "blockers": [
+      "family-specialty-expansion"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "spear",
+    "name": "Spear",
+    "page": 208,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "blockers": [
+      "weapon-default-audit",
+      "combat-procedure"
+    ],
+    "issues": [
+      103,
+      112
+    ]
+  },
+  {
+    "id": "spear-thrower",
+    "name": "Spear Thrower",
+    "page": 222,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "speed-reading",
+    "name": "Speed-Reading",
+    "page": 222,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "sports",
+    "name": "Sports",
+    "page": 222,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "staff",
+    "name": "Staff",
+    "page": 208,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "blockers": [
+      "weapon-default-audit",
+      "combat-procedure"
+    ],
+    "issues": [
+      103,
+      112
+    ]
+  },
+  {
+    "id": "stage-combat",
+    "name": "Stage Combat",
+    "page": 222,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "stealth",
+    "name": "Stealth",
+    "page": 222,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "strategy",
+    "name": "Strategy",
+    "page": 222,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "streetwise",
+    "name": "Streetwise",
+    "page": 223,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      111,
+      112
+    ]
+  },
+  {
+    "id": "submarine",
+    "name": "Submarine",
+    "page": 223,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "technology-level-context"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "submariner",
+    "name": "Submariner",
+    "page": 223,
+    "blockers": [
+      "family-specialty-expansion"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "sumo-wrestling",
+    "name": "Sumo Wrestling",
+    "page": 223,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "surgery",
+    "name": "Surgery",
+    "page": 223,
+    "attribute": "IQ",
+    "difficulty": "very-hard",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults",
+      "prerequisite-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "survival",
+    "name": "Survival",
+    "page": 223,
+    "attribute": "Per",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "Perception",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "survival-woodlands",
+    "name": "Survival (Woodlands)",
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ],
+    "page": 223
+  },
+  {
+    "id": "swimming",
+    "name": "Swimming",
+    "page": 224,
+    "attribute": "HT",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "HT",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      110,
+      112
+    ]
+  },
+  {
+    "id": "tactics",
+    "name": "Tactics",
+    "page": 224,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "teaching",
+    "name": "Teaching",
+    "page": 224,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "teamster",
+    "name": "Teamster",
+    "page": 225,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "theology",
+    "name": "Theology",
+    "page": 226,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "throwing",
+    "name": "Throwing",
+    "page": 226,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -3
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "thrown-weapon",
+    "name": "Thrown Weapon",
+    "page": 226,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": true,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "specialty-expansion",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "tonfa",
+    "name": "Tonfa",
+    "page": 209,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "blockers": [
+      "weapon-default-audit",
+      "combat-procedure"
+    ],
+    "issues": [
+      103,
+      112
+    ]
+  },
+  {
+    "id": "tracking",
+    "name": "Tracking",
+    "page": 226,
+    "attribute": "Per",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "Perception",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "traps",
+    "name": "Traps",
+    "page": 226,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "two-handed-axe-mace",
+    "name": "Two-Handed Axe/Mace",
+    "page": 208,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "blockers": [
+      "weapon-default-audit",
+      "combat-procedure"
+    ],
+    "issues": [
+      103,
+      112
+    ]
+  },
+  {
+    "id": "two-handed-flail",
+    "name": "Two-Handed Flail",
+    "page": 208,
+    "attribute": "DX",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "blockers": [
+      "weapon-default-audit",
+      "combat-procedure"
+    ],
+    "issues": [
+      103,
+      112
+    ]
+  },
+  {
+    "id": "two-handed-sword",
+    "name": "Two-Handed Sword",
+    "page": 209,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "blockers": [
+      "weapon-default-audit",
+      "combat-procedure"
+    ],
+    "issues": [
+      103,
+      112
+    ]
+  },
+  {
+    "id": "typing",
+    "name": "Typing",
+    "page": 228,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "urban-survival",
+    "name": "Urban Survival",
+    "page": 228,
+    "attribute": "Per",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "Perception",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "vacc-suit",
+    "name": "Vacc Suit",
+    "page": 228,
+    "blockers": [
+      "family-specialty-expansion"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "ventriloquism",
+    "name": "Ventriloquism",
+    "page": 228,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "veterinary",
+    "name": "Veterinary",
+    "page": 228,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      109,
+      112
+    ]
+  },
+  {
+    "id": "weather-sense",
+    "name": "Weather Sense",
+    "page": 228,
+    "blockers": [
+      "family-specialty-expansion"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "whip",
+    "name": "Whip",
+    "page": 209,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "blockers": [
+      "weapon-default-audit",
+      "combat-procedure"
+    ],
+    "issues": [
+      103,
+      112
+    ]
+  },
+  {
+    "id": "wrestling",
+    "name": "Wrestling",
+    "page": 228,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "writing",
+    "name": "Writing",
+    "page": 228,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  }
+]
