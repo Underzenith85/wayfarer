@@ -20,7 +20,7 @@ from wayfarer.world import EntityKind, World
 
 Facing = Literal["north", "east", "south", "west"]
 Posture = Literal["standing", "kneeling", "prone"]
-Maneuver = Literal["do_nothing", "move", "ready", "change_posture", "attack", "wait"]
+Maneuver = Literal["do_nothing", "move", "ready", "change_posture", "attack", "wait", "concentrate"]
 Defense = Literal["dodge", "parry", "block", "none"]
 
 
@@ -443,6 +443,8 @@ class CombatEngine:
             raise ConflictError("Encounter cannot accept a maneuver now")
         if actor_id != encounter.current_actor_id:
             raise ConflictError("Combat action is out of turn")
+        if maneuver == "concentrate":
+            raise ValidationError("Concentration requires a bound ability command")
         participant = next(p for p in encounter.participants if p.actor_id == actor_id)
         battlefield = self.battlefields[encounter.battlefield_id]
         if maneuver == "move":

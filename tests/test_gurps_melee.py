@@ -54,6 +54,7 @@ async def setup(
     profile: Literal["gurps-lite-4e-2004", "gurps-basic-set-4e-2004"] = "gurps-lite-4e-2004",
     *,
     trained: bool = True,
+    ability_defense: bool = False,
 ) -> tuple[str, PlayService]:
     equipment = EquipmentCatalog(
         profile_id=profile,
@@ -123,7 +124,16 @@ async def setup(
         )
         for e in equipment.entries
     )
-    package = profile_package(profile, *extras)
+    from wayfarer.rules.abilities import definition
+    from wayfarer.rules.traits import TraitOptions
+    from wayfarer.simulation.ability_types import AbilityRules, AbilitySpec
+
+    ability = AbilitySpec(
+        definition_id="trait:shield", kind="damage-resistance", modifiers=("costs-fatigue-1",)
+    )
+    package = profile_package(
+        profile, *extras, *((definition(ability),) if ability_defense else ())
+    )
     catalog = RulesCatalog((package,))
     policy = CampaignPolicy(
         id="melee-test",
@@ -134,6 +144,7 @@ async def setup(
         skill_ceiling=30,
         permitted_sources=frozenset(s.id for s in package.sources),
         allowed_equipment=frozenset(e.definition_id for e in equipment.entries),
+        allow_supernatural=ability_defense,
     )
     rules = CampaignRules(
         edition=package.edition,
@@ -141,7 +152,15 @@ async def setup(
         policy_id=policy.id,
         policy_version=policy.version,
     )
-    compiler = CharacterCompiler(catalog, rules, policy, statistics_profile=profile)
+    compiler = CharacterCompiler(
+        catalog,
+        rules,
+        policy,
+        statistics_profile=profile,
+        trait_runtime_hooks=frozenset({"ability:damage-resistance", "ability:fatigue"})
+        if ability_defense
+        else frozenset(),
+    )
     reviewer = PowerReviewer(
         compiler, PowerPolicy(id="power", version=1, automatic_approval=True), frozenset({"gm"})
     )
@@ -154,7 +173,18 @@ async def setup(
         battlefields=(Battlefield(id="dock", location_id="dock", width=4, height=4),),
         gurps_equipment=equipment,
     )
-    engine = ActionEngine(reviewer, resources, ActionRules(id="play", version=1, combat=combat))
+    engine = ActionEngine(
+        reviewer,
+        resources,
+        ActionRules(
+            id="play",
+            version=1,
+            combat=combat,
+            abilities=AbilityRules(id="defense", version=1, abilities=(ability,))
+            if ability_defense
+            else None,
+        ),
+    )
     play = PlayService(AsyncSQLiteStore(tmp_path / "melee.sqlite"), engine)
     initial = campaign(engine)
     purchases = (
@@ -166,7 +196,25 @@ async def setup(
         else ()
     )
     actors = tuple(
-        ActorSetup(actor_id=a, proposal=CharacterProposal(draft=gurps_draft(*purchases)))
+        ActorSetup(
+            actor_id=a,
+            proposal=CharacterProposal(
+                draft=gurps_draft(
+                    *purchases,
+                    *(
+                        (
+                            Purchase(
+                                definition_id=ability.definition_id,
+                                amount=3,
+                                trait=TraitOptions(modifiers=ability.modifiers),
+                            ),
+                        )
+                        if ability_defense
+                        else ()
+                    ),
+                )
+            ),
+        )
         for a in ("a", "b")
     )
     seed = ResourceState(
