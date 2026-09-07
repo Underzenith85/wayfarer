@@ -8,9 +8,7 @@ async function login(page: Page, player = "alice") {
   await page
     .getByLabel("Access token", { exact: true })
     .fill(`${player}-token`);
-  await page
-    .getByRole("button", { name: "Load games and invitations" })
-    .click();
+  await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page.getByText(/Signed in as/)).toContainText(player);
   return page.getByRole("region", { name: "New game and lobby" });
 }
