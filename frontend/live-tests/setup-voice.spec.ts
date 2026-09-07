@@ -158,9 +158,9 @@ test("two identities activate a saved party and review speech through the live d
       )
       .toBe("success");
     // Setup is reached from the play header; it reopens the played campaign.
-    await a.getByRole("button", { name: "Games", exact: true }).click();
+    await a.getByRole("button", { name: "Session", exact: true }).click();
     await a
-      .getByRole("dialog", { name: "Games" })
+      .getByRole("dialog", { name: "Session" })
       .getByRole("button", { name: "Switch campaign", exact: true })
       .click();
     await lobby

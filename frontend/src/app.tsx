@@ -96,25 +96,6 @@ function Shell() {
           WAYFARER
         </Link>
         <span className="session-label">Campaign companion</span>
-        {(onSwitchCampaign || onNewGame) && (
-          <Sheet
-            title="Games"
-            description="Setup is a separate shell. Leaving the table keeps this campaign saved."
-            trigger={
-              <Button variant="outline">
-                <Menu size={18} aria-hidden="true" />
-                <span>Games</span>
-              </Button>
-            }
-          >
-            <div className="context-actions">
-              {onSwitchCampaign && (
-                <Button onClick={onSwitchCampaign}>Switch campaign</Button>
-              )}
-              {onNewGame && <Button onClick={onNewGame}>New game</Button>}
-            </div>
-          </Sheet>
-        )}
         <Button
           variant="outline"
           aria-label="Toggle dark theme"
@@ -123,16 +104,35 @@ function Shell() {
         >
           <SunMoon size={20} />
         </Button>
-        {!state.expired && (
-          <Button
-            variant="outline"
-            onClick={() => {
-              store.expire();
-              if (!store.transport.sample) location.assign("/");
-            }}
+        {(!state.expired || onSwitchCampaign || onNewGame) && (
+          <Sheet
+            title="Session"
+            description="Leave this table. Switching or starting a game keeps this campaign saved; ending the session clears this tab’s private state."
+            trigger={
+              <Button variant="outline">
+                <Menu size={18} aria-hidden="true" />
+                <span>Session</span>
+              </Button>
+            }
           >
-            End session
-          </Button>
+            <div className="context-actions">
+              {onSwitchCampaign && (
+                <Button onClick={onSwitchCampaign}>Switch campaign</Button>
+              )}
+              {onNewGame && <Button onClick={onNewGame}>New game</Button>}
+              {!state.expired && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    store.expire();
+                    if (!store.transport.sample) location.assign("/");
+                  }}
+                >
+                  End session
+                </Button>
+              )}
+            </div>
+          </Sheet>
         )}
       </header>
       {!online && (

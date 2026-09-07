@@ -59,7 +59,7 @@ test("play replaces setup, and a second draft replaces the step view", async ({
       page.getByRole("navigation", { name: "Game menu" }),
     ).toHaveCount(0);
     await expect(
-      page.getByRole("button", { name: "Games", exact: true }),
+      page.getByRole("button", { name: "Session", exact: true }),
     ).toBeVisible();
     // Nothing is rendered above the game shell on any route.
     const top = await page
@@ -69,9 +69,9 @@ test("play replaces setup, and a second draft replaces the step view", async ({
   }
   // Setup stays reachable from the play header, with the session and the
   // campaign that was being played both retained.
-  await page.getByRole("button", { name: "Games", exact: true }).click();
+  await page.getByRole("button", { name: "Session", exact: true }).click();
   await page
-    .getByRole("dialog", { name: "Games" })
+    .getByRole("dialog", { name: "Session" })
     .getByRole("button", { name: "Switch campaign" })
     .click();
   await expect(page.getByText(/Signed in as/)).toContainText("alice");

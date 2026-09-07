@@ -20,9 +20,9 @@ until reconnect reconciliation completes. There is no background action queue.
 Updates install alongside the current worker. A status message asks the player
 to finish pending actions and close **all** tabs/windows before reopening. There
 is no forced reload, skipWaiting, or client takeover. Activation removes only old
-Wayfarer shell caches. Drafts are unaffected. End session clears the principal's
-private drafts, resume pointer, and query state and reloads the production app to
-release in-memory credentials. Revocation uses the same private-state cleanup;
+Wayfarer shell caches. Drafts are unaffected. End session, in the play header's **Session**
+menu, clears the principal's private drafts, resume pointer, and query state and
+reloads the production app to release in-memory credentials. Revocation uses the same private-state cleanup;
 the retained setup form is reset on session termination so it cannot retain a
 hidden token. Ordinary navigation back from play preserves the authenticated
 lobby and selected campaign.
