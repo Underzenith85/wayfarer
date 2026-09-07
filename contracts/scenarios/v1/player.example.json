@@ -1,0 +1,24 @@
+{
+  "export_kind": "player-brief",
+  "schema_version": 1,
+  "scenario_id": "last-lantern-1",
+  "revision_id": "last-lantern-published-1",
+  "brief": {
+    "title": "The Last Lantern",
+    "summary": "Investigate missing relief supplies before the last ferry leaves.",
+    "tags": [
+      "mystery",
+      "rescue"
+    ],
+    "setup": {
+      "premise": "Recover the stolen relief shipment before the last ferry departs. The warden can be persuaded, outwitted, or fought. Rescue captured friends before leaving.",
+      "genre": "Harbor mystery",
+      "tone": "Hopeful suspense",
+      "duration_minutes": 60,
+      "difficulty": "standard",
+      "restrictions": []
+    },
+    "opening_prompt": "Start at Lantern Harbor. Inspect the manifest or speak with the ferrymen."
+  },
+  "party_size": 2
+}

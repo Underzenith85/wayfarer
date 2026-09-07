@@ -36,7 +36,9 @@ class ApproachSupport(Record):
     actor_id: Id
 
 
-class ScenarioGraph(Record):
+class ScenarioContent(Record):
+    """Shared authored mechanics; actor builds are supplied by runtime binding."""
+
     id: Id
     version: int = Field(ge=1)
     title: str = Field(min_length=1, max_length=200)
@@ -46,7 +48,6 @@ class ScenarioGraph(Record):
     failure_consequence: str = Field(min_length=1, max_length=1000)
     world: World
     resources: ResourceState
-    actors: tuple[ActorSetup, ...] = Field(min_length=1, max_length=30)
     npc_actor_ids: tuple[Id, ...] = ()
     combat_consequences: tuple[CombatConsequence, ...] = ()
     combat_attacks: tuple[AttackProfile, ...] = ()
@@ -80,6 +81,10 @@ class ScenarioGraph(Record):
                 "party": self.party,
             }
         )
+
+
+class ScenarioGraph(ScenarioContent):
+    actors: tuple[ActorSetup, ...] = Field(min_length=1, max_length=30)
 
 
 class StudioFinding(Record):

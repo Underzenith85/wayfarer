@@ -168,7 +168,14 @@ def campaign(value: object) -> Campaign:
             "complete",
             "messages",
         },
-        {"rules_ref", "resources_json", "play_json", "scenario_graph_json", "setup_json"},
+        {
+            "rules_ref",
+            "resources_json",
+            "play_json",
+            "scenario_graph_json",
+            "scenario_document_json",
+            "setup_json",
+        },
     )
     result = Campaign(
         id=string(d["id"]),
@@ -188,6 +195,8 @@ def campaign(value: object) -> Campaign:
     )
     if "setup_json" in d:
         result["setup_json"] = string(d["setup_json"])
+    if "scenario_document_json" in d:
+        result["scenario_document_json"] = string(d["scenario_document_json"])
     if "scenario_graph_json" in d:
         result["scenario_graph_json"] = string(d["scenario_graph_json"])
     if "play_json" in d:
