@@ -108,24 +108,24 @@ test("two identities activate a saved party and review speech through the live d
     a.on("request", (r) => {
       if (r.url().endsWith("/actions") && r.method() === "POST") requests++;
     });
-    await a.getByRole("button", { name: "Start microphone" }).click();
-    await a.getByRole("button", { name: "Stop and review" }).click();
     await a
-      .getByLabel("Voice transcript", { exact: true })
+      .getByRole("button", { name: "Start listening", exact: true })
+      .click();
+    await a
+      .getByRole("button", { name: "Stop listening", exact: true })
+      .click();
+    await a
+      .getByLabel("Review voice transcript", { exact: true })
       .fill("wait one minute");
-    await a.getByRole("button", { name: "Use reviewed transcript" }).click();
     expect(requests).toBe(0);
-    await expect(a.getByLabel("What do you do?")).toHaveValue(
-      "wait one minute",
-    );
-    await a.getByRole("button", { name: "Send action", exact: true }).click();
+    await a
+      .getByRole("button", { name: "Send reviewed action", exact: true })
+      .click();
     await expect.poll(() => requests).toBe(1);
     await expect(
       a.getByText("A moment passes.", { exact: true }),
     ).toBeVisible();
-    await a
-      .getByRole("button", { name: "Stop audio / discard transcript" })
-      .click();
+    await expect(a.getByLabel("Review voice transcript")).toHaveCount(0);
     expect(requests).toBe(1);
     const response = await b.request.get(`/campaigns/${cid}`, {
       headers: { Authorization: "Bearer bob-token" },

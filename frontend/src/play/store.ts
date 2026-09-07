@@ -660,7 +660,12 @@ export class PlayStore {
       s.campaign.capabilities.includes(`actions.${intentKind}`)
     );
   }
-  async send(channel: Channel, text: string, intent?: Intent) {
+  async send(
+    channel: Channel,
+    text: string,
+    intent?: Intent,
+    options: { preserveDraft?: boolean } = {},
+  ) {
     if (this.transport.multiplayer && channel === "ooc") return;
     const value =
       intent ??
@@ -697,7 +702,7 @@ export class PlayStore {
       kind: "submit",
       request,
       entryId,
-      clearDraft: !intent,
+      clearDraft: !intent && !options.preserveDraft,
     });
   }
   inventoryBlockReason(

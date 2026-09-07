@@ -1,5 +1,5 @@
 import { OnboardingPanel } from "../onboarding/panel";
-import { VoiceControls } from "../voice/controls";
+import { VoicePanel } from "../voice/panel";
 import { LiveControls } from "./live-controls";
 import { EncounterPanel, DiscoveryJournal } from "../adventure/pages";
 import { useState, type FormEvent } from "react";
@@ -323,6 +323,7 @@ function Composer() {
             ))}
         </div>
       </fieldset>
+      <VoicePanel key={channel} channel={channel} />
       <label htmlFor="play-draft">
         {channel === "action"
           ? "What do you do?"
@@ -346,17 +347,6 @@ function Composer() {
             : channel === "dialogue"
               ? "Speak in character…"
               : "Ask the game master…"
-        }
-      />
-      <VoiceControls
-        key={channel}
-        disabled={!allowed}
-        onReview={(text) => store.saveDraft(channel, text.slice(0, max))}
-        narration={
-          [...state.entries]
-            .reverse()
-            .find((e) => e.narration?.status === "complete")?.narration?.text ??
-          ""
         }
       />
       <div className="composer-bottom">
