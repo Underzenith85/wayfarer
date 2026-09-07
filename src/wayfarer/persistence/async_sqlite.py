@@ -188,7 +188,7 @@ class AsyncSQLiteStore:
                 )
             await db.commit()
             return {"kind": "committed", "state": state, "event": event}
-        except (ConflictError, NotFoundError):
+        except ConflictError, NotFoundError:
             await db.rollback()
             raise
         except aiosqlite.Error as exc:
