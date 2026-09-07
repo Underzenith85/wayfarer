@@ -34,6 +34,8 @@ from wayfarer.rules.catalog import (
     RulesCatalog,
 )
 from wayfarer.rules.effects import DerivedValue, Effect, EffectEvaluator, MechanicalTarget
+from wayfarer.rules.traits import TraitOptions
+from wayfarer.rules.traits import cost as trait_cost
 
 
 class Purchase(BaseModel):
@@ -42,6 +44,7 @@ class Purchase(BaseModel):
     )
     definition_id: str = Field(min_length=1, max_length=200)
     amount: int = Field(default=1, ge=1, le=10000)
+    trait: TraitOptions | None = Field(default=None, exclude_if=lambda value: value is None)
 
 
 class CharacterDraft(BaseModel):
@@ -83,6 +86,7 @@ class ValidatedBuild:
     name: str
     backstory: str
     statistics: CharacterStatistics | None = None
+    trait_purchases: tuple[Purchase, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -150,8 +154,10 @@ class CharacterCompiler:
         policy: CampaignPolicy,
         effects: tuple[tuple[str, Effect], ...] = (),
         statistics_profile: str | None = None,
+        trait_runtime_hooks: frozenset[str] = frozenset(),
     ) -> None:
         self.rules, self.policy = rules, policy
+        self.trait_runtime_hooks = trait_runtime_hooks
         if (rules.policy_id, rules.policy_version) != (policy.id, policy.version):
             raise ValidationError("Campaign policy pin does not resolve")
         if not rules.packages or len(set(rules.packages)) != len(rules.packages):
@@ -254,7 +260,9 @@ class CharacterCompiler:
                 error("definition.not_implemented", i, "Automatic activation is unavailable")
             if definition.source_id not in self.policy.permitted_sources:
                 error("source.forbidden", i, "Source is not permitted")
-            if definition.parameters:
+            if purchase.trait is not None and definition.trait_rules is None:
+                error("trait.unsupported", i, "Trait options require catalog metadata")
+            if definition.parameters and definition.trait_rules is None:
                 error(
                     "definition.parameters_unsupported",
                     i,
@@ -294,8 +302,28 @@ class CharacterCompiler:
                     error("skill.points", i, "Invalid skill point allocation")
                 cost = amount
             elif definition.kind is DefinitionKind.TRAIT:
-                if amount != 1:
-                    error("trait.amount", i, "This trait is not leveled")
+                metadata = definition.trait_rules
+                if metadata is None:
+                    if amount != 1:
+                        error("trait.amount", i, "This trait is not leveled")
+                elif metadata.profile_id != self.statistics_profile:
+                    error("trait.profile", i, "Trait requires its exact selected profile")
+                elif cost is not None:
+                    options = purchase.trait or TraitOptions()
+                    try:
+                        cost = trait_cost(cost, amount, options, metadata)
+                    except ValidationError as exc:
+                        error("trait.invalid", i, str(exc))
+                    required_hooks = set(metadata.runtime_hooks)
+                    required_hooks.update(
+                        m.runtime_hook
+                        for m in metadata.modifiers
+                        if m.id in options.modifiers and m.runtime_hook is not None
+                    )
+                    if metadata.self_control:
+                        required_hooks.add("trait.self_control")
+                    if not required_hooks <= self.trait_runtime_hooks:
+                        error("trait.runtime_unavailable", i, "Trait runtime hook is unavailable")
             else:
                 error("purchase.kind", i, "Equipment is acquired through inventory commands")
             if cost is None or type(cost) is not int:
@@ -402,6 +430,7 @@ class CharacterCompiler:
                 draft.name,
                 draft.backstory,
                 projection,
+                tuple(p for p in draft.purchases if self.definitions[p.definition_id].trait_rules),
             )
         return Compilation(tuple(diagnostics), spent, self.policy.point_budget - spent, build)
 

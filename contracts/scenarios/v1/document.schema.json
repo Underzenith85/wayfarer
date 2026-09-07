@@ -2429,6 +2429,17 @@
           "minimum": 1,
           "title": "Amount",
           "type": "integer"
+        },
+        "trait": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TraitOptions"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -3251,6 +3262,68 @@
         "actor_ids"
       ],
       "title": "SetbackRule",
+      "type": "object"
+    },
+    "TraitOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "parameters": {
+          "default": [],
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "string"
+              },
+              {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "boolean"
+                  }
+                ]
+              }
+            ],
+            "type": "array"
+          },
+          "title": "Parameters",
+          "type": "array"
+        },
+        "self_control": {
+          "anyOf": [
+            {
+              "enum": [
+                6,
+                9,
+                12,
+                15
+              ],
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Self Control"
+        },
+        "modifiers": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 100,
+          "title": "Modifiers",
+          "type": "array"
+        }
+      },
+      "title": "TraitOptions",
       "type": "object"
     },
     "World": {

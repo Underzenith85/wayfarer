@@ -16,6 +16,7 @@ from typing import Final, Literal
 
 from wayfarer.errors import ValidationError
 from wayfarer.models import RulesPackagePin, RulesReference
+from wayfarer.rules.traits import TraitRules, validate_metadata
 
 VERSION: Final = "wayfarer-lite-1"
 BUDGET: Final = 100
@@ -67,6 +68,7 @@ class RuleDefinition:
     exclusions: tuple[str, ...] = ()
     parameters: tuple[str, ...] = ()
     hooks: tuple[str, ...] = ()
+    trait_rules: TraitRules | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -80,7 +82,11 @@ class RulesPackage:
 
     @property
     def digest(self) -> str:
-        payload = json.dumps(asdict(self), sort_keys=True, separators=(",", ":"))
+        data = asdict(self)
+        for definition in data["definitions"]:
+            if definition["trait_rules"] is None:
+                del definition["trait_rules"]
+        payload = json.dumps(data, sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(payload.encode()).hexdigest()
 
 
@@ -133,6 +139,14 @@ class RulesCatalog:
             if len(definitions) != len(package.definitions):
                 raise ValidationError(f"Package {package.id} has duplicate definition IDs")
             for definition in package.definitions:
+                if definition.trait_rules is not None:
+                    if definition.kind is not DefinitionKind.TRAIT:
+                        raise ValidationError("Trait metadata requires a trait definition")
+                    validate_metadata(definition.trait_rules)
+                    if definition.parameters and set(definition.parameters) != {
+                        p.name for p in definition.trait_rules.parameters
+                    }:
+                        raise ValidationError("Trait parameter declarations disagree")
                 if definition.source_id not in sources:
                     raise ValidationError(f"Definition {definition.id} has a missing source")
                 refs = (*definition.prerequisites, *definition.exclusions)
