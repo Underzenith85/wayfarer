@@ -4,10 +4,12 @@ import { X } from "lucide-react";
 import { Button } from "./button";
 export function Sheet({
   title,
+  description = "Details for your current campaign.",
   children,
   trigger,
 }: {
   title: string;
+  description?: string;
   children: ReactNode;
   trigger: ReactNode;
 }) {
@@ -18,9 +20,7 @@ export function Sheet({
         <Dialog.Overlay className="sheet-overlay" />
         <Dialog.Content className="sheet-content">
           <Dialog.Title>{title}</Dialog.Title>
-          <Dialog.Description>
-            Details for your current campaign.
-          </Dialog.Description>
+          <Dialog.Description>{description}</Dialog.Description>
           {children}
           <Dialog.Close asChild>
             <Button
