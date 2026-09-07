@@ -55,14 +55,14 @@ expected defect:
 uv run --frozen python scripts/check_quality_gates.py
 ```
 
-Each matrix job fails immediately when a real gate fails. The probe is a test of
+The CI job fails immediately when a real gate fails. The probe is a test of
 the gates, not a substitute for checking the actual repository.
 
 ## Required checks: configuration pending
 
-The workflow runs on pushes and PRs for Python 3.12, 3.13 and 3.14. An administrator
-must make `package (3.12)`, `package (3.13)` and `package (3.14)` required on `main`
-after confirming the emitted job names. Preserve existing protection settings.
+The workflow runs on relevant pushes and PRs for Python 3.14. An administrator
+must make `package (3.14)` required on `main` after confirming the emitted job
+name. Preserve existing protection settings.
 
 This repository setting is tracked in [issue #27](https://github.com/Underzenith85/wayfarer/issues/27).
 It is **not configured by this PR**: the connected tools cannot administer branch
