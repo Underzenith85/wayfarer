@@ -63,7 +63,9 @@ class _NoRoll:
 def default_environment(play: PlayService, _state: PlayState, _target_id: str) -> CareEnvironment:
     """Conservative fallback when an authored scenario supplies no care resolver."""
 
-    return CareEnvironment(technology_level=play.engine.reviewer.compiler.policy.technology_level or 0)
+    return CareEnvironment(
+        technology_level=play.engine.reviewer.compiler.policy.technology_level or 0
+    )
 
 
 def _capable_provider(state: PlayState, actor_id: str) -> bool:
@@ -211,8 +213,10 @@ def _start_choices(
                     )
                     try:
                         context = _context(play, state, actor_id, target_id, kind, environment)
-                        apply_recovery(state.resources, command, context, rng=_NoRoll(), system=True)
-                    except (ValidationError, ConflictError, AssertionError, StopIteration):
+                        apply_recovery(
+                            state.resources, command, context, rng=_NoRoll(), system=True
+                        )
+                    except ValidationError, ConflictError, AssertionError, StopIteration:
                         continue
                     label = {
                         "rest": "Rest for 10 minutes",
