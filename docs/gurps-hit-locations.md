@@ -35,11 +35,12 @@ broader sensory/trait interactions remain outside this partial capability.
 
 Critical head blows use their own numeric table, including eye conversion,
 maximum damage, DR rounding, major-wound forcing, the forced Do Nothing turn and weapon drops. Ordinary
-critical limb hits can apply the timed funny-bone result. Deafness and permanent
-appearance aftermath remain explicit persisted blockers; they are never treated
-as ordinary damage or granted invented character effects. Their cross-system
-implementation is tracked in [#153](https://github.com/Underzenith85/wayfarer/issues/153),
-which depends on the location, trait and social dispatch work. Nonhumanoid location tables,
+critical limb hits can apply the timed funny-bone result. Penetrating critical-head
+rows 12/13 now create typed, durable deafness for crushing damage and permanent
+one-level scarring for other damage (two levels for burning or corrosion). Deafness
+uses the existing crippling-duration settlement and ordinary recovery lifecycle;
+scarring exposes an appearance-level loss to social consumers without rewriting an
+approved character trait. Both consequences survive retry and reload. Nonhumanoid location tables,
 optional cumulative wounds, assisted movement and
 cross-system lasting-disadvantage effects remain unsupported.
 
@@ -47,7 +48,7 @@ cross-system lasting-disadvantage effects remain unsupported.
 
 Independent cases in `tests/test_hit_locations.py` cover limb/vitals/skull/eye
 injury, divisor rounding, random locations, temporary/lasting/permanent duration,
-critical head arithmetic, shield impairment and SQLite replay. Runtime arithmetic
+critical head arithmetic and aftermath, shield impairment and SQLite replay. Runtime arithmetic
 was checked against *Basic Set: Campaigns*, Fourth Edition, fourth printing,
 B379, B398-400, B420-422, B552 and B556-557. These cases do not certify the frozen
 first-printing plus January 26, 2007 errata baseline. The profile capability gates

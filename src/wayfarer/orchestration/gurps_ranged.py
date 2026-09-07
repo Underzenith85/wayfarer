@@ -694,14 +694,20 @@ def resolve(
                 for i in state.resources.items
                 if i.owner_id == target.actor_id and i.ready and i.equipped
             ),
+            head_trauma=(
+                "deafened"
+                if head and hit_critical in (12, 13) and weapon.damage.damage_type == "cr"
+                else "scarred"
+                if head and hit_critical in (12, 13)
+                else None
+            ),
+            scar_levels=2 if weapon.damage.damage_type in ("burn", "cor") else 1,
         )
         state = state.model_copy(update={"resources": resources})
         damages.append(damage)
         injuries.append(result.injury)
         lasting_ids += result.lasting_injury_ids
         effect_dice += result.location_dice
-        if head and hit_critical in (12, 13) and result.injury:
-            blocked = "ranged-critical-head-trauma"
     if critical == 12 and not head and blocked is None:
         state = state.model_copy(
             update={

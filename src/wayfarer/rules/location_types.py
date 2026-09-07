@@ -51,7 +51,7 @@ class LastingInjury(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
     id: str = Field(min_length=1)
     location: HumanLocation
-    kind: Literal["crippled", "destroyed", "severed", "disabled"]
+    kind: Literal["crippled", "destroyed", "severed", "disabled", "deafened", "scarred"]
     duration: Literal["pending", "temporary", "lasting", "permanent", "timed"]
     inflicted_at: int = Field(ge=0)
     injury: int = Field(ge=0)
@@ -63,8 +63,10 @@ class LastingInjury(BaseModel):
             raise ValueError("Lasting and timed injuries require a recovery deadline")
         if self.recovery_at is not None and self.recovery_at <= self.inflicted_at:
             raise ValueError("Recovery follows injury")
-        if self.kind in ("severed", "destroyed") and self.duration != "permanent":
-            raise ValueError("Destroyed body parts require explicit permanent recovery")
+        if self.kind in ("severed", "destroyed", "scarred") and self.duration != "permanent":
+            raise ValueError("Destroyed body parts and scars require a permanent duration")
+        if self.kind == "scarred" and self.injury not in (1, 2):
+            raise ValueError("Severe scarring records one or two lost appearance levels")
         return self
 
     def active(self, *, now: int, full_hp: bool) -> bool:
@@ -78,4 +80,21 @@ class LastingInjury(BaseModel):
 def disabled_locations(
     injuries: tuple[LastingInjury, ...], *, now: int, full_hp: bool
 ) -> frozenset[HumanLocation]:
-    return frozenset(i.location for i in injuries if i.active(now=now, full_hp=full_hp))
+    return frozenset(
+        i.location
+        for i in injuries
+        if i.kind in ("crippled", "destroyed", "severed", "disabled")
+        and i.active(now=now, full_hp=full_hp)
+    )
+
+
+def deafened(injuries: tuple[LastingInjury, ...], *, now: int, full_hp: bool) -> bool:
+    """Whether an active critical-head consequence prevents ordinary hearing."""
+    return any(i.kind == "deafened" and i.active(now=now, full_hp=full_hp) for i in injuries)
+
+
+def appearance_levels_lost(injuries: tuple[LastingInjury, ...], *, now: int, full_hp: bool) -> int:
+    """Durable appearance loss available to social-reaction consumers."""
+    return sum(
+        i.injury for i in injuries if i.kind == "scarred" and i.active(now=now, full_hp=full_hp)
+    )

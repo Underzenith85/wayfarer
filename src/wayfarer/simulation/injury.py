@@ -132,6 +132,8 @@ def apply_injury(
     ignore_dr: bool = False,
     burning_hp: bool = False,
     stun_iq: int | None = None,
+    head_trauma: Literal["deafened", "scarred"] | None = None,
+    scar_levels: int = 1,
 ) -> tuple[ResourceState, InjuryResult]:
     """Pure reducer; persist atomically via the existing commit_turn/CAS boundary.
 
@@ -165,6 +167,10 @@ def apply_injury(
         encoded += f":critical:{force_major_wound}:{double_shock}"
     if funny_bone or halve_dr or ignore_dr:
         encoded += f":location-critical:{funny_bone}:{halve_dr}:{ignore_dr}"
+    if head_trauma is not None:
+        if head_trauma == "scarred" and scar_levels not in (1, 2):
+            raise ValidationError("Critical scarring loses one or two appearance levels")
+        encoded += f":head-trauma:{head_trauma}:{scar_levels}"
     digest = hashlib.sha256(encoded.encode()).hexdigest()
     previous = next((r for r in state.receipts if r.command_id == command.id), None)
     if previous:
@@ -359,6 +365,21 @@ def apply_injury(
                     )
                 }
             )
+            if head_trauma is not None:
+                if location not in ("skull", "face", "left-eye", "right-eye"):
+                    raise ValidationError("Critical head trauma requires a head hit")
+                trauma = LastingInjury(
+                    id=f"{command.id}:head-trauma:{head_trauma}",
+                    location="skull" if head_trauma == "deafened" else "face",
+                    kind=head_trauma,
+                    duration="pending" if head_trauma == "deafened" else "permanent",
+                    inflicted_at=state.game_time,
+                    injury=scar_levels if head_trauma == "scarred" else injury,
+                )
+                status = status.model_copy(
+                    update={"lasting_injuries": status.lasting_injuries + (trauma,)}
+                )
+                lasting_ids.append(trauma.id)
         current -= injury
         if injury and not status.dead:
             shock = injury // max(1, pool.maximum // 10)

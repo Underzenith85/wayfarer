@@ -2655,7 +2655,9 @@
             "crippled",
             "destroyed",
             "severed",
-            "disabled"
+            "disabled",
+            "deafened",
+            "scarred"
           ],
           "title": "Kind",
           "type": "string"
