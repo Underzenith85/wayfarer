@@ -4500,6 +4500,50 @@
           3
         ]
       }
+    },
+    {
+      "id": "basic-height-three-feet-head",
+      "capability_id": "gurps.tactical.facing",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B402-403, Combat at Different Levels",
+      "input": {
+        "attacker_feet": 3,
+        "defender_feet": 0,
+        "reach": 1,
+        "location": "skull"
+      },
+      "expected": {
+        "attack_modifier": 1,
+        "defender_modifier": -1
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "independent-numeric-case",
+      "provenance": "Independent expectations checked against Campaigns Fourth Edition, fourth printing; frozen first-printing/errata reconciliation remains #191. Not a certification claim.",
+      "operation": "melee_height"
+    },
+    {
+      "id": "basic-unliving-torso-piercing",
+      "capability_id": "gurps.injury.hit_locations",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B380/B399/B552, Injury Tolerance and hit locations",
+      "input": {
+        "structure": "unliving",
+        "location": "torso",
+        "damage_type": "pi",
+        "basic_damage": 9,
+        "resistance": 0
+      },
+      "expected": {
+        "injury": 3
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "independent-numeric-case",
+      "provenance": "Independent expectations checked against Campaigns Fourth Edition, fourth printing; frozen first-printing/errata reconciliation remains #191. Not a certification claim.",
+      "operation": "tolerance_wound"
     }
   ]
 }

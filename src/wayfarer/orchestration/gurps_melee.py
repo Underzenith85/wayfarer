@@ -279,7 +279,38 @@ def defense_value(
         + (-3 if participant.posture == "prone" else -2 if participant.posture == "kneeling" else 0)
         + (-4 if blind else 0)
     )
+
+    def height_bonus(reach: int = 1) -> int:
+        from wayfarer.simulation.combat_height import defense_height
+        from wayfarer.simulation.tactical import pose
+
+        encounter = next(
+            (
+                e
+                for e in state.encounters
+                if e.pending_defense and e.pending_defense.defender_id == participant.actor_id
+            ),
+            None,
+        )
+        if encounter is None or encounter.hex_battlefield is None:
+            return 0
+        pending = encounter.pending_defense
+        assert pending is not None
+        if pending.mode_id is None:
+            return 0  # Preflight before the selected incoming mode is persisted.
+        incoming = mode(play, state, pending.attacker_id, pending.weapon_id, pending.mode_id)
+        if not isinstance(incoming, MeleeMode):
+            return 0
+        attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
+        board = encounter.hex_battlefield
+        return defense_height(
+            board.cell(pose(participant).position).ground,
+            board.cell(pose(attacker).position).ground,
+            reach=reach,
+        )
+
     if selected == "dodge":
+        penalty += height_bonus()
         loaded = inventory_load(
             equipment,
             play.engine.resources,
@@ -310,7 +341,9 @@ def defense_value(
             )
         ):
             value = level(compiled, entry.shield.skill_id)
-            candidates.append((int(value.value) // 2 + 3, item.id, entry.shield.skill_id))
+            candidates.append(
+                (int(value.value) // 2 + 3 + height_bonus(), item.id, entry.shield.skill_id)
+            )
         if selected == "parry":
             for weapon_mode in entry.modes:
                 if not isinstance(weapon_mode, MeleeMode) or weapon_mode.parry is None:
@@ -344,7 +377,8 @@ def defense_value(
                         // 2
                         + 3
                         + parry.modifier
-                        - repeat_penalty,
+                        - repeat_penalty
+                        + height_bonus(max(weapon_mode.reach)),
                         item.id,
                         weapon_mode.skill_id,
                     )
@@ -389,7 +423,7 @@ def prepare_attack(
     from wayfarer.simulation.combat import CombatEngine
     from wayfarer.simulation.tactical import attack_geometry, defense_adjustment
 
-    attack_geometry(encounter, attacker, defender, frozenset(selected.reach))
+    attack_geometry(encounter, attacker, defender, frozenset(selected.reach), location=hit_location)
     if CombatEngine.distance(attacker.position, defender.position) not in selected.reach:
         raise ValidationError("Target is outside selected weapon reach")
     allowed: list[Defense] = ["none"]
@@ -524,6 +558,12 @@ def resolve_melee(
 
     eyes = disabled(state, pending.attacker_id) & {"left-eye", "right-eye"}
     attack_target -= 6 if len(eyes) == 2 else 1 if eyes else 0
+    from wayfarer.simulation.tactical import height_effect
+
+    height = height_effect(
+        encounter, attacker, defender, reach=max(weapon.reach), location=pending.hit_location
+    )
+    attack_target += height.attack_modifier
     if pending.hit_location:
         entries = {e.definition_id: e for e in equipment.entries}
         shield_side = next(
@@ -547,7 +587,15 @@ def resolve_melee(
     attack = success_roll(equipment.profile_id, attack_target, rng=play.rng)
     defense = None
     second_trace = None
-    hit = attack.outcome.succeeded
+    from wayfarer.simulation.hit_locations import location_special_effects, torso_near_miss
+
+    near_miss = torso_near_miss(pending.hit_location, attack)
+    if near_miss:
+        try:
+            height_effect(encounter, attacker, defender, reach=max(weapon.reach), location="torso")
+        except ValidationError:
+            near_miss = False
+    hit = attack.outcome.succeeded or near_miss
     critical_dice: tuple[int, ...] = ()
     critical_tables: tuple[tuple[int, ...], ...] = ()
     critical = 0
@@ -711,19 +759,22 @@ def resolve_melee(
         from wayfarer.orchestration.location_combat import from_behind
 
         location, location_dice = select_location(
-            pending.hit_location, rng=play.rng, from_behind=from_behind(attacker, defender)
+            "torso" if near_miss else pending.hit_location,
+            rng=play.rng,
+            from_behind=from_behind(attacker, defender),
         )
         if pending.hit_location == "random" and missing_location(hp.injury, location):
             location = "torso"
     head = (
         location in ("face", "skull", "left-eye", "right-eye")
         and weapon.damage.damage_type != "tox"
+        and location_special_effects(hp.injury, location)
     )
     critical_eye = False
     if head and critical in (6, 7) and location in ("face", "skull"):
         from wayfarer.orchestration.location_combat import from_behind
 
-        if from_behind(attacker, defender):
+        if from_behind(attacker, defender) or (hp.injury.tolerance and hp.injury.tolerance.no_eyes):
             critical = 4
         else:
             eye_die = play.rng.randbelow(6) + 1

@@ -438,7 +438,9 @@ def resolve(
 
     eyes = disabled(state, actor.actor_id) & {"left-eye", "right-eye"}
     if eyes:
-        attack_target -= 1 if aimed and actor.last_maneuver != "move_and_attack" else 3
+        attack_target -= (
+            6 if len(eyes) == 2 else 1 if aimed and actor.last_maneuver != "move_and_attack" else 3
+        )
     if pending.hit_location:
         entries = {e.definition_id: e for e in equipment.entries}
         shield_side = next(
@@ -471,10 +473,13 @@ def resolve(
         attack = replace(attack, rule_id="gurps.combat.ranged_attack")
         if attack.outcome is Outcome.CRITICAL_FAILURE and attack.total < 17:
             attack = replace(attack, outcome=Outcome.FAILURE)
+    from wayfarer.simulation.hit_locations import location_special_effects, torso_near_miss
+
+    near_miss = torso_near_miss(pending.hit_location, attack)
     hits = (
         min(pending.shots, 1 + max(0, attack_target - sum(attack.dice)) // weapon.recoil)
         if attack.outcome.succeeded
-        else 0
+        else int(near_miss)
     )
     defense = None
     second_trace = None
@@ -566,7 +571,9 @@ def resolve(
         from wayfarer.orchestration.location_combat import from_behind
 
         location, location_dice = select_location(
-            pending.hit_location, rng=play.rng, from_behind=from_behind(actor, target)
+            "torso" if near_miss else pending.hit_location,
+            rng=play.rng,
+            from_behind=from_behind(actor, target),
         )
         if pending.hit_location == "random" and hp.injury and missing_location(hp.injury, location):
             location = "torso"
@@ -575,6 +582,8 @@ def resolve(
     head = (
         location in ("skull", "face", "left-eye", "right-eye")
         and weapon.damage.damage_type != "tox"
+        and hp.injury is not None
+        and location_special_effects(hp.injury, location)
     )
     critical_eye = False
     lasting_ids: tuple[str, ...] = ()
@@ -583,7 +592,9 @@ def resolve(
         from wayfarer.orchestration.location_combat import from_behind
 
         if critical in (6, 7) and location in ("face", "skull"):
-            if from_behind(actor, target):
+            if from_behind(actor, target) or (
+                hp.injury and hp.injury.tolerance and hp.injury.tolerance.no_eyes
+            ):
                 critical = 4
             else:
                 eye_die = play.rng.randbelow(6) + 1

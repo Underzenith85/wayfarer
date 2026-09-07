@@ -33,26 +33,40 @@ profile before constructing a tagged hex battlefield.
 - `movement` takes a path excluding its origin and returns origin, destination,
   total MP cost, path and baseline. Forward movement follows its direction;
   sideways/backward movement preserves facing. Optional `turns` specifies the
-  facing before each segment; each side turned costs one MP. A final one-side
-  turn is free. Step permits any facing and costs one per flat ordinary hex.
-- Posture-adjusted Move and Step use explicit integer rounding. Terrain adds an
-  authored MP surcharge; it is not inferred from artwork. Stationary sitting or
-  lying actors require posture resolution before translation. Rolling, jumping,
-  climbing and multi-hex bodies are not synthesized by this primitive.
+  facing before each segment; each side turned costs one MP. Final facing follows the maneuver: Move permits any facing through half the
+  budget and one side afterward; All-Out Attack permits one side; increased
+  Dodge permits any facing. Step permits any facing and ignores terrain MP costs.
+- Tactical posture costs are added per hex using exact decimal half-points,
+  rather than multiplying the entire movement budget. A lying figure can move
+  one hex using its budget; sitting requires a posture change. Positive Move
+  guarantees one otherwise-legal hex despite cost penalties. Terrain adds an
+  authored surcharge. Jumping, climbing and multi-hex footprints are not
+  synthesized by this primitive; their action consumers still own authorization.
 - Occupancy allows multiple actors in a close-combat hex. Entering one requires
   explicit consent from the combat consumer and must end the supplied path.
   Grappling, enemy obstruction/evading checks and subsequent close-combat choices
   belong to #108; this flag is not authorization to evade an enemy.
 - `in_reach` accepts exact reachable distances, with C represented as 0. It tests
-  distance and front/close arcs on level terrain. It does not select an attack,
+  horizontal distance, front/close arcs and effective vertical separation. Each
+  reach yard beyond the first reduces the attacker's vertical separation by
+  one yard (B403). It does not select an attack,
   validate weapon readiness, or resolve an intervening obstacle.
 - `can_retreat` tests a one-hex destination further from the attacker, occupancy,
   terrain, posture and supplied turn/condition restrictions. The consumer owns
   retreat history and defense bonuses; geometry cannot reset or spend them.
-- Elevation and opaque height are integer yards relative to an explicit map datum.
-  Movement across unequal elevations and melee across heights fail explicitly:
-  the physical-feat/combat consumer must resolve those rules before changing pose.
-  Elevation is used directly in geometric LOS.
+- Elevation retains its existing integer-yard datum and adds optional
+  `elevation_inches` (0-35). Old maps retain exactly their original elevations.
+  Geometric LOS uses the exact combined value. Authored adjacent `stairs` edges
+  permit ascent/descent with one additional MP per hex; an unmarked height
+  transition still requires a physical-feat action. Empty stairs and zero offsets
+  are omitted from serialization to preserve old migration command receipts.
+- Standing melee now uses B402-403 height bands: attack/location adjustments,
+  inaccessible body parts, and active-defense adjustments. A parry uses its own
+  selected weapon reach to reduce effective separation. Random targeting rejects
+  height bands with inaccessible locations before any dice. Ranged/unarmed and
+  nonstanding unequal-height combinations remain gated by their respective
+  action consumers. Above six effective feet, an explicit special-position
+  action is required; the engine does not invent one.
 
 ## Source provenance and evidence
 
@@ -61,7 +75,7 @@ printing**, with the January 26, 2007
 [errata](https://www.sjgames.com/errata/gurps/4e/basic-set-campaigns.html).
 Page references for independent expected-result tests: B367–368 (posture/Step),
 B377 (retreat restrictions), B384–387 (hexes, facing, movement), B388 (reach),
-B391–392 (retreat and close combat). Tests contain original numeric cases, not
+B391–392 (retreat and close combat), B402–403 (height and reach). Tests contain original numeric cases, not
 copied examples or rulebook prose. `tests/test_hex_geometry.py` also checks
 serialization, failed paths and metric/LOS properties.
 
@@ -85,3 +99,11 @@ about a published numeric example:
 Geometric LOS does not implement darkness, concealment, hearing, perception,
 partial cover, or information disclosure. The existing visibility boundary must
 still filter results before the LLM or another player can see them.
+
+## Follow-up evidence (#105/#107)
+
+`tests/test_geometry_injury_followups.py` checks inch boundaries, each height
+band, asymmetric reach, movement costs, stairs and a saved attack/defense
+sequence. The additional numeric rules were checked against Campaigns fourth
+printing; reconciling that evidence with the frozen first-printing/errata
+baseline remains #191. The tactical capabilities remain partial.

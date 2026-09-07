@@ -143,6 +143,7 @@ def apply_fatigue(
                     basic_damage=hp_lost,
                     resistance=0,
                     damage_type="cr",
+                    injury_source="internal",
                 ),
                 ht=ht,
                 rng=rng,

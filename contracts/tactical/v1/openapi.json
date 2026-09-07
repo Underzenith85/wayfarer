@@ -270,6 +270,13 @@
             "minimum": 0,
             "title": "Opaque Height",
             "type": "integer"
+          },
+          "elevation_inches": {
+            "description": "Additional inches above elevation datum",
+            "exclusiveMaximum": 36,
+            "minimum": 0,
+            "title": "Elevation Inches",
+            "type": "integer"
           }
         },
         "required": [
@@ -1340,6 +1347,13 @@
             "minItems": 1,
             "title": "Cells",
             "type": "array"
+          },
+          "stairs": {
+            "items": {
+              "$ref": "#/components/schemas/Stairway"
+            },
+            "title": "Stairs",
+            "type": "array"
           }
         },
         "required": [
@@ -1514,6 +1528,24 @@
           "grip_id"
         ],
         "title": "ResolveChokeEffects",
+        "type": "object"
+      },
+      "Stairway": {
+        "additionalProperties": false,
+        "description": "Authored traversable edge, not permission to climb or jump a cliff.",
+        "properties": {
+          "start": {
+            "$ref": "#/components/schemas/Hex"
+          },
+          "end": {
+            "$ref": "#/components/schemas/Hex"
+          }
+        },
+        "required": [
+          "start",
+          "end"
+        ],
+        "title": "Stairway",
         "type": "object"
       },
       "TacticalRequest": {

@@ -6,10 +6,12 @@ edge conventions, limitations, and the explicit integration/migration boundary.
 
 from __future__ import annotations
 
+from decimal import Decimal
 from fractions import Fraction
 from typing import Literal
 
 from pydantic import Field, model_validator
+from pydantic.config import JsonDict
 
 from wayfarer.errors import ValidationError
 from wayfarer.rules.conformance import BASELINE_ID
@@ -19,6 +21,11 @@ Facing = Literal[0, 1, 2, 3, 4, 5]
 Posture = Literal["standing", "crouching", "kneeling", "crawling", "sitting", "lying"]
 Arc = Literal["front", "right", "rear", "left", "close"]
 DIRECTIONS = ((1, 0), (0, 1), (-1, 1), (-1, 0), (0, -1), (1, -1))
+
+
+def _omitted_default(schema: JsonDict) -> None:
+    """These defaults are omitted on the wire, so clients must treat them as optional."""
+    schema.pop("default", None)
 
 
 class Hex(Record):
@@ -74,6 +81,25 @@ class Cell(Record):
     blocked: bool = False
     extra_cost: int = Field(default=0, ge=0, le=100, description="Authored terrain MP surcharge")
     opaque_height: int = Field(default=0, ge=0, le=1000, description="Yards above ground")
+    elevation_inches: int = Field(
+        default=0,
+        ge=0,
+        lt=36,
+        description="Additional inches above elevation datum",
+        exclude_if=lambda v: v == 0,
+        json_schema_extra=_omitted_default,
+    )
+
+    @property
+    def ground(self) -> Fraction:
+        return Fraction(self.elevation * 36 + self.elevation_inches, 36)
+
+
+class Stairway(Record):
+    """Authored traversable edge, not permission to climb or jump a cliff."""
+
+    start: Hex
+    end: Hex
 
 
 class HexBattlefield(Record):
@@ -84,12 +110,27 @@ class HexBattlefield(Record):
     profile_id: Literal["gurps-basic-set-4e-2004"]
     baseline_id: Literal["gurps-4e-2004-first-printing+errata-2007-01-26"]
     cells: tuple[Cell, ...] = Field(min_length=1, max_length=10000)
+    stairs: tuple[Stairway, ...] = Field(
+        default=(), exclude_if=lambda v: not v, json_schema_extra=_omitted_default
+    )
 
     @model_validator(mode="after")
     def distinct_cells(self) -> HexBattlefield:
         if len({cell.position for cell in self.cells}) != len(self.cells):
             raise ValueError("Duplicate hex cell")
+        edges: set[frozenset[Hex]] = set()
+        for stair in self.stairs:
+            edge = frozenset((stair.start, stair.end))
+            if distance(stair.start, stair.end) != 1 or edge in edges:
+                raise ValueError("Stairs require unique adjacent endpoints")
+            edges.add(edge)
+            for point in edge:
+                if self.cell(point).blocked:
+                    raise ValueError("Stairs cannot connect blocked cells")
         return self
+
+    def stairway(self, start: Hex, end: Hex) -> bool:
+        return any({s.start, s.end} == {start, end} for s in self.stairs)
 
     def cell(self, position: Hex) -> Cell:
         for cell in self.cells:
@@ -106,7 +147,7 @@ class Occupant(Record):
 class Movement(Record):
     origin: Pose
     destination: Pose
-    cost: int = Field(ge=0)
+    cost: Decimal = Field(ge=0)
     path: tuple[Hex, ...]
     baseline_id: str = BASELINE_ID
 
@@ -151,27 +192,29 @@ def movement(
     enter_close_combat: bool = False,
     final_facing: Facing | None = None,
     turns: tuple[Facing, ...] = (),
+    final_turn_policy: Literal["move", "one", "any"] = "move",
 ) -> Movement:
     """Validate a supplied path and return a receipt, never search or mutate.
 
     Paths exclude the origin. Forward movement turns to its direction for free;
-    side/back movement preserves facing. Explicit final turn: one side free on
-    Move, any facing on Step. Occupied entry requires explicit close combat and
-    may only end a path. Elevation changes require a separate physical-feat ruling.
+    side/back movement preserves facing. Final turns follow maneuver policy and
+    the spent movement budget; Step permits any facing. Occupied entry requires
+    explicit close combat and may only end a path. Elevation transitions require
+    authored stairs or a separate physical-feat ruling.
     """
     step_allowance(move)
     _occupancy(battlefield, occupants)
     if battlefield.cell(origin.position).blocked:
         raise ValidationError("Origin is blocked")
-    if origin.posture in ("sitting", "lying") and path:
+    if origin.posture == "sitting" and path:
         raise ValidationError("Posture requires a change before hex movement")
     if path and move == 0:
         raise ValidationError("Zero Move does not permit movement")
     if turns and len(turns) != len(path):
         raise ValidationError("Supply one pre-move facing per path hex")
-    budget = step_allowance(move) if step else posture_move(move, origin.posture)
+    budget = step_allowance(move) if step else move
     pose = origin
-    total = 0
+    total = Decimal(0)
     for index, target in enumerate(path):
         if turns:
             facing = turns[index]
@@ -183,14 +226,27 @@ def movement(
         cell = battlefield.cell(target)
         if cell.blocked:
             raise ValidationError("Movement path is blocked")
-        if cell.elevation != battlefield.cell(pose.position).elevation:
+        stair = battlefield.stairway(pose.position, target)
+        if cell.ground != battlefield.cell(pose.position).ground and not stair:
             raise ValidationError("Elevation transition requires physical-feat resolution")
         occupied = any(o.position == target and o.actor_id != actor_id for o in occupants)
         if occupied and not (enter_close_combat and index == len(path) - 1):
             raise ValidationError("Occupied hex requires explicit close-combat entry")
         direction = DIRECTIONS.index((target.q - pose.position.q, target.r - pose.position.r))
         forward = (direction - pose.facing) % 6 in (0, 1, 5)
-        total += (1 if step or forward else 2) + cell.extra_cost
+        if step:
+            total += 1
+        elif origin.posture == "lying":
+            total += max(1, move)
+        else:
+            posture_cost = (
+                Decimal("0.5")
+                if origin.posture == "crouching"
+                else Decimal(2)
+                if origin.posture in ("kneeling", "crawling")
+                else Decimal(0)
+            )
+            total += (1 if forward else 2) + cell.extra_cost + int(stair) + posture_cost
         pose = Pose(
             position=target,
             facing=direction if forward and not step else pose.facing,  # type: ignore[arg-type]
@@ -199,9 +255,13 @@ def movement(
     if final_facing is not None:
         updated = Pose(position=pose.position, facing=final_facing, posture=pose.posture)
         turn = min((final_facing - pose.facing) % 6, (pose.facing - final_facing) % 6)
-        total += 0 if step else max(0, turn - 1)
+        freely_turn = (
+            final_turn_policy == "any" or final_turn_policy == "move" and total * 2 <= budget
+        )
+        if not step and not freely_turn and turn > 1:
+            raise ValidationError("Only one free final facing change after half Move")
         pose = updated
-    if total > budget:
+    if total > budget and not (not step and len(path) == 1 and not turns):
         raise ValidationError("Movement exceeds allowance")
     return Movement(origin=origin, destination=pose, cost=total, path=path)
 
@@ -213,15 +273,15 @@ def in_reach(
     *,
     reaches: frozenset[int],
 ) -> bool:
-    """B388 flat-ground reach, with C encoded as 0; elevation fails closed."""
+    """B388/B402-403 reach; location/defense height effects are separate."""
     if not reaches or any(type(value) is not int or value < 0 for value in reaches):
         raise ValidationError("Reach must contain nonnegative integer distances")
     start, end = battlefield.cell(attacker.position), battlefield.cell(target)
-    if start.elevation != end.elevation:
-        raise ValidationError("Unequal elevation requires combat-height resolution")
+    effective_height = max(Fraction(0), abs(start.ground - end.ground) - max(0, max(reaches) - 1))
     return (
         not start.blocked
         and not end.blocked
+        and effective_height <= 2
         and distance(attacker.position, target) in reaches
         and arc(attacker, target) in ("front", "close")
     )
@@ -303,7 +363,7 @@ def line_of_sight(battlefield: HexBattlefield, start: SightPoint, end: SightPoin
     blocked movement alone does not imply opaque terrain.
     """
     a, b = battlefield.cell(start.position), battlefield.cell(end.position)
-    z0, z1 = a.elevation + start.height, b.elevation + end.height
+    z0, z1 = a.ground + start.height, b.ground + end.height
     cells = {cell.position: cell for cell in battlefield.cells}
     # Every intersected hex lies within one coordinate of a sample spaced at
     # most one hex apart. This corridor is O(distance), not map bounding-box area.
@@ -327,6 +387,6 @@ def line_of_sight(battlefield: HexBattlefield, start: SightPoint, end: SightPoin
         # Endpoint ground itself does not obscure an observer on the ground.
         if position in (start.position, end.position) and cell.opaque_height == 0:
             continue
-        if cell.elevation + cell.opaque_height >= ray_low:
+        if cell.ground + cell.opaque_height >= ray_low:
             return False
     return True

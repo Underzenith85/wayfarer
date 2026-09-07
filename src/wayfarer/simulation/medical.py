@@ -582,6 +582,7 @@ def apply_recovery(
                     basic_damage=-healed,
                     resistance=0,
                     damage_type="cr",
+                    injury_source="internal",
                 ),
                 ht=task.ht,
                 rng=rng,

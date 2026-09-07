@@ -3405,6 +3405,17 @@
             "default": false,
             "title": "Male Groin",
             "type": "boolean"
+          },
+          "tolerance": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/InjuryTolerance"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           }
         },
         "required": [
@@ -3643,6 +3654,17 @@
             "title": "Male Groin",
             "type": "boolean"
           },
+          "tolerance": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/InjuryTolerance"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
           "lasting_injuries": {
             "default": [],
             "items": {
@@ -3656,6 +3678,50 @@
           "profile_id"
         ],
         "title": "InjuryStatus",
+        "type": "object"
+      },
+      "InjuryTolerance": {
+        "additionalProperties": false,
+        "description": "Trusted anatomy facts; never accepted as player-authored damage modifiers.",
+        "properties": {
+          "structure": {
+            "default": "living",
+            "enum": [
+              "living",
+              "unliving",
+              "homogenous",
+              "diffuse"
+            ],
+            "title": "Structure",
+            "type": "string"
+          },
+          "no_brain": {
+            "default": false,
+            "title": "No Brain",
+            "type": "boolean"
+          },
+          "no_eyes": {
+            "default": false,
+            "title": "No Eyes",
+            "type": "boolean"
+          },
+          "no_head": {
+            "default": false,
+            "title": "No Head",
+            "type": "boolean"
+          },
+          "no_neck": {
+            "default": false,
+            "title": "No Neck",
+            "type": "boolean"
+          },
+          "no_vitals": {
+            "default": false,
+            "title": "No Vitals",
+            "type": "boolean"
+          }
+        },
+        "title": "InjuryTolerance",
         "type": "object"
       },
       "Item": {

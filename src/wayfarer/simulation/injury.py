@@ -23,6 +23,7 @@ from wayfarer.simulation.hit_locations import (
     crippling_threshold,
     effective_dr,
     knockdown_penalty,
+    location_special_effects,
     missing_location,
     part,
     require_location,
@@ -49,6 +50,7 @@ class Wound(Command):
     tight_beam: bool = False
     from_behind: bool = False
     critical_eye: bool = False
+    injury_source: Literal["attack", "area", "internal"] = "attack"
 
 
 class ResolveCrippling(Command):
@@ -139,7 +141,11 @@ def apply_injury(
     if type(ht) is not int or ht < 1:
         raise ValidationError("HT must come from a valid compiled character")
     ResourceState.model_validate(state)
-    encoded = command.model_dump_json()
+    encoded = command.model_dump_json(
+        exclude={"injury_source"}
+        if isinstance(command, Wound) and command.injury_source == "attack"
+        else None
+    )
     if force_major_wound or double_shock:
         encoded += f":critical:{force_major_wound}:{double_shock}"
     if funny_bone or halve_dr or ignore_dr:
@@ -201,6 +207,8 @@ def apply_injury(
         ):
             raise ValidationError("Damage type requires an unsupported mechanic")
         require_location(status, command.location)
+        if command.injury_source != "attack" and command.location is not None:
+            raise ValidationError("Area/internal injury cannot select a body part")
         if command.armor_divisor != 1 and status.profile_id != "gurps-basic-set-4e-2004":
             raise ValidationError("Armor divisors require Basic Set")
         if command.location is not None:
@@ -215,8 +223,12 @@ def apply_injury(
             and location is not None
             and part(location) == "eye"
             and command.damage_type != "tox"
+            and location_special_effects(status, location)
             else wound_factor(
-                location or "torso", command.damage_type, tight_beam=command.tight_beam
+                location or "torso",
+                command.damage_type,
+                tight_beam=command.tight_beam,
+                tolerance=status.tolerance if command.injury_source != "internal" else None,
             )
         )
         resistance = effective_dr(
@@ -231,6 +243,15 @@ def apply_injury(
             resistance = 0
         penetration = max(0, command.basic_damage - resistance)
         injury = max(1, penetration * numerator // denominator) if penetration else 0
+        if (
+            status.tolerance is not None
+            and status.tolerance.structure == "diffuse"
+            and command.injury_source == "attack"
+        ):
+            injury = min(
+                injury,
+                1 if command.damage_type.startswith("pi") or command.damage_type == "imp" else 2,
+            )
         uncapped = injury
         threshold = crippling_threshold(location, pool.maximum) if location else None
         crippled = threshold is not None and injury >= threshold
@@ -288,7 +309,12 @@ def apply_injury(
             dropped = tuple(drops)
             if not set(dropped) <= set(held_item_ids):
                 raise ValidationError("Location-held items must be authoritative ready items")
-        if location == "face" and command.damage_type == "cor" and injury * 2 > pool.maximum:
+        if (
+            location == "face"
+            and command.damage_type == "cor"
+            and injury * 2 > pool.maximum
+            and not (status.tolerance and (status.tolerance.no_eyes or status.tolerance.no_head))
+        ):
             eye_die = rng.randbelow(6) + 1 if injury <= pool.maximum else 0
             eyes: tuple[HumanLocation, ...] = (
                 ("left-eye", "right-eye")
@@ -321,7 +347,10 @@ def apply_injury(
         if injury and not status.dead:
             shock = injury // max(1, pool.maximum // 10)
             double_shock = double_shock or (
-                location == "groin" and status.male_groin and command.damage_type == "cr"
+                location == "groin"
+                and status.male_groin
+                and command.damage_type == "cr"
+                and location_special_effects(status, location)
             )
             status = status.model_copy(
                 update={
@@ -360,11 +389,14 @@ def apply_injury(
                     and (location in ("skull", "face", "vitals") or part(location) == "eye")
                     and shock > 0
                     and command.damage_type != "tox"
+                    and location_special_effects(status, location)
                 )
                 if (force_major_wound or major or head_shock) and not status.incapacitated:
                     penalty = (
                         knockdown_penalty(location, major=major, male_groin=status.male_groin)
-                        if location and command.damage_type != "tox"
+                        if location
+                        and command.damage_type != "tox"
+                        and location_special_effects(status, location)
                         else 0
                     )
                     trace = check("major-wound", penalty)

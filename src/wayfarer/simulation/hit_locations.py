@@ -7,9 +7,9 @@ Injury Tolerance and nonhuman anatomy are intentionally not inferred.
 from decimal import Decimal
 
 from wayfarer.errors import ValidationError
-from wayfarer.rules.checks import RandomSource
+from wayfarer.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.rules.injury_types import InjuryStatus
-from wayfarer.rules.location_types import HitLocation, HumanLocation
+from wayfarer.rules.location_types import HitLocation, HumanLocation, InjuryTolerance
 from wayfarer.simulation.gurps_equipment import DamageType
 
 FACTORS = {
@@ -39,6 +39,16 @@ PENALTIES = {
 }
 
 
+def torso_near_miss(location: HitLocation | None, check: CheckTrace) -> bool:
+    """B552 note 1; automatic/critical failures never become location misses."""
+    return (
+        location in ("skull", "face", "left-eye", "right-eye", "groin", "neck", "vitals")
+        and check.outcome is Outcome.FAILURE
+        and check.margin == -1
+        and check.total < 17
+    )
+
+
 def part(location: HumanLocation) -> str:
     return location.split("-", 1)[-1]
 
@@ -53,6 +63,16 @@ def require_location(status: InjuryStatus, location: HitLocation | None) -> None
 
 
 def missing_location(status: InjuryStatus, location: HumanLocation) -> bool:
+    tolerance = status.tolerance
+    if tolerance is not None and (
+        tolerance.no_head
+        and location in ("skull", "face", "left-eye", "right-eye")
+        or tolerance.no_eyes
+        and part(location) == "eye"
+        or tolerance.no_neck
+        and location == "neck"
+    ):
+        return True
     return any(
         w.kind == "severed"
         and (
@@ -102,7 +122,11 @@ def select_location(
 
 
 def wound_factor(
-    location: HumanLocation, damage_type: DamageType, *, tight_beam: bool
+    location: HumanLocation,
+    damage_type: DamageType,
+    *,
+    tight_beam: bool,
+    tolerance: InjuryTolerance | None = None,
 ) -> tuple[int, int]:
     if damage_type not in FACTORS:
         raise ValidationError("Unsupported location damage")
@@ -112,6 +136,20 @@ def wound_factor(
             raise ValidationError("Only penetrating or tight-beam attacks can target eyes/vitals")
     if damage_type == "tox":
         return FACTORS[damage_type]
+    if tolerance is not None:
+        if tolerance.structure in ("homogenous", "diffuse"):
+            return tolerance_factor(tolerance, damage_type)
+        if tolerance.no_brain and (location in ("skull", "face") or part(location) == "eye"):
+            location = "torso" if part(location) != "eye" else "face"
+        if tolerance.no_vitals and location in ("vitals", "groin"):
+            location = "torso"
+        if tolerance.structure == "unliving" and location not in (
+            "skull",
+            "vitals",
+            "left-eye",
+            "right-eye",
+        ):
+            return tolerance_factor(tolerance, damage_type)
     if location == "skull" or part(location) == "eye":
         return 4, 1
     if location == "vitals":
@@ -126,6 +164,26 @@ def wound_factor(
     if part(location) in ("arm", "leg", "hand", "foot") and damage_type in ("imp", "pi+", "pi++"):
         return 1, 1
     return FACTORS[damage_type]
+
+
+def tolerance_factor(tolerance: InjuryTolerance, damage_type: DamageType) -> tuple[int, int]:
+    """B380/B552; diffuse single-blow injury is capped separately."""
+    values = {
+        "unliving": {"imp": (1, 1), "pi++": (1, 1), "pi+": (1, 2), "pi": (1, 3), "pi-": (1, 5)},
+        "homogenous": {"imp": (1, 2), "pi++": (1, 2), "pi+": (1, 3), "pi": (1, 5), "pi-": (1, 10)},
+    }
+    return values.get(tolerance.structure, {}).get(damage_type, FACTORS[damage_type])
+
+
+def location_special_effects(status: InjuryStatus, location: HumanLocation) -> bool:
+    tolerance = status.tolerance
+    return tolerance is None or not (
+        tolerance.structure in ("homogenous", "diffuse")
+        or tolerance.no_brain
+        and (location in ("skull", "face") or part(location) == "eye")
+        or tolerance.no_vitals
+        and location in ("vitals", "groin")
+    )
 
 
 def effective_dr(
