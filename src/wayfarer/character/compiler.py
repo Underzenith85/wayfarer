@@ -557,8 +557,9 @@ class CharacterCompiler:
                 },
                 "entries": [asdict(e) for e in entries],
                 "sheet": asdict(sheet),
-                "cost_provenance": [asdict(entry) for entry in cost_provenance],
             }
+            if cost_provenance:
+                payload["cost_provenance"] = [asdict(entry) for entry in cost_provenance]
             if projection is not None:
                 payload["statistics"] = asdict(projection)
             revision = hashlib.sha256(
