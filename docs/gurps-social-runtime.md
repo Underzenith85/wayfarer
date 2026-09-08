@@ -14,11 +14,13 @@ self-control, a subject, bounded fact references, and a situation modifier.
 This is trusted scenario configuration, not an LLM command or player roll target.
 
 A trigger may also carry `NPCSocialStanding`: an authored Appearance level,
-Status, Charisma, Voice and bounded Reputations with the classes that recognize
-them. `rules.social_hooks` derives every reaction modifier from that record, so
-authored data selects standing rather than inventing an integer, and recognition
-rolls for a reputation are drawn before the reaction or influence roll they
-modify. Standing the observer cannot see, hear or place is left out entirely.
+bounded Reputations with the classes that recognize them, and the audience the
+subject presents. `rules.social_hooks` derives those modifiers, so authored data
+selects standing rather than inventing an integer, and recognition rolls for a
+reputation are drawn before the reaction or influence roll they modify. Standing
+the observer cannot see or place is left out entirely. The same audience governs
+the trait modifiers below, which keep coming from the initiator's approved build
+rather than from the trigger.
 
 `contracts/social/v2/schemas.json` specifies this opt-in policy and internal
 director decisions. `python scripts/social_contracts.py --check` checks drift.
@@ -32,6 +34,12 @@ and approved HT/Will. Self-control reads the approved purchase's options and
 catalog metadata; unknown/unapproved traits reject before dice. Character
 compilation still requires the exact runtime-hook capability, and this change
 does not enable an uncertified trait catalog or profile.
+
+Reaction and influence dispatch adds the modifiers the initiator's approved
+build implies, from the pinned definition's implemented runtime binding
+(#113, [selected trait inventory](gurps-mundane-traits.md)). A resolver that
+supplies its own trait modifier is rejected, and an initiator without an
+approved build contributes none.
 
 Social disclosures must come from the subject's known facts and use the social
 outcome policy. Ordinary unconditional NPC disclosures cannot be mixed into a

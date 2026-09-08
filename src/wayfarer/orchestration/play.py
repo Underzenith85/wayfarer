@@ -276,6 +276,9 @@ class PlayService:
             from wayfarer.simulation.party import migrate
 
             state = migrate(state)
+        from wayfarer.simulation.encounter_context import migrate_unique
+
+        state = migrate_unique(state, self.engine.rules.scenes, self.engine.rules.combat)
         self.engine.validate(state)
         return state
 

@@ -17,13 +17,8 @@ from wayfarer.rules.gurps_social import (
     reaction_roll,
     self_control_roll,
 )
-from wayfarer.rules.social_hooks import (
-    ANY_OBSERVER,
-    Audience,
-    Standing,
-    StandingTrace,
-    standing_modifiers,
-)
+from wayfarer.rules.mundane_traits.runtime import DEFAULT_AUDIENCE, Audience
+from wayfarer.rules.social_hooks import Standing, StandingTrace, standing_modifiers
 from wayfarer.rules.traits import TraitOptions, TraitRules
 from wayfarer.simulation.resources import Command, Receipt, Record, ResourceEvent, ResourceState
 from wayfarer.world import EntityKind, World
@@ -62,7 +57,7 @@ class SocialContext:
         trait_options: TraitOptions | None = None,
         trait_rules: TraitRules | None = None,
         standing: Standing | None = None,
-        audience: Audience = ANY_OBSERVER,
+        audience: Audience = DEFAULT_AUDIENCE,
     ) -> None:
         self.profile_id, self.target, self.will = profile_id, target, will
         self.ht = ht
@@ -70,6 +65,12 @@ class SocialContext:
         self.trait_base, self.trait_levels = trait_base, trait_levels
         self.trait_options, self.trait_rules = trait_options, trait_rules
         self.standing, self.audience = standing, audience
+
+    def bind_trait_modifiers(self, modifiers: tuple[ReactionModifier, ...]) -> None:
+        """Attach server-derived trait modifiers; a resolver never supplies them."""
+        if any(m.kind == "trait" for m in self.modifiers):
+            raise ValidationError("Trait reaction modifiers are derived from approved builds")
+        self.modifiers = self.modifiers + modifiers
 
 
 def apply_social(

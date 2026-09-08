@@ -379,7 +379,7 @@
       },
       "NPCSocialStanding": {
         "additionalProperties": false,
-        "description": "Declared standing, not an invented modifier: every value is derived by rule.",
+        "description": "Declared standing and observer, not an invented modifier: values follow rules.\n\nStatus, Charisma and Voice are absent on purpose: dispatch derives those from\nthe initiator's approved build, and declaring them here would double-count.\nThe audience fields describe the reacting party for both sources.",
         "properties": {
           "appearance": {
             "default": "average",
@@ -398,25 +398,6 @@
             "title": "Appearance",
             "type": "string"
           },
-          "status": {
-            "default": 0,
-            "maximum": 8,
-            "minimum": -2,
-            "title": "Status",
-            "type": "integer"
-          },
-          "charisma": {
-            "default": 0,
-            "maximum": 10,
-            "minimum": 0,
-            "title": "Charisma",
-            "type": "integer"
-          },
-          "voice": {
-            "default": false,
-            "title": "Voice",
-            "type": "boolean"
-          },
           "reputations": {
             "default": [],
             "items": {
@@ -425,6 +406,16 @@
             "maxItems": 5,
             "title": "Reputations",
             "type": "array"
+          },
+          "audience_perceptible": {
+            "default": true,
+            "title": "Audience Perceptible",
+            "type": "boolean"
+          },
+          "audience_audible": {
+            "default": true,
+            "title": "Audience Audible",
+            "type": "boolean"
           },
           "audience_recognizes_status": {
             "default": true,

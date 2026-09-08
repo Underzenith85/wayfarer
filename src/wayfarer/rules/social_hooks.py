@@ -1,16 +1,17 @@
-"""Status, reputation and appearance hooks for reaction and influence rolls.
+"""Appearance and reputation reaction hooks, the sources no build binding covers.
 
-Intended sources: Basic Set Characters, Fourth Edition, B21 (Appearance),
-B26-27 (Reputation), B28 (Status), B41 (Charisma), B97 (Voice), with the frozen
-2004 first printing / 2007-01-26 errata baseline. Reconstructed from model
-knowledge under the owner's explicit provisional-implementation authorization;
-exact printing verification remains an audit blocker. No rulebook prose here.
+Intended sources: Basic Set Characters, Fourth Edition, B21 (Appearance) and
+B26-27 (Reputation), on the frozen 2004 first printing / 2007-01-26 errata
+baseline. Reconstructed from model knowledge under the owner's explicit
+provisional-implementation authorization; exact printing verification remains an
+audit blocker. No rulebook prose here.
 
-The engine owns this arithmetic so that a scenario, a character sheet or a
-generated proposal cannot invent a reaction modifier: authored data selects a
-declared standing, and the values below are derived from it. Purchase legality
-and point costs belong to trait compilation (#100) and catalog content (#113);
-this module derives play-time reaction modifiers only.
+Status, Charisma and Voice are *not* declared here: `rules.mundane_traits.runtime`
+binds them to approved purchases of pinned definitions (#113), and dispatch adds
+them from the initiator's build. Appearance and Reputation have no catalog entry
+to bind yet, so trusted scenario configuration declares them and this module
+derives their values; once those entries exist the binding path should own them
+too (#113). Either way a modifier is derived by rule, never supplied as a number.
 """
 
 from __future__ import annotations
@@ -23,6 +24,7 @@ from wayfarer.errors import ValidationError
 from wayfarer.rules.checks import RandomSource, draw_dice
 from wayfarer.rules.conformance import capability, profile
 from wayfarer.rules.gurps_social import ReactionModifier
+from wayfarer.rules.mundane_traits.runtime import DEFAULT_AUDIENCE, Audience
 
 Appearance = Literal[
     "horrific",
@@ -59,10 +61,7 @@ APPEARANCE_REACTIONS: Final = MappingProxyType(
 RECOGNITION_TARGETS: Final = MappingProxyType({"always": None, "sometimes": 10, "occasionally": 7})
 """A reputation recognized less than always is rolled for on 3d, once per check."""
 
-STATUS_LEVELS: Final = (-2, 8)
-CHARISMA_LEVELS: Final = (0, 10)
 REPUTATION_LEVELS: Final = (-4, 4)
-VOICE_REACTION: Final = 2
 CAPABILITY: Final = "gurps.social.reaction"
 
 
@@ -80,28 +79,10 @@ class Reputation:
 
 @dataclass(frozen=True, slots=True)
 class Standing:
-    """The acting character's declared social standing, derived from approved traits."""
+    """The declared standing of the character being reacted to."""
 
     appearance: Appearance = "average"
-    status: int = 0
-    charisma: int = 0
-    voice: bool = False
     reputations: tuple[Reputation, ...] = ()
-
-
-@dataclass(frozen=True, slots=True)
-class Audience:
-    """What the reacting subject perceives; never a player choice or a secret fact."""
-
-    recognizes_status: bool = True
-    attracted: bool = False
-    classes: tuple[str, ...] = ()
-    sees_appearance: bool = True
-    hears_voice: bool = True
-
-
-ANY_OBSERVER: Final = Audience()
-"""The default observer: sees, hears, and recognizes ordinary public standing."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -135,25 +116,18 @@ def supported_appearance(profile_id: str) -> tuple[str, ...]:
     return tuple(APPEARANCE_REACTIONS)
 
 
-def _bounded(value: object, bounds: tuple[int, int], label: str) -> int:
-    if type(value) is not int or not bounds[0] <= value <= bounds[1]:
-        raise ValidationError(f"{label} must be an integer within {bounds[0]}..{bounds[1]}")
-    return value
-
-
 def validate_standing(standing: Standing) -> Standing:
     """Reject any standing the declared hooks cannot derive a modifier from."""
     if standing.appearance not in APPEARANCE_REACTIONS:
         raise ValidationError("Unsupported appearance level")
-    _bounded(standing.status, STATUS_LEVELS, "Status")
-    _bounded(standing.charisma, CHARISMA_LEVELS, "Charisma")
-    if type(standing.voice) is not bool:
-        raise ValidationError("Voice must be declared as a boolean")
     identifiers = [reputation.id for reputation in standing.reputations]
     if len(set(identifiers)) != len(identifiers) or not all(identifiers):
         raise ValidationError("Reputations require unique identifiers")
     for reputation in standing.reputations:
-        if _bounded(reputation.level, REPUTATION_LEVELS, "Reputation") == 0:
+        level = reputation.level
+        if type(level) is not int or not REPUTATION_LEVELS[0] <= level <= REPUTATION_LEVELS[1]:
+            raise ValidationError("Reputation must be an integer within -4..4")
+        if level == 0:
             raise ValidationError("A reputation of 0 has no reaction effect")
         if reputation.scope not in ("everyone", "large-class", "small-class"):
             raise ValidationError("Unsupported reputation scope")
@@ -168,7 +142,11 @@ def validate_standing(standing: Standing) -> Standing:
 
 
 def standing_modifiers(
-    profile_id: str, standing: Standing, audience: Audience, *, rng: RandomSource
+    profile_id: str,
+    standing: Standing,
+    audience: Audience = DEFAULT_AUDIENCE,
+    *,
+    rng: RandomSource,
 ) -> StandingTrace:
     """Derive typed reaction modifiers, rolling only for uncertain recognition.
 
@@ -181,15 +159,13 @@ def standing_modifiers(
     validate_standing(standing)
     modifiers: list[ReactionModifier] = []
     recognition: list[RecognitionRoll] = []
-    if audience.sees_appearance:
+    if audience.perceptible:
         indifferent, attracted = APPEARANCE_REACTIONS[standing.appearance]
         value = attracted if audience.attracted else indifferent
         if value:
             modifiers.append(
                 ReactionModifier("appearance", value, f"appearance:{standing.appearance}")
             )
-    if standing.status and audience.recognizes_status:
-        modifiers.append(ReactionModifier("status", standing.status, "status"))
     for reputation in standing.reputations:
         if reputation.scope != "everyone" and not set(reputation.classes) & set(audience.classes):
             continue
@@ -205,8 +181,4 @@ def standing_modifiers(
                 "reputation", reputation.level, f"reputation:{reputation.id}", reputation.hidden
             )
         )
-    if standing.charisma:
-        modifiers.append(ReactionModifier("trait", standing.charisma, "trait:charisma"))
-    if standing.voice and audience.hears_voice:
-        modifiers.append(ReactionModifier("trait", VOICE_REACTION, "trait:voice"))
     return StandingTrace(tuple(modifiers), tuple(recognition))

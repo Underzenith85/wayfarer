@@ -230,6 +230,9 @@ class RangedSituation(Record):
 
 class Encounter(Record):
     id: Id
+    # Version 1 is retained for unbound legacy snapshots, including scene-less profiles.
+    version: Literal[1, 2] = Field(default=1, exclude_if=lambda v: v == 1)
+    scene_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
     battlefield_id: Id
     status: Literal["active", "completed"] = "active"
     participants: tuple[Combatant, ...] = Field(min_length=2)
@@ -249,6 +252,12 @@ class Encounter(Record):
     ranged_situations: tuple[RangedSituation, ...] = ()
     hex_battlefield: HexBattlefield | None = None
     tactical_traces: tuple[TacticalTrace, ...] = ()
+
+    @model_validator(mode="after")
+    def validate_scene_version(self) -> Encounter:
+        if (self.version == 2) != (self.scene_id is not None):
+            raise ValueError("Scene-bound encounters require version 2 and a scene ID")
+        return self
 
     @property
     def current_actor_id(self) -> str:

@@ -442,15 +442,10 @@ async def test_reference_reinforcement_arrives_only_after_resolved_defense(tmp_p
         await table.command("b", "choose_recovery", rule_id="quiet-rescue", target_actor_id="a")
         await table.command("a", "choose_recovery", rule_id="loosen-bars", target_actor_id="a")
         rescued = await table.state()
-        assert rescued.encounters[0].status == "active"
+        assert rescued.encounters[0].status == "completed"
+        assert rescued.encounters[0].completion_reason == "setback:capture"
         assert rescued.recovery.captivity[0].released_at is not None
         await table.command("a", "rejoin_party", target_id="group:harbor-scene")
-        await table.command(
-            "gm",
-            "end_encounter",
-            encounter_id="yard",
-            reason="The reunited party withdraws with its rescued scout",
-        )
         await table.command("a", "choose_recovery", rule_id="recover-gear", target_actor_id="a")
         await table.finish("success")
     finally:

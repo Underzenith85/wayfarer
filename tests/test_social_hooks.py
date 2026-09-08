@@ -20,10 +20,10 @@ from wayfarer.rules.gurps_social import (
     influence_roll,
     reaction_roll,
 )
+from wayfarer.rules.mundane_traits.runtime import REACTION_BINDINGS, Audience
 from wayfarer.rules.social_hooks import (
     APPEARANCE_REACTIONS,
     Appearance,
-    Audience,
     Recognition,
     Reputation,
     ReputationScope,
@@ -106,22 +106,16 @@ def standing(values: Case) -> Standing:
         )
         for entry in rows(values, "reputations")
     )
-    return Standing(
-        cast(Appearance, values.get("appearance", "average")),
-        cast(int, values.get("status", 0)),
-        cast(int, values.get("charisma", 0)),
-        bool(values.get("voice", False)),
-        reputations,
-    )
+    return Standing(cast(Appearance, values.get("appearance", "average")), reputations)
 
 
 def audience(values: Case) -> Audience:
     return Audience(
-        bool(values.get("recognizes_status", True)),
-        bool(values.get("attracted", False)),
-        tuple(cast(list[str], values.get("classes", []))),
-        bool(values.get("sees_appearance", True)),
-        bool(values.get("hears_voice", True)),
+        perceptible=bool(values.get("perceptible", True)),
+        audible=bool(values.get("audible", True)),
+        recognizes_status=bool(values.get("recognizes_status", True)),
+        attracted=bool(values.get("attracted", False)),
+        classes=tuple(cast(list[str], values.get("classes", []))),
     )
 
 
@@ -204,6 +198,21 @@ def test_invented_standing_is_rejected(case: Case) -> None:
         standing_modifiers(PROFILE, declared, Audience(), rng=RecordedDice([]))
 
 
+def test_hooks_and_build_bindings_do_not_share_a_reaction_source() -> None:
+    """Status, Charisma and Voice come from approved builds (#113), never from here."""
+    assert {binding.hook for binding in REACTION_BINDINGS.values()} == {
+        "trait.social_modifiers",
+        "trait.voice",
+        "trait.status",
+    }
+    fields = set(Standing.__dataclass_fields__)
+    assert fields == {"appearance", "reputations"}
+    trace = standing_modifiers(
+        PROFILE, Standing("handsome"), Audience(attracted=True), rng=RecordedDice([])
+    )
+    assert {modifier.kind for modifier in trace.modifiers} == {"appearance"}
+
+
 def test_hooks_are_bound_to_a_declared_profile_and_capability() -> None:
     assert supported_appearance("gurps-lite-4e-2004") == tuple(
         text(entry, "level") for entry in cases("appearance")
@@ -216,7 +225,7 @@ def test_hooks_are_bound_to_a_declared_profile_and_capability() -> None:
 
 def test_authored_standing_cannot_widen_the_declared_ranges() -> None:
     approved = NPCSocialStanding.model_validate(
-        {"appearance": "handsome", "status": 3, "reputations": ({"id": "hero", "level": 2},)}
+        {"appearance": "handsome", "reputations": ({"id": "hero", "level": 2},)}
     )
     assert approved.appearance == "handsome" and approved.audience_recognizes_status
     with pytest.raises(SchemaError):
@@ -225,8 +234,6 @@ def test_authored_standing_cannot_widen_the_declared_ranges() -> None:
         )
     for invalid in (
         {"appearance": "radiant"},
-        {"status": 9},
-        {"charisma": -1},
         {"reputations": ({"id": "hero", "level": 5},)},
         {"reputations": ({"id": "hero", "level": 2, "recognition": "rarely"},)},
         {"modifier": 3},
@@ -262,15 +269,14 @@ def test_derived_standing_stays_out_of_the_player_projection() -> None:
         PROFILE,
         10,
         standing=Standing(
-            appearance="handsome",
-            status=2,
-            reputations=(Reputation("informer", -4, "small-class", "sometimes", ("watch",), True),),
+            "handsome",
+            (Reputation("informer", -4, "small-class", "sometimes", ("watch",), True),),
         ),
         audience=Audience(classes=("watch",)),
         required_fact_ids=("secret",),
     )
     # Recognition dice precede the reaction roll: 3+3+3 = 9 recognizes the secret
-    # reputation, so 4+4+4 = 12 plus 2 (appearance) + 2 (Status) - 4 lands on 12.
+    # reputation, so 4+4+4 = 12 plus 2 (appearance) - 4 lands on 10.
     state, public = apply_social(
         ResourceState(),
         world(),
@@ -285,7 +291,7 @@ def test_derived_standing_stays_out_of_the_player_projection() -> None:
         assert secret not in payload
     private = json.loads(state.events[-1].kind)["private"]
     assert private["recognition"][0]["reputation_id"] == "informer"
-    assert [modifier["hidden"] for modifier in private["modifiers"]] == [False, False, True]
+    assert [modifier["hidden"] for modifier in private["modifiers"]] == [False, True]
     replayed = apply_social(
         ResourceState.model_validate_json(state.model_dump_json()),
         world(),

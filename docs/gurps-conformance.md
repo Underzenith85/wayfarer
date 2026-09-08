@@ -207,10 +207,10 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.combat.active_defense` | yes | yes | partial | #103 |
 | `gurps.combat.maneuvers` | yes | yes | partial | #104 and #152 bounded transitions implemented; [executable behavior and certification boundary](gurps-maneuvers.md) |
 | `gurps.combat.turn_timing` | yes | yes | partial | #104 and #152; durable Wait zones, stop thrust, and attack-then-step implemented; #191 source reconciliation remains |
-| `gurps.combat.ranged_attack` | yes | yes | partial | #106; [ranged dispatch and evidence](gurps-ranged.md); #173 adds persisted critical misses, typed breakage, per-projectile locations and armed thrown Parry consequences; [remaining protocols](gurps-ranged.md) stay #173 |
+| `gurps.combat.ranged_attack` | yes | yes | partial | #106; [ranged dispatch and evidence](gurps-ranged.md); #173 adds persisted critical misses, typed breakage, per-projectile locations, armed thrown Parry consequences and burst critical hits; [remaining protocols](gurps-ranged.md) stay #173 |
 | `gurps.combat.aim` | yes | yes | partial | #104/#152; target-bound accumulation, disruption, bracing and typed fixed/variable scopes; broader ranged resolution #106/#173 |
 | `gurps.combat.ammunition` | yes | yes | partial | #106; [reservations and reload timing](gurps-ranged.md); #173 adds opt-in per-round loading and magazine unloading; remaining #173 |
-| `gurps.combat.rapid_fire` | no | yes | partial | #106; [burst and Dodge resolution](gurps-ranged.md); remaining #173 |
+| `gurps.combat.rapid_fire` | no | yes | partial | #106; [burst, Dodge and burst-critical resolution](gurps-ranged.md); remaining #173 |
 | `gurps.combat.unarmed` | yes | yes | partial | #108, #176; [unarmed critical effects, defenses, declared Wait reactions and remaining integrations](gurps-unarmed.md) |
 | `gurps.combat.grappling` | yes | yes | partial | #108, #176; [durable grips, Wait while engaged and remaining integrations](gurps-unarmed.md) |
 | `gurps.tactical.hex_movement` | no | yes | partial | #105 |
@@ -394,28 +394,32 @@ checks with the Rule of 14. References are reconstructed from model knowledge
 under the owner's explicit authorization: Lite 3-4/10/24, B120-121, B359-362,
 B494-495, using the frozen 2004/2007-errata baseline; source audit is pending.
 
-`rules.social_hooks` owns the standing arithmetic behind those modifiers, so a
+`rules.social_hooks` owns the two reaction sources no build binding covers, so a
 scenario, a character sheet or a generated proposal selects a declared standing
 instead of inventing a number: the Appearance reaction columns (indifferent and
-attracted observers), +1 per level of recognized Status, Reputation from -4 to +4
-with its affected class and its always/10-or-less/7-or-less recognition roll,
-+1 per level of Charisma and +2 for Voice. References are B21, B26-28, B41 and
-B97 on the frozen 2004/2007-errata baseline, hand-entered from model knowledge
-under the provisional policy below; the artifact audit is pending. Standing the
-observer cannot perceive contributes nothing, a reputation whose class is absent
-is never rolled for, and every unrecognized value fails closed. Recognition dice
-are drawn before the reaction or influence roll they modify, so a receipt replays
-exactly. `supported_appearance` exposes the declared levels to validators.
-Purchase legality and the point costs of these traits stay with trait
+attracted observers, B21) and Reputation from -4 to +4 with its affected class
+and its always/10-or-less/7-or-less recognition roll (B26-27), on the frozen
+2004/2007-errata baseline, hand-entered from model knowledge under the
+provisional policy below; the artifact audit is pending. Status, Charisma and
+Voice are deliberately absent here: `rules.mundane_traits.runtime` binds those to
+approved purchases of pinned definitions and dispatch derives them from the
+initiator's build (#113), so declaring them twice cannot double-count. Appearance
+and Reputation have no catalog entry to bind yet; when #113 adds one, the binding
+path should own them too.
+
+Standing the observer cannot perceive contributes nothing, a reputation whose
+class is absent is never rolled for, and every unrecognized value fails closed.
+Recognition dice are drawn before the reaction or influence roll they modify, so
+a receipt replays exactly. `supported_appearance` exposes the declared levels to
+validators. `Standing` describes the character being reacted to and the shared
+`Audience` record what the reacting subject perceives, feeding the trait bindings
+and these hooks alike. Purchase legality and point costs stay with trait
 compilation (#100) and catalog content (#113); the hooks derive play-time
-reaction modifiers only. `Standing` describes the character being reacted to and
-`Audience` what the reacting subject perceives; Status contributes that
-character's own level rather than a difference between the two.
-`tests/fixtures/gurps/social_hooks.json` carries the independent golden reaction,
-influence and fright expectations, including the rejected out-of-range
-standings, and `tests/test_social_hooks.py` runs them.
-The v2 `NPCSocialStanding` policy record carries authored standing into the same
-hooks; frozen v1 authoring is unchanged.
+reaction modifiers only. `tests/fixtures/gurps/social_hooks.json` carries the
+independent golden reaction, influence and fright expectations, including the
+rejected out-of-range standings, and `tests/test_social_hooks.py` runs them.
+The v2 `NPCSocialStanding` policy record carries authored standing and its
+audience into the same hooks; frozen v1 authoring is unchanged.
 
 `simulation.social` stores results and private traces in the existing resource
 receipt/event ledger for atomic checkpoint commits. Duplicate command IDs replay;

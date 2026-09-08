@@ -216,7 +216,6 @@ async def test_authored_standing_drives_a_live_reaction_without_leaking_it(
                             subject_id="npc:branch",
                             standing=NPCSocialStanding(
                                 appearance="handsome",
-                                status=2,
                                 reputations=(
                                     NPCReputation(
                                         id="informer",
@@ -237,7 +236,7 @@ async def test_authored_standing_drives_a_live_reaction_without_leaking_it(
     )
     cid, play = await prepare(tmp_path, rules)
     # Recognition 3+3+3 = 9 is within "sometimes"; the reaction then rolls
-    # 4+4+4 = 12 with appearance +2, Status +2 and the secret reputation -4.
+    # 4+4+4 = 12 with appearance +2 and the secret reputation -4.
     play.rng = RecordedDice([3, 3, 3, 4, 4, 4])
     await play.execute(
         cid,
@@ -250,7 +249,6 @@ async def test_authored_standing_drives_a_live_reaction_without_leaking_it(
     assert private["private"]["recognition"][0]["recognized"] is True
     assert [m["kind"] for m in private["private"]["modifiers"]] == [
         "appearance",
-        "status",
         "reputation",
         "situation",
     ]

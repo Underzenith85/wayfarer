@@ -8,7 +8,8 @@ from typing import TYPE_CHECKING, Literal
 
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, Event
-from wayfarer.rules.social_hooks import Audience, Reputation, Standing
+from wayfarer.rules.mundane_traits.runtime import Audience
+from wayfarer.rules.social_hooks import Reputation, Standing
 from wayfarer.simulation.actions import ActionCommand, PlayState
 from wayfarer.simulation.npcs import (
     NPCDecision,
@@ -241,9 +242,6 @@ def _standing(authored: NPCSocialStanding) -> tuple[Standing, Audience]:
     return (
         Standing(
             appearance=authored.appearance,
-            status=authored.status,
-            charisma=authored.charisma,
-            voice=authored.voice,
             reputations=tuple(
                 Reputation(
                     reputation.id,
@@ -257,6 +255,8 @@ def _standing(authored: NPCSocialStanding) -> tuple[Standing, Audience]:
             ),
         ),
         Audience(
+            perceptible=authored.audience_perceptible,
+            audible=authored.audience_audible,
             recognizes_status=authored.audience_recognizes_status,
             attracted=authored.audience_attracted,
             classes=authored.audience_classes,

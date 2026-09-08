@@ -20,13 +20,17 @@ class NPCReputation(Record):
 
 
 class NPCSocialStanding(Record):
-    """Declared standing, not an invented modifier: every value is derived by rule."""
+    """Declared standing and observer, not an invented modifier: values follow rules.
+
+    Status, Charisma and Voice are absent on purpose: dispatch derives those from
+    the initiator's approved build, and declaring them here would double-count.
+    The audience fields describe the reacting party for both sources.
+    """
 
     appearance: Appearance = "average"
-    status: int = Field(default=0, ge=-2, le=8)
-    charisma: int = Field(default=0, ge=0, le=10)
-    voice: bool = False
     reputations: tuple[NPCReputation, ...] = Field(default=(), max_length=5)
+    audience_perceptible: bool = True
+    audience_audible: bool = True
     audience_recognizes_status: bool = True
     audience_attracted: bool = False
     audience_classes: tuple[Id, ...] = Field(default=(), max_length=10)
