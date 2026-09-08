@@ -83,8 +83,10 @@ def prepare_defense(
             mode(play, state, actor.actor_id, pending.weapon_id, pending.mode_id), RangedMode
         ):
             raise ValidationError("Retreat bonus is not available against ranged attacks")
-        if unarmed:
-            raise ValidationError("Unarmed retreat and following-grapple timing remain unsupported")
+        if unarmed and unarmed.action in ("grapple", "arm_lock"):
+            raise ValidationError(
+                "Retreat against control attacks requires following-grapple timing"
+            )
         hp = next(p for p in state.resources.pools if p.id == f"hp:{target.actor_id}")
         context = RetreatContext(
             already_retreated=target.retreat_used,

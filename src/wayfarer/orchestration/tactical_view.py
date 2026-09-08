@@ -150,7 +150,7 @@ def preview(
         if interrupt is None or not interrupt.ready or interrupt.actor_id != command.actor_id:
             raise ValidationError("No interrupted turn is ready")
         return
-    guard_control(encounter, command)
+    guard_control(encounter, command, state)
     if isinstance(command, ChooseDefense):
         prepared = prepare_defense(play, state, encounter, command)
         if prepared.pending_unarmed is not None:

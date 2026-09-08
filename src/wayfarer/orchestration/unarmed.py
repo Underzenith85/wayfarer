@@ -1,13 +1,16 @@
 """Unarmed actions inside CombatService's existing CAS/receipt transaction.
 
 Internal commands only: frozen v1 and saved coordinate systems are unchanged.
-Unsupported critical consequences persist their dice and block continuation.
+Contextual critical consequences not yet implemented retain their dice and block continuation.
 """
 
 from __future__ import annotations
 
 import hashlib
+from decimal import Decimal
 from typing import TYPE_CHECKING
+
+from pydantic import TypeAdapter
 
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.gurps_melee import (
@@ -26,6 +29,7 @@ from wayfarer.rules.location_types import Hand, HumanLocation
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import Combatant, CombatEngine, CombatResult, Encounter
 from wayfarer.simulation.fatigue import fatigue_value
+from wayfarer.simulation.gurps_equipment import DamageType
 from wayfarer.simulation.injury import Wound, apply_injury
 from wayfarer.simulation.maneuvers import ManeuverState
 from wayfarer.simulation.unarmed import (
@@ -44,6 +48,7 @@ if TYPE_CHECKING:
     from wayfarer.orchestration.combat import (
         ChooseDefense,
         ResolveChokeEffects,
+        TakeCombatTurn,
         TakeUnarmedTurn,
         TypedCombatCommand,
     )
@@ -107,7 +112,7 @@ def settle_control(state: PlayState, encounter: Encounter) -> Encounter:
     )
 
 
-def guard_control(encounter: Encounter, command: TypedCombatCommand) -> None:
+def guard_control(encounter: Encounter, command: TypedCombatCommand, state: PlayState) -> None:
     from wayfarer.orchestration.combat import ChooseDefense, TakeCombatTurn, TakeUnarmedTurn
 
     if encounter.pending_unarmed is not None:
@@ -136,7 +141,17 @@ def guard_control(encounter: Encounter, command: TypedCombatCommand) -> None:
             command.destination is not None or command.maneuver in ("move", "change_posture")
         ):
             raise ValidationError("Release or escape the grapple before moving")
-        if engaged and command.maneuver in ("ready", "wait", "feint", "aim", "concentrate"):
+        if engaged and command.maneuver == "ready":
+            hands = (
+                ("left-hand", "right-hand")
+                if command.ready_hand == "both"
+                else (command.ready_hand,)
+            )
+            if any(h not in free_hands(state, encounter, actor.actor_id) for h in hands):
+                raise ValidationError("Ready while grappling requires explicit free usable hands")
+            if command.reload_ammunition_id is not None or command.unload_ammunition:
+                raise ValidationError("Reloading while grappling requires further integration")
+        if engaged and command.maneuver in ("wait", "feint", "aim", "concentrate"):
             raise ValidationError("This maneuver while grappling requires further integration")
         if actor.grappled and command.posture is not None:
             raise ValidationError("A grapple prevents a posture step")
@@ -148,6 +163,59 @@ def skill_value(play: PlayService, state: PlayState, actor_id: str, skill: str) 
     if value is None:
         raise ValidationError("Selected unarmed skill has no compiled level")
     return int(value.value)
+
+
+def grapple_ready(
+    play: PlayService,
+    state: PlayState,
+    encounter: Encounter,
+    command: TakeCombatTurn,
+) -> tuple[PlayState, Encounter]:
+    """B371: drawing with a free hand requires DX; failure drops that item only."""
+    from wayfarer.simulation.resources import ResourceEvent
+
+    if not any(g.target_id == command.actor_id for g in encounter.grips):
+        return state, encounter
+    actor = fighter(encounter, command.actor_id)
+    hp = next(p for p in state.resources.pools if p.id == f"hp:{command.actor_id}")
+    assert hp.injury is not None
+    score = skill_value(play, state, command.actor_id, "attribute:dx") - hp.injury.shock
+    score -= 4 if actor.grappled else 0
+    check = success_roll(BASIC, score, rng=play.rng)
+    resources = state.resources.model_copy(
+        update={
+            "events": state.resources.events
+            + (
+                ResourceEvent(
+                    id="grapple-ready:" + hashlib.sha256(command.id.encode()).hexdigest(),
+                    at=state.resources.game_time,
+                    target_id=command.actor_id,
+                    kind=TypeAdapter(CheckTrace).dump_json(check).decode(),
+                ),
+            ),
+        }
+    )
+    if not check.outcome.succeeded:
+        resources = resources.model_copy(
+            update={
+                "items": tuple(
+                    i.model_copy(update={"ready": False, "equipped": False})
+                    if i.id == command.item_id
+                    else i
+                    for i in resources.items
+                )
+            }
+        )
+        actor = actor.model_copy(
+            update={
+                "ready_item_ids": tuple(i for i in actor.ready_item_ids if i != command.item_id),
+                "hand_bindings": tuple(
+                    (i, h) for i, h in actor.hand_bindings if i != command.item_id
+                ),
+            }
+        )
+        encounter = CombatEngine._replace(encounter, actor)
+    return state.model_copy(update={"resources": resources}), encounter
 
 
 def strength(play: PlayService, state: PlayState, actor_id: str, *, trained: bool = True) -> int:
@@ -166,6 +234,19 @@ def validate_action(
     play: PlayService, state: PlayState, encounter: Encounter, command: TakeUnarmedTurn
 ) -> None:
     require_basic(catalog(play).profile_id)
+    if command.maneuver == "all_out_attack":
+        if command.attack_option not in ("determined", "strong"):
+            raise ValidationError(
+                "Unarmed All-Out Attack requires Determined or Strong; combined attacks remain unsupported"
+            )
+        if command.action not in ("punch", "kick", "grapple", "arm_lock"):
+            raise ValidationError("This control action requires the ordinary Attack maneuver")
+        if command.attack_option == "strong" and command.action not in ("punch", "kick"):
+            raise ValidationError("Strong requires a damaging strike")
+    elif command.attack_option is not None:
+        raise ValidationError("Attack options require All-Out Attack")
+    if command.maneuver == "move_and_attack" and command.action not in ("punch", "kick", "grapple"):
+        raise ValidationError("Move and Attack requires a strike or grapple")
     actor, target = fighter(encounter, command.actor_id), fighter(encounter, command.target_id)
     if actor.actor_id == target.actor_id:
         raise ValidationError("Unarmed action requires another actor")
@@ -173,6 +254,11 @@ def validate_action(
         hp = next(p for p in state.resources.pools if p.id == f"hp:{participant.actor_id}")
         if hp.injury is None or hp.injury.anatomy != "human":
             raise ValidationError("Unarmed combat requires explicit living-human anatomy")
+    from wayfarer.simulation.hit_locations import require_location
+
+    target_hp = next(p for p in state.resources.pools if p.id == f"hp:{target.actor_id}")
+    assert target_hp.injury is not None
+    require_location(target_hp.injury, command.location)
     if command.action in ("grapple", "pin", "takedown", "break_free"):
         for participant in (actor, target):
             compiled = build(play, state, participant.actor_id)
@@ -251,6 +337,8 @@ def validate_action(
         if command.skill not in skills:
             raise ValidationError("Skill does not support this unarmed action")
         skill_value(play, state, actor.actor_id, command.skill)
+        if command.skill in ("skill:judo", "skill:karate"):
+            encumbrance_level(play, state, actor.actor_id)
         if (
             command.action == "grapple"
             and target.posture != "standing"
@@ -296,11 +384,9 @@ def validate_action(
             or not set(command.hands) <= set(free_hands(state, encounter, actor.actor_id))
         ):
             raise ValidationError("Attack requires explicit free, usable hands")
-        if command.action not in ("grapple", "arm_lock") and command.location != "torso":
-            raise ValidationError("Unarmed strikes currently support torso only")
     else:
         if (
-            command.hands
+            (command.hands and command.action != "release")
             or command.enter_close_combat
             or command.skill != "attribute:dx"
             or command.location != "torso"
@@ -317,6 +403,16 @@ def validate_action(
         )
         if actual != expected:
             raise ValidationError("Actor does not control this grip")
+        if (
+            command.action == "release"
+            and command.hands
+            and (
+                len(set(command.hands)) != len(command.hands)
+                or not set(command.hands) <= set(grip.hands)
+                or (grip.arm_lock and set(command.hands) != set(grip.hands))
+            )
+        ):
+            raise ValidationError("Release must select held hands; an arm lock requires both hands")
         if command.action == "break_free" and encounter.round < grip.escape_after_round:
             raise ValidationError("A pinned escape attempt requires ten seconds between attempts")
         if command.action == "pin" and (
@@ -333,8 +429,6 @@ def validate_action(
             or grip.last_damage_round == encounter.round
         ):
             raise ValidationError("Arm-lock damage is available once on each subsequent turn")
-        if command.action == "lock_damage" and grip.location in disabled(state, target.actor_id):
-            raise ValidationError("Crippled-arm lock pain requires additional injury integration")
 
 
 def execute_unarmed(
@@ -401,8 +495,32 @@ def execute_unarmed(
                     current_actor_id=encounter.current_actor_id,
                 ),
             )
+        previous = actor.maneuver_state
         actor = actor.model_copy(
-            update={"last_maneuver": "attack", "maneuver_state": ManeuverState()}
+            update={
+                "last_maneuver": command.maneuver,
+                "maneuver_state": ManeuverState(
+                    evaluate_target_id=previous.evaluate_target_id
+                    if actor.last_maneuver == "evaluate"
+                    else None,
+                    evaluate_bonus=previous.evaluate_bonus
+                    if actor.last_maneuver == "evaluate"
+                    else 0,
+                    feint_target_id=previous.feint_target_id
+                    if actor.last_maneuver == "feint"
+                    else None,
+                    feint_penalty=previous.feint_penalty if actor.last_maneuver == "feint" else 0,
+                    defense_forbidden=command.maneuver == "all_out_attack",
+                    parry_forbidden=command.maneuver == "move_and_attack",
+                    attack_bonus=4
+                    if command.attack_option == "determined"
+                    else -4
+                    if command.maneuver == "move_and_attack"
+                    else 0,
+                    attack_cap=9 if command.maneuver == "move_and_attack" else None,
+                    strong=command.attack_option == "strong",
+                ),
+            }
         )
         encounter = CombatEngine._replace(encounter, actor)
         if command.action in ("punch", "kick", "grapple", "arm_lock"):
@@ -432,7 +550,34 @@ def execute_unarmed(
                         location=command.location,
                     )
                 except ValidationError:
-                    continue
+                    if choice != "parry":
+                        continue
+                    candidates = (
+                        (i.id, m.id)
+                        for i in state.resources.items
+                        if i.id in fighter(encounter, command.target_id).ready_item_ids
+                        for e in catalog(play).entries
+                        if e.definition_id == i.definition_id
+                        for m in e.modes
+                    )
+                    for item, selected_mode in candidates:
+                        try:
+                            unarmed_defense(
+                                play,
+                                state,
+                                encounter,
+                                command.target_id,
+                                choice,
+                                item,
+                                attacker_id=actor.actor_id,
+                                location=command.location,
+                                mode_id=selected_mode,
+                            )
+                        except ValidationError:
+                            continue
+                        break
+                    else:
+                        continue
                 allowed_defenses.insert(0, choice)
             pending = PendingUnarmed.model_validate(
                 {
@@ -495,8 +640,13 @@ def unarmed_defense(
     item_id: str | None,
     attacker_id: str | None = None,
     location: GrappleLocation = "torso",
+    mode_id: str | None = None,
 ) -> tuple[int | None, str | None]:
     actor = fighter(encounter, actor_id)
+    if mode_id is not None and (
+        selected != "parry" or item_id in (None, "left-hand", "right-hand")
+    ):
+        raise ValidationError("A parry damage mode requires a selected weapon")
     if selected == "none":
         if item_id is not None:
             raise ValidationError("No defense cannot select equipment")
@@ -526,7 +676,25 @@ def unarmed_defense(
         return int(value.value) + height_bonus, None
     if selected != "parry" or actor.maneuver_state.parry_forbidden:
         raise ValidationError("Only Dodge or an unarmed Parry is supported")
-    # Weapon parry against an unarmed limb needs a separate damage stage; fail closed.
+    if item_id is not None and item_id not in ("left-hand", "right-hand"):
+        from wayfarer.orchestration.gurps_melee import mode
+        from wayfarer.simulation.gurps_equipment import MeleeMode
+
+        weapon = mode(play, state, actor_id, item_id, mode_id)
+        if not isinstance(weapon, MeleeMode):
+            raise ValidationError("Armed parry requires an unambiguous melee mode")
+        source_id = encounter.pending_unarmed.actor_id if encounter.pending_unarmed else attacker_id
+        if (
+            source_id is not None
+            and fighter(encounter, source_id).position == actor.position
+            and 0 not in weapon.reach
+        ):
+            raise ValidationError("A weapon parry in close combat requires reach C")
+        value, selected_item = defense_value(
+            play, state, actor, "parry", item_id, parry_mode_id=weapon.id
+        )
+        assert value is not None
+        return int(value.value) + height_bonus, selected_item
     hand = item_id or next(iter(free_hands(state, encounter, actor_id)), None)
     if hand not in free_hands(state, encounter, actor_id):
         raise ValidationError("Unarmed parry requires a free usable hand")
@@ -535,12 +703,25 @@ def unarmed_defense(
     hp = next(p for p in state.resources.pools if p.id == f"hp:{actor_id}")
     if hp.injury is None or hp.injury.incapacitated or not fatigue_ready(state, actor_id):
         raise ValidationError("Incapacitated actor cannot parry")
-    targets = [compiled.statistics.dx]
-    targets.extend(
-        int(v.value)
-        for v in compiled.sheet.values
-        if v.target in {"skill:brawling", "skill:boxing", "skill:karate", "skill:judo"}
+    targets = [compiled.statistics.dx // 2 + 3]
+    incoming_kick = (
+        encounter.pending_unarmed is not None and encounter.pending_unarmed.action == "kick"
     )
+    for v in compiled.sheet.values:
+        if v.target in {"skill:brawling", "skill:boxing", "skill:karate", "skill:judo"}:
+            score = int(v.value) // 2 + 3
+            score -= 2 if v.target == "skill:boxing" and incoming_kick else 0
+            if v.target in ("skill:boxing", "skill:judo", "skill:karate") and (
+                encounter.pending_unarmed is not None
+                and actor.retreat_attacker_id == encounter.pending_unarmed.actor_id
+            ):
+                score += 2  # B377: +3 total, including prepare_defense's ordinary +1.
+            if v.target in ("skill:judo", "skill:karate"):
+                try:
+                    score -= encumbrance_level(play, state, actor_id)
+                except ValidationError:
+                    continue
+            targets.append(score)
     penalty = (
         (-4 if hp.injury.stunned else 0)
         + (-3 if actor.posture == "prone" else -2 if actor.posture == "kneeling" else 0)
@@ -552,7 +733,20 @@ def unarmed_defense(
         - 4 * int(actor.arm_locked)
         + (2 if actor.maneuver_state.enhanced_defense == "parry" else 0)
     )
-    return max(targets) // 2 + 3 + penalty + height_bonus - 4 * actor.parries.count(hand), hand
+    return max(targets) + penalty + height_bonus - 4 * actor.parries.count(hand), hand
+
+
+def encumbrance_level(play: PlayService, state: PlayState, actor_id: str) -> int:
+    from wayfarer.simulation.gurps_equipment import inventory_load
+
+    compiled = build(play, state, actor_id)
+    assert compiled.statistics is not None
+    level = inventory_load(
+        catalog(play), play.engine.resources, state.resources, actor_id, compiled.statistics
+    ).level
+    if level is None:
+        raise ValidationError("Overloaded Judo/Karate requires a supported encumbrance level")
+    return int(level)
 
 
 def defend(
@@ -573,11 +767,12 @@ def defend(
         command.defense,
         command.item_id,
         location=pending.location,
+        mode_id=command.parry_mode_id,
     )
     actor, target = fighter(encounter, pending.actor_id), fighter(encounter, pending.target_id)
     defenses = [(defense_target, hand)]
     if command.second_defense is None:
-        if command.second_item_id is not None:
+        if command.second_item_id is not None or command.second_parry_mode_id is not None:
             raise ValidationError("Second defense equipment requires a second defense")
     else:
         if (
@@ -596,6 +791,7 @@ def defend(
             command.second_defense,
             command.second_item_id,
             location=pending.location,
+            mode_id=command.second_parry_mode_id,
         )
         if command.defense == command.second_defense and not (
             command.defense == "parry" and hand != second_hand
@@ -607,6 +803,8 @@ def defend(
     hp = next(p for p in state.resources.pools if p.id == f"hp:{actor.actor_id}")
     assert hp.injury is not None
     value = skill_value(play, state, actor.actor_id, pending.skill) - hp.injury.shock
+    if pending.skill in ("skill:judo", "skill:karate"):
+        value -= encumbrance_level(play, state, actor.actor_id)
     value -= 4 if actor.grappled else 0
     value -= 4 if actor.posture == "prone" else 2 if actor.posture == "kneeling" else 0
     value -= 2 if pending.action == "kick" else 0
@@ -617,26 +815,57 @@ def defend(
         if pending.action == "grapple"
         else 0
     )
+    if pending.action in ("punch", "kick"):
+        value -= {
+            "torso": 0,
+            "neck": 5,
+            "left-arm": 2,
+            "right-arm": 2,
+            "left-leg": 2,
+            "right-leg": 2,
+        }[pending.location]
+    from wayfarer.simulation.maneuvers import attack_modifier
+
+    if actor.maneuver_state.feint_target_id == target.actor_id:
+        defenses = [
+            (v - actor.maneuver_state.feint_penalty if v is not None else None, h)
+            for v, h in defenses
+        ]
     if encounter.hex_battlefield is not None:
         from wayfarer.simulation.tactical import height_effect
 
         value += height_effect(
             encounter, actor, target, reach=1, location=pending.location
         ).attack_modifier
+    value = attack_modifier(actor.maneuver_state, target.actor_id, value)
     attack = success_roll(BASIC, value, rng=play.rng)
+    from wayfarer.simulation.hit_locations import torso_near_miss
+
+    near_miss = pending.action in ("punch", "kick") and torso_near_miss(pending.location, attack)
+    resolved_location = "torso" if near_miss else pending.location
     checks: tuple[CheckTrace, ...] = (attack,)
-    hit = attack.outcome.succeeded
+    hit = attack.outcome.succeeded or near_miss
     blocked = None
     table: tuple[int, ...] = ()
-    if attack.outcome in (Outcome.CRITICAL_FAILURE, Outcome.CRITICAL_SUCCESS):
+    effect_dice: tuple[int, ...] = ()
+    effect_checks: tuple[CheckTrace, ...] = ()
+    critical = 0
+    if attack.outcome is Outcome.CRITICAL_SUCCESS:
+        table = tuple(play.rng.randbelow(6) + 1 for _ in range(3))
+        critical = sum(table)
+    elif attack.outcome is Outcome.CRITICAL_FAILURE:
         # B557's unarmed critical-miss table is not the armed critical-miss table.
         table = tuple(play.rng.randbelow(6) + 1 for _ in range(3))
-        blocked = f"basic-unarmed-critical:{attack.outcome.value}:{sum(table)}"
+        state, encounter, effect_checks, effect_dice, handled = critical_miss(
+            play, state, encounter, pending, actor.actor_id, table, None
+        )
+        actor = fighter(encounter, actor.actor_id)
+        blocked = None if handled else f"basic-unarmed-critical:{attack.outcome.value}:{sum(table)}"
         hit = False
-    if hit and defense_target is not None:
+    if hit and defense_target is not None and not critical:
         state, can_defend = exertion(play, state, target.actor_id, command.id)
         if can_defend:
-            for defense_level, parrying_hand in defenses:
+            for index, (defense_level, parrying_hand) in enumerate(defenses):
                 assert defense_level is not None
                 defense = success_roll(BASIC, defense_level, rng=play.rng)
                 checks += (defense,)
@@ -645,11 +874,48 @@ def defend(
                     target = target.model_copy(
                         update={"parries": target.parries + (parrying_hand,)}
                     )
-                if defense.outcome in (Outcome.CRITICAL_FAILURE, Outcome.CRITICAL_SUCCESS):
+                if defense.outcome is Outcome.CRITICAL_FAILURE and parrying_hand is None:
+                    # B382: a critical Dodge falls, without a critical-miss table roll.
+                    target = target.model_copy(update={"posture": "prone"})
+                elif defense.outcome in (Outcome.CRITICAL_FAILURE, Outcome.CRITICAL_SUCCESS):
                     table = tuple(play.rng.randbelow(6) + 1 for _ in range(3))
-                    blocked = f"basic-unarmed-defense-critical:{defense.outcome.value}:{sum(table)}"
-                    hit = False
-                if not hit:
+                    subject = actor.actor_id if defense.outcome.succeeded else target.actor_id
+                    encounter = CombatEngine._replace(encounter, target)
+                    state, encounter, effect_checks, effect_dice, handled = critical_miss(
+                        play,
+                        state,
+                        encounter,
+                        pending,
+                        subject,
+                        table,
+                        None if defense.outcome.succeeded else parrying_hand,
+                    )
+                    actor, target = (
+                        fighter(encounter, actor.actor_id),
+                        fighter(encounter, target.actor_id),
+                    )
+                    blocked = (
+                        None
+                        if handled
+                        else f"basic-unarmed-defense-critical:{defense.outcome.value}:{sum(table)}"
+                    )
+                    hit = handled and not defense.outcome.succeeded
+                elif defense.outcome.succeeded and parrying_hand not in (
+                    None,
+                    "left-hand",
+                    "right-hand",
+                ):
+                    assert parrying_hand is not None
+                    state, encounter, effect_checks, effect_dice = armed_parry_injury(
+                        play,
+                        state,
+                        encounter,
+                        pending,
+                        parrying_hand,
+                        command.parry_mode_id if index == 0 else command.second_parry_mode_id,
+                    )
+                    actor = fighter(encounter, actor.actor_id)
+                if not hit or defense.outcome is Outcome.CRITICAL_FAILURE:
                     break
             target = target.model_copy(
                 update={
@@ -662,7 +928,12 @@ def defend(
             encounter = distracted(
                 play, state, encounter, target.actor_id, defended=True, injured=False
             )
-    if pending.action == "kick" and not attack.outcome.succeeded and blocked is None:
+    if (
+        pending.action == "kick"
+        and attack.outcome is Outcome.FAILURE
+        and not near_miss
+        and blocked is None
+    ):
         balance = success_roll(
             BASIC, skill_value(play, state, actor.actor_id, "attribute:dx"), rng=play.rng
         )
@@ -692,7 +963,8 @@ def defend(
         compiled = build(play, state, actor.actor_id)
         assert compiled.statistics is not None
         expression = compiled.statistics.thrust
-        dice = tuple(play.rng.randbelow(6) + 1 for _ in range(expression.dice))
+        maximum = critical in (6, 15)
+        dice = () if maximum else tuple(play.rng.randbelow(6) + 1 for _ in range(expression.dice))
         bonus = striking_bonus(
             pending.skill,
             compiled.statistics.dx,
@@ -700,13 +972,33 @@ def defend(
         )
         basic = max(
             0,
-            sum(dice)
+            (6 * expression.dice if maximum else sum(dice))
             + expression.add
             + (-1 if pending.action == "punch" else 0)
             + bonus * expression.dice,
+            # B365: Strong adds two damage or one per die, whichever is better.
         )
-        resistance = armor_dr(play, state, target.actor_id, "torso")
-        state, encounter, injury = hurt(play, state, encounter, target.actor_id, pending.id, basic)
+        if actor.maneuver_state.strong:
+            basic = max(
+                0,
+                (6 * expression.dice if maximum else sum(dice))
+                + expression.add
+                + (-1 if pending.action == "punch" else 0)
+                + bonus * expression.dice
+                + max(2, expression.dice),
+            )
+        basic *= 3 if critical in (3, 18) else 2 if critical in (5, 16) else 1
+        resistance = armor_dr(play, state, target.actor_id, resolved_location)
+        state, encounter, injury = hurt(
+            play,
+            state,
+            encounter,
+            target.actor_id,
+            pending.id,
+            basic,
+            location=resolved_location,
+            critical=critical,
+        )
         if resistance >= 3 and basic >= 5:
             striking_part = pending.hands[0] if pending.action == "punch" else pending.foot
             state, encounter, _ = hurt(
@@ -718,6 +1010,8 @@ def defend(
                 min(resistance, basic // 5),
                 location=striking_part,
             )
+    if critical == 12:
+        state, encounter = drop_held(state, encounter, target.actor_id)
     return (
         state,
         encounter,
@@ -734,6 +1028,9 @@ def defend(
             injury=injury,
             blocked_reason=blocked,
             table_dice=table,
+            effect_dice=effect_dice,
+            effect_checks=effect_checks,
+            resolved_location=resolved_location if pending.action in ("punch", "kick") else None,
             defenses=tuple(
                 (choice, selected_hand)
                 for choice, (_, selected_hand) in zip(
@@ -787,6 +1084,12 @@ def hurt(
     *,
     location: HumanLocation = "torso",
     rigid_only: bool = False,
+    critical: int = 0,
+    damage_type: DamageType = "cr",
+    ignore_dr: bool = False,
+    armor_divisor: Decimal = Decimal(1),
+    tight_beam: bool = False,
+    pain_only: bool = False,
 ) -> tuple[PlayState, Encounter, int]:
     target = fighter(encounter, actor_id)
     compiled = build(play, state, actor_id)
@@ -800,8 +1103,10 @@ def hurt(
             expected_revision=state.resources.revision,
             basic_damage=basic,
             resistance=resistance,
-            damage_type="cr",
+            damage_type=damage_type,
             location=location,
+            armor_divisor=armor_divisor,
+            tight_beam=tight_beam,
         ),
         ht=compiled.statistics.ht,
         dx=compiled.statistics.dx,
@@ -809,6 +1114,12 @@ def hurt(
         system=True,
         held_item_ids=target.ready_item_ids,
         held_item_locations=target.hand_bindings,
+        force_major_wound=critical in (7, 13, 14),
+        double_shock=critical == 8,
+        funny_bone=critical == 8,
+        halve_dr="down" if critical in (4, 17) else None,
+        ignore_dr=ignore_dr,
+        pain_only=pain_only,
     )
     state = state.model_copy(update={"resources": resources})
     hp = next(p for p in resources.pools if p.id == f"hp:{actor_id}")
@@ -842,9 +1153,213 @@ def hurt(
     from wayfarer.orchestration.gurps_maneuvers import distracted
 
     encounter = distracted(
-        play, state, encounter, actor_id, defended=False, injured=result.injury > 0
+        play,
+        state,
+        encounter,
+        actor_id,
+        defended=False,
+        injured=result.injury > 0 or (pain_only and result.penetration > 0),
     )
     return state, encounter, result.injury
+
+
+def critical_miss(
+    play: PlayService,
+    state: PlayState,
+    encounter: Encounter,
+    pending: PendingUnarmed,
+    actor_id: str,
+    table: tuple[int, ...],
+    hand: str | None,
+) -> tuple[PlayState, Encounter, tuple[CheckTrace, ...], tuple[int, ...], bool]:
+    """B557 consequences that fit the current injury and tactical contracts.
+
+    Remaining contextual outcomes retain their table roll and halt the transaction's
+    continuation; a bare limb never selects the armed weapon-break/drop table.
+    """
+    if hand not in (None, "left-hand", "right-hand"):
+        return state, encounter, (), (), False
+    actor = fighter(encounter, actor_id)
+    number = sum(table)
+    checks: tuple[CheckTrace, ...] = ()
+    dice: tuple[int, ...] = ()
+    if number in (4, 5, 6, 16, 17):
+        from wayfarer.simulation.gurps_equipment import MeleeMode
+        from wayfarer.simulation.injury import DisableLocation, apply_location_effect
+
+        if number in (5, 6, 16) and actor_id == pending.actor_id:
+            opponent = fighter(encounter, pending.target_id)
+            if any(
+                m.damage.damage_type == "imp"
+                for i in state.resources.items
+                if i.id in opponent.ready_item_ids
+                for e in catalog(play).entries
+                if e.definition_id == i.definition_id
+                for m in e.modes
+                if isinstance(m, MeleeMode)
+            ):
+                return state, encounter, (), (), False
+
+        kicking = actor_id == pending.actor_id and pending.action == "kick"
+        selected_hand = hand
+        if not kicking and selected_hand is None:
+            if len(pending.hands) == 2:
+                dice = (play.rng.randbelow(6) + 1,)
+            selected_hand = pending.hands[1 if dice and dice[0] > 3 else 0]
+        limb: HumanLocation = (
+            ("left-leg" if pending.foot == "left-foot" else "right-leg")
+            if kicking
+            else ("left-arm" if selected_hand == "left-hand" else "right-arm")
+        )
+        if number in (5, 6, 16):
+            compiled = build(play, state, actor_id)
+            assert compiled.statistics is not None
+            expression = compiled.statistics.thrust
+            damage_dice = tuple(play.rng.randbelow(6) + 1 for _ in range(expression.dice))
+            damage = max(0, sum(damage_dice) + expression.add)
+            state, encounter, _ = hurt(
+                play,
+                state,
+                encounter,
+                actor_id,
+                pending.id + ":self-hit",
+                damage // 2 if number == 6 else damage,
+                location=limb,
+            )
+            return state, encounter, (), dice + damage_dice, True
+        state, encounter, _ = hurt(
+            play,
+            state,
+            encounter,
+            actor_id,
+            pending.id + ":strain-wound",
+            1,
+            location=limb,
+            ignore_dr=True,
+        )
+        resources, _ = apply_location_effect(
+            state.resources,
+            DisableLocation.model_validate(
+                {
+                    "id": pending.id + ":strain",
+                    "actor_id": actor_id,
+                    "expected_revision": state.resources.revision,
+                    "location": limb,
+                    "duration_seconds": 1800,
+                }
+            ),
+            system=True,
+        )
+        actor = fighter(encounter, actor_id)
+        if kicking:
+            actor = actor.model_copy(update={"posture": "prone"})
+        return (
+            state.model_copy(update={"resources": resources}),
+            CombatEngine._replace(encounter, actor),
+            (),
+            dice,
+            True,
+        )
+    fall = number == 8 or (number in (7, 14) and actor_id == pending.target_id)
+    if number == 12:
+        score = skill_value(play, state, actor_id, "attribute:dx")
+        score -= 4 if actor_id == pending.actor_id and pending.action == "kick" else 0
+        check = success_roll(BASIC, score, rng=play.rng)
+        checks = (check,)
+        fall = not check.outcome.succeeded
+    elif number in (9, 10, 11):
+        actor = actor.model_copy(update={"defense_penalty": actor.defense_penalty - 2})
+    elif not fall:
+        return state, encounter, (), (), False
+    if fall:
+        if actor.posture == "prone":
+            dice = (play.rng.randbelow(6) + 1,)
+            # Already-grounded subjects take general injury, bypassing armor.
+            state, encounter, _ = hurt(
+                play,
+                state,
+                encounter,
+                actor_id,
+                pending.id + ":fall",
+                max(0, dice[0] - 3),
+                ignore_dr=True,
+            )
+            actor = fighter(encounter, actor_id)
+        else:
+            actor = actor.model_copy(update={"posture": "prone"})
+    return state, CombatEngine._replace(encounter, actor), checks, dice, True
+
+
+def armed_parry_injury(
+    play: PlayService,
+    state: PlayState,
+    encounter: Encounter,
+    pending: PendingUnarmed,
+    item_id: str,
+    mode_id: str | None,
+) -> tuple[PlayState, Encounter, tuple[CheckTrace, ...], tuple[int, ...]]:
+    """B376: a separate weapon-skill check, never a second defended attack."""
+    from wayfarer.orchestration.gurps_melee import mode
+    from wayfarer.simulation.gurps_equipment import MeleeMode
+
+    weapon = mode(play, state, pending.target_id, item_id, mode_id)
+    assert isinstance(weapon, MeleeMode)
+    score = skill_value(play, state, pending.target_id, weapon.skill_id)
+    score -= 4 if pending.skill in ("skill:judo", "skill:karate") else 0
+    check = success_roll(BASIC, score, rng=play.rng)
+    if not check.outcome.succeeded:
+        return state, encounter, (check,), ()
+    compiled = build(play, state, pending.target_id)
+    assert compiled.statistics is not None
+    expression = (
+        compiled.statistics.swing if weapon.damage.basis == "swing" else compiled.statistics.thrust
+    )
+    dice = tuple(play.rng.randbelow(6) + 1 for _ in range(weapon.damage.dice or expression.dice))
+    damage = max(
+        0 if weapon.damage.damage_type == "cr" else 1,
+        sum(dice) + weapon.damage.adds + (0 if weapon.damage.basis == "fixed" else expression.add),
+    )
+    limb: HumanLocation = (
+        ("left-leg" if pending.foot == "left-foot" else "right-leg")
+        if pending.action == "kick"
+        else ("left-arm" if pending.hands[0] == "left-hand" else "right-arm")
+    )
+    state, encounter, _ = hurt(
+        play,
+        state,
+        encounter,
+        pending.actor_id,
+        pending.id + ":armed-parry",
+        damage,
+        location=limb,
+        damage_type=weapon.damage.damage_type,
+        armor_divisor=weapon.damage.armor_divisor,
+        tight_beam=weapon.damage.tight_beam,
+    )
+    return state, encounter, (check,), dice
+
+
+def drop_held(state: PlayState, encounter: Encounter, actor_id: str) -> tuple[PlayState, Encounter]:
+    """B556 result 12 includes every held item, even through armor."""
+    actor = fighter(encounter, actor_id)
+    held = {i for i, _ in actor.hand_bindings}
+    resources = state.resources.model_copy(
+        update={
+            "items": tuple(
+                i.model_copy(update={"ready": False, "equipped": False}) if i.id in held else i
+                for i in state.resources.items
+            )
+        }
+    )
+    actor = actor.model_copy(
+        update={
+            "ready_item_ids": tuple(i for i in actor.ready_item_ids if i not in held),
+            "hand_bindings": (),
+        }
+    )
+    return state.model_copy(update={"resources": resources}), CombatEngine._replace(
+        encounter, actor
+    )
 
 
 def control(
@@ -856,8 +1371,15 @@ def control(
     won = True
     damage = injury = 0
     if command.action == "release":
+        remaining = tuple(h for h in grip.hands if h not in command.hands) if command.hands else ()
         encounter = encounter.model_copy(
-            update={"grips": tuple(g for g in encounter.grips if g.id != grip.id)}
+            update={
+                "grips": tuple(
+                    g.model_copy(update={"hands": remaining}) if g.id == grip.id else g
+                    for g in encounter.grips
+                    if g.id != grip.id or remaining
+                )
+            }
         )
     elif command.action == "break_free":
         first = strength(play, state, actor.actor_id) - grip.escape_penalty
@@ -917,6 +1439,16 @@ def control(
         )
         if won:
             damage = checks[0].margin - checks[1].margin
+            target_hp = next(p for p in state.resources.pools if p.id == f"hp:{target.actor_id}")
+            assert target_hp.injury is not None
+            pain = command.action == "lock_damage" and any(
+                w.location == grip.location
+                and w.kind == "crippled"
+                and w.active(
+                    now=state.resources.game_time, full_hp=target_hp.current == target_hp.maximum
+                )
+                for w in target_hp.injury.lasting_injuries
+            )
             state, encounter, injury = hurt(
                 play,
                 state,
@@ -926,6 +1458,7 @@ def control(
                 damage,
                 location=grip.location,
                 rigid_only=command.action == "lock_damage",
+                pain_only=pain,
             )
         if command.action == "strangle" and injury > 0 and grip.hazard_id is None:
             state, grip = start_choke(play, state, grip, command.id)
