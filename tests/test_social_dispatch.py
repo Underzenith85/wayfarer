@@ -16,7 +16,7 @@ from wayfarer.orchestration.social import ResolvedInteraction, SocialService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.rules.gurps_social import ReactionModifier, influence_roll
-from wayfarer.rules.profiles import DEFAULT_REGISTRY
+from wayfarer.rules.profiles import DEFAULT_REGISTRY, GURPS_TRAITS_PROFILE
 from wayfarer.simulation.access import CampaignMember
 from wayfarer.simulation.actions import ActionEngine, ActionRules, ActorSetup, PlayState
 from wayfarer.simulation.npcs import NPCSocialRules
@@ -174,10 +174,20 @@ def test_influence_rejects_duplicate_sources_before_dice() -> None:
         )
 
 
-async def prepare(path: Path, npcs: NPCSocialRules | None = None) -> tuple[str, PlayService]:
-    selected = DEFAULT_REGISTRY.get("profile:gurps-basic-set-4e-2004", 3)
+async def prepare(
+    path: Path, npcs: NPCSocialRules | None = None, *, traits: bool = False
+) -> tuple[str, PlayService]:
+    selected = (
+        GURPS_TRAITS_PROFILE
+        if traits
+        else DEFAULT_REGISTRY.get("profile:gurps-basic-set-4e-2004", 3)
+    )
     compiler = CharacterCompiler(
-        selected.catalog, selected.rules, selected.policy, statistics_profile=PROFILE
+        selected.catalog,
+        selected.rules,
+        selected.policy,
+        statistics_profile=PROFILE,
+        trait_runtime_hooks=selected.trait_runtime_hooks,
     )
     reviewer = PowerReviewer(compiler, PowerPolicy(id="social-test", version=1), frozenset({"gm"}))
     engine = ActionEngine(
@@ -207,7 +217,8 @@ async def prepare(path: Path, npcs: NPCSocialRules | None = None) -> tuple[str, 
             purchases=tuple(
                 Purchase(definition_id="attribute:" + key, amount=10)
                 for key in ("st", "dx", "iq", "ht")
-            ),
+            )
+            + ((Purchase(definition_id="trait:combat-reflexes"),) if traits else ()),
         )
     )
     await play.create(

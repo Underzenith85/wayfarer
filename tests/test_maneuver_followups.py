@@ -214,10 +214,11 @@ async def test_stop_thrust_interrupts_charge_and_adds_one_per_two_yards(tmp_path
     assert resolved.injury is not None and resolved.injury.basic_damage == 2
 
 
-async def test_two_weapon_double_uses_declared_off_hand_with_minus_four(tmp_path: Path) -> None:
+async def two_weapon_double(tmp_path: Path, *, traits: tuple[str, ...] = ()) -> int:
+    """Resolve an All-Out Attack (Double) and return the off-hand attack's target."""
     from test_gurps_melee import setup
 
-    cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004", human=True)
+    cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004", human=True, traits=traits)
 
     def add_left_weapon(campaign: Campaign) -> Event:
         state = play._load(campaign)
@@ -286,4 +287,14 @@ async def test_two_weapon_double_uses_declared_off_hand_with_minus_four(tmp_path
     assert pending is not None and pending.weapon_id == "sword-a-left"
     play.rng = RecordedDice((4, 4, 4, 2))
     result = await defend(cid, play, "b")
-    assert result.injury is not None and result.injury.attack.effective_target == 9
+    assert result.injury is not None
+    return result.injury.attack.effective_target
+
+
+async def test_two_weapon_double_uses_declared_off_hand_with_minus_four(tmp_path: Path) -> None:
+    assert await two_weapon_double(tmp_path) == 9  # Broadsword 13, off hand at -4.
+
+
+async def test_ambidexterity_removes_the_off_hand_penalty(tmp_path: Path) -> None:
+    """B39 Ambidexterity [5]: no -4 for the off hand, so both attacks use skill 13."""
+    assert await two_weapon_double(tmp_path, traits=("trait:ambidexterity",)) == 13

@@ -42,6 +42,7 @@ def dispatch(
     profile_id = play.engine.reviewer.compiler.statistics_profile
     if interaction.context.profile_id != profile_id:
         raise ValidationError("Social context does not match campaign profile")
+    fright_modifier = 0
     if command.kind == "fright":
         from wayfarer.simulation.fright import validate_subject
 
@@ -50,10 +51,16 @@ def dispatch(
 
         if not any(a.actor_id == command.subject_id for a in before.actors):
             raise ValidationError("Fright requires an approved character")
-        statistics = build(play, before, command.subject_id).statistics
+        compiled = build(play, before, command.subject_id)
+        statistics = compiled.statistics
         assert statistics is not None
         if interaction.context.ht != statistics.ht or interaction.context.will != statistics.will:
             raise ValidationError("Fright context must match approved HT and Will")
+        # B43 Combat Reflexes: +2 on Fright Checks, read from the approved build
+        # rather than the caller's context, which supplies only the situation.
+        fright_modifier = 2 * any(
+            p.definition_id == "trait:combat-reflexes" for p in compiled.purchases
+        )
     # A player subject may resist fear or a disadvantage, but reaction
     # and influence never select behavior or disclose facts on their behalf.
     if command.kind in ("reaction", "influence") and any(
@@ -68,6 +75,7 @@ def dispatch(
         interaction.disclosure,
         rng=play.rng,
         system=True,
+        fright_modifier=fright_modifier,
     )
     if command.kind == "fright":
         from wayfarer.rules.fright import FrightEffect

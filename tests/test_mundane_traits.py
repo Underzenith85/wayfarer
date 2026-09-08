@@ -137,7 +137,9 @@ def test_inventory_package_and_audit_reconcile() -> None:
     RulesCatalog((package,))
     report = audit_report()
     assert report["total"] == len(entries) == len(package.definitions)
-    assert report["available"] == 0
+    # Only an effect an authoritative service executes counts as available.
+    assert report["available"] == 2
+    assert report["implemented_effects"] == ["trait.combat_reflexes", "trait.off_hand"]
     assert {e.category for e in entries} == {
         "advantage",
         "disadvantage",
@@ -147,7 +149,19 @@ def test_inventory_package_and_audit_reconcile() -> None:
     }
     assert {e.id for e in entries} == {d.id for d in package.definitions}
     assert all(e.blockers and e.followup_issues for e in entries)
-    assert all(d.status is ImplementationStatus.UNSUPPORTED for d in package.definitions)
+    executable = {"trait:ambidexterity", "trait:combat-reflexes"}
+    for definition in package.definitions:
+        expected = (
+            ImplementationStatus.IMPLEMENTED
+            if definition.id in executable
+            else ImplementationStatus.UNSUPPORTED
+        )
+        assert definition.status is expected
+    for entry in entries:
+        # The printing delta stays on every entry; only the effect blocker clears.
+        assert ("first-printing-delta-audit" in entry.blockers) and (
+            (entry.effect in entry.blockers) is (entry.id not in executable)
+        )
     assert any(e.obligations for e in entries)
     assert candidate_package().digest == package.digest
     with pytest.raises(ValidationError, match="Duplicate"):
@@ -156,8 +170,9 @@ def test_inventory_package_and_audit_reconcile() -> None:
         validate_inventory((replace(entries[0], prerequisites=("trait:missing",)),))
 
 
-def test_every_selected_trait_stays_unavailable_for_activation() -> None:
-    engine = compiler()
+def test_no_trait_activates_without_a_profile_that_declares_its_effect() -> None:
+    """A catalog alone never activates a trait; the profile must declare the hook."""
+    engine = compiler()  # The candidate package declares no runtime hooks.
     for entry in inventory():
         result = engine.compile(
             gurps_draft(
@@ -168,7 +183,59 @@ def test_every_selected_trait_stays_unavailable_for_activation() -> None:
             )
         )
         assert result.build is None
-        assert "definition.not_implemented" in {d.code for d in result.diagnostics}
+        expected = (
+            "trait.runtime_unavailable" if entry.implemented else "definition.not_implemented"
+        )
+        assert expected in {d.code for d in result.diagnostics}
+
+
+def test_registered_profile_activates_only_its_declared_trait_effects() -> None:
+    """#113: v7 publishes the executable traits; v6 and earlier keep refusing them."""
+    from wayfarer.rules.profiles import (
+        GURPS_STATISTICS_PROFILE,
+        GURPS_TRAITS_PROFILE,
+        RegisteredProfile,
+    )
+
+    assert GURPS_TRAITS_PROFILE.version == 7
+    assert GURPS_TRAITS_PROFILE.packages[0].version == "0.7.0"
+    assert GURPS_TRAITS_PROFILE.trait_runtime_hooks == frozenset(
+        {"trait.off_hand", "trait.combat_reflexes"}
+    )
+    assert GURPS_STATISTICS_PROFILE.trait_runtime_hooks == frozenset()
+    assert GURPS_TRAITS_PROFILE.digest != GURPS_STATISTICS_PROFILE.digest
+    old = {d.id: d for d in GURPS_STATISTICS_PROFILE.packages[0].definitions}
+    added = [d for d in GURPS_TRAITS_PROFILE.packages[0].definitions if d.id not in old]
+    assert [d.id for d in added] == ["trait:ambidexterity", "trait:combat-reflexes"]
+    assert all(old[d.id] == d for d in GURPS_TRAITS_PROFILE.packages[0].definitions if d.id in old)
+
+    def engine(profile: RegisteredProfile) -> CharacterCompiler:
+        return CharacterCompiler(
+            profile.catalog,
+            profile.rules,
+            profile.policy,
+            statistics_profile=profile.conformance_profile_id,
+            trait_runtime_hooks=profile.trait_runtime_hooks,
+        )
+
+    reflexes = Purchase(definition_id="trait:combat-reflexes")
+    current = engine(GURPS_TRAITS_PROFILE).compile(gurps_draft(reflexes))
+    assert current.build is not None, current.diagnostics
+    assert current.spent == 15  # B43 Combat Reflexes; attributes at 10 cost nothing.
+    assert (
+        engine(GURPS_TRAITS_PROFILE)
+        .compile(gurps_draft(Purchase(definition_id="trait:ambidexterity")))
+        .spent
+        == 5
+    )  # B39 Ambidexterity.
+    superseded = engine(GURPS_STATISTICS_PROFILE).compile(gurps_draft(reflexes))
+    assert superseded.build is None
+    assert "definition.unknown" in {d.code for d in superseded.diagnostics}
+    unimplemented = engine(GURPS_TRAITS_PROFILE).compile(
+        gurps_draft(Purchase(definition_id="trait:high-pain-threshold"))
+    )
+    assert unimplemented.build is None
+    assert "definition.unknown" in {d.code for d in unimplemented.diagnostics}
 
 
 def test_background_identity_is_pinned_and_cannot_supply_costs() -> None:

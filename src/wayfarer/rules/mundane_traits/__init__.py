@@ -30,6 +30,15 @@ SOURCE = SourceReference(
 )
 Identifier = Annotated[str, Field(pattern=r"^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$", max_length=60)]
 
+IMPLEMENTED_EFFECTS: Final = frozenset({"trait.off_hand", "trait.combat_reflexes"})
+"""Effects an authoritative service executes; every other effect stays blocked.
+
+Membership is not a cost or source claim. A named effect belongs here only once
+a service applies it, a profile declares the hook and independent tests cover
+it; otherwise the compiler refuses the purchase rather than selling a trait that
+does nothing. See docs/gurps-mundane-traits.md for each entry's executed scope.
+"""
+
 
 class Vocabulary(BaseModel):
     """Trusted campaign identifiers; each expansion is bound by the package digest.
@@ -72,21 +81,30 @@ class TraitEntry:
     followup_issues: tuple[int, ...] = (113, 122)
 
     @property
+    def implemented(self) -> bool:
+        return self.effect in IMPLEMENTED_EFFECTS
+
+    @property
     def blockers(self) -> tuple[str, ...]:
-        return ("first-printing-delta-audit", self.effect)
+        delta = ("first-printing-delta-audit",)
+        return delta if self.implemented else delta + (self.effect,)
 
     @property
     def reference(self) -> str:
         return f"B{self.page}"
 
-    def definition(self, entries: tuple[TraitEntry, ...]) -> RuleDefinition:
+    def definition(
+        self, entries: tuple[TraitEntry, ...], source_id: str = SOURCE.id
+    ) -> RuleDefinition:
         return RuleDefinition(
             self.id,
             DefinitionKind.TRAIT,
             self.name,
-            SOURCE.id,
+            source_id,
             self.points,
-            ImplementationStatus.UNSUPPORTED,
+            ImplementationStatus.IMPLEMENTED
+            if self.implemented
+            else ImplementationStatus.UNSUPPORTED,
             prerequisites=self.prerequisites,
             exclusions=tuple(
                 e.id
@@ -386,6 +404,19 @@ def candidate_package(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> RulesPacka
     )
 
 
+def profile_definitions(
+    source_id: str, vocabulary: Vocabulary = DEFAULT_VOCABULARY
+) -> tuple[RuleDefinition, ...]:
+    """The executable subset a registered profile package may publish.
+
+    Costs are the audited candidate values; `source_id` is the profile's own
+    pinned source, so the printing delta recorded for the candidates applies
+    here too and stays an open audit item rather than a silent re-attribution.
+    """
+    entries = inventory(vocabulary)
+    return tuple(e.definition(entries, source_id) for e in entries if e.implemented)
+
+
 def audit_report(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> dict[str, object]:
     entries = inventory(vocabulary)
     return {
@@ -397,7 +428,8 @@ def audit_report(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> dict[str, objec
             asdict(e) | {"reference": e.reference, "blockers": e.blockers} for e in entries
         ],
         "total": len(entries),
-        "available": 0,
+        "available": sum(e.implemented for e in entries),
+        "implemented_effects": sorted(IMPLEMENTED_EFFECTS),
         "categories": dict(sorted(Counter(e.category for e in entries).items())),
         "blockers": dict(sorted(Counter(b for e in entries for b in e.blockers).items())),
         "outside_selected_scope": (

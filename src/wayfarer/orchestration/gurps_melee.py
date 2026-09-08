@@ -344,7 +344,9 @@ def defense_value(
     from wayfarer.simulation.fright import stunned as fright_stunned
 
     penalty = (
-        participant.defense_penalty
+        # B43 Combat Reflexes: +1 to every active defense, armed or not.
+        int(any(p.definition_id == "trait:combat-reflexes" for p in compiled.purchases))
+        + participant.defense_penalty
         + participant.tactical_defense_bonus
         - 4 * int(participant.arm_locked)
         + (-1 if selected == "dodge" else -2) * int(participant.grappled)

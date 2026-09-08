@@ -122,6 +122,7 @@ def runtime_engine(profile: RegisteredProfile = PROTOTYPE_PROFILE) -> ActionEngi
                 profile.rules,
                 profile.policy,
                 statistics_profile=profile.conformance_profile_id,
+                trait_runtime_hooks=profile.trait_runtime_hooks,
             ),
             PowerPolicy(id="starter-power", version=1),
             frozenset(),

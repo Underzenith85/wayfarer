@@ -81,6 +81,7 @@ async def setup(
     object_hp: int | None = None,
     critical_breakage: Literal["ordinary", "cheap", "resistant"] | None = None,
     attacker_weight: int | None = None,
+    traits: tuple[str, ...] = (),
 ) -> tuple[str, PlayService]:
     equipment = EquipmentCatalog(
         profile_id=profile,
@@ -323,6 +324,12 @@ async def setup(
     ability = AbilitySpec(
         definition_id="trait:shield", kind="damage-resistance", modifiers=("costs-fatigue-1",)
     )
+    from wayfarer.rules.mundane_traits import inventory as trait_inventory
+
+    catalogued = tuple(e for e in trait_inventory() if e.id in traits)
+    if len(catalogued) != len(traits):
+        raise AssertionError("Unknown mundane trait in fixture")
+    extras += tuple(e.definition(trait_inventory(), source) for e in catalogued)
     package = profile_package(
         profile, *extras, *((definition(ability),) if ability_defense else ())
     )
@@ -368,9 +375,12 @@ async def setup(
         rules,
         policy,
         statistics_profile=profile,
-        trait_runtime_hooks=frozenset({"ability:damage-resistance", "ability:fatigue"})
-        if ability_defense
-        else frozenset(),
+        trait_runtime_hooks=(
+            frozenset({"ability:damage-resistance", "ability:fatigue"})
+            if ability_defense
+            else frozenset()
+        )
+        | frozenset(e.effect for e in catalogued),
     )
     reviewer = PowerReviewer(
         compiler, PowerPolicy(id="power", version=1, automatic_approval=True), frozenset({"gm"})
@@ -411,6 +421,7 @@ async def setup(
         (
             Purchase(definition_id="skill:broadsword", amount=12),
             Purchase(definition_id="skill:shield", amount=4),
+            *(Purchase(definition_id=e.id) for e in catalogued),
             *(
                 (Purchase(definition_id=durability.repair_skill_id, amount=4),)
                 if durability and durability.repair_skill_id
@@ -703,6 +714,29 @@ async def test_dodge_parry_block_and_repeats(
     else:
         value, _ = defense_value(play, state, spent, "parry")
         assert value is not None and value.value == 6
+
+
+async def test_combat_reflexes_raises_every_active_defense(tmp_path: Path) -> None:
+    """B43: Combat Reflexes adds +1 to Dodge, Parry and Block alike.
+
+    The unmodified fixture scores 9/10/10 (test_dodge_parry_block_and_repeats);
+    the trait costs 15 points and moves each one by exactly one.
+    """
+    basic: Literal["gurps-basic-set-4e-2004"] = "gurps-basic-set-4e-2004"
+    cid, play = await setup(tmp_path, basic, traits=("trait:combat-reflexes",))
+    state = play._load(await play.store.read(cid))
+    defender = state.encounters[0].participants[1]
+    expectations: tuple[tuple[Defense, int], ...] = (("dodge", 10), ("parry", 11), ("block", 11))
+    for defense, expected in expectations:
+        value, _ = defense_value(play, state, defender, defense)
+        assert value is not None and value.value == expected
+    build = play.engine.reviewer.activate(
+        next(a for a in state.actors if a.actor_id == "b").proposal,
+        next(a for a in state.actors if a.actor_id == "b").approval,
+        campaign_id=cid,
+        actor_id="b",
+    )[0]
+    assert any(p.definition_id == "trait:combat-reflexes" and p.cost == 15 for p in build.purchases)
 
 
 async def test_heavy_weapon_parry_limit(tmp_path: Path) -> None:

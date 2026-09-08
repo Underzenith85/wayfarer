@@ -17,7 +17,7 @@ from typing import Final
 
 from wayfarer.errors import ValidationError
 from wayfarer.models import RulesReference
-from wayfarer.rules import conformance, gurps_characters, gurps_magic, gurps_skills
+from wayfarer.rules import conformance, gurps_characters, gurps_magic, gurps_skills, mundane_traits
 from wayfarer.rules.catalog import (
     DEFAULT_POLICY,
     DEFAULT_RULES,
@@ -45,6 +45,8 @@ class RegisteredProfile:
     conformance_profile_id: str | None = None
     required_capabilities: frozenset[str] = frozenset()
     optional_rules: tuple[str, ...] = ()
+    trait_runtime_hooks: frozenset[str] = frozenset()
+    """Trait effects this exact profile executes; a compiler refuses the rest."""
 
     @property
     def catalog(self) -> RulesCatalog:
@@ -80,6 +82,7 @@ class RegisteredProfile:
             "conformance_profile_id": self.conformance_profile_id,
             "required_capabilities": sorted(self.required_capabilities),
             "optional_rules": list(self.optional_rules),
+            "trait_runtime_hooks": sorted(self.trait_runtime_hooks),
         }
         encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(encoded.encode()).hexdigest()
@@ -376,6 +379,26 @@ GURPS_STATISTICS_PROFILE: Final = replace(
     ),
 )
 
+# #113 publishes the executable mundane traits as another additive pin. Only v7
+# declares the runtime hooks, so a v2-v6 campaign keeps refusing every trait and
+# no saved pin changes; switching still uses the existing explicit migration.
+GURPS_TRAITS_PACKAGE: Final = replace(
+    GURPS_STATISTICS_PACKAGE,
+    version="0.7.0",
+    definitions=GURPS_STATISTICS_PACKAGE.definitions
+    + mundane_traits.profile_definitions(GURPS_CHARACTERS_SOURCE.id),
+)
+GURPS_TRAITS_PROFILE: Final = replace(
+    GURPS_STATISTICS_PROFILE,
+    version=7,
+    packages=(GURPS_TRAITS_PACKAGE, GURPS_CAMPAIGNS_PACKAGE),
+    rules=replace(
+        GURPS_STATISTICS_PROFILE.rules,
+        packages=(_pin(GURPS_TRAITS_PACKAGE), _pin(GURPS_CAMPAIGNS_PACKAGE)),
+    ),
+    trait_runtime_hooks=mundane_traits.IMPLEMENTED_EFFECTS,
+)
+
 # Keep the new pin opt-in while the overall Basic Set profile still has unrelated
 # unverified blockers. Historic default-registry entries stay byte-for-byte resolvable.
 DEFAULT_REGISTRY: Final = ProfileRegistry(
@@ -391,6 +414,6 @@ DEFAULT_REGISTRY: Final = ProfileRegistry(
 GURPS_PROFILES: Final = MappingProxyType(
     {
         GURPS_LITE_PROFILE.id: GURPS_LITE_PROFILE,
-        GURPS_STATISTICS_PROFILE.id: GURPS_STATISTICS_PROFILE,
+        GURPS_TRAITS_PROFILE.id: GURPS_TRAITS_PROFILE,
     }
 )

@@ -182,3 +182,27 @@ async def test_recovery_command_receipt_replays_without_new_dice(tmp_path: Path)
     assert apply_social(
         updated, world(), value, SocialContext(PROFILE, 0), rng=RecordedDice([]), system=True
     ) == (updated, outcome)
+
+
+async def test_combat_reflexes_reaches_the_dispatched_fright_check(tmp_path: Path) -> None:
+    """#113: the trusted dispatcher adds B43's +2 from the approved build.
+
+    The same 11 that fails an unmodified Will 10 check passes at 12, so no table
+    is drawn and no fright condition is stored. The caller's context is unchanged;
+    it supplies only Will, HT and the situation.
+    """
+    cid, play = await prepare(tmp_path, traits=True)
+    play.rng = RecordedDice([4, 4, 3])
+    value = command().model_copy(update={"kind": "fright", "subject_id": "a"})
+    result = await SocialService(play, resolve).execute(cid, value, authenticated_gm_id="gm")
+    assert result.outcome == "passed" and not result.requires_adjudication
+    state = play._load(await play.store.read(cid))
+    assert not blocked(state.resources, "a") and not effects(state.resources)
+    assert next(p.current for p in state.resources.pools if p.id == "fp:a") == 10
+    assert await play.store.read(cid) == await play.store.replay(cid)
+    # Same roll, same context, no trait: the check fails and the table is drawn.
+    plain_cid, plain = await prepare(tmp_path / "plain")
+    plain.rng = RecordedDice([4, 4, 3, 1, 1, 2])
+    failed = await SocialService(plain, resolve).execute(plain_cid, value, authenticated_gm_id="gm")
+    assert failed.outcome == "failed"
+    assert blocked(plain._load(await plain.store.read(plain_cid)).resources, "a")

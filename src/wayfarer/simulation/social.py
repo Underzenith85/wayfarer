@@ -70,6 +70,7 @@ def apply_social(
     *,
     rng: RandomSource,
     system: bool = False,
+    fright_modifier: int = 0,
 ) -> tuple[ResourceState, SocialOutcome]:
     if not system:
         raise ValidationError("Social checks require authoritative trigger context")
@@ -141,7 +142,9 @@ def apply_social(
         outcome = SocialOutcome(kind=command.kind, outcome=influence.outcome)
         details = asdict(influence)
     elif command.kind == "fright":
-        fright = fright_roll(context.profile_id, context.target, rng=rng, ht=context.ht)
+        fright = fright_roll(
+            context.profile_id, context.target, fright_modifier, rng=rng, ht=context.ht
+        )
         outcome = SocialOutcome(
             kind=command.kind,
             outcome="passed" if fright.check.outcome.succeeded else "failed",
@@ -222,6 +225,7 @@ def apply_interaction(
     *,
     rng: RandomSource,
     system: bool = False,
+    fright_modifier: int = 0,
 ) -> tuple[ResourceState, World, SocialOutcome]:
     """Resolve once and disclose only a configured fact the subject knows.
 
@@ -250,7 +254,9 @@ def apply_interaction(
             "excellent",
         }:
             raise ValidationError("Unsupported disclosure outcome")
-    updated, outcome = apply_social(state, world, command, context, rng=rng, system=True)
+    updated, outcome = apply_social(
+        state, world, command, context, rng=rng, system=True, fright_modifier=fright_modifier
+    )
     if not replay and outcome.outcome in disclosure.outcomes:
         for fact_id in disclosure.fact_ids:
             world = world.learn(command.actor_id, fact_id)

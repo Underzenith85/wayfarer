@@ -904,7 +904,9 @@ def unarmed_defense(
         + (-2 if actor.grappled else 0)
     )
     penalty += (
-        actor.defense_penalty
+        # B43 Combat Reflexes: the same +1 the armed defenses receive.
+        int(any(p.definition_id == "trait:combat-reflexes" for p in compiled.purchases))
+        + actor.defense_penalty
         + actor.tactical_defense_bonus
         - 4 * int(actor.arm_locked)
         + (2 if actor.maneuver_state.enhanced_defense == "parry" else 0)

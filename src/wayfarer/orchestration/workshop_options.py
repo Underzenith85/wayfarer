@@ -147,6 +147,7 @@ def preview_profile(request: ProfilePreviewRequest) -> ProfilePreviewResult:
         selected.rules,
         selected.policy,
         statistics_profile=selected.conformance_profile_id,
+        trait_runtime_hooks=selected.trait_runtime_hooks,
     )
     result = compiler.compile(request.proposal.draft)
     return ProfilePreviewResult(

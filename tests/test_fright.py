@@ -49,3 +49,16 @@ def test_physical_losses_and_gm_choices() -> None:
     assert fright_effect(13, 10, rng=RecordedDice([])).trait_choice == "quirk"
     assert fright_effect(25, 10, rng=RecordedDice([])).trait_choice == "worsen-self-control"
     assert fright_effect(37, 10, rng=RecordedDice([])).trait_points == -30
+
+
+def test_combat_reflexes_modifier_raises_the_fright_target() -> None:
+    """B43: +2 on Fright Checks. Will 10 turns an 11 from a failure into a pass."""
+    from wayfarer.rules.gurps_social import fright_roll
+
+    profile = "gurps-basic-set-4e-2004"
+    helped = fright_roll(profile, 10, 2, rng=RecordedDice([4, 4, 3]))
+    assert helped.check.effective_target == 12 and helped.check.outcome.succeeded
+    assert helped.table_total is None
+    alone = fright_roll(profile, 10, rng=RecordedDice([4, 4, 3, 1, 1, 2]))
+    assert alone.check.effective_target == 10 and not alone.check.outcome.succeeded
+    assert alone.table_total == 5  # Table 4, plus the margin of 1.

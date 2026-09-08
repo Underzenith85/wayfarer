@@ -27,13 +27,16 @@ from wayfarer.simulation.combat import Encounter
 from wayfarer.simulation.unarmed import Grip, contest, striking_bonus, wrestling_bonus
 
 
-async def setup(tmp_path: Path, *, third_actor: bool = False) -> tuple[str, PlayService]:
+async def setup(
+    tmp_path: Path, *, third_actor: bool = False, traits: tuple[str, ...] = ()
+) -> tuple[str, PlayService]:
     cid, play = await melee_setup(
         tmp_path,
         "gurps-basic-set-4e-2004",
         human=True,
         unarmed_fixture=True,
         third_actor=third_actor,
+        traits=traits,
     )
 
     def disarm(campaign: Campaign) -> Event:
@@ -482,6 +485,26 @@ def test_shared_independent_unarmed_ledger() -> None:
             assert won == expected["won"] and decided == expected["decided"]
             assert [c.margin for c in checks] == expected["margins"]
             assert dice.exhausted()
+
+
+async def test_combat_reflexes_reaches_the_unarmed_parry(tmp_path: Path) -> None:
+    """B43 applies to a bare-handed Parry too, not only the armed defenses.
+
+    The fixture parries with Judo at DX 10 and 4 points (level 10): 10/2 + 3 = 8,
+    and Combat Reflexes makes it 9.
+    """
+    from wayfarer.orchestration.unarmed import unarmed_defense
+
+    for reflexes, expected in ((False, 8), (True, 9)):
+        cid, play = await setup(
+            tmp_path / f"reflexes-{reflexes}",
+            traits=("trait:combat-reflexes",) if reflexes else (),
+        )
+        state = await state_of(cid, play)
+        score, hand = unarmed_defense(
+            play, state, state.encounters[0], "b", "parry", None, attacker_id="a"
+        )
+        assert (score, hand) == (expected, "left-hand")
 
 
 async def test_grappled_arm_cannot_parry_with_held_weapon(tmp_path: Path) -> None:

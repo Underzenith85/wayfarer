@@ -101,6 +101,19 @@ Fail-closed and advisory boundaries:
 
 Fixture cases for both capabilities live in `tests/fixtures/gurps/conformance.json` with an `operation` field naming the executable check; `tests/test_statistics.py` runs every one of them plus property tests for fraction handling, rounding, load bands and pool carry-over.
 
+### Executable mundane traits (#113)
+
+Basic profile v7 / Characters package 0.7.0 publishes the mundane traits whose
+effects an authoritative service executes: Ambidexterity (off-hand penalty) and
+Combat Reflexes (+1 active defenses, +2 Fright Checks). A profile declares the
+executable effects in `trait_runtime_hooks`; a trait whose effect is not declared
+is refused rather than sold, so the other 54 construction records stay inert.
+Historic packages, registry entries and saved pins are unchanged, and the profile
+stays opt-in behind the existing certification gates. `gurps.character.traits`
+remains `partial`: Combat Reflexes' Fast-Draw, initiative, surprise and mental-stun
+effects and every other candidate effect are still unimplemented.
+See [mundane traits](gurps-mundane-traits.md).
+
 ### Statistics boundaries (#215)
 
 Basic profile v6 / Characters package 0.6.0 opts into statistics revision 2.
