@@ -43,6 +43,8 @@ runtime definitions:
 | Supernatural catalog and transferred skills | #119 | All 334 typed records consumed directly; concrete runtime/source blockers remain |
 | Registered catalog definitions and learned spells | #112/#113/#119 | IDs include package versions; representative coverage |
 | Equipment selection and ultratech index | #180 | Item-level references retained; full catalog pending |
+| Equipment table sections, footnotes, field provenance and binding | #180 | Every audited row is claimed by a section; omitted groups, unsupported behaviours, uncovered fields and unbound catalogs stay visible |
+| Lite equipment gaps | #121 | Recorded separately so deferred Basic work cannot satisfy the Lite claim |
 | Vehicle index | #207/#120 | Listing facts do not establish operating mechanics |
 
 The report never derives source completeness from inventory counts. Unenumerated
@@ -60,6 +62,13 @@ missing/duplicate records, stale fixture fingerprints, unknown sources/profile
 references, missing test bindings, missing required scopes, and registry/table
 drift. All expectation-ledger cases have explicit review dispositions. The old
 three-hex distance case now has an executable numeric binding as well.
+
+The #180 equipment ledger is read directly by the same report. Its sections,
+special-gear dispositions, field provenance, package binding and Lite gaps are
+inventory rows with their own owning issues, so an omitted table group is a named
+blocker rather than an absence. Run
+`uv run python scripts/audit_gurps_equipment.py` for that ledger on its own; see
+[the equipment table audit](gurps-equipment-audit.md).
 
 `--require-complete` exits nonzero while any source, scope or fixture is unresolved.
 For release evidence, `scripts/release_gates.py --gurps-source-audit` adds this

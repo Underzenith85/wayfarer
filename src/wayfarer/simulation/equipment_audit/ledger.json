@@ -1,0 +1,1614 @@
+{
+  "schema_version": 1,
+  "profile_id": "gurps-basic-set-4e-2004",
+  "lite_profile_id": "gurps-lite-4e-2004",
+  "printing": "Characters Fourth Edition, third printing (February 2008)",
+  "baseline_note": "Third-printing review data for the frozen 2004 first-printing profile. No row, unit or price is reconciled against the first printing or the 2007-01-26 errata; every status stays pending until #191 resolves it.",
+  "sections": [
+    {
+      "id": "melee-weapons-b271",
+      "reference": "B271",
+      "anchor": "inspected",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "owner_issue": 180,
+      "status": "partial",
+      "selected": [
+        "light-club",
+        "broadsword"
+      ],
+      "omitted_rows": "Every other B271 melee row, including all rows carrying a special footnote, two-handed and unbalanced entries, and the remaining melee weapon pages.",
+      "mechanics": [
+        "unbalanced-parry",
+        "fencing-parry",
+        "weapon-breakage"
+      ]
+    },
+    {
+      "id": "beam-weapons-b280",
+      "reference": "B280",
+      "anchor": "inspected",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "owner_issue": 180,
+      "status": "partial",
+      "selected": [
+        "electrolaser-pistol",
+        "laser-pistol",
+        "blaster-pistol"
+      ],
+      "omitted_rows": "Every other B280 beam row. The three recorded rows are index facts only: none can be equipped, fired or reloaded while their behaviours stay unsupported.",
+      "mechanics": [
+        "power-cell-charges",
+        "smartgun",
+        "linked-affliction",
+        "surge",
+        "beam-environment"
+      ]
+    },
+    {
+      "id": "body-armor-b283",
+      "reference": "B283",
+      "anchor": "inspected",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "owner_issue": 180,
+      "status": "partial",
+      "selected": [
+        "bronze-corselet",
+        "leather-armor",
+        "light-scale-armor",
+        "lorica-segmentata",
+        "scale-armor",
+        "heavy-steel-corselet",
+        "steel-corselet",
+        "steel-laminate-plate"
+      ],
+      "omitted_rows": "Every B283 row that splits DR between locations, protects only one facing, or carries a footnote, plus flexible and layered rows and the other armor pages.",
+      "mechanics": [
+        "split-dr",
+        "front-only-dr",
+        "layered-armor",
+        "concealed-armor"
+      ]
+    },
+    {
+      "id": "general-equipment-b288",
+      "reference": "B288",
+      "anchor": "inspected",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "owner_issue": 180,
+      "status": "partial",
+      "selected": [
+        "frame-backpack",
+        "small-backpack",
+        "blanket",
+        "six-foot-pole",
+        "ten-foot-pole",
+        "scribes-kit",
+        "canteen",
+        "camp-stove",
+        "insulated-sleeping-bag",
+        "laptop"
+      ],
+      "omitted_rows": "Every other B288 row. Three recorded rows carry inventory facts only because their tool effects are unsupported; the B289 continuation is untouched.",
+      "mechanics": [
+        "fuel-consumption",
+        "cold-resistance-bonus",
+        "battery-and-computer-operation"
+      ]
+    },
+    {
+      "id": "wealth-and-legality",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "owner_issue": 180,
+      "status": "omitted",
+      "selected": [],
+      "omitted_rows": "Starting wealth, cost of living and legality class. No row, price band or legality code is recorded and no equipment purchase path exists.",
+      "mechanics": [
+        "starting-wealth",
+        "legality-class"
+      ]
+    },
+    {
+      "id": "melee-weapons-remainder",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "owner_issue": 180,
+      "status": "omitted",
+      "selected": [],
+      "omitted_rows": "The melee weapon tables outside the two audited B271 rows, across every skill heading. No row, mode, reach, parry or minimum ST value is recorded.",
+      "mechanics": [
+        "unbalanced-parry",
+        "fencing-parry",
+        "weapon-breakage"
+      ]
+    },
+    {
+      "id": "muscle-powered-ranged",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "owner_issue": 180,
+      "status": "omitted",
+      "selected": [],
+      "omitted_rows": "Bows, crossbows, slings and thrown weapon rows. No row is recorded; the ranged schema currently has no audited selected-table entry at all.",
+      "mechanics": [
+        "ammunition-variants"
+      ]
+    },
+    {
+      "id": "firearms",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "owner_issue": 180,
+      "status": "omitted",
+      "selected": [],
+      "omitted_rows": "Firearm rows and their rate-of-fire, recoil, bulk, shots and malfunction columns. No row is recorded and no firearm can be selected.",
+      "mechanics": [
+        "malfunction",
+        "shotgun-multiple-projectiles",
+        "holdout-and-concealment"
+      ]
+    },
+    {
+      "id": "ammunition",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "owner_issue": 180,
+      "status": "omitted",
+      "selected": [],
+      "omitted_rows": "Ammunition rows and their per-type damage, armor divisor and cost columns. Power cells are not ammunition and must not be modelled as disposable rounds.",
+      "mechanics": [
+        "ammunition-variants",
+        "power-cell-charges"
+      ]
+    },
+    {
+      "id": "shields",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "owner_issue": 180,
+      "status": "omitted",
+      "selected": [],
+      "omitted_rows": "Shield rows and their defence bonus, weight, cost and damage columns. The shield schema exists but no selected-table shield row is recorded.",
+      "mechanics": [
+        "shield-damage-and-cover"
+      ]
+    },
+    {
+      "id": "heavy-weapons",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "owner_issue": 180,
+      "status": "omitted",
+      "selected": [],
+      "omitted_rows": "Crew-served and mounted heavy weapon rows, including their crew, mounting and emplacement requirements. No row is recorded.",
+      "mechanics": [
+        "crew-served-mounting"
+      ]
+    },
+    {
+      "id": "armor-split-dr",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "owner_issue": 180,
+      "status": "omitted",
+      "selected": [],
+      "omitted_rows": "Armor rows whose DR differs by location or facing, and rows that only cover part of a listed location. The schema carries one DR for every listed location.",
+      "mechanics": [
+        "split-dr",
+        "front-only-dr",
+        "layered-armor"
+      ]
+    },
+    {
+      "id": "higher-tl-variants",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "owner_issue": 180,
+      "status": "omitted",
+      "selected": [],
+      "omitted_rows": "Higher-TL variants of the audited weapon, armor and gear rows. Recorded rows carry one TL each; no variant row or TL substitution rule is recorded.",
+      "mechanics": [
+        "technology-level-variants"
+      ]
+    },
+    {
+      "id": "weapon-accessories",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "owner_issue": 180,
+      "status": "omitted",
+      "selected": [],
+      "omitted_rows": "Weapon accessory rows, including scopes, slings, holsters and mounts. The scope and bracing schema fields exist but no accessory row is recorded.",
+      "mechanics": [
+        "weapon-accessories"
+      ]
+    },
+    {
+      "id": "general-equipment-remainder",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "owner_issue": 180,
+      "status": "omitted",
+      "selected": [],
+      "omitted_rows": "Every general equipment row outside the ten audited B288 rows, including tools whose effects are ordinary skill or task modifiers rather than combat values.",
+      "mechanics": [
+        "special-tool-effects"
+      ]
+    }
+  ],
+  "footnotes": [
+    {
+      "id": "unbalanced-parry",
+      "reference": "B271",
+      "anchor": "inspected",
+      "behaviour": "An unbalanced weapon cannot parry in the same turn it was used to attack.",
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.active_defense",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_gurps_melee.py::test_unbalanced_and_fencing_parry_columns"
+      ],
+      "evidence_gap": null
+    },
+    {
+      "id": "fencing-parry",
+      "reference": "B271",
+      "anchor": "inspected",
+      "behaviour": "A fencing weapon takes a smaller cumulative penalty for repeated parries.",
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.active_defense",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_gurps_melee.py::test_unbalanced_and_fencing_parry_columns"
+      ],
+      "evidence_gap": null
+    },
+    {
+      "id": "ready-after-attack",
+      "reference": "B271-289",
+      "anchor": "range-only",
+      "behaviour": "A weapon marked unready after an attack must be readied before its next use.",
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.maneuvers",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_gurps_maneuvers.py::test_unready_after_attack_requires_ready_and_forbids_double"
+      ],
+      "evidence_gap": null
+    },
+    {
+      "id": "minimum-strength",
+      "reference": "B271-289",
+      "anchor": "range-only",
+      "behaviour": "Attacking below a weapon's minimum ST applies its skill and defence penalty.",
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.ranged_attack",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_gurps_ranged.py::test_minimum_st_penalty_and_determined_bonus"
+      ],
+      "evidence_gap": null
+    },
+    {
+      "id": "armor-divisor",
+      "reference": "B271-289",
+      "anchor": "range-only",
+      "behaviour": "A damage armor divisor reduces the target's DR before penetration is computed.",
+      "disposition": "implemented",
+      "capability_id": "gurps.injury.armor_divisors",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_objects.py::test_object_armor_divisors"
+      ],
+      "evidence_gap": null
+    },
+    {
+      "id": "tight-beam-burning",
+      "reference": "B271-289",
+      "anchor": "range-only",
+      "behaviour": "Tight-beam burning damage may target the eyes and vitals that other non-penetrating damage cannot.",
+      "disposition": "implemented",
+      "capability_id": "gurps.injury.hit_locations",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_equipment_audit.py::test_tight_beam_burning_reaches_eyes_and_vitals"
+      ],
+      "evidence_gap": null
+    },
+    {
+      "id": "thrown-weapon",
+      "reference": "B271-289",
+      "anchor": "range-only",
+      "behaviour": "A thrown weapon leaves the thrower's inventory and is the projectile itself.",
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.ranged_attack",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_gurps_ranged.py::test_thrown_weapon_leaves_inventory_and_retries_once"
+      ],
+      "evidence_gap": null
+    },
+    {
+      "id": "blockable-projectile",
+      "reference": "B271-289",
+      "anchor": "range-only",
+      "behaviour": "Only thrown or explicitly blockable projectiles may be blocked or parried.",
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.active_defense",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_gurps_ranged.py::test_firearm_forbids_block_and_parry_including_second_defense"
+      ],
+      "evidence_gap": null
+    },
+    {
+      "id": "per-round-reload",
+      "reference": "B271-289",
+      "anchor": "range-only",
+      "behaviour": "A per-round reload loads one shot at a time instead of exchanging a magazine.",
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.ammunition",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_ranged_followups.py::test_per_round_loading_and_fire_cancels_partial_round"
+      ],
+      "evidence_gap": null
+    },
+    {
+      "id": "rate-of-fire-and-recoil",
+      "reference": "B271-289",
+      "anchor": "range-only",
+      "behaviour": "Rate of fire and recoil together bound how many shots of a burst can hit.",
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.rapid_fire",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_gurps_ranged.py::test_burst_applies_each_hit_separately"
+      ],
+      "evidence_gap": null
+    },
+    {
+      "id": "variable-power-scope",
+      "reference": "B271-289",
+      "anchor": "range-only",
+      "behaviour": "A variable-power scope adds up to its bonus as aiming seconds accumulate.",
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.aim",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_maneuver_followups.py::test_variable_scope_and_bipod_bracing_add_independent_aim_bonuses"
+      ],
+      "evidence_gap": null
+    },
+    {
+      "id": "fixed-power-scope",
+      "reference": "B271-289",
+      "anchor": "range-only",
+      "behaviour": "A fixed-power scope grants its bonus only after its full aiming time.",
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.aim",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_maneuver_followups.py::test_fixed_scope_requires_its_full_aim_time"
+      ],
+      "evidence_gap": null
+    },
+    {
+      "id": "bracing",
+      "reference": "B271-289",
+      "anchor": "range-only",
+      "behaviour": "One-handed bracing and bipod bracing each add their own aiming bonus.",
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.aim",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_maneuver_followups.py::test_variable_scope_and_bipod_bracing_add_independent_aim_bonuses"
+      ],
+      "evidence_gap": null
+    },
+    {
+      "id": "shield-defense-bonus",
+      "reference": "B271-289",
+      "anchor": "range-only",
+      "behaviour": "A ready shield adds its defence bonus and may be used to block once per turn.",
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.active_defense",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_gurps_melee.py::test_dodge_parry_block_and_repeats"
+      ],
+      "evidence_gap": null
+    },
+    {
+      "id": "object-durability",
+      "reference": "B271-289",
+      "anchor": "range-only",
+      "behaviour": "An item carries its own HP, DR and HT and can be damaged and disabled.",
+      "disposition": "implemented",
+      "capability_id": "gurps.equipment.object_durability",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_objects.py::test_hp_source_examples"
+      ],
+      "evidence_gap": null
+    },
+    {
+      "id": "container-capacity",
+      "reference": "B288",
+      "anchor": "inspected",
+      "behaviour": "A container limits the weight it can hold, in the same explicit weight unit.",
+      "disposition": "implemented",
+      "capability_id": "gurps.equipment.catalog",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_basic_equipment.py::test_container_units_and_unsupported_activation"
+      ],
+      "evidence_gap": null
+    },
+    {
+      "id": "carried-weight-encumbrance",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "behaviour": "Carried equipment weight selects the encumbrance level that caps Move and Dodge.",
+      "disposition": "implemented",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_gurps_equipment.py::test_load_bands_overload_and_unit_guard"
+      ],
+      "evidence_gap": null
+    },
+    {
+      "id": "weapon-parry-modifier",
+      "reference": "B271-289",
+      "anchor": "range-only",
+      "behaviour": "A weapon's parry column may add or subtract from the computed parry score.",
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.active_defense",
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": "No audited row carries a nonzero parry modifier, so the column has no independent source-referenced case."
+    },
+    {
+      "id": "two-handed-weapon",
+      "reference": "B271-289",
+      "anchor": "range-only",
+      "behaviour": "A two-handed weapon occupies both hands and cannot share them with a shield.",
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.melee_attack",
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": "No audited row is two-handed; the hand-count column has no selected-table case."
+    },
+    {
+      "id": "fuel-consumption",
+      "reference": "B288",
+      "anchor": "inspected",
+      "behaviour": "Fuel-burning gear consumes a fuel supply over time.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "cold-resistance-bonus",
+      "reference": "B288",
+      "anchor": "inspected",
+      "behaviour": "Insulated gear modifies cold environment exposure while it is in use.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "battery-and-computer-operation",
+      "reference": "B288",
+      "anchor": "inspected",
+      "behaviour": "Battery-powered computing gear runs tasks while charge remains.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "power-cell-charges",
+      "reference": "B280",
+      "anchor": "inspected",
+      "behaviour": "A rechargeable power cell holds shots as charge, not as disposable rounds; the existing per-round ammunition implementation must not be reused for it.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "smartgun",
+      "reference": "B280",
+      "anchor": "inspected",
+      "behaviour": "A smartgun electronically restricts or assists the authorised user.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "linked-affliction",
+      "reference": "B280",
+      "anchor": "inspected",
+      "behaviour": "A weapon whose hit also imposes a linked affliction resisted separately.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "surge",
+      "reference": "B280",
+      "anchor": "inspected",
+      "behaviour": "Surge damage interacts with electrical targets differently from ordinary burning.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "beam-environment",
+      "reference": "B280",
+      "anchor": "inspected",
+      "behaviour": "Beam attacks lose effect to environmental obscurants and intervening conditions.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "split-dr",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "behaviour": "One armor row grants different DR to different covered locations.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "front-only-dr",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "behaviour": "One armor row protects only one facing of the locations it covers.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "layered-armor",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "behaviour": "Armor worn over other armor combines DR at an encumbrance and flexibility cost.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "concealed-armor",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "behaviour": "Armor concealment under clothing changes what observers can notice.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "malfunction",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "behaviour": "A firearm malfunction number turns a high attack roll into a weapon failure.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "shotgun-multiple-projectiles",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "behaviour": "One shot that throws several projectiles resolves as multiple hits.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "ammunition-variants",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "behaviour": "Ammunition types change damage, damage type, armor divisor and cost per round.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "shield-damage-and-cover",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "behaviour": "A shield can be damaged, destroyed, or used as cover rather than only as a bonus.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "crew-served-mounting",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "behaviour": "A heavy weapon requires a crew, a mount and setup time before it can fire.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "technology-level-variants",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "behaviour": "A row's higher-TL variant substitutes weight, cost or performance values.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "weapon-accessories",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "behaviour": "Accessories attach to a weapon and change its handling or accuracy.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "special-tool-effects",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "behaviour": "Ordinary tools grant task or skill effects rather than combat values.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "holdout-and-concealment",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "behaviour": "A weapon's bulk determines how easily it can be carried concealed.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "legality-class",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "behaviour": "A row's legality class governs where it may lawfully be carried.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "starting-wealth",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "behaviour": "Starting wealth and cost of living bound what equipment a character may buy.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "weapon-breakage",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "behaviour": "A weapon can break on a critical result and leave a residual damaged mode.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 181,
+      "tests": [],
+      "evidence_gap": null
+    }
+  ],
+  "fields": [
+    {
+      "id": "Provenance.source_id",
+      "unit": "source identifier",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_equipment_audit.py::test_selected_row_provenance_anchors"
+      ],
+      "gap": null
+    },
+    {
+      "id": "Provenance.edition",
+      "unit": "printing label",
+      "reference": "publication statement",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_basic_equipment.py::test_selected_source_rows"
+      ],
+      "gap": null
+    },
+    {
+      "id": "Provenance.pages",
+      "unit": "page number",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_equipment_audit.py::test_selected_row_provenance_anchors"
+      ],
+      "gap": null
+    },
+    {
+      "id": "Provenance.errata",
+      "unit": "errata overlay label",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_equipment_audit.py::test_selected_row_provenance_anchors"
+      ],
+      "gap": null
+    },
+    {
+      "id": "Damage.basis",
+      "unit": "thrust/swing/fixed selector",
+      "reference": "B271 damage column",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "Damage.dice",
+      "unit": "d6 count",
+      "reference": "B271 damage column",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_equipment.py::test_impossible_damage"
+      ],
+      "gap": null
+    },
+    {
+      "id": "Damage.adds",
+      "unit": "damage adds",
+      "reference": "B271 damage column",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "Damage.damage_type",
+      "unit": "damage type code",
+      "reference": "B271 damage column",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "Damage.armor_divisor",
+      "unit": "divisor multiple",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_objects.py::test_object_armor_divisors"
+      ],
+      "gap": null
+    },
+    {
+      "id": "Damage.tight_beam",
+      "unit": "flag",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_equipment_audit.py::test_tight_beam_burning_reaches_eyes_and_vitals"
+      ],
+      "gap": null
+    },
+    {
+      "id": "Parry.modifier",
+      "unit": "parry column modifier",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [],
+      "gap": "No audited row carries a nonzero parry modifier."
+    },
+    {
+      "id": "Parry.unbalanced",
+      "unit": "flag",
+      "reference": "B271",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_melee.py::test_unbalanced_and_fencing_parry_columns"
+      ],
+      "gap": null
+    },
+    {
+      "id": "Parry.fencing",
+      "unit": "flag",
+      "reference": "B271",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_melee.py::test_unbalanced_and_fencing_parry_columns"
+      ],
+      "gap": null
+    },
+    {
+      "id": "MeleeMode.kind",
+      "unit": "adapter discriminator",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [],
+      "gap": "Adapter discriminator; no source column corresponds to it."
+    },
+    {
+      "id": "MeleeMode.id",
+      "unit": "mode identifier",
+      "reference": "B271 weapon row modes",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "MeleeMode.skill_id",
+      "unit": "skill reference",
+      "reference": "B271 weapon table skill heading",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_equipment.py::test_modes_and_references_fail_closed"
+      ],
+      "gap": null
+    },
+    {
+      "id": "MeleeMode.minimum_st",
+      "unit": "ST",
+      "reference": "B271 ST column",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "MeleeMode.hands",
+      "unit": "hand count",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [],
+      "gap": "No audited melee row is two-handed."
+    },
+    {
+      "id": "MeleeMode.damage",
+      "unit": "damage record",
+      "reference": "B271 damage column",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "MeleeMode.reach",
+      "unit": "yards; 0 is close combat",
+      "reference": "B271 reach column",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "MeleeMode.parry",
+      "unit": "parry record",
+      "reference": "B271 parry column",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "MeleeMode.ready_after_attack",
+      "unit": "flag",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_maneuvers.py::test_unready_after_attack_requires_ready_and_forbids_double"
+      ],
+      "gap": null
+    },
+    {
+      "id": "RangedMode.kind",
+      "unit": "adapter discriminator",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [],
+      "gap": "Adapter discriminator; no source column corresponds to it."
+    },
+    {
+      "id": "RangedMode.id",
+      "unit": "mode identifier",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_equipment.py::test_ranged_roundtrip_and_missing_ammunition"
+      ],
+      "gap": null
+    },
+    {
+      "id": "RangedMode.skill_id",
+      "unit": "skill reference",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_equipment.py::test_ranged_roundtrip_and_missing_ammunition"
+      ],
+      "gap": null
+    },
+    {
+      "id": "RangedMode.minimum_st",
+      "unit": "ST",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_ranged.py::test_minimum_st_penalty_and_determined_bonus"
+      ],
+      "gap": null
+    },
+    {
+      "id": "RangedMode.hands",
+      "unit": "hand count",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_equipment.py::test_ranged_roundtrip_and_missing_ammunition"
+      ],
+      "gap": null
+    },
+    {
+      "id": "RangedMode.damage",
+      "unit": "damage record",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_equipment.py::test_ranged_roundtrip_and_missing_ammunition"
+      ],
+      "gap": null
+    },
+    {
+      "id": "RangedMode.accuracy",
+      "unit": "accuracy bonus",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_ranged.py::test_aim_range_speed_size_and_half_damage"
+      ],
+      "gap": null
+    },
+    {
+      "id": "RangedMode.range_basis",
+      "unit": "yards or ST multiple",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_equipment.py::test_ranged_roundtrip_and_missing_ammunition"
+      ],
+      "gap": null
+    },
+    {
+      "id": "RangedMode.half_damage_range",
+      "unit": "yards",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_ranged.py::test_aim_range_speed_size_and_half_damage"
+      ],
+      "gap": null
+    },
+    {
+      "id": "RangedMode.maximum_range",
+      "unit": "yards",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_equipment.py::test_fractional_range_and_illegal_thrown_mode"
+      ],
+      "gap": null
+    },
+    {
+      "id": "RangedMode.rate_of_fire",
+      "unit": "shots per attack",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_ranged.py::test_burst_applies_each_hit_separately"
+      ],
+      "gap": null
+    },
+    {
+      "id": "RangedMode.shots",
+      "unit": "shots per load",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_ranged.py::test_missed_single_shot_restart_and_lost_response_conserve_ammo"
+      ],
+      "gap": null
+    },
+    {
+      "id": "RangedMode.reload_seconds",
+      "unit": "seconds",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_ranged.py::test_interrupted_reload_restart_retry_and_reservation"
+      ],
+      "gap": null
+    },
+    {
+      "id": "RangedMode.reload_protocol",
+      "unit": "magazine or per-round selector",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_ranged_followups.py::test_per_round_loading_and_fire_cancels_partial_round"
+      ],
+      "gap": null
+    },
+    {
+      "id": "RangedMode.bulk",
+      "unit": "bulk penalty",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [],
+      "gap": "No executable case binds the bulk column; holdout is unsupported."
+    },
+    {
+      "id": "RangedMode.recoil",
+      "unit": "recoil divisor",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_ranged.py::test_burst_applies_each_hit_separately"
+      ],
+      "gap": null
+    },
+    {
+      "id": "RangedMode.ammunition_id",
+      "unit": "equipment reference",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_equipment.py::test_ranged_roundtrip_and_missing_ammunition"
+      ],
+      "gap": null
+    },
+    {
+      "id": "RangedMode.thrown",
+      "unit": "flag",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_ranged.py::test_thrown_weapon_leaves_inventory_and_retries_once"
+      ],
+      "gap": null
+    },
+    {
+      "id": "RangedMode.blockable",
+      "unit": "flag",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_ranged.py::test_firearm_forbids_block_and_parry_including_second_defense"
+      ],
+      "gap": null
+    },
+    {
+      "id": "RangedMode.brace_kind",
+      "unit": "one-handed or bipod selector",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_maneuver_followups.py::test_variable_scope_and_bipod_bracing_add_independent_aim_bonuses"
+      ],
+      "gap": null
+    },
+    {
+      "id": "RangedMode.scope_bonus",
+      "unit": "accuracy bonus",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_maneuver_followups.py::test_variable_scope_and_bipod_bracing_add_independent_aim_bonuses"
+      ],
+      "gap": null
+    },
+    {
+      "id": "RangedMode.fixed_power_scope",
+      "unit": "flag",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_maneuver_followups.py::test_fixed_scope_requires_its_full_aim_time"
+      ],
+      "gap": null
+    },
+    {
+      "id": "Armor.locations",
+      "unit": "hit location names",
+      "reference": "B283 location column",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "Armor.dr",
+      "unit": "damage resistance",
+      "reference": "B283 DR column",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "Armor.flexible",
+      "unit": "flag",
+      "reference": "B283 flexibility notation",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "Shield.skill_id",
+      "unit": "skill reference",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [],
+      "gap": "No audited row is a shield; shields are an omitted section."
+    },
+    {
+      "id": "Shield.defense_bonus",
+      "unit": "defence bonus",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_melee.py::test_dodge_parry_block_and_repeats"
+      ],
+      "gap": null
+    },
+    {
+      "id": "Shield.can_block",
+      "unit": "flag",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_melee.py::test_dodge_parry_block_and_repeats"
+      ],
+      "gap": null
+    },
+    {
+      "id": "EquipmentProfile.definition_id",
+      "unit": "equipment identifier",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_basic_equipment.py::test_catalog_roundtrip_and_profile_gate"
+      ],
+      "gap": null
+    },
+    {
+      "id": "EquipmentProfile.provenance",
+      "unit": "provenance record",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_equipment_audit.py::test_selected_row_provenance_anchors"
+      ],
+      "gap": null
+    },
+    {
+      "id": "EquipmentProfile.weight_millipounds",
+      "unit": "thousandths of a pound",
+      "reference": "B264-289 weight column, pounds",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_equipment.py::test_load_bands_overload_and_unit_guard"
+      ],
+      "gap": null
+    },
+    {
+      "id": "EquipmentProfile.price",
+      "unit": "dollars",
+      "reference": "B264-289 cost column",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_basic_equipment.py::test_selected_source_rows"
+      ],
+      "gap": null
+    },
+    {
+      "id": "EquipmentProfile.technology_level",
+      "unit": "TL",
+      "reference": "B264-289 TL column",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_basic_equipment.py::test_selected_source_rows"
+      ],
+      "gap": null
+    },
+    {
+      "id": "EquipmentProfile.slot",
+      "unit": "adapter inventory slot",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_equipment.py::test_modes_and_references_fail_closed"
+      ],
+      "gap": null
+    },
+    {
+      "id": "EquipmentProfile.ammunition",
+      "unit": "flag",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_gurps_equipment.py::test_ranged_roundtrip_and_missing_ammunition"
+      ],
+      "gap": null
+    },
+    {
+      "id": "EquipmentProfile.modes",
+      "unit": "weapon mode records",
+      "reference": "B271 weapon rows",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "EquipmentProfile.armor",
+      "unit": "armor record",
+      "reference": "B283 armor rows",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "EquipmentProfile.shield",
+      "unit": "shield record",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [],
+      "gap": "No audited row is a shield; shields are an omitted section."
+    },
+    {
+      "id": "EquipmentProfile.unsupported_mechanics",
+      "unit": "behaviour identifiers",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_basic_equipment.py::test_container_units_and_unsupported_activation"
+      ],
+      "gap": null
+    },
+    {
+      "id": "EquipmentProfile.durability",
+      "unit": "object profile record",
+      "reference": "B264-289",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "EquipmentProfile.container_capacity_millipounds",
+      "unit": "thousandths of a pound",
+      "reference": "B288 container rows",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_basic_equipment.py::test_container_units_and_unsupported_activation"
+      ],
+      "gap": null
+    }
+  ],
+  "bindings": [
+    {
+      "id": "basic-set-catalog",
+      "catalog": "gurps-basic-set-4e-2004",
+      "status": "unbound",
+      "detail": "No pinned package registers an equipment definition, and the audited rows cite the source ID sjg:gurps-basic-set-4e-2004, which no package declares. Every audited Basic Set row therefore fails EquipmentCatalog.bind against the registered packages and is only exercised by test doubles.",
+      "owner_issue": 180,
+      "tests": [
+        "tests/test_equipment_audit.py::test_audited_catalogs_do_not_bind_to_pinned_packages"
+      ]
+    },
+    {
+      "id": "lite-catalog",
+      "catalog": "gurps-lite-4e-2004",
+      "status": "unbound",
+      "detail": "The Lite sample rows cite sjg:gurps-lite-4e-2004, which the Lite package does declare, but no pinned package registers equipment:broadsword or equipment:leather-armor, so the Lite sample cannot bind either.",
+      "owner_issue": 121,
+      "tests": [
+        "tests/test_equipment_audit.py::test_audited_catalogs_do_not_bind_to_pinned_packages"
+      ]
+    }
+  ],
+  "lite_gaps": [
+    {
+      "id": "lite-weapon-table",
+      "reference": "GURPS Lite August 2004 rev. 07/12/04, pp. 19-20",
+      "owner_issue": 121,
+      "detail": "Only one Lite weapon row (broadsword) is recorded. The remaining Lite weapon rows, including every ranged row, are absent from LITE_EQUIPMENT."
+    },
+    {
+      "id": "lite-armor-table",
+      "reference": "GURPS Lite August 2004 rev. 07/12/04, pp. 19-20",
+      "owner_issue": 121,
+      "detail": "Only one Lite armor row (leather armor) is recorded, and its covered locations differ from the Basic Set row of the same name; neither has been reconciled."
+    },
+    {
+      "id": "lite-general-equipment",
+      "reference": "GURPS Lite August 2004 rev. 07/12/04, pp. 19-20",
+      "owner_issue": 121,
+      "detail": "No Lite general equipment, container or ammunition row is recorded, so Lite inventory play has no audited gear beyond the two sample rows."
+    },
+    {
+      "id": "lite-source-identity",
+      "reference": "GURPS Lite August 2004 rev. 07/12/04",
+      "owner_issue": 191,
+      "detail": "The exact Lite revision was not available for inspection, so no Lite row, unit or price is source-verified and every Lite provenance record stays pending."
+    }
+  ]
+}
