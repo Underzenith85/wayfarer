@@ -275,11 +275,27 @@ def choices(
             )
         elif not interrupt.ready and interrupt.waiter_id == actor_id:
             declaration = interrupt.declaration
-            if declaration.reaction_target_id is None or declaration.reaction_target_id in visible:
+            unarmed_reaction = declaration.unarmed
+            waiter = next(p for p in encounter.participants if p.actor_id == actor_id)
+            degraded = declaration.reaction == "all_out_attack" and waiter.maneuver_state.defended
+            offer = declaration.reaction_target_id is None or (
+                declaration.reaction_target_id in visible
+            )
+            if unarmed_reaction is not None:
+                # An All-Out Attack reaction needs v2-only command options, which this
+                # shared projection never emits; the waiter can still decline it here.
+                offer = offer and (declaration.reaction == "attack" or degraded)
+            if offer:
                 candidates.append(
                     (
                         "Take declared Wait reaction",
                         {
+                            "kind": "take_unarmed_turn",
+                            "target_id": declaration.reaction_target_id,
+                            **unarmed_reaction.model_dump(mode="json"),
+                        }
+                        if unarmed_reaction is not None
+                        else {
                             "kind": "take_combat_turn",
                             "maneuver": declaration.reaction,
                             "item_id": declaration.item_id,

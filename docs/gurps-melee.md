@@ -20,6 +20,14 @@ explicit injury/fatigue pools requires migration, not implicit conversion.
   use applicable skills and ready equipment, including shield defense bonus.
   Block is once per turn; Lite parries are once per weapon per turn; Basic
   repeated parries use cumulative penalties, reduced for fencing weapons.
+- Basic melee applies the B376 heavy-weapon limit from the pinned catalog weights:
+  a weapon cannot parry an attacking melee weapon that weighs three or more times
+  as much. Such a weapon is not offered as a parry, is never selected as the best
+  parrying item, and cannot be chosen; the announced defenses are computed with the
+  attacking item, so the limit is visible before the defender answers. Dodge and
+  Block are unaffected, spell attacks and ranged modes carry no limit, and Lite
+  states no weight rule, so saved Lite campaigns are unchanged. A broken weapon's
+  residual definition supplies the weight actually held.
 - Injury includes penetration, torso wounding factors, signed HP, major wounds,
   shock, stun/knockdown, consciousness and death thresholds. Held weapons/shields
   drop without unequipping armor. Stun recovery runs after forced Do Nothing.
@@ -49,7 +57,8 @@ explicit injury/fatigue pools requires migration, not implicit conversion.
 ## Evidence and remaining blockers
 
 `tests/test_gurps_melee.py` contains independently entered expected values for
-trained/default skill, defense distinctions/repetition, negative HP, critical
+trained/default skill, defense distinctions/repetition, the heavy-weapon parry
+limit at and just below its threshold, negative HP, critical
 damage, fatigue reductions and failed exertion, stun recovery and consciousness.
 It covers unauthorized/forged requests, maximum-length command IDs, deferred
 defense across SQLite restart, original-result replay after later turns, and
@@ -59,13 +68,20 @@ Source targets: Lite August 2004 revision 07/12/04, pp. 24-30; Basic Set first
 printing with the declared January 26, 2007 errata, B369-376, B378-382 and B556.
 Numeric comparison used the Campaigns fourth-printing table where available;
 the first-printing/errata delta is not certified. No profile is promoted to
-verified by these engineering tests.
+verified by these engineering tests. The B376 heavy-weapon threshold was entered
+from the publisher's GURPS Combat Cards game aid, which states the limit as
+weapons three or more times a parrying weapon's weight; B376 itself could not be
+inspected during this change, so the threshold is an uninspected secondary
+reference and an explicit audit blocker for #191, not a compared page.
 
 Coverage remains **partial**. [#146](https://github.com/Underzenith85/wayfarer/issues/146)
 tracks the remaining Basic critical consequences and their dependencies on
 #104/#107/#114. Complete maneuvers, initiative/timing and tactical defense options
-remain #104; unarmed/grappling #108; ranged attacks #106. Weapon breakage against
-heavy parries and advantage-specific defense exceptions remain unavailable.
+remain #104; unarmed/grappling #108; ranged attacks #106. Heavy weapons are now
+refused a parry rather than parried at a breakage risk: no damage, wear or
+destruction is applied to a weapon for the attack it may not parry, and any such
+consequence stays unsupported until an inspected source establishes it.
+Advantage-specific defense exceptions remain unavailable and belong to #113.
 The full GURPS profile remains unavailable until those capability gates pass.
 
 The durable critical context is an internal handoff, not a GM override or a

@@ -85,6 +85,30 @@ class PendingUnarmed(Record):
     allowed: tuple[Literal["dodge", "parry", "none"], ...]
 
 
+class UnarmedReaction(Record):
+    """An unarmed attack declared in advance as a Wait reaction (B366).
+
+    Every parameter is fixed before the trigger fires, so the reaction cannot be
+    re-chosen once an opponent commits. A reaction never includes a step, so
+    close-combat entry is not declarable here.
+    """
+
+    action: Literal["punch", "kick", "grapple", "arm_lock"]
+    skill: UnarmedSkill = "attribute:dx"
+    hands: tuple[Hand, ...] = ()
+    foot: Literal["left-foot", "right-foot"] = "right-foot"
+    location: GrappleLocation = "torso"
+    grip_id: str | None = None
+
+    @model_validator(mode="after")
+    def coherent(self) -> Self:
+        if len(set(self.hands)) != len(self.hands):
+            raise ValueError("Unarmed reaction repeats a hand")
+        if (self.action == "arm_lock") != (self.grip_id is not None):
+            raise ValueError("Only an arm-lock reaction names its grapple")
+        return self
+
+
 class UnarmedTrace(Record):
     action: UnarmedAction
     actor_id: Id
@@ -206,9 +230,11 @@ def validate_control(encounter: Encounter, resources: ResourceState, *, basic: b
         if actor.arm_locked != any(g.arm_lock for g in incoming):
             raise ValidationError("Arm-lock projection disagrees with grips")
     pending = encounter.pending_unarmed
+    interrupt = encounter.wait_interrupt
     if pending is not None and (
         encounter.pending_defense is not None
-        or encounter.wait_interrupt is not None
+        # A declared unarmed Wait reaction owns its own defense pause.
+        or (interrupt is not None and not interrupt.reacting)
         or encounter.status != "active"
         or pending.actor_id != encounter.current_actor_id
         or pending.target_id not in participants

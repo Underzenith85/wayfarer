@@ -16,6 +16,7 @@ Issue #108 adds internal commands to the existing `CombatService` transaction. T
 | `lock_damage` | Once on each subsequent holder turn, a passive contest applies crushing damage to the arm, excluding flexible armor. The action does not consume the holder's attack. Winning a contest on an already crippled arm applies shock and knockdown/stun checks through the injury service, without losing more HP or adding another crippling injury. |
 | `strangle` | A neck-grip contest applies crushing neck damage. Penetrating injury starts the existing durable suffocation schedule; one-hand use carries its penalty. |
 | `ResolveChokeEffects` | The victim settles a due grip-specific suffocation deadline. Existing hazard/fatigue logic owns FP, consciousness and the no-air deadline. It consumes no combat turn and cannot duplicate a tick. |
+| `TakeCombatTurn`: `wait` | The existing Wait maneuver may declare an unarmed reaction instead of a weapon one, and a grappled or grappling fighter may declare it. Any turn-consuming unarmed action then pauses the encounter before dice; the waiter takes exactly the declared attack or declines. See [unarmed Wait reactions](#unarmed-wait-reactions). |
 | `release` | Free release on the holder's turn, including a selected subset of hands. An arm lock cannot retain only one hand. Releasing a choking grip ends its hazard after due effects are settled. |
 
 The suffocation adapter uses the existing one-second shared combat clock. It does not introduce a second clock or a player-authored damage parameter. Individual-actor phase timing for choking, alongside other tactical timing refinements, remains part of #176.
@@ -28,12 +29,12 @@ Commands use the existing authenticated actor check, canonical payload digest, c
 
 ## Evidence and limits
 
-The declared source is Basic Set Fourth Edition, first printing (2004), with the January 26, 2007 first-printing errata baseline. Numeric references: Characters B182, B203, B228 and B271; Campaigns B349, B370-371, B379, B400, B403 and B436. Tests contain numeric expectations and references, not rulebook prose. Independent cases are in the common conformance ledger and `tests/test_unarmed.py`. The exact printing/errata artifact audit remains outstanding; the implementation is not a conformance certificate.
+The declared source is Basic Set Fourth Edition, first printing (2004), with the January 26, 2007 first-printing errata baseline. Numeric references: Characters B182, B203, B228 and B271; Campaigns B349, B366, B370-371, B379, B400, B403 and B436. Tests contain numeric expectations and references, not rulebook prose. Independent cases are in the common conformance ledger and `tests/test_unarmed.py`. The exact printing/errata artifact audit remains outstanding; the implementation is not a conformance certificate.
 
 Both `gurps.combat.unarmed` and `gurps.combat.grappling` remain **partial**, which keeps the existing scenario/character capability checks fail-closed. #108 remains open. [Follow-up #176](https://github.com/Underzenith85/wayfarer/issues/176) tracks the remaining work:
 
 - Remaining unarmed critical-miss consequences: knockout/recovery (3/18), attacking stumble displacement (7/14), dropped-guard Evaluate/Feint timing (13), torn-muscle lasting penalties (15), and falling onto a ready impaling weapon (5/6/16). Armed critical-parry failures also retain an explicit blocker. These outcomes keep their recorded dice and halt continuation.
-- Wait/resume, All-Out Attack Double/Feint, movement paths beyond the existing close-combat entry, two-handed Wrestling/Sumo parries, remaining skill-specific defenses, and retreat/following during control attacks.
+- All-Out Attack Double/Feint, movement paths beyond the existing close-combat entry, two-handed Wrestling/Sumo parries, remaining skill-specific defenses, and retreat/following during control attacks. Wait is integrated below; Evaluate, Feint, Aim and Concentrate while a grip is held remain explicitly rejected.
 - The defensive parry-to-arm-lock route and the distinct Choke Hold technique.
 - Escape steps, dragging/carrying, twice-ST movement exceptions, Size Modifier/multiarm variants and additional strikes/targets. Unsupported movement/reload/maneuver combinations are rejected explicitly.
 
@@ -52,8 +53,48 @@ The Double Defense subset of #176 has restart, duplicate-receipt, pre-dice rejec
 
 `tests/test_unarmed_integrations.py` contains independent numeric cases and transaction/replay tests; `tests/test_tactical.py` verifies the v1/v2 HTTP boundary. Both capability families remain partial. These integrations do **not** complete #176 or #108.
 
+## Unarmed Wait reactions
+
+A `WaitTrigger` declares either a weapon reaction or an unarmed one, never both and never
+neither. `WaitTrigger.unarmed` fixes the whole attack in advance — action, skill, hands or
+foot, target location, and an arm lock's grip — because B366 commits a Wait's reaction
+before the trigger fires. A reaction is an ordinary Attack or an All-Out Attack, so
+`reaction` cannot be Feint or Ready and a stop thrust cannot be declared unarmed. Only the
+waiter's stable choices are checked at declaration: profile, skill support, a named foe,
+free usable hands, standing posture for a kick, and the waiter's own two-hand grapple for
+an arm lock. Reach, posture and the foe's state belong to the reaction and are validated
+when it happens, so a Wait declared across the battlefield stays legal.
+
+- Every turn-consuming unarmed action is the observable attack a Wait answers. Releasing a
+  grip and applying arm-lock damage are free actions on the holder's turn, so they do not
+  trigger one. As with an armed Move and Attack, an unarmed attack is an attack rather than
+  a move, so a movement Wait zone does not fire on close-combat entry.
+- Close-combat entry is applied before the pause, exactly as an armed step is, and is
+  stripped from the saved command so the resumed turn cannot enter twice.
+- The pause happens before any dice, before turn bookkeeping and before fatigue exertion,
+  so the interrupted turn resumes whole. `ResumeInterruptedTurn` replays the stored unarmed
+  command; cancelling it spends the turn doing nothing instead.
+- The reaction borrows the interrupted turn rather than adding one: the waiter's injury
+  turn does not advance again, and its attack/defense pause survives inside the interrupt.
+  The waiter can decline with `do_nothing`; no other actor may act while the turn is paused.
+- A reaction that departs from its declaration is rejected before dice, as is an armed
+  reaction to an unarmed declaration, an unarmed reaction to a weapon declaration, and a
+  stop thrust answering close-combat entry.
+- A grappled or grappling fighter may commit to a Wait. Evaluate, Feint, Aim, Concentrate,
+  movement, posture steps and reloading while a grip is held remain rejected as #176 work.
+- The tactical snapshot is shared by both endpoints and is validated by frozen v1 clients,
+  so its choices stay inside the v1 command shapes. Declaring an unarmed Wait is therefore a
+  v2 command option rather than an offered choice, exactly as `TakeUnarmedTurn.maneuver` is.
+  Once paused, the waiter is offered the declared `take_unarmed_turn` reaction and the
+  decline; an All-Out Attack declaration offers only the decline until it degrades.
+  `WaitTrigger.unarmed` is omitted when absent, so an armed Wait keeps its exact canonical
+  payload and existing receipt digests.
+
+Independent cases are in `tests/test_unarmed_wait.py`; `tests/test_tactical.py` covers the
+hex projection and the v1/v2 HTTP boundary. Wait integration does not complete #176 or #108.
+
 ## Versioned command contract
 
-`/api/tactical/v2/campaigns/{cid}/commands` accepts `TakeUnarmedTurn.maneuver` and `attack_option`, plus `ChooseDefense.parry_mode_id` and `second_parry_mode_id`. The unchanged snapshot format remains `tactical-v1`. Gameplay v1 and the tactical v1 input schema remain unchanged; the latter rejects the new options. Omitted v2 options do not alter the canonical command payload, preserving existing receipt digests. See `contracts/tactical/v2/openapi.json` and `frontend/src/api/tactical-v2.generated.ts`.
+`/api/tactical/v2/campaigns/{cid}/commands` accepts `TakeUnarmedTurn.maneuver` and `attack_option`, plus `ChooseDefense.parry_mode_id` and `second_parry_mode_id` and `TakeCombatTurn.wait_trigger.unarmed`. The unchanged snapshot format remains `tactical-v1`. Gameplay v1 and the tactical v1 input schema remain unchanged; the latter rejects the new options. Omitted v2 options do not alter the canonical command payload, preserving existing receipt digests. The tactical v1 request keeps its own frozen `TakeCombatTurn` and `WaitTrigger` shapes, which require `item_id` and reject `unarmed`; the v1 document gains only the unreferenced `UnarmedReaction` definition that the shared snapshot projection carries. See `contracts/tactical/v2/openapi.json` and `frontend/src/api/tactical-v2.generated.ts`.
 
 Verify both contracts with `uv run python -m scripts.tactical_contracts --check` and `uv run python -m scripts.tactical_contracts --version 2 --check`. The exact historical printing/errata equivalence audit remains open; numeric tests are not a source-baseline certification.

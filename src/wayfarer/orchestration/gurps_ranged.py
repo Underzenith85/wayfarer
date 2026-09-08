@@ -123,11 +123,16 @@ def validate_command(
         for value in (command.second_item_id, command.second_target_id, command.second_mode_id)
     ) and not (command.maneuver == "all_out_attack" and command.attack_option == "double"):
         raise ValidationError("Second attack choices require All-Out Attack (Double)")
+    if command.wait_trigger is not None and command.wait_trigger.unarmed is not None:
+        from wayfarer.orchestration.unarmed import declare_unarmed_wait
+
+        declare_unarmed_wait(play, state, encounter, command.actor_id, command.wait_trigger)
     if command.wait_trigger is not None and command.wait_trigger.stop_thrust:
         from wayfarer.orchestration.gurps_melee import mode
         from wayfarer.simulation.gurps_equipment import MeleeMode
 
         trigger = command.wait_trigger
+        assert trigger.item_id is not None
         selected = mode(play, state, command.actor_id, trigger.item_id, trigger.mode_id)
         if not isinstance(selected, MeleeMode) or selected.damage.basis != "thrust":
             raise ValidationError("Stop thrust requires a ready thrusting melee mode")

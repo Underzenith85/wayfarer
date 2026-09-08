@@ -1432,7 +1432,8 @@
       "reviewer": null,
       "evidence": null,
       "tests": [
-        "tests/test_gurps_equipment.py::test_load_bands_overload_and_unit_guard"
+        "tests/test_gurps_equipment.py::test_load_bands_overload_and_unit_guard",
+        "tests/test_gurps_melee.py::test_heavy_weapon_parry_limit"
       ],
       "gap": null
     },

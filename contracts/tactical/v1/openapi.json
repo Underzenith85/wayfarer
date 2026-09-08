@@ -1239,6 +1239,87 @@
         "title": "TakeUnarmedTurn",
         "type": "object"
       },
+      "UnarmedReaction": {
+        "additionalProperties": false,
+        "description": "An unarmed attack declared in advance as a Wait reaction (B366).\n\nEvery parameter is fixed before the trigger fires, so the reaction cannot be\nre-chosen once an opponent commits. A reaction never includes a step, so\nclose-combat entry is not declarable here.",
+        "properties": {
+          "action": {
+            "enum": [
+              "punch",
+              "kick",
+              "grapple",
+              "arm_lock"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "skill": {
+            "default": "attribute:dx",
+            "enum": [
+              "attribute:dx",
+              "skill:brawling",
+              "skill:boxing",
+              "skill:karate",
+              "skill:judo",
+              "skill:wrestling",
+              "skill:sumo-wrestling"
+            ],
+            "title": "Skill",
+            "type": "string"
+          },
+          "hands": {
+            "default": [],
+            "items": {
+              "enum": [
+                "left-hand",
+                "right-hand"
+              ],
+              "type": "string"
+            },
+            "title": "Hands",
+            "type": "array"
+          },
+          "foot": {
+            "default": "right-foot",
+            "enum": [
+              "left-foot",
+              "right-foot"
+            ],
+            "title": "Foot",
+            "type": "string"
+          },
+          "location": {
+            "default": "torso",
+            "enum": [
+              "torso",
+              "neck",
+              "left-arm",
+              "right-arm",
+              "left-leg",
+              "right-leg"
+            ],
+            "title": "Location",
+            "type": "string"
+          },
+          "grip_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Grip Id"
+          }
+        },
+        "required": [
+          "action"
+        ],
+        "title": "UnarmedReaction",
+        "type": "object"
+      },
       "WaitTrigger": {
         "additionalProperties": false,
         "properties": {

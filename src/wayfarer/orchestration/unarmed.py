@@ -31,7 +31,7 @@ from wayfarer.simulation.combat import Combatant, CombatEngine, CombatResult, En
 from wayfarer.simulation.fatigue import fatigue_value
 from wayfarer.simulation.gurps_equipment import DamageType
 from wayfarer.simulation.injury import Wound, apply_injury
-from wayfarer.simulation.maneuvers import ManeuverState
+from wayfarer.simulation.maneuvers import ManeuverState, WaitInterrupt, WaitTrigger
 from wayfarer.simulation.unarmed import (
     BASIC,
     GrappleLocation,
@@ -123,14 +123,14 @@ def guard_control(encounter: Encounter, command: TypedCombatCommand, state: Play
             raise ConflictError("Only the target may resolve the pending unarmed defense")
         return
     if isinstance(command, TakeUnarmedTurn):
-        if (
-            encounter.status != "active"
-            or encounter.pending_defense
-            or encounter.blocked_reason
-            or encounter.wait_interrupt
-        ):
+        if encounter.status != "active" or encounter.pending_defense or encounter.blocked_reason:
             raise ConflictError("Encounter cannot accept unarmed action now")
-        if command.actor_id != encounter.current_actor_id:
+        interrupt = encounter.wait_interrupt
+        if interrupt is not None:
+            # Only the waiter's own declared reaction may act inside a paused turn.
+            if interrupt.ready or interrupt.reacting or command.actor_id != interrupt.waiter_id:
+                raise ConflictError("Resolve the interrupted Wait before another unarmed action")
+        elif command.actor_id != encounter.current_actor_id:
             raise ConflictError("Unarmed action is out of turn")
     if isinstance(command, TakeCombatTurn):
         actor = fighter(encounter, command.actor_id)
@@ -151,7 +151,7 @@ def guard_control(encounter: Encounter, command: TypedCombatCommand, state: Play
                 raise ValidationError("Ready while grappling requires explicit free usable hands")
             if command.reload_ammunition_id is not None or command.unload_ammunition:
                 raise ValidationError("Reloading while grappling requires further integration")
-        if engaged and command.maneuver in ("wait", "feint", "aim", "concentrate"):
+        if engaged and command.maneuver in ("feint", "aim", "concentrate"):
             raise ValidationError("This maneuver while grappling requires further integration")
         if actor.grappled and command.posture is not None:
             raise ValidationError("A grapple prevents a posture step")
@@ -230,6 +230,78 @@ def strength(play: PlayService, state: PlayState, actor_id: str, *, trained: boo
     )
 
 
+def declare_unarmed_wait(
+    play: PlayService,
+    state: PlayState,
+    encounter: Encounter,
+    actor_id: str,
+    trigger: WaitTrigger,
+) -> None:
+    """B366: an unarmed Wait fixes the whole attack in advance, not once it fires.
+
+    Only the waiter's own stable choices are checked here; reach, posture and the
+    target's state belong to the reaction itself, which is validated when it happens.
+    """
+    declared = trigger.unarmed
+    assert declared is not None
+    require_basic(catalog(play).profile_id)
+    if trigger.reaction_target_id is None or trigger.reaction_target_id == actor_id:
+        raise ValidationError("An unarmed Wait reaction requires one declared foe")
+    skills = {
+        "punch": {"attribute:dx", "skill:brawling", "skill:boxing", "skill:karate"},
+        "kick": {"attribute:dx", "skill:brawling", "skill:karate"},
+        "grapple": {"attribute:dx", "skill:judo", "skill:wrestling", "skill:sumo-wrestling"},
+        "arm_lock": {"skill:judo", "skill:wrestling"},
+    }[declared.action]
+    if declared.skill not in skills:
+        raise ValidationError("Skill does not support this unarmed action")
+    skill_value(play, state, actor_id, declared.skill)
+    actor = fighter(encounter, actor_id)
+    if declared.action == "kick":
+        if declared.hands or actor.posture != "standing":
+            raise ValidationError("Kick requires two usable legs and standing posture")
+    elif (
+        not declared.hands
+        or len(declared.hands) > (1 if declared.action == "punch" else 2)
+        or not set(declared.hands) <= set(free_hands(state, encounter, actor_id))
+    ):
+        raise ValidationError("Attack requires explicit free, usable hands")
+    if declared.action == "arm_lock":
+        grip = next((g for g in encounter.grips if g.id == declared.grip_id), None)
+        if (
+            grip is None
+            or grip.holder_id != actor_id
+            or grip.target_id != trigger.reaction_target_id
+            or grip.hands != declared.hands
+        ):
+            raise ValidationError("An arm-lock reaction requires the waiter's own grapple")
+
+
+def require_declared(encounter: Encounter, command: TakeUnarmedTurn) -> None:
+    """A Wait reaction executes exactly the declaration recorded before the trigger."""
+    interrupt = encounter.wait_interrupt
+    assert interrupt is not None
+    declaration = interrupt.declaration
+    declared = declaration.unarmed
+    if declared is None:
+        raise ValidationError("The declared Wait reaction is not an unarmed attack")
+    waiter = fighter(encounter, interrupt.waiter_id)
+    # B366: an All-Out Attack reaction degrades to an Attack once the waiter has defended.
+    degraded = declaration.reaction == "all_out_attack" and waiter.maneuver_state.defended
+    reaction = "attack" if degraded else declaration.reaction
+    option = None if degraded else declaration.attack_option
+    if (
+        command.maneuver != reaction
+        or command.attack_option != option
+        or command.enter_close_combat
+        or (declaration.reaction_target_id or command.target_id) != command.target_id
+        or (declared.action, declared.skill, declared.foot, declared.location, declared.grip_id)
+        != (command.action, command.skill, command.foot, command.location, command.grip_id)
+        or declared.hands != command.hands
+    ):
+        raise ValidationError("Wait reaction must match its recorded declaration")
+
+
 def validate_action(
     play: PlayService, state: PlayState, encounter: Encounter, command: TakeUnarmedTurn
 ) -> None:
@@ -271,8 +343,8 @@ def validate_action(
         raise ValidationError("Incapacitated actor cannot act")
     if setup.available_at > state.resources.game_time:
         raise ValidationError("Actor is recovering from injury")
-    if any(p.maneuver_state.wait for p in encounter.participants):
-        raise ValidationError("Unarmed attacks during armed Wait require interrupt integration")
+    if encounter.wait_interrupt is not None:
+        require_declared(encounter, command)
     if command.action == "lock_damage" and (hp.injury.stunned or actor.forced_do_nothing):
         raise ValidationError("Stunned actor cannot apply arm-lock damage")
     if actor.pinned and command.action != "break_free":
@@ -431,6 +503,80 @@ def validate_action(
             raise ValidationError("Arm-lock damage is available once on each subsequent turn")
 
 
+def interrupt_wait(
+    play: PlayService, state: PlayState, encounter: Encounter, command: TakeUnarmedTurn
+) -> tuple[Encounter, CombatResult] | None:
+    """B366: an unarmed action is an observable attack, so a declared Wait resolves first.
+
+    Only turn-consuming actions trigger; releasing a grip and arm-lock damage are free.
+    Close-combat entry is applied before the pause, exactly as an armed step is, and is
+    stripped from the saved command so the resumed turn cannot move a second time.
+    """
+    engine = play.engine.combat
+    assert engine is not None
+    if command.action in ("release", "lock_damage"):
+        return None
+    actor = fighter(encounter, command.actor_id)
+    entered, pairs = actor, encounter.close_pairs
+    if command.enter_close_combat:
+        target = fighter(encounter, command.target_id)
+        entered = actor.model_copy(update={"position": target.position})
+        merged = set(pairs)
+        merged.update(
+            (min(actor.actor_id, p.actor_id), max(actor.actor_id, p.actor_id))
+            for p in encounter.participants
+            if p.actor_id != actor.actor_id and p.position == target.position
+        )
+        pairs = tuple(sorted(merged))
+    moved = CombatEngine._replace(encounter, entered).model_copy(update={"close_pairs": pairs})
+    for waiter_id in encounter.turn_order:
+        waiter = fighter(encounter, waiter_id)
+        trigger = waiter.maneuver_state.wait
+        if (
+            waiter_id == command.actor_id
+            or trigger is None
+            or trigger.action != "attack"
+            or (trigger.actor_id is not None and trigger.actor_id != command.actor_id)
+            or (trigger.target_id is not None and trigger.target_id != command.target_id)
+        ):
+            continue
+        if trigger.stop_thrust:
+            # A stop thrust rewards a closing move; entering close combat is not that case.
+            if command.enter_close_combat:
+                raise ValidationError("A stop thrust against close-combat entry is unsupported")
+            continue
+        if encounter.hex_battlefield is not None:
+            from wayfarer.simulation.tactical import sight
+
+            if not sight(moved, waiter, entered):
+                continue
+        saved = command.model_copy(update={"enter_close_combat": False})
+        paused = CombatEngine._replace(
+            moved,
+            waiter.model_copy(
+                update={"maneuver_state": waiter.maneuver_state.model_copy(update={"wait": None})}
+            ),
+        ).model_copy(
+            update={
+                "wait_interrupt": WaitInterrupt(
+                    waiter_id=waiter_id,
+                    actor_id=command.actor_id,
+                    turn_index=encounter.turn_index,
+                    command_json=saved.model_dump_json(),
+                    declaration=trigger,
+                )
+            }
+        )
+        return paused, CombatResult(
+            encounter_id=paused.id,
+            code="combat.wait_triggered",
+            round=paused.round,
+            current_actor_id=command.actor_id,
+            available=engine.available(paused, waiter_id),
+        )
+    return None
+
+
 def execute_unarmed(
     play: PlayService,
     state: PlayState,
@@ -440,10 +586,26 @@ def execute_unarmed(
     from wayfarer.orchestration.combat import ChooseDefense
 
     require_basic(catalog(play).profile_id)
+    # A declared Wait reaction borrows the interrupted turn; it is not a second turn.
+    reacting = encounter.wait_interrupt is not None
     if isinstance(command, ChooseDefense):
         state, encounter, trace = defend(play, state, encounter, command)
     else:
+        if reacting:
+            assert encounter.wait_interrupt is not None
+            encounter = encounter.model_copy(
+                update={
+                    "turn_index": encounter.turn_order.index(command.actor_id),
+                    "wait_interrupt": encounter.wait_interrupt.model_copy(
+                        update={"reacting": True}
+                    ),
+                }
+            )
         validate_action(play, state, encounter, command)
+        if not reacting:
+            fired = interrupt_wait(play, state, encounter, command)
+            if fired is not None:
+                return state, fired[0], fired[1]
         if command.action in ("release", "lock_damage"):
             state, encounter, trace = control(play, state, encounter, command)
             encounter = settle_control(state, encounter)
@@ -462,18 +624,25 @@ def execute_unarmed(
                 ),
             )
         actor = fighter(encounter, command.actor_id)
-        state = injury_turn(
-            play, state, actor.actor_id, command.id, start=True, do_nothing=actor.forced_do_nothing
-        )
+        if not reacting:
+            state = injury_turn(
+                play,
+                state,
+                actor.actor_id,
+                command.id,
+                start=True,
+                do_nothing=actor.forced_do_nothing,
+            )
         hp = next(p for p in state.resources.pools if p.id == f"hp:{actor.actor_id}")
         assert hp.injury is not None
         allowed = not (hp.injury.incapacitated or hp.injury.stunned or actor.forced_do_nothing)
         if allowed:
             state, allowed = exertion(play, state, actor.actor_id, command.id)
         if not allowed:
-            state = injury_turn(
-                play, state, actor.actor_id, command.id, start=False, do_nothing=True
-            )
+            if not reacting:
+                state = injury_turn(
+                    play, state, actor.actor_id, command.id, start=False, do_nothing=True
+                )
             encounter = CombatEngine._replace(
                 encounter,
                 actor.model_copy(
@@ -607,7 +776,8 @@ def execute_unarmed(
                 ),
             )
         state, encounter, trace = control(play, state, encounter, command)
-    state = injury_turn(play, state, trace.actor_id, command.id, start=False, do_nothing=False)
+    if not reacting:
+        state = injury_turn(play, state, trace.actor_id, command.id, start=False, do_nothing=False)
     encounter = settle_control(state, encounter)
     encounter = encounter.model_copy(
         update={
