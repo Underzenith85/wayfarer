@@ -16,7 +16,7 @@
         "light-club",
         "broadsword"
       ],
-      "omitted_rows": "Every other B271 melee row, including all rows carrying a special footnote, two-handed and unbalanced entries, and the remaining melee weapon pages.",
+      "omitted_rows": "Every other B271 melee row, including all rows carrying a special footnote, two-handed and unbalanced entries, rows whose quality decides critical breakage, and the remaining melee weapon pages.",
       "mechanics": [
         "unbalanced-parry",
         "fencing-parry",
@@ -746,13 +746,15 @@
     },
     {
       "id": "weapon-breakage",
-      "reference": "B264-289",
+      "reference": "B264-289; resolved against B556-557",
       "anchor": "range-only",
-      "behaviour": "A weapon can break on a critical result and leave a residual damaged mode.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 181,
-      "tests": [],
+      "behaviour": "A weapon's quality decides whether a critical miss breaks it and whether a resistant weapon gets a second roll; a broken weapon loses readiness.",
+      "disposition": "implemented",
+      "capability_id": "gurps.equipment.object_durability",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_ranged_critical_completion.py::test_typed_breakage_and_resistant_second_roll"
+      ],
       "evidence_gap": null
     }
   ],
@@ -1546,6 +1548,19 @@
       "evidence": null,
       "tests": [
         "tests/test_basic_equipment.py::test_sword_and_armor_independent_combat_facts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "EquipmentProfile.critical_breakage",
+      "unit": "weapon quality selector",
+      "reference": "B264-289 weapon quality column; consumed by B556-557",
+      "anchor": "range-only",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_ranged_critical_completion.py::test_typed_breakage_and_resistant_second_roll"
       ],
       "gap": null
     },

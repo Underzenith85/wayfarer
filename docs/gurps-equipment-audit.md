@@ -70,7 +70,9 @@ Power cells are recorded as an unsupported behaviour of their own
 (`power-cell-charges`) precisely so that they are not modelled with the existing
 per-round ammunition path: a rechargeable cell holds charge, not disposable
 rounds. Smartguns, linked afflictions, surge damage and beam environmental
-effects are recorded the same way, as is `weapon-breakage`, which #181 owns.
+effects are recorded the same way. `weapon-breakage` is implemented as of #173,
+but no audited row declares a weapon quality, so the column has no
+selected-table case behind its executable one.
 
 ## Field provenance carried forward from #101
 
@@ -79,7 +81,7 @@ Every field of `Provenance`, `Damage`, `Parry`, `MeleeMode`, `RangedMode`,
 source anchor and either its executable coverage or an explicit gap. Adding or
 removing a schema field without updating the ledger fails the audit.
 
-All 63 records are `pending`. Nothing has been reconciled against an inspected
+All 64 records are `pending`. Nothing has been reconciled against an inspected
 printing, so no field, unit or numeric sample is source-verified, and
 `gurps.equipment.weapon_profiles` and `gurps.equipment.armor_profiles` stay
 partial. Seven fields have no executable case at all: `Parry.modifier`,

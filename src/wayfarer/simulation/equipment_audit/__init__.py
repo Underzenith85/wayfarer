@@ -83,6 +83,7 @@ class Section(Record):
     status: Literal["audited", "partial", "omitted"]
     selected: tuple[Identifier, ...] = ()
     omitted_rows: Text
+    # The special behaviours the omitted rows exercise; the unresolved ones block.
     mechanics: tuple[Identifier, ...] = ()
 
     @model_validator(mode="after")

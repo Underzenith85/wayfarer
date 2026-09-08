@@ -614,8 +614,10 @@ their own unsupported behavior rather than reusing the per-round ammunition path
 a rechargeable cell holds charge, not disposable rounds. Smartguns, linked
 afflictions, surge damage, beam environmental effects and the special tool
 effects behind the camp stove, sleeping bag and laptop are recorded the same way.
+The typed weapon critical breakage #173 added is recorded as implemented, though
+no audited row declares a quality for it.
 
-The #101 weapon and armor profile verification is carried forward here. All 63
+The #101 weapon and armor profile verification is carried forward here. All 64
 fields of the equipment schema carry a declared unit, a source anchor and either
 executable coverage or an explicit gap, and adding a field without a record fails
 the audit. Every record is `pending`: nothing is reconciled with an inspected
