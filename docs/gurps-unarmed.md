@@ -82,8 +82,13 @@ when it happens, so a Wait declared across the battlefield stays legal.
   stop thrust answering close-combat entry.
 - A grappled or grappling fighter may commit to a Wait. Evaluate, Feint, Aim, Concentrate,
   movement, posture steps and reloading while a grip is held remain rejected as #176 work.
-- The tactical projection offers unarmed Wait declarations per target and, once paused,
-  offers the waiter exactly the declared `take_unarmed_turn` reaction and the decline.
+- The tactical snapshot is shared by both endpoints and is validated by frozen v1 clients,
+  so its choices stay inside the v1 command shapes. Declaring an unarmed Wait is therefore a
+  v2 command option rather than an offered choice, exactly as `TakeUnarmedTurn.maneuver` is.
+  Once paused, the waiter is offered the declared `take_unarmed_turn` reaction and the
+  decline; an All-Out Attack declaration offers only the decline until it degrades.
+  `WaitTrigger.unarmed` is omitted when absent, so an armed Wait keeps its exact canonical
+  payload and existing receipt digests.
 
 Independent cases are in `tests/test_unarmed_wait.py`; `tests/test_tactical.py` covers the
 hex projection and the v1/v2 HTTP boundary. Wait integration does not complete #176 or #108.

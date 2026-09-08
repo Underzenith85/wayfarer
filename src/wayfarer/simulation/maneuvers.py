@@ -24,7 +24,8 @@ class WaitTrigger(Record):
     attack_option: AttackOption | None = None
     zone: tuple[tuple[int, int], ...] = ()
     stop_thrust: bool = False
-    unarmed: UnarmedReaction | None = None
+    # Omitted unless declared, so an armed Wait keeps its exact canonical payload.
+    unarmed: UnarmedReaction | None = Field(default=None, exclude_if=lambda value: value is None)
 
     @model_validator(mode="after")
     def valid_condition(self) -> WaitTrigger:

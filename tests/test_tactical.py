@@ -570,6 +570,57 @@ def test_tactical_v2_contract_matches_checked_in_schema() -> None:
     assert Path("contracts/tactical/v2/openapi.json").read_text() == contract(2)
 
 
+def v1_snapshot_errors(payload: object) -> list[str]:
+    """The production v1 client validates every snapshot against the frozen document."""
+    import jsonschema
+
+    document = json.loads(Path("contracts/tactical/v1/openapi.json").read_text())
+    validator = jsonschema.Draft202012Validator(
+        {
+            "$ref": "#/components/schemas/TacticalSnapshot",
+            "components": document["components"],
+        }
+    )
+    return [error.message for error in validator.iter_errors(payload)]
+
+
+async def test_every_offered_choice_stays_inside_the_frozen_v1_snapshot(
+    http: tuple[str, str, PlayService],
+) -> None:
+    base, cid, play = http
+    play.rng = RecordedDice(())
+    async with aiohttp.ClientSession() as client:
+        for actor, principal in (("a", "alice"), ("b", "bob"), ("c", "charlie")):
+            async with client.get(
+                f"{base}/api/tactical/v1/campaigns/{cid}?actor_id={actor}",
+                headers={"Authorization": f"Bearer {principal}-token"},
+            ) as response:
+                assert response.status == 200, await response.text()
+                payload = await response.json()
+            offered = payload["encounters"][0]["choices"]
+            assert v1_snapshot_errors(payload) == []
+            if actor == "a":
+                # Armed Wait declarations keep their exact pre-existing canonical payload.
+                waits = [c["command"] for c in offered if c["command"].get("maneuver") == "wait"]
+                assert waits and all(
+                    set(c["wait_trigger"])
+                    == {
+                        "actor_id",
+                        "action",
+                        "target_id",
+                        "reaction",
+                        "item_id",
+                        "reaction_target_id",
+                        "mode_id",
+                        "attack_option",
+                        "zone",
+                        "stop_thrust",
+                    }
+                    for c in waits
+                )
+    assert play.rng.exhausted()
+
+
 async def test_unarmed_wait_declaration_is_a_v2_only_request_option(
     unarmed_http: tuple[str, str, PlayService],
 ) -> None:
@@ -645,6 +696,12 @@ async def test_unarmed_wait_declaration_is_a_v2_only_request_option(
         assert set(offered) == {"Take declared Wait reaction", "Decline Wait reaction"}
         reaction = offered["Take declared Wait reaction"]
         assert reaction.kind == "take_unarmed_turn"
+        # The shared projection is read by frozen v1 clients, so its choices stay v1-shaped.
+        async with client.get(
+            f"{base}/api/tactical/v1/campaigns/{cid}?actor_id=b",
+            headers={"Authorization": "Bearer bob-token"},
+        ) as response:
+            assert v1_snapshot_errors(await response.json()) == []
         async with client.post(
             f"{base}/api/tactical/v2/campaigns/{cid}/commands",
             json={"command": reaction.model_dump(mode="json")},
