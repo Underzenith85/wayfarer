@@ -82,7 +82,14 @@ class InventoryItem:
 
 def inventory() -> tuple[InventoryItem, ...]:
     """Read owner inventories; candidate counts never imply exhaustive source coverage."""
-    rows = [InventoryItem(e.id, e.reference, 112, "partial", "mundane-skills") for e in skills()]
+    # Item-level skill blockers and certification state come from the owner
+    # inventory; a blanket family status would hide unowned runtime coverage.
+    rows = [
+        InventoryItem(
+            e.id, e.reference, 112, e.implementation, "mundane-skills", blockers=e.followup_issues
+        )
+        for e in skills()
+    ]
     rows.extend(
         InventoryItem(e.id, e.reference, 113, "partial", "mundane-traits") for e in traits()
     )

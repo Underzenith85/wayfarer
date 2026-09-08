@@ -385,6 +385,17 @@ Representative fallback definitions are normalized to unsupported just like newl
 indexed entries. These checks improve data integrity without making blocked
 skills playable or changing existing rule-package pins.
 
+Each row is classified by the structure it records, and the audit rejects an
+inventory that leaves any structural class unsampled or any row unclassified.
+Rows without recorded mechanics are reported as `listing-only` rather than as
+partial definitions, and each row's own blockers and certification state reach
+`source_audit` instead of one family status for the chapter. 223 rows still name
+no mechanics owner beyond this audit; the report publishes that count as
+`runtime_owner_unassigned`, a visible #122 blocker. Excluded cinematic and
+supernatural skills are validated against the #119 catalog that owns them, so a
+transfer cannot silently drop a Basic Set skill. The accounting matrix is
+[the mundane skill inventory](gurps-mundane-skills.md).
+
 ## Provisional social procedures (#111)
 
 `rules.gurps_social` implements reaction bands and typed status/reputation/

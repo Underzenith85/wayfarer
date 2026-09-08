@@ -43,7 +43,7 @@ runtime definitions:
 
 | Inventory | Owner | Boundary |
 | --- | --- | --- |
-| Mundane skill families and selected expansions | #112 | Specialties/TL and runtime blockers remain |
+| Mundane skill families and selected expansions | #112 | All 257 rows consumed with their own item-level owners and certification state; specialties/TL and runtime blockers remain |
 | Selected mundane traits and backgrounds | #113 | Selected constructions do not exhaust all entries |
 | Supernatural catalog and transferred skills | #119 | All 334 typed records consumed directly; concrete runtime/source blockers remain |
 | Registered catalog definitions and learned spells | #112/#113/#119 | IDs include package versions; representative coverage |

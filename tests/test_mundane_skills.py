@@ -9,14 +9,19 @@ from pydantic import ValidationError as SchemaError
 from wayfarer.errors import ValidationError
 from wayfarer.rules.catalog import ImplementationStatus, RulesCatalog
 from wayfarer.rules.mundane_skills import (
+    PROFILE,
+    StructuralClass,
     audit_report,
     candidate_package,
+    coverage_blockers,
+    exclusions,
     inventory,
     require_available,
     source_inventory,
+    transferred_exclusions,
     validate_inventory,
 )
-from wayfarer.rules.mundane_skills.schema import InventoryRow
+from wayfarer.rules.mundane_skills.schema import Exclusion, InventoryRow
 from wayfarer.rules.skill_types import Difficulty
 
 
@@ -196,3 +201,99 @@ def test_default_reference_validation() -> None:
         )
         with pytest.raises(ValidationError, match="default references"):
             validate_inventory((replace(entry, definition=definition), *entries[1:]))
+
+
+def test_structural_classes_are_recorded_and_completely_sampled() -> None:
+    """Classification reads recorded structure only; absent metadata stays listing-only."""
+    entries = {e.id: e for e in inventory()}
+    expected = {
+        # B174 Accounting: an attribute default and three skill defaults.
+        "skill:accounting": {"attribute-default", "skill-default"},
+        # B203 Karate: no recorded default of any kind.
+        "skill:karate": {"no-default"},
+        # B169/B213 optional Physics specialty and its unspecialized parent.
+        "skill:physics-acoustics": {"no-default", "optional-specialty"},
+        # B207 Mathematics is a required specialty with TL context.
+        "skill:mathematics-pure": {
+            "attribute-default",
+            "required-specialty",
+            "skill-default",
+            "technology-level",
+        },
+        # B230 Arm Lock is a technique of Judo, not a skill with defaults.
+        "skill:arm-lock-judo": {"no-default", "technique"},
+        # B176/B219 Astronomy needs a trained prerequisite and a TL.
+        "skill:astronomy": {"attribute-default", "prerequisite", "technology-level"},
+        # B176 Area Knowledge requires a specialty this inventory does not expand.
+        "skill:area-knowledge": {"attribute-default", "unexpanded-specialty"},
+        # B228 Vacc Suit carries no verified mechanics at all.
+        "skill:vacc-suit": {"listing-only"},
+    }
+    for identifier, classes in expected.items():
+        assert {c.value for c in entries[identifier].structural_classes} == classes
+    sampled = {c for e in entries.values() for c in e.structural_classes}
+    assert sampled == set(StructuralClass)
+    assert all(e.structural_classes for e in entries.values())
+    assert entries["skill:vacc-suit"].implementation == "listing-only"
+    assert entries["skill:accounting"].implementation == "unsupported"
+    assert sum(e.implementation == "listing-only" for e in entries.values()) == 19
+
+
+def test_unsampled_or_unclassified_rows_are_rejected() -> None:
+    entries = inventory()
+    techniques = tuple(e for e in entries if StructuralClass.TECHNIQUE in e.structural_classes)
+    assert techniques
+    remaining = tuple(e for e in entries if e not in techniques)
+    with pytest.raises(ValidationError, match="unsampled: technique"):
+        validate_inventory(remaining)
+    orphan = replace(entries[0], followup_issues=(999,))
+    with pytest.raises(ValidationError, match="unowned"):
+        validate_inventory((orphan, *entries[1:]))
+
+
+def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
+    """B208/B195: named mechanics owners survive; unowned rows are not hidden."""
+    entries = {e.id: e for e in inventory()}
+    assert entries["skill:broadsword"].owners == (103,)
+    assert entries["skill:first-aid"].owners == (109,)
+    assert entries["skill:accounting"].owners == ()
+    assert coverage_blockers(PROFILE) == (103, 109, 110, 111, 112)
+    with pytest.raises(ValidationError, match="outside the selected profile"):
+        coverage_blockers("gurps-lite-4e-2004")
+    report = audit_report()
+    assert report["coverage_blockers"] == [103, 109, 110, 111, 112]
+    assert report["runtime_owner_unassigned"] == 223
+    assert report["implementation_counts"] == {"listing-only": 19, "unsupported": 238}
+    counts = report["structural_class_counts"]
+    assert isinstance(counts, dict) and counts["listing-only"] == 19
+
+
+def test_excluded_skills_remain_owned_by_the_catalog_that_carries_them() -> None:
+    """Exclusion is a transfer with named owners, never a silent removal."""
+    rows = {e.id: e for e in transferred_exclusions()}
+    assert len(rows) == 28
+    assert rows["alchemy"].owners == (243, 191)
+    assert rows["zen-archery"].owners == (242, 191)
+    assert all(row.reason and row.page for row in rows.values())
+
+
+def test_exclusion_owner_drift_is_a_coverage_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+    import wayfarer.rules.mundane_skills as module
+
+    rows = exclusions()
+    monkeypatch.setattr(module, "exclusions", lambda: rows[1:])
+    with pytest.raises(ValidationError, match="owning catalog differ"):
+        transferred_exclusions()
+    renamed = rows[0].model_copy(update={"owners": (191,)})
+    monkeypatch.setattr(module, "exclusions", lambda: (renamed, *rows[1:]))
+    with pytest.raises(ValidationError, match="owner drift"):
+        transferred_exclusions()
+
+
+@pytest.mark.parametrize(
+    "changes", [{"owners": []}, {"owners": [242, 242]}, {"owners": [0]}, {"id": "Alchemy"}]
+)
+def test_exclusion_records_reject_unowned_transfers(changes: dict[str, object]) -> None:
+    row = exclusions()[0].model_dump(mode="json")
+    with pytest.raises(SchemaError):
+        Exclusion.model_validate_json(json.dumps(row | changes))

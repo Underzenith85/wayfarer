@@ -2,144 +2,284 @@
   "scope": "Basic Set Characters skill chapter; techniques represented separately",
   "excluded": [
     {
+      "id": "alchemy",
       "name": "Alchemy",
       "page": 174,
-      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+      "reason": "Cinematic or supernatural procedure outside mundane inventory",
+      "owners": [
+        243,
+        191
+      ]
     },
     {
+      "id": "blind-fighting",
       "name": "Blind Fighting",
       "page": 180,
-      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+      "reason": "Cinematic or supernatural procedure outside mundane inventory",
+      "owners": [
+        242,
+        191
+      ]
     },
     {
+      "id": "body-control",
       "name": "Body Control",
       "page": 181,
-      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+      "reason": "Cinematic or supernatural procedure outside mundane inventory",
+      "owners": [
+        242,
+        191
+      ]
     },
     {
+      "id": "breaking-blow",
       "name": "Breaking Blow",
       "page": 182,
-      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+      "reason": "Cinematic or supernatural procedure outside mundane inventory",
+      "owners": [
+        242,
+        191
+      ]
     },
     {
+      "id": "captivate",
       "name": "Captivate",
       "page": 191,
-      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+      "reason": "Cinematic or supernatural procedure outside mundane inventory",
+      "owners": [
+        242,
+        191
+      ]
     },
     {
+      "id": "computer-hacking",
       "name": "Computer Hacking",
       "page": 184,
-      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+      "reason": "Cinematic or supernatural procedure outside mundane inventory",
+      "owners": [
+        242,
+        191
+      ]
     },
     {
+      "id": "enthrallment",
       "name": "Enthrallment",
       "page": 191,
-      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+      "reason": "Cinematic or supernatural procedure outside mundane inventory",
+      "owners": [
+        242,
+        191
+      ]
     },
     {
+      "id": "flying-leap",
       "name": "Flying Leap",
       "page": 196,
-      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+      "reason": "Cinematic or supernatural procedure outside mundane inventory",
+      "owners": [
+        242,
+        191
+      ]
     },
     {
+      "id": "herb-lore",
       "name": "Herb Lore",
       "page": 199,
-      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+      "reason": "Cinematic or supernatural procedure outside mundane inventory",
+      "owners": [
+        243,
+        191
+      ]
     },
     {
+      "id": "immovable-stance",
       "name": "Immovable Stance",
       "page": 201,
-      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+      "reason": "Cinematic or supernatural procedure outside mundane inventory",
+      "owners": [
+        242,
+        191
+      ]
     },
     {
+      "id": "invisibility-art",
       "name": "Invisibility Art",
       "page": 202,
-      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+      "reason": "Cinematic or supernatural procedure outside mundane inventory",
+      "owners": [
+        242,
+        191
+      ]
     },
     {
+      "id": "kiai",
       "name": "Kiai",
       "page": 203,
-      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+      "reason": "Cinematic or supernatural procedure outside mundane inventory",
+      "owners": [
+        242,
+        191
+      ]
     },
     {
+      "id": "light-walk",
       "name": "Light Walk",
       "page": 205,
-      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+      "reason": "Cinematic or supernatural procedure outside mundane inventory",
+      "owners": [
+        242,
+        191
+      ]
     },
     {
+      "id": "mental-strength",
       "name": "Mental Strength",
       "page": 209,
-      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+      "reason": "Cinematic or supernatural procedure outside mundane inventory",
+      "owners": [
+        242,
+        191
+      ]
     },
     {
+      "id": "musical-influence",
       "name": "Musical Influence",
       "page": 210,
-      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+      "reason": "Cinematic or supernatural procedure outside mundane inventory",
+      "owners": [
+        242,
+        191
+      ]
     },
     {
+      "id": "persuade",
       "name": "Persuade",
       "page": 191,
-      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+      "reason": "Cinematic or supernatural procedure outside mundane inventory",
+      "owners": [
+        242,
+        191
+      ]
     },
     {
+      "id": "power-blow",
       "name": "Power Blow",
       "page": 215,
-      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+      "reason": "Cinematic or supernatural procedure outside mundane inventory",
+      "owners": [
+        242,
+        191
+      ]
     },
     {
+      "id": "pressure-points",
       "name": "Pressure Points",
       "page": 215,
-      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+      "reason": "Cinematic or supernatural procedure outside mundane inventory",
+      "owners": [
+        242,
+        191
+      ]
     },
     {
+      "id": "pressure-secrets",
       "name": "Pressure Secrets",
       "page": 215,
-      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+      "reason": "Cinematic or supernatural procedure outside mundane inventory",
+      "owners": [
+        242,
+        191
+      ]
     },
     {
+      "id": "push",
       "name": "Push",
       "page": 216,
-      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+      "reason": "Cinematic or supernatural procedure outside mundane inventory",
+      "owners": [
+        242,
+        191
+      ]
     },
     {
+      "id": "ritual-magic",
       "name": "Ritual Magic",
       "page": 218,
-      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+      "reason": "Cinematic or supernatural procedure outside mundane inventory",
+      "owners": [
+        243,
+        191
+      ]
     },
     {
+      "id": "suggest",
       "name": "Suggest",
       "page": 191,
-      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+      "reason": "Cinematic or supernatural procedure outside mundane inventory",
+      "owners": [
+        242,
+        191
+      ]
     },
     {
+      "id": "sway-emotions",
       "name": "Sway Emotions",
       "page": 192,
-      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+      "reason": "Cinematic or supernatural procedure outside mundane inventory",
+      "owners": [
+        242,
+        191
+      ]
     },
     {
+      "id": "symbol-drawing",
       "name": "Symbol Drawing",
       "page": 224,
-      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+      "reason": "Cinematic or supernatural procedure outside mundane inventory",
+      "owners": [
+        243,
+        191
+      ]
     },
     {
+      "id": "thaumatology",
       "name": "Thaumatology",
       "page": 225,
-      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+      "reason": "Cinematic or supernatural procedure outside mundane inventory",
+      "owners": [
+        243,
+        191
+      ]
     },
     {
+      "id": "throwing-art",
       "name": "Throwing Art",
       "page": 226,
-      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+      "reason": "Cinematic or supernatural procedure outside mundane inventory",
+      "owners": [
+        242,
+        191
+      ]
     },
     {
+      "id": "weird-science",
       "name": "Weird Science",
       "page": 228,
-      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+      "reason": "Cinematic or supernatural procedure outside mundane inventory",
+      "owners": [
+        242,
+        191
+      ]
     },
     {
+      "id": "zen-archery",
       "name": "Zen Archery",
       "page": 228,
-      "reason": "Cinematic or supernatural procedure outside mundane inventory"
+      "reason": "Cinematic or supernatural procedure outside mundane inventory",
+      "owners": [
+        242,
+        191
+      ]
     }
   ]
 }
