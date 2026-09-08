@@ -1316,6 +1316,20 @@ details summary {
   min-height: 44px;
 }
 
+/* Setup's main is a landmark, not the play shell's page frame (#257). The
+   panels inside it carry their own width and gutters, and the header above it
+   is its sibling, so any padding here would stop the two cards sharing their
+   edges at the widths where the column is not centred (#254). */
+main.setup-main {
+  padding: 0;
+}
+/* The footer still reads as part of that column rather than starting at the
+   viewport edge, so it takes the panels' width and their inner gutter. */
+main.setup-main > .scene-footer {
+  max-width: 54rem;
+  margin: 1rem auto 2rem;
+  padding-inline: clamp(1.5rem, 4vw, 3rem);
+}
 /* Setup modes are a tab bar: the selected one is obvious from the control
    itself, so the panel below never has to repeat its label (#200). */
 .mode-tabs {

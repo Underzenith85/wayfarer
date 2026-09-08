@@ -201,7 +201,7 @@ export function ConnectedApp() {
           </div>
         </nav>
       </header>
-      <main id="setup-main" tabIndex={-1}>
+      <main className="setup-main" id="setup-main" tabIndex={-1}>
         <div id={panelId} role="tabpanel" aria-labelledby={tabId(mode)}>
           <SetupLobby
             mode={mode}
