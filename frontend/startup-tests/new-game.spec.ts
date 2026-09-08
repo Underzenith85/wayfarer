@@ -6,7 +6,7 @@ import {
 async function login(page: Page, player = "alice") {
   await page.goto("/");
   await expect(
-    page.getByRole("tab", { name: "New game", exact: true }),
+    page.getByRole("tab", { name: "Start game", exact: true }),
   ).toBeVisible();
   await expect(page.getByLabel("Campaign ID", { exact: true })).toHaveCount(0);
   await page
@@ -45,10 +45,6 @@ test("solo production entry, illegal party, stale edit, lost activation, refresh
   const { lobby } = await draft(page);
   await expect(lobby.getByText(providerBanner.summary)).toBeVisible();
   await expect(lobby.getByText(providerBanner.disclosure)).toBeVisible();
-  await step(lobby, "Concept");
-  await expect(
-    lobby.getByRole("button", { name: "Generate from saved brief" }),
-  ).toHaveCount(0);
   await step(lobby, "Party");
   await lobby.getByLabel("Strength", { exact: true }).fill("100");
   await lobby.getByRole("button", { name: "Save setup draft" }).click();
@@ -200,6 +196,7 @@ test("separate invited identity joins, readies and starts without leaking a priv
     });
     expect(own.ok()).toBeTruthy();
     expect((await own.json()).graph).toBeNull();
+    await guest.getByRole("tab", { name: "Join game", exact: true }).click();
     await invited.locator(`[data-campaign-id="${cid}"]`).click();
     await invited.getByRole("button", { name: "Accept invitation" }).click();
     await expect(invited.getByRole("status")).toContainText("revision 2");

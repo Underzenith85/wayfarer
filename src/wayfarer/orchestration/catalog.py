@@ -2,14 +2,23 @@
 
 import hashlib
 import json
+from typing import Literal
 from uuid import NAMESPACE_URL, uuid5
+
+from pydantic import Field
 
 from wayfarer.errors import ConflictError, NotFoundError, ValidationError
 from wayfarer.orchestration.providers import Orchestrator, ProviderRequest
-from wayfarer.orchestration.scenario_documents import ScenarioDocuments, bind_party, parse_document
+from wayfarer.orchestration.scenario_documents import (
+    ScenarioDocuments,
+    adapt_graph,
+    bind_party,
+    parse_document,
+)
 from wayfarer.orchestration.setup import SetupService
 from wayfarer.orchestration.studio import ScenarioStudio
 from wayfarer.persistence.catalog import CatalogStore
+from wayfarer.simulation.actions import ActorSetup
 from wayfarer.simulation.catalog import (
     CatalogCommand,
     CatalogEntry,
@@ -20,9 +29,28 @@ from wayfarer.simulation.catalog import (
     ScenarioGenerationJob,
     ScenarioGenerationRequest,
 )
-from wayfarer.simulation.scenario_document import DraftRevision, Provenance, PublicBrief
+from wayfarer.simulation.scenario_document import (
+    DraftRevision,
+    InitialResources,
+    Provenance,
+    PublicBrief,
+    ScenarioDocument,
+)
 from wayfarer.simulation.setup import CreateSetup
 from wayfarer.simulation.studio import ScenarioGraph, StudioFinding
+
+
+class GeneratedActorSetup(ActorSetup):
+    """Provider proposals always describe a fresh, not-yet-running actor."""
+
+    available_at: Literal[0] = 0
+
+
+class GeneratedScenarioGraph(ScenarioGraph):
+    """Provider-facing graph whose state is portable into a new scenario draft."""
+
+    resources: InitialResources
+    actors: tuple[GeneratedActorSetup, ...] = Field(min_length=1, max_length=30)
 
 
 class ScenarioCatalog:
@@ -290,12 +318,15 @@ class ScenarioCatalog:
         job = await self.read_generation_job(principal, job_id)
         if job.status not in ("queued", "failed"):
             return job
+        # A queued job with a proposal is an author-requested repair. Keep that
+        # proposal on the job while the provider runs so a failed repair never
+        # destroys the last reviewable draft.
+        working_source = job.proposal_json or job.request.source_json
+        previous_report = job.report
         job = await self.store.update_job(
             job.model_copy(
                 update={
                     "status": "running",
-                    "proposal_json": None,
-                    "report": None,
                     "error_code": None,
                     "error_message": None,
                 }
@@ -304,7 +335,7 @@ class ScenarioCatalog:
         )
         request = job.request
         current_document = (
-            parse_document(request.source_json) if request.source_json is not None else None
+            parse_document(working_source) if working_source is not None else None
         )
         current_graph = bind_party(current_document) if current_document is not None else None
         current_context: object = None
@@ -339,52 +370,97 @@ class ScenarioCatalog:
             "section": request.section,
             "current_scenario": current_context,
         }
+        if previous_report is not None:
+            context["validation"] = previous_report.model_dump(mode="json")
         if len(json.dumps(context)) > 23_000:
             context["current_scenario"] = {
                 "content_digest": request.source_digest,
                 "note": "The accepted scenario is too large for provider context; propose only the requested section.",
             }
-        graph: ScenarioGraph | None = None
-        report = None
+        revision = (current_document.revision + 1) if current_document else 1
+        graph: ScenarioGraph | None = current_graph
+        report = self.documents.studio.validate(current_graph) if current_graph else None
+        document: ScenarioDocument | None = current_document
+        best_error_count: int | None = (
+            sum(finding.severity == "error" for finding in report.findings)
+            if report is not None
+            else None
+        )
         for _ in range(request.attempts):
+            repairing = current_graph is not None
             raw = await llm._call(
                 ProviderRequest(
                     operation="scenario_draft",
                     session_id=f"scenario-authoring:{principal}:{job.id}",
                     context_json=json.dumps(context),
                     prompt=(
-                        "Create a complete runtime-backed scenario proposal using only supplied "
-                        "catalog IDs and supported mechanics. Include an actionable opening, "
-                        "multiple approaches, explicit success/partial/failure consequences, and "
-                        "a supported escape or rescue route for every capture outcome. "
+                        ("Revise the supplied scenario into " if repairing else "Create ")
+                        + "a complete runtime-backed scenario proposal using only supplied "
+                        "catalog IDs and supported mechanics. Take creative control of the "
+                        "narrative: freely rewrite scenes, characters, motives, clues, routes, "
+                        "and consequences when that produces a more coherent adventure or fixes "
+                        "a validation finding. Preserve the author's premise, tone, boundaries, "
+                        "and explicit direction. Include an actionable opening, multiple "
+                        "approaches, explicit success/partial/failure consequences, and a "
+                        "supported escape or rescue route for every capture outcome. "
                         + request.instructions
                     )[:4000],
-                    output_schema=ScenarioGraph.model_json_schema(),
+                    output_schema=GeneratedScenarioGraph.model_json_schema(),
                 )
             )
-            graph = ScenarioGraph.model_validate_json(raw)
+            proposed: ScenarioGraph = GeneratedScenarioGraph.model_validate_json(raw)
             if current_graph is not None:
-                graph = self._merge_section(current_graph, graph, request.section)
-            report = self.documents.studio.validate(graph)
-            if report.valid:
+                proposed = self._merge_section(current_graph, proposed, request.section)
+            proposed_report = self.documents.studio.validate(proposed)
+            portable_document: ScenarioDocument | None = None
+            try:
+                portable_document = adapt_graph(
+                    proposed,
+                    studio=self.documents.studio,
+                    revision_id=f"proposal-{job.id}",
+                    author=principal,
+                    public=PublicBrief(
+                        title=proposed.title,
+                        summary=proposed.brief.premise,
+                        setup=proposed.brief,
+                        opening_prompt=proposed.opening_action,
+                    ),
+                )
+            except ValidationError, ValueError:
+                proposed_report = proposed_report.model_copy(
+                    update={
+                        "findings": proposed_report.findings
+                        + (
+                            StudioFinding(
+                                code="generation.not_portable",
+                                severity="error",
+                                reference=proposed.id,
+                                message=(
+                                    "Generated state cannot be converted into a fresh scenario "
+                                    "draft."
+                                ),
+                            ),
+                        )
+                    }
+                )
+            else:
+                error_count = sum(
+                    finding.severity == "error" for finding in proposed_report.findings
+                )
+                if (
+                    best_error_count is None
+                    or error_count < best_error_count
+                    or (best_error_count == 0 and error_count == 0)
+                ):
+                    graph, report, document = proposed, proposed_report, portable_document
+                    best_error_count = error_count
+            if proposed_report.valid and portable_document is not None:
                 break
-            context["validation"] = report.model_dump(mode="json")
-        assert graph is not None and report is not None
-        revision = (current_document.revision + 1) if current_document else 1
-        from wayfarer.orchestration.scenario_documents import adapt_graph
+            context["validation"] = proposed_report.model_dump(mode="json")
+        if graph is None or report is None or document is None:
+            raise ValidationError("Scenario generation exhausted its portable repair budget")
 
-        document = adapt_graph(
-            graph,
-            studio=self.documents.studio,
-            revision_id=f"proposal-{job.id}",
-            author=principal,
-            public=PublicBrief(
-                title=graph.title,
-                summary=graph.brief.premise,
-                setup=graph.brief,
-                opening_prompt=graph.opening_action,
-            ),
-        ).model_copy(
+        document = document.model_copy(
             update={
                 "revision": revision,
                 "provenance": Provenance(

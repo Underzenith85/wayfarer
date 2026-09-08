@@ -1,0 +1,2791 @@
+/* =============================================================================
+   components.css — Wayfarer Field Journal
+   Every class the system defines, grouped as the docs are grouped.
+   Assumes tokens.css and base.css are loaded first.
+
+   Naming: classes kept from the existing stylesheet keep their names, so most
+   of this file lands as a restyle rather than a rewrite. New classes are noted
+   NEW. Renames are listed in docs/09-migration-map.md.
+   ========================================================================== */
+
+/* =========================================================================
+   1. SHELL
+   ====================================================================== */
+
+.topbar {
+  height: var(--topbar-height);
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: 0 max(var(--s-6), calc((100% - var(--shell-width)) / 2));
+  background: var(--page);
+  border-bottom: 1px solid var(--rule);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+.brand svg {
+  color: var(--wax);
+}
+.brand b,
+.brand-name {
+  font-family: var(--serif);
+  font-size: 23px;
+  font-weight: 400;
+  letter-spacing: 0.13em;
+}
+/* The campaign line is handwritten — it is what the table calls this game. */
+.brand-tagline {
+  font-family: var(--hand);
+  font-style: normal;
+  font-size: 19px;
+  color: var(--wax);
+  opacity: 0.85;
+  line-height: 1.2;
+  padding-left: 13px;
+  border-left: 1px solid var(--rule);
+  transform: rotate(-1deg);
+}
+.topbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Presence in the topbar is lamps, not avatars. NEW — replaces nothing;
+   do not reintroduce an overlapping avatar stack, it duplicates .seat-list. */
+.lamp-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.lamp-row > * {
+  color: var(--rule-strong);
+  display: flex;
+}
+.lamp-row > [data-lit] {
+  color: var(--wax);
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: var(--rail-width) minmax(0, 1fr) var(--party-width);
+  width: calc(100% - (2 * var(--s-6)));
+  min-height: calc(100dvh - var(--topbar-height));
+  max-width: var(--shell-width);
+  margin-inline: auto;
+}
+
+/* ---- rail ---- */
+.navigation-panel {
+  border-right: 1px solid var(--rule);
+  padding: 26px var(--s-4);
+  display: flex;
+  flex-direction: column;
+}
+.navigation-panel nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 14px;
+}
+.navigation-panel nav a {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-height: var(--reach);
+  padding: 0 var(--s-3);
+  border-radius: var(--radius);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  border-bottom: 0;
+}
+.navigation-panel nav a:hover {
+  color: var(--ink);
+  background: var(--well);
+}
+.navigation-panel nav a.active {
+  background: var(--wax-soft);
+  color: var(--wax);
+  font-weight: 600;
+  box-shadow: inset 2px 0 0 var(--wax);
+}
+.nav-tick {
+  width: 5px;
+  height: 5px;
+  border-radius: var(--radius-pill);
+  background: currentColor;
+  opacity: 0.45;
+  flex: none;
+} /* NEW */
+
+.table-note {
+  margin-top: auto;
+  border-top: 1px solid var(--rule);
+  padding-top: var(--s-4);
+  display: flex;
+  gap: var(--s-3);
+}
+.table-note b {
+  display: block;
+  font-family: var(--serif);
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: 3px;
+}
+
+/* ---- the leaf: main is a page of the journal ----
+   The vertical wax rule is painted as a background so it survives any content.
+   .play-workspace / main carries it; .leaf-inner holds the content clear of it. */
+.play-workspace,
+main.leaf {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 26px var(--s-6) 28px 0;
+  background-image: linear-gradient(
+    to right,
+    transparent 0 calc(var(--margin-rule-x) - 1px),
+    color-mix(in srgb, var(--wax) 28%, transparent)
+      calc(var(--margin-rule-x) - 1px) var(--margin-rule-x),
+    transparent var(--margin-rule-x)
+  );
+}
+.leaf-inner > .play-workspace {
+  padding: 0;
+  background-image: none;
+}
+.leaf-inner {
+  padding-left: 88px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+} /* NEW */
+
+.page-heading,
+.scene-head {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s-4);
+  padding-bottom: 13px;
+  border-bottom: 1px solid var(--rule);
+}
+.scene-head h2 {
+  font-family: var(--serif);
+  font-size: 31px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+.scene-head .hand {
+  text-align: right;
+  font-size: 18px;
+  transform: rotate(-1.2deg);
+}
+
+/* ---- party panel ---- */
+.character-panel {
+  border-left: 1px solid var(--rule);
+  padding: 26px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+  min-height: 0;
+}
+.character-panel section > .eyebrow {
+  display: block;
+  margin-bottom: 10px;
+}
+
+/* =========================================================================
+   2. ACTIONS
+   No gloss, no gradient, no inset highlight. The primary action is the only
+   filled thing on most screens; that is what makes it findable.
+   ====================================================================== */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: var(--reach);
+  min-width: var(--reach);
+  padding: 0 18px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  color: var(--ink);
+}
+.button-primary {
+  background: var(--wax);
+  color: var(--page);
+  border-color: var(--wax);
+}
+.button-outline {
+  background: var(--page);
+  color: var(--ink-soft);
+  border-color: var(--rule-strong);
+}
+.button-ghost {
+  color: var(--ink-faint);
+} /* NEW */
+.button-danger {
+  background: transparent;
+  color: var(--iron);
+  border-color: var(--iron);
+}
+.button:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+.button-outline:hover:not(:disabled) {
+  border-color: var(--wax);
+  color: var(--ink);
+}
+.button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+  filter: none;
+}
+.button-sm {
+  min-height: var(--reach-dense);
+  min-width: 0;
+  font-size: 10.5px;
+  padding: 0 13px;
+}
+.discard-draft {
+  min-height: var(--reach-dense);
+  font-size: 10.5px;
+  padding: 0 13px;
+}
+
+/* =========================================================================
+   3. TABS
+   Underscored, never filled — a filled tab competes with the primary button.
+   ====================================================================== */
+
+.mode-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  border-bottom: 1px solid var(--rule);
+  margin-top: var(--s-4);
+}
+.mode-tab {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-faint);
+  padding: 11px var(--s-4);
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+}
+.mode-tab:hover {
+  color: var(--ink);
+}
+.mode-tab[aria-selected="true"] {
+  color: var(--wax);
+  border-bottom-color: var(--wax);
+}
+
+/* =========================================================================
+   4. FIELDS
+   Inputs are wells: below the page, not floating on it.
+   ====================================================================== */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.field > .label {
+  margin-bottom: 0;
+}
+
+:where(input:not([type="radio"]):not([type="checkbox"]), select, textarea) {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: var(--reach);
+  padding: 11px 13px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--ink);
+  background: var(--well);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+}
+textarea {
+  resize: vertical;
+  min-height: 96px;
+  line-height: 1.7;
+  font-family: var(--serif);
+  font-size: 16px;
+}
+.scenario-document {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.6;
+}
+::placeholder {
+  color: var(--ink-faint);
+  opacity: 1;
+}
+
+input:not([type]),
+input[type="text"],
+input[type="search"],
+input[type="password"],
+input[type="email"],
+input[type="url"],
+input[type="tel"],
+select {
+  max-width: min(30rem, 100%);
+}
+textarea {
+  max-width: min(40rem, 100%);
+}
+input[type="number"] {
+  max-width: min(6rem, 100%);
+  font-family: var(--mono);
+}
+
+input[type="radio"],
+input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--wax);
+}
+
+/* =========================================================================
+   5. CHANNEL SWITCH
+   One of only two places a wax fill is spent. The choice changes how what you
+   type will be read, which is why it earns the emphasis.
+   ====================================================================== */
+
+.channel-switch {
+  display: inline-flex;
+  overflow: hidden;
+  background: var(--page);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+}
+.channel-switch label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: 40px;
+  padding: 0 var(--s-4);
+  font-family: var(--sans);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  border-right: 1px solid var(--rule-strong);
+  cursor: pointer;
+}
+.channel-switch label:last-of-type {
+  border-right: 0;
+}
+.channel-switch label:has(input:checked) {
+  background: var(--wax);
+  color: var(--page);
+}
+.channel-switch label:has(input:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+.channel-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+}
+.channel-switch:has(input:disabled) label {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Whose turn it is gets circled by hand. NEW. The ring is an inline SVG
+   positioned over the text — see ornaments/Ornaments.tsx <Ring />. */
+.turn-mark {
+  position: relative;
+  display: inline-block;
+  padding: 7px 15px;
+  color: var(--wax);
+  font-family: var(--hand);
+  font-size: 20px;
+  line-height: 1;
+}
+.turn-mark > svg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* =========================================================================
+   6. THE TRANSCRIPT — four voices
+   ====================================================================== */
+
+.transcript {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+  padding: var(--s-5) 0 10px;
+  margin: 0;
+  list-style: none;
+}
+.transcript-entry {
+  border: 0;
+  padding: 0;
+}
+
+/* --- GM narration: the ruled page, opening on a drop cap ---
+   The ruling pitch and the narration leading are the same token. If you change
+   the font size you must recompute both or the text drifts off the lines. */
+.gm-message {
+  border-left: 2px solid var(--wax);
+  padding: 7px 0 7px 24px;
+  max-width: var(--measure-narration);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 calc(var(--ruling-pitch) - 1px),
+    var(--rule-faint) calc(var(--ruling-pitch) - 1px) var(--ruling-pitch)
+  );
+  background-position: 0 5px;
+}
+/* The app already renders this line as <span class="eyebrow">Game master · …</span>,
+   so no markup change is needed — the eyebrow is restyled into the hand here.
+   It must stay a <span>: a <p> would capture the drop cap below. */
+.gm-message .who,
+.gm-message > .eyebrow {
+  display: block;
+  font-family: var(--hand);
+  font-size: 19px;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--wax);
+  transform: rotate(-1deg);
+  margin-bottom: 2px;
+}
+.gm-message p {
+  font-family: var(--serif);
+  font-size: 19px;
+  line-height: var(--narration-leading);
+  white-space: pre-wrap;
+  color: var(--ink);
+}
+.gm-message p + p {
+  margin-top: 0;
+}
+.gm-message p:first-of-type::first-letter {
+  font-family: var(--serif);
+  font-size: 62px;
+  line-height: 0.82;
+  font-weight: 500;
+  float: left;
+  padding: 9px 11px 0 0;
+  color: var(--wax);
+}
+/* Suppress the drop cap on continuation beats within one scene. */
+.gm-message.is-continuation p:first-of-type::first-letter {
+  font-size: inherit;
+  line-height: inherit;
+  float: none;
+  padding: 0;
+  color: inherit;
+}
+.gm-message.is-provisional {
+  border-left-color: var(--rule-strong);
+}
+.gm-message.is-provisional p {
+  color: var(--ink-soft);
+}
+
+/* --- player action / dialogue: slips laid on the page --- */
+.player-message {
+  position: relative;
+  max-width: var(--measure-voice);
+  margin-left: 26px;
+  padding: 13px 18px;
+  background: var(--page);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: var(--lift);
+  transform: rotate(calc(-1 * var(--tilt-slip)));
+}
+/* Each .player-message is alone inside its own <li class="transcript-entry">,
+   so the alternation has to be driven from the list item. */
+.transcript-entry:nth-of-type(even) .player-message {
+  transform: rotate(var(--tilt-slip));
+}
+/* Same again: the app renders <span class="eyebrow">Your action</span> here. */
+.player-message .who,
+.player-message > .eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 6px;
+}
+.player-message p {
+  font-family: var(--serif);
+  font-size: 16px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  color: var(--ink);
+}
+.channel-dialogue {
+  border-left: 2px solid var(--rule-strong);
+}
+.entry-time {
+  display: block;
+  font-family: var(--hand);
+  font-size: 15px;
+  color: var(--ink-faint);
+  margin-top: 5px;
+}
+.entry-unrecorded {
+  color: var(--ink-faint);
+  font-style: italic;
+}
+
+/* --- aside / out-of-character: the margin, in the player's own hand --- */
+/* NOTE: the app renders this as `player-message channel-ooc` — a MODIFIER, not a
+   standalone element (frontend/src/play/workspace.tsx:312). So it must undo the
+   slip treatment rather than sit alongside it. */
+.player-message.channel-ooc {
+  max-width: 48ch;
+  padding: 0 0 0 15px;
+  background: none;
+  border: 0;
+  border-left: 1px dashed var(--rule-strong);
+  border-radius: 0;
+  box-shadow: none;
+  transform: rotate(-0.7deg);
+}
+.transcript-entry:nth-of-type(even) .player-message.channel-ooc {
+  transform: rotate(-0.7deg);
+}
+.player-message.channel-ooc p {
+  font-family: var(--hand);
+  font-size: 20px;
+  line-height: 1.4;
+  color: var(--ink-soft);
+}
+.player-message.channel-ooc .who,
+.player-message.channel-ooc > .eyebrow {
+  display: block;
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.19em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 3px;
+  transform: rotate(0.7deg);
+}
+.player-message.channel-ooc .entry-time {
+  transform: rotate(0.7deg);
+}
+
+/* --- scene break: a drawn fleuron, not a horizontal rule. NEW --- */
+.scene-break {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: var(--rule-strong);
+  padding: 2px 0;
+}
+.scene-break em {
+  font-family: var(--hand);
+  font-style: normal;
+  font-size: 16px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+/* role="status" live region (workspace.tsx). Never animate it and never move it. */
+.action-status {
+  font-family: var(--hand);
+  font-size: 17px;
+  color: var(--ink-faint);
+  padding: var(--s-4) 0 var(--s-2);
+}
+.transcript-empty {
+  font-family: var(--hand);
+  font-size: 18px;
+  color: var(--ink-faint);
+}
+.transcript-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s-4);
+  margin: var(--s-5) 0 var(--s-4);
+}
+.transcript-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--sans);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.19em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* =========================================================================
+   7. DICE, ROLL SLIPS, GLOSS AND STAMPS   — all NEW
+   ====================================================================== */
+
+/* --- the roll slip: replaces .committed-result --- */
+.slip {
+  position: relative;
+  max-width: 540px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 18px;
+  align-items: center;
+  padding: 14px 18px;
+  background: var(--page);
+  border: 1px solid var(--rule-strong);
+  border-left: 3px solid var(--moss);
+  border-radius: var(--radius);
+  box-shadow: var(--lift);
+  transform: rotate(calc(-1 * var(--tilt-slip)));
+}
+.slip--fail {
+  border-left-color: var(--iron);
+  transform: rotate(var(--tilt-slip));
+}
+.slip--crit {
+  border-left-color: var(--wax);
+  background: var(--wax-soft);
+  transform: rotate(-0.7deg);
+}
+.slip-what b {
+  display: block;
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.slip-what span {
+  font-family: var(--hand);
+  font-size: 18px;
+  color: var(--ink-faint);
+}
+.slip-verdict {
+  text-align: right;
+  font-family: var(--hand);
+  font-size: 18px;
+  color: var(--ink-faint);
+  line-height: 1.2;
+}
+.slip-verdict .stamp {
+  margin-bottom: 9px;
+}
+.slip-verdict > span {
+  display: block;
+}
+.committed-result > .slip {
+  margin-top: var(--s-3);
+}
+
+/* --- dice: three faces, each tilted where it fell --- */
+.dice {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  color: var(--ink);
+}
+
+/* --- marginal gloss: the player's own arithmetic, in their own hand ---
+   Sits in the right-hand column of .transcript-entry--glossed. */
+.transcript-entry--glossed {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 156px;
+  gap: 22px;
+  align-items: start;
+}
+.gloss {
+  padding-top: var(--ruling-pitch);
+  font-family: var(--hand);
+  font-size: 19px;
+  line-height: 1.28;
+  color: var(--wax);
+  transform: rotate(-1.6deg);
+  transform-origin: left top;
+}
+.gloss b {
+  display: block;
+  font-weight: 600;
+}
+
+/* --- stamps: outcome and state. A word first, a pigment second. --- */
+.stamp,
+.outcome {
+  display: inline-block;
+  white-space: nowrap;
+  padding: 6px 13px 5px;
+  font-family: var(--sans);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  border: 2px solid currentColor;
+  border-radius: var(--radius);
+  box-shadow: inset 0 0 0 1px currentColor;
+  opacity: 0.84;
+  transform: rotate(calc(-1 * var(--tilt-stamp)));
+  background: none;
+}
+.outcome-success,
+.outcome-achieved,
+.stamp--moss {
+  color: var(--moss);
+  transform: rotate(-3deg);
+}
+.outcome-partial,
+.stamp--amber {
+  color: var(--amber);
+  transform: rotate(2.5deg);
+}
+.outcome-failure,
+.outcome-failed,
+.stamp--iron {
+  color: var(--iron);
+  transform: rotate(-2deg);
+}
+.stamp--wax {
+  color: var(--wax);
+}
+.stamp--quiet {
+  color: var(--ink-faint);
+  opacity: 0.55;
+}
+/* Small stamp, for seat status and condition chips inside dense panels. */
+.stamp--sm {
+  font-size: 9.5px;
+  letter-spacing: 0.2em;
+  padding: 3px 7px 2px;
+  border-width: 1.5px;
+}
+
+/* =========================================================================
+   8. ATTRIBUTES, POOLS AND TRACKS
+   ====================================================================== */
+
+.stat-grid,
+.attr-block {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.attr {
+  padding: 14px var(--s-4);
+  border-right: 1px solid var(--rule);
+  background: var(--page);
+}
+.attr:last-child {
+  border-right: 0;
+}
+.attr .k {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.19em;
+  color: var(--ink-faint);
+}
+.attr .v {
+  font-family: var(--mono);
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.12;
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+/* Point cost is pencilled, because it is the player's accounting, not the system's. */
+.attr .d {
+  font-family: var(--hand);
+  font-size: 17px;
+  color: var(--wax);
+}
+
+.pool-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-3);
+}
+.resource-pool {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 12px 14px;
+  background: var(--page);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+/* Only a pool in danger takes a coloured edge. If every pool is marked, nothing is. */
+.resource-pool--hurt {
+  border-top: 2px solid var(--iron);
+}
+.resource-pool--hurt .v {
+  color: var(--iron);
+}
+.resource-pool .k {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.resource-pool .v {
+  font-family: var(--mono);
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.resource-pool .v small {
+  font-size: 13px;
+  color: var(--ink-faint);
+}
+.resource-pool .n {
+  font-family: var(--hand);
+  font-size: 16px;
+  color: var(--ink-faint);
+}
+
+/* Replaces <meter>, which cannot be styled consistently across browsers. */
+.track {
+  height: 6px;
+  background: var(--well);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.track > i {
+  display: block;
+  height: 100%;
+  background: var(--wax);
+}
+.track > i.is-moss {
+  background: var(--moss);
+}
+.track > i.is-iron {
+  background: var(--iron);
+}
+
+.derived-preview dl,
+.derived-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--s-3);
+}
+.derived-cell {
+  padding: 10px 13px;
+  background: var(--page);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+.derived-cell .k {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.derived-cell .v {
+  font-family: var(--mono);
+  font-size: 21px;
+  font-weight: 500;
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+/* Where a derived value includes a modifier, say which one — in the hand. */
+.derived-cell .n {
+  font-family: var(--hand);
+  font-size: 15px;
+  color: var(--wax);
+  line-height: 1.15;
+}
+
+.points-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.points-grid > div {
+  padding: 11px 15px;
+  border-right: 1px solid var(--rule);
+  background: var(--page);
+}
+.points-grid > div:last-child {
+  border-right: 0;
+}
+.points-grid dt,
+.points-grid .k {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.points-grid dd,
+.points-grid .v {
+  margin: 2px 0 0;
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* =========================================================================
+   9. THE LEDGER — one table style for skills, advantages, equipment
+   No zebra striping. The hairline rules already do that work.
+   ====================================================================== */
+
+.sheet-section {
+  padding: var(--s-4) 18px;
+  background: var(--page);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  min-width: 0;
+  margin: 0;
+}
+.sheet-section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  margin-bottom: 11px;
+}
+.sheet-section-head .amt {
+  margin-left: auto;
+  font-family: var(--hand);
+  font-size: 18px;
+  color: var(--wax);
+}
+
+.sheet-stats,
+.ledger {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0;
+}
+.ledger th {
+  text-align: left;
+  padding: 0 0 var(--s-2);
+  border-bottom: 1px solid var(--rule-strong);
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.ledger td,
+.sheet-stats > div {
+  padding: var(--s-2) 0;
+  border-bottom: 1px solid var(--rule);
+  font-size: 13.5px;
+}
+.ledger tr:last-child td,
+.sheet-stats > div:last-child {
+  border-bottom: 0;
+}
+.ledger td.v,
+.sheet-stats dd {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 500;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+}
+.ledger td.m {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-faint);
+  text-align: right;
+}
+.ledger td small {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--sans);
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--ink-faint);
+}
+.sheet-stats > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-4);
+}
+.sheet-stats dt {
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+
+/* =========================================================================
+   10. SEATS — presence is ambient, never a notification
+   ====================================================================== */
+
+.seat-list,
+.presence-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: block;
+}
+.seat-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.seat-row:last-child {
+  border-bottom: 0;
+}
+.seat-lamp {
+  display: flex;
+  flex: none;
+  color: var(--rule-strong);
+}
+.seat-lamp[data-lit] {
+  color: var(--wax);
+}
+.seat-name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.seat-player,
+.seat-name b {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+/* What a player is doing right now is written in their own hand. */
+.seat-character,
+.seat-status--hand {
+  font-family: var(--hand);
+  font-size: 16px;
+  color: var(--ink-faint);
+  line-height: 1.25;
+}
+.seat-status {
+  /* the stamp; see .stamp--sm */
+}
+
+/* =========================================================================
+   11. NOTICES AND BUDGETS
+   A notice is a slip laid on the page, not a toast that vanishes unread.
+   ====================================================================== */
+
+.availability-banner,
+.offline-banner,
+.voice-notice,
+.request-error,
+.concept-conflict,
+.generation-failure {
+  display: flex;
+  gap: 13px;
+  align-items: flex-start;
+  padding: 12px var(--s-4);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--amber);
+  background: var(--amber-soft);
+  border-radius: var(--radius);
+  box-shadow: var(--lift);
+  transform: rotate(-0.3deg);
+}
+.availability-banner b,
+.offline-banner b {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--amber);
+}
+.availability-banner p,
+.offline-banner p {
+  margin-top: 3px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+.offline-banner {
+  border-left-color: var(--ink-faint);
+  background: var(--well);
+}
+.offline-banner b {
+  color: var(--ink-soft);
+}
+.request-error,
+.generation-failure {
+  border-left-color: var(--iron);
+  background: var(--iron-soft);
+}
+.request-error b,
+.generation-failure b {
+  color: var(--iron);
+}
+.availability-banner summary,
+.technical-details summary,
+.session-recap summary,
+details summary {
+  cursor: pointer;
+  min-height: var(--reach-dense);
+  padding: var(--s-2) 0;
+  font-size: 12.5px;
+  color: var(--wax);
+}
+
+.point-budget {
+  position: sticky;
+  top: var(--s-2);
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) 18px;
+  padding: 14px 18px;
+  background: var(--page);
+  color: var(--ink);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+}
+.point-budget .n {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.point-budget .lbl {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.point-budget .hnd {
+  font-family: var(--hand);
+  font-size: 18px;
+  color: var(--moss);
+}
+.point-budget[data-overspent="true"] {
+  border-color: var(--iron);
+  background: var(--iron-soft);
+}
+.point-budget[data-overspent="true"] .n,
+.point-budget[data-overspent="true"] .hnd {
+  color: var(--iron);
+}
+.point-budget .track {
+  flex: 1 1 12rem;
+}
+
+.skeleton {
+  height: 6rem;
+  border-radius: var(--radius);
+  background: var(--well);
+  border: 1px solid var(--rule);
+}
+
+/* =========================================================================
+   12. TIPPED-IN MATTER, SEALS, TAPE, DECKLE
+   A 3px wax edge means exactly one thing: this sheet is pasted onto the page.
+   ====================================================================== */
+
+.card,
+.scene-card,
+.campaign-card,
+.multiplayer-panel,
+.connection-status,
+.composer,
+.clarification,
+.item-card,
+.lifecycle-actions,
+.guided-authoring,
+.party-character,
+.draft-controls details,
+.confirm-content {
+  background: var(--page);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.card--tipped,
+.scene-card,
+.clarification {
+  border-left: 3px solid var(--wax);
+}
+.scene-card {
+  padding: clamp(20px, 3vw, 34px);
+  min-height: 0;
+}
+.scene-card p {
+  max-width: var(--measure-panel);
+}
+.campaign-card {
+  padding: var(--s-5);
+}
+.card-top,
+.card-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s-4);
+}
+.card-bottom {
+  margin-top: var(--s-5);
+  font-size: 12.5px;
+  color: var(--ink-faint);
+}
+
+/* A strip of gummed tape across the top edge. Use on at most one card per
+   screen — it means "someone stuck this here", not "this is important". */
+.is-taped {
+  position: relative;
+}
+.is-taped::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 34px;
+  width: 86px;
+  height: 20px;
+  background: var(--tape);
+  border-left: 1px solid var(--tape-edge);
+  border-right: 1px solid var(--tape-edge);
+  transform: rotate(-6deg);
+}
+
+.deckle {
+  height: 7px;
+  opacity: 0.7;
+  background: radial-gradient(
+      circle at 4px -2.5px,
+      transparent 5px,
+      var(--rule-strong) 5px 5.8px,
+      transparent 5.9px
+    )
+    repeat-x;
+  background-size: 8px 7px;
+}
+
+/* A player's pinned sketch, in the party margin. Never carries information the
+   system needs to assert — it is decoration a human made, and may be wrong. */
+.pinned-sketch {
+  color: var(--ink-soft);
+  opacity: 0.62;
+}
+.pinned-caption {
+  font-family: var(--hand);
+  font-size: 16px;
+  color: var(--ink-faint);
+  transform: rotate(-1.4deg);
+  margin-top: 2px;
+}
+
+.sample-note,
+.custody-note,
+.operation-reason {
+  border-left: 2px solid var(--rule-strong);
+  padding-left: 12px;
+  font-family: var(--hand);
+  font-size: 17px;
+  color: var(--ink-faint);
+}
+.sample-label {
+  font-size: 12.5px;
+  color: var(--ink-faint);
+}
+
+/* =========================================================================
+   13. THE COMPOSER
+   ====================================================================== */
+
+.composer {
+  margin-top: auto;
+  padding: var(--s-4) 18px 14px;
+  box-shadow: var(--lift);
+  border-color: var(--rule-strong);
+}
+.composer fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+.composer-top {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  margin-bottom: var(--s-3);
+}
+.acting-as {
+  margin-left: auto;
+  font-family: var(--hand);
+  font-size: 19px;
+  color: var(--ink-soft);
+  transform: rotate(-0.8deg);
+}
+.composer textarea {
+  background: var(--well);
+}
+.composer textarea.capturing {
+  border-color: var(--wax);
+}
+.composer-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+  margin-top: 11px;
+}
+.composer-bottom .button-primary {
+  margin-left: auto;
+}
+.composer-draft-state {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s-2);
+  margin-top: var(--s-2);
+}
+.composer-count,
+.composer-keys,
+.composer-hint,
+.voice-status {
+  font-family: var(--hand);
+  font-size: 16px;
+  color: var(--ink-faint);
+  margin: 0;
+}
+.voice-status:empty {
+  display: none;
+}
+.composer-suggestions {
+  margin-bottom: var(--s-4);
+}
+.context-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: var(--s-4) 0;
+}
+.scene-withheld,
+.section-withheld,
+.section-unavailable {
+  margin-top: var(--s-3);
+  font-family: var(--hand);
+  font-size: 17px;
+  color: var(--ink-faint);
+}
+.scene-withheld ul {
+  margin: var(--s-1) 0 0 1.1rem;
+}
+.scene-footer {
+  margin-top: var(--s-5);
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-faint);
+}
+.scene-description,
+.narration p {
+  font-family: var(--serif);
+  font-size: 19px;
+  line-height: var(--narration-leading);
+  white-space: pre-wrap;
+}
+
+.clarification {
+  padding: var(--s-4) 18px;
+}
+.clarification h3 {
+  margin-top: 0;
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 500;
+}
+.clarification form {
+  display: grid;
+  gap: var(--s-3);
+}
+
+/* =========================================================================
+   14. SETUP, LOBBY AND THE CHARACTER WORKSHOP
+   ====================================================================== */
+
+.setup-shell {
+  min-height: 100dvh;
+  padding: clamp(var(--s-4), 5vw, var(--s-8));
+}
+.setup-page {
+  position: relative;
+  width: min(54rem, 100%);
+  margin-inline: auto;
+  color: var(--ink);
+  background-color: var(--page);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--wax);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.setup-page::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 63px;
+  width: 1px;
+  background: color-mix(in srgb, var(--wax) 24%, transparent);
+  pointer-events: none;
+}
+.setup-lobby,
+.connection-form {
+  max-width: none;
+  margin: 0;
+}
+main.setup-main {
+  padding: 0;
+}
+.lobby-header {
+  min-height: 0;
+  padding: var(--s-6) var(--s-7) 0 88px;
+  border-bottom: 1px solid var(--rule);
+}
+.setup-masthead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--s-5);
+  padding-bottom: var(--s-5);
+}
+.setup-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  color: var(--wax);
+}
+.setup-brand > div {
+  display: grid;
+  gap: var(--s-1);
+}
+.setup-brand h1 {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 33px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+.setup-intro {
+  max-width: 20rem;
+  color: var(--wax);
+  font-family: var(--hand);
+  font-size: 19px;
+  line-height: 1.3;
+  text-align: right;
+  transform: rotate(-0.8deg);
+}
+.lobby-header .mode-tabs {
+  border-bottom: none;
+}
+.setup-lobby {
+  padding: var(--s-6) var(--s-7) var(--s-7) 88px;
+}
+.setup-signin {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(17rem, 22rem);
+  align-items: start;
+  gap: var(--s-7);
+}
+.setup-signin-copy {
+  padding-top: var(--s-4);
+}
+.setup-signin-copy h3 {
+  margin: var(--s-2) 0 var(--s-3);
+  font-family: var(--serif);
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+.setup-signin-copy > p:not(.hand) {
+  color: var(--ink-soft);
+}
+.setup-signin-copy .hand {
+  margin-top: var(--s-4);
+  color: var(--wax);
+  transform: rotate(-0.7deg);
+}
+.setup-signin-fields {
+  padding: var(--s-5);
+  background: var(--well);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+.setup-signin-fields label {
+  margin-top: 0;
+}
+.setup-signin-fields input {
+  background: var(--page);
+}
+.setup-signin-fields .button {
+  margin-top: var(--s-4);
+}
+.setup-focus-heading {
+  max-width: var(--measure-panel);
+  margin-bottom: var(--s-5);
+}
+.setup-focus-heading .lobby-heading {
+  margin: var(--s-2) 0 var(--s-3);
+}
+.setup-focus-heading > p {
+  color: var(--ink-soft);
+}
+.setup-game-list {
+  display: grid;
+  gap: var(--s-2);
+  margin-top: var(--s-4);
+}
+.setup-game-list .button {
+  justify-content: flex-start;
+  width: min(30rem, 100%);
+  min-height: var(--reach);
+  height: auto;
+  padding-block: 10px;
+  line-height: 1.4;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.setup-current-game {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding-block: var(--s-3);
+  border-block: 1px solid var(--rule);
+}
+.setup-current-game > p {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+.setup-account-footer {
+  margin-top: var(--s-7);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--rule);
+}
+.setup-restoring {
+  width: min(54rem, 100%);
+  margin-inline: auto;
+  padding: var(--s-7) var(--s-7) var(--s-7) 88px;
+}
+.setup-restoring [role="status"] {
+  margin-top: var(--s-6);
+}
+.scenario-start,
+.scenario-saved {
+  margin-top: var(--s-6);
+  padding-top: var(--s-5);
+  border-top: 1px solid var(--rule);
+}
+.scenario-start h4,
+.scenario-saved h4,
+.scenario-editor-heading h4 {
+  margin: var(--s-2) 0 var(--s-4);
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 500;
+}
+.scenario-start-actions {
+  display: grid;
+  grid-template-columns: minmax(12rem, max-content) minmax(15rem, 1fr);
+  align-items: end;
+  gap: var(--s-4);
+}
+.scenario-start-actions label {
+  margin: 0;
+}
+.scenario-saved-heading,
+.scenario-editor-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+.scenario-saved-heading h4,
+.scenario-editor-heading h4 {
+  margin-bottom: var(--s-2);
+}
+.scenario-editor-heading {
+  margin: var(--s-6) 0 var(--s-4);
+  padding-bottom: var(--s-3);
+  border-bottom: 1px solid var(--rule);
+}
+.lobby-heading {
+  margin-top: 0;
+  font-family: var(--serif);
+  font-size: 33px;
+  font-weight: 500;
+  line-height: 1.15;
+}
+.lobby-account {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-block: var(--s-4);
+  font-size: 12.5px;
+}
+.lobby-account .button {
+  min-height: var(--reach-dense);
+  padding: 0 12px;
+}
+
+.setup-steps {
+  border-block: 1px solid var(--rule);
+  margin-block: var(--s-4);
+  padding-block: var(--s-3);
+}
+.setup-steps ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.setup-steps button {
+  margin: 0;
+}
+.setup-steps .step-index {
+  display: none;
+}
+.setup-next-screen {
+  margin: var(--s-3) 0 0;
+  font-family: var(--hand);
+  font-size: 17px;
+  color: var(--ink-faint);
+}
+.step-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-block: var(--s-4);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--rule);
+}
+.step-nav p {
+  flex: 14rem;
+  margin: 0;
+  font-family: var(--hand);
+  font-size: 17px;
+  color: var(--ink-faint);
+}
+
+.setup-review {
+  display: grid;
+  gap: 10px;
+  margin: var(--s-2) 0 var(--s-4);
+}
+.setup-review dt {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.setup-review dd {
+  margin: 3px 0 0;
+}
+.setup-secondary,
+.concept-restore {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+  color: var(--ink-faint);
+}
+
+.character-workshop label,
+.connection-form label,
+.live-decisions form label,
+.onboarding-panel label,
+.adventure-journal label,
+.adventure-choice label,
+.voice-controls label,
+.setup-lobby label {
+  display: grid;
+  gap: var(--s-2);
+  margin: var(--s-4) 0 var(--s-1);
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.character-workshop .context-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+.guided-authoring {
+  padding: var(--s-4);
+  margin-block: var(--s-4);
+}
+.generation-recovery {
+  margin-block: var(--s-4);
+  border-block: 1px solid var(--rule);
+}
+.generation-recovery-form {
+  display: grid;
+  gap: var(--s-2);
+  padding: 0 0 var(--s-4);
+}
+.generation-recovery-fields {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.generation-job-id {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+.generation-recovery-form > p,
+.generation-review-summary,
+.generation-finding-reference {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-faint);
+}
+.guided-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: var(--s-3);
+}
+.generation-review {
+  margin-block: var(--s-5);
+  padding-block: var(--s-4);
+  border-block: 1px solid var(--rule);
+}
+.generation-review h5 {
+  margin-top: var(--s-1);
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 500;
+}
+.generation-review-summary {
+  margin-top: var(--s-2);
+}
+.generation-review-summary > span,
+.generation-finding-reference {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+.generation-findings {
+  margin-top: var(--s-4);
+  border-top: 1px solid var(--rule);
+}
+.generation-finding {
+  display: grid;
+  gap: var(--s-2);
+  padding-block: var(--s-3);
+  border-bottom: 1px solid var(--rule);
+}
+.generation-finding-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-2);
+}
+.generation-finding-heading code {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+.generation-finding[data-severity="error"] .tag {
+  color: var(--iron);
+}
+.generation-finding[data-severity="warning"] .tag {
+  color: var(--amber);
+}
+.generation-finding > p {
+  max-width: var(--measure-panel);
+}
+.guided-authoring pre {
+  white-space: pre-wrap;
+  max-height: 24rem;
+  overflow: auto;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.draft-controls {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+.draft-controls details {
+  margin-block: var(--s-4);
+  padding: var(--s-3);
+}
+.draft-controls summary,
+.party-character > summary,
+.group-controls summary {
+  cursor: pointer;
+  margin-bottom: var(--s-3);
+  font-weight: 600;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  color: var(--wax);
+}
+.purchase-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+  margin-block: var(--s-3);
+}
+.purchase-row > select {
+  flex: 12rem;
+  width: auto;
+  max-width: 100%;
+}
+.purchase-row input[type="checkbox"] {
+  width: auto;
+  display: inline-block;
+}
+.attribute-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+}
+.attribute-row > label {
+  flex: 0 0 8rem;
+}
+.purchase-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+}
+.purchase-stepper .step-button {
+  touch-action: none;
+  user-select: none;
+}
+.purchase-stepper input[type="number"] {
+  width: 5rem;
+  min-width: 0;
+  text-align: center;
+}
+.purchase-cost {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.purchase-remove {
+  flex: none;
+  width: var(--reach-dense);
+  min-width: var(--reach-dense);
+  min-height: var(--reach-dense);
+  padding: 0;
+  color: var(--ink-faint);
+}
+.purchase-remove:hover {
+  color: var(--iron);
+}
+.numeric-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, max-content));
+  align-items: end;
+  gap: var(--s-1) var(--s-5);
+}
+.character-draft-editor,
+.character-sheet,
+.inventory-page {
+  min-width: 0;
+}
+.character-banner {
+  margin: var(--s-5) 0;
+  padding: var(--s-5) 0;
+  border-bottom: 1px solid var(--rule);
+}
+.character-banner h2 {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin: 10px 0;
+  font-family: var(--serif);
+  font-size: 33px;
+  font-weight: 500;
+}
+.character-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-4);
+}
+.onboarding-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 0 var(--s-4);
+}
+.onboarding-character {
+  margin-top: var(--s-5);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--rule);
+}
+.campaign-grid,
+.adventure-journal,
+.adventure-choice {
+  display: grid;
+  gap: var(--s-4);
+}
+
+/* =========================================================================
+   15. MULTIPLAYER PANEL
+   ====================================================================== */
+
+.multiplayer-panel,
+.connection-status {
+  padding: var(--s-4) 18px;
+  margin-bottom: var(--s-4);
+}
+.multiplayer-heading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s-3);
+}
+.multiplayer-panel h2 {
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 500;
+}
+.multiplayer-panel p {
+  line-height: 1.6;
+}
+.group-controls,
+.ooc-panel {
+  margin-top: var(--s-4);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--rule);
+}
+.ooc-panel > label {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.ooc-panel li {
+  margin-bottom: 10px;
+  font-family: var(--hand);
+  font-size: 18px;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+.session-recap {
+  margin-top: var(--s-5);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--rule);
+}
+.session-recap li {
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+.actor-select {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-4);
+  margin-top: var(--s-5);
+  font-size: 12.5px;
+}
+.actor-select select {
+  width: auto;
+}
+
+/* =========================================================================
+   16. INVENTORY
+   ====================================================================== */
+
+.currency-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-4);
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--mono);
+  font-size: 13px;
+}
+.inventory-totals {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-4);
+  margin: var(--s-4) 0;
+  line-height: 1.6;
+}
+.inventory-totals strong {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--wax);
+}
+.inventory-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--s-4);
+  margin: var(--s-5) 0;
+}
+.item-list {
+  display: grid;
+  gap: var(--s-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.item-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s-5);
+  min-width: 0;
+  padding: var(--s-5);
+}
+.item-card > div {
+  min-width: 0;
+}
+.item-card h3 {
+  margin: var(--s-2) 0;
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 500;
+}
+.item-card p {
+  margin: var(--s-1) 0;
+}
+.item-card > .button {
+  flex-shrink: 0;
+  max-width: 100%;
+  white-space: normal;
+}
+.item-meta {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+.item-facts {
+  display: grid;
+  gap: var(--s-3);
+  margin: var(--s-5) 0;
+}
+.item-facts > div {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr);
+  gap: var(--s-3);
+}
+.item-facts dt {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.item-facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.item-operation-form fieldset {
+  display: grid;
+  gap: var(--s-4);
+  border: 0;
+  margin: var(--s-4) 0;
+  padding: 0;
+}
+.item-operation-form legend {
+  margin-bottom: var(--s-4);
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.inventory-summary {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.inventory-summary li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-2) 0;
+  font-size: 12.5px;
+  border-bottom: 1px solid var(--rule);
+}
+.inventory-summary li:last-child {
+  border-bottom: 0;
+}
+.inventory-feedback {
+  line-height: 1.6;
+}
+.inventory-feedback:empty {
+  display: none;
+}
+
+/* =========================================================================
+   17. TACTICAL MAP
+   ====================================================================== */
+
+.tactical-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(12rem, 1fr);
+  gap: var(--s-4);
+}
+/* The map is a drawn plan, not a screen: it takes the well, not a slate fill. */
+.tactical-map {
+  width: 100%;
+  max-height: 28rem;
+  background: var(--well);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+}
+.tactical-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  max-height: 24rem;
+  padding: var(--s-1);
+  overflow-y: auto;
+}
+.tactical-panel small {
+  display: block;
+  font-family: var(--hand);
+  font-size: 16px;
+  color: var(--ink-faint);
+}
+
+/* =========================================================================
+   18. SESSION CLOSURE AND ADVANCEMENT
+   ====================================================================== */
+
+.closure-stack {
+  display: grid;
+  gap: var(--s-5);
+  margin-top: var(--s-5);
+}
+.closure-hero,
+.closure-section {
+  min-height: 0;
+}
+.closure-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-4);
+  padding: var(--s-4) 0;
+  border-top: 1px solid var(--rule);
+}
+.closure-row h3 {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 500;
+}
+.closure-row p {
+  margin-bottom: 0;
+  color: var(--ink-soft);
+}
+.closure-section fieldset {
+  border: 0;
+  margin: var(--s-4) 0;
+  padding: 0;
+}
+.closure-section legend {
+  margin-bottom: var(--s-2);
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.advancement-option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  min-height: var(--reach);
+  margin-bottom: 10px;
+  padding: 11px;
+  background: var(--page);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.advancement-option:hover {
+  border-color: var(--rule-strong);
+}
+.advancement-option:has(input:checked) {
+  border-color: var(--wax);
+  background: var(--wax-soft);
+}
+.advancement-option small {
+  display: block;
+  margin-top: var(--s-1);
+  font-family: var(--hand);
+  font-size: 16px;
+  color: var(--ink-faint);
+}
+.lifecycle-actions {
+  margin-top: var(--s-4);
+  padding: 4px var(--s-4) var(--s-3);
+}
+.lifecycle-undo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--rule);
+}
+.lifecycle-undo p {
+  margin: 0;
+  font-family: var(--hand);
+  font-size: 17px;
+  color: var(--ink-faint);
+}
+
+/* =========================================================================
+   19. VOICE CAPTURE
+   ====================================================================== */
+
+.voice-controls {
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--rule);
+}
+.voice-mic {
+  touch-action: none;
+  user-select: none;
+}
+.voice-mic[aria-pressed="true"] {
+  animation: voice-pulse 1.4s ease-in-out infinite;
+}
+.voice-wave {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s-1);
+  height: 1.25rem;
+  margin: var(--s-1) 0 0;
+}
+.voice-wave span {
+  width: 4px;
+  border-radius: var(--radius);
+  background: var(--wax);
+  animation: voice-wave 1s ease-in-out infinite;
+}
+.voice-wave span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.voice-wave span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.voice-wave span:nth-child(4) {
+  animation-delay: 0.45s;
+}
+@keyframes voice-wave {
+  0%,
+  100% {
+    height: 5px;
+  }
+  50% {
+    height: 20px;
+  }
+}
+@keyframes voice-pulse {
+  50% {
+    opacity: 0.7;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .voice-wave span,
+  .voice-mic[aria-pressed="true"] {
+    animation: none;
+  }
+  .voice-wave span {
+    height: 12px;
+  }
+}
+
+/* =========================================================================
+   20. OVERLAYS
+   ====================================================================== */
+
+.sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: var(--overlay);
+}
+.sheet-content {
+  position: fixed;
+  inset-block: 0;
+  right: 0;
+  z-index: 21;
+  width: min(420px, 100%);
+  height: 100dvh;
+  padding: 56px var(--s-5) var(--s-5);
+  background: var(--page);
+  border-left: 1px solid var(--rule);
+  overflow-y: auto;
+}
+.sheet-content h2 {
+  font-family: var(--serif);
+  font-size: 28px;
+  font-weight: 500;
+}
+.sheet-content .context-actions {
+  flex-direction: row;
+}
+.sheet-close {
+  position: absolute;
+  top: var(--s-4);
+  right: var(--s-4);
+}
+.confirm-content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 21;
+  width: min(30rem, 100% - 2rem);
+  padding: var(--s-5);
+}
+.confirm-content h2 {
+  margin-top: 0;
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 500;
+}
+
+/* =========================================================================
+   21. EMPTY AND UNAVAILABLE
+   Say what is missing in the hand — it reads as a note, not a system failure.
+   ====================================================================== */
+
+.empty-state {
+  padding: var(--s-5) 0;
+}
+.empty-region {
+  max-width: var(--measure-panel);
+  font-family: var(--hand);
+  font-size: 19px;
+  color: var(--ink-faint);
+}
+.unavailable-region {
+  max-width: var(--measure-panel);
+  padding: var(--s-4);
+  background: var(--amber-soft);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--amber);
+  border-radius: var(--radius);
+}
+.unavailable-region h2,
+.unavailable-region h3,
+.unavailable-region h4 {
+  margin: 0 0 var(--s-2);
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--amber);
+}
+.unavailable-region p {
+  margin: 0 0 var(--s-4);
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.resource-version,
+.technical-details {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+.technical-details p {
+  margin: var(--s-1) 0 0;
+  overflow-wrap: anywhere;
+}
+.section-intro h2 {
+  margin-top: 0;
+}
+
+/* =========================================================================
+   22. RESPONSIVE
+   Two breaks, matching the ones already in the app. The margin rule, the
+   ruling and the gloss column are all desktop affordances — below 1100px the
+   gloss moves under the narration; below 700px the leaf loses its margin.
+   ====================================================================== */
+
+.compact-only {
+  display: none;
+}
+
+@media (width <= 1100px) {
+  .workspace {
+    grid-template-columns: var(--rail-width) minmax(0, 1fr);
+  }
+  .character-panel {
+    display: none;
+  }
+  .compact-only {
+    display: inline-flex;
+  }
+  .transcript-entry--glossed {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s-3);
+  }
+  .gloss {
+    padding-top: 0;
+    margin-left: 26px;
+    transform: rotate(-0.8deg);
+  }
+}
+
+@media (width <= 700px) {
+  :root {
+    --margin-rule-x: 0px;
+  }
+  .topbar {
+    height: auto;
+    min-height: 64px;
+    flex-wrap: wrap;
+    padding: var(--s-3) var(--s-4);
+  }
+  .brand-tagline {
+    display: none;
+  }
+  .workspace {
+    display: block;
+    width: 100%;
+    min-height: calc(100dvh - 64px);
+    padding-inline: 0;
+  }
+  .play-workspace,
+  main.leaf {
+    padding: var(--s-5) var(--s-4) 120px;
+    background-image: none;
+  }
+  .leaf-inner {
+    padding-left: 0;
+  }
+  .leaf-inner > .play-workspace {
+    padding: 0;
+  }
+  .desktop-only {
+    display: none;
+  }
+
+  .navigation-panel {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 10;
+    padding: var(--s-1) 2px max(var(--s-1), env(safe-area-inset-bottom));
+    background: var(--page);
+    border: 0;
+    border-top: 1px solid var(--rule);
+  }
+  .navigation-panel nav {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0;
+    margin: 0;
+  }
+  .navigation-panel nav a {
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+    padding: 10px 2px;
+    font-size: 11px;
+  }
+  .navigation-panel nav a.active {
+    box-shadow: inset 0 2px 0 var(--wax);
+  }
+  .table-note {
+    display: none;
+  }
+
+  .gm-message {
+    padding-left: var(--s-4);
+    max-width: none;
+  }
+  .gm-message p {
+    font-size: 17px;
+    line-height: 30px;
+  }
+  .gm-message p:first-of-type::first-letter {
+    font-size: 52px;
+  }
+  .player-message,
+  .channel-ooc,
+  .gloss {
+    margin-left: 0;
+  }
+  .scene-head h2 {
+    font-size: 26px;
+  }
+
+  .stat-grid,
+  .attr-block {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .attr:nth-child(2) {
+    border-right: 0;
+  }
+  .attr:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--rule);
+  }
+  .derived-preview dl,
+  .derived-grid,
+  .points-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .points-grid > div:nth-child(2n) {
+    border-right: 0;
+  }
+  .character-columns,
+  .inventory-filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .item-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .item-card > .button {
+    width: 100%;
+  }
+  .item-facts > div {
+    grid-template-columns: 80px minmax(0, 1fr);
+  }
+  .tactical-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .setup-steps ol {
+    flex-wrap: nowrap;
+    gap: var(--s-1);
+  }
+  .setup-steps li {
+    flex: 0 0 var(--reach);
+    display: flex;
+    min-width: 0;
+  }
+  .setup-steps .step-index {
+    display: inline;
+  }
+  .setup-steps .step-name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .setup-steps button {
+    width: var(--reach);
+    min-width: var(--reach);
+    padding: 0;
+    border-radius: 50%;
+  }
+  .setup-shell {
+    padding: var(--s-3);
+  }
+  .setup-page {
+    border-left-width: 3px;
+  }
+  .setup-page::before {
+    display: none;
+  }
+  .lobby-header,
+  .setup-lobby,
+  .setup-restoring {
+    padding-inline: var(--s-5);
+  }
+  .setup-masthead {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--s-4);
+  }
+  .setup-intro {
+    max-width: none;
+    text-align: left;
+  }
+  .lobby-header .mode-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .lobby-header .mode-tab {
+    min-width: 0;
+    padding-inline: var(--s-1);
+    line-height: 1.2;
+  }
+  .setup-signin {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s-5);
+  }
+  .scenario-start-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .scenario-start-actions .button,
+  .scenario-start-actions select {
+    width: 100%;
+    max-width: none;
+  }
+  .scenario-saved-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .scenario-saved-heading .button {
+    min-height: var(--reach-dense);
+  }
+  .lobby-account {
+    display: grid;
+    grid-template-columns: repeat(2, max-content);
+    align-items: center;
+  }
+  .lobby-account > span {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (width <= 360px) {
+  .setup-brand {
+    gap: var(--s-2);
+  }
+  .setup-brand h1 {
+    font-size: 28px;
+    letter-spacing: 0.1em;
+  }
+  .setup-brand svg {
+    width: 30px;
+    height: 30px;
+  }
+  .lobby-account {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .lobby-account .button {
+    width: 100%;
+  }
+  .scenario-editor-heading .button {
+    padding-inline: 0;
+  }
+}
+
+/* =========================================================================
+   23. REMAINING SHIPPED CLASSES
+   Everything else in the current stylesheet, restyled onto the tokens so no
+   selector in the app is left unstyled after the swap.
+   ====================================================================== */
+
+/* The active scene block on the campaign home. */
+.current-scene {
+  min-height: 0;
+}
+.current-scene h2 {
+  margin: var(--s-3) 0;
+  font-family: var(--serif);
+  font-size: 28px;
+  font-weight: 500;
+}
+
+/* Conditions on the character sheet. Consequential in GURPS, so they sit at
+   the same weight as attributes: a stamp plus the rule that produced it. */
+.condition-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.condition-list li + li {
+  margin-top: var(--s-4);
+}
+.condition-list p {
+  margin: var(--s-1) 0;
+  color: var(--ink-soft);
+}
+.condition-list small {
+  display: block;
+  font-family: var(--hand);
+  font-size: 16px;
+  color: var(--ink-faint);
+}
+
+/* Secondary detail in the party panel. */
+.context-details p {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+
+/* Read-aloud toggles. Sits with the transcript header, not in the leaf. */
+.narration-controls label {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin: var(--s-4) 0;
+  font-size: 12.5px;
+}

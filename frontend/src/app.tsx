@@ -21,7 +21,6 @@ import {
 } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
-  Compass,
   UserRound,
   Backpack,
   BookOpen,
@@ -30,6 +29,7 @@ import {
   PanelRight,
   Menu,
 } from "lucide-react";
+import { Compass, Lamp, Seal } from "./components/ornaments";
 import { disconnectedTransport, type PlayTransport } from "./play/transport";
 import { PlayProvider } from "./play/context";
 import { usePlay } from "./play/use-play";
@@ -170,20 +170,35 @@ function Shell() {
       </a>
       <header className="topbar">
         <Link to={pagePath(scope, "")} className="brand">
-          <Compass aria-hidden="true" />
-          WAYFARER
+          <Compass />
+          <b className="brand-name">WAYFARER</b>
         </Link>
         {/* A descriptor of the shell, not a control: it belongs with the
             logotype and is never styled like the buttons beside it (#255). */}
-        <p className="brand-tagline">Campaign companion</p>
+        <p className="brand-tagline">
+          {state.snapshot?.campaign.name ?? "Field journal"}
+        </p>
         <div className="topbar-actions">
+          {!!state.snapshot?.party.length && (
+            <div className="lamp-row" aria-label="Table seats">
+              {state.snapshot.party.map((member) => (
+                <span
+                  key={member.id}
+                  data-lit={member.id === state.actorId ? "" : undefined}
+                  title={`${member.name}: ${member.status}`}
+                >
+                  <Lamp lit={member.id === state.actorId} />
+                </span>
+              ))}
+            </div>
+          )}
           <Button
             variant="outline"
             aria-label="Toggle dark theme"
             aria-pressed={dark}
             onClick={() => setDark(!dark)}
           >
-            <SunMoon size={20} />
+            <SunMoon size={20} strokeWidth={1.25} />
           </Button>
           {(!state.expired || onSwitchCampaign || onNewGame) && (
             <Sheet
@@ -191,7 +206,7 @@ function Shell() {
               description="Leave this table. Switching or starting a game keeps this campaign saved; ending the session clears this tab’s private state."
               trigger={
                 <Button variant="outline">
-                  <Menu size={18} aria-hidden="true" />
+                  <Menu size={18} strokeWidth={1.25} aria-hidden="true" />
                   <span>Session</span>
                 </Button>
               }
@@ -237,40 +252,55 @@ function Shell() {
                   activeProps={{ className: "active", "aria-current": "page" }}
                 >
                   <Icon size={21} aria-hidden="true" />
+                  <i className="nav-tick" aria-hidden="true" />
                   <span>{name}</span>
                 </Link>
               );
             })}
           </nav>
           <div className="table-note desktop-only">
-            <span className="eyebrow">Campaign</span>
-            <p>{state.snapshot?.campaign.name ?? "No active campaign"}</p>
+            <Seal />
+            <div>
+              <span className="eyebrow">Campaign</span>
+              <b>{state.snapshot?.campaign.name ?? "No active campaign"}</b>
+              {state.snapshot && (
+                <p className="hand">
+                  {state.snapshot.campaign.game_time.ticks} ticks at the table
+                </p>
+              )}
+            </div>
           </div>
         </aside>
-        <main id="main" tabIndex={-1}>
-          <div className="page-heading">
-            <div>
-              <span className="eyebrow">At the table</span>
-              <h1 id="page-title" tabIndex={-1}>
-                {title}
-              </h1>
-            </div>
-            {/* The same summary is a rail at wide widths; its drawer trigger
+        <main id="main" className="leaf" tabIndex={-1}>
+          <div className="leaf-inner">
+            <div className="page-heading">
+              <div>
+                <span className="eyebrow">At the table</span>
+                <h1 id="page-title" tabIndex={-1}>
+                  {title}
+                </h1>
+              </div>
+              {/* The same summary is a rail at wide widths; its drawer trigger
                 exists only where the rail is hidden (.compact-only). */}
-            <Sheet
-              title="At a glance"
-              trigger={
-                <Button variant="outline" className="compact-only">
-                  <PanelRight size={18} aria-hidden="true" />
-                  <span>Details</span>
-                </Button>
-              }
-            >
-              <CharacterSummary />
-            </Sheet>
+              <Sheet
+                title="At a glance"
+                trigger={
+                  <Button variant="outline" className="compact-only">
+                    <PanelRight
+                      size={18}
+                      strokeWidth={1.25}
+                      aria-hidden="true"
+                    />
+                    <span>Details</span>
+                  </Button>
+                }
+              >
+                <CharacterSummary />
+              </Sheet>
+            </div>
+            <ConnectionStatus />
+            <Outlet />
           </div>
-          <ConnectionStatus />
-          <Outlet />
         </main>
         <aside className="character-panel" aria-label="At a glance">
           <span className="eyebrow">At a glance</span>

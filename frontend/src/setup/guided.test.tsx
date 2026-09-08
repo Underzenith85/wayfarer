@@ -133,9 +133,8 @@ it("keeps generated spoilers hidden until the author accepts the proposal", asyn
   expect(
     await screen.findByRole("heading", { name: "The Glass Harbor" }),
   ).toBeVisible();
-  expect(
-    screen.getByText(/Challenge warning: Playtest the deadline/),
-  ).toBeVisible();
+  expect(screen.getByText("Playtest note")).toBeVisible();
+  expect(screen.getByText("Playtest the deadline.")).toBeVisible();
   expect(screen.queryByText(/staged the disappearance/)).toBeNull();
   await user.click(screen.getByLabelText(/Authorized author\/GM mode/));
   expect(screen.getByText(/staged the disappearance/)).toBeVisible();
@@ -157,6 +156,91 @@ const job = (over: object = {}) => ({
   error_code: null,
   error_message: null,
   ...over,
+});
+
+it("reopens a completed generation job and presents its findings for review", async () => {
+  const id = "340ea63e-8c8b-4a40-86e8-14b7931ff00d";
+  const proposal = JSON.stringify({
+    public: {
+      title: "The Crown of Amberglass",
+      summary: "Steal the crown through the castle's overlooked weakness.",
+      opening_prompt: "The castle lamps kindle above the town.",
+    },
+    party: { slots: [{ actor_id: "thief", role: "Adventurer" }] },
+  });
+  const recovered = job({
+    id,
+    version: 10,
+    status: "needs_review",
+    request: { source_digest: null, source_json: null },
+    proposal_json: proposal,
+    report: {
+      status: "invalid",
+      findings: [
+        {
+          code: "generation.repair_exhausted",
+          severity: "error",
+          reference: "castle-scene",
+          message: "The hidden route needs an attainable revelation.",
+        },
+        {
+          code: "challenge.estimate",
+          severity: "warning",
+          reference: "crown-scenario",
+          message: "Playtest the castle deadline.",
+        },
+      ],
+    },
+  });
+  const fetchJob = vi
+    .spyOn(globalThis, "fetch")
+    .mockResolvedValue(
+      new Response(JSON.stringify(recovered), { status: 200 }),
+    );
+  const accept = vi.fn();
+  const user = userEvent.setup();
+  render(
+    <GuidedScenarioAuthoring
+      token="secret"
+      principal="alice"
+      source=""
+      onAccept={accept}
+    />,
+  );
+  await user.click(screen.getByRole("button", { name: "Create with AI" }));
+  await user.click(screen.getByText("Open a generation job"));
+  await user.type(screen.getByLabelText("Generation job ID"), ` ${id} `);
+  await user.click(screen.getByRole("button", { name: "Open job" }));
+
+  expect(
+    await screen.findByRole("heading", { name: "The Crown of Amberglass" }),
+  ).toBeVisible();
+  expect(
+    screen.getByRole("heading", { name: "Review findings" }),
+  ).toBeVisible();
+  expect(
+    screen.getByRole("region", { name: "Review findings" }),
+  ).toHaveTextContent("2 findings to review before saving this draft.");
+  expect(screen.getByText("Must repair")).toBeVisible();
+  expect(screen.getByText("Playtest note")).toBeVisible();
+  expect(screen.getByText("generation.repair_exhausted")).toBeVisible();
+  expect(screen.getByText("castle-scene")).toBeVisible();
+  expect(fetchJob).toHaveBeenCalledWith(
+    `/authoring/v1/scenarios/generation-jobs/${id}`,
+    expect.objectContaining({
+      method: "GET",
+      headers: { Authorization: "Bearer secret" },
+    }),
+  );
+  expect(sessionStorage.getItem("wayfarer-scenario-generation:alice")).toBe(id);
+
+  await user.click(
+    screen.getByRole("button", { name: "Accept proposal into editor" }),
+  );
+  expect(accept).toHaveBeenCalledWith(proposal);
+  expect(
+    sessionStorage.getItem("wayfarer-scenario-generation:alice"),
+  ).toBeNull();
 });
 
 it("opens on the concept already captured and follows it until edited (#262, #264)", async () => {

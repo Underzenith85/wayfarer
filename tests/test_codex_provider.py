@@ -459,14 +459,30 @@ def test_normalizing_union_does_not_weaken_original_exclusivity() -> None:
 
 
 def test_scenario_schema_normalizes_nested_tagged_unions() -> None:
-    from wayfarer.simulation.studio import ScenarioGraph
+    from wayfarer.orchestration.catalog import GeneratedScenarioGraph
 
-    schema = codex_output_schema(ScenarioGraph.model_json_schema())
+    schema = codex_output_schema(GeneratedScenarioGraph.model_json_schema())
     Draft202012Validator.check_schema(schema)
     encoded = json.dumps(schema)
     assert '"oneOf"' not in encoded
     assert '"discriminator"' not in encoded
+    assert "(?!" not in encoded
     assert schema["type"] == "object"
+
+
+def test_provider_schema_drops_unsupported_lookaround_but_keeps_original_validation() -> None:
+    original: dict[str, object] = {
+        "type": "string",
+        "pattern": r"^(?!forbidden$).+$",
+    }
+    schema = codex_output_schema(original)
+    properties = schema["properties"]
+    assert isinstance(properties, dict)
+    result = properties["result"]
+    assert isinstance(result, dict) and "pattern" not in result
+    Draft202012Validator(schema).validate({"result": "forbidden"})
+    with pytest.raises(ProviderOutputError):
+        decode_codex_output('{"result":"forbidden"}', original)
 
 
 async def test_sdk_uses_actual_play_schema_and_unwraps_response(tmp_path: Path) -> None:

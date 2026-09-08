@@ -21,13 +21,11 @@ test("play replaces setup, and a second draft replaces the step view", async ({
   page,
 }) => {
   const lobby = await login(page);
-  // One surface at a time, and the numbered flow carries none of the scenario
-  // authoring surface: step 2 asks which adventure, and nothing else (#261).
-  await lobby.getByRole("button", { name: "Concept", exact: true }).click();
+  // One surface at a time: starting a game chooses a published scenario and
+  // never repeats the scenario-authoring questions.
   await expect(
     page.getByRole("region", { name: "Scenario catalog" }),
   ).toHaveCount(0);
-  await lobby.getByRole("button", { name: "Adventure", exact: true }).click();
   await expect(page.getByLabel("Premise", { exact: true })).toHaveCount(0);
   await expect(
     page.getByRole("region", { name: "Scenario catalog" }),
@@ -42,9 +40,7 @@ test("play replaces setup, and a second draft replaces the step view", async ({
     .selectOption("beacon-1");
   await create(lobby);
   await expect(lobby.getByRole("status")).toContainText("revision 0");
-  await lobby
-    .getByRole("button", { name: "Start a new game", exact: true })
-    .click();
+  await lobby.getByRole("button", { name: "Start over", exact: true }).click();
   await expect(lobby.getByRole("status")).toHaveCount(0);
   await lobby.getByRole("button", { name: "Adventure", exact: true }).click();
   // A second draft replaces the step view instead of appending another form.
@@ -106,9 +102,9 @@ test("the setup stepper stays one readable line at 320px (#206)", async ({
   await page.setViewportSize({ width: 320, height: 900 });
   const lobby = await login(page);
   const steps = lobby.getByRole("navigation", { name: "Setup steps" });
-  await expect(steps.getByText("Step 1 of 4: Concept")).toBeVisible();
+  await expect(steps.getByText("Step 1 of 3: Adventure")).toBeVisible();
   const chips = steps.getByRole("listitem");
-  await expect(chips).toHaveCount(4);
+  await expect(chips).toHaveCount(3);
   // One row, no staircase: every chip shares a top edge, and none of it forces
   // the page to scroll sideways.
   const tops = await chips.evaluateAll((items) =>
@@ -124,6 +120,18 @@ test("the setup stepper stays one readable line at 320px (#206)", async ({
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
+  const wordmark = await page
+    .getByRole("heading", { name: "Wayfarer", exact: true })
+    .boundingBox();
+  expect(wordmark!.height).toBeLessThanOrEqual(40);
+  for (const name of ["Join game", "Create scenario"]) {
+    await page.getByRole("tab", { name, exact: true }).click();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+  }
 });
 test("the lobby header is sized to its content and aligned with the panel (#254)", async ({
   page,

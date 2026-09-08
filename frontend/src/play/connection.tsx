@@ -14,18 +14,16 @@ import {
   takeRequestedPath,
 } from "./session";
 import type { PlayTransport } from "./transport";
+import { Compass } from "../components/ornaments";
 
 /**
  * Setup modes are tabs, not three primary actions: one is always selected, and
  * the panel below is the one the selected tab names (#200).
  */
 const modes = [
-  { value: "new", label: "New game" },
-  { value: "continue", label: "Continue game" },
+  { value: "new", label: "Start game" },
   { value: "join", label: "Join game" },
-  // Scenario authoring is a library the setup flow draws on, not a step of it
-  // (#261): it sits beside the game modes rather than inside one.
-  { value: "scenarios", label: "Scenarios" },
+  { value: "scenarios", label: "Create scenario" },
 ] as const;
 type Mode = SetupMode;
 const panelId = "game-mode-panel";
@@ -102,7 +100,7 @@ export function ConnectedApp() {
     forgetSession();
     setSession(undefined);
   }, []);
-  const leave = useCallback((next: Extract<Mode, "new" | "continue">) => {
+  const leave = useCallback((next: Extract<Mode, "new" | "join">) => {
     // Leaving play drops the campaign from the URL and from what a reload opens.
     if (location.pathname !== "/") history.replaceState(null, "", "/");
     rememberCampaign(null);
@@ -145,13 +143,21 @@ export function ConnectedApp() {
   // here would ask for an access token the tab already holds.
   if (restoring)
     return (
-      <section className="scene-card connection-form">
-        <h1>Wayfarer</h1>
-        <div role="status" aria-busy="true">
-          <h2>Restoring your session…</h2>
-          <div className="skeleton" />
-        </div>
-      </section>
+      <div className="setup-shell">
+        <section className="setup-page setup-restoring connection-form">
+          <div className="setup-brand">
+            <Compass size={34} />
+            <div>
+              <span className="eyebrow">Campaign companion</span>
+              <h1>Wayfarer</h1>
+            </div>
+          </div>
+          <div role="status" aria-busy="true">
+            <h2>Restoring your session…</h2>
+            <div className="skeleton" />
+          </div>
+        </section>
+      </div>
     );
   if (transport)
     return (
@@ -160,7 +166,7 @@ export function ConnectedApp() {
         transport={transport}
         onSessionEnded={clearSession}
         onNewGame={() => leave("new")}
-        onSwitchCampaign={() => leave("continue")}
+        onSwitchCampaign={() => leave("join")}
       />
     );
   return (
@@ -171,61 +177,80 @@ export function ConnectedApp() {
       <a className="skip-link" href="#setup-main">
         Skip to content
       </a>
-      <header className="scene-card connection-form lobby-header">
-        <h1>Wayfarer</h1>
-        <p>Start an adventure or return to your table.</p>
-        <nav aria-label="Setup">
-          <div className="mode-tabs" role="tablist" aria-label="Game menu">
-            {modes.map(({ value, label }, index) => (
-              <button
-                key={value}
-                type="button"
-                role="tab"
-                id={tabId(value)}
-                className="mode-tab"
-                aria-selected={mode === value}
-                aria-controls={panelId}
-                tabIndex={mode === value ? 0 : -1}
-                onKeyDown={(event) => {
-                  const target = step(index, event.key);
-                  if (target === undefined) return;
-                  event.preventDefault();
-                  setMode(modes[target]!.value);
-                  document.getElementById(tabId(modes[target]!.value))?.focus();
+      <div className="setup-shell">
+        <div className="setup-page">
+          <header className="connection-form lobby-header">
+            <div className="setup-masthead">
+              <div className="setup-brand">
+                <Compass size={34} />
+                <div>
+                  <span className="eyebrow">Campaign companion</span>
+                  <h1>Wayfarer</h1>
+                </div>
+              </div>
+              <p className="setup-intro">
+                Start an adventure or return to your table.
+              </p>
+            </div>
+            <nav aria-label="Setup">
+              <div className="mode-tabs" role="tablist" aria-label="Game menu">
+                {modes.map(({ value, label }, index) => (
+                  <button
+                    key={value}
+                    type="button"
+                    role="tab"
+                    id={tabId(value)}
+                    className="mode-tab"
+                    aria-selected={mode === value}
+                    aria-controls={panelId}
+                    tabIndex={mode === value ? 0 : -1}
+                    onKeyDown={(event) => {
+                      const target = step(index, event.key);
+                      if (target === undefined) return;
+                      event.preventDefault();
+                      setMode(modes[target]!.value);
+                      document
+                        .getElementById(tabId(modes[target]!.value))
+                        ?.focus();
+                    }}
+                    onClick={() => setMode(value)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </nav>
+          </header>
+          <main className="setup-main" id="setup-main" tabIndex={-1}>
+            <div id={panelId} role="tabpanel" aria-labelledby={tabId(mode)}>
+              <SetupLobby
+                mode={mode}
+                onMode={setMode}
+                initialSession={session}
+                initialCampaignId={opened}
+                onSession={remember}
+                onOpen={(next) => {
+                  const requested = takeRequestedPath();
+                  const segment = requested
+                    ? (parsePath(new URL(requested, location.origin).pathname)
+                        ?.segment ?? "")
+                    : "";
+                  const target = pagePath(
+                    next.initialCampaignId ?? null,
+                    segment,
+                  );
+                  if (location.pathname !== target)
+                    history.replaceState(null, "", target);
+                  if (next.initialCampaignId)
+                    rememberCampaign(next.initialCampaignId);
+                  setOpened(next.initialCampaignId);
+                  setTransport(next);
                 }}
-                onClick={() => setMode(value)}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </nav>
-      </header>
-      <main className="setup-main" id="setup-main" tabIndex={-1}>
-        <div id={panelId} role="tabpanel" aria-labelledby={tabId(mode)}>
-          <SetupLobby
-            mode={mode}
-            onMode={setMode}
-            initialSession={session}
-            initialCampaignId={opened}
-            onSession={remember}
-            onOpen={(next) => {
-              const requested = takeRequestedPath();
-              const segment = requested
-                ? (parsePath(new URL(requested, location.origin).pathname)
-                    ?.segment ?? "")
-                : "";
-              const target = pagePath(next.initialCampaignId ?? null, segment);
-              if (location.pathname !== target)
-                history.replaceState(null, "", target);
-              if (next.initialCampaignId)
-                rememberCampaign(next.initialCampaignId);
-              setOpened(next.initialCampaignId);
-              setTransport(next);
-            }}
-          />
+              />
+            </div>
+          </main>
         </div>
-      </main>
+      </div>
     </>
   );
 }

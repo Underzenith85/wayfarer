@@ -2,7 +2,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SetupLobby } from "./lobby";
-import { providerBanner } from "../presentation/availability";
 
 afterEach(() => {
   cleanup();
@@ -73,7 +72,7 @@ it("shows a saved conclusion and restores an archive to completed", async () => 
       );
     });
   const user = userEvent.setup();
-  render(<SetupLobby onOpen={vi.fn()} />);
+  render(<SetupLobby mode="join" onOpen={vi.fn()} />);
   await user.type(screen.getByLabelText("Access token"), "secret");
   await user.click(screen.getByRole("button", { name: "Sign in" }));
   await user.click(
@@ -147,7 +146,7 @@ it("renders seats as structured rows and lifecycle controls as actions", async (
     );
   });
   const user = userEvent.setup();
-  render(<SetupLobby onOpen={vi.fn()} />);
+  render(<SetupLobby mode="join" onOpen={vi.fn()} />);
   await user.type(screen.getByLabelText("Access token"), "secret");
   await user.click(screen.getByRole("button", { name: "Sign in" }));
   await user.click(
@@ -168,12 +167,9 @@ it("renders seats as structured rows and lifecycle controls as actions", async (
     screen.getByRole("button", { name: "End campaign" }),
   ).toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "pause" })).toBeNull();
-  // Without a provider the setup shell states the condition once, in the same
-  // wording play uses, and lists what it costs behind a disclosure.
-  expect(screen.getAllByText(providerBanner.summary)).toHaveLength(1);
-  expect(screen.getByText(providerBanner.disclosure)).toBeVisible();
-  expect(screen.queryByText(/AI generation and free-text actions/)).toBeNull();
-  expect(screen.queryByText(/AI creation is unavailable/)).toBeNull();
+  // Provider status belongs to scenario authoring; joining and managing a
+  // running table do not need an unrelated availability warning.
+  expect(screen.queryByText(/AI provider connected/)).not.toBeInTheDocument();
 });
 
 describe("grounded ending journeys", () => {
@@ -257,7 +253,7 @@ describe("grounded ending journeys", () => {
         );
       });
       const user = userEvent.setup();
-      render(<SetupLobby onOpen={vi.fn()} />);
+      render(<SetupLobby mode="join" onOpen={vi.fn()} />);
       await user.type(screen.getByLabelText("Access token"), "secret");
       await user.click(screen.getByRole("button", { name: "Sign in" }));
       await user.click(
@@ -368,7 +364,7 @@ describe("grounded ending journeys", () => {
         );
       });
     const user = userEvent.setup();
-    render(<SetupLobby onOpen={vi.fn()} />);
+    render(<SetupLobby mode="join" onOpen={vi.fn()} />);
     await user.type(screen.getByLabelText("Access token"), "secret");
     await user.click(screen.getByRole("button", { name: "Sign in" }));
     await user.click(
@@ -529,7 +525,7 @@ it("creates a game with an exact rules profile and disables unsupported ones", a
   });
 });
 
-it("keeps an authored concept unless its adventure brief is explicitly chosen", async () => {
+it("starts a game from the selected scenario without asking for its concept again", async () => {
   const adventureBrief = {
     premise: "Carry the harbor warning to the beacon before the storm arrives.",
     genre: "Fantasy",
@@ -565,45 +561,42 @@ it("keeps an authored concept unless its adventure brief is explicitly chosen", 
   render(<SetupLobby onOpen={vi.fn()} />);
   await user.type(screen.getByLabelText("Access token"), "secret");
   await user.click(screen.getByRole("button", { name: "Sign in" }));
-
-  const premise =
-    "A storm-battered harbor town whose lighthouse has gone dark.";
-  await user.type(screen.getByLabelText("Premise"), premise);
-  await user.clear(screen.getByLabelText("Duration (minutes)"));
-  await user.type(screen.getByLabelText("Duration (minutes)"), "90");
-  await user.selectOptions(screen.getByLabelText("Difficulty"), "standard");
-  await user.click(screen.getByRole("button", { name: "Next: Adventure" }));
+  expect(screen.queryByLabelText("Premise")).toBeNull();
+  expect(screen.queryByLabelText("Difficulty")).toBeNull();
+  await screen.findByRole("option", {
+    name: "The Last Beacon (two players)",
+  });
   await user.selectOptions(
     screen.getByLabelText("Adventure and starting party"),
     "beacon-2",
   );
-
-  expect(screen.getByRole("status")).toHaveTextContent(
-    "Your Concept answers were kept",
+  await user.click(screen.getByRole("button", { name: "Next: Rules" }));
+  await user.click(screen.getByRole("button", { name: "Next: Ready" }));
+  expect(
+    screen.getByRole("form", { name: "Review and create" }),
+  ).toHaveTextContent(
+    "Carry the harbor warning to the beacon before the storm arrives.",
   );
-  await user.click(screen.getByRole("button", { name: "Concept" }));
-  expect(screen.getByLabelText("Premise")).toHaveValue(premise);
-  expect(screen.getByLabelText("Duration (minutes)")).toHaveValue(90);
-  expect(screen.getByLabelText("Difficulty")).toHaveValue("standard");
-
-  await user.click(screen.getByRole("button", { name: "Adventure" }));
-  await user.click(
-    screen.getByRole("button", { name: "Use adventure concept" }),
-  );
-  await user.click(screen.getByRole("button", { name: "Concept" }));
-  expect(screen.getByLabelText("Premise")).toHaveValue(adventureBrief.premise);
-  expect(screen.getByLabelText("Duration (minutes)")).toHaveValue(30);
-  expect(screen.getByLabelText("Difficulty")).toHaveValue("gentle");
-
-  await user.click(
-    screen.getByRole("button", { name: "Restore previous concept" }),
-  );
-  expect(screen.getByLabelText("Premise")).toHaveValue(premise);
-  expect(screen.getByLabelText("Duration (minutes)")).toHaveValue(90);
-  expect(screen.getByLabelText("Difficulty")).toHaveValue("standard");
+  expect(
+    screen.getByRole("form", { name: "Review and create" }),
+  ).toHaveTextContent("30 minutes · Gentle");
 });
 
 it("walks the setup steps and creates the draft only from the review step", async () => {
+  const template = {
+    id: "beacon-1",
+    title: "The Last Beacon",
+    brief: {
+      premise: "Carry the warning",
+      genre: "Fantasy",
+      tone: "Adventurous",
+      duration_minutes: 90,
+      difficulty: "standard",
+      restrictions: [],
+    },
+    npc_actor_ids: [],
+    actors: [],
+  };
   const created = {
     id: "c",
     revision: 0,
@@ -641,7 +634,9 @@ it("walks the setup steps and creates the draft only from the review step", asyn
       return new Response(JSON.stringify({ items: [], next_cursor: null }));
     if (init?.method === "POST")
       return new Response(JSON.stringify(created), { status: 201 });
-    return new Response(JSON.stringify([]));
+    return new Response(
+      JSON.stringify(path.endsWith("/templates") ? [template] : []),
+    );
   });
   const user = userEvent.setup();
   render(<SetupLobby onOpen={vi.fn()} />);
@@ -678,12 +673,12 @@ it("walks the setup steps and creates the draft only from the review step", asyn
   expect((await nav()).queryByRole("button", { name: "Party" })).toBeNull();
   expect(await chip("Ready")).toBeDisabled();
   await monotonic();
-  await user.type(screen.getByLabelText("Premise"), "Carry the warning");
-  // A validated concept unlocks review, the last numbered step.
+  await user.selectOptions(
+    screen.getByLabelText("Adventure and starting party"),
+    "beacon-1",
+  );
+  // Choosing a playable scenario unlocks review, the last numbered step.
   expect(await chip("Ready")).toBeEnabled();
-  await monotonic();
-  await user.click(screen.getByRole("button", { name: "Next: Adventure" }));
-  expect(await chip("Adventure")).toHaveAttribute("aria-current", "step");
   await monotonic();
   await user.click(screen.getByRole("button", { name: "Next: Rules" }));
   await monotonic();
@@ -712,7 +707,7 @@ it("walks the setup steps and creates the draft only from the review step", asyn
 });
 
 /** The signed-in lobby: what the page is for, before what keeps it tidy (#204). */
-async function signedIn(lobbies: object[] = []) {
+async function signedIn(lobbies: object[] = [], mode: "new" | "join" = "join") {
   vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
     const path = input instanceof Request ? input.url : String(input);
     if (path.endsWith("/session"))
@@ -734,11 +729,11 @@ async function signedIn(lobbies: object[] = []) {
     );
   });
   const user = userEvent.setup();
-  render(<SetupLobby onOpen={vi.fn()} />);
+  render(<SetupLobby mode={mode} onOpen={vi.fn()} />);
   await user.type(screen.getByLabelText("Access token"), "secret");
   await user.click(screen.getByRole("button", { name: "Sign in" }));
   await screen.findByRole("heading", {
-    name: "Your saved games and unfinished drafts",
+    name: mode === "new" ? "Choose the adventure" : "Invitations and games",
   });
   return user;
 }
@@ -765,7 +760,7 @@ it("leads with the games list and keeps upkeep out of primary position (#204)", 
   await signedIn([draft]);
   const panel = screen.getByRole("region", { name: "New game and lobby" });
   const heading = screen.getByRole("heading", {
-    name: "Your saved games and unfinished drafts",
+    name: "Invitations and games",
   });
   const saved = await screen.findByRole("button", {
     name: "Courier · Draft",
@@ -788,22 +783,21 @@ it("leads with the games list and keeps upkeep out of primary position (#204)", 
   ).toBeNull();
 });
 it("names every step at every width and numbers them for narrow rows (#206)", async () => {
-  await signedIn();
+  await signedIn([], "new");
   const steps = within(
     within(screen.getByRole("navigation", { name: "Setup steps" })).getByRole(
       "list",
     ),
   ).getAllByRole("button");
   expect(steps.map((s) => s.textContent)).toEqual([
-    "1Concept",
-    "2Adventure",
-    "3Rules",
-    "4Ready",
+    "1Adventure",
+    "2Rules",
+    "3Ready",
   ]);
   // The number is decoration; the step name stays the accessible label.
-  expect(steps[0]).toHaveAccessibleName("Concept");
+  expect(steps[0]).toHaveAccessibleName("Adventure");
   expect(steps[0]).toHaveAttribute("aria-current", "step");
-  expect(screen.getByText("Step 1 of 4: Concept")).toBeVisible();
+  expect(screen.getByText("Step 1 of 3: Adventure")).toBeVisible();
 });
 
 describe("campaign lifecycle safety (#163)", () => {
@@ -890,7 +884,7 @@ describe("campaign lifecycle safety (#163)", () => {
   it("ends a campaign only after a confirmation that names it", async () => {
     const fetcher = serve();
     const user = userEvent.setup();
-    render(<SetupLobby onOpen={vi.fn()} />);
+    render(<SetupLobby mode="join" onOpen={vi.fn()} />);
     await openPanel(user);
     await user.click(screen.getByRole("button", { name: "End campaign" }));
     // The press opens the question; nothing has been sent to the service yet.
@@ -926,7 +920,7 @@ describe("campaign lifecycle safety (#163)", () => {
     const fetcher = serve();
     const onOpen = vi.fn();
     const user = userEvent.setup();
-    render(<SetupLobby onOpen={onOpen} />);
+    render(<SetupLobby mode="join" onOpen={onOpen} />);
     await openPanel(user);
     // Reaching an active campaign from the list enters play, so the undo is
     // measured against the entries made before it, not against none at all.
@@ -953,7 +947,7 @@ describe("campaign lifecycle safety (#163)", () => {
   it("separates lifecycle controls from the navigation beside them", async () => {
     serve();
     const user = userEvent.setup();
-    render(<SetupLobby onOpen={vi.fn()} />);
+    render(<SetupLobby mode="join" onOpen={vi.fn()} />);
     await openPanel(user);
     const lifecycle = await screen.findByRole("region", {
       name: "Campaign lifecycle",
@@ -1022,14 +1016,6 @@ const goTo = (user: ReturnType<typeof userEvent.setup>, name: string) =>
 
 it("asks one question on the adventure step and keeps authoring elsewhere (#261, #264)", async () => {
   const { user } = await withAdventure();
-  // Difficulty reads title-cased wherever it is shown (#264).
-  expect(
-    within(screen.getByLabelText("Difficulty"))
-      .getAllByRole("option")
-      .map((o) => o.textContent),
-  ).toEqual(["Gentle", "Standard", "Hard"]);
-  await user.type(screen.getByLabelText("Premise"), "Carry the warning");
-  await goTo(user, "Adventure");
   // One primary choice; the document format and the saved-scenario library are
   // not part of the numbered flow.
   expect(
@@ -1039,10 +1025,14 @@ it("asks one question on the adventure step and keeps authoring elsewhere (#261,
   expect(screen.queryByLabelText("Scenario document JSON")).toBeNull();
   expect(screen.queryByRole("button", { name: "Create with AI" })).toBeNull();
   expect(
-    screen.getByRole("button", { name: "Open the scenario library" }),
+    screen.getByRole("button", { name: "Create a scenario" }),
   ).toBeEnabled();
+  await user.selectOptions(
+    screen.getByLabelText("Adventure and starting party"),
+    "beacon-2",
+  );
   await goTo(user, "Ready");
   expect(
     screen.getByRole("form", { name: "Review and create" }),
-  ).toHaveTextContent("90 minutes · Standard");
+  ).toHaveTextContent("30 minutes · Gentle");
 });

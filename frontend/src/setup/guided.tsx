@@ -88,6 +88,7 @@ export function GuidedScenarioAuthoring({
   const [section, setSection] = useState("all");
   const [job, setJob] = useState<GenerationJob>();
   const [error, setError] = useState("");
+  const [recoveryId, setRecoveryId] = useState("");
   const [authorMode, setAuthorMode] = useState(false);
   const [submittedSource, setSubmittedSource] = useState<string | null>(null);
 
@@ -117,8 +118,31 @@ export function GuidedScenarioAuthoring({
     );
     setJob(value);
     if (value.status === "queued" || value.status === "running") return false;
-    sessionStorage.removeItem(storageKey);
     return true;
+  };
+
+  const track = (id: string) => {
+    const poll = async () => {
+      if (!(await watch(id))) setTimeout(() => void poll(), 500);
+    };
+    setTimeout(() => void poll(), 50);
+  };
+
+  const recover = async () => {
+    const id = recoveryId.trim();
+    if (!id) return;
+    setError("");
+    try {
+      const terminal = await watch(id);
+      sessionStorage.setItem(storageKey, id);
+      if (!terminal) track(id);
+    } catch (reason) {
+      setError(
+        reason instanceof Error
+          ? reason.message
+          : "Unable to open generation job",
+      );
+    }
   };
 
   useEffect(() => {
@@ -187,10 +211,7 @@ export function GuidedScenarioAuthoring({
         attempts: 2,
       });
       setJob(value);
-      const poll = async () => {
-        if (!(await watch(id))) setTimeout(() => void poll(), 500);
-      };
-      setTimeout(() => void poll(), 50);
+      track(id);
     } catch (reason) {
       sessionStorage.removeItem(storageKey);
       setError(reason instanceof Error ? reason.message : "Generation failed");
@@ -223,6 +244,40 @@ export function GuidedScenarioAuthoring({
             Describe the experience you want. The model proposes an editable
             scenario; only you can accept, save, publish, and start it.
           </p>
+          <details className="generation-recovery">
+            <summary>Open a generation job</summary>
+            <form
+              className="generation-recovery-form"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void recover();
+              }}
+            >
+              <label className="label" htmlFor="generation-job-id">
+                Generation job ID
+              </label>
+              <div className="generation-recovery-fields">
+                <input
+                  id="generation-job-id"
+                  className="generation-job-id"
+                  value={recoveryId}
+                  onChange={(event) => setRecoveryId(event.target.value)}
+                  autoComplete="off"
+                />
+                <Button
+                  type="submit"
+                  variant="outline"
+                  disabled={!recoveryId.trim()}
+                >
+                  Open job
+                </Button>
+              </div>
+              <p>
+                Paste the identifier from generation error details to reopen its
+                proposal and validation notes.
+              </p>
+            </form>
+          </details>
           <label>
             Premise
             <textarea
@@ -343,11 +398,7 @@ export function GuidedScenarioAuthoring({
                     .then((value) => {
                       sessionStorage.setItem(storageKey, value.id);
                       setJob(value);
-                      const poll = async () => {
-                        if (!(await watch(value.id)))
-                          setTimeout(() => void poll(), 500);
-                      };
-                      setTimeout(() => void poll(), 50);
+                      track(value.id);
                     })
                     .catch((reason: unknown) =>
                       setError(
@@ -425,16 +476,41 @@ export function GuidedScenarioAuthoring({
                   ?.map((slot) => slot.role)
                   .join(", ") || "Needs compatible characters"}
               </p>
-              <ul>
-                {job?.report?.findings.map((finding, index) => (
-                  <li key={`${finding.code}-${index}`}>
-                    {finding.severity === "error"
-                      ? "Hard error"
-                      : "Challenge warning"}
-                    : {finding.message}
-                  </li>
-                ))}
-              </ul>
+              {!!job?.report?.findings.length && (
+                <section
+                  className="generation-review"
+                  aria-labelledby="generation-review-title"
+                >
+                  <p className="eyebrow">Validation notes</p>
+                  <h5 id="generation-review-title">Review findings</h5>
+                  <p className="generation-review-summary">
+                    <span>{job.report.findings.length}</span> findings to review
+                    before saving this draft.
+                  </p>
+                  <ol className="generation-findings">
+                    {job.report.findings.map((finding, index) => (
+                      <li
+                        className="generation-finding"
+                        data-severity={finding.severity}
+                        key={`${finding.code}-${index}`}
+                      >
+                        <div className="generation-finding-heading">
+                          <strong className="tag">
+                            {finding.severity === "error"
+                              ? "Must repair"
+                              : "Playtest note"}
+                          </strong>
+                          <code>{finding.code}</code>
+                        </div>
+                        <p>{finding.message}</p>
+                        <p className="generation-finding-reference">
+                          Reference: <code>{finding.reference}</code>
+                        </p>
+                      </li>
+                    ))}
+                  </ol>
+                </section>
+              )}
               <label>
                 <input
                   type="checkbox"
@@ -456,6 +532,7 @@ export function GuidedScenarioAuthoring({
                 onClick={() => {
                   const proposal = job?.proposal_json;
                   if (proposal) {
+                    sessionStorage.removeItem(storageKey);
                     setSubmittedSource(proposal);
                     onAccept(proposal);
                   }

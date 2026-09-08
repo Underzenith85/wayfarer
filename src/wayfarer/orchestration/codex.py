@@ -71,6 +71,14 @@ def strict_schema(schema: dict[str, object]) -> JsonObject:
                 for key, item in value.items()
                 if key not in ("default", "discriminator")
             }
+            pattern = result.get("pattern")
+            if isinstance(pattern, str) and any(
+                marker in pattern for marker in ("(?=", "(?!", "(?<=", "(?<!")
+            ):
+                # The provider's JSON Schema subset rejects regex lookaround (used by
+                # Pydantic's Decimal schema). The original schema remains authoritative
+                # in decode_codex_output, so removing it here does not weaken validation.
+                result.pop("pattern")
             # The original schema remains authoritative when decoding the result.
             # Structured Outputs supports nested anyOf, not our tagged oneOf unions.
             if "oneOf" in result:
@@ -216,7 +224,7 @@ def codex_turn_failure(info: object) -> ProviderError:
 class CodexSettings(Record):
     model: str = Field(default="gpt-5.6-terra", min_length=1, max_length=100)
     effort: Literal["low", "medium", "high"] = "low"
-    timeout: float = Field(default=60.0, gt=0, le=120)
+    timeout: float = Field(default=300.0, gt=0, le=300)
     # Separate Codex-managed profile: no copying credentials from another profile.
     home: Path = Path("data/codex")
     sessions: Path = Path("data/codex-sessions.sqlite3")
