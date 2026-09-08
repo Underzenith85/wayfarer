@@ -10,7 +10,7 @@ is keyed by an exact conformance profile ID.
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from decimal import Decimal
 from enum import IntEnum, StrEnum
 from types import MappingProxyType
@@ -30,6 +30,8 @@ CAPABILITY_IDS: Final = (
     "gurps.character.primary_attributes",
     "gurps.character.secondary_characteristics",
 )
+STATISTICS_V2_HOOK: Final = "character.statistics.v2"
+
 SIZE_MODIFIER_CAPABILITY_ID: Final = "gurps.character.size_modifier_costs"
 SIZE_MODIFIER_DEFINITION_ID: Final = "trait:size-modifier"
 
@@ -84,6 +86,11 @@ class StatisticsRules:
     attribute_costs: Mapping[Attribute, int]
     secondary_costs: Mapping[Secondary, int]
     damage_table_maximum_st: int
+    revision: int = 1
+    high_st_progression: bool = False
+    will_per_reduction_limit: int | None = None
+    speed_adjustment_limit_quarters: int | None = None
+    move_adjustment_limit: int | None = None
     attribute_minimum: int = 1
     basic_lift_rounding_threshold: Decimal = Decimal(10)
     encumbrance_multipliers: tuple[int, ...] = (1, 2, 3, 6, 10)
@@ -138,7 +145,7 @@ RULES: Final = MappingProxyType(
 )
 
 
-def table(profile_id: str) -> StatisticsRules:
+def table(profile_id: str, *, revision: int = 1) -> StatisticsRules:
     """Resolve profile metadata by exact ID. Package registration uses this.
 
     Compilation goes through ``wayfarer.character.statistics.rules`` instead,
@@ -149,6 +156,19 @@ def table(profile_id: str) -> StatisticsRules:
     if selected is None:
         profile(profile_id)
         raise ValidationError(f"Profile has no character statistics rules: {profile_id}")
+    if type(revision) is not int or revision not in (1, 2):
+        raise ValidationError(f"Unknown statistics revision: {revision}")
+    if revision == 2:
+        if profile_id != "gurps-basic-set-4e-2004":
+            raise ValidationError("Statistics revision 2 requires Basic Set")
+        return replace(
+            selected,
+            revision=2,
+            high_st_progression=True,
+            will_per_reduction_limit=4,
+            speed_adjustment_limit_quarters=8,
+            move_adjustment_limit=3,
+        )
     return selected
 
 
@@ -162,10 +182,11 @@ def source(profile_id: str) -> SourceReference:
     )
 
 
-def definitions(profile_id: str) -> tuple[RuleDefinition, ...]:
+def definitions(profile_id: str, *, revision: int = 1) -> tuple[RuleDefinition, ...]:
     """Catalog entries a profile package carries so the compiler can bind them."""
 
-    selected = table(profile_id)
+    selected = table(profile_id, revision=revision)
+    revision_hooks = (STATISTICS_V2_HOOK,) if revision == 2 else ()
     attributes = tuple(
         RuleDefinition(
             id=key,
@@ -174,7 +195,7 @@ def definitions(profile_id: str) -> tuple[RuleDefinition, ...]:
             source_id=selected.source_id,
             point_cost=selected.attribute_costs[attribute],
             status=ImplementationStatus.IMPLEMENTED,
-            hooks=("character.attribute",),
+            hooks=("character.attribute",) + revision_hooks,
         )
         for key, attribute in ATTRIBUTE_IDS.items()
     )
@@ -186,7 +207,7 @@ def definitions(profile_id: str) -> tuple[RuleDefinition, ...]:
             source_id=selected.source_id,
             point_cost=selected.secondary_costs[secondary],
             status=ImplementationStatus.IMPLEMENTED,
-            hooks=("character.secondary",),
+            hooks=("character.secondary",) + revision_hooks,
         )
         for key, secondary in SECONDARY_IDS.items()
     )

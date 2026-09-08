@@ -20,10 +20,15 @@ agree. Each comparison names the reviewer, pages and executable test and binds
 the complete fixture with a digest. This is recorded as `compared`, not frozen
 baseline `reviewed`. Other fixture expectations remain explicitly pending.
 
-The comparison identified additional behavior missing from the statistics adapter:
-source-defined damage progression above ST 100, reduced Will/Per permission
-advisories, and realistic Speed/Move purchase-limit reconciliation. #215 owns the
-bounded runtime follow-up; #192 continues to own Size Modifier prices.
+#215 adds 36 independently compared cases for opt-in statistics revision 2:
+high-ST progression, unsupported intermediate rows, lowered Will/Per permission
+advisories and realistic Speed/Move purchase limits. Together with the original
+18, the ledger now contains 54 compared fixtures. B15-17 provides no rule for
+unlisted intermediate ST rows between 40 and 100; these explicitly remain
+unsupported rather than using invented interpolation. Profile v6 / Characters
+package 0.6.0 implements the supported changes without altering saved pins.
+First-printing and selected-errata reconciliation remains unresolved in #191;
+these comparisons do not claim that the later printing establishes that baseline.
 
 Official first-printing errata search metadata matches January 26, 2007, but
 retrieving both correction pages returned HTTP 403 during this review. The exact

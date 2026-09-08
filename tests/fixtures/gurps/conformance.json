@@ -4610,17 +4610,860 @@
       "source_id": "sjg:basic-set-campaigns-4e-2004",
       "reference": "B365/B390, Attack and Step",
       "input": {
-        "attack_hex": [0, 0],
-        "post_attack_hex": [-1, 0]
+        "attack_hex": [
+          0,
+          0
+        ],
+        "post_attack_hex": [
+          -1,
+          0
+        ]
       },
       "expected": {
-        "position_while_defense_pending": [0, 0],
-        "position_after_resolution": [-1, 0]
+        "position_while_defense_pending": [
+          0,
+          0
+        ],
+        "position_after_resolution": [
+          -1,
+          0
+        ]
       },
       "rounding": "none",
       "evidence_kind": "independent-transition-case",
       "provenance": "Independent expectation checked against Campaigns Fourth Edition, fourth printing; frozen first-printing/errata reconciliation remains #191.",
       "test": "tests/test_maneuver_followups.py::test_attack_then_step_is_deferred_until_defense_and_replays_once"
+    },
+    {
+      "id": "basic-statistics-v2-damage-40",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15-16",
+      "input": {
+        "ST": 40
+      },
+      "expected": {
+        "thrust": "4d+1",
+        "swing": "7d-1"
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "damage",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-damage-45",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15-16",
+      "input": {
+        "ST": 45
+      },
+      "expected": {
+        "thrust": "5d",
+        "swing": "7d+1"
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "damage",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-damage-95",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15-16",
+      "input": {
+        "ST": 95
+      },
+      "expected": {
+        "thrust": "10d+2",
+        "swing": "12d+2"
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "damage",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-damage-100",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15-16",
+      "input": {
+        "ST": 100
+      },
+      "expected": {
+        "thrust": "11d",
+        "swing": "13d"
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "damage",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-damage-101",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15-16",
+      "input": {
+        "ST": 101
+      },
+      "expected": {
+        "thrust": "11d",
+        "swing": "13d"
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "damage",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-damage-109",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15-16",
+      "input": {
+        "ST": 109
+      },
+      "expected": {
+        "thrust": "11d",
+        "swing": "13d"
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "damage",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-damage-110",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15-16",
+      "input": {
+        "ST": 110
+      },
+      "expected": {
+        "thrust": "12d",
+        "swing": "14d"
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "damage",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-damage-119",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15-16",
+      "input": {
+        "ST": 119
+      },
+      "expected": {
+        "thrust": "12d",
+        "swing": "14d"
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "damage",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-damage-120",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15-16",
+      "input": {
+        "ST": 120
+      },
+      "expected": {
+        "thrust": "13d",
+        "swing": "15d"
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "damage",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-damage-1000",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B15-16",
+      "input": {
+        "ST": 1000
+      },
+      "expected": {
+        "thrust": "101d",
+        "swing": "103d"
+      },
+      "rounding": "floor",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "damage",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-damage-unsupported-0",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16: no intermediate-row rule specified",
+      "input": {
+        "ST": 0
+      },
+      "expected": {
+        "code": "damage.unsupported_st"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "damage_error",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-damage-unsupported-41",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16: no intermediate-row rule specified",
+      "input": {
+        "ST": 41
+      },
+      "expected": {
+        "code": "damage.unsupported_st"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "damage_error",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-damage-unsupported-44",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16: no intermediate-row rule specified",
+      "input": {
+        "ST": 44
+      },
+      "expected": {
+        "code": "damage.unsupported_st"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "damage_error",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-damage-unsupported-46",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16: no intermediate-row rule specified",
+      "input": {
+        "ST": 46
+      },
+      "expected": {
+        "code": "damage.unsupported_st"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "damage_error",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-damage-unsupported-94",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16: no intermediate-row rule specified",
+      "input": {
+        "ST": 94
+      },
+      "expected": {
+        "code": "damage.unsupported_st"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "damage_error",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-damage-unsupported-96",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16: no intermediate-row rule specified",
+      "input": {
+        "ST": 96
+      },
+      "expected": {
+        "code": "damage.unsupported_st"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "damage_error",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-damage-unsupported-99",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16: no intermediate-row rule specified",
+      "input": {
+        "ST": 99
+      },
+      "expected": {
+        "code": "damage.unsupported_st"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "damage_error",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-will-minus4",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16-17",
+      "input": {
+        "ST": 10,
+        "DX": 10,
+        "IQ": 10,
+        "HT": 10,
+        "purchased": {
+          "will": 6
+        }
+      },
+      "expected": {
+        "advisories": []
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "secondary",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-will-minus5",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16-17",
+      "input": {
+        "ST": 10,
+        "DX": 10,
+        "IQ": 10,
+        "HT": 10,
+        "purchased": {
+          "will": 5
+        }
+      },
+      "expected": {
+        "advisories": [
+          "will.more-than-4-below-iq"
+        ]
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "secondary",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-per-minus4",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16-17",
+      "input": {
+        "ST": 10,
+        "DX": 10,
+        "IQ": 10,
+        "HT": 10,
+        "purchased": {
+          "per": 6
+        }
+      },
+      "expected": {
+        "advisories": []
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "secondary",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-per-minus5",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16-17",
+      "input": {
+        "ST": 10,
+        "DX": 10,
+        "IQ": 10,
+        "HT": 10,
+        "purchased": {
+          "per": 5
+        }
+      },
+      "expected": {
+        "advisories": [
+          "per.more-than-4-below-iq"
+        ]
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "secondary",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-will20",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16-17",
+      "input": {
+        "ST": 10,
+        "DX": 10,
+        "IQ": 10,
+        "HT": 10,
+        "purchased": {
+          "will": 20
+        }
+      },
+      "expected": {
+        "advisories": []
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "secondary",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-will21",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16-17",
+      "input": {
+        "ST": 10,
+        "DX": 10,
+        "IQ": 10,
+        "HT": 10,
+        "purchased": {
+          "will": 21
+        }
+      },
+      "expected": {
+        "advisories": [
+          "will.above-20"
+        ]
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "secondary",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-per20",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16-17",
+      "input": {
+        "ST": 10,
+        "DX": 10,
+        "IQ": 10,
+        "HT": 10,
+        "purchased": {
+          "per": 20
+        }
+      },
+      "expected": {
+        "advisories": []
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "secondary",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-per21",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16-17",
+      "input": {
+        "ST": 10,
+        "DX": 10,
+        "IQ": 10,
+        "HT": 10,
+        "purchased": {
+          "per": 21
+        }
+      },
+      "expected": {
+        "advisories": [
+          "per.above-20"
+        ]
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "secondary",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-speed-minus2",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16-17",
+      "input": {
+        "ST": 10,
+        "DX": 10,
+        "IQ": 10,
+        "HT": 10,
+        "purchased": {
+          "basic_speed_quarters": 12
+        }
+      },
+      "expected": {
+        "advisories": []
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "secondary",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-speed-minus225",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16-17",
+      "input": {
+        "ST": 10,
+        "DX": 10,
+        "IQ": 10,
+        "HT": 10,
+        "purchased": {
+          "basic_speed_quarters": 11
+        }
+      },
+      "expected": {
+        "advisories": [
+          "basic-speed.beyond-2-adjustment"
+        ]
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "secondary",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-speed-plus2",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16-17",
+      "input": {
+        "ST": 10,
+        "DX": 10,
+        "IQ": 10,
+        "HT": 10,
+        "purchased": {
+          "basic_speed_quarters": 28
+        }
+      },
+      "expected": {
+        "advisories": []
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "secondary",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-speed-plus225",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16-17",
+      "input": {
+        "ST": 10,
+        "DX": 10,
+        "IQ": 10,
+        "HT": 10,
+        "purchased": {
+          "basic_speed_quarters": 29
+        }
+      },
+      "expected": {
+        "advisories": [
+          "basic-speed.beyond-2-adjustment"
+        ]
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "secondary",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-move-minus3",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16-17",
+      "input": {
+        "ST": 10,
+        "DX": 10,
+        "IQ": 10,
+        "HT": 10,
+        "purchased": {
+          "basic_move": 2
+        }
+      },
+      "expected": {
+        "advisories": []
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "secondary",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-move-minus4",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16-17",
+      "input": {
+        "ST": 10,
+        "DX": 10,
+        "IQ": 10,
+        "HT": 10,
+        "purchased": {
+          "basic_move": 1
+        }
+      },
+      "expected": {
+        "advisories": [
+          "basic-move.beyond-3-adjustment"
+        ]
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "secondary",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-move-plus3",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16-17",
+      "input": {
+        "ST": 10,
+        "DX": 10,
+        "IQ": 10,
+        "HT": 10,
+        "purchased": {
+          "basic_move": 8
+        }
+      },
+      "expected": {
+        "advisories": []
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "secondary",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-move-plus4",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16-17",
+      "input": {
+        "ST": 10,
+        "DX": 10,
+        "IQ": 10,
+        "HT": 10,
+        "purchased": {
+          "basic_move": 9
+        }
+      },
+      "expected": {
+        "advisories": [
+          "basic-move.beyond-3-adjustment"
+        ]
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "secondary",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-move-adjusted-base",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16-17",
+      "input": {
+        "ST": 10,
+        "DX": 10,
+        "IQ": 10,
+        "HT": 10,
+        "purchased": {
+          "basic_speed_quarters": 28,
+          "basic_move": 10
+        }
+      },
+      "expected": {
+        "advisories": []
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "secondary",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-move-adjusted-base-plus4",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16-17",
+      "input": {
+        "ST": 10,
+        "DX": 10,
+        "IQ": 10,
+        "HT": 10,
+        "purchased": {
+          "basic_speed_quarters": 28,
+          "basic_move": 11
+        }
+      },
+      "expected": {
+        "advisories": [
+          "basic-move.beyond-3-adjustment"
+        ]
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "secondary",
+      "statistics_revision": 2
+    },
+    {
+      "id": "basic-statistics-v2-will-per-iq-base",
+      "capability_id": "gurps.character.secondary_characteristics",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B16",
+      "input": {
+        "ST": 10,
+        "DX": 10,
+        "IQ": 15,
+        "HT": 10,
+        "purchased": {
+          "will": 10,
+          "per": 11
+        }
+      },
+      "expected": {
+        "advisories": [
+          "will.more-than-4-below-iq"
+        ]
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
+      "operation": "secondary",
+      "statistics_revision": 2
     }
   ]
 }
