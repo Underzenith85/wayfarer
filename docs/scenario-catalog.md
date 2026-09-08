@@ -1,6 +1,6 @@
 # Reusable scenario catalog
 
-The New Game screen includes **Scenario catalog** after token authentication. Choose a bundled
+The **Scenarios** tab, beside the game modes, holds the **Scenario catalog** after token authentication; it is deliberately outside the numbered setup steps, which ask only which adventure to play (#261). Creating a game from a revision hands the shell back to setup, on the party screen the new draft opens at. Choose a bundled
 scenario document or enter authored JSON, save a draft, reopen any saved revision, inspect its
 diagnostics, publish it, and create a game from that revision. Assign legal characters to joined
 players, mark ready, and start through the existing setup activation flow. Drafts exist independently

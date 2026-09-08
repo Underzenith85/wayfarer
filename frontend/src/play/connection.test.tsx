@@ -143,6 +143,21 @@ it("replaces the setup shell with the game shell and keeps the session on return
   expect(selected()).toBe("New game");
 });
 
+it("gives setup the same landmarks the play shell has (#257)", async () => {
+  render(<ConnectedApp />);
+  // The skip link has somewhere real to go: setup renders a main region, not a
+  // bare panel div, so a screen reader can jump the header and the tab bar.
+  const main = document.querySelector("main");
+  expect(main).not.toBeNull();
+  const skip = screen.getByRole("link", { name: "Skip to content" });
+  expect(skip).toHaveAttribute("href", `#${main!.id}`);
+  expect(screen.getByRole("banner")).toBeInTheDocument();
+  expect(screen.getByRole("navigation", { name: "Setup" })).toBeInTheDocument();
+  expect(screen.getByRole("main")).toBe(main);
+  expect(within(main!).getByRole("tabpanel")).toBeInTheDocument();
+  expect(screen.getByRole("contentinfo")).toBeInTheDocument();
+});
+
 it("selects a lobby mode from the tab itself, by pointer and by arrow key", async () => {
   const user = userEvent.setup();
   render(<ConnectedApp />);
@@ -158,10 +173,12 @@ it("selects a lobby mode from the tab itself, by pointer and by arrow key", asyn
   // A tab bar is walked with the arrow keys; only the selected tab is a stop.
   screen.getByRole("tab", { name: "Join game" }).focus();
   await user.keyboard("{ArrowRight}");
+  expect(selected()).toBe("Scenarios");
+  expect(screen.getByRole("tab", { name: "Scenarios" })).toHaveFocus();
+  await user.keyboard("{ArrowRight}");
   expect(selected()).toBe("New game");
-  expect(screen.getByRole("tab", { name: "New game" })).toHaveFocus();
   await user.keyboard("{End}");
-  expect(selected()).toBe("Join game");
+  expect(selected()).toBe("Scenarios");
   expect(screen.getByRole("tab", { name: "Continue game" })).toHaveAttribute(
     "tabindex",
     "-1",

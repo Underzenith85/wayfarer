@@ -28,9 +28,11 @@ test("workshop validates edits, previews profiles and activates saved builds", a
   );
   await strength.getByRole("button", { name: "Increase Strength" }).click();
   await expect(strength.locator(".purchase-cost")).toContainText("10 pts");
-  await expect(
-    page.getByRole("region", { name: "Derived statistics" }),
-  ).toContainText("11");
+  // The derived panel shows what the build derives, never the four primary
+  // attributes the editor above already holds (#269).
+  const derived = page.getByRole("region", { name: "Derived statistics" });
+  await expect(derived).not.toContainText("Strength");
+  await expect(derived).not.toContainText("Dexterity");
   await page.getByLabel("Name", { exact: true }).fill("Reviewed hero");
   await page.getByRole("button", { name: "Save and validate" }).click();
   await expect(

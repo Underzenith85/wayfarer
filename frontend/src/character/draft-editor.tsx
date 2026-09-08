@@ -1,4 +1,5 @@
 import { useEffect, useId, useState } from "react";
+import { Trash2 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import {
   definitionLabel,
@@ -54,6 +55,25 @@ const entryNoun: Record<Group, string> = {
   Skills: "skill",
   Equipment: "equipment",
 };
+/**
+ * Said once per section when the pinned ruleset carries nothing to add (#268).
+ * The attributes section always holds the four fixed steppers, so it speaks
+ * only about the variable entries it could also carry.
+ */
+const missing: Record<Group, string> = {
+  Attributes: "No secondary characteristics are available in this game yet.",
+  Advantages: "Advantages are not available in this game yet.",
+  Disadvantages: "Disadvantages are not available in this game yet.",
+  Skills: "Skills are not available in this game yet.",
+  Equipment: "Equipment is not available in this game yet.",
+};
+/**
+ * The primary attributes a build is written in. They are what the editor above
+ * already shows, so the derived panel never echoes them back (#269).
+ */
+const primary = new Set(["st", "dx", "iq", "ht"]);
+const isDerived = (target: string) =>
+  !primary.has(engineKey(target)) && !target.startsWith("skill:");
 const sentenceCase = (value: string) =>
   value[0]!.toUpperCase() + value.slice(1);
 /**
@@ -178,6 +198,25 @@ export function CharacterDraftEditor({
     if (d?.kind === "equipment") return "Equipment";
     return (d?.point_cost ?? 0) < 0 ? "Disadvantages" : "Advantages";
   };
+  /**
+   * The picker for one section offers that section's traits and nothing else,
+   * so a skill is never added from the attribute list and no entry has two
+   * homes (#267). Options the pinned ruleset does not implement are kept out of
+   * the list entirely and named once beneath it instead (#270, #272).
+   */
+  const options = (group: Group) =>
+    catalog.filter(
+      (d) => category(d.id) === group && !attributes.includes(d.id),
+    );
+  const offered = (group: Group) =>
+    options(group).filter((d) => d.status === "implemented");
+  const withheld = (group: Group) =>
+    options(group).filter((d) => d.status !== "implemented");
+  /** What the build actually derives, in canonical reading order (#269). */
+  const derived = orderStats(
+    (current?.derived ?? []).filter(([target]) => isDerived(target)),
+    ([target]) => target,
+  );
   return (
     <div className="character-draft-editor">
       <div
@@ -346,25 +385,23 @@ export function CharacterDraftEditor({
                       })
                     }
                   >
-                    {catalog
-                      .filter(
-                        (d) =>
-                          (category(d.id) === group &&
-                            !attributes.includes(d.id)) ||
-                          d.id === p.definition_id,
-                      )
-                      .map((d) => (
-                        <option
-                          key={d.id}
-                          value={d.id}
-                          disabled={d.status !== "implemented"}
-                        >
-                          {d.name}
-                          {d.status !== "implemented" ? " · Unavailable" : ""}
-                        </option>
-                      ))}
+                    {/* An entry the ruleset no longer offers still names
+                        itself, so an imported draft is readable and editable. */}
+                    {!offered(group).some((d) => d.id === p.definition_id) && (
+                      <option value={p.definition_id}>
+                        {definitionLabel(p.definition_id)}
+                      </option>
+                    )}
+                    {offered(group).map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.name}
+                      </option>
+                    ))}
                   </select>
-                  <label htmlFor={`${id}-amount-${i}`}>
+                  <label
+                    className="visually-hidden"
+                    htmlFor={`${id}-amount-${i}`}
+                  >
                     {definitionLabel(p.definition_id)}
                   </label>
                   <div className="purchase-stepper">
@@ -422,8 +459,14 @@ export function CharacterDraftEditor({
                     )?.cost ?? "—"}{" "}
                     pts
                   </span>
+                  {/* Removing one entry is upkeep, not the point of the
+                      section: a quiet icon control, never four filled buttons
+                      dominating the attributes (#270). */}
                   <Button
                     type="button"
+                    variant="outline"
+                    className="purchase-remove"
+                    aria-label={`Remove ${entry}`}
                     onClick={() =>
                       change({
                         ...proposal.draft,
@@ -433,7 +476,7 @@ export function CharacterDraftEditor({
                       })
                     }
                   >
-                    Remove {entry}
+                    <Trash2 size={16} aria-hidden="true" />
                   </Button>
                   {(() => {
                     const definition = catalog.find(
@@ -563,42 +606,49 @@ export function CharacterDraftEditor({
               );
             })}
 
-            <Button
-              type="button"
-              disabled={
-                !catalog.some(
-                  (d) =>
-                    category(d.id) === group &&
-                    !attributes.includes(d.id) &&
-                    d.status === "implemented",
-                )
-              }
-              onClick={() => {
-                const definition = catalog.find(
-                  (d) =>
-                    category(d.id) === group &&
-                    !attributes.includes(d.id) &&
-                    d.status === "implemented" &&
-                    !proposal.draft.purchases?.some(
-                      (p) => p.definition_id === d.id,
-                    ),
-                );
-                if (definition)
-                  change({
-                    ...proposal.draft,
-                    purchases: [
-                      ...(proposal.draft.purchases ?? []),
-                      {
-                        definition_id: definition.id,
-                        amount: definition.kind === "attribute" ? 10 : 1,
-                      },
-                    ],
-                  });
-              }}
-            >
-              Add {entryNoun[group]}
-            </Button>
-            {group === "Equipment" && (
+            {/* A section is either usable or says plainly that it is not; an
+                empty heading with a point subtotal and no control is neither
+                (#268). */}
+            {offered(group).length ? (
+              <Button
+                type="button"
+                onClick={() => {
+                  const definition = offered(group).find(
+                    (d) =>
+                      !proposal.draft.purchases?.some(
+                        (p) => p.definition_id === d.id,
+                      ),
+                  );
+                  if (definition)
+                    change({
+                      ...proposal.draft,
+                      purchases: [
+                        ...(proposal.draft.purchases ?? []),
+                        {
+                          definition_id: definition.id,
+                          amount: definition.kind === "attribute" ? 10 : 1,
+                        },
+                      ],
+                    });
+                }}
+              >
+                Add {entryNoun[group]}
+              </Button>
+            ) : (
+              current && <p className="section-unavailable">{missing[group]}</p>
+            )}
+            {/* Named once, below the section, instead of sitting in every
+                picker as a disabled row suffixed “Unavailable” (#272). */}
+            {withheld(group).length > 0 && (
+              <p className="section-withheld">
+                Listed in this game’s ruleset but not playable yet:{" "}
+                {withheld(group)
+                  .map((d) => d.name)
+                  .join(", ")}
+                .
+              </p>
+            )}
+            {group === "Equipment" && offered(group).length > 0 && (
               <p>
                 Starting equipment is also checked against the adventure’s
                 inventory when the party is activated.
@@ -609,22 +659,26 @@ export function CharacterDraftEditor({
       </fieldset>
       <section aria-label="Derived statistics" className="derived-preview">
         <h3>Derived statistics</h3>
-        {current && current.derived.length > 0 ? (
+        {/* Only what the build derives: HP, Will, Per, FP, Basic Speed, Basic
+            Move and Dodge, as the pinned ruleset computes them. The primary
+            attributes are entered above, so echoing them here said nothing the
+            reader could not already see (#269). */}
+        {derived.length > 0 ? (
           <dl>
-            {orderStats(current.derived, ([target]) => target).map(
-              ([target, value]) => (
-                <div key={target}>
-                  <dt>{statLabel({ id: target }).full}</dt>
-                  <dd>{value}</dd>
-                </div>
-              ),
-            )}
+            {derived.map(([target, value]) => (
+              <div key={target}>
+                <dt>{statLabel({ id: target }).full}</dt>
+                <dd>{value}</dd>
+              </div>
+            ))}
           </dl>
         ) : (
           <p>
-            {current
-              ? "Resolve the build diagnostics to see derived statistics."
-              : "Waiting for the current edit to be validated."}
+            {!current
+              ? "Waiting for the current edit to be validated."
+              : current.derived.length
+                ? "This game’s ruleset derives no secondary characteristics. HP, Will, Perception, FP, Basic Speed, Basic Move and Dodge appear here for a rules profile that defines them."
+                : "Resolve the build diagnostics to see derived statistics."}
           </p>
         )}
       </section>
