@@ -1,4 +1,11 @@
-import { useEffect, useId, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type SetStateAction,
+} from "react";
 import { Trash2 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import {
@@ -24,6 +31,7 @@ export type PreviewCharacter = (
   proposal: Proposal,
   signal: AbortSignal,
 ) => Promise<CharacterPreview>;
+export type ProposalChange = SetStateAction<Proposal>;
 const groups = [
   "Attributes",
   "Advantages",
@@ -109,6 +117,101 @@ function withPrimaryAttributes(
   return { ...draft, purchases: [...kept, ...missing] };
 }
 
+const repeatDelayMs = 400;
+const repeatIntervalMs = 100;
+
+function StepButton({
+  label,
+  disabled,
+  onStep,
+  children,
+}: {
+  label: string;
+  disabled: boolean;
+  onStep: () => void;
+  children: string;
+}) {
+  const delay = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const interval = useRef<ReturnType<typeof setInterval> | null>(null);
+  const suppressClick = useRef(false);
+  const resetSuppression = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onStepRef = useRef(onStep);
+  useEffect(() => {
+    onStepRef.current = onStep;
+  }, [onStep]);
+
+  const stopRepeat = useCallback(() => {
+    if (delay.current !== null) clearTimeout(delay.current);
+    if (interval.current !== null) clearInterval(interval.current);
+    delay.current = null;
+    interval.current = null;
+  }, []);
+  const finishPointerStep = useCallback(() => {
+    stopRepeat();
+    if (resetSuppression.current !== null)
+      clearTimeout(resetSuppression.current);
+    resetSuppression.current = setTimeout(() => {
+      suppressClick.current = false;
+      resetSuppression.current = null;
+    }, 0);
+  }, [stopRepeat]);
+
+  useEffect(
+    () => () => {
+      stopRepeat();
+      if (resetSuppression.current !== null)
+        clearTimeout(resetSuppression.current);
+    },
+    [stopRepeat],
+  );
+  useEffect(() => {
+    if (disabled) {
+      suppressClick.current = false;
+      stopRepeat();
+    }
+  }, [disabled, stopRepeat]);
+
+  return (
+    <Button
+      type="button"
+      className="step-button"
+      aria-label={label}
+      disabled={disabled}
+      onPointerDown={(event) => {
+        if (event.button !== 0 || delay.current !== null) return;
+        suppressClick.current = true;
+        onStepRef.current();
+        event.currentTarget.setPointerCapture?.(event.pointerId);
+        delay.current = setTimeout(() => {
+          onStepRef.current();
+          interval.current = setInterval(
+            () => onStepRef.current(),
+            repeatIntervalMs,
+          );
+        }, repeatDelayMs);
+      }}
+      onPointerUp={finishPointerStep}
+      onPointerCancel={() => {
+        suppressClick.current = false;
+        stopRepeat();
+      }}
+      onLostPointerCapture={stopRepeat}
+      onClick={() => {
+        if (suppressClick.current) {
+          suppressClick.current = false;
+          if (resetSuppression.current !== null)
+            clearTimeout(resetSuppression.current);
+          resetSuppression.current = null;
+          return;
+        }
+        onStepRef.current();
+      }}
+    >
+      {children}
+    </Button>
+  );
+}
+
 export function CharacterDraftEditor({
   proposal,
   onChange,
@@ -117,7 +220,7 @@ export function CharacterDraftEditor({
   templates = [],
 }: {
   proposal: Proposal;
-  onChange: (proposal: Proposal) => void;
+  onChange: (change: ProposalChange) => void;
   preview: PreviewCharacter;
   disabled?: boolean;
   templates?: { title: string; proposal: Proposal }[];
@@ -173,17 +276,56 @@ export function CharacterDraftEditor({
     );
     if (draft !== proposal.draft) onChange({ ...proposal, draft });
   }, [attributeKey, disabled, proposal, onChange]);
-  const setAttribute = (definitionId: string, amount: number) => {
-    const purchases = proposal.draft.purchases ?? [];
-    change({
-      ...proposal.draft,
-      purchases: purchases.some((p) => p.definition_id === definitionId)
-        ? purchases.map((p) =>
-            p.definition_id === definitionId ? { ...p, amount } : p,
-          )
-        : [...purchases, { definition_id: definitionId, amount }],
+  const setAttribute = (
+    definitionId: string,
+    update: number | ((amount: number) => number),
+  ) =>
+    onChange((current) => {
+      const purchases = current.draft.purchases ?? [];
+      const existing = purchases.find(
+        (purchase) => purchase.definition_id === definitionId,
+      );
+      const amount = Math.min(
+        10000,
+        Math.max(
+          1,
+          typeof update === "function"
+            ? update(existing?.amount ?? ATTRIBUTE_DEFAULT)
+            : update,
+        ),
+      );
+      return {
+        ...current,
+        draft: {
+          ...current.draft,
+          purchases: existing
+            ? purchases.map((purchase) =>
+                purchase.definition_id === definitionId
+                  ? { ...purchase, amount }
+                  : purchase,
+              )
+            : [...purchases, { definition_id: definitionId, amount }],
+        },
+      };
     });
-  };
+  const stepPurchase = (index: number, delta: number) =>
+    onChange((current) => ({
+      ...current,
+      draft: {
+        ...current.draft,
+        purchases: current.draft.purchases.map((purchase, purchaseIndex) =>
+          purchaseIndex === index
+            ? {
+                ...purchase,
+                amount: Math.min(
+                  10000,
+                  Math.max(1, (purchase.amount ?? 1) + delta),
+                ),
+              }
+            : purchase,
+        ),
+      },
+    }));
   const category = (definitionId: string) => {
     const d = catalog.find((entry) => entry.id === definitionId);
     if (
@@ -317,14 +459,15 @@ export function CharacterDraftEditor({
                   >
                     <label htmlFor={field}>{label}</label>
                     <div className="purchase-stepper">
-                      <Button
-                        type="button"
-                        aria-label={`Decrease ${label}`}
+                      <StepButton
+                        label={`Decrease ${label}`}
                         disabled={amount <= 1}
-                        onClick={() => setAttribute(definitionId, amount - 1)}
+                        onStep={() =>
+                          setAttribute(definitionId, (current) => current - 1)
+                        }
                       >
                         −
-                      </Button>
+                      </StepButton>
                       <input
                         id={field}
                         type="number"
@@ -335,14 +478,15 @@ export function CharacterDraftEditor({
                           setAttribute(definitionId, Number(e.target.value))
                         }
                       />
-                      <Button
-                        type="button"
-                        aria-label={`Increase ${label}`}
+                      <StepButton
+                        label={`Increase ${label}`}
                         disabled={amount >= 10000}
-                        onClick={() => setAttribute(definitionId, amount + 1)}
+                        onStep={() =>
+                          setAttribute(definitionId, (current) => current + 1)
+                        }
                       >
                         +
-                      </Button>
+                      </StepButton>
                     </div>
                     <span className="purchase-cost">
                       {current?.breakdown.find(
@@ -405,21 +549,13 @@ export function CharacterDraftEditor({
                     {definitionLabel(p.definition_id)}
                   </label>
                   <div className="purchase-stepper">
-                    <Button
-                      type="button"
-                      aria-label={`Decrease ${definitionLabel(p.definition_id)}`}
+                    <StepButton
+                      label={`Decrease ${definitionLabel(p.definition_id)}`}
                       disabled={p.amount <= 1}
-                      onClick={() =>
-                        change({
-                          ...proposal.draft,
-                          purchases: proposal.draft.purchases.map((v, j) =>
-                            j === i ? { ...v, amount: (v.amount ?? 1) - 1 } : v,
-                          ),
-                        })
-                      }
+                      onStep={() => stepPurchase(i, -1)}
                     >
                       −
-                    </Button>
+                    </StepButton>
                     <input
                       id={`${id}-amount-${i}`}
                       type="number"
@@ -437,21 +573,13 @@ export function CharacterDraftEditor({
                         })
                       }
                     />
-                    <Button
-                      type="button"
-                      aria-label={`Increase ${definitionLabel(p.definition_id)}`}
+                    <StepButton
+                      label={`Increase ${definitionLabel(p.definition_id)}`}
                       disabled={p.amount >= 10000}
-                      onClick={() =>
-                        change({
-                          ...proposal.draft,
-                          purchases: proposal.draft.purchases.map((v, j) =>
-                            j === i ? { ...v, amount: (v.amount ?? 1) + 1 } : v,
-                          ),
-                        })
-                      }
+                      onStep={() => stepPurchase(i, 1)}
                     >
                       +
-                    </Button>
+                    </StepButton>
                   </div>
                   <span className="purchase-cost">
                     {current?.breakdown.find(

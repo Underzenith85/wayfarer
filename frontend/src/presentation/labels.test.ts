@@ -162,17 +162,21 @@ describe("sceneDescription", () => {
 describe("timestampLabel", () => {
   const now = new Date(2026, 8, 7, 20);
   it("gives an entry from today a time and an older one a date too", () => {
-    const today = timestampLabel(
-      new Date(2026, 8, 7, 9, 30).toISOString(),
-      now,
+    const today = new Date(now);
+    today.setHours(9, 30, 0, 0);
+    const older = new Date(today);
+    older.setDate(older.getDate() - 3);
+    const time = { hour: "numeric", minute: "2-digit" } as const;
+    expect(timestampLabel(today.toISOString(), now)).toBe(
+      today.toLocaleTimeString(undefined, time),
     );
-    const older = timestampLabel(
-      new Date(2026, 8, 4, 9, 30).toISOString(),
-      now,
+    expect(timestampLabel(older.toISOString(), now)).toBe(
+      older.toLocaleString(undefined, {
+        month: "short",
+        day: "numeric",
+        ...time,
+      }),
     );
-    expect(today).not.toBe("");
-    expect(older).not.toBe("");
-    expect(older.length).toBeGreaterThan(today.length);
   });
   it("says nothing rather than something wrong about an unusable time", () => {
     expect(timestampLabel("not a time", now)).toBe("");
