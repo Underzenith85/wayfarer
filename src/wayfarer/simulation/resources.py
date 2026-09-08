@@ -23,7 +23,7 @@ from wayfarer.rules.catalog import (
 from wayfarer.rules.effects import Effect
 from wayfarer.rules.hazard_types import HazardSchedule, RecoveryRestriction, require_hazards_settled
 from wayfarer.rules.injury_types import InjuryStatus
-from wayfarer.rules.object_types import ObjectCondition, ObjectProfile, ObjectResult
+from wayfarer.rules.object_types import GroundPosition, ObjectCondition, ObjectProfile, ObjectResult
 from wayfarer.rules.recovery_types import FatigueStatus, RecoveryTask, require_settled, retire_tasks
 from wayfarer.rules.transport_types import Transport
 from wayfarer.world import EntityKind, World
@@ -63,6 +63,7 @@ class Item(Record):
     equipped: bool = False
     ready: bool = False
     condition: ObjectCondition | None = Field(default=None, exclude_if=lambda v: v is None)
+    ground: GroundPosition | None = Field(default=None, exclude_if=lambda v: v is None)
 
 
 class Owner(Record):
@@ -366,12 +367,20 @@ class ResourceEngine:
                     and condition.last_stress_at > state.game_time
                 ):
                     raise ValidationError("Object stress time is in the future")
-                if condition.disabled and item.ready:
+                from wayfarer.rules.object_types import residual_definition
+
+                if (
+                    condition.disabled
+                    and item.ready
+                    and not residual_definition(spec.durability, condition)
+                ):
                     raise ValidationError("Disabled equipment cannot be ready")
             elif item.condition is not None:
                 raise ValidationError("Object condition requires a pinned durability profile")
             if item.ready and not item.equipped:
                 raise ValidationError("Unequipped item cannot be ready")
+            if item.ground is not None and (item.equipped or item.ready or item.container_id):
+                raise ValidationError("Ground equipment cannot be equipped or contained")
             ancestors: set[str] = {item.id}
             parent_id = item.container_id
             while parent_id is not None:
@@ -431,7 +440,7 @@ class ResourceEngine:
         return sum(
             self.specs[i.definition_id].unit_weight * i.quantity
             for i in state.items
-            if i.owner_id == actor_id
+            if i.owner_id == actor_id and i.ground is None
         )
 
     def equipment_effects(self, state: ResourceState, actor_id: str) -> tuple[Effect, ...]:
@@ -469,6 +478,16 @@ class ResourceEngine:
             item = items.get(command.item_id)
             if item is None or item.owner_id != command.actor_id:
                 raise ValidationError("Item is not owned by command actor")
+            if item.ground is not None:
+                raise ValidationError(
+                    "Ground equipment requires authoritative retrieval at its location"
+                )
+            from wayfarer.simulation.object_repairs import tasks
+
+            if any(
+                t.status == "pending" and item.id in (t.item_id, t.tool_id) for t in tasks(state)
+            ):
+                raise ConflictError("Equipment is committed to a pending repair")
             spec = self.specs[item.definition_id]
             if isinstance(command, (Transfer, Consume)):
                 if command.quantity > item.quantity:
@@ -513,7 +532,13 @@ class ResourceEngine:
                         **{**item.model_dump(), "quantity": item.quantity - command.quantity}
                     )
             elif isinstance(command, Equip):
-                if item.condition is not None and item.condition.disabled:
+                from wayfarer.rules.object_types import residual_definition
+
+                if (
+                    item.condition is not None
+                    and item.condition.disabled
+                    and not residual_definition(spec.durability, item.condition)
+                ):
                     raise ValidationError("Disabled equipment cannot be equipped")
                 items[item.id] = Item(
                     **{**item.model_dump(), "equipped": True, "ready": command.ready}

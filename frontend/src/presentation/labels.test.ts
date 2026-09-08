@@ -158,7 +158,7 @@ describe("sceneDescription", () => {
   });
 });
 describe("timestampLabel", () => {
-  const now = new Date("2026-09-07T20:00:00Z");
+  const now = new Date(2026, 8, 7, 20);
   it("gives an entry from today a time and an older one a date too", () => {
     const today = new Date(now);
     today.setHours(9, 30, 0, 0);

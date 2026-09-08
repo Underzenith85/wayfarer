@@ -63,6 +63,7 @@ class TakeCombatTurn(CombatCommand):
     reload_ammunition_id: str | None = None
     unload_ammunition: bool = Field(default=False, exclude_if=lambda v: not v)
     hit_location: HitLocation | None = None
+    target_item_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
     ready_hand: Hand | Literal["both"] | None = None
     attack_option: AttackOption | None = None
     defense_option: DefenseOption | None = None
@@ -142,6 +143,14 @@ class EndEncounter(CombatCommand):
     reason: str = Field(min_length=1, max_length=1000)
 
 
+class RepairEquipment(CombatCommand):
+    kind: Literal["repair_equipment"] = "repair_equipment"
+    encounter_id: Id
+    item_id: Id
+    stage: Literal["start", "finish", "cancel"]
+    task_id: Id | None = None
+
+
 TypedCombatCommand = Annotated[
     StartEncounter
     | TakeCombatTurn
@@ -151,6 +160,7 @@ TypedCombatCommand = Annotated[
     | ResumeInterruptedTurn
     | TakeUnarmedTurn
     | ResolveChokeEffects
+    | RepairEquipment
     | MigrateEncounterHex,
     # Migration is explicit and uses the same receipt and CAS as combat commands.
     Field(discriminator="kind"),
@@ -422,6 +432,25 @@ class CombatService:
                         round=encounter.round,
                         current_actor_id=encounter.current_actor_id,
                     )
+                elif isinstance(command, RepairEquipment):
+                    from wayfarer.orchestration.object_repairs import repair
+
+                    state, task = repair(
+                        self.play,
+                        state,
+                        actor_id=command.actor_id,
+                        item_id=command.item_id,
+                        command_id=command.id,
+                        stage=command.stage,
+                        task_id=command.task_id,
+                    )
+                    resources = state.resources
+                    result = CombatResult(
+                        encounter_id=encounter.id,
+                        code="equipment.repair_" + task.status,
+                        round=encounter.round,
+                        current_actor_id=encounter.current_actor_id,
+                    )
                 elif isinstance(command, ResolveChokeEffects):
                     from wayfarer.orchestration.unarmed import resolve_choke
 
@@ -558,11 +587,23 @@ class CombatService:
                     validate_command(self.play, state, encounter, command)
                     resources = interrupt_concentration(resources, command.actor_id, command.id)
                     state = state.model_copy(update={"resources": resources})
+                    if command.maneuver == "ready" and command.item_id:
+                        from wayfarer.orchestration.weapon_flight import retrieve
+
+                        state = retrieve(state, encounter, command.actor_id, command.item_id)
+                        resources = state.resources
                     if command.hit_location is not None and (
                         command.maneuver not in ATTACK_MANEUVERS
                         or engine.rules.gurps_equipment is None
                     ):
                         raise ValidationError("Hit location requires GURPS attack dispatch")
+                    if command.target_item_id and (
+                        command.maneuver not in ATTACK_MANEUVERS
+                        or command.hit_location
+                        or engine.rules.gurps_equipment is None
+                        or command.attack_option == "double"
+                    ):
+                        raise ValidationError("Object targeting requires a single GURPS attack")
                     if command.ready_hand is not None and (
                         command.maneuver != "ready" or engine.rules.gurps_equipment is None
                     ):
@@ -724,6 +765,7 @@ class CombatService:
                                     preview,
                                     command.mode_id,
                                     hit_location=command.hit_location,
+                                    target_item_id=command.target_item_id,
                                     shots=command.shots,
                                 )
                             if (
@@ -756,6 +798,36 @@ class CombatService:
                                 self.play, state, command.actor_id, command.id
                             )
                             resources = state.resources
+                        if (
+                            allowed
+                            and command.item_id
+                            and command.maneuver
+                            in ("attack", "all_out_attack", "move_and_attack", "aim", "feint")
+                        ):
+                            from wayfarer.orchestration.object_combat import stress
+
+                            state, encounter = stress(
+                                self.play,
+                                state,
+                                encounter,
+                                command.actor_id,
+                                command.id,
+                                (command.item_id,),
+                            )
+                            resources = state.resources
+                            allowed = any(
+                                i.id == command.item_id
+                                and i.ready
+                                and (
+                                    i.condition is None
+                                    or not i.condition.disabled
+                                    or any(
+                                        old.id == i.id and old.condition and old.condition.disabled
+                                        for old in initial_state.resources.items
+                                    )
+                                )
+                                for i in resources.items
+                            )
                         encounter = engine._replace(
                             encounter,
                             next(
@@ -771,6 +843,24 @@ class CombatService:
                             ),
                         )
                         if not allowed:
+                            if command.maneuver == "ready" and command.item_id:
+                                original = next(
+                                    i
+                                    for i in initial_state.resources.items
+                                    if i.id == command.item_id
+                                )
+                                if original.ground is not None:
+                                    resources = resources.model_copy(
+                                        update={
+                                            "items": tuple(
+                                                i.model_copy(update={"ground": original.ground})
+                                                if i.id == original.id
+                                                else i
+                                                for i in resources.items
+                                            )
+                                        }
+                                    )
+                                    state = state.model_copy(update={"resources": resources})
                             command_for_turn = command.model_copy(
                                 update={
                                     "maneuver": "do_nothing",
@@ -919,6 +1009,7 @@ class CombatService:
                             encounter,
                             command.mode_id,
                             hit_location=command.hit_location,
+                            target_item_id=command.target_item_id,
                             shots=command.shots,
                         )
                         assert encounter.pending_defense is not None
@@ -978,6 +1069,27 @@ class CombatService:
                             )
                             if not allowed:
                                 selected_defense = "none"
+                        if selected_defense != "none":
+                            from wayfarer.orchestration.gurps_melee import defense_value
+                            from wayfarer.orchestration.object_combat import stress
+
+                            participant = next(
+                                p for p in encounter.participants if p.actor_id == command.actor_id
+                            )
+                            _, used = defense_value(
+                                self.play, state, participant, selected_defense, command.item_id
+                            )
+                            if used:
+                                state, encounter = stress(
+                                    self.play,
+                                    state,
+                                    encounter,
+                                    command.actor_id,
+                                    command.id,
+                                    (used,),
+                                )
+                                if not any(i.id == used and i.ready for i in state.resources.items):
+                                    selected_defense = "none"
                         state, encounter, injury = resolve_melee(
                             self.play,
                             state,
@@ -1158,7 +1270,18 @@ class CombatService:
                 encounter = encounter.model_copy(
                     update={
                         "participants": tuple(
-                            p.model_copy(update={"hand_bindings": hands[p.actor_id]})
+                            p.model_copy(
+                                update={
+                                    "hand_bindings": hands[p.actor_id],
+                                    "ready_item_ids": tuple(
+                                        sorted(
+                                            i.id
+                                            for i in resources.items
+                                            if i.owner_id == p.actor_id and i.ready and i.equipped
+                                        )
+                                    ),
+                                }
+                            )
                             for p in encounter.participants
                         )
                     }

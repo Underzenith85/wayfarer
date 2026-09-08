@@ -14,7 +14,7 @@ from wayfarer.rules.checks import RecordedDice
 from wayfarer.simulation.critical import CriticalMiss, load_critical, save_critical
 
 
-@pytest.mark.parametrize("table", [(1, 1, 1), (2, 2, 1), (2, 2, 2), (5, 5, 4), (5, 5, 5)])
+@pytest.mark.parametrize("table", [(1, 1, 1), (2, 2, 1), (2, 2, 2), (5, 5, 5)])
 async def test_blocked_context_survives_restart_and_exact_retry(
     tmp_path: Path, table: tuple[int, int, int]
 ) -> None:

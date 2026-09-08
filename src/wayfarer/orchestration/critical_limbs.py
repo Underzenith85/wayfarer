@@ -141,7 +141,9 @@ def resolve_limb(
         armor = tuple(
             entries[i.definition_id].armor
             for i in state.resources.items
-            if i.owner_id == actor_id and i.equipped
+            if i.owner_id == actor_id
+            and i.equipped
+            and (i.condition is None or not i.condition.disabled)
         )
         dr = max(
             (

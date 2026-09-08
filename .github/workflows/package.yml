@@ -70,6 +70,7 @@ jobs:
       - run: uv run --frozen python scripts/check_no_any.py
       - run: uv run --frozen python scripts/check_quality_gates.py
       - run: uv run --frozen python scripts/audit_gurps_sources.py > /tmp/gurps-source-audit.json
+      - run: uv run --frozen python scripts/audit_gurps_equipment.py > /tmp/gurps-equipment-audit.json
       - run: uv run --frozen python scripts/validate_contracts.py
       - run: uv run --frozen python -m scripts.validate_live_contracts
       - run: uv run --frozen pytest --junitxml=artifacts/pytest.xml --cov-report=xml:artifacts/coverage.xml --cov-report=term-missing

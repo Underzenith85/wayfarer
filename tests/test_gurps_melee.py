@@ -35,6 +35,7 @@ from wayfarer.rules.catalog import (
 )
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.rules.location_types import HumanBody
+from wayfarer.rules.object_types import ObjectCondition, ObjectProfile
 from wayfarer.rules.recovery_types import RecoveryTask
 from wayfarer.rules.skill_types import ControllingAttribute, Difficulty, SkillDefault, SkillSpec
 from wayfarer.simulation.actions import ActionEngine, ActionRules, ActorSetup
@@ -53,6 +54,8 @@ from wayfarer.simulation.gurps_equipment import (
     Damage,
     EquipmentCatalog,
     EquipmentProfile,
+    MeleeMode,
+    Parry,
     RangedMode,
     Shield,
 )
@@ -71,8 +74,11 @@ async def setup(
     ranged_mode: RangedMode | None = None,
     ranged_scene: tuple[RangedSituation, ...] = (),
     ready_after_attack: bool = False,
+    parry: Parry | None = None,
     unarmed_fixture: bool = False,
     third_actor: bool = False,
+    durability: ObjectProfile | None = None,
+    object_hp: int | None = None,
     critical_breakage: Literal["ordinary", "cheap", "resistant"] | None = None,
 ) -> tuple[str, PlayService]:
     equipment = EquipmentCatalog(
@@ -98,6 +104,24 @@ async def setup(
                         update={
                             "modes": tuple(
                                 m.model_copy(update={"ready_after_attack": True}) for m in e.modes
+                            )
+                        }
+                    )
+                    for e in equipment.entries
+                )
+            }
+        )
+    if parry is not None:
+        equipment = equipment.model_copy(
+            update={
+                "entries": tuple(
+                    e.model_copy(
+                        update={
+                            "modes": tuple(
+                                m.model_copy(update={"parry": parry})
+                                if isinstance(m, MeleeMode)
+                                else m
+                                for m in e.modes
                             )
                         }
                     )
@@ -155,6 +179,54 @@ async def setup(
             )
         equipment = equipment.model_copy(update={"entries": entries})
     source = "sjg:gurps-lite-4e-2004" if profile == LITE else "sjg:basic-set-characters-4e-2004"
+    if durability:
+        equipment = equipment.model_copy(
+            update={
+                "entries": tuple(
+                    e.model_copy(
+                        update={
+                            "durability": durability,
+                            "critical_breakage": (critical_breakage or "ordinary")
+                            if e.modes
+                            else None,
+                        }
+                    )
+                    if e.modes or e.shield
+                    else e
+                    for e in equipment.entries
+                )
+            }
+        )
+        if durability.repair_tools_definition:
+            equipment = equipment.model_copy(
+                update={
+                    "entries": equipment.entries
+                    + (
+                        EquipmentProfile(
+                            definition_id=durability.repair_tools_definition,
+                            provenance=LITE_SOURCE,
+                            weight_millipounds=1000,
+                            price=20,
+                            technology_level=2,
+                        ),
+                    )
+                }
+            )
+        if durability.repair_parts_definition:
+            equipment = equipment.model_copy(
+                update={
+                    "entries": equipment.entries
+                    + (
+                        EquipmentProfile(
+                            definition_id=durability.repair_parts_definition,
+                            provenance=LITE_SOURCE,
+                            weight_millipounds=10,
+                            price=10,
+                            technology_level=2,
+                        ),
+                    )
+                }
+            )
     if profile == BASIC:
         equipment = equipment.model_copy(
             update={
@@ -195,6 +267,11 @@ async def setup(
             ("skill:broadsword", Difficulty.AVERAGE),
             ("skill:shield", Difficulty.EASY),
             *(
+                (((durability.repair_skill_id, Difficulty.AVERAGE),))
+                if durability and durability.repair_skill_id
+                else ()
+            ),
+            *(
                 ((("skill:judo", Difficulty.HARD), ("skill:wrestling", Difficulty.AVERAGE)))
                 if unarmed_fixture
                 else ()
@@ -231,9 +308,8 @@ async def setup(
                     e.model_copy(
                         update={
                             "critical_breakage": critical_breakage,
-                            "durability": ObjectProfile(
-                                construction="unliving", hp=12, dr=4, ht=10
-                            ),
+                            "durability": durability
+                            or ObjectProfile(construction="unliving", hp=12, dr=4, ht=10),
                         }
                     )
                     if e.definition_id == "equipment:broadsword"
@@ -295,6 +371,7 @@ async def setup(
         ActionRules(
             id="play",
             version=1,
+            maximum_wait=1800 if durability and durability.repair_skill_id else 100,
             combat=combat,
             abilities=AbilityRules(id="defense", version=1, abilities=(ability,))
             if ability_defense
@@ -307,6 +384,11 @@ async def setup(
         (
             Purchase(definition_id="skill:broadsword", amount=12),
             Purchase(definition_id="skill:shield", amount=4),
+            *(
+                (Purchase(definition_id=durability.repair_skill_id, amount=4),)
+                if durability and durability.repair_skill_id
+                else ()
+            ),
             *(
                 (
                     Purchase(definition_id="skill:wrestling", amount=4),
@@ -385,9 +467,7 @@ async def setup(
                 )
             }
         )
-    if critical_breakage is not None:
-        from wayfarer.rules.object_types import ObjectCondition
-
+    if durability is None and critical_breakage is not None:
         seed = seed.model_copy(
             update={
                 "items": tuple(
@@ -395,6 +475,53 @@ async def setup(
                     if i.definition_id == "equipment:broadsword"
                     else i
                     for i in seed.items
+                )
+            }
+        )
+    if durability:
+        seed = seed.model_copy(
+            update={
+                "items": tuple(
+                    i.model_copy(
+                        update={
+                            "condition": ObjectCondition(
+                                hp=durability.hp if object_hp is None else object_hp
+                            )
+                        }
+                    )
+                    if not i.id.startswith("ammo-")
+                    else i
+                    for i in seed.items
+                )
+            }
+        )
+    if durability and durability.repair_tools_definition:
+        seed = seed.model_copy(
+            update={
+                "items": tuple(
+                    i.model_copy(update={"equipped": False, "ready": False})
+                    if i.id == "sword-b"
+                    else i
+                    for i in seed.items
+                )
+                + (
+                    Item(
+                        id="tool-b", owner_id="b", definition_id=durability.repair_tools_definition
+                    ),
+                )
+            }
+        )
+    if durability and durability.repair_parts_definition:
+        seed = seed.model_copy(
+            update={
+                "items": seed.items
+                + (
+                    Item(
+                        id="parts-b",
+                        owner_id="b",
+                        definition_id=durability.repair_parts_definition,
+                        quantity=30,
+                    ),
                 )
             }
         )
@@ -538,6 +665,28 @@ async def test_dodge_parry_block_and_repeats(
     else:
         value, _ = defense_value(play, state, spent, "parry")
         assert value is not None and value.value == 6
+
+
+async def test_unbalanced_and_fencing_parry_columns(tmp_path: Path) -> None:
+    """B271 parry-column footnotes: unbalanced blocks a same-turn parry, fencing halves repeats."""
+    basic: Literal["gurps-basic-set-4e-2004"] = "gurps-basic-set-4e-2004"
+    cid, play = await setup(tmp_path, basic, parry=Parry(fencing=True))
+    state = play._load(await play.store.read(cid))
+    defender = state.encounters[0].participants[1]
+    repeated = defender.model_copy(update={"parries": ("sword-b",)})
+    value, _ = defense_value(play, state, repeated, "parry")
+    assert value is not None and value.value == 8  # 10 - 2, not the ordinary -4.
+
+    cid, play = await setup(tmp_path / "unbalanced", basic, parry=Parry(unbalanced=True))
+    state = play._load(await play.store.read(cid))
+    defender = state.encounters[0].participants[1]
+    value, _ = defense_value(play, state, defender, "parry")
+    assert value is not None and value.value == 10
+    attacked = defender.model_copy(
+        update={"last_maneuver": "attack", "last_attack_item_id": "sword-b"}
+    )
+    with pytest.raises(ValidationError):
+        defense_value(play, state, attacked, "parry")
 
 
 async def test_lite_critical_bypasses_defense_and_uses_maximum(tmp_path: Path) -> None:
