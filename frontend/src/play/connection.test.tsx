@@ -155,7 +155,9 @@ it("gives setup the same landmarks the play shell has (#257)", async () => {
   expect(screen.getByRole("navigation", { name: "Setup" })).toBeInTheDocument();
   expect(screen.getByRole("main")).toBe(main);
   expect(within(main!).getByRole("tabpanel")).toBeInTheDocument();
-  expect(screen.getByRole("contentinfo")).toBeInTheDocument();
+  // Neither shell carries a footer landmark since the scene footer copy was
+  // removed, so parity here is that setup does not invent one of its own.
+  expect(screen.queryByRole("contentinfo")).toBeNull();
 });
 
 it("selects a lobby mode from the tab itself, by pointer and by arrow key", async () => {

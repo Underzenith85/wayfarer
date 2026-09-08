@@ -89,9 +89,7 @@ def strict_schema(schema: dict[str, object]) -> JsonObject:
                 # schema is still used to validate the returned proposal.
                 if isinstance(prefix_items, list) and prefix_items:
                     result["items"] = (
-                        prefix_items[0]
-                        if len(prefix_items) == 1
-                        else {"anyOf": prefix_items}
+                        prefix_items[0] if len(prefix_items) == 1 else {"anyOf": prefix_items}
                     )
                 else:
                     result["items"] = {"type": "string"}

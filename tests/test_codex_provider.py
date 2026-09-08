@@ -420,7 +420,9 @@ def test_tuple_arrays_are_lowered_to_provider_supported_items() -> None:
             "maxItems": 2,
         }
     )
-    result = schema["properties"]["result"]
+    properties = schema["properties"]
+    assert isinstance(properties, dict)
+    result = properties["result"]
     assert isinstance(result, dict)
     assert "prefixItems" not in result
     assert result["items"] == {
