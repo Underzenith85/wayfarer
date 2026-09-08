@@ -173,6 +173,9 @@ def mode(
     entry = next((e for e in catalog(play).entries if e.definition_id == item.definition_id), None)
     if entry is None:
         raise ValidationError("Weapon is not in the pinned combat catalog")
+    from wayfarer.orchestration.object_combat import effective_entry
+
+    entry = effective_entry(play, item)
     modes = tuple(m for m in entry.modes if (mode_id is None or m.id == mode_id))
     if len(modes) != 1:
         raise ValidationError("Select exactly one supported weapon mode")
@@ -248,7 +251,12 @@ def defense_value(
     ready = [
         i
         for i in state.resources.items
-        if i.id in participant.ready_item_ids and i.ready and i.equipped
+        if i.id in participant.ready_item_ids
+        and i.ready
+        and i.equipped
+        and (
+            i.condition is None or not i.condition.disabled or i.condition.residual_roll is not None
+        )
     ]
     shields = [
         (i, entries[i.definition_id].shield) for i in ready if entries[i.definition_id].shield
@@ -339,7 +347,9 @@ def defense_value(
     for item in ready:
         if item_id is not None and item.id != item_id:
             continue
-        entry = entries[item.definition_id]
+        from wayfarer.orchestration.object_combat import effective_entry
+
+        entry = effective_entry(play, item)
         if (
             selected == "block"
             and entry.shield
@@ -408,11 +418,27 @@ def prepare_attack(
     mode_id: str | None,
     *,
     hit_location: HitLocation | None = None,
+    target_item_id: str | None = None,
     shots: int = 1,
 ) -> Encounter:
     pending = encounter.pending_defense
     assert pending is not None
     selected = mode(play, state, pending.attacker_id, pending.weapon_id, mode_id)
+    if target_item_id:
+        from wayfarer.orchestration.object_combat import target_modifier
+
+        if not isinstance(selected, MeleeMode) or selected.damage.damage_type not in (
+            "cr",
+            "cut",
+            "imp",
+            "pi-",
+            "pi",
+            "pi+",
+            "pi++",
+            "burn",
+        ):
+            raise ValidationError("Object target requires a supported melee damage mode")
+        target_modifier(play, state, pending.defender_id, target_item_id)
     if isinstance(selected, RangedMode):
         from wayfarer.orchestration.gurps_ranged import prepare
 
@@ -455,6 +481,7 @@ def prepare_attack(
                     "mode_id": selected.id,
                     "allowed": tuple(allowed),
                     "hit_location": hit_location,
+                    "target_item_id": target_item_id,
                 }
             )
         }
@@ -564,6 +591,13 @@ def resolve_melee(
         - attacker_hp.injury.shock
         - max(0, weapon.minimum_st - fatigue_value(attacker_fp, attack_build.statistics.st))
     )
+    from wayfarer.orchestration.object_combat import shock
+
+    attack_target -= shock(state, pending.weapon_id)
+    if pending.target_item_id:
+        from wayfarer.orchestration.object_combat import target_modifier
+
+        attack_target += target_modifier(play, state, pending.defender_id, pending.target_item_id)
     attack_target -= 4 if attacker.grappled else 0
     attack_target -= (
         4 if attacker.posture == "prone" else 2 if attacker.posture == "kneeling" else 0
@@ -769,6 +803,24 @@ def resolve_melee(
             )
             blocked = f"basic-critical-miss:{sum(critical_dice)}{suffix}"
             hit = parry_miss and sum(critical_dice) in (7, 8, 9, 10, 11, 12, 13, 14, 16)
+    if blocked and blocked.startswith("basic-critical-miss:"):
+        from wayfarer.orchestration.object_combat import critical_breakage
+
+        parrying = blocked.endswith(":defender")
+        state, encounter, object_dice, resolved = critical_breakage(
+            play,
+            state,
+            encounter,
+            table=critical_dice,
+            defender_item=defense_item,
+            parrying=parrying,
+        )
+        effect_dice += object_dice
+        if resolved:
+            blocked = None
+            hit = parrying
+        attacker = next(p for p in encounter.participants if p.actor_id == attacker.actor_id)
+        defender = next(p for p in encounter.participants if p.actor_id == defender.actor_id)
     if hit and pending.hit_location:
         from wayfarer.orchestration.location_combat import from_behind
 
@@ -807,18 +859,23 @@ def resolve_melee(
     adds += attacker.maneuver_state.stop_thrust_damage_bonus
     if attacker.maneuver_state.strong:
         adds += max(2, dice_count)
+    from wayfarer.orchestration.object_combat import intercepting_shield, shield_damage
+
+    shield_hit = intercepting_shield(play, state, encounter, second_trace or defense)
     maximum = critical in ((3, 15) if head else (6, 15)) or (
         equipment.profile_id == "gurps-lite-4e-2004" and sum(attack.dice) <= 4
     )
     dice = (
-        tuple(play.rng.randbelow(6) + 1 for _ in range(dice_count)) if hit and not maximum else ()
+        tuple(play.rng.randbelow(6) + 1 for _ in range(dice_count))
+        if (hit or shield_hit) and not maximum
+        else ()
     )
     basic = (
         max(
             0 if weapon.damage.damage_type == "cr" else 1,
             (6 * dice_count if maximum else sum(dice)) + adds,
         )
-        if hit
+        if hit or shield_hit
         else 0
     )
     basic *= (
@@ -828,6 +885,26 @@ def resolve_melee(
         if critical in ((16,) if head else (5, 16))
         else 1
     )
+    if shield_hit and not hit:
+        state, encounter, basic = shield_damage(play, state, encounter, shield_hit, basic, weapon)
+        defender = next(p for p in encounter.participants if p.actor_id == defender.actor_id)
+        hit = basic > 0
+        if hit and pending.hit_location:
+            side_die = play.rng.randbelow(6) + 1
+            effect_dice += (side_die,)
+            # Preserve the original grip even when this impact disables the shield.
+            original = next(
+                p
+                for e in state.encounters
+                if e.id == encounter.id
+                for p in e.participants
+                if p.actor_id == defender.actor_id
+            )
+            hand = next((h for i, h in original.hand_bindings if i == shield_hit), None)
+            if side_die <= 2 and hand:
+                location = "left-arm" if hand == "left-hand" else "right-arm"
+            else:
+                location, location_dice = select_location(pending.hit_location, rng=play.rng)
     entries = {e.definition_id: e for e in equipment.entries}
     resistance = max(
         (
@@ -859,7 +936,33 @@ def resolve_melee(
         if i.id in defender.ready_item_ids
         and (entries[i.definition_id].modes or entries[i.definition_id].shield)
     )
-    if hit:
+    if hit and pending.target_item_id:
+        from wayfarer.orchestration.object_combat import synchronize
+        from wayfarer.simulation.objects import DamageObject, apply_object
+
+        resources, object_result = apply_object(
+            play.engine.resources,
+            state.resources,
+            DamageObject.model_validate(
+                {
+                    "id": "target-object:" + hashlib.sha256(pending.id.encode()).hexdigest(),
+                    "actor_id": pending.attacker_id,
+                    "expected_revision": state.resources.revision,
+                    "item_id": pending.target_item_id,
+                    "basic_damage": basic,
+                    "damage_type": weapon.damage.damage_type,
+                    "armor_divisor": weapon.damage.armor_divisor * (2 if half else 1),
+                }
+            ),
+            system=True,
+            rng=play.rng,
+        )
+        state = state.model_copy(update={"resources": resources})
+        encounter = synchronize(state, encounter)
+        defender = next(p for p in encounter.participants if p.actor_id == defender.actor_id)
+        resistance = object_result.effective_dr
+        effect_dice += tuple(d for roll in object_result.checks for d in roll)
+    elif hit:
         resources, result = apply_injury(
             state.resources,
             Wound(
@@ -909,7 +1012,7 @@ def resolve_melee(
     updated_hp = next(p for p in state.resources.pools if p.id == hp.id)
     status = updated_hp.injury
     assert status is not None
-    drops = held if critical == 12 and not head else ()
+    drops = held if critical == 12 and not head and not pending.target_item_id else ()
     weapons = tuple(
         i
         for i in held
@@ -983,6 +1086,8 @@ def resolve_melee(
             number == 14
             and (weapon.damage.basis != "swing" or subject.actor_id == defender.actor_id)
         ):
+            from wayfarer.orchestration.weapon_flight import position
+
             state = state.model_copy(
                 update={
                     "resources": state.resources.model_copy(
@@ -994,6 +1099,9 @@ def resolve_melee(
                                         "equipped": False
                                         if number in (9, 10, 11, 14)
                                         else i.equipped,
+                                        "ground": position(encounter, subject)
+                                        if number in (9, 10, 11, 14)
+                                        else i.ground,
                                     }
                                 )
                                 if i.id == affected_item
@@ -1018,6 +1126,17 @@ def resolve_melee(
                 "blocked_reason": blocked,
             }
         )
+    if blocked and sum(critical_dice) == 14 and not blocked.endswith(":defender"):
+        from wayfarer.orchestration.weapon_flight import resolve_flight
+
+        state, encounter, flight_dice = resolve_flight(play, state, encounter, critical_dice)
+        effect_dice += flight_dice
+        updated_hp = next(p for p in state.resources.pools if p.id == hp.id)
+        status = updated_hp.injury
+        assert status is not None
+        injury = hp.current - updated_hp.current
+        blocked = None
+        encounter = encounter.model_copy(update={"blocked_reason": None})
     if blocked and blocked.startswith("basic-critical-miss:"):
         from wayfarer.orchestration.critical_context import capture_critical
         from wayfarer.orchestration.location_combat import from_behind

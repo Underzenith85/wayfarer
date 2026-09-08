@@ -10,6 +10,7 @@ from wayfarer.orchestration.combat import (
     ChooseDefense,
     CombatService,
     MigrateEncounterHex,
+    RepairEquipment,
     ResolveChokeEffects,
     ResumeInterruptedTurn,
     TakeCombatTurn,
@@ -28,6 +29,7 @@ class TacticalRequest(Record):
         | MigrateEncounterHex
         | ResumeInterruptedTurn
         | ResolveChokeEffects
+        | RepairEquipment
     ) = Field(discriminator="kind")
 
 

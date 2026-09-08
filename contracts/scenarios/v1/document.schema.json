@@ -1996,6 +1996,41 @@
       "title": "GridPoint",
       "type": "object"
     },
+    "GroundPosition": {
+      "additionalProperties": false,
+      "properties": {
+        "encounter_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Encounter Id",
+          "type": "string"
+        },
+        "geometry": {
+          "enum": [
+            "grid",
+            "hex"
+          ],
+          "title": "Geometry",
+          "type": "string"
+        },
+        "x": {
+          "title": "X",
+          "type": "integer"
+        },
+        "y": {
+          "title": "Y",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "encounter_id",
+        "geometry",
+        "x",
+        "y"
+      ],
+      "title": "GroundPosition",
+      "type": "object"
+    },
     "HazardSchedule": {
       "additionalProperties": false,
       "properties": {
@@ -2610,6 +2645,17 @@
             }
           ],
           "default": null
+        },
+        "ground": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GroundPosition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -3174,6 +3220,40 @@
           ],
           "default": null,
           "title": "Last Stress At"
+        },
+        "residual_roll": {
+          "anyOf": [
+            {
+              "maximum": 6,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Residual Roll"
+        },
+        "shock": {
+          "default": 0,
+          "maximum": 4,
+          "minimum": 0,
+          "title": "Shock",
+          "type": "integer"
+        },
+        "shock_until": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Shock Until"
         }
       },
       "required": [
@@ -3194,7 +3274,8 @@
         "construction": {
           "enum": [
             "unliving",
-            "homogenous"
+            "homogenous",
+            "diffuse"
           ],
           "title": "Construction",
           "type": "string"
@@ -3213,6 +3294,90 @@
           "exclusiveMinimum": 0,
           "title": "Ht",
           "type": "integer"
+        },
+        "quality": {
+          "default": "average",
+          "enum": [
+            "cheap",
+            "average",
+            "fine",
+            "very-fine"
+          ],
+          "title": "Quality",
+          "type": "string"
+        },
+        "break_resistant": {
+          "default": false,
+          "title": "Break Resistant",
+          "type": "boolean"
+        },
+        "high_pain_threshold": {
+          "default": false,
+          "title": "High Pain Threshold",
+          "type": "boolean"
+        },
+        "size_modifier": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Size Modifier"
+        },
+        "repair_skill_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Repair Skill Id"
+        },
+        "repair_tools_definition": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Repair Tools Definition"
+        },
+        "repair_parts_definition": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Repair Parts Definition"
+        },
+        "residual_definitions": {
+          "default": [],
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "title": "Residual Definitions",
+          "type": "array"
         }
       },
       "required": [

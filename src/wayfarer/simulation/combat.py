@@ -198,6 +198,7 @@ class PendingDefense(Record):
     opened_turn: int = Field(ge=0)
     mode_id: str | None = None
     hit_location: HitLocation | None = None
+    target_item_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
     spell_cast_id: str | None = Field(default=None, exclude_if=lambda value: value is None)
     post_attack_destination: GridPoint | None = None
     post_attack_square_facing: Facing | None = None

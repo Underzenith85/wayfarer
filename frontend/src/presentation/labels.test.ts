@@ -158,10 +158,16 @@ describe("sceneDescription", () => {
   });
 });
 describe("timestampLabel", () => {
-  const now = new Date("2026-09-07T20:00:00Z");
+  const now = new Date(2026, 8, 7, 20);
   it("gives an entry from today a time and an older one a date too", () => {
-    const today = timestampLabel("2026-09-07T09:30:00Z", now);
-    const older = timestampLabel("2026-09-04T09:30:00Z", now);
+    const today = timestampLabel(
+      new Date(2026, 8, 7, 9, 30).toISOString(),
+      now,
+    );
+    const older = timestampLabel(
+      new Date(2026, 8, 4, 9, 30).toISOString(),
+      now,
+    );
     expect(today).not.toBe("");
     expect(older).not.toBe("");
     expect(older.length).toBeGreaterThan(today.length);

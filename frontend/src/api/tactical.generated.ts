@@ -351,6 +351,11 @@ export interface components {
         | "random"
         | null;
       /**
+       * Target Item Id
+       * @default null
+       */
+      target_item_id: string | null;
+      /**
        * Ready Hand
        * @default null
        */
@@ -618,6 +623,34 @@ export interface components {
         | "sitting"
         | "lying";
     };
+    /** RepairEquipment */
+    RepairEquipment: {
+      /** Id */
+      id: string;
+      /** Actor Id */
+      actor_id: string;
+      /** Expected Revision */
+      expected_revision: number;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: "repair_equipment";
+      /** Encounter Id */
+      encounter_id: string;
+      /** Item Id */
+      item_id: string;
+      /**
+       * Stage
+       * @enum {string}
+       */
+      stage: "start" | "finish" | "cancel";
+      /**
+       * Task Id
+       * @default null
+       */
+      task_id: string | null;
+    };
     /** ResolveChokeEffects */
     ResolveChokeEffects: {
       /** Id */
@@ -653,7 +686,8 @@ export interface components {
         | components["schemas"]["ChooseDefense"]
         | components["schemas"]["MigrateEncounterHex"]
         | components["schemas"]["ResumeInterruptedTurn"]
-        | components["schemas"]["ResolveChokeEffects"];
+        | components["schemas"]["ResolveChokeEffects"]
+        | components["schemas"]["RepairEquipment"];
     };
     TacticalError: {
       code: string;

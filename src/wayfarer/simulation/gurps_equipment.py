@@ -202,6 +202,16 @@ class EquipmentCatalog(Record):
         if len(entries) != len(self.entries):
             raise ValueError("Duplicate equipment definition")
         for entry in self.entries:
+            if entry.durability and entry.durability.residual_definitions:
+                for replacement in entry.durability.residual_definitions:
+                    if replacement is not None and (
+                        replacement not in entries
+                        or not entries[replacement].modes
+                        or entries[replacement].durability is not None
+                    ):
+                        raise ValueError(
+                            "Residual modes require a pinned non-durable weapon definition"
+                        )
             if entry.durability is not None and entry.durability.profile_id != self.profile_id:
                 raise ValueError("Object durability requires the exact Basic Set profile")
             for mode in entry.modes:
