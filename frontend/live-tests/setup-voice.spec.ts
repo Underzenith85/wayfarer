@@ -84,6 +84,7 @@ test("two identities activate a saved party and review speech through the live d
       brief: { premise: string };
     }[];
     const cid = list.find((v) => v.brief.premise === title)!.id;
+    await blobby.getByRole("tab", { name: "Join game", exact: true }).click();
     await blobby.locator(`[data-campaign-id="${cid}"]`).click();
     await blobby.getByRole("button", { name: "Accept invitation" }).click();
     await expect(blobby.getByRole("status")).toContainText("revision 3");

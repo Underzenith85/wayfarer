@@ -24,6 +24,7 @@ test("independent captive and rescuer choices survive reconnect and reunite priv
       .getByLabel("Access token", { exact: true })
       .fill(`${principal}-token`);
     await page.getByRole("button", { name: "Sign in" }).click();
+    await page.getByRole("tab", { name: "Join game", exact: true }).click();
     await page.locator(`[data-resume-id="${campaign_id}"]`).click();
     await expect(
       page.getByRole("heading", { name: "Scene decisions" }),
