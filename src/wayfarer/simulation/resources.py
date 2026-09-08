@@ -563,7 +563,13 @@ class ResourceEngine:
                 raise ValidationError("Effect already has an expiration")
             updated = state.model_copy(update={"scheduled": state.scheduled + (entry,)})
         elif isinstance(command, Advance):
+            from wayfarer.simulation.fright import effects as fright_effects
             from wayfarer.simulation.spell_backfires import backfires
+
+            if any(
+                i.active and i.due is not None and i.due < command.to for i in fright_effects(state)
+            ):
+                raise ConflictError("Advance to the fright recovery deadline first")
 
             if any(
                 b.stunned
