@@ -1,0 +1,5 @@
+[
+  {"command":{"kind":"repair_equipment","id":"repair-start","actor_id":"a","expected_revision":8,"encounter_id":"fight","item_id":"sword-a","stage":"start"}},
+  {"command":{"kind":"repair_equipment","id":"repair-finish","actor_id":"a","expected_revision":10,"encounter_id":"fight","item_id":"sword-a","stage":"finish","task_id":"repair-start"}},
+  {"command":{"kind":"repair_equipment","id":"repair-cancel","actor_id":"a","expected_revision":9,"encounter_id":"fight","item_id":"sword-a","stage":"cancel","task_id":"repair-start"}}
+]

@@ -357,19 +357,32 @@ async def test_major_repair_pins_parts_cost_and_locks_custody(tmp_path: Path) ->
 
 
 def test_reviewed_additive_requests_never_accept_damage_authority() -> None:
+    """Each tactical major's examples validate against that major's own request.
+
+    `repair_equipment` is a v2 command: the v1 request deliberately keeps the
+    reviewed v1 command set, so its examples live under the major that accepts
+    them rather than under one that must refuse them.
+    """
     import json
 
     from pydantic import ValidationError as SchemaError
 
-    from wayfarer.transport.tactical_api import TacticalRequest
+    from wayfarer.transport.tactical_api import TacticalRequest, TacticalRequestV2
 
-    examples = json.loads(Path("contracts/tactical/v1/examples/object-commands.json").read_text())
-    for example in examples:
-        request = TacticalRequest.model_validate(example)
-        assert request.command.actor_id == "a"
-        for forged in ("basic_damage", "skill", "restored_hp", "due"):
-            with pytest.raises(SchemaError):
-                TacticalRequest.model_validate({"command": {**example["command"], forged: 99}})
+    for version, model in ((1, TacticalRequest), (2, TacticalRequestV2)):
+        path = Path(f"contracts/tactical/v{version}/examples/object-commands.json")
+        examples = json.loads(path.read_text())
+        assert examples, path
+        for example in examples:
+            request = model.model_validate(example)
+            assert request.command.actor_id == "a"
+            for forged in ("basic_damage", "skill", "restored_hp", "due"):
+                with pytest.raises(SchemaError):
+                    model.model_validate({"command": {**example["command"], forged: 99}})
+    # The v1 request refuses a v2-only command outright, not merely its fields.
+    v2_only = json.loads(Path("contracts/tactical/v2/examples/object-commands.json").read_text())
+    with pytest.raises(SchemaError):
+        TacticalRequest.model_validate(v2_only[0])
 
 
 async def test_cheap_weapon_breaks_on_parry_drop_exception(tmp_path: Path) -> None:
