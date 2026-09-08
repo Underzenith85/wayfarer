@@ -2,7 +2,9 @@
 
 Numeric constructions: Basic Set Characters, Fourth Edition, third printing.
 The first-printing/2007-01-26 errata delta remains an explicit audit blocker.
-These records describe construction costs, not implemented gameplay effects.
+Construction cost and executable effect are separate: an entry is implemented
+only when `runtime.SUPPORTED_HOOKS` binds its effect to a service that already
+resolves it. Every other record stays unsupported and cannot activate.
 """
 
 from collections import Counter
@@ -19,6 +21,7 @@ from wayfarer.rules.catalog import (
     RulesPackage,
     SourceReference,
 )
+from wayfarer.rules.mundane_traits.runtime import REACTION_BINDINGS, SUPPORTED_HOOKS
 from wayfarer.rules.traits import TraitRules, validate_metadata
 
 PROFILE: Final = "gurps-basic-set-4e-2004"
@@ -72,8 +75,26 @@ class TraitEntry:
     followup_issues: tuple[int, ...] = (113, 122)
 
     @property
+    def implemented(self) -> bool:
+        """A bound effect executes; naming an effect never implements it."""
+        return self.effect in SUPPORTED_HOOKS
+
+    @property
+    def status(self) -> ImplementationStatus:
+        return (
+            ImplementationStatus.IMPLEMENTED
+            if self.implemented
+            else ImplementationStatus.UNSUPPORTED
+        )
+
+    @property
     def blockers(self) -> tuple[str, ...]:
-        return ("first-printing-delta-audit", self.effect)
+        binding = REACTION_BINDINGS.get(self.id)
+        return (
+            "first-printing-delta-audit",
+            *(() if self.implemented else (self.effect,)),
+            *(binding.blockers if binding is not None else ()),
+        )
 
     @property
     def reference(self) -> str:
@@ -86,7 +107,7 @@ class TraitEntry:
             self.name,
             SOURCE.id,
             self.points,
-            ImplementationStatus.UNSUPPORTED,
+            self.status,
             prerequisites=self.prerequisites,
             exclusions=tuple(
                 e.id
@@ -357,6 +378,8 @@ def inventory(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> tuple[TraitEntry, 
             )
         )
     result = tuple(entries)
+    if not REACTION_BINDINGS.keys() <= {entry.id for entry in result}:
+        raise ValidationError("Runtime binding without a selected trait record")
     validate_inventory(result)
     return result
 
@@ -370,6 +393,11 @@ def validate_inventory(entries: tuple[TraitEntry, ...]) -> None:
             raise ValidationError("Trait requires indexed provenance and an owned effect blocker")
         if not set(entry.prerequisites) <= identifiers or entry.id in entry.prerequisites:
             raise ValidationError("Unresolved trait prerequisite")
+        binding = REACTION_BINDINGS.get(entry.id)
+        if binding is not None and (binding.hook != entry.effect or not entry.implemented):
+            raise ValidationError("Runtime binding disagrees with its trait effect")
+        if entry.implemented and entry.obligations:
+            raise ValidationError("A manual obligation is not an executable effect")
         definition = entry.definition(entries)
         assert definition.trait_rules is not None
         validate_metadata(definition.trait_rules)
@@ -394,12 +422,18 @@ def audit_report(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> dict[str, objec
         "scope": "selected mundane traits and finite campaign background identities",
         "level_bounds": "Finite candidate selection ceilings, not new universal source limits",
         "entries": [
-            asdict(e) | {"reference": e.reference, "blockers": e.blockers} for e in entries
+            asdict(e) | {"reference": e.reference, "blockers": e.blockers, "status": e.status.value}
+            for e in entries
         ],
+        "bindings": {
+            key: asdict(binding) | {"reference": binding.reference}
+            for key, binding in sorted(REACTION_BINDINGS.items())
+        },
         "total": len(entries),
-        "available": 0,
+        "available": sum(e.implemented for e in entries),
         "categories": dict(sorted(Counter(e.category for e in entries).items())),
         "blockers": dict(sorted(Counter(b for e in entries for b in e.blockers).items())),
+        "unbound_effects": tuple(sorted({e.effect for e in entries if not e.implemented})),
         "outside_selected_scope": (
             "native-language reductions",
             "alien cultural familiarity",

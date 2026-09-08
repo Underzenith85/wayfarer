@@ -1,0 +1,360 @@
+{
+  "StartEncounter": {
+    "$defs": {
+      "GridPoint": {
+        "additionalProperties": false,
+        "properties": {
+          "x": {
+            "maximum": 1000,
+            "minimum": 0,
+            "title": "X",
+            "type": "integer"
+          },
+          "y": {
+            "maximum": 1000,
+            "minimum": 0,
+            "title": "Y",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "x",
+          "y"
+        ],
+        "title": "GridPoint",
+        "type": "object"
+      },
+      "Placement": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "position": {
+            "$ref": "#/$defs/GridPoint"
+          },
+          "facing": {
+            "default": "north",
+            "enum": [
+              "north",
+              "east",
+              "south",
+              "west"
+            ],
+            "title": "Facing",
+            "type": "string"
+          }
+        },
+        "required": [
+          "actor_id",
+          "position"
+        ],
+        "title": "Placement",
+        "type": "object"
+      },
+      "RangedSituation": {
+        "additionalProperties": false,
+        "properties": {
+          "attacker_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Attacker Id",
+            "type": "string"
+          },
+          "defender_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Defender Id",
+            "type": "string"
+          },
+          "distance_yards": {
+            "exclusiveMinimum": 0,
+            "title": "Distance Yards",
+            "type": "number"
+          },
+          "speed_yards_per_second": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Speed Yards Per Second",
+            "type": "number"
+          },
+          "size_modifier": {
+            "default": 0,
+            "title": "Size Modifier",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "attacker_id",
+          "defender_id",
+          "distance_yards"
+        ],
+        "title": "RangedSituation",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "id": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Id",
+        "type": "string"
+      },
+      "actor_id": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Actor Id",
+        "type": "string"
+      },
+      "expected_revision": {
+        "minimum": 0,
+        "title": "Expected Revision",
+        "type": "integer"
+      },
+      "kind": {
+        "const": "start_encounter",
+        "default": "start_encounter",
+        "title": "Kind",
+        "type": "string"
+      },
+      "encounter_id": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Encounter Id",
+        "type": "string"
+      },
+      "battlefield_id": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Battlefield Id",
+        "type": "string"
+      },
+      "scene_id": {
+        "anyOf": [
+          {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Scene Id"
+      },
+      "placements": {
+        "items": {
+          "$ref": "#/$defs/Placement"
+        },
+        "minItems": 2,
+        "title": "Placements",
+        "type": "array"
+      },
+      "ranged_situations": {
+        "default": [],
+        "items": {
+          "$ref": "#/$defs/RangedSituation"
+        },
+        "title": "Ranged Situations",
+        "type": "array"
+      }
+    },
+    "required": [
+      "id",
+      "actor_id",
+      "expected_revision",
+      "encounter_id",
+      "battlefield_id",
+      "placements"
+    ],
+    "title": "StartEncounter",
+    "type": "object"
+  },
+  "MigrateEncounterScenes": {
+    "$defs": {
+      "EncounterSceneBinding": {
+        "additionalProperties": false,
+        "properties": {
+          "encounter_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Encounter Id",
+            "type": "string"
+          },
+          "scene_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Scene Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "encounter_id",
+          "scene_id"
+        ],
+        "title": "EncounterSceneBinding",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "kind": {
+        "const": "migrate_encounter_scenes",
+        "default": "migrate_encounter_scenes",
+        "title": "Kind",
+        "type": "string"
+      },
+      "id": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Id",
+        "type": "string"
+      },
+      "actor_id": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Actor Id",
+        "type": "string"
+      },
+      "expected_revision": {
+        "minimum": 0,
+        "title": "Expected Revision",
+        "type": "integer"
+      },
+      "bindings": {
+        "items": {
+          "$ref": "#/$defs/EncounterSceneBinding"
+        },
+        "maxItems": 100,
+        "minItems": 1,
+        "title": "Bindings",
+        "type": "array"
+      }
+    },
+    "required": [
+      "id",
+      "actor_id",
+      "expected_revision",
+      "bindings"
+    ],
+    "title": "MigrateEncounterScenes",
+    "type": "object"
+  },
+  "ApplyMigration": {
+    "$defs": {
+      "ActorScene": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "scene_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Scene Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "actor_id",
+          "scene_id"
+        ],
+        "title": "ActorScene",
+        "type": "object"
+      },
+      "EncounterSceneBinding": {
+        "additionalProperties": false,
+        "properties": {
+          "encounter_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Encounter Id",
+            "type": "string"
+          },
+          "scene_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Scene Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "encounter_id",
+          "scene_id"
+        ],
+        "title": "EncounterSceneBinding",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "id": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Id",
+        "type": "string"
+      },
+      "actor_id": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Actor Id",
+        "type": "string"
+      },
+      "expected_revision": {
+        "minimum": 0,
+        "title": "Expected Revision",
+        "type": "integer"
+      },
+      "expected_from_digest": {
+        "title": "Expected From Digest",
+        "type": "string"
+      },
+      "reason": {
+        "maxLength": 2000,
+        "minLength": 1,
+        "title": "Reason",
+        "type": "string"
+      },
+      "actor_scenes": {
+        "anyOf": [
+          {
+            "items": {
+              "$ref": "#/$defs/ActorScene"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Actor Scenes"
+      },
+      "encounter_scenes": {
+        "default": [],
+        "items": {
+          "$ref": "#/$defs/EncounterSceneBinding"
+        },
+        "title": "Encounter Scenes",
+        "type": "array"
+      }
+    },
+    "required": [
+      "id",
+      "actor_id",
+      "expected_revision",
+      "expected_from_digest",
+      "reason"
+    ],
+    "title": "ApplyMigration",
+    "type": "object"
+  }
+}

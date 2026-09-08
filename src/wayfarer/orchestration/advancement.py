@@ -23,7 +23,9 @@ from wayfarer.simulation.advancement import (
     MigrationEntry,
     MigrationPreview,
 )
+from wayfarer.simulation.encounter_context import EncounterSceneBinding, bind_scene, migrate_unique
 from wayfarer.simulation.resources import Id, Pool, Record
+from wayfarer.simulation.scenes import ActorScene
 
 
 class GrantPoints(Record):
@@ -50,6 +52,12 @@ class ApplyMigration(Record):
     expected_revision: int = Field(ge=0)
     expected_from_digest: str
     reason: str = Field(min_length=1, max_length=2000)
+    actor_scenes: tuple[ActorScene, ...] | None = Field(
+        default=None, exclude_if=lambda v: v is None
+    )
+    encounter_scenes: tuple[EncounterSceneBinding, ...] = Field(
+        default=(), exclude_if=lambda v: not v
+    )
 
 
 def _build(play: PlayService, state: PlayState, actor_id: str) -> ValidatedBuild:
@@ -408,6 +416,58 @@ class MigrationService:
                 approvals=state.approvals + tuple(approvals),
                 migrations=state.migrations + (entry,),
             )
+            if command.actor_scenes is not None:
+                if state.actor_scenes:
+                    raise ValidationError("Scene adoption cannot relocate existing scene cursors")
+                target_scenes = self.target.engine.rules.scenes
+                if target_scenes is None:
+                    raise ValidationError("Scene adoption requires target scene rules")
+                scene_map = {s.id: s for s in target_scenes.scenes}
+                entities = {e.id: e for e in state.world.entities}
+                if any(
+                    c.scene_id not in scene_map
+                    or c.actor_id not in entities
+                    or entities[c.actor_id].location_id != scene_map[c.scene_id].location_id
+                    for c in command.actor_scenes
+                ):
+                    raise ValidationError(
+                        "Explicit actor scene mapping must preserve world locations"
+                    )
+                updated = updated.model_copy(update={"actor_scenes": command.actor_scenes})
+            elif not state.actor_scenes and self.target.engine.rules.scenes is not None:
+                raise ValidationError("Scene-less migration requires explicit actor scene mapping")
+            if command.encounter_scenes:
+                combat = self.target.engine.rules.combat
+                bindings = {b.encounter_id: b.scene_id for b in command.encounter_scenes}
+                if (
+                    combat is None
+                    or len(bindings) != len(command.encounter_scenes)
+                    or not set(bindings) <= {e.id for e in updated.encounters}
+                ):
+                    raise ValidationError("Invalid encounter scene migration bindings")
+                updated = updated.model_copy(
+                    update={
+                        "encounters": tuple(
+                            bind_scene(e, self.target.engine.rules.scenes, combat, bindings[e.id])
+                            if e.id in bindings
+                            else e
+                            for e in updated.encounters
+                        )
+                    }
+                )
+            updated = migrate_unique(
+                updated, self.target.engine.rules.scenes, self.target.engine.rules.combat
+            )
+            if self.target.engine.rules.scenes is not None and any(
+                e.scene_id is None for e in updated.encounters
+            ):
+                raise ValidationError(
+                    "Rules migration requires explicit ambiguous encounter scene mappings"
+                )
+            if self.target.engine.rules.party is not None:
+                from wayfarer.simulation.party import migrate
+
+                updated = migrate(updated)
             campaign["rules_ref"] = reference(self.target.engine.resources.rules)
             campaign["revision"], campaign["play_json"] = (
                 updated.revision,

@@ -340,7 +340,20 @@ class CampaignAccess:
             guard(state, str(value["actor_id"]), kind)
         raw = json.dumps(value)
         try:
-            if kind == "gurps_recovery":
+            if kind == "migrate_encounter_scenes":
+                from wayfarer.orchestration.encounter_scenes import (
+                    EncounterSceneService,
+                    MigrateEncounterScenes,
+                )
+
+                migration = MigrateEncounterScenes.model_validate_json(raw)
+                if member.role != "gm":
+                    raise AuthorizationError("Encounter scene migration requires GM authority")
+                self._control(member, migration.actor_id)
+                await EncounterSceneService(self.play).execute(
+                    cid, migration, authenticated_gm_id=migration.actor_id
+                )
+            elif kind == "gurps_recovery":
                 from wayfarer.orchestration.player_medical import PlayerRecoveryCommand
                 from wayfarer.orchestration.player_medical import execute as execute_medical
 

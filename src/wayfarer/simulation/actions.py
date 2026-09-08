@@ -526,7 +526,6 @@ class ActionEngine:
             raise ValidationError("Ledger entry is ahead of campaign state")
         if len({e.id for e in state.encounters}) != len(state.encounters):
             raise ValidationError("Duplicate encounter ID")
-        active_actors: set[str] = set()
         for encounter in state.encounters:
             if self.combat is None:
                 raise ValidationError("Campaign has encounters without combat rules")
@@ -536,11 +535,9 @@ class ActionEngine:
                 state.resources,
                 frozenset(actor.actor_id for actor in state.actors),
             )
-            if encounter.status == "active":
-                participants = {p.actor_id for p in encounter.participants}
-                if active_actors & participants:
-                    raise ValidationError("Actor participates in multiple active encounters")
-                active_actors |= participants
+        from wayfarer.simulation.encounter_context import validate_contexts
+
+        validate_contexts(state, self.rules.scenes, self.rules.combat)
         entities = {e.id: e for e in state.world.entities}
         actors = {a.actor_id: a for a in state.actors}
         if len(actors) != len(state.actors) or not set(actors) <= self.resources.actors:
@@ -711,10 +708,9 @@ class ActionEngine:
             return result("rejected", "actor.unavailable")
         if command.expected_revision != state.revision:
             raise ConflictError("Play revision changed")
-        if any(
-            encounter.status == "active" and command.actor_id in encounter.turn_order
-            for encounter in state.encounters
-        ):
+        from wayfarer.simulation.encounter_context import activity_for
+
+        if activity_for(state, command.actor_id).encounter is not None:
             return result("rejected", "combat.command_required")
         if isinstance(command, Question) or command.hypothetical:
             return result("question", "action.no_effect")

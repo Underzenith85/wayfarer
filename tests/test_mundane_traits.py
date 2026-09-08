@@ -22,7 +22,7 @@ from wayfarer.character.templates import (
     representative_templates,
 )
 from wayfarer.errors import ValidationError
-from wayfarer.rules.catalog import ImplementationStatus, RulesCatalog
+from wayfarer.rules.catalog import ImplementationStatus, RulesCatalog, RulesPackage
 from wayfarer.rules.mundane_traits import (
     PROFILE,
     Vocabulary,
@@ -31,18 +31,34 @@ from wayfarer.rules.mundane_traits import (
     inventory,
     validate_inventory,
 )
+from wayfarer.rules.mundane_traits.runtime import SUPPORTED_HOOKS
 from wayfarer.rules.traits import TraitOptions, cost
 
 
-def compiler() -> CharacterCompiler:
+def combined_package() -> RulesPackage:
     package = candidate_package()
     base = profile_package(PROFILE)
-    combined = replace(
+    return replace(
         base,
         sources=base.sources + package.sources,
         definitions=base.definitions + package.definitions,
     )
-    return profile_compiler(PROFILE, package=combined)
+
+
+def compiler() -> CharacterCompiler:
+    return profile_compiler(PROFILE, package=combined_package())
+
+
+def runtime_compiler() -> CharacterCompiler:
+    """A campaign that supplies every bound hook; unbound effects stay off."""
+    base = compiler()
+    return CharacterCompiler(
+        RulesCatalog((combined_package(),)),
+        base.rules,
+        base.policy,
+        statistics_profile=PROFILE,
+        trait_runtime_hooks=SUPPORTED_HOOKS,
+    )
 
 
 @pytest.mark.parametrize(
@@ -137,7 +153,6 @@ def test_inventory_package_and_audit_reconcile() -> None:
     RulesCatalog((package,))
     report = audit_report()
     assert report["total"] == len(entries) == len(package.definitions)
-    assert report["available"] == 0
     assert {e.category for e in entries} == {
         "advantage",
         "disadvantage",
@@ -147,7 +162,29 @@ def test_inventory_package_and_audit_reconcile() -> None:
     }
     assert {e.id for e in entries} == {d.id for d in package.definitions}
     assert all(e.blockers and e.followup_issues for e in entries)
-    assert all(d.status is ImplementationStatus.UNSUPPORTED for d in package.definitions)
+    implemented = {
+        d.id for d in package.definitions if d.status is ImplementationStatus.IMPLEMENTED
+    }
+    assert implemented == {
+        "trait:bad-temper",
+        "trait:charisma",
+        "trait:curious",
+        "trait:low-status",
+        "trait:overconfidence",
+        "trait:status",
+        "trait:voice",
+    }
+    assert report["available"] == len(implemented)
+    assert all(
+        d.status is ImplementationStatus.UNSUPPORTED
+        for d in package.definitions
+        if d.id not in implemented
+    )
+    unbound = report["unbound_effects"]
+    assert isinstance(unbound, tuple)
+    assert "trait.rank" in unbound and "trait.voice" not in unbound
+    bound = next(e for e in entries if e.id == "trait:voice")
+    assert bound.blockers == ("first-printing-delta-audit", "voice-influence-skill-bonus")
     assert any(e.obligations for e in entries)
     assert candidate_package().digest == package.digest
     with pytest.raises(ValidationError, match="Duplicate"):
@@ -156,19 +193,25 @@ def test_inventory_package_and_audit_reconcile() -> None:
         validate_inventory((replace(entries[0], prerequisites=("trait:missing",)),))
 
 
-def test_every_selected_trait_stays_unavailable_for_activation() -> None:
-    engine = compiler()
+def test_unbound_effects_never_activate_and_bound_ones_need_their_campaign_hooks() -> None:
+    without_hooks, engine = compiler(), runtime_compiler()
     for entry in inventory():
-        result = engine.compile(
-            gurps_draft(
-                Purchase(
-                    definition_id=entry.id,
-                    trait=TraitOptions(self_control=12) if entry.self_control else None,
-                )
+        draft = gurps_draft(
+            Purchase(
+                definition_id=entry.id,
+                trait=TraitOptions(self_control=12) if entry.self_control else None,
             )
         )
-        assert result.build is None
-        assert "definition.not_implemented" in {d.code for d in result.diagnostics}
+        unavailable = without_hooks.compile(draft)
+        assert unavailable.build is None
+        assert ("definition.not_implemented" in {d.code for d in unavailable.diagnostics}) is (
+            not entry.implemented
+        )
+        assert "trait.runtime_unavailable" in {d.code for d in unavailable.diagnostics}
+        result = engine.compile(draft)
+        assert (result.build is not None) is entry.implemented
+        if not entry.implemented:
+            assert "definition.not_implemented" in {d.code for d in result.diagnostics}
 
 
 def test_background_identity_is_pinned_and_cannot_supply_costs() -> None:
@@ -202,6 +245,29 @@ def test_templates_use_real_compiler_and_keep_unavailable_effects_blocked() -> N
     guard = templates.preview(gurps_draft(), ("template:guard",))
     assert guard.compilation.spent == 15  # Combat Reflexes 15 + Fit 5 - Sense of Duty 5.
     assert not guard.compilation.legal
+
+
+def test_executable_template_composes_a_legal_build_only_where_hooks_exist() -> None:
+    engine = runtime_compiler()
+    templates = TemplateCatalog(representative_templates(), engine)
+    envoy = templates.preview(gurps_draft(), ("template:envoy",))
+    # Charisma 2 [10] + Status 1 [5] + Voice [10] - Overconfidence (12) [5].
+    assert envoy.compilation.spent == 20
+    assert envoy.compilation.legal and envoy.compilation.build is not None
+    assert {p.definition_id for p in envoy.compilation.build.trait_purchases} == {
+        "trait:charisma",
+        "trait:overconfidence",
+        "trait:status",
+        "trait:voice",
+    }
+    with pytest.raises(ValidationError, match="taboo"):
+        templates.preview(
+            gurps_draft(Purchase(definition_id="trait:shyness-severe")), ("template:envoy",)
+        )
+    without_hooks = TemplateCatalog(representative_templates(), compiler())
+    blocked = without_hooks.preview(gurps_draft(), ("template:envoy",))
+    assert blocked.compilation.spent == 20
+    assert not blocked.compilation.legal and blocked.compilation.build is None
 
 
 def test_template_choices_reject_missing_extra_repeated_and_unknown_options() -> None:
