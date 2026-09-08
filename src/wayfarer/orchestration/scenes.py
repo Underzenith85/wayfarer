@@ -164,6 +164,7 @@ class SceneService:
                         to=resources.game_time + selected.ticks,
                     ),
                     system=True,
+                    rng=self.play.rng,
                 )
             events.append(
                 SceneEvent(

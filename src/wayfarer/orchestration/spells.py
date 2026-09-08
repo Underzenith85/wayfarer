@@ -286,6 +286,7 @@ def advance_cast_turn(
                 to=resources.game_time + updated.round - encounter.round,
             ),
             system=True,
+            rng=play.rng,
         ).model_copy(update={"revision": state.revision})
     return state.model_copy(
         update={

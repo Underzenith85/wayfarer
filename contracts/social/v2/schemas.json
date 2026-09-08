@@ -1,0 +1,511 @@
+{
+  "NPCSocialRules": {
+    "$defs": {
+      "NPCAction": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "patrol",
+              "communicate",
+              "alarm",
+              "reinforce",
+              "transfer_prisoner"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "required_fact_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Required Fact Ids",
+            "type": "array"
+          },
+          "reveal_fact_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Reveal Fact Ids",
+            "type": "array"
+          },
+          "recipient_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Recipient Ids",
+            "type": "array"
+          },
+          "cost_definition_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Cost Definition Id"
+          },
+          "cost": {
+            "default": 0,
+            "maximum": 1000000,
+            "minimum": 0,
+            "title": "Cost",
+            "type": "integer"
+          },
+          "setback_rule_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Setback Rule Id"
+          },
+          "target_actor_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Target Actor Id"
+          }
+        },
+        "required": [
+          "id",
+          "kind"
+        ],
+        "title": "NPCAction",
+        "type": "object"
+      },
+      "NPCSocialAction": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "patrol",
+              "communicate",
+              "alarm",
+              "reinforce",
+              "transfer_prisoner"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "required_fact_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Required Fact Ids",
+            "type": "array"
+          },
+          "reveal_fact_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Reveal Fact Ids",
+            "type": "array"
+          },
+          "recipient_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Recipient Ids",
+            "type": "array"
+          },
+          "cost_definition_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Cost Definition Id"
+          },
+          "cost": {
+            "default": 0,
+            "maximum": 1000000,
+            "minimum": 0,
+            "title": "Cost",
+            "type": "integer"
+          },
+          "setback_rule_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Setback Rule Id"
+          },
+          "target_actor_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Target Actor Id"
+          },
+          "social": {
+            "$ref": "#/$defs/NPCSocialTrigger"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "social"
+        ],
+        "title": "NPCSocialAction",
+        "type": "object"
+      },
+      "NPCSocialPlan": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "faction_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Faction Id"
+          },
+          "goal": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Goal",
+            "type": "string"
+          },
+          "disposition": {
+            "default": "neutral",
+            "enum": [
+              "hostile",
+              "neutral",
+              "friendly"
+            ],
+            "title": "Disposition",
+            "type": "string"
+          },
+          "first_due": {
+            "minimum": 0,
+            "title": "First Due",
+            "type": "integer"
+          },
+          "interval": {
+            "maximum": 10000,
+            "minimum": 1,
+            "title": "Interval",
+            "type": "integer"
+          },
+          "action_budget": {
+            "default": 10,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Action Budget",
+            "type": "integer"
+          },
+          "clock_limit": {
+            "default": 4,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Clock Limit",
+            "type": "integer"
+          },
+          "actions": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/NPCAction"
+                },
+                {
+                  "$ref": "#/$defs/NPCSocialAction"
+                }
+              ]
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Actions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "goal",
+          "first_due",
+          "interval",
+          "actions"
+        ],
+        "title": "NPCSocialPlan",
+        "type": "object"
+      },
+      "NPCSocialTrigger": {
+        "additionalProperties": false,
+        "description": "Pinned scenario data, not model-supplied roll targets or trait options.",
+        "properties": {
+          "kind": {
+            "enum": [
+              "reaction",
+              "influence",
+              "fright",
+              "self-control"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "subject_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "modifier": {
+            "default": 0,
+            "maximum": 100,
+            "minimum": -100,
+            "title": "Modifier",
+            "type": "integer"
+          },
+          "npc_will": {
+            "default": 10,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Npc Will",
+            "type": "integer"
+          },
+          "skill_id": {
+            "default": "skill:diplomacy",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Skill Id",
+            "type": "string"
+          },
+          "trait_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Trait Id"
+          },
+          "required_fact_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Required Fact Ids",
+            "type": "array"
+          },
+          "disclosure_fact_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Disclosure Fact Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "kind",
+          "subject_id"
+        ],
+        "title": "NPCSocialTrigger",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "description": "Opt-in v2 authored policy; the frozen v1 scenario schema stays unchanged.",
+    "properties": {
+      "id": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Id",
+        "type": "string"
+      },
+      "version": {
+        "const": 2,
+        "default": 2,
+        "title": "Version",
+        "type": "integer"
+      },
+      "plans": {
+        "items": {
+          "$ref": "#/$defs/NPCSocialPlan"
+        },
+        "maxItems": 50,
+        "title": "Plans",
+        "type": "array"
+      },
+      "checkpoint_budget": {
+        "default": 100,
+        "maximum": 1000,
+        "minimum": 1,
+        "title": "Checkpoint Budget",
+        "type": "integer"
+      }
+    },
+    "required": [
+      "id",
+      "plans"
+    ],
+    "title": "NPCSocialRules",
+    "type": "object"
+  },
+  "FrightDecision": {
+    "additionalProperties": false,
+    "properties": {
+      "id": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Id",
+        "type": "string"
+      },
+      "actor_id": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Actor Id",
+        "type": "string"
+      },
+      "expected_revision": {
+        "minimum": 0,
+        "title": "Expected Revision",
+        "type": "integer"
+      },
+      "kind": {
+        "enum": [
+          "care",
+          "panic-response"
+        ],
+        "title": "Kind",
+        "type": "string"
+      },
+      "fright_id": {
+        "title": "Fright Id",
+        "type": "string"
+      },
+      "care": {
+        "anyOf": [
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Care"
+      },
+      "response": {
+        "anyOf": [
+          {
+            "maxLength": 1000,
+            "minLength": 1,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Response"
+      }
+    },
+    "required": [
+      "id",
+      "actor_id",
+      "expected_revision",
+      "kind",
+      "fright_id"
+    ],
+    "title": "FrightDecision",
+    "type": "object"
+  }
+}

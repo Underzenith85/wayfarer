@@ -32,6 +32,67 @@ class ResolvedInteraction:
 InteractionResolver = Callable[[PlayService, PlayState, SocialCommand], ResolvedInteraction]
 
 
+def dispatch(
+    play: PlayService,
+    before: PlayState,
+    command: SocialCommand,
+    interaction: ResolvedInteraction,
+) -> tuple[PlayState, SocialOutcome]:
+    """Trusted reducer shared by director commands and authored NPC occurrences."""
+    profile_id = play.engine.reviewer.compiler.statistics_profile
+    if interaction.context.profile_id != profile_id:
+        raise ValidationError("Social context does not match campaign profile")
+    if command.kind == "fright":
+        from wayfarer.simulation.fright import validate_subject
+
+        validate_subject(before.resources, command.subject_id, profile_id)
+        from wayfarer.orchestration.gurps_melee import build
+
+        if not any(a.actor_id == command.subject_id for a in before.actors):
+            raise ValidationError("Fright requires an approved character")
+        statistics = build(play, before, command.subject_id).statistics
+        assert statistics is not None
+        if interaction.context.ht != statistics.ht or interaction.context.will != statistics.will:
+            raise ValidationError("Fright context must match approved HT and Will")
+    # A player subject may resist fear or a disadvantage, but reaction
+    # and influence never select behavior or disclose facts on their behalf.
+    if command.kind in ("reaction", "influence") and any(
+        m.role == "player" and command.subject_id in m.actor_ids for m in before.members
+    ):
+        raise ValidationError("NPC social outcomes cannot control a player character")
+    resources, world, outcome = apply_interaction(
+        before.resources,
+        before.world,
+        command,
+        interaction.context,
+        interaction.disclosure,
+        rng=play.rng,
+        system=True,
+    )
+    if command.kind == "fright":
+        from wayfarer.rules.fright import FrightEffect
+        from wayfarer.simulation.fright import apply_effect
+
+        raw = json.loads(resources.events[-1].kind)["private"]["effect"]
+        if raw is not None:
+            resources = apply_effect(
+                resources,
+                FrightEffect.model_validate_json(json.dumps(raw)),
+                actor_id=command.subject_id,
+                trigger_id=command.trigger_id,
+                command_id=command.id,
+                ht=interaction.context.ht,
+                will=interaction.context.will,
+                modified_will=interaction.context.target,
+                rng=play.rng,
+            )
+            resources = resources.model_copy(update={"revision": before.revision + 1})
+    updated = before.model_copy(
+        update={"revision": resources.revision, "resources": resources, "world": world}
+    )
+    return updated, outcome
+
+
 class SocialService:
     """Bind a trusted scenario/NPC trigger resolver, then commit through PlayService.
 
@@ -67,60 +128,7 @@ class SocialService:
 
         def reduce(campaign: Campaign) -> Event:
             before = play._load(campaign)
-            interaction = self.resolve(play, before, command)
-            if interaction.context.profile_id != profile_id:
-                raise ValidationError("Social context does not match campaign profile")
-            if command.kind == "fright":
-                from wayfarer.simulation.fright import validate_subject
-
-                validate_subject(before.resources, command.subject_id, profile_id)
-                from wayfarer.orchestration.gurps_melee import build
-
-                if not any(a.actor_id == command.subject_id for a in before.actors):
-                    raise ValidationError("Fright requires an approved character")
-                statistics = build(play, before, command.subject_id).statistics
-                assert statistics is not None
-                if (
-                    interaction.context.ht != statistics.ht
-                    or interaction.context.will != statistics.will
-                ):
-                    raise ValidationError("Fright context must match approved HT and Will")
-            # A player subject may resist fear or a disadvantage, but reaction
-            # and influence never select behavior or disclose facts on their behalf.
-            if command.kind in ("reaction", "influence") and any(
-                m.role == "player" and command.subject_id in m.actor_ids for m in before.members
-            ):
-                raise ValidationError("NPC social outcomes cannot control a player character")
-            resources, world, outcome = apply_interaction(
-                before.resources,
-                before.world,
-                command,
-                interaction.context,
-                interaction.disclosure,
-                rng=play.rng,
-                system=True,
-            )
-            if command.kind == "fright":
-                from wayfarer.rules.fright import FrightEffect
-                from wayfarer.simulation.fright import apply_effect
-
-                raw = json.loads(resources.events[-1].kind)["private"]["effect"]
-                if raw is not None:
-                    resources = apply_effect(
-                        resources,
-                        FrightEffect.model_validate_json(json.dumps(raw)),
-                        actor_id=command.subject_id,
-                        trigger_id=command.trigger_id,
-                        command_id=command.id,
-                        ht=interaction.context.ht,
-                        will=interaction.context.will,
-                        modified_will=interaction.context.target,
-                        rng=play.rng,
-                    )
-                    resources = resources.model_copy(update={"revision": before.revision + 1})
-            updated = before.model_copy(
-                update={"revision": resources.revision, "resources": resources, "world": world}
-            )
+            updated, outcome = dispatch(play, before, command, self.resolve(play, before, command))
             updated = play.checkpoint(updated, before=before)
             play.engine.validate(updated)
             campaign["revision"], campaign["play_json"] = (

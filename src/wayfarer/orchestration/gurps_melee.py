@@ -231,6 +231,10 @@ def defense_value(
 ) -> tuple[DerivedValue | None, str | None]:
     if selected == "none":
         return None, None
+    from wayfarer.simulation.fright import can_defend
+
+    if not can_defend(state.resources, participant.actor_id):
+        raise ValidationError("Fright condition prevents active defense")
     from wayfarer.simulation.spell_effects import require_not_dazed
 
     require_not_dazed(state.resources, participant.actor_id)
@@ -289,13 +293,15 @@ def defense_value(
         ),
         default=0,
     )
+    from wayfarer.simulation.fright import stunned as fright_stunned
+
     penalty = (
         participant.defense_penalty
         + participant.tactical_defense_bonus
         - 4 * int(participant.arm_locked)
         + (-1 if selected == "dodge" else -2) * int(participant.grappled)
         + (2 if participant.maneuver_state.enhanced_defense == selected else 0)
-        + (-4 if hp.injury.stunned else 0)
+        + (-4 if hp.injury.stunned or fright_stunned(state.resources, participant.actor_id) else 0)
         + (-3 if participant.posture == "prone" else -2 if participant.posture == "kneeling" else 0)
         + (-4 if blind else 0)
     )

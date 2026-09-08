@@ -20,6 +20,7 @@ from wayfarer.rules.catalog import (
     ImplementationStatus,
     RulesCatalog,
 )
+from wayfarer.rules.checks import RandomSource
 from wayfarer.rules.effects import Effect
 from wayfarer.rules.hazard_types import HazardSchedule, RecoveryRestriction, require_hazards_settled
 from wayfarer.rules.injury_types import InjuryStatus
@@ -453,7 +454,12 @@ class ResourceEngine:
         )
 
     def apply(
-        self, state: ResourceState, command: ResourceCommand, *, system: bool = False
+        self,
+        state: ResourceState,
+        command: ResourceCommand,
+        *,
+        system: bool = False,
+        rng: RandomSource | None = None,
     ) -> ResourceState:
         """system is a trusted call-site capability, never a command payload field."""
         self.validate(state)
@@ -469,6 +475,10 @@ class ResourceEngine:
             return state
         if command.expected_revision != state.revision:
             raise ConflictError("Resource revision changed")
+        if isinstance(command, Advance) and rng is not None:
+            from wayfarer.simulation.fright import advance
+
+            return advance(self, state, command, rng=rng)
         if not isinstance(command, Advance):
             require_settled(state.recovery_tasks, frozenset({command.actor_id}), state.game_time)
             require_hazards_settled(state.hazards, frozenset({command.actor_id}), state.game_time)

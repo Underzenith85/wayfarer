@@ -328,6 +328,7 @@ class PhysicalService:
                     to=resources.game_time + seconds,
                 ),
                 system=True,
+                rng=self.play.rng,
             )
             if command.kind == "swim" and allowed and not succeeded:
                 hazard_id = "swim:" + internal

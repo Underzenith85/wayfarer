@@ -19,7 +19,10 @@ from wayfarer.rules.gurps_social import ReactionModifier, influence_roll
 from wayfarer.rules.profiles import DEFAULT_REGISTRY
 from wayfarer.simulation.access import CampaignMember
 from wayfarer.simulation.actions import ActionEngine, ActionRules, ActorSetup, PlayState
+from wayfarer.simulation.npcs import NPCSocialRules
+from wayfarer.simulation.party import PartyRules
 from wayfarer.simulation.resources import Owner, ResourceEngine, ResourceState
+from wayfarer.simulation.scenes import Scene, SceneRules
 from wayfarer.simulation.social import (
     SocialCommand,
     SocialContext,
@@ -27,6 +30,7 @@ from wayfarer.simulation.social import (
     apply_interaction,
     apply_social,
 )
+from wayfarer.simulation.social_policy import SocialActionRules
 from wayfarer.world import Entity, EntityKind, Fact, World
 
 PROFILE = "gurps-basic-set-4e-2004"
@@ -170,7 +174,7 @@ def test_influence_rejects_duplicate_sources_before_dice() -> None:
         )
 
 
-async def prepare(path: Path) -> tuple[str, PlayService]:
+async def prepare(path: Path, npcs: NPCSocialRules | None = None) -> tuple[str, PlayService]:
     selected = DEFAULT_REGISTRY.get("profile:gurps-basic-set-4e-2004", 3)
     compiler = CharacterCompiler(
         selected.catalog, selected.rules, selected.policy, statistics_profile=PROFILE
@@ -179,7 +183,19 @@ async def prepare(path: Path) -> tuple[str, PlayService]:
     engine = ActionEngine(
         reviewer,
         ResourceEngine(world(), selected.catalog, selected.rules, selected.policy, ()),
-        ActionRules(id="social-test", version=1),
+        (SocialActionRules if npcs else ActionRules)(
+            id="social-test",
+            version=1,
+            npcs=npcs,
+            party=PartyRules(id="social-party", version=1) if npcs else None,
+            scenes=SceneRules(
+                id="social-scenes",
+                version=1,
+                scenes=(Scene(id="dock-scene", version=1, location_id="dock", title="Dock"),),
+            )
+            if npcs
+            else None,
+        ),
     )
     play = PlayService(
         AsyncSQLiteStore(path / "social.sqlite", 10), engine, rng=RecordedDice([5] * 3)
