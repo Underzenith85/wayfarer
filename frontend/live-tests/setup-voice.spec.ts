@@ -68,7 +68,7 @@ test("two identities activate a saved party and review speech through the live d
     await lobby
       .getByRole("button", { name: "Invite player", exact: true })
       .click();
-    await expect(lobby.getByRole("status")).toContainText("revision 2");
+    await expect(lobby.getByRole("status")).toContainText("revision 1");
     const blobby = await login(b, "bob");
     // Locate the exact shared campaign through its authenticated listing.
     const values = await a.request.get("/setups", {
@@ -76,25 +76,25 @@ test("two identities activate a saved party and review speech through the live d
     });
     const list = (await values.json()) as { id: string }[];
     const cid = list.find((value) => !existingIds.has(value.id))!.id;
-    await blobby.getByRole("tab", { name: "Join game", exact: true }).click();
+    await b.getByRole("tab", { name: "Join game", exact: true }).click();
     await blobby.locator(`[data-campaign-id="${cid}"]`).click();
     await blobby.getByRole("button", { name: "Accept invitation" }).click();
-    await expect(blobby.getByRole("status")).toContainText("revision 3");
+    await expect(blobby.getByRole("status")).toContainText("revision 2");
     await lobby.getByRole("button", { name: "Refresh this list" }).click();
     await lobby.getByLabel("Assign character to alice").selectOption("a");
-    await expect(lobby.getByRole("status")).toContainText("revision 4");
+    await expect(lobby.getByRole("status")).toContainText("revision 3");
     await lobby.getByLabel("Assign character to bob").selectOption("b");
-    await expect(lobby.getByRole("status")).toContainText("revision 5");
+    await expect(lobby.getByRole("status")).toContainText("revision 4");
     await lobby.getByRole("button", { name: "Ready", exact: true }).click();
     await lobby
       .getByRole("button", { name: "Validate and mark ready" })
       .click();
-    await expect(lobby.getByRole("status")).toContainText("revision 6");
+    await expect(lobby.getByRole("status")).toContainText("revision 5");
     await blobby.getByRole("button", { name: "Refresh this list" }).click();
     await blobby
       .getByRole("button", { name: "Validate and mark ready" })
       .click();
-    await expect(blobby.getByRole("status")).toContainText("revision 7");
+    await expect(blobby.getByRole("status")).toContainText("revision 6");
     await lobby.getByRole("button", { name: "Refresh this list" }).click();
     await lobby
       .getByRole("button", { name: "Start game", exact: true })
