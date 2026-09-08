@@ -21,12 +21,13 @@ from wayfarer.orchestration.tactical_view import project, snapshot, visible_acto
 from wayfarer.simulation.resources import Record
 from wayfarer.transport.campaign_api import ACCESS_KEY, _identity, _json
 from wayfarer.transport.tactical_v1_commands import ChooseDefense as ChooseDefenseV1
+from wayfarer.transport.tactical_v1_commands import TakeCombatTurn as TakeCombatTurnV1
 from wayfarer.transport.tactical_v1_commands import TakeUnarmedTurn as TakeUnarmedTurnV1
 
 
 class TacticalRequest(Record):
     command: (
-        TakeCombatTurn
+        TakeCombatTurnV1
         | TakeUnarmedTurnV1
         | ChooseDefenseV1
         | MigrateEncounterHex

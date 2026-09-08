@@ -483,6 +483,57 @@ export interface components {
        */
       enter_close_combat: boolean;
     };
+    /**
+     * UnarmedReaction
+     * @description An unarmed attack declared in advance as a Wait reaction (B366).
+     *
+     *     Every parameter is fixed before the trigger fires, so the reaction cannot be
+     *     re-chosen once an opponent commits. A reaction never includes a step, so
+     *     close-combat entry is not declarable here.
+     */
+    UnarmedReaction: {
+      /**
+       * Action
+       * @enum {string}
+       */
+      action: "punch" | "kick" | "grapple" | "arm_lock";
+      /**
+       * Skill
+       * @default attribute:dx
+       * @enum {string}
+       */
+      skill:
+        | "attribute:dx"
+        | "skill:brawling"
+        | "skill:boxing"
+        | "skill:karate"
+        | "skill:judo"
+        | "skill:wrestling"
+        | "skill:sumo-wrestling";
+      /**
+       * Hands
+       * @default []
+       */
+      hands: ("left-hand" | "right-hand")[];
+      /**
+       * Foot
+       * @default right-foot
+       * @enum {string}
+       */
+      foot: "left-foot" | "right-foot";
+      /**
+       * Location
+       * @default torso
+       * @enum {string}
+       */
+      location:
+        "torso" | "neck" | "left-arm" | "right-arm" | "left-leg" | "right-leg";
+      /**
+       * Grip Id
+       * @default null
+       */
+      grip_id: string | null;
+    };
     /** WaitTrigger */
     WaitTrigger: {
       /**
