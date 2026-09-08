@@ -11,6 +11,7 @@ import type {
   InventoryOperation,
 } from "../character/presentation";
 import { capabilityReason } from "../presentation/availability";
+import { lifecycleReason } from "../presentation/labels";
 import { forgetSession } from "./session";
 import {
   TransportError,
@@ -33,6 +34,39 @@ export interface Entry {
   at: string;
   action: Action | null;
   narration: Narration | null;
+}
+/**
+ * The moment a transcript entry belongs to: the authoritative time the service
+ * recorded the turn, and only until that arrives, the moment it left this
+ * device. This is the transcript's sort key, stated once so ordering never
+ * depends on which response resolved first (#295).
+ */
+export function entryTime(entry: Entry): number {
+  const at = Date.parse(entry.action?.created_at ?? entry.at);
+  return Number.isNaN(at) ? 0 : at;
+}
+/** Ascending by that key; equal times keep the order they arrived in. */
+export function orderEntries(entries: Entry[]): Entry[] {
+  return [...entries].sort((a, b) => entryTime(a) - entryTime(b));
+}
+/**
+ * An attempt that reached no game state: a rejection or a cancellation. It is
+ * the delivery mechanism reporting on itself, not a turn of the story, so it is
+ * held here — retryable, and readable in full — instead of being written into
+ * the narrative log for good (#298).
+ */
+export interface Attempt {
+  id: string;
+  channel: Channel;
+  text: string;
+  at: string;
+  action: Action;
+}
+/** What this device kept of a turn the frozen action does not carry itself. */
+interface Recorded {
+  channel?: Channel;
+  text?: string;
+  narration?: string;
 }
 /** A draft held for this scope, with the moment it was last written. */
 export interface Draft {
@@ -63,6 +97,14 @@ export interface PlayState {
   snapshot: Snapshot | null;
   selectedId: string | null;
   entries: Entry[];
+  attempts: Attempt[];
+  /**
+   * The turn this device most recently sent, whether it became part of the
+   * story or a failed attempt. Surfaces that report on "what you just did" —
+   * the item dialog, for one — follow this rather than guessing from the end of
+   * a list they do not own.
+   */
+  actedId: string | null;
   loading: boolean;
   busy: boolean;
   error: string | null;
@@ -85,6 +127,8 @@ const initial: PlayState = {
   snapshot: null,
   selectedId: null,
   entries: [],
+  attempts: [],
+  actedId: null,
   loading: false,
   busy: false,
   error: null,
@@ -100,6 +144,13 @@ export class PlayStore {
   private controller = new AbortController();
   private generation = 0;
   private watchSerial = 0;
+  /**
+   * How long a committed turn waits for its prose before saying it did not
+   * arrive. A turn is never left unfinished by a stream that stays silent.
+   */
+  narrationMs = 20000;
+  /** Attempts the player has finished with; a later read never revives them. */
+  private dismissed = new Set<string>();
   constructor(
     readonly transport: PlayTransport,
     private clearCache: () => void = () => {},
@@ -119,6 +170,10 @@ export class PlayStore {
   private patch(value: Partial<PlayState>) {
     if (value.snapshot !== undefined)
       value.lastSynchronized = value.snapshot ? new Date().toISOString() : null;
+    // The transcript is ordered here, once, rather than by each caller: every
+    // path that writes entries — a fresh read, a live update, a local
+    // submission — leaves the log in the order it happened (#295).
+    if (value.entries) value.entries = orderEntries(value.entries);
     this.state = { ...this.state, ...value };
     this.listeners.forEach((fn) => fn());
   }
@@ -128,6 +183,51 @@ export class PlayStore {
         e.id === id ? { ...e, ...value } : e,
       ),
     });
+  }
+  /**
+   * An attempt the engine refused changed nothing, so it leaves the story and
+   * becomes a failed attempt the player can retry or read in full (#298).
+   */
+  private withdraw(entry: Entry) {
+    const action = entry.action;
+    if (
+      !action ||
+      (action.status !== "rejected" && action.status !== "cancelled")
+    )
+      return false;
+    this.patch({
+      entries: this.state.entries.filter((e) => e.id !== entry.id),
+      attempts: [
+        ...this.state.attempts.filter((a) => a.id !== entry.id),
+        {
+          id: entry.id,
+          channel: entry.channel,
+          text: entry.text,
+          at: action.created_at || entry.at,
+          action,
+        },
+      ].slice(-20),
+    });
+    return true;
+  }
+  /**
+   * Nothing is pending against this attempt any more; stop reporting it. A
+   * later authoritative read may list the refused action again, but it is no
+   * longer what this device just did, so it never raises a fresh alarm.
+   */
+  dismissAttempt(id: string) {
+    this.dismissed.add(id);
+    this.patch({
+      attempts: this.state.attempts.filter((a) => a.id !== id),
+      ...(this.state.actedId === id ? { actedId: null } : {}),
+    });
+  }
+  /** Take the same turn again as a fresh command, from its own failure notice. */
+  async retryAttempt(id: string) {
+    const attempt = this.state.attempts.find((a) => a.id === id);
+    if (!attempt || !attempt.text.trim()) return;
+    this.dismissAttempt(id);
+    await this.send(attempt.channel, attempt.text);
   }
   private fence() {
     this.encounterRetry = null;
@@ -140,15 +240,22 @@ export class PlayStore {
     return generation === this.generation && !this.controller.signal.aborted;
   }
   /**
-   * Private storage is scoped to the principal, campaign, scene and character a
-   * draft or a turn belongs to, so nothing written for one scene reappears in
-   * another, and ending the session clears every prefix at once.
+   * Private storage is scoped to the principal, campaign and character a draft
+   * or a turn belongs to, and ending the session clears every prefix at once.
+   *
+   * A draft is scoped to its scene as well, so nothing typed for one scene
+   * reappears in another. The turn log is not: it is addressed by action id and
+   * only ever read for actions the service has already authorized into view, and
+   * a turn that carries the party to a new scene would otherwise arrive there
+   * with its own text and narration missing (#294).
    */
   private scopedKey(kind: "draft" | "log") {
     const s = this.state.snapshot;
-    return s && this.state.actorId
-      ? `wayfarer:${kind}:${this.transport.principalId}:${s.campaign.id}:${s.scene.id}:${this.state.actorId}`
-      : null;
+    if (!s || !this.state.actorId) return null;
+    const scope = `${this.transport.principalId}:${s.campaign.id}`;
+    return kind === "draft"
+      ? `wayfarer:draft:${scope}:${s.scene.id}:${this.state.actorId}`
+      : `wayfarer:log:${scope}:${this.state.actorId}`;
   }
   readDraft(channel: Channel): Draft {
     const empty: Draft = { text: "", savedAt: null };
@@ -207,34 +314,33 @@ export class PlayStore {
     });
   }
   /**
-   * What this device submitted, by action id. The frozen v1 action carries no
-   * intent text, so a reloaded transcript would otherwise be a column of
-   * identical placeholders (#202). It is private, scoped and capped like a
-   * draft, and its absence is stated rather than filled in.
+   * What this device submitted and what the game master answered, by action id.
+   * The frozen v1 action carries neither the intent text nor the narration, so a
+   * reloaded transcript would otherwise be a column of identical placeholders
+   * against a column of state diffs (#202, #294). It is private, scoped and
+   * capped like a draft, and its absence is stated rather than filled in.
    */
-  private readSubmissions(): Record<
-    string,
-    { channel: Channel; text: string }
-  > {
+  private readSubmissions(): Record<string, Recorded> {
     try {
       const key = this.scopedKey("log");
       const stored = key ? localStorage.getItem(key) : null;
       const value: unknown = stored ? JSON.parse(stored) : null;
       return value && typeof value === "object" && !Array.isArray(value)
-        ? (value as Record<string, { channel: Channel; text: string }>)
+        ? (value as Record<string, Recorded>)
         : {};
     } catch {
       return {};
     }
   }
-  private rememberSubmission(actionId: string, channel: Channel, text: string) {
-    if (!text) return;
+  private rememberSubmission(actionId: string, value: Recorded) {
+    if (!value.text && !value.narration) return;
     try {
       const key = this.scopedKey("log");
       if (!key) return;
+      const held = this.readSubmissions();
       const entries = Object.entries({
-        ...this.readSubmissions(),
-        [actionId]: { channel, text },
+        ...held,
+        [actionId]: { ...held[actionId], ...value },
       });
       localStorage.setItem(
         key,
@@ -243,6 +349,57 @@ export class PlayStore {
     } catch {
       /* The transcript still reads correctly for this session in memory. */
     }
+  }
+  /** Narration that completed is the turn's prose; a failure is not kept. */
+  private rememberNarration(actionId: string | undefined, value: Narration) {
+    if (actionId && value.status === "complete")
+      this.rememberSubmission(actionId, { narration: value.text });
+  }
+  /**
+   * Reads a set of authoritative actions back as the session: the turns that
+   * are part of the story, and separately the attempts that reached no game
+   * state and therefore belong beside the composer rather than in it (#298).
+   * A turn keeps whatever this device already showed for it, so a live update
+   * never drops narration that has already streamed.
+   */
+  private recall(actions: Action[]): { entries: Entry[]; attempts: Attempt[] } {
+    const submitted = this.readSubmissions();
+    const entries: Entry[] = [];
+    const attempts: Attempt[] = [];
+    for (const action of actions) {
+      const old = this.state.entries.find((e) => e.action?.id === action.id);
+      const recorded = submitted[action.id];
+      const entry: Entry = old
+        ? { ...old, action }
+        : {
+            id: action.id,
+            channel: recorded?.channel ?? "action",
+            text: recorded?.text ?? "",
+            at: action.created_at,
+            action,
+            // Prose the service does not carry, restored from this device so a
+            // reloaded turn still reads as a story rather than a state diff.
+            narration: recorded?.narration
+              ? { text: recorded.narration, status: "complete" }
+              : null,
+          };
+      if (action.status === "rejected" || action.status === "cancelled") {
+        if (this.dismissed.has(entry.id)) continue;
+        attempts.push({
+          id: entry.id,
+          channel: entry.channel,
+          text: entry.text,
+          at: action.created_at || entry.at,
+          action,
+        });
+      } else entries.push(entry);
+    }
+    return {
+      entries,
+      attempts: attempts
+        .sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0))
+        .slice(-20),
+    };
   }
   private clearPrivateStorage() {
     forgetSession();
@@ -359,20 +516,7 @@ export class PlayStore {
           )?.id ??
           null,
       });
-      const submitted = this.readSubmissions();
-      this.patch({
-        entries: actions.map((action) => {
-          const recorded = submitted[action.id];
-          return {
-            id: action.id,
-            channel: recorded?.channel ?? "action",
-            text: recorded?.text ?? "",
-            at: action.created_at,
-            action,
-            narration: null,
-          };
-        }),
-      });
+      this.patch(this.recall(actions));
       this.hydrateDrafts();
       if (view)
         this.cacheView(
@@ -608,30 +752,15 @@ export class PlayStore {
           );
           // Replace authorized data atomically without unmounting controls during a click.
           // Cursors/versions are opaque: even reordered or gapped events reread current state.
-          const submitted = this.readSubmissions();
-          const entries = next.actions.map((action) => {
-            const old = this.state.entries.find(
-              (e) => e.action?.id === action.id,
-            );
-            const recorded = submitted[action.id];
-            return old
-              ? { ...old, action }
-              : {
-                  id: action.id,
-                  channel: recorded?.channel ?? ("action" as const),
-                  text: recorded?.text ?? "",
-                  at: action.created_at,
-                  action,
-                  narration: null,
-                };
-          });
+          const recalled = this.recall(next.actions);
           this.patch({
             snapshot: next.snapshot,
             multiplayer: next,
             entries: [
-              ...entries,
+              ...recalled.entries,
               ...this.state.entries.filter((e) => !e.action),
             ],
+            attempts: recalled.attempts,
           });
           this.watchMultiplayer(next, g);
         } catch (error) {
@@ -754,7 +883,7 @@ export class PlayStore {
     if (this.state.expired) return "Your session has ended.";
     if (!s) return "Open a campaign to act in its current scene.";
     if (s.campaign.status !== "active")
-      return "This campaign is not active, so it accepts no actions.";
+      return lifecycleReason(s.campaign.status);
     if (this.state.connection !== "online")
       return "Reconnect and reconcile this scene before acting.";
     if (this.state.needsRefresh)
@@ -1018,40 +1147,59 @@ export class PlayStore {
       await this.select(campaignId, this.state.actorId);
       return;
     }
+    const settled = this.state.entries.find((e) => e.id === entryId);
+    if (settled && this.withdraw({ ...settled, action })) return;
     if (action.status === "succeeded") {
       // Read committed projections rather than applying prose or calculating deltas client-side.
       const snapshot = await this.transport.readSnapshot(campaignId, signal);
       if (!this.active(g)) return;
       this.patch({ snapshot });
-      // Narration is subscribed to the action's original scene. A successful
-      // journey changes that scope; show the destination and finish the action
-      // without waiting for narration on an inaccessible old scene.
-      if (snapshot.scene.id !== action.scene_id) return;
-      try {
-        for await (const narration of this.transport.narrate(
-          campaignId,
-          action.id,
-          signal,
-        )) {
-          if (!this.active(g)) return;
-          this.entry(entryId, { narration });
-        }
-      } catch (error) {
+      await this.narrate(entryId, action, g);
+    }
+  }
+  /**
+   * The turn's prose, which is the answer the player asked for; the committed
+   * projection is what it is an answer about. A turn that carried the party
+   * somewhere new is narrated like any other — dropping it there was why a
+   * committed journey rendered as a state diff and nothing else (#294) — and a
+   * narration that never arrives is bounded, so the turn always finishes.
+   */
+  private async narrate(entryId: string, action: Action, g: number) {
+    const campaignId = this.state.selectedId!;
+    const signal = this.controller.signal;
+    if (signal.aborted) return;
+    const bounded = new AbortController();
+    const stop = () => bounded.abort(signal.reason);
+    signal.addEventListener("abort", stop, { once: true });
+    const timer = setTimeout(() => bounded.abort(), this.narrationMs);
+    try {
+      for await (const narration of this.transport.narrate(
+        campaignId,
+        action.id,
+        bounded.signal,
+      )) {
         if (!this.active(g)) return;
-        if (
-          error instanceof TransportError &&
-          ["unauthenticated", "forbidden", "not_found"].includes(error.code)
-        ) {
-          this.expire();
-          return;
-        }
-        this.entry(entryId, {
-          narration: {
-            text: "Narration unavailable. Your committed result is saved.",
-            status: "failed",
-          },
-        });
+        this.entry(entryId, { narration });
+        this.rememberNarration(action.id, narration);
       }
+    } catch (error) {
+      if (!this.active(g)) return;
+      if (
+        error instanceof TransportError &&
+        ["unauthenticated", "forbidden", "not_found"].includes(error.code)
+      ) {
+        this.expire();
+        return;
+      }
+      this.entry(entryId, {
+        narration: {
+          text: "Narration unavailable. Your committed result is saved.",
+          status: "failed",
+        },
+      });
+    } finally {
+      clearTimeout(timer);
+      signal.removeEventListener("abort", stop);
     }
   }
   private async execute(command: Command) {
@@ -1059,7 +1207,12 @@ export class PlayStore {
     if (!campaignId || this.state.connection !== "online") return;
     const g = this.generation,
       signal = this.controller.signal;
-    this.patch({ busy: true, error: null, retry: command });
+    this.patch({
+      busy: true,
+      error: null,
+      retry: command,
+      actedId: command.entryId,
+    });
     try {
       const action =
         command.kind === "submit"
@@ -1087,7 +1240,10 @@ export class PlayStore {
         (e) => e.id === command.entryId,
       );
       if (submitted && command.kind !== "clarify")
-        this.rememberSubmission(action.id, submitted.channel, submitted.text);
+        this.rememberSubmission(action.id, {
+          channel: submitted.channel,
+          text: submitted.text,
+        });
       if (command.kind === "submit" && command.clearDraft && submitted)
         this.saveDraft(submitted.channel, "");
       await this.followAction(command.entryId, action, g);

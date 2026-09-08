@@ -5,8 +5,10 @@ import {
   definitionLabel,
   conditionLabel,
   encumbranceLabel,
+  changedLabel,
   humanize,
   lifecycleOperationLabel,
+  lifecycleReason,
   poolLabel,
   presentStats,
   sceneDescription,
@@ -183,6 +185,36 @@ describe("ageLabel", () => {
   it("never reports a draft as saved in the future", () => {
     expect(ageLabel(new Date(now + 60_000).toISOString(), now)).toBe(
       "just now",
+    );
+  });
+});
+describe("lifecycleReason", () => {
+  it("separates a finished adventure from a locked-out one (#297)", () => {
+    expect(lifecycleReason("completed")).toContain("finished");
+    expect(lifecycleReason("completed")).not.toBe(lifecycleReason("paused"));
+    expect(lifecycleReason("paused")).toContain("paused");
+    expect(lifecycleReason("archived")).toContain("archived");
+    expect(lifecycleReason("draft")).toBe(lifecycleReason("ready"));
+  });
+  it("falls back to the plain condition for a phase it does not name", () => {
+    expect(lifecycleReason("suspended")).toContain("not active");
+  });
+});
+describe("changedLabel", () => {
+  it("names what a turn changed without its ids or digests (#296)", () => {
+    expect(
+      changedLabel([
+        { resource_type: "character" },
+        { resource_type: "inventory" },
+        { resource_type: "scene" },
+      ]),
+    ).toBe("your character, your inventory and this scene");
+    expect(changedLabel([{ resource_type: "scene" }])).toBe("this scene");
+    expect(changedLabel([])).toBe("");
+  });
+  it("reads an unfamiliar resource type rather than echoing the key", () => {
+    expect(changedLabel([{ resource_type: "world_state" }])).toBe(
+      "World State",
     );
   });
 });

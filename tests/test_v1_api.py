@@ -643,8 +643,59 @@ async def test_configured_scene_travel_uses_scene_engine(tmp_path: Path) -> None
             assert receipt["receipt_scene_id"] == "alley-scene"
             with pytest.raises(Fault):
                 await service.action(tx, str(action["id"]), cid, "another-player")
+            # The journey left the actor in the destination, which is the only
+            # scene still readable. The turn has to be listed there, or the
+            # player's own committed turn is invisible and cannot be narrated
+            # from the scene they are standing in (#294).
+            view = await service.view(tx, cid, "a")
+            assert sorted(view.scenes) == ["alley-scene"]
+            listed = await service.actions(tx, cid, "a", "alley-scene")
+            assert [str(x["id"]) for x in listed] == [str(action["id"])]
     finally:
         await service.close()
+
+
+async def test_actions_read_in_creation_order_across_pages(
+    api: tuple[str, str, V1Service],
+) -> None:
+    """A session log is read in the order it happened, not in identifier order (#295)."""
+    base, cid, service = api
+    root = f"{base}/api/v1/campaigns/{cid}"
+    async with aiohttp.ClientSession(headers={"Authorization": "Bearer alice-key"}) as client:
+        submitted: list[str] = []
+        for _ in range(3):
+            request = await command(client, root, kind="wait")
+            async with client.post(root + "/actions", json=request) as response:
+                assert response.status == 202, await response.text()
+                action = validate("Action", await response.json())
+            await finish(client, root, action)
+            submitted.append(str(action["id"]))
+        # Identifiers are random, so stamp a chronology that disagrees with them
+        # and with the order the turns were taken.
+        stamps = [
+            "2026-09-08T09:00:00.000Z",
+            "2026-09-08T08:00:00.000Z",
+            "2026-09-08T10:00:00.000Z",
+        ]
+        async with service.ledger.transaction() as tx:
+            for aid, at in zip(submitted, stamps, strict=True):
+                record = await tx.get("action:" + aid)
+                assert record is not None
+                record["wire"] = validate("Action", {**obj(record["wire"]), "created_at": at})
+                await tx.put("action:" + aid, record)
+        expected = [aid for _, aid in sorted(zip(stamps, submitted, strict=True))]
+        page = await get(client, root + "/actions?scene_id=dock", "ActionPage")
+        assert [str(obj(item)["id"]) for item in array(page["items"])] == expected
+        # The same order survives a page boundary rather than being resorted per page.
+        paged: list[str] = []
+        query = "?scene_id=dock&limit=1"
+        while True:
+            page = await get(client, root + "/actions" + query, "ActionPage")
+            paged.extend(str(obj(item)["id"]) for item in array(page["items"]))
+            if not page["next_cursor"]:
+                break
+            query = f"?scene_id=dock&limit=1&cursor={page['next_cursor']}"
+        assert paged == expected
 
 
 async def test_capabilities_name_only_the_actions_the_engine_executes(
