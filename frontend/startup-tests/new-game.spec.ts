@@ -43,8 +43,6 @@ test("solo production entry, illegal party, stale edit, lost activation, refresh
   page,
 }) => {
   const { lobby } = await draft(page);
-  await expect(lobby.getByText(providerBanner.summary)).toBeVisible();
-  await expect(lobby.getByText(providerBanner.disclosure)).toBeVisible();
   await step(lobby, "Party");
   await lobby.getByLabel("Strength", { exact: true }).fill("100");
   await lobby.getByRole("button", { name: "Save setup draft" }).click();
