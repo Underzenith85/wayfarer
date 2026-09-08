@@ -41,10 +41,13 @@ saved campaign changes behavior.
 
 Voice deliberately stays out of influence rolls: its influence-skill bonus is
 not implemented, and approximating the missing half would invent a rule. The
-remaining 49 records, Rank's reaction bonus, free Status from Wealth or Rank,
-reputation and appearance sources, and the manual obligations of Honesty, Codes
-of Honor, Sense of Duty and relationship traits stay unsupported item-level
-blockers rather than manual rulings that count as coverage.
+remaining 49 records, Rank's reaction bonus, free Status from Wealth or Rank, and
+the manual obligations of Honesty, Codes of Honor, Sense of Duty and relationship
+traits stay unsupported item-level blockers rather than manual rulings that count
+as coverage. Reputation and Appearance have no trait record to bind here at all;
+their reaction values come from the authored standing hooks in
+[social procedures](gurps-conformance.md#provisional-social-procedures-111)
+(#111), and binding them to purchased traits remains an item-level blocker.
 
 ## Standing limits
 

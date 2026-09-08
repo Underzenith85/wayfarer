@@ -108,6 +108,66 @@
         "title": "NPCAction",
         "type": "object"
       },
+      "NPCReputation": {
+        "additionalProperties": false,
+        "description": "One authored reputation; the engine owns its reaction value and recognition.",
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "level": {
+            "maximum": 4,
+            "minimum": -4,
+            "title": "Level",
+            "type": "integer"
+          },
+          "scope": {
+            "default": "everyone",
+            "enum": [
+              "everyone",
+              "large-class",
+              "small-class"
+            ],
+            "title": "Scope",
+            "type": "string"
+          },
+          "recognition": {
+            "default": "always",
+            "enum": [
+              "always",
+              "sometimes",
+              "occasionally"
+            ],
+            "title": "Recognition",
+            "type": "string"
+          },
+          "classes": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Classes",
+            "type": "array"
+          },
+          "hidden": {
+            "default": false,
+            "title": "Hidden",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "level"
+        ],
+        "title": "NPCReputation",
+        "type": "object"
+      },
       "NPCSocialAction": {
         "additionalProperties": false,
         "properties": {
@@ -317,6 +377,71 @@
         "title": "NPCSocialPlan",
         "type": "object"
       },
+      "NPCSocialStanding": {
+        "additionalProperties": false,
+        "description": "Declared standing and observer, not an invented modifier: values follow rules.\n\nStatus, Charisma and Voice are absent on purpose: dispatch derives those from\nthe initiator's approved build, and declaring them here would double-count.\nThe audience fields describe the reacting party for both sources.",
+        "properties": {
+          "appearance": {
+            "default": "average",
+            "enum": [
+              "horrific",
+              "monstrous",
+              "hideous",
+              "ugly",
+              "unattractive",
+              "average",
+              "attractive",
+              "handsome",
+              "very-handsome",
+              "transcendent"
+            ],
+            "title": "Appearance",
+            "type": "string"
+          },
+          "reputations": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/NPCReputation"
+            },
+            "maxItems": 5,
+            "title": "Reputations",
+            "type": "array"
+          },
+          "audience_perceptible": {
+            "default": true,
+            "title": "Audience Perceptible",
+            "type": "boolean"
+          },
+          "audience_audible": {
+            "default": true,
+            "title": "Audience Audible",
+            "type": "boolean"
+          },
+          "audience_recognizes_status": {
+            "default": true,
+            "title": "Audience Recognizes Status",
+            "type": "boolean"
+          },
+          "audience_attracted": {
+            "default": false,
+            "title": "Audience Attracted",
+            "type": "boolean"
+          },
+          "audience_classes": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Audience Classes",
+            "type": "array"
+          }
+        },
+        "title": "NPCSocialStanding",
+        "type": "object"
+      },
       "NPCSocialTrigger": {
         "additionalProperties": false,
         "description": "Pinned scenario data, not model-supplied roll targets or trait options.",
@@ -343,6 +468,17 @@
             "minimum": -100,
             "title": "Modifier",
             "type": "integer"
+          },
+          "standing": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/NPCSocialStanding"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           },
           "npc_will": {
             "default": 10,

@@ -1,5 +1,6 @@
 """Live shared-time social triggers, catatonia, and durable director decisions."""
 
+import json
 from pathlib import Path
 
 import pytest
@@ -16,9 +17,11 @@ from wayfarer.rules.fright import FrightEffect
 from wayfarer.simulation.actions import Wait
 from wayfarer.simulation.fright import apply_effect, effects
 from wayfarer.simulation.npcs import (
+    NPCReputation,
     NPCSocialAction,
     NPCSocialPlan,
     NPCSocialRules,
+    NPCSocialStanding,
     NPCSocialTrigger,
 )
 from wayfarer.simulation.resources import Advance
@@ -188,6 +191,70 @@ async def test_npc_fright_and_failed_recovery_run_in_live_wait_transactions(tmp_
     assert saved == await restarted.store.replay(cid)
     projection = await CampaignAccess(restarted).read(cid, principal_id="alice")
     assert "recovery_checks" not in str(projection) and "guard-alarm" not in str(projection)
+
+
+async def test_authored_standing_drives_a_live_reaction_without_leaking_it(
+    tmp_path: Path,
+) -> None:
+    rules = NPCSocialRules(
+        id="standing",
+        version=2,
+        plans=(
+            NPCSocialPlan(
+                id="steward-greeting",
+                actor_id="npc",
+                goal="Present the envoy to the household",
+                first_due=1,
+                interval=1,
+                action_budget=1,
+                actions=(
+                    NPCSocialAction(
+                        id="greeting",
+                        kind="communicate",
+                        social=NPCSocialTrigger(
+                            kind="reaction",
+                            subject_id="npc:branch",
+                            standing=NPCSocialStanding(
+                                appearance="handsome",
+                                reputations=(
+                                    NPCReputation(
+                                        id="informer",
+                                        level=-4,
+                                        scope="small-class",
+                                        recognition="sometimes",
+                                        classes=("watch",),
+                                        hidden=True,
+                                    ),
+                                ),
+                                audience_classes=("watch",),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ),
+    )
+    cid, play = await prepare(tmp_path, rules)
+    # Recognition 3+3+3 = 9 is within "sometimes"; the reaction then rolls
+    # 4+4+4 = 12 with appearance +2 and the secret reputation -4.
+    play.rng = RecordedDice([3, 3, 3, 4, 4, 4])
+    await play.execute(
+        cid,
+        Wait(id="first", actor_id="a", expected_revision=0, ticks=1),
+        authenticated_actor_id="a",
+    )
+    state = play._load(await play.store.read(cid))
+    private = json.loads(state.resources.events[-1].kind)
+    assert json.loads(private["public"])["outcome"] == "neutral"
+    assert private["private"]["recognition"][0]["recognized"] is True
+    assert [m["kind"] for m in private["private"]["modifiers"]] == [
+        "appearance",
+        "reputation",
+        "situation",
+    ]
+    projection = str(await CampaignAccess(play).read(cid, principal_id="alice"))
+    for secret in ("informer", "recognition", "appearance", "handsome"):
+        assert secret not in projection
 
 
 async def test_catatonia_daily_neglect_and_total_duration_aftermath(tmp_path: Path) -> None:

@@ -18,11 +18,17 @@ SELF_CONTROL_HOOK: Final = "trait.self_control"
 
 @dataclass(frozen=True, slots=True)
 class Audience:
-    """Trusted server description of the reacting party, never a player claim."""
+    """Trusted server description of the reacting party, never a player claim.
+
+    `attracted` and `classes` describe the same observer for the appearance and
+    reputation hooks (#111); no binding below reads them.
+    """
 
     perceptible: bool = True
     audible: bool = True
     recognizes_status: bool = True
+    attracted: bool = False
+    classes: tuple[str, ...] = ()
 
 
 DEFAULT_AUDIENCE: Final = Audience()

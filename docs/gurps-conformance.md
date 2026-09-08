@@ -190,9 +190,9 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.check.quick_contest` | yes | yes | verified | #99 |
 | `gurps.check.regular_contest` | no | yes | verified | #99 |
 | `gurps.check.resistance` | yes | yes | verified | #99 |
-| `gurps.social.reaction` | yes | yes | partial | #111 |
-| `gurps.social.influence` | yes | yes | partial | #111 |
-| `gurps.social.fright` | no | yes | partial | #111 |
+| `gurps.social.reaction` | yes | yes | partial | #111 ([standing hooks and golden cases](#provisional-social-procedures-111)); catalog content #113 |
+| `gurps.social.influence` | yes | yes | partial | #111; authored influence is Diplomacy-only, remaining skills #113/#137 |
+| `gurps.social.fright` | no | yes | partial | #111; lasting consequences #299 |
 | `gurps.equipment.weapon_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; source audit pending) |
 | `gurps.equipment.armor_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; source audit pending) |
 | `gurps.equipment.catalog` | yes | yes | partial | #114 |
@@ -393,6 +393,33 @@ outcomes, self-control from catalog-validated TraitOptions, and Basic-only frigh
 checks with the Rule of 14. References are reconstructed from model knowledge
 under the owner's explicit authorization: Lite 3-4/10/24, B120-121, B359-362,
 B494-495, using the frozen 2004/2007-errata baseline; source audit is pending.
+
+`rules.social_hooks` owns the two reaction sources no build binding covers, so a
+scenario, a character sheet or a generated proposal selects a declared standing
+instead of inventing a number: the Appearance reaction columns (indifferent and
+attracted observers, B21) and Reputation from -4 to +4 with its affected class
+and its always/10-or-less/7-or-less recognition roll (B26-27), on the frozen
+2004/2007-errata baseline, hand-entered from model knowledge under the
+provisional policy below; the artifact audit is pending. Status, Charisma and
+Voice are deliberately absent here: `rules.mundane_traits.runtime` binds those to
+approved purchases of pinned definitions and dispatch derives them from the
+initiator's build (#113), so declaring them twice cannot double-count. Appearance
+and Reputation have no catalog entry to bind yet; when #113 adds one, the binding
+path should own them too.
+
+Standing the observer cannot perceive contributes nothing, a reputation whose
+class is absent is never rolled for, and every unrecognized value fails closed.
+Recognition dice are drawn before the reaction or influence roll they modify, so
+a receipt replays exactly. `supported_appearance` exposes the declared levels to
+validators. `Standing` describes the character being reacted to and the shared
+`Audience` record what the reacting subject perceives, feeding the trait bindings
+and these hooks alike. Purchase legality and point costs stay with trait
+compilation (#100) and catalog content (#113); the hooks derive play-time
+reaction modifiers only. `tests/fixtures/gurps/social_hooks.json` carries the
+independent golden reaction, influence and fright expectations, including the
+rejected out-of-range standings, and `tests/test_social_hooks.py` runs them.
+The v2 `NPCSocialStanding` policy record carries authored standing and its
+audience into the same hooks; frozen v1 authoring is unchanged.
 
 `simulation.social` stores results and private traces in the existing resource
 receipt/event ledger for atomic checkpoint commits. Duplicate command IDs replay;
