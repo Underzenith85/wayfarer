@@ -236,8 +236,26 @@ class CombatService:
                     or interrupt.actor_id != command.actor_id
                 ):
                     raise ConflictError("No interrupted turn is ready for this actor")
-                saved = TakeCombatTurn.model_validate_json(interrupt.command_json)
-                if command.cancel:
+                # An interrupted unarmed turn had not begun when it paused, so it resumes
+                # whole instead of replaying turn bookkeeping the armed path already spent.
+                unarmed_turn = json.loads(interrupt.command_json)["kind"] == "take_unarmed_turn"
+                saved: TakeCombatTurn | TakeUnarmedTurn
+                if unarmed_turn:
+                    saved = (
+                        TakeCombatTurn(
+                            id=command.id,
+                            actor_id=command.actor_id,
+                            expected_revision=command.expected_revision,
+                            encounter_id=command.encounter_id,
+                            maneuver="do_nothing",
+                        )
+                        if command.cancel
+                        else TakeUnarmedTurn.model_validate_json(interrupt.command_json)
+                    )
+                else:
+                    saved = TakeCombatTurn.model_validate_json(interrupt.command_json)
+                if command.cancel and not unarmed_turn:
+                    assert isinstance(saved, TakeCombatTurn)
                     saved = saved.model_copy(
                         update={
                             "maneuver": "do_nothing",
@@ -275,7 +293,7 @@ class CombatService:
                         )
                     }
                 )
-                resuming = True
+                resuming = not unarmed_turn
             elif isinstance(command, TakeCombatTurn):
                 paused = self._encounter(state, command.encounter_id)
                 reaction = (
@@ -709,6 +727,7 @@ class CombatService:
                         from wayfarer.orchestration.gurps_melee import mode
                         from wayfarer.simulation.gurps_equipment import MeleeMode
 
+                        assert command.wait_trigger.item_id is not None
                         trigger_mode = mode(
                             self.play,
                             state,

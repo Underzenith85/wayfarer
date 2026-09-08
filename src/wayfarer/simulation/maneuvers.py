@@ -6,6 +6,7 @@ from pydantic import Field, model_validator
 
 from wayfarer.rules.checks import CheckTrace
 from wayfarer.simulation.resources import Id, Record
+from wayfarer.simulation.unarmed import UnarmedReaction
 
 ATTACK_MANEUVERS = frozenset({"attack", "all_out_attack", "move_and_attack"})
 AttackOption = Literal["determined", "strong", "double", "feint"]
@@ -17,15 +18,24 @@ class WaitTrigger(Record):
     action: Literal["attack", "move"]
     target_id: Id | None = None
     reaction: Literal["attack", "all_out_attack", "feint", "ready"] = "attack"
-    item_id: Id
+    item_id: Id | None = None
     reaction_target_id: Id | None = None
     mode_id: str | None = None
     attack_option: AttackOption | None = None
     zone: tuple[tuple[int, int], ...] = ()
     stop_thrust: bool = False
+    unarmed: UnarmedReaction | None = None
 
     @model_validator(mode="after")
     def valid_condition(self) -> WaitTrigger:
+        if (self.item_id is None) == (self.unarmed is None):
+            raise ValueError("A Wait reaction declares either a weapon or an unarmed attack")
+        if self.unarmed is not None and (
+            self.reaction not in ("attack", "all_out_attack")
+            or self.mode_id is not None
+            or self.stop_thrust
+        ):
+            raise ValueError("An unarmed Wait reaction is an ordinary or All-Out Attack")
         if len(set(self.zone)) != len(self.zone):
             raise ValueError("Wait zone contains duplicate hexes")
         if self.zone and self.action != "move":

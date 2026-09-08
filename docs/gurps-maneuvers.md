@@ -15,7 +15,7 @@ without claiming verification of the frozen first-printing/errata baseline.
 | All-Out Defense | +2 to chosen defense, or two distinct legal defenses with the second rolled only after failure |
 | Move and Attack | Full movement, melee -4 capped at 9, no parry |
 | Concentrate | Consecutive commitment, Will-3 disruption on defense/injury; ability execution retains its existing service |
-| Wait | Typed observable actor/target and hex-zone conditions, exact reaction, persisted pause, one-shot reaction, authenticated resume/cancel, and no duplicate movement, round, or turn-start processing |
+| Wait | Typed observable actor/target and hex-zone conditions, exact reaction, persisted pause, one-shot reaction, authenticated resume/cancel, and no duplicate movement, round, or turn-start processing. A reaction declares either a weapon or an unarmed attack; see [unarmed Wait reactions](gurps-unarmed.md#unarmed-wait-reactions) |
 | Stop thrust | A ready thrusting mode may interrupt a declared foe moving at least one yard toward the waiter to attack; longer reach strikes first and adds +1 thrust damage per two full yards moved |
 | Existing maneuvers | One movement allowance; explicit before/after Attack steps, step/facing and standing-kneeling step options, explicit prone-to-kneeling-to-standing transitions |
 

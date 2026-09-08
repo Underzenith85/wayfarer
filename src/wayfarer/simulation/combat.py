@@ -630,6 +630,8 @@ class CombatEngine:
                 declaration = declaration.model_copy(
                     update={"reaction": "attack", "attack_option": None}
                 )
+            if declaration.unarmed is not None and maneuver != "do_nothing":
+                raise ValidationError("The declared Wait reaction is an unarmed attack")
             if maneuver != "do_nothing" and (maneuver, item_id, target_id, attack_option) != (
                 declaration.reaction,
                 declaration.item_id,
@@ -1018,7 +1020,8 @@ class CombatEngine:
                 ):
                     raise ValidationError("Held missile Wait supports its declared release only")
                 if (
-                    wait_trigger.item_id not in participant.ready_item_ids
+                    wait_trigger.unarmed is None
+                    and wait_trigger.item_id not in participant.ready_item_ids
                     and wait_trigger.reaction != "ready"
                     and not held_missile
                 ):

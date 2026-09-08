@@ -31,7 +31,7 @@ from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.rules.conformance import BASELINE_ID
 from wayfarer.simulation.access import CampaignMember
-from wayfarer.simulation.combat import GridPoint, RangedSituation
+from wayfarer.simulation.combat import CombatResult, GridPoint, RangedSituation
 from wayfarer.simulation.hex_geometry import Cell, Hex, HexBattlefield, Pose
 from wayfarer.transport.campaign_api import create_campaign_app
 from wayfarer.world import Fact
@@ -108,6 +108,24 @@ def migration() -> MigrateEncounterHex:
 @pytest.fixture
 async def http(tmp_path: Path) -> AsyncIterator[tuple[str, str, PlayService]]:
     cid, play = await setup(tmp_path)
+    app = create_campaign_app(
+        CampaignAccess(play),
+        {f"{p}-token": p for p in ("alice", "bob", "charlie", "gm", "spectator")},
+        legacy_routes=True,
+    )
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "127.0.0.1", 0)
+    await site.start()
+    try:
+        yield f"http://127.0.0.1:{runner.addresses[0][1]}", cid, play
+    finally:
+        await runner.cleanup()
+
+
+@pytest.fixture
+async def unarmed_http(tmp_path: Path) -> AsyncIterator[tuple[str, str, PlayService]]:
+    cid, play = await setup(tmp_path, unarmed=True)
     app = create_campaign_app(
         CampaignAccess(play),
         {f"{p}-token": p for p in ("alice", "bob", "charlie", "gm", "spectator")},
@@ -550,3 +568,95 @@ async def test_unarmed_v2_options_do_not_change_v1_request_contract(
 
 def test_tactical_v2_contract_matches_checked_in_schema() -> None:
     assert Path("contracts/tactical/v2/openapi.json").read_text() == contract(2)
+
+
+async def test_unarmed_wait_declaration_is_a_v2_only_request_option(
+    unarmed_http: tuple[str, str, PlayService],
+) -> None:
+    from test_unarmed import action, defend
+
+    base, cid, play = unarmed_http
+    play.rng = RecordedDice(())
+    await CombatService(play).execute(
+        cid,
+        TakeCombatTurn(
+            id="pass-a",
+            actor_id="a",
+            expected_revision=play._load(await play.store.read(cid)).revision,
+            encounter_id="fight",
+            maneuver="do_nothing",
+        ),
+        authenticated_actor_id="a",
+    )
+    state = play._load(await play.store.read(cid))
+    body = {
+        "command": {
+            "kind": "take_combat_turn",
+            "id": "wait-unarmed",
+            "actor_id": "b",
+            "expected_revision": state.revision,
+            "encounter_id": "fight",
+            "maneuver": "wait",
+            "wait_trigger": {
+                "actor_id": "a",
+                "action": "attack",
+                "reaction": "attack",
+                "reaction_target_id": "a",
+                "unarmed": {"action": "punch", "hands": ["right-hand"]},
+            },
+        }
+    }
+    headers = {"Authorization": "Bearer bob-token"}
+    async with aiohttp.ClientSession() as client:
+        async with client.post(
+            f"{base}/api/tactical/v1/campaigns/{cid}/commands", json=body, headers=headers
+        ) as response:
+            assert response.status == 400
+        assert play._load(await play.store.read(cid)) == state
+        async with client.post(
+            f"{base}/api/tactical/v2/campaigns/{cid}/commands", json=body, headers=headers
+        ) as response:
+            assert response.status == 200, await response.text()
+        declared = play._load(await play.store.read(cid)).encounters[0]
+        trigger = next(p for p in declared.participants if p.actor_id == "b").maneuver_state.wait
+        assert trigger is not None and trigger.item_id is None
+        assert trigger.unarmed is not None and trigger.unarmed.action == "punch"
+
+        # The waiter sees only the declared reaction and the decline once the trigger fires.
+        play.rng = RecordedDice(())
+        await CombatService(play).execute(
+            cid,
+            TakeCombatTurn(
+                id="pass-c",
+                actor_id="c",
+                expected_revision=play._load(await play.store.read(cid)).revision,
+                encounter_id="fight",
+                maneuver="do_nothing",
+            ),
+            authenticated_actor_id="c",
+        )
+        paused = await action(cid, play, "a", "punch", hands=("right-hand",), enter=True)
+        assert isinstance(paused, CombatResult) and paused.code == "combat.wait_triggered"
+        assert play.rng.exhausted()
+        snapshot_b = await view(
+            client, f"{base}/api/tactical/v2/campaigns/{cid}", actor="b", principal="bob"
+        )
+        offered = {choice.label: choice.command for choice in snapshot_b.encounters[0].choices}
+        assert set(offered) == {"Take declared Wait reaction", "Decline Wait reaction"}
+        reaction = offered["Take declared Wait reaction"]
+        assert reaction.kind == "take_unarmed_turn"
+        async with client.post(
+            f"{base}/api/tactical/v2/campaigns/{cid}/commands",
+            json={"command": reaction.model_dump(mode="json")},
+            headers=headers,
+        ) as response:
+            assert response.status == 200, await response.text()
+    # ST 10 thrust is 1d-2 and a punch is thrust-1, so a 5 lands two crushing points.
+    play.rng = RecordedDice((3, 3, 3, 5))
+    await defend(cid, play)
+    assert play.rng.exhausted()
+    struck = play._load(await play.store.read(cid))
+    assert [t.actor_id for t in struck.encounters[0].unarmed_history] == ["b"]
+    assert next(p for p in struck.resources.pools if p.id == "hp:a").current == 8
+    ready = struck.encounters[0].wait_interrupt
+    assert ready is not None and ready.ready

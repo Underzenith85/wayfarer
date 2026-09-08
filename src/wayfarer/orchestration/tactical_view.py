@@ -275,11 +275,20 @@ def choices(
             )
         elif not interrupt.ready and interrupt.waiter_id == actor_id:
             declaration = interrupt.declaration
+            unarmed_reaction = declaration.unarmed
             if declaration.reaction_target_id is None or declaration.reaction_target_id in visible:
                 candidates.append(
                     (
                         "Take declared Wait reaction",
                         {
+                            "kind": "take_unarmed_turn",
+                            "maneuver": declaration.reaction,
+                            "target_id": declaration.reaction_target_id,
+                            "attack_option": declaration.attack_option,
+                            **unarmed_reaction.model_dump(mode="json"),
+                        }
+                        if unarmed_reaction is not None
+                        else {
                             "kind": "take_combat_turn",
                             "maneuver": declaration.reaction,
                             "item_id": declaration.item_id,
@@ -597,6 +606,31 @@ def choices(
                             "hands": () if action == "kick" else hands,
                             "enter_close_combat": action != "kick"
                             and actor.position != target.position,
+                        },
+                    )
+                )
+            for action, hands in product(
+                ("punch", "kick", "grapple"), (("left-hand",), ("right-hand",))
+            ):
+                if action == "kick" and hands != ("left-hand",):
+                    continue
+                candidates.append(
+                    (
+                        f"Wait to {action} {target_name} unarmed"
+                        + (f" ({hands[0]})" if action != "kick" else ""),
+                        {
+                            "kind": "take_combat_turn",
+                            "maneuver": "wait",
+                            "wait_trigger": {
+                                "actor_id": target_id,
+                                "action": "attack",
+                                "reaction": "attack",
+                                "reaction_target_id": target_id,
+                                "unarmed": {
+                                    "action": action,
+                                    "hands": () if action == "kick" else hands,
+                                },
+                            },
                         },
                     )
                 )
