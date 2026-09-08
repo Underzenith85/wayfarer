@@ -6,7 +6,13 @@ from collections.abc import AsyncIterator
 from aiohttp import web
 from pydantic import Field
 
-from wayfarer.errors import ConflictError, ProviderError, ProviderTimeoutError, ValidationError
+from wayfarer.errors import (
+    ConflictError,
+    ProviderError,
+    ProviderTimeoutError,
+    ValidationError,
+    provider_diagnostic,
+)
 from wayfarer.orchestration.catalog import ScenarioCatalog
 from wayfarer.orchestration.scenario_documents import adapt_graph
 from wayfarer.simulation.catalog import (
@@ -108,20 +114,12 @@ async def _generate(app: web.Application, principal: str, job_id: str) -> None:
         try:
             job = await service.read_generation_job(principal, job_id)
             if job.status != "cancelled":
-                code = (
-                    "provider_timeout"
-                    if isinstance(exc, ProviderTimeoutError)
-                    else "provider_unavailable"
-                    if isinstance(exc, ProviderError)
-                    else "invalid_provider_output"
-                )
-                message = (
-                    "The provider timed out. Retry when it is available."
-                    if code == "provider_timeout"
-                    else "The provider is unavailable or limited. Check its login and retry."
-                    if code == "provider_unavailable"
-                    else "The provider returned an invalid scenario. Edit the brief and retry."
-                )
+                if isinstance(exc, ProviderError):
+                    diagnostic = provider_diagnostic(exc)
+                    code, message = diagnostic.code, diagnostic.message
+                else:
+                    code = "invalid_provider_output"
+                    message = "The provider returned an invalid scenario. Edit the brief and retry."
                 await service.store.update_job(
                     job.model_copy(
                         update={"status": "failed", "error_code": code, "error_message": message}

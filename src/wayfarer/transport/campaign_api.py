@@ -171,7 +171,6 @@ async def interpret(request: web.Request) -> web.Response:
             base.provider,
             timeout=base.timeout,
             attempts=base.attempts,
-            token_budget=base.token_budget,
         )
     )
     result = await DirectorService(orchestrator).run(

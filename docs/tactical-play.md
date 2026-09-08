@@ -90,7 +90,8 @@ remain open for their independently documented full-coverage gaps.
 Unequal-height combat and hex reinforcement placement remain explicitly rejected;
 movement across elevation still requires its physical-feat/combat-height adapter.
 Unarmed retreat/following-grapple timing, skill-specific retreat Parries, dragging
-and advanced unarmed maneuver/defense variants remain with #176. Advanced Wait,
-attack-then-step and bracing remain with #152; advanced ranged handling remains
-with #173. Existing unsupported critical outcomes retain their durable block,
+and advanced unarmed maneuver/defense variants remain with #176. #152 supplies
+durable Wait zones and stop thrust, attack-then-step timing, two-weapon Double,
+and typed bracing/sights; advanced ranged handling remains with #173. Existing
+unsupported critical outcomes retain their durable block,
 never ordinary damage substituted for missing rules. Coverage rows remain partial.

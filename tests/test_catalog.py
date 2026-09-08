@@ -23,6 +23,38 @@ PREFIX = "/authoring/v1/scenarios"
 HEADERS = {"Authorization": "Bearer alice-token"}
 
 
+async def test_generation_publishes_safe_provider_diagnostic(tmp_path: Path) -> None:
+    from wayfarer.orchestration.codex import CodexLimitError
+
+    class Unavailable:
+        async def complete(self, request: ProviderRequest) -> object:
+            error = CodexLimitError("SECRET_TOKEN private model response")
+            error.stage = "turn_stream"
+            raise error
+
+    config = settings(tmp_path)
+    app = create_runtime_app(config, config.frontend_dir)
+    app[ORCHESTRATOR_KEY] = Orchestrator(app[ACCESS_KEY], Unavailable(), attempts=1)
+    async with TestClient(TestServer(app)) as client:
+        response = await client.post(
+            PREFIX + "/generation-jobs",
+            headers=HEADERS,
+            json={"id": str(uuid4()), "brief": starting_scenario().brief.model_dump(mode="json")},
+        )
+        assert response.status == 202
+        job = await response.json()
+        async with asyncio.timeout(5):
+            while job["status"] in ("queued", "running"):
+                job = await (
+                    await client.get(PREFIX + f"/generation-jobs/{job['id']}", headers=HEADERS)
+                ).json()
+                await asyncio.sleep(0)
+        assert job["status"] == "failed"
+        assert job["error_code"] == "codex_subscription_limit"
+        assert "turn execution" in job["error_message"]
+        assert "SECRET_TOKEN" not in json.dumps(job)
+
+
 @pytest.fixture(params=["sqlite", "postgres"])
 def config(tmp_path: Path, request: pytest.FixtureRequest) -> Settings:
     value = settings(tmp_path)

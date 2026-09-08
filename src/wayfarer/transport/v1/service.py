@@ -7,7 +7,13 @@ import secrets
 from collections.abc import Awaitable, Callable
 from pathlib import Path
 
-from wayfarer.errors import ConflictError, NotFoundError, ProviderError, ValidationError
+from wayfarer.errors import (
+    ConflictError,
+    NotFoundError,
+    ProviderError,
+    ValidationError,
+    provider_diagnostic,
+)
 from wayfarer.models import Campaign
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.scenes import SceneService
@@ -418,7 +424,11 @@ class V1Service:
             async with self.ledger.transaction() as tx:
                 failed = await tx.get("action:" + aid)
                 if failed and obj(failed["wire"])["status"] not in ("succeeded", "cancelled"):
-                    self.transition(failed, "rejected", error=fault.wire(uid()))
+                    error = fault.wire(uid())
+                    if isinstance(exc, ProviderError):
+                        diagnostic = provider_diagnostic(exc)
+                        error.update(message=diagnostic.message, retryable=diagnostic.retryable)
+                    self.transition(failed, "rejected", error=error)
                     await tx.put("action:" + aid, failed)
 
     @staticmethod

@@ -684,3 +684,33 @@ async def test_capabilities_name_only_the_actions_the_engine_executes(
         "actions.move",
         "actions.wait",
     ]
+
+
+async def test_provider_diagnostic_survives_action_receipt_without_secrets(
+    api: tuple[str, str, V1Service],
+) -> None:
+    from wayfarer.orchestration.codex import CodexAuthenticationError
+
+    base, cid, service = api
+
+    async def unavailable(context: Obj, text: str) -> Obj:
+        error = CodexAuthenticationError("SECRET_TOKEN private SDK response")
+        error.stage = "account"
+        raise error
+
+    service.interpret = unavailable
+    root = f"{base}/api/v1/campaigns/{cid}"
+    async with aiohttp.ClientSession(headers={"Authorization": "Bearer alice-key"}) as client:
+        request = await command(client, root)
+        request["intent"] = {"kind": "text", "text": "Search the dock"}
+        async with client.post(root + "/actions", json=request) as response:
+            action = obj(await response.json())
+        action = await finish(client, root, action, "rejected")
+        error = obj(action["error"])
+        assert error["code"] == "service_unavailable"
+        assert error["retryable"] is False
+        assert "codex_login_required" in str(error["message"])
+        assert "account check" in str(error["message"])
+        assert "SECRET_TOKEN" not in json.dumps(action)
+        assert (await get(client, f"{root}/actions/{action['id']}", "Action"))["error"] == error
+        assert (await service.play.store.read(cid))["revision"] == 0

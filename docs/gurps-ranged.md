@@ -36,6 +36,7 @@ Coverage is **partial**. #173 remains open for complete critical misses and
 Parry consequences, critical bursts, lasting critical head trauma, bare-handed
 catches, per-projectile random location traces, individual-round unloading,
 Fast-Draw, bow draw/hold fatigue, thrown-item battlefield recovery and advanced
-fire modes. Bracing/sights remain with #152. Certification
+fire modes. #152 supplies typed one-handed and prone-bipod bracing plus
+fixed/variable scope timing. Certification
 and generation validators must continue using the capability registry rather
 than inferring support from a typed weapon or manual ruling.

@@ -34,6 +34,25 @@ def observe(
         ]
         if len(modes) != 1:
             raise ValidationError("Aim requires one selected ranged mode")
+        aimed_mode = modes[0]
+        hands = tuple(hand for item_id, hand in actor.hand_bindings if item_id == item.id)
+        if command.braced:
+            if aimed_mode.brace_kind == "one-handed" and set(hands) != {
+                "left-hand",
+                "right-hand",
+            }:
+                raise ValidationError("One-handed weapon bracing requires both hands")
+            if aimed_mode.brace_kind == "bipod" and actor.posture != "prone":
+                raise ValidationError("Bipod bracing requires a prone shooter")
+            if aimed_mode.brace_kind is None:
+                raise ValidationError("Selected ranged mode cannot be braced")
+            if aimed_mode.hands == 2 and (
+                command.destination is not None
+                or command.hex_path
+                or command.hex_facing is not None
+                or command.posture is not None
+            ):
+                raise ValidationError("A braced two-handed weapon does not permit a step")
         previous = next(
             p
             for e in state.encounters
@@ -42,17 +61,26 @@ def observe(
             if p.actor_id == actor.actor_id
         )
         seconds = actor.maneuver_state.aim_seconds
-        if previous.maneuver_state.aim_mode_id != modes[0].id:
+        if previous.maneuver_state.aim_mode_id != aimed_mode.id:
             seconds = 1
+        sight_bonus = (
+            aimed_mode.scope_bonus
+            if aimed_mode.fixed_power_scope and seconds >= aimed_mode.scope_bonus
+            else 0
+            if aimed_mode.fixed_power_scope
+            else min(aimed_mode.scope_bonus, seconds)
+        )
         return CombatEngine._replace(
             encounter,
             actor.model_copy(
                 update={
                     "maneuver_state": actor.maneuver_state.model_copy(
                         update={
-                            "aim_accuracy": modes[0].accuracy,
-                            "aim_mode_id": modes[0].id,
+                            "aim_accuracy": aimed_mode.accuracy,
+                            "aim_mode_id": aimed_mode.id,
                             "aim_seconds": seconds,
+                            "aim_braced": command.braced,
+                            "aim_sight_bonus": min(aimed_mode.accuracy, sight_bonus),
                         }
                     )
                 }

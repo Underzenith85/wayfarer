@@ -32,17 +32,36 @@ const groups = [
   "Equipment",
 ] as const;
 type Group = (typeof groups)[number];
-/** What one entry of each section is called, in the words its controls use. */
-const singular: Record<Group, string> = {
-  Attributes: "attribute",
+type Draft = Proposal["draft"];
+type CatalogOption = CharacterPreview["catalog"][number];
+/**
+ * GURPS primary attributes are fixed: every character has exactly ST, DX, IQ
+ * and HT. They are rendered as labelled steppers, never as entries of a list a
+ * player could remove, duplicate, or replace with a skill (#266).
+ */
+const PRIMARY_ATTRIBUTES = [
+  "attribute:st",
+  "attribute:dx",
+  "attribute:iq",
+  "attribute:ht",
+] as const;
+/** The GURPS average, and what an attribute nobody has paid for is worth. */
+const ATTRIBUTE_DEFAULT = 10;
+/** What the add and remove controls of a genuinely variable section call one entry. */
+const entryNoun: Record<Group, string> = {
+  Attributes: "secondary characteristic",
   Advantages: "advantage",
   Disadvantages: "disadvantage",
   Skills: "skill",
   Equipment: "equipment",
 };
-/** Said once per section when the pinned ruleset carries nothing to add (#268). */
+/**
+ * Said once per section when the pinned ruleset carries nothing to add (#268).
+ * The attributes section always holds the four fixed steppers, so it speaks
+ * only about the variable entries it could also carry.
+ */
 const missing: Record<Group, string> = {
-  Attributes: "This game’s ruleset defines no attributes to buy.",
+  Attributes: "No secondary characteristics are available in this game yet.",
   Advantages: "Advantages are not available in this game yet.",
   Disadvantages: "Disadvantages are not available in this game yet.",
   Skills: "Skills are not available in this game yet.",
@@ -55,6 +74,40 @@ const missing: Record<Group, string> = {
 const primary = new Set(["st", "dx", "iq", "ht"]);
 const isDerived = (target: string) =>
   !primary.has(engineKey(target)) && !target.startsWith("skill:");
+const sentenceCase = (value: string) =>
+  value[0]!.toUpperCase() + value.slice(1);
+/**
+ * Every attribute the server requires of a build: the four primaries, plus any
+ * further attribute the pinned profile's catalog carries.
+ */
+function primaryAttributes(catalog: readonly CatalogOption[]): string[] {
+  const ids = new Set<string>(PRIMARY_ATTRIBUTES);
+  for (const definition of catalog)
+    if (definition.kind === "attribute") ids.add(definition.id);
+  return orderStats([...ids], (id) => id);
+}
+/**
+ * The same draft with exactly one purchase per primary attribute, so an edit,
+ * a template or a generated draft can neither drop one nor buy one twice.
+ */
+function withPrimaryAttributes(
+  draft: Draft,
+  attributes: readonly string[],
+): Draft {
+  const purchases = draft.purchases ?? [];
+  const seen = new Set<string>();
+  const kept = purchases.filter((purchase) => {
+    if (!attributes.includes(purchase.definition_id)) return true;
+    if (seen.has(purchase.definition_id)) return false;
+    seen.add(purchase.definition_id);
+    return true;
+  });
+  const missing = attributes
+    .filter((id) => !seen.has(id))
+    .map((id) => ({ definition_id: id, amount: ATTRIBUTE_DEFAULT }));
+  if (!missing.length && kept.length === purchases.length) return draft;
+  return { ...draft, purchases: [...kept, ...missing] };
+}
 
 export function CharacterDraftEditor({
   proposal,
@@ -106,7 +159,31 @@ export function CharacterDraftEditor({
       ? feedback.result
       : null;
   const catalog = feedback?.result.catalog ?? [];
-  const change = (draft: Proposal["draft"]) => onChange({ ...proposal, draft });
+  const attributes = primaryAttributes(catalog);
+  const attributeKey = attributes.join(" ");
+  const change = (draft: Draft) => onChange({ ...proposal, draft });
+  // A draft that reaches the editor short of an attribute, or carrying one
+  // twice, is repaired before the player can act on it; a read-only editor
+  // shows what was saved and changes nothing.
+  useEffect(() => {
+    if (disabled) return;
+    const draft = withPrimaryAttributes(
+      proposal.draft,
+      attributeKey.split(" "),
+    );
+    if (draft !== proposal.draft) onChange({ ...proposal, draft });
+  }, [attributeKey, disabled, proposal, onChange]);
+  const setAttribute = (definitionId: string, amount: number) => {
+    const purchases = proposal.draft.purchases ?? [];
+    change({
+      ...proposal.draft,
+      purchases: purchases.some((p) => p.definition_id === definitionId)
+        ? purchases.map((p) =>
+            p.definition_id === definitionId ? { ...p, amount } : p,
+          )
+        : [...purchases, { definition_id: definitionId, amount }],
+    });
+  };
   const category = (definitionId: string) => {
     const d = catalog.find((entry) => entry.id === definitionId);
     if (
@@ -128,7 +205,9 @@ export function CharacterDraftEditor({
    * the list entirely and named once beneath it instead (#270, #272).
    */
   const options = (group: Group) =>
-    catalog.filter((d) => category(d.id) === group);
+    catalog.filter(
+      (d) => category(d.id) === group && !attributes.includes(d.id),
+    );
   const offered = (group: Group) =>
     options(group).filter((d) => d.status === "implemented");
   const withheld = (group: Group) =>
@@ -223,16 +302,74 @@ export function CharacterDraftEditor({
                 ? ` · ${current.breakdown.filter((entry) => category(entry.definition_id) === group).reduce((total, entry) => total + entry.cost, 0)} pts`
                 : ""}
             </summary>
-            {proposal.draft.purchases.map((p, i) =>
-              category(p.definition_id) !== group ? null : (
-                <div key={i} className="context-actions purchase-row">
-                  {/* The chosen option names the entry; the controls beside it
-                      take their names from it rather than printing it again. */}
-                  <label
-                    className="visually-hidden"
-                    htmlFor={`${id}-purchase-${i}`}
+            {group === "Attributes" &&
+              attributes.map((definitionId) => {
+                const label = definitionLabel(definitionId);
+                const field = `${id}-${engineKey(definitionId)}`;
+                const amount =
+                  proposal.draft.purchases?.find(
+                    (p) => p.definition_id === definitionId,
+                  )?.amount ?? ATTRIBUTE_DEFAULT;
+                return (
+                  <div
+                    key={definitionId}
+                    className="purchase-row attribute-row"
                   >
-                    {`Chosen ${singular[group]} ${i + 1}`}
+                    <label htmlFor={field}>{label}</label>
+                    <div className="purchase-stepper">
+                      <Button
+                        type="button"
+                        aria-label={`Decrease ${label}`}
+                        disabled={amount <= 1}
+                        onClick={() => setAttribute(definitionId, amount - 1)}
+                      >
+                        −
+                      </Button>
+                      <input
+                        id={field}
+                        type="number"
+                        min={1}
+                        max={10000}
+                        value={amount}
+                        onChange={(e) =>
+                          setAttribute(definitionId, Number(e.target.value))
+                        }
+                      />
+                      <Button
+                        type="button"
+                        aria-label={`Increase ${label}`}
+                        disabled={amount >= 10000}
+                        onClick={() => setAttribute(definitionId, amount + 1)}
+                      >
+                        +
+                      </Button>
+                    </div>
+                    <span className="purchase-cost">
+                      {current?.breakdown.find(
+                        (entry) => entry.definition_id === definitionId,
+                      )?.cost ?? "—"}{" "}
+                      pts
+                    </span>
+                  </div>
+                );
+              })}
+            {proposal.draft.purchases.map((p, i) => {
+              const variable =
+                category(p.definition_id) === group &&
+                !attributes.includes(p.definition_id);
+              if (!variable) return null;
+              const entry = `${entryNoun[group]} ${
+                proposal.draft.purchases.filter(
+                  (v, j) =>
+                    j < i &&
+                    category(v.definition_id) === group &&
+                    !attributes.includes(v.definition_id),
+                ).length + 1
+              }`;
+              return (
+                <div key={i} className="context-actions purchase-row">
+                  <label htmlFor={`${id}-purchase-${i}`}>
+                    {sentenceCase(entry)}
                   </label>
                   <select
                     id={`${id}-purchase-${i}`}
@@ -329,7 +466,7 @@ export function CharacterDraftEditor({
                     type="button"
                     variant="outline"
                     className="purchase-remove"
-                    aria-label={`Remove ${definitionLabel(p.definition_id)}`}
+                    aria-label={`Remove ${entry}`}
                     onClick={() =>
                       change({
                         ...proposal.draft,
@@ -466,8 +603,8 @@ export function CharacterDraftEditor({
                     );
                   })()}
                 </div>
-              ),
-            )}
+              );
+            })}
 
             {/* A section is either usable or says plainly that it is not; an
                 empty heading with a point subtotal and no control is neither
@@ -495,7 +632,7 @@ export function CharacterDraftEditor({
                     });
                 }}
               >
-                Add {singular[group]}
+                Add {entryNoun[group]}
               </Button>
             ) : (
               current && <p className="section-unavailable">{missing[group]}</p>

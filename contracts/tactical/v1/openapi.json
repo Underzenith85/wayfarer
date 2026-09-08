@@ -1002,6 +1002,56 @@
             ],
             "default": null
           },
+          "step_timing": {
+            "default": "before",
+            "enum": [
+              "before",
+              "after"
+            ],
+            "title": "Step Timing",
+            "type": "string"
+          },
+          "second_item_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Second Item Id"
+          },
+          "second_target_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Second Target Id"
+          },
+          "second_mode_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Second Mode Id"
+          },
+          "braced": {
+            "default": false,
+            "title": "Braced",
+            "type": "boolean"
+          },
           "hex_path": {
             "default": [],
             "items": {
@@ -1179,10 +1229,18 @@
         "additionalProperties": false,
         "properties": {
           "actor_id": {
-            "maxLength": 200,
-            "minLength": 1,
-            "title": "Actor Id",
-            "type": "string"
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Actor Id"
           },
           "action": {
             "enum": [
@@ -1266,10 +1324,32 @@
             ],
             "default": null,
             "title": "Attack Option"
+          },
+          "zone": {
+            "default": [],
+            "items": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Zone",
+            "type": "array"
+          },
+          "stop_thrust": {
+            "default": false,
+            "title": "Stop Thrust",
+            "type": "boolean"
           }
         },
         "required": [
-          "actor_id",
           "action",
           "item_id"
         ],

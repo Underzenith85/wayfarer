@@ -529,6 +529,80 @@ it("creates a game with an exact rules profile and disables unsupported ones", a
   });
 });
 
+it("keeps an authored concept unless its adventure brief is explicitly chosen", async () => {
+  const adventureBrief = {
+    premise: "Carry the harbor warning to the beacon before the storm arrives.",
+    genre: "Fantasy",
+    tone: "Adventurous",
+    duration_minutes: 30,
+    difficulty: "gentle",
+    restrictions: [],
+  };
+  const template = {
+    id: "beacon-2",
+    title: "The Last Beacon (two players)",
+    brief: adventureBrief,
+    npc_actor_ids: [],
+    actors: [],
+  };
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+    const path = input instanceof Request ? input.url : String(input);
+    if (path.endsWith("/session"))
+      return new Response(
+        JSON.stringify({
+          principal_id: "alice",
+          generation_available: false,
+          legacy_available: false,
+        }),
+      );
+    if (path.endsWith("/api/v1/campaigns"))
+      return new Response(JSON.stringify({ items: [], next_cursor: null }));
+    return new Response(
+      JSON.stringify(path.endsWith("/templates") ? [template] : []),
+    );
+  });
+  const user = userEvent.setup();
+  render(<SetupLobby onOpen={vi.fn()} />);
+  await user.type(screen.getByLabelText("Access token"), "secret");
+  await user.click(screen.getByRole("button", { name: "Sign in" }));
+
+  const premise =
+    "A storm-battered harbor town whose lighthouse has gone dark.";
+  await user.type(screen.getByLabelText("Premise"), premise);
+  await user.clear(screen.getByLabelText("Duration (minutes)"));
+  await user.type(screen.getByLabelText("Duration (minutes)"), "90");
+  await user.selectOptions(screen.getByLabelText("Difficulty"), "standard");
+  await user.click(screen.getByRole("button", { name: "Next: Adventure" }));
+  await user.selectOptions(
+    screen.getByLabelText("Adventure and starting party"),
+    "beacon-2",
+  );
+
+  expect(screen.getByRole("status")).toHaveTextContent(
+    "Your Concept answers were kept",
+  );
+  await user.click(screen.getByRole("button", { name: "Concept" }));
+  expect(screen.getByLabelText("Premise")).toHaveValue(premise);
+  expect(screen.getByLabelText("Duration (minutes)")).toHaveValue(90);
+  expect(screen.getByLabelText("Difficulty")).toHaveValue("standard");
+
+  await user.click(screen.getByRole("button", { name: "Adventure" }));
+  await user.click(
+    screen.getByRole("button", { name: "Use adventure concept" }),
+  );
+  await user.click(screen.getByRole("button", { name: "Concept" }));
+  expect(screen.getByLabelText("Premise")).toHaveValue(adventureBrief.premise);
+  expect(screen.getByLabelText("Duration (minutes)")).toHaveValue(30);
+  expect(screen.getByLabelText("Difficulty")).toHaveValue("gentle");
+
+  await user.click(
+    screen.getByRole("button", { name: "Restore previous concept" }),
+  );
+  expect(screen.getByLabelText("Premise")).toHaveValue(premise);
+  expect(screen.getByLabelText("Duration (minutes)")).toHaveValue(90);
+  expect(screen.getByLabelText("Difficulty")).toHaveValue("standard");
+});
+
 it("walks the setup steps and creates the draft only from the review step", async () => {
   const created = {
     id: "c",
@@ -926,65 +1000,6 @@ const goTo = (user: ReturnType<typeof userEvent.setup>, name: string) =>
       { name },
     ),
   );
-
-it("never replaces an authored concept without an explicit, reversible choice (#258)", async () => {
-  const { user, template } = await withAdventure();
-  await user.type(
-    screen.getByLabelText("Premise"),
-    "A storm-battered harbor town whose lighthouse has gone dark.",
-  );
-  await user.clear(screen.getByLabelText("Duration (minutes)"));
-  await user.type(screen.getByLabelText("Duration (minutes)"), "90");
-  await goTo(user, "Adventure");
-  await user.selectOptions(
-    screen.getByLabelText("Adventure and starting party"),
-    template.id,
-  );
-  // Nothing has been replaced: the two concepts are shown and the user chooses.
-  const asked = screen.getByRole("alert");
-  expect(asked).toHaveTextContent(/comes with a concept of its own/);
-  expect(asked).toHaveTextContent(/lighthouse has gone dark/);
-  expect(asked).toHaveTextContent(/Carry the harbor warning/);
-  await user.click(screen.getByRole("button", { name: "Keep my concept" }));
-  await goTo(user, "Concept");
-  expect(screen.getByLabelText("Premise")).toHaveValue(
-    "A storm-battered harbor town whose lighthouse has gone dark.",
-  );
-  // Taking the adventure's concept is a choice that can be taken back.
-  await goTo(user, "Adventure");
-  await user.selectOptions(
-    screen.getByLabelText("Adventure and starting party"),
-    "",
-  );
-  await user.selectOptions(
-    screen.getByLabelText("Adventure and starting party"),
-    template.id,
-  );
-  await user.click(
-    screen.getByRole("button", { name: "Use the adventure’s concept" }),
-  );
-  await goTo(user, "Concept");
-  expect(screen.getByLabelText("Premise")).toHaveValue(template.brief.premise);
-  await goTo(user, "Adventure");
-  await user.click(screen.getByRole("button", { name: "Restore my concept" }));
-  await goTo(user, "Concept");
-  expect(screen.getByLabelText("Premise")).toHaveValue(
-    "A storm-battered harbor town whose lighthouse has gone dark.",
-  );
-});
-
-it("takes an adventure's concept silently when nothing was authored (#258)", async () => {
-  const { user, template } = await withAdventure();
-  await goTo(user, "Adventure");
-  await user.selectOptions(
-    screen.getByLabelText("Adventure and starting party"),
-    template.id,
-  );
-  // An untouched concept step has nothing to lose, so nothing is asked.
-  expect(screen.queryByRole("alert")).toBeNull();
-  await goTo(user, "Concept");
-  expect(screen.getByLabelText("Premise")).toHaveValue(template.brief.premise);
-});
 
 it("asks one question on the adventure step and keeps authoring elsewhere (#261, #264)", async () => {
   const { user } = await withAdventure();

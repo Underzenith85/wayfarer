@@ -67,6 +67,11 @@ class TakeCombatTurn(CombatCommand):
     attack_option: AttackOption | None = None
     defense_option: DefenseOption | None = None
     wait_trigger: WaitTrigger | None = None
+    step_timing: Literal["before", "after"] = "before"
+    second_item_id: str | None = None
+    second_target_id: str | None = None
+    second_mode_id: str | None = None
+    braced: bool = Field(default=False, exclude_if=lambda value: not value)
     hex_path: tuple[Hex, ...] = Field(default=(), max_length=100)
     hex_facing: Literal[0, 1, 2, 3, 4, 5] | None = None
 
@@ -234,6 +239,11 @@ class CombatService:
                             "attack_option": None,
                             "defense_option": None,
                             "wait_trigger": None,
+                            "step_timing": "before",
+                            "second_item_id": None,
+                            "second_target_id": None,
+                            "second_mode_id": None,
+                            "braced": False,
                         }
                     )
                 command = saved.model_copy(
@@ -596,6 +606,24 @@ class CombatService:
                         )
                         from wayfarer.simulation.gurps_equipment import MeleeMode
 
+                        if command.second_item_id is not None:
+                            second_mode = mode(
+                                self.play,
+                                state,
+                                command.actor_id,
+                                command.second_item_id,
+                                command.second_mode_id,
+                            )
+                            if (
+                                not isinstance(selected_mode, MeleeMode)
+                                or not isinstance(second_mode, MeleeMode)
+                                or selected_mode.hands != 1
+                                or second_mode.hands != 1
+                            ):
+                                raise ValidationError(
+                                    "Two-weapon Double requires one-handed melee modes"
+                                )
+
                         encounter = engine._replace(
                             encounter,
                             next(
@@ -607,6 +635,28 @@ class CombatService:
                                     else 1
                                 }
                             ),
+                        )
+                    if (
+                        command.maneuver == "wait"
+                        and command.wait_trigger is not None
+                        and command.wait_trigger.stop_thrust
+                    ):
+                        from wayfarer.orchestration.gurps_melee import mode
+                        from wayfarer.simulation.gurps_equipment import MeleeMode
+
+                        trigger_mode = mode(
+                            self.play,
+                            state,
+                            command.actor_id,
+                            command.wait_trigger.item_id,
+                            command.wait_trigger.mode_id,
+                        )
+                        assert isinstance(trigger_mode, MeleeMode)
+                        waiter = next(
+                            p for p in encounter.participants if p.actor_id == command.actor_id
+                        )
+                        encounter = engine._replace(
+                            encounter, waiter.model_copy(update={"reach": max(trigger_mode.reach)})
                         )
                     if engine.rules.gurps_equipment is not None:
                         from wayfarer.orchestration.gurps_melee import (
@@ -644,6 +694,10 @@ class CombatService:
                                 attack_option=command.attack_option,
                                 defense_option=command.defense_option,
                                 wait_trigger=command.wait_trigger,
+                                step_timing=command.step_timing,
+                                second_item_id=command.second_item_id,
+                                second_target_id=command.second_target_id,
+                                second_mode_id=command.second_mode_id,
                                 command_json=command.model_dump_json(),
                                 hex_path=command.hex_path,
                                 hex_facing=command.hex_facing,
@@ -721,6 +775,11 @@ class CombatService:
                                     "attack_option": None,
                                     "defense_option": None,
                                     "wait_trigger": None,
+                                    "step_timing": "before",
+                                    "second_item_id": None,
+                                    "second_target_id": None,
+                                    "second_mode_id": None,
+                                    "braced": False,
                                     "hit_location": None,
                                     "ready_hand": None,
                                 }
@@ -743,10 +802,41 @@ class CombatService:
                         attack_option=command_for_turn.attack_option,
                         defense_option=command_for_turn.defense_option,
                         wait_trigger=command_for_turn.wait_trigger,
+                        step_timing=command_for_turn.step_timing,
+                        second_item_id=command_for_turn.second_item_id,
+                        second_target_id=command_for_turn.second_target_id,
+                        second_mode_id=command_for_turn.second_mode_id,
                         command_json=command_for_turn.model_dump_json(),
                         hex_path=command_for_turn.hex_path,
                         hex_facing=command_for_turn.hex_facing,
                     )
+                    if (
+                        command_for_turn.second_item_id is not None
+                        and result.code != "combat.wait_triggered"
+                    ):
+                        from wayfarer.orchestration.gurps_melee import build as build_character
+
+                        compiled = build_character(self.play, state, command.actor_id)
+                        if any(
+                            purchase.definition_id == "trait:ambidexterity"
+                            for purchase in compiled.purchases
+                        ):
+                            attacker = next(
+                                p for p in encounter.participants if p.actor_id == command.actor_id
+                            )
+                            encounter = engine._replace(
+                                encounter,
+                                attacker.model_copy(
+                                    update={
+                                        "maneuver_state": attacker.maneuver_state.model_copy(
+                                            update={
+                                                "attack_bonus": 0,
+                                                "second_attack_penalty": 0,
+                                            }
+                                        )
+                                    }
+                                ),
+                            )
                     if (
                         command_for_turn.maneuver == "ready"
                         and engine.rules.gurps_equipment is not None
@@ -1163,7 +1253,7 @@ class CombatService:
                             for fact in consequence.fact_ids:
                                 world = world.learn(recipient, fact)
                 updated = updated.model_copy(update={"world": world})
-            if isinstance(command, TakeCombatTurn) and result.code != "combat.wait_triggered":
+            if isinstance(command, TakeCombatTurn):
                 from wayfarer.orchestration.spell_effects import crossings
 
                 updated = crossings(

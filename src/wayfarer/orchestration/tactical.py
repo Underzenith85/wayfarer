@@ -122,4 +122,19 @@ def finish_defense(encounter: Encounter, command: ChooseDefense) -> Encounter:
     target = target.model_copy(update={"tactical_defense_bonus": 0})
     if command.retreat is not None:
         target = target.model_copy(update={"position": command.retreat})
-    return CombatEngine._replace(encounter, target)
+    encounter = CombatEngine._replace(encounter, target)
+    pending = encounter.defense_history[-1].pending if encounter.defense_history else None
+    if pending and (pending.post_attack_hex_path or pending.post_attack_facing is not None):
+        from wayfarer.simulation.tactical import move_hex
+
+        attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
+        attacker = move_hex(
+            encounter,
+            attacker,
+            "attack",
+            pending.post_attack_hex_path,
+            pending.post_attack_facing,
+            None,
+        )
+        encounter = CombatEngine._replace(encounter, attacker)
+    return encounter

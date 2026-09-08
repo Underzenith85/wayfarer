@@ -24,14 +24,27 @@ const proposal: Proposal = {
   },
   custom: [],
 };
+const attribute = (id: string, name: string) => ({
+  id,
+  name,
+  kind: "attribute" as const,
+  status: "implemented" as const,
+  point_cost: 10,
+  skill: null,
+  trait: null,
+});
 const result: CharacterPreview = {
   catalog: [
+    attribute("attribute:st", "Strength"),
+    attribute("attribute:dx", "Dexterity"),
+    attribute("attribute:iq", "Intelligence"),
+    attribute("attribute:ht", "Health"),
     {
-      id: "attribute:st",
-      name: "Strength",
-      kind: "attribute",
+      id: "skill:stealth",
+      name: "Stealth",
+      kind: "skill",
       status: "implemented",
-      point_cost: 10,
+      point_cost: null,
       skill: null,
       trait: null,
     },
@@ -44,8 +57,14 @@ const result: CharacterPreview = {
   breakdown: [{ definition_id: "attribute:st", amount: 10, cost: 23 }],
 };
 afterEach(cleanup);
-function Editor({ preview }: { preview: PreviewCharacter }) {
-  const [value, setValue] = useState(proposal);
+function Editor({
+  preview,
+  initial = proposal,
+}: {
+  preview: PreviewCharacter;
+  initial?: Proposal;
+}) {
+  const [value, setValue] = useState(initial);
   return (
     <CharacterDraftEditor
       proposal={value}
@@ -89,6 +108,71 @@ it("shows service totals, per-purchase costs and derived statistics; edits reque
   expect(screen.getByText("10 points over budget")).toBeVisible();
   expect(screen.getByRole("alert")).toHaveTextContent("Point budget exceeded");
   expect(preview.mock.calls[1]![0].draft.purchases[0]!.amount).toBe(11);
+});
+it("keeps the four primary attributes present, fixed and unremovable", async () => {
+  const preview = vi.fn<PreviewCharacter>().mockResolvedValue(result);
+  render(<Editor preview={preview} />);
+  const section = (await screen.findByText(/^Attributes/)).closest("details")!;
+  for (const name of ["Strength", "Dexterity", "Intelligence", "Health"])
+    expect(within(section).getByLabelText(name, { exact: true })).toHaveValue(
+      10,
+    );
+  expect(within(section).queryByRole("combobox")).toBeNull();
+  expect(screen.queryByRole("button", { name: /^Remove/ })).toBeNull();
+  await waitFor(() =>
+    expect(
+      preview.mock.lastCall![0].draft.purchases.map((p) => p.definition_id),
+    ).toEqual(["attribute:st", "attribute:dx", "attribute:iq", "attribute:ht"]),
+  );
+  await userEvent.click(
+    screen.getByRole("button", { name: "Increase Dexterity" }),
+  );
+  await waitFor(() =>
+    expect(preview.mock.lastCall![0].draft.purchases).toContainEqual({
+      definition_id: "attribute:dx",
+      amount: 11,
+    }),
+  );
+  expect(preview.mock.lastCall![0].draft.purchases).toContainEqual({
+    definition_id: "attribute:st",
+    amount: 10,
+  });
+});
+it("collapses a duplicated attribute and keeps it out of the variable sections", async () => {
+  const preview = vi.fn<PreviewCharacter>().mockResolvedValue(result);
+  render(
+    <Editor
+      preview={preview}
+      initial={{
+        ...proposal,
+        draft: {
+          ...proposal.draft,
+          purchases: [
+            { definition_id: "attribute:st", amount: 12 },
+            { definition_id: "attribute:st", amount: 9 },
+            { definition_id: "skill:stealth", amount: 1 },
+          ],
+        },
+      }}
+    />,
+  );
+  expect(
+    await screen.findAllByLabelText("Strength", { exact: true }),
+  ).toHaveLength(1);
+  await waitFor(() =>
+    expect(
+      preview.mock.lastCall![0].draft.purchases.filter(
+        (p) => p.definition_id === "attribute:st",
+      ),
+    ).toEqual([{ definition_id: "attribute:st", amount: 12 }]),
+  );
+  // A skill row stays a list entry, but its selector cannot reach an attribute.
+  expect(screen.getByRole("button", { name: "Remove skill 1" })).toBeVisible();
+  expect(
+    within(screen.getByLabelText("Skill 1", { exact: true }))
+      .getAllByRole("option")
+      .map((option) => option.textContent),
+  ).toEqual(["Stealth"]);
 });
 it("ignores a late preview even when the transport does not honor cancellation", async () => {
   let resolveOld!: (value: CharacterPreview) => void;
@@ -147,20 +231,15 @@ it("clears previous profile figures when the preview source changes", async () =
   );
 });
 
-/** A catalog with one of everything, including a trait the ruleset lists but
+/** A catalog with one of everything, including traits the ruleset lists but
  *  does not implement — the shape the bundled prototype actually returns. */
 const mixed: CharacterPreview = {
   ...result,
   catalog: [
-    {
-      id: "attribute:st",
-      name: "ST",
-      kind: "attribute",
-      status: "implemented",
-      point_cost: 10,
-      skill: null,
-      trait: null,
-    },
+    attribute("attribute:st", "ST"),
+    attribute("attribute:dx", "DX"),
+    attribute("attribute:iq", "IQ"),
+    attribute("attribute:ht", "HT"),
     {
       id: "skill:stealth",
       name: "Stealth",
@@ -195,6 +274,17 @@ const mixed: CharacterPreview = {
     ["secondary:dodge", "8"],
   ],
 };
+/** A build with the fixed attributes and one entry of a variable section. */
+const withSkill: Proposal = {
+  ...proposal,
+  draft: {
+    ...proposal.draft,
+    purchases: [
+      { definition_id: "attribute:st", amount: 10 },
+      { definition_id: "skill:stealth", amount: 1 },
+    ],
+  },
+};
 const section = (name: string) =>
   [...document.querySelectorAll("details")].find((d) =>
     d.querySelector("summary")!.textContent!.startsWith(name),
@@ -208,16 +298,15 @@ const opened = async (name: string) => {
 
 it("scopes each picker to its own section and never lists what cannot be bought (#267, #272)", async () => {
   const preview = vi.fn<PreviewCharacter>().mockResolvedValue(mixed);
-  render(<Editor preview={preview} />);
+  render(<Editor preview={preview} initial={withSkill} />);
   await screen.findByText("73 / 150 points");
-  // The one purchase is an attribute, so its picker offers attributes alone:
-  // a skill has a section of its own and is never added from here (#267).
-  const picker = within(section("Attributes")).getByRole("combobox");
+  // The skill row's picker offers skills alone: an attribute is a fixed
+  // stepper above, and a trait has a section of its own (#267).
   expect(
-    within(picker)
+    within(screen.getByLabelText("Skill 1", { exact: true }))
       .getAllByRole("option")
       .map((o) => o.textContent),
-  ).toEqual(["ST"]);
+  ).toEqual(["Stealth"]);
   // Nothing is offered as a disabled row suffixed "Unavailable"; the traits the
   // ruleset lists but cannot play are named once, in their section (#272).
   expect(screen.queryByText(/Unavailable/)).toBeNull();
@@ -252,26 +341,30 @@ it("says plainly when a section cannot be used instead of leaving it empty (#268
   }
 });
 
-it("names each entry once and keeps removal a quiet control (#270)", async () => {
+it("keeps removal a quiet control beside the row it belongs to (#270)", async () => {
   const preview = vi.fn<PreviewCharacter>().mockResolvedValue(mixed);
-  render(<Editor preview={preview} />);
+  render(<Editor preview={preview} initial={withSkill} />);
   await screen.findByText("73 / 150 points");
-  const row = document.querySelector<HTMLElement>(".purchase-row")!;
-  // The chosen option is the only place the entry is named; the stepper and the
-  // remove control take their accessible names from it without printing it.
-  expect(within(row).getByRole("combobox")).toHaveDisplayValue("ST");
-  expect([...row.querySelectorAll("label")].map((l) => l.className)).toEqual([
-    "visually-hidden",
-    "visually-hidden",
-  ]);
-  const remove = within(row).getByRole("button", {
-    name: "Remove Strength",
-  });
+  const row = within(section("Skills")).getByLabelText("Skill 1", {
+    exact: true,
+  }).parentElement!;
+  // Removing one entry is upkeep: a quiet icon control named after its row,
+  // never a full-width filled button on a line of its own.
+  const remove = within(row).getByRole("button", { name: "Remove skill 1" });
   expect(remove).toHaveClass("button-outline");
   expect(remove).toHaveClass("purchase-remove");
-  expect(screen.queryByRole("button", { name: /Remove ability/ })).toBeNull();
+  expect(remove.textContent).toBe("");
+  // The trait is named once, by the option the picker shows; the stepper takes
+  // its accessible name from that without printing it again.
+  expect(
+    [...row.querySelectorAll("label")].filter(
+      (l) => !l.classList.contains("visually-hidden"),
+    ),
+  ).toHaveLength(1);
   await userEvent.click(remove);
-  expect(document.querySelector(".purchase-row")).toBeNull();
+  expect(
+    within(section("Skills")).queryByLabelText("Skill 1", { exact: true }),
+  ).toBeNull();
 });
 
 it("shows what the build derives and never repeats the primary attributes (#269)", async () => {

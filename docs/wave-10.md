@@ -55,6 +55,23 @@ actor-session-scoped status buffer. It is ephemeral progress, not game history.
 Raw provider text/reasoning/errors are never published as progress. The app closes
 the process at shutdown; cancellation/timeouts interrupt turns and close it.
 
+### Provider failure diagnostics
+
+Play action errors and scenario-generation errors show fixed, safe diagnostics
+for login requirements, Codex usage limits, request rejection, timeouts and invalid
+structured output. Codex failures also identify the stage when known: account
+check/token refresh, thread creation/resume, turn submission, response streaming
+or response validation. Expand **Error details** in play or **Generation error
+details** in authoring for the request/job identifier. Login and invalid-request
+failures require intervention before retrying; a usage limit requires waiting for
+the provider allowance to reset. Raw SDK errors, credentials, profile paths,
+prompts and model output are never included in these diagnostics.
+
+The frozen play API retains its `service_unavailable` code and carries diagnostic
+text in the existing error message; authoring retains the specific diagnostic
+code. Usage totals are telemetry only: there is no cumulative application token
+cutoff. Per-request timeouts, bounded retries and provider-side limits still apply.
+
 Settings: `WAYFARER_CODEX_MODEL` (default `gpt-5.6-terra`),
 `WAYFARER_CODEX_EFFORT` (`low`, `medium`, `high`),
 `WAYFARER_MODEL_TIMEOUT_SECONDS` (provider maximum 120 seconds),

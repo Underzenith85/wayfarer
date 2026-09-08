@@ -200,6 +200,8 @@ export function GuidedScenarioAuthoring({
   const running =
     !!job && (job.status === "queued" || job.status === "running");
   const failure = job?.status === "failed" ? job : undefined;
+  /** A run to report: one that failed, or any the service left a message on. */
+  const trouble = failure ?? (job?.error_message ? job : undefined);
   /** A run that ended without a proposal, however it ended, is retried in place. */
   const stalled =
     job && (job.status === "failed" || job.status === "cancelled")
@@ -388,22 +390,29 @@ export function GuidedScenarioAuthoring({
               </Button>
             )}
           </div>
-          {job && !failure && (
+          {job && !trouble && (
             <p role="status">Generation: {job.status.replace("_", " ")}</p>
           )}
           {/* A failure is not help text: it is announced, it looks like a
-              failure, and it says what the author can do next (#263). */}
-          {failure && (
+              failure, and it says what the author can do next (#263). The
+              provider's own code and the job identifier stay a disclosure,
+              for the maintainer the author reports it to. */}
+          {trouble && (
             <div className="generation-failure" role="alert">
               <strong>Generation failed</strong>
               <p>
-                {failure.error_message ??
+                {trouble.error_message ??
                   "The provider did not return a usable scenario."}
               </p>
               <p>
-                {failureAdvice[failure.error_code ?? ""] ??
+                {failureAdvice[trouble.error_code ?? ""] ??
                   "Retry the generation, or write the scenario yourself below — nothing you have entered is lost."}
               </p>
+              <details>
+                <summary>Generation error details</summary>
+                <p>Code: {trouble.error_code}</p>
+                <p>Job ID: {trouble.id}</p>
+              </details>
             </div>
           )}
           {publicProposal && (

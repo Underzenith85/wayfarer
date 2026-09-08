@@ -114,6 +114,23 @@ def situation(
 def validate_command(
     play: PlayService, state: PlayState, encounter: Encounter, command: TakeCombatTurn
 ) -> None:
+    if command.braced and command.maneuver != "aim":
+        raise ValidationError("Bracing is selected as part of Aim")
+    if command.step_timing == "after" and command.maneuver != "attack":
+        raise ValidationError("Only Attack permits a step after the attack")
+    if any(
+        value is not None
+        for value in (command.second_item_id, command.second_target_id, command.second_mode_id)
+    ) and not (command.maneuver == "all_out_attack" and command.attack_option == "double"):
+        raise ValidationError("Second attack choices require All-Out Attack (Double)")
+    if command.wait_trigger is not None and command.wait_trigger.stop_thrust:
+        from wayfarer.orchestration.gurps_melee import mode
+        from wayfarer.simulation.gurps_equipment import MeleeMode
+
+        trigger = command.wait_trigger
+        selected = mode(play, state, command.actor_id, trigger.item_id, trigger.mode_id)
+        if not isinstance(selected, MeleeMode) or selected.damage.basis != "thrust":
+            raise ValidationError("Stop thrust requires a ready thrusting melee mode")
     if (
         encounter.hex_battlefield is None
         and encounter.ranged_situations

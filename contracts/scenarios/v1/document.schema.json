@@ -4192,6 +4192,33 @@
           "default": false,
           "title": "Blockable",
           "type": "boolean"
+        },
+        "brace_kind": {
+          "anyOf": [
+            {
+              "enum": [
+                "one-handed",
+                "bipod"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Brace Kind"
+        },
+        "scope_bonus": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Scope Bonus",
+          "type": "integer"
+        },
+        "fixed_power_scope": {
+          "default": false,
+          "title": "Fixed Power Scope",
+          "type": "boolean"
         }
       },
       "required": [

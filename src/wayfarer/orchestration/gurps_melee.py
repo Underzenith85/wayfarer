@@ -428,7 +428,11 @@ def prepare_attack(
     )
     if attacker.maneuver_state.strong and selected.damage.basis == "fixed":
         raise ValidationError("Strong requires ST-based melee damage")
-    if attacker.maneuver_state.attacks_remaining and selected.ready_after_attack:
+    if (
+        attacker.maneuver_state.attacks_remaining
+        and selected.ready_after_attack
+        and attacker.maneuver_state.second_attack_item_id is None
+    ):
         raise ValidationError("Double attack requires a weapon usable twice without readying")
     from wayfarer.simulation.combat import CombatEngine
     from wayfarer.simulation.tactical import attack_geometry, defense_adjustment
@@ -800,6 +804,7 @@ def resolve_melee(
     )
     dice_count = weapon.damage.dice or expression.dice
     adds = weapon.damage.adds + (0 if weapon.damage.basis == "fixed" else expression.add)
+    adds += attacker.maneuver_state.stop_thrust_damage_bonus
     if attacker.maneuver_state.strong:
         adds += max(2, dice_count)
     maximum = critical in ((3, 15) if head else (6, 15)) or (
@@ -1110,18 +1115,17 @@ def resolve_melee(
     attacker_status = next(
         p.injury for p in state.resources.pools if p.id == f"hp:{actor.actor_id}"
     )
+    next_weapon = actor.maneuver_state.second_attack_item_id or pending.weapon_id
     attack_disabled = bool(
         attacker_status and (attacker_status.incapacitated or attacker_status.stunned)
     ) or any(
         unavailable_hand(disabled(state, actor.actor_id), hand)
         for item_id, hand in actor.hand_bindings
-        if item_id == pending.weapon_id
+        if item_id == next_weapon
     )
     if actor.maneuver_state.attacks_remaining and (
         attack_disabled
-        or not any(
-            i.id == pending.weapon_id and i.equipped and i.ready for i in state.resources.items
-        )
+        or not any(i.id == next_weapon and i.equipped and i.ready for i in state.resources.items)
     ):
         encounter = encounter.model_copy(
             update={

@@ -4544,6 +4544,83 @@
       "evidence_kind": "independent-numeric-case",
       "provenance": "Independent expectations checked against Campaigns Fourth Edition, fourth printing; frozen first-printing/errata reconciliation remains #191. Not a certification claim.",
       "operation": "tolerance_wound"
+    },
+    {
+      "id": "basic-aim-brace-variable-scope",
+      "capability_id": "gurps.combat.aim",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B364/B412, Aim, bracing, and Scopes",
+      "input": {
+        "accuracy": 2,
+        "aim_seconds": 1,
+        "braced": true,
+        "variable_scope_bonus": 2
+      },
+      "expected": {
+        "effective_aim_bonus": 4
+      },
+      "rounding": "none",
+      "evidence_kind": "independent-numeric-case",
+      "provenance": "Independent expectation checked against Campaigns Fourth Edition, fourth printing; frozen first-printing/errata reconciliation remains #191.",
+      "test": "tests/test_maneuver_followups.py::test_variable_scope_and_bipod_bracing_add_independent_aim_bonuses"
+    },
+    {
+      "id": "basic-stop-thrust-two-yard-charge",
+      "capability_id": "gurps.combat.maneuvers",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B366, Stop Thrust",
+      "input": {
+        "yards_moved_toward_waiter": 2,
+        "waiter_has_longer_reach": true
+      },
+      "expected": {
+        "waiter_attacks_first": true,
+        "thrust_damage_bonus": 1
+      },
+      "rounding": "floor",
+      "evidence_kind": "independent-numeric-case",
+      "provenance": "Independent expectation checked against Campaigns Fourth Edition, fourth printing; frozen first-printing/errata reconciliation remains #191.",
+      "test": "tests/test_maneuver_followups.py::test_stop_thrust_interrupts_charge_and_adds_one_per_two_yards"
+    },
+    {
+      "id": "basic-all-out-double-off-hand",
+      "capability_id": "gurps.combat.maneuvers",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B365, All-Out Attack (Double)",
+      "input": {
+        "base_skill": 13,
+        "second_weapon_in_off_hand": true,
+        "ambidexterity": false
+      },
+      "expected": {
+        "second_attack_target": 9
+      },
+      "rounding": "none",
+      "evidence_kind": "independent-numeric-case",
+      "provenance": "Independent expectation checked against Campaigns Fourth Edition, fourth printing; frozen first-printing/errata reconciliation remains #191.",
+      "test": "tests/test_maneuver_followups.py::test_two_weapon_double_uses_declared_off_hand_with_minus_four"
+    },
+    {
+      "id": "basic-attack-then-step-order",
+      "capability_id": "gurps.combat.turn_timing",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B365/B390, Attack and Step",
+      "input": {
+        "attack_hex": [0, 0],
+        "post_attack_hex": [-1, 0]
+      },
+      "expected": {
+        "position_while_defense_pending": [0, 0],
+        "position_after_resolution": [-1, 0]
+      },
+      "rounding": "none",
+      "evidence_kind": "independent-transition-case",
+      "provenance": "Independent expectation checked against Campaigns Fourth Edition, fourth printing; frozen first-printing/errata reconciliation remains #191.",
+      "test": "tests/test_maneuver_followups.py::test_attack_then_step_is_deferred_until_defense_and_replays_once"
     }
   ]
 }
