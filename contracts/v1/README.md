@@ -43,7 +43,7 @@ can authorize a model provider or reveal provider credentials.
 | `listCharacters`, `getCharacter`, `getInventory` | Controlled actors or explicit GM role; spectators receive no detailed sheets |
 | `listScenes`, `getScene` | Authorized scenes and observations only; GM can inspect all scenes |
 | `submitAction`, `clarifyAction`, `cancelAction` | Player role, controlled actor, current authorized scene; GM role alone cannot act as a player |
-| `listActions`, `getAction` | Own actor actions in authorized scene, or explicit GM inspection; a committed action is listed under the scene it was taken in and under the scene its receipt left the actor in, so a journey stays readable from its destination |
+| `listActions`, `getAction` | Own actor actions in authorized scene, or explicit GM inspection. An action's authorized scene is the one it was taken in or, once committed, the one its receipt left the actor in — the rule `getAction` has always applied, which `listActions` now filters by too, so a journey stays readable from its destination |
 | `createInvitation` | GM; invite player/spectator only, never grant GM or character control |
 | `redeemInvitation` | Authenticated holder of valid single-use token; no existing-role escalation |
 

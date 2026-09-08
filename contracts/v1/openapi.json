@@ -901,7 +901,7 @@
         "operationId": "listActions",
         "summary": "listActions",
         "x-contract-status": "frozen",
-        "x-authorization": "Current campaign member. Return only the caller-permitted projection; absent and inaccessible IDs both return 404. GM membership does not imply control of a player actor. Own actions whose scene or committed receipt scene is the requested authorized scene, including pending and terminal records, in ascending creation order. GM inspection requires explicit GM role.",
+        "x-authorization": "Current campaign member. Return only the caller-permitted projection; absent and inaccessible IDs both return 404. GM membership does not imply control of a player actor. Own actions in the requested authorized scene, including pending and terminal records. GM inspection requires explicit GM role.",
         "security": [
           {
             "bearerAuth": []
