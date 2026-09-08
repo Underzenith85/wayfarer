@@ -196,7 +196,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.equipment.weapon_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; source audit pending) |
 | `gurps.equipment.armor_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; source audit pending) |
 | `gurps.equipment.catalog` | yes | yes | partial | #114 |
-| `gurps.equipment.object_durability` | no | yes | partial | #114; #181 live integration |
+| `gurps.equipment.object_durability` | no | yes | partial | #114; #181 live melee/repair integration; remaining #289/#290 |
 | `gurps.injury.damage_types` | yes | yes | partial | #102 |
 | `gurps.injury.damage_resistance` | yes | yes | partial | #102 |
 | `gurps.injury.hp_thresholds` | yes | yes | partial | #102 |
@@ -566,8 +566,9 @@ adapter makes no automatic catalog or saved-campaign changes.
 
 Object rules reference Campaigns fourth edition, fourth printing, B380 and
 B483–484, with no additional errata overlay. `ObjectProfile` explicitly selects
-Basic Set homogeneous/unliving, nonsentient construction, maximum HP, DR and
-HT. Exact integer cube-root HP computation implements B483 rounding upward.
+Basic Set homogeneous/unliving/diffuse, nonsentient construction, maximum HP, DR and
+HT. Diffuse point attacks use B380 injury caps; cube-root HP calculation remains
+limited to homogeneous and unliving construction. Exact integer cube-root HP computation implements B483 rounding upward.
 An explicit initialization operation adds condition to individual inventory
 instances; existing items receive no implicit durability state. Unsupported
 item mechanics reject inventory-spec conversion and package binding.
@@ -580,16 +581,55 @@ multiples, and at-most-once-per-second stress checks at zero HP or below.
 `ResourceService.execute_object` uses the existing SQLite/PostgreSQL transaction
 store; actor authentication and engine authority are required before retries.
 Damage results and dice survive reload. Disabled items retain their IDs, owner,
-weight and custody, lose readiness, and cannot be equipped again. Disabled
-armor is excluded from melee/ranged protection. No frozen player endpoint is
+weight and custody. Disabled equipment loses readiness unless an explicit
+reviewed B485 residual weapon definition is bound to its recorded d6 outcome.
+Destroyed equipment never gains a residual mode. Disabled armor is excluded
+from melee/ranged protection and critical self-wounds. No frozen player endpoint is
 added and no player can supply authoritative damage through this operation.
 
-The capability remains partial. This resource transaction is not the live
-PlayService combat transaction: automatic stress scheduling, object targeting,
-shield interception, weapon critical breakage, encounter synchronization,
-shock, diffuse/fragile/sentient objects, residual broken-weapon modes and repairs
-remain #181 completion blockers. Do not invoke resource-only writes against a
-live encounter. #106 and #107 remain the hard merge prerequisites declared by #114.
+The live `CombatService` now calls the same object reducers inside its existing
+campaign CAS. A single attack can select an equipped object with `target_item_id`;
+B400 melee-weapon penalties or an explicitly pinned object SM apply. Object HP
+loss does not injure the owner. Successful melee defenses intercept on a durable
+shield only when its DB changed the result; B408/B484 cover DR determines the
+remaining damage. Attack/Parry/Block weapon use schedules an object stress check,
+at most once per shared second. A failed stress check commits loss of use without
+rolling the cancelled attack. Weapon attack use consumes the object's shock
+penalty. Readiness and hand bindings are synchronized before committing.
+
+Basic critical misses 3/4/17/18 now apply quality/resistance confirmation and
+record breakage, with the cheap-weapon exception for 9/10/11. Supported residual
+weapon definitions preserve the original item's custody. Row 14 records flight
+distance/direction, landing position and DX/collision injury. Ground items keep
+ownership but stop encumbering their owner; resource transfers/equips cannot
+bypass their location. Ready retrieves an owned weapon at its recorded location.
+The existing 5/6/15 limb reducer remains in use and excludes disabled armor.
+Original table rolls, confirmation/flight dice and effects survive command retry.
+
+`repair_equipment` starts, finishes or cancels an owned-item repair within the
+same campaign CAS. Work requires an explicit approved skill and tool binding,
+an unequipped retrieved item, and no active combat. The existing shared clock
+must advance 1,800 seconds before the skill roll. Price modifiers and the major
+repair -2 apply. Major work records and consumes its 1d x 10% parts cost at start;
+the maximum cost is checked before dice so inadequate supplies cannot fish for a
+cheaper roll. Repair tasks lock the item/tools against transfer and equipment
+use. Completion records its check and restored HP and cannot be rolled again.
+Destroyed objects are irreparable. These additive operations are exposed through
+tactical-v1; frozen gameplay-v1 is unchanged.
+
+`tests/test_object_combat.py` covers independent numeric object/shield damage,
+quality checks, collision and ground custody, live stress failure, two actor
+identities, concurrent duplicate commands, fresh-store retries, timed repairs,
+parts consumption and ownership locks. Existing limb fixtures remain required.
+
+The capability and #103/#146/#181 remain partial. #289 tracks sentient/fragile
+objects, detached secondary weapon pieces, salvage and discretionary reduced
+effectiveness. #290 tracks full ranged/spell interception and knockback, object
+hex occupancy and post-encounter retrieval, complete used-equipment/party-clock
+stress, migrated blocked-critical continuation and final UI/HTTP/browser evidence.
+A residual-mode binding alone is not full B485 support. Existing campaigns are
+not implicitly initialized or certified, and resource-only writes against live
+encounters remain forbidden. #106/#107 remain the hard prerequisites of #114.
 
 ## Equipment table audit and special gear behavior (#180)
 

@@ -44,7 +44,9 @@ class StressObject(Command):
 ObjectCommand = Annotated[DamageObject | StressObject, Field(discriminator="kind")]
 
 
-def object_hp(weight_millipounds: int, construction: Literal["unliving", "homogenous"]) -> int:
+def object_hp(
+    weight_millipounds: int, construction: Literal["unliving", "homogenous", "diffuse"]
+) -> int:
     """B483: ceil(factor * cube root(pounds)), using exact integer arithmetic."""
     if construction not in ("unliving", "homogenous"):
         raise ValidationError("Unsupported object construction")
@@ -157,6 +159,8 @@ def apply_object(
             command.damage_type, Fraction(3, 2) if command.damage_type == "cut" else Fraction(1)
         )
         injury = max(1, int(penetrating * multiplier)) if penetrating else 0
+        if profile.construction == "diffuse":
+            injury = min(injury, 1 if command.damage_type in ratios else 2)
         hp -= injury
         if hp <= -5 * profile.hp:
             disabled = destroyed = True
@@ -174,8 +178,27 @@ def apply_object(
             stress_at = state.game_time
             if not passes():
                 disabled = True
-    updated_condition = ObjectCondition(
-        hp=hp, disabled=disabled, destroyed=destroyed, last_stress_at=stress_at
+    residual_roll = condition.residual_roll
+    if disabled and not condition.disabled and not destroyed and profile.residual_definitions:
+        residual_roll = rng.randbelow(6) + 1
+    usable = (
+        disabled
+        and not destroyed
+        and residual_roll is not None
+        and bool(profile.residual_definitions and profile.residual_definitions[residual_roll - 1])
+    )
+    updated_condition = condition.model_copy(
+        update={
+            "hp": hp,
+            "disabled": disabled,
+            "destroyed": destroyed,
+            "last_stress_at": stress_at,
+            "residual_roll": residual_roll,
+            "shock": min(4, injury)
+            if injury and not profile.high_pain_threshold
+            else condition.shock,
+            "shock_until": state.game_time + 1 if injury else condition.shock_until,
+        }
     )
     result = ObjectResult(
         command_id=command.id,
@@ -188,7 +211,7 @@ def apply_object(
     updated_item = item.model_copy(
         update={
             "condition": updated_condition,
-            "ready": item.ready and not disabled,
+            "ready": item.ready and (not disabled or usable),
         }
     )
     updated = state.model_copy(
