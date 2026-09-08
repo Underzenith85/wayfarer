@@ -7,6 +7,63 @@ afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
 });
+
+it("loads joinable games without depending on scenario authoring", async () => {
+  const requested: string[] = [];
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+    const path = input instanceof Request ? input.url : String(input);
+    requested.push(path);
+    if (path.endsWith("/api/v1/campaigns"))
+      return new Response(
+        JSON.stringify({
+          items: [
+            {
+              id: "existing",
+              name: "The Lantern at Blackwater",
+              premise: "Find the missing courier.",
+              status: "active",
+              game_time: { ticks: 0, tick_duration_ms: 1000 },
+              membership: {
+                principal_id: "alice",
+                campaign_id: "existing",
+                role: "player",
+                actor_ids: ["a"],
+                version: "membership-version",
+              },
+              capabilities: [],
+              updated_at: "2026-09-08T00:00:00Z",
+              version: "campaign-version",
+            },
+          ],
+          next_cursor: null,
+        }),
+      );
+    if (path.endsWith("/setups") || path.endsWith("/setups/templates"))
+      return new Response("[]");
+    throw new Error(`Join game made an unrelated request to ${path}`);
+  });
+
+  render(
+    <SetupLobby
+      mode="join"
+      initialSession={{
+        token: "secret",
+        principal: "alice",
+        generationAvailable: true,
+        legacyAvailable: false,
+      }}
+      onOpen={vi.fn()}
+    />,
+  );
+
+  expect(
+    await screen.findByRole("button", {
+      name: "Continue The Lantern at Blackwater",
+    }),
+  ).toBeInTheDocument();
+  expect(requested).not.toContain("/authoring/v1/scenarios");
+});
+
 it("shows a saved conclusion and restores an archive to completed", async () => {
   const lobby = {
     id: "c",

@@ -222,7 +222,9 @@ export function SetupLobby({
     if (enter && (operation === "activate" || operation === "resume"))
       open(result);
   };
-  // A restored session reloads its own games, drafts and catalogs.
+  // A restored session reloads the games it can continue or join. Creation
+  // catalogs belong to the New game surface below; keeping them out of this
+  // request means an unavailable authoring service cannot hide playable games.
   useEffect(() => {
     if (!client || !session) return;
     let cancelled = false;
@@ -236,15 +238,9 @@ export function SetupLobby({
           principalId: session.principal,
         }).listCampaigns(new AbortController().signal);
         const values = await client.request<Lobby[]>("");
-        const available = await client.request<Graph[]>("/templates");
-        const registered = await client.request<RulesProfile[]>("/profiles");
-        const authored = await loadPublishedScenarios();
         if (cancelled) return;
         setGames(saved);
         setLobbies(values);
-        setTemplates(available);
-        setProfiles(registered);
-        setPublishedScenarios(authored);
         // Returning from play reopens the campaign that was being played.
         if (values.some((value) => value.id === initialCampaignId)) {
           const current = await client.request<Lobby>(`/${initialCampaignId}`);
@@ -254,6 +250,11 @@ export function SetupLobby({
           setGraph(current.graph);
           setStep(landing(current, session.principal));
         }
+        // Adventure templates are also used when a finished game continues,
+        // but they are not allowed to hold the join list hostage.
+        const available = await client.request<Graph[]>("/templates");
+        if (cancelled) return;
+        setTemplates(available);
       } catch (e) {
         if (!cancelled)
           setError(e instanceof Error ? e.message : "Request failed");
@@ -264,7 +265,7 @@ export function SetupLobby({
     return () => {
       cancelled = true;
     };
-  }, [client, session, initialCampaignId, loadPublishedScenarios]);
+  }, [client, session, initialCampaignId]);
   // Scenario authoring and game creation are separate surfaces. Returning to
   // Start game refreshes the published catalog so a scenario completed in the
   // neighboring tab is immediately available to instantiate.
