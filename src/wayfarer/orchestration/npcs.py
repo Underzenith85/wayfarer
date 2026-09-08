@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from typing import TYPE_CHECKING, Literal
 
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, Event
 from wayfarer.simulation.actions import ActionCommand, PlayState
-from wayfarer.simulation.npcs import NPCDecision, NPCProgress
+from wayfarer.simulation.npcs import NPCDecision, NPCProgress, NPCSocialAction, NPCSocialTrigger
 from wayfarer.simulation.resources import Consume
 
 if TYPE_CHECKING:
@@ -104,6 +105,16 @@ def checkpoint(play: PlayService, state: PlayState) -> PlayState:
         if choice is not None:
             try:
                 resources = state.resources
+                from wayfarer.simulation.fright import blocked, requires_adjudication
+
+                if blocked(resources, plan.actor_id) or requires_adjudication(
+                    resources, plan.actor_id
+                ):
+                    raise ValidationError("NPC cannot act through a fright consequence")
+                if isinstance(choice, NPCSocialAction) and (
+                    choice.reveal_fact_ids or choice.recipient_ids
+                ):
+                    raise ValidationError("Social disclosure must use its bounded outcome policy")
                 if choice.cost:
                     item = next(
                         (
@@ -140,6 +151,20 @@ def checkpoint(play: PlayService, state: PlayState) -> PlayState:
                         "resources": resources.model_copy(update={"revision": state.revision}),
                     }
                 )
+                if isinstance(choice, NPCSocialAction):
+                    state = social_occurrence(
+                        play,
+                        state,
+                        plan.actor_id,
+                        choice.social,
+                        "npc-social:"
+                        + hashlib.sha256(
+                            json.dumps(
+                                [plan.id, progress.spent_actions, choice.id],
+                                separators=(",", ":"),
+                            ).encode()
+                        ).hexdigest(),
+                    )
                 if choice.kind == "transfer_prisoner":
                     from wayfarer.orchestration.recovery import RecoveryService
 
@@ -202,6 +227,87 @@ def checkpoint(play: PlayService, state: PlayState) -> PlayState:
         )
     # Bounded by the finite plan budgets; no recursive reaction/model calls.
     return state
+
+
+def social_occurrence(
+    play: PlayService,
+    state: PlayState,
+    actor_id: str,
+    trigger: NPCSocialTrigger,
+    occurrence_id: str,
+) -> PlayState:
+    from wayfarer.orchestration.gurps_melee import build
+    from wayfarer.orchestration.social import ResolvedInteraction, dispatch
+    from wayfarer.rules.gurps_social import ReactionModifier
+    from wayfarer.simulation.social import SocialCommand, SocialContext, SocialDisclosure
+
+    profile_id = play.engine.reviewer.compiler.statistics_profile
+    if profile_id is None:
+        raise ValidationError("Authored social triggers require an exact GURPS profile")
+    target, will, ht = 10, trigger.npc_will, 10
+    context = SocialContext(profile_id, target)
+    if trigger.kind in ("fright", "self-control"):
+        if not any(a.actor_id == trigger.subject_id for a in state.actors):
+            raise ValidationError("Social trigger subject requires an approved build")
+        compiled = build(play, state, trigger.subject_id)
+        assert compiled.statistics is not None
+        will, ht = compiled.statistics.will, compiled.statistics.ht
+        target = will + trigger.modifier
+        if trigger.kind == "self-control":
+            actor = next(a for a in state.actors if a.actor_id == trigger.subject_id)
+            purchase = next(
+                (p for p in actor.proposal.draft.purchases if p.definition_id == trigger.trait_id),
+                None,
+            )
+            definition = play.engine.reviewer.compiler.definitions.get(trigger.trait_id or "")
+            if (
+                purchase is None
+                or purchase.trait is None
+                or definition is None
+                or definition.point_cost is None
+            ):
+                raise ValidationError("Self-control trigger requires an approved disadvantage")
+            context.trait_options = purchase.trait
+            context.trait_rules = definition.trait_rules
+            context.trait_base = definition.point_cost
+            context.trait_levels = purchase.amount
+    elif trigger.kind == "influence":
+        if trigger.skill_id != "skill:diplomacy":
+            raise ValidationError("Authored influence currently requires Diplomacy")
+        if not any(a.actor_id == actor_id for a in state.actors):
+            raise ValidationError("Influence initiator requires an approved build")
+        compiled = build(play, state, actor_id)
+        value = next((v for v in compiled.sheet.values if v.target == trigger.skill_id), None)
+        if value is None:
+            raise ValidationError("Influence skill has no approved level")
+        target = int(value.value)
+    context.target, context.will, context.ht = target, will, ht
+    context.required_fact_ids = trigger.required_fact_ids
+    if trigger.kind in ("reaction", "influence"):
+        context.modifiers = (ReactionModifier("situation", trigger.modifier, occurrence_id, True),)
+    command = SocialCommand(
+        id="social-occurrence:" + hashlib.sha256(occurrence_id.encode()).hexdigest(),
+        actor_id=actor_id,
+        subject_id=trigger.subject_id,
+        kind=trigger.kind,
+        trigger_id=occurrence_id,
+        expected_revision=state.resources.revision,
+    )
+    updated, _ = dispatch(
+        play,
+        state,
+        command,
+        ResolvedInteraction(
+            context,
+            SocialDisclosure(trigger.disclosure_fact_ids),
+        ),
+    )
+    return updated.model_copy(
+        update={
+            "revision": state.revision,
+            "resources": updated.resources.model_copy(update={"revision": state.revision}),
+        }
+    )
 
 
 class NPCService:

@@ -5,14 +5,21 @@ visible adjudication requirements and never edit approved character purchases.
 """
 
 import hashlib
+import json
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.rules.checks import RandomSource
+from wayfarer.rules.checks import CheckTrace, RandomSource
 from wayfarer.rules.fright import FrightEffect
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.simulation.fatigue import FatigueCost, apply_fatigue
 from wayfarer.simulation.injury import Wound, apply_injury
-from wayfarer.simulation.resources import Record, ResourceEvent, ResourceState
+from wayfarer.simulation.resources import (
+    Advance,
+    Record,
+    ResourceEngine,
+    ResourceEvent,
+    ResourceState,
+)
 
 PREFIX = "fright-runtime:"
 
@@ -27,6 +34,12 @@ class TimedFright(Record):
     active: bool
     recovery_target: int
     aftermath_until: int | None = None
+    recovery_due: int | None = None
+    care: bool = False
+    neglect_days: int = 0
+    next_care_due: int | None = None
+    panic_responses: tuple[str, ...] = ()
+    recovery_checks: tuple[CheckTrace, ...] = ()
 
 
 def effects(state: ResourceState) -> tuple[TimedFright, ...]:
@@ -56,6 +69,21 @@ def save(state: ResourceState, item: TimedFright, command_id: str) -> ResourceSt
 
 def blocked(state: ResourceState, actor_id: str) -> bool:
     return any(item.actor_id == actor_id and item.active for item in effects(state))
+
+
+def stunned(state: ResourceState, actor_id: str) -> bool:
+    return any(
+        i.actor_id == actor_id and i.active and i.effect.condition == "stunned"
+        for i in effects(state)
+    )
+
+
+def can_defend(state: ResourceState, actor_id: str) -> bool:
+    return all(
+        i.effect.condition == "stunned"
+        for i in effects(state)
+        if i.actor_id == actor_id and i.active
+    )
 
 
 def requires_adjudication(state: ResourceState, actor_id: str) -> bool:
@@ -141,6 +169,8 @@ def apply_effect(
         if effect.duration_seconds or effect.recovery_interval_seconds
         else None,
         recovery_target=target,
+        recovery_due=state.game_time + effect.duration_seconds,
+        next_care_due=state.game_time + 86400 if effect.neglect_progression else None,
     )
     return save(state, item, command_id)
 
@@ -164,16 +194,60 @@ def recover(
     if item is None or item.due is None or state.game_time != item.due:
         raise ConflictError("Fright recovery requires its exact scheduled deadline")
     effect = item.effect
+    hp = next((p for p in state.pools if p.id == "hp:" + actor_id), None)
+    if hp is not None and hp.injury is not None and hp.injury.dead:
+        return save(
+            state, item.model_copy(update={"active": False, "due": None}), command_id
+        ), False
     if effect.neglect_progression:
-        raise ValidationError("Catatonia recovery requires medical-care adjudication")
-    passed = (
-        effect.recovery_attribute == "none"
-        or success_roll(
+        if item.next_care_due is None:
+            item = item.model_copy(update={"next_care_due": item.started + 86400})
+        # Care is an explicit director decision; absence of care means neglect.
+        if item.next_care_due is not None and state.game_time == item.next_care_due:
+            days = item.neglect_days + int(not item.care)
+            if not item.care:
+                state, _ = apply_injury(
+                    state,
+                    Wound(
+                        id="fright-neglect:" + command_id,
+                        actor_id=actor_id,
+                        expected_revision=state.revision,
+                        basic_damage=days,
+                        resistance=0,
+                        damage_type="cr",
+                        injury_source="internal",
+                    ),
+                    ht=item.recovery_target,
+                    rng=rng,
+                    system=True,
+                )
+                hp = next(p for p in state.pools if p.id == "hp:" + actor_id)
+                if hp.injury is not None and hp.injury.dead:
+                    return save(
+                        state, item.model_copy(update={"active": False, "due": None}), command_id
+                    ), False
+            item = item.model_copy(
+                update={
+                    "neglect_days": days,
+                    "next_care_due": state.game_time + 86400,
+                }
+            )
+        recovery_due = item.recovery_due or item.started + effect.duration_seconds
+        if state.game_time < recovery_due:
+            item = item.model_copy(
+                update={"due": min(recovery_due, item.next_care_due or recovery_due)}
+            )
+            return save(state, item, command_id), False
+    check = (
+        None
+        if effect.recovery_attribute == "none"
+        else success_roll(
             "gurps-basic-set-4e-2004",
             item.recovery_target,
             rng=rng,
-        ).outcome.succeeded
+        )
     )
+    passed = check is None or check.outcome.succeeded
     interval = effect.recovery_interval_seconds
     if not passed and effect.repeat_duration_dice:
         interval = sum(rng.randbelow(6) + 1 for _ in range(effect.repeat_duration_dice))
@@ -181,10 +255,68 @@ def recover(
     item = item.model_copy(
         update={
             "active": not passed,
-            "due": None if passed else state.game_time + interval,
-            "aftermath_until": state.game_time + effect.aftermath_seconds
+            "recovery_checks": item.recovery_checks + ((check,) if check is not None else ()),
+            "due": None
+            if passed
+            else min(state.game_time + interval, item.next_care_due)
+            if item.next_care_due is not None
+            else state.game_time + interval,
+            "recovery_due": None if passed else state.game_time + interval,
+            "aftermath_until": state.game_time
+            + (
+                state.game_time - item.started
+                if effect.neglect_progression
+                else effect.aftermath_seconds
+            )
             if passed and effect.aftermath_seconds
             else None,
         }
     )
     return save(state, item, command_id), passed
+
+
+def advance(
+    engine: ResourceEngine,
+    state: ResourceState,
+    command: Advance,
+    *,
+    rng: RandomSource,
+) -> ResourceState:
+    """Stop at every fright deadline inside the caller's existing transaction.
+
+    Never step over other resource deadlines: ordinary Advance validation still
+    runs for each segment. Failed checks may introduce more deadlines in the
+    requested interval. The outer command retains one revision and receipt.
+    """
+    revision = state.revision
+    for _ in range(10000):
+        due = sorted(
+            (i for i in effects(state) if i.active and i.due is not None and i.due <= command.to),
+            key=lambda i: (i.due or 0, i.id),
+        )
+        if not due:
+            break
+        item = due[0]
+        assert item.due is not None
+        step_id = hashlib.sha256(json.dumps([command.id, item.id, item.due]).encode()).hexdigest()
+        state = engine.apply(
+            state,
+            Advance(
+                id="fright-clock:" + step_id,
+                actor_id=command.actor_id,
+                expected_revision=state.revision,
+                to=item.due,
+            ),
+            system=True,
+        )
+        state, _ = recover(
+            state,
+            actor_id=item.actor_id,
+            trigger_id=item.trigger_id,
+            command_id="fright-recover:" + step_id,
+            rng=rng,
+        )
+    else:
+        raise ValidationError("Fright recovery budget exceeded; advance a shorter interval")
+    state = state.model_copy(update={"revision": revision})
+    return engine.apply(state, command, system=True)

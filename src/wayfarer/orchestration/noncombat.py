@@ -156,6 +156,7 @@ class NoncombatService:
                         to=resources.game_time + check_rule.duration,
                     ),
                     system=True,
+                    rng=self.play.rng,
                 )
             encounter = encounter.model_copy(
                 update={

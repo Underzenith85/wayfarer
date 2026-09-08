@@ -32,7 +32,6 @@ class TacticalRequest(Record):
         | MigrateEncounterHex
         | ResumeInterruptedTurn
         | ResolveChokeEffects
-        | RepairEquipment
     ) = Field(discriminator="kind")
 
 

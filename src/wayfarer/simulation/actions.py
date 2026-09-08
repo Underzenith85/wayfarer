@@ -197,7 +197,8 @@ class ActionEngine:
     def __init__(
         self, reviewer: PowerReviewer, resources: ResourceEngine, rules: ActionRules
     ) -> None:
-        rules = ActionRules.model_validate(rules)
+        # Retain explicitly selected server policy versions without widening v1 schemas.
+        rules = type(rules).model_validate(rules)
         if reviewer.compiler.rules != resources.rules:
             raise ValidationError("Character and resource rules differ")
         self.reviewer, self.resources, self.rules = reviewer, resources, rules
@@ -717,6 +718,13 @@ class ActionEngine:
             return result("rejected", "combat.command_required")
         if isinstance(command, Question) or command.hypothetical:
             return result("question", "action.no_effect")
+        from wayfarer.simulation.fright import blocked, requires_adjudication
+
+        if not isinstance(command, Wait) and (
+            blocked(state.resources, command.actor_id)
+            or requires_adjudication(state.resources, command.actor_id)
+        ):
+            return result("rejected", "actor.fright")
         from wayfarer.simulation.spell_effects import dazed
 
         if not isinstance(command, Wait) and dazed(state.resources, command.actor_id):
@@ -1079,6 +1087,7 @@ class ActionEngine:
                     to=resources.game_time + duration,
                 ),
                 system=True,
+                rng=rng,
             )
         # Subcommands execute atomically within one campaign command/revision.
         resources = resources.model_copy(update={"revision": state.revision + 1})

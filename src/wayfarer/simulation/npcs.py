@@ -7,6 +7,19 @@ from pydantic import Field
 from wayfarer.simulation.resources import Id, Record
 
 
+class NPCSocialTrigger(Record):
+    """Pinned scenario data, not model-supplied roll targets or trait options."""
+
+    kind: Literal["reaction", "influence", "fright", "self-control"]
+    subject_id: Id
+    modifier: int = Field(default=0, ge=-100, le=100)
+    npc_will: int = Field(default=10, ge=1, le=100)
+    skill_id: Id = "skill:diplomacy"
+    trait_id: Id | None = None
+    required_fact_ids: tuple[Id, ...] = ()
+    disclosure_fact_ids: tuple[Id, ...] = ()
+
+
 class NPCAction(Record):
     id: Id
     kind: Literal["patrol", "communicate", "alarm", "reinforce", "transfer_prisoner"]
@@ -17,6 +30,10 @@ class NPCAction(Record):
     cost: int = Field(default=0, ge=0, le=1000000)
     setback_rule_id: Id | None = None
     target_actor_id: Id | None = None
+
+
+class NPCSocialAction(NPCAction):
+    social: NPCSocialTrigger
 
 
 class NPCPlan(Record):
@@ -37,6 +54,17 @@ class NPCRules(Record):
     version: int = Field(ge=1)
     plans: tuple[NPCPlan, ...] = Field(max_length=50)
     checkpoint_budget: int = Field(default=100, ge=1, le=1000)
+
+
+class NPCSocialPlan(NPCPlan):
+    actions: tuple[NPCAction | NPCSocialAction, ...] = Field(min_length=1, max_length=20)
+
+
+class NPCSocialRules(NPCRules):
+    """Opt-in v2 authored policy; the frozen v1 scenario schema stays unchanged."""
+
+    version: Literal[2] = 2
+    plans: tuple[NPCSocialPlan, ...] = Field(max_length=50)
 
 
 class NPCProgress(Record):

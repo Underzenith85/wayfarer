@@ -417,12 +417,24 @@ Will recovery retains the original trigger target, without the Fright Check's
 Rule-of-14 cap. Build HT/Will and explicit profile pools are validated before dice.
 
 Choice-bearing results expose typed requirement labels and do not edit approved
-builds. Catatonia stops for medical-care adjudication no later than its first day;
-permanent losses and aftermath effects conservatively block actions pending
-integration. These are not implemented consequences. #299 tracks authored
-NPC/scheduler trigger dispatch, combat-specific condition behavior, automatic
-recovery dispatch, lasting adjudication, catatonia care/neglect, and aftermath
-penalties. #137 remains incomplete and these blockers remain visible for #122.
+builds. Authoritative clock adapters now automatically settle successive fright
+deadlines, including failed recovery checks, within their existing transaction.
+Catatonia applies daily escalating unattended injury, respects an explicit
+director care decision, and records aftermath based on total elapsed duration.
+Permanent losses and aftermath penalties still conservatively block actions;
+they are not implemented stat changes or check penalties.
+
+The opt-in `SocialActionRules`/`NPCSocialRules` v2 policy routes bounded NPC
+occurrences through the same social reducer, with approved trait options and
+occurrence-derived identities. It has a separate checked-in social v2 schema;
+frozen v1 scenario/authoring contracts do not change. Panic response adjudication
+records a director-confirmed response and resolves subsequent Will/severity rolls
+without forcing player actions. Combat supports Do Nothing, no defense, and
+stunned active defenses at -4, while other fright conditions reject active
+defense. Full condition-specific retching/panic behavior and lasting trait/stat
+adjudication remain in #299, along with aftermath penalty integration and v2
+scenario authoring/transport adoption. #137 remains incomplete; coverage stays
+partial and these blockers remain visible for #122.
 `tests/test_fright_runtime.py` checks independent B360-361 examples (Campaigns,
 Fourth Edition, fourth printing) for FP loss, internal injury, automatic stun,
 coma deadlines, recovery retries, privacy and unchanged approved builds.

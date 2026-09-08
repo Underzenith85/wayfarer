@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wayfarer.errors import ValidationError
+from wayfarer.simulation.npcs import NPCSocialAction
 from wayfarer.world import EntityKind
 
 if TYPE_CHECKING:
@@ -35,6 +36,22 @@ def validate_lifecycle(state: PlayState, rules: ActionRules) -> None:
             if len({a.id for a in p.actions}) != len(p.actions):
                 raise ValidationError("Duplicate NPC action")
             for a in p.actions:
+                if isinstance(a, NPCSocialAction):
+                    trigger = a.social
+                    if (
+                        trigger.subject_id not in entities
+                        or entities[trigger.subject_id].kind != EntityKind.ACTOR
+                        or not set((*trigger.required_fact_ids, *trigger.disclosure_fact_ids))
+                        <= facts
+                        or a.reveal_fact_ids
+                        or a.recipient_ids
+                        or (
+                            trigger.kind not in ("reaction", "influence")
+                            and trigger.disclosure_fact_ids
+                        )
+                        or (trigger.kind == "self-control" and trigger.trait_id is None)
+                    ):
+                        raise ValidationError("Invalid authored social trigger")
                 if (
                     not set((*a.required_fact_ids, *a.reveal_fact_ids)) <= facts
                     or not set(a.recipient_ids) <= entities.keys()

@@ -290,8 +290,19 @@ class CombatService:
                 ):
                     raise ValidationError("Wait reaction must use the declared weapon mode")
             from wayfarer.orchestration.recovery import guard
+            from wayfarer.simulation.fright import can_defend
 
-            guard(state, command.actor_id, command.kind)
+            guard(
+                state,
+                command.actor_id,
+                command.kind,
+                allow_fright=(
+                    isinstance(command, TakeCombatTurn)
+                    and command.maneuver == "do_nothing"
+                    or isinstance(command, ChooseDefense)
+                    and (command.defense == "none" or can_defend(state.resources, command.actor_id))
+                ),
+            )
             if engine.rules.gurps_equipment is not None:
                 from wayfarer.rules.hazard_types import require_hazards_settled
                 from wayfarer.rules.recovery_types import require_settled
@@ -1340,6 +1351,7 @@ class CombatService:
                             to=resources.game_time + ticks,
                         ),
                         system=True,
+                        rng=self.play.rng,
                     )
             revision = state.revision + 1
             if encounter.hex_battlefield is not None:

@@ -173,6 +173,7 @@ class PartyService:
                     to=at,
                 ),
                 system=True,
+                rng=self.play.rng,
             )
             state = state.model_copy(
                 update={"resources": resources.model_copy(update={"revision": state.revision})}

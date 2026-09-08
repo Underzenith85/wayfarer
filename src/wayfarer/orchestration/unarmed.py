@@ -653,6 +653,10 @@ def unarmed_defense(
         return None, None
     if actor.pinned or actor.maneuver_state.defense_forbidden:
         raise ValidationError("Actor cannot defend")
+    from wayfarer.simulation.fright import can_defend
+
+    if not can_defend(state.resources, actor_id):
+        raise ValidationError("Fright condition prevents active defense")
     height_bonus = 0
     if encounter.hex_battlefield is not None:
         from wayfarer.simulation.tactical import defense_adjustment, height_effect
@@ -722,8 +726,10 @@ def unarmed_defense(
                 except ValidationError:
                     continue
             targets.append(score)
+    from wayfarer.simulation.fright import stunned as fright_stunned
+
     penalty = (
-        (-4 if hp.injury.stunned else 0)
+        (-4 if hp.injury.stunned or fright_stunned(state.resources, actor_id) else 0)
         + (-3 if actor.posture == "prone" else -2 if actor.posture == "kneeling" else 0)
         + (-2 if actor.grappled else 0)
     )

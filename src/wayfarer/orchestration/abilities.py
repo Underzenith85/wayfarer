@@ -220,6 +220,7 @@ class AbilityService:
                         to=resources.game_time + encounter.round - prior.round,
                     ),
                     system=True,
+                    rng=self.play.rng,
                 )
                 resources = resources.model_copy(update={"revision": updated.revision})
                 updated = updated.model_copy(
