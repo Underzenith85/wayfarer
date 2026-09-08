@@ -83,8 +83,16 @@ class InventoryItem:
 def inventory() -> tuple[InventoryItem, ...]:
     """Read owner inventories; candidate counts never imply exhaustive source coverage."""
     rows = [InventoryItem(e.id, e.reference, 112, "partial", "mundane-skills") for e in skills()]
+    # A bound runtime effect is reported as implemented; naming one is still partial.
     rows.extend(
-        InventoryItem(e.id, e.reference, 113, "partial", "mundane-traits") for e in traits()
+        InventoryItem(
+            e.id,
+            e.reference,
+            113,
+            "implemented" if e.implemented else "partial",
+            "mundane-traits",
+        )
+        for e in traits()
     )
     # Consume the owner inventory directly, including transferred skill exclusions.
     rows.extend(

@@ -229,6 +229,19 @@ def representative_templates() -> tuple[Template, ...]:
                 Purchase(definition_id="trait:curious", trait=TraitOptions(self_control=12)),
             ),
         ),
+        # Composed only of traits with executable runtime bindings, so an
+        # approved build of this template can reach the social services.
+        Template(
+            id="template:envoy",
+            kind="occupational",
+            purchases=(
+                Purchase(definition_id="trait:charisma", amount=2),
+                Purchase(definition_id="trait:status"),
+                Purchase(definition_id="trait:voice"),
+                Purchase(definition_id="trait:overconfidence", trait=TraitOptions(self_control=12)),
+            ),
+            taboo_traits=("trait:shyness-severe",),
+        ),
         Template(
             id="template:guard",
             kind="occupational",
