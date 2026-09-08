@@ -81,6 +81,7 @@ EventAction = (
         "combat",
         "advancement",
         "rules-migration",
+        "encounter-scenes",
         "scene",
         "objectives",
         "noncombat",
