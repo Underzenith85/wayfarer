@@ -12,6 +12,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from wayfarer.rules.conformance import BASELINE_ID, CAPABILITIES, PROFILES, CoverageStatus
 from wayfarer.rules.profiles import GURPS_LITE_PROFILE
+from wayfarer.simulation.equipment_audit import lite_gaps
 
 ROOT = Path(__file__).resolve().parents[1]
 TARGET = "gurps-lite-4e-2004"
@@ -104,6 +105,11 @@ def evaluate_lite(
         errors.append("Frozen Lite source audit pending")
     if manifest.catalog_audit != "reviewed":
         errors.append("Item-level Lite trait/skill/equipment audit pending")
+    # #180 records Lite equipment gaps separately; deferring Basic Set catalog work
+    # never lets the Lite claim through.
+    errors.extend(
+        f"Lite equipment gap: {gap.id} (#{gap.owner_issue}) {gap.detail}" for gap in lite_gaps()
+    )
     errors.extend(f"Certification prerequisite pending: {item}" for item in manifest.pending)
     required = PROFILES[TARGET].required_capabilities
     if selected.required_capabilities != required:

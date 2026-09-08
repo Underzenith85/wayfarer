@@ -137,6 +137,51 @@
       "reason": "Registered equipment is representative; full item/mode/TL/armor/gear enumeration and errata reconciliation remain required."
     },
     {
+      "id": "equipment-sections",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B264-289",
+      "owner": 180,
+      "decision": "required",
+      "reviewed": false,
+      "reason": "The #180 ledger accounts for every audited row in an explicit table section and names each omitted row group. Four sections carry inspected page anchors (B271, B280, B283, B288); the remaining eleven are recorded against the B264-289 range with no item-level page reconciliation, so no section is complete."
+    },
+    {
+      "id": "equipment-footnotes",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B264-289",
+      "owner": 180,
+      "decision": "required",
+      "reviewed": false,
+      "reason": "Every special gear behaviour is dispositioned as implemented with an executable binding or as an explicitly unsupported capability with an owning issue. Two implemented behaviours record a missing evidence case rather than claiming coverage; unsupported behaviours reject inventory conversion and package binding."
+    },
+    {
+      "id": "equipment-field-provenance",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B264-289",
+      "owner": 180,
+      "decision": "required",
+      "reviewed": false,
+      "reason": "The #101 carry-forward records the unit, source anchor and executable coverage of every weapon, armor and profile schema field. All statuses stay pending: no field is reconciled with an inspected printing, and seven fields have no executable case at all."
+    },
+    {
+      "id": "equipment-package-binding",
+      "source_id": "sjg:basic-set-characters-4e-2004",
+      "reference": "B264-289",
+      "owner": 180,
+      "decision": "required",
+      "reviewed": false,
+      "reason": "No pinned package registers an equipment definition and the Basic Set rows cite a source ID no package declares, so neither audited catalog binds outside test doubles. Mechanically complete entries cannot be claimed until that registration exists."
+    },
+    {
+      "id": "lite-equipment-gaps",
+      "source_id": "sjg:gurps-lite-4e-2004",
+      "reference": "GURPS Lite August 2004 rev. 07/12/04, pp. 19-20",
+      "owner": 121,
+      "decision": "required",
+      "reviewed": false,
+      "reason": "Lite-required equipment gaps are recorded separately from the Basic Set tables so #121 cannot pass merely because Basic catalog work is deferred. The Lite sample is two rows and the exact Lite revision was never inspected."
+    },
+    {
       "id": "vehicle-catalog",
       "source_id": "sjg:basic-set-campaigns-4e-2004",
       "reference": "B464-469",

@@ -558,10 +558,11 @@ B280 ultra-tech entries are a separate blocked index. Vehicle listings (B464)
 are separate from inventory and explicitly reject operation pending #120.
 `tests/test_basic_equipment.py` enumerates the selected rows independently.
 This is not a complete table inventory. Remaining rows and special mechanics
-are a completion blocker in #180. The source is Characters fourth edition,
-third printing (February 2008); no separate errata overlay is selected. These
-facts do not certify the frozen first-printing profile. The adapter makes no
-automatic catalog or saved-campaign changes.
+are a completion blocker in #180, which now accounts for them item by item; see
+[the equipment table audit](gurps-equipment-audit.md). The source is Characters
+fourth edition, third printing (February 2008); no separate errata overlay is
+selected. These facts do not certify the frozen first-printing profile. The
+adapter makes no automatic catalog or saved-campaign changes.
 
 Object rules reference Campaigns fourth edition, fourth printing, B380 and
 B483–484, with no additional errata overlay. `ObjectProfile` explicitly selects
@@ -589,6 +590,59 @@ shield interception, weapon critical breakage, encounter synchronization,
 shock, diffuse/fragile/sentient objects, residual broken-weapon modes and repairs
 remain #181 completion blockers. Do not invoke resource-only writes against a
 live encounter. #106 and #107 remain the hard merge prerequisites declared by #114.
+
+## Equipment table audit and special gear behavior (#180)
+
+`wayfarer.simulation.equipment_audit` records the item-level accounting the
+selected tables need, and nothing else: no rules prose, no invented rows and no
+second mechanics engine. Fifteen sections split B264-289 so that every registered
+row belongs to exactly one of them and every section states what it omits. No
+section is complete. Four carry inspected page anchors (B271, B280, B283, B288);
+the other eleven record no rows at all and are anchored only to the B264-289
+range, which is a coverage gap rather than a page citation. Firearms, ammunition,
+shields, heavy weapons, split and single-facing DR, higher-TL variants, weapon
+accessories, wealth and legality are all in that second group.
+
+Every special gear behavior is dispositioned as implemented or explicitly
+unsupported. An implemented behavior names a declared capability and either an
+executable binding or the exact evidence it lacks; `weapon-parry-modifier` and
+`two-handed-weapon` lack a case because no audited row exercises them, and they
+stay blockers. An unsupported behavior names only its owning issue, and its
+identifier is the same string the entry lists in `unsupported_mechanics`, so a
+catalog blocker without a matching disposition fails the audit. Power cells keep
+their own unsupported behavior rather than reusing the per-round ammunition path:
+a rechargeable cell holds charge, not disposable rounds. Smartguns, linked
+afflictions, surge damage, beam environmental effects and the special tool
+effects behind the camp stove, sleeping bag and laptop are recorded the same way.
+The typed weapon critical breakage #173 added is recorded as implemented, though
+no audited row declares a quality for it.
+
+The #101 weapon and armor profile verification is carried forward here. All 64
+fields of the equipment schema carry a declared unit, a source anchor and either
+executable coverage or an explicit gap, and adding a field without a record fails
+the audit. Every record is `pending`: nothing is reconciled with an inspected
+printing, so `gurps.equipment.weapon_profiles` and
+`gurps.equipment.armor_profiles` remain partial. Weights, including container
+capacity, are thousandths of a pound; prices are dollars. Seven fields have no
+executable case, and no audited row is a shield or a ranged weapon, so the
+`Shield` and `RangedMode` schemas rest on synthetic fixtures alone.
+
+Neither audited catalog binds to the pinned packages: no registered package
+declares an equipment definition, and the Basic Set rows cite a source ID no
+package declares. Both are recorded as unbound and the recorded status is
+rechecked against the registry on every run. `require_supported` and
+`validate_selection` are the scenario and character gate; they reject an entry
+outside the audit or one carrying an unsupported behavior, naming its owning
+issue, and `supported_equipment` refuses to build a Lite allowlist while the
+recorded Lite gaps stand. Those Lite gaps are also reported individually by
+`scripts/lite_certification.py`, so deferring Basic Set catalog work never
+satisfies #121.
+
+`source_audit.inventory()` consumes these rows directly, so the omitted groups,
+unsupported behaviors, uncovered fields, unbound catalogs and Lite gaps appear in
+the combined audit and the Basic Set certification report with their owners.
+`scripts/audit_gurps_equipment.py --require-complete` exits nonzero, which is the
+current and expected state. #114 stays partial and #122 stays blocked.
 
 ## Shared supernatural concentration (#117, #118, #171)
 

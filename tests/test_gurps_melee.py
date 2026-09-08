@@ -53,6 +53,8 @@ from wayfarer.simulation.gurps_equipment import (
     Damage,
     EquipmentCatalog,
     EquipmentProfile,
+    MeleeMode,
+    Parry,
     RangedMode,
     Shield,
 )
@@ -71,6 +73,7 @@ async def setup(
     ranged_mode: RangedMode | None = None,
     ranged_scene: tuple[RangedSituation, ...] = (),
     ready_after_attack: bool = False,
+    parry: Parry | None = None,
     unarmed_fixture: bool = False,
     third_actor: bool = False,
     critical_breakage: Literal["ordinary", "cheap", "resistant"] | None = None,
@@ -98,6 +101,24 @@ async def setup(
                         update={
                             "modes": tuple(
                                 m.model_copy(update={"ready_after_attack": True}) for m in e.modes
+                            )
+                        }
+                    )
+                    for e in equipment.entries
+                )
+            }
+        )
+    if parry is not None:
+        equipment = equipment.model_copy(
+            update={
+                "entries": tuple(
+                    e.model_copy(
+                        update={
+                            "modes": tuple(
+                                m.model_copy(update={"parry": parry})
+                                if isinstance(m, MeleeMode)
+                                else m
+                                for m in e.modes
                             )
                         }
                     )
@@ -538,6 +559,28 @@ async def test_dodge_parry_block_and_repeats(
     else:
         value, _ = defense_value(play, state, spent, "parry")
         assert value is not None and value.value == 6
+
+
+async def test_unbalanced_and_fencing_parry_columns(tmp_path: Path) -> None:
+    """B271 parry-column footnotes: unbalanced blocks a same-turn parry, fencing halves repeats."""
+    basic: Literal["gurps-basic-set-4e-2004"] = "gurps-basic-set-4e-2004"
+    cid, play = await setup(tmp_path, basic, parry=Parry(fencing=True))
+    state = play._load(await play.store.read(cid))
+    defender = state.encounters[0].participants[1]
+    repeated = defender.model_copy(update={"parries": ("sword-b",)})
+    value, _ = defense_value(play, state, repeated, "parry")
+    assert value is not None and value.value == 8  # 10 - 2, not the ordinary -4.
+
+    cid, play = await setup(tmp_path / "unbalanced", basic, parry=Parry(unbalanced=True))
+    state = play._load(await play.store.read(cid))
+    defender = state.encounters[0].participants[1]
+    value, _ = defense_value(play, state, defender, "parry")
+    assert value is not None and value.value == 10
+    attacked = defender.model_copy(
+        update={"last_maneuver": "attack", "last_attack_item_id": "sword-b"}
+    )
+    with pytest.raises(ValidationError):
+        defense_value(play, state, attacked, "parry")
 
 
 async def test_lite_critical_bypasses_defense_and_uses_maximum(tmp_path: Path) -> None:

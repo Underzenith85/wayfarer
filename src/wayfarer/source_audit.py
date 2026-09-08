@@ -22,6 +22,7 @@ from wayfarer.rules.profiles import (
 )
 from wayfarer.rules.supernatural import inventory as supernatural_inventory
 from wayfarer.simulation.basic_equipment import BASIC_EQUIPMENT, ULTRATECH_INDEX, VEHICLE_INDEX
+from wayfarer.simulation.equipment_audit import rows as equipment_audit_rows
 
 
 class Record(BaseModel):
@@ -134,6 +135,20 @@ def inventory() -> tuple[InventoryItem, ...]:
         )
         for e in (*BASIC_EQUIPMENT.entries, *ULTRATECH_INDEX)
     )
+    # #180 item-level rows: omitted table groups, footnote dispositions, field
+    # provenance, package binding and Lite gaps are visible blockers, not silence.
+    rows.extend(
+        InventoryItem(
+            e.id,
+            e.reference,
+            e.owner,
+            e.implementation,
+            e.scope,
+            e.required_profiles,
+            blockers=e.blockers,
+        )
+        for e in equipment_audit_rows()
+    )
     rows.extend(
         InventoryItem(e.definition_id, f"B{e.page}", 207, "listing-only", "vehicle-catalog")
         for e in VEHICLE_INDEX
@@ -170,6 +185,11 @@ def validate(root: Path, manifest: Manifest) -> None:
         "supernatural-skills",
         "supernatural-catalog",
         "equipment-catalog",
+        "equipment-sections",
+        "equipment-footnotes",
+        "equipment-field-provenance",
+        "equipment-package-binding",
+        "lite-equipment-gaps",
         "vehicle-catalog",
         "statistics-boundaries",
     }
