@@ -621,8 +621,9 @@ def resolve(
         )
         if pending.hit_location == "random" and hp.injury and missing_location(hp.injury, location):
             location = "torso"
-    if critical and pending.shots > 1:
-        blocked = "ranged-critical-burst-table"
+    # B373/B556: a burst rolls the critical table once. The critical projectile may
+    # be redirected (eye); the remaining projectiles keep the declared location.
+    base_location, base_location_dice = location, location_dice
     head = (
         location in ("skull", "face", "left-eye", "right-eye")
         and weapon.damage.damage_type != "tox"
@@ -701,10 +702,13 @@ def resolve(
             if current_hp.injury and missing_location(current_hp.injury, location):
                 location = "torso"
             dr = armor_dr() + dr_bonus
+        elif index and location != base_location:
+            location, location_dice = base_location, base_location_dice
+            dr = armor_dr() + dr_bonus
         hit_resistances.append(dr)
         hit_locations.append(location)
         hit_location_dice.append(location_dice)
-        hit_critical = critical
+        hit_critical = critical if index == 0 else 0
         maximum = hit_critical in ((3, 15) if head else (6, 15)) or (
             equipment.profile_id == "gurps-lite-4e-2004" and sum(attack.dice) <= 4
         )
@@ -733,7 +737,7 @@ def resolve(
                 resistance=dr,
                 damage_type=weapon.damage.damage_type,
                 location=location,
-                critical_eye=critical_eye,
+                critical_eye=critical_eye and index == 0,
                 armor_divisor=weapon.damage.armor_divisor,
                 tight_beam=weapon.damage.tight_beam,
             ),
