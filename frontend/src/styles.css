@@ -1476,15 +1476,15 @@ main.setup-main > .scene-footer {
 .setup-steps .step-index {
   display: none;
 }
-/* Five labelled chips cannot share a phone-width line, so below this breakpoint
-   the row becomes numbered dots under the "Step N of 5: Name" line (#206). */
+/* Labelled chips cannot share a phone-width line, so below this breakpoint the
+   row becomes numbered dots under the "Step N of 4: Name" line (#206). */
 @media (max-width: 700px) {
   .setup-steps ol {
     flex-wrap: nowrap;
     gap: 0.4rem;
   }
   /* Sized explicitly: the hidden step name still feeds the item's intrinsic
-     width, which pushed the fifth dot past the row. */
+     width, which pushed the last dot past the row. */
   .setup-steps li {
     display: flex;
     flex: 0 0 44px;

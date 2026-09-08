@@ -620,10 +620,10 @@ export function SetupLobby({
           ) : (
             <p>Create a game, or open an invitation above.</p>
           )}
-          {/* The line names the step; the chips below it are the same five
-              steps, shown as numbered dots where a labelled row cannot fit on
-              one line (#206). Every chip keeps its step name as its accessible
-              label at every width. */}
+          {/* The line names the step; the chips below it are the same four
+              numbered steps, shown as numbered dots where a labelled row
+              cannot fit on one line (#206). Every chip keeps its step name as
+              its accessible label at every width. */}
           <nav className="setup-steps" aria-label="Setup steps">
             <p className="eyebrow">
               {step === "Party"
