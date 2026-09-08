@@ -47,6 +47,21 @@ from wayfarer.simulation.resources import Record
 def strict_schema(schema: dict[str, object]) -> JsonObject:
     """Codex structured-output objects require closed, fully required properties."""
 
+    def json_type(value: JsonValue) -> str:
+        if value is None:
+            return "null"
+        if isinstance(value, bool):
+            return "boolean"
+        if isinstance(value, int):
+            return "integer"
+        if isinstance(value, float):
+            return "number"
+        if isinstance(value, str):
+            return "string"
+        if isinstance(value, list):
+            return "array"
+        return "object"
+
     def normalize(value: JsonValue) -> JsonValue:
         if isinstance(value, list):
             return [normalize(item) for item in value]
@@ -60,6 +75,26 @@ def strict_schema(schema: dict[str, object]) -> JsonObject:
             # Structured Outputs supports nested anyOf, not our tagged oneOf unions.
             if "oneOf" in result:
                 result["anyOf"] = result.pop("oneOf")
+            if "type" not in result and "const" in result:
+                result["type"] = json_type(result["const"])
+            enum = result.get("enum")
+            if "type" not in result and isinstance(enum, list) and enum:
+                types = {json_type(item) for item in enum}
+                if len(types) == 1:
+                    result["type"] = types.pop()
+            prefix_items = result.pop("prefixItems", None)
+            if result.get("type") == "array" and "items" not in result:
+                # OpenAI's structured-output subset requires `items` and does not
+                # support JSON Schema's tuple-only `prefixItems` form. The original
+                # schema is still used to validate the returned proposal.
+                if isinstance(prefix_items, list) and prefix_items:
+                    result["items"] = (
+                        prefix_items[0]
+                        if len(prefix_items) == 1
+                        else {"anyOf": prefix_items}
+                    )
+                else:
+                    result["items"] = {"type": "string"}
             properties = result.get("properties")
             if isinstance(properties, dict):
                 result["additionalProperties"] = False
