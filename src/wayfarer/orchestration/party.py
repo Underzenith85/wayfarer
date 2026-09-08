@@ -291,10 +291,10 @@ class PartyService:
         groups = state.party.groups
         if command.kind not in ("pause_group", "resume_group") and group.paused:
             raise ConflictError("Subgroup is explicitly paused")
-        in_combat = any(
-            e.status == "active" and set(e.turn_order) & set(group.actor_ids)
-            for e in state.encounters
-        )
+        from wayfarer.simulation.encounter_context import activity_for
+
+        context = activity_for(state, command.actor_id)
+        in_combat = context.group_encounter is not None
         if command.kind == "queue_activity":
             if in_combat:
                 raise ConflictError("Combat advances its own subgroup clock")
@@ -393,8 +393,17 @@ class PartyService:
                 )
                 for e in state.encounters
             )
+            spectator_split = (
+                command.kind == "split_party"
+                and context.encounter is None
+                and context.group_encounter is not None
+                and context.group_encounter.pending_defense is None
+                and context.group_encounter.pending_unarmed is None
+                and context.group_encounter.wait_interrupt is None
+                and context.group_encounter.blocked_reason is None
+            )
             if (
-                (in_combat and not combat_reunion)
+                (in_combat and not (combat_reunion or spectator_split))
                 or state.party.queue
                 or state.party.effects
                 or any(g.ready_through != state.resources.game_time for g in groups)
@@ -427,6 +436,15 @@ class PartyService:
                     or target.paused
                 ):
                     raise ValidationError("Rejoin requires a reachable synchronized subgroup")
+                target_context = activity_for(state, target.actor_ids[0])
+                battle = target_context.group_encounter
+                if battle is not None and (
+                    battle.pending_defense
+                    or battle.pending_unarmed
+                    or battle.wait_interrupt
+                    or battle.blocked_reason
+                ):
+                    raise ConflictError("Rejoin waits for resolved combat interactions")
                 # Only the requesting player's actor moves; other controllers retain their actors.
                 target = target.model_copy(
                     update={

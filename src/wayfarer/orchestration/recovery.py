@@ -110,7 +110,12 @@ class RecoveryService:
         # A pending defense cannot be erased by a setback. Resolved encounters may continue.
         if any(
             e.status == "active"
-            and (e.pending_defense is not None or e.pending_unarmed is not None)
+            and (
+                e.pending_defense is not None
+                or e.pending_unarmed is not None
+                or e.wait_interrupt is not None
+                or e.blocked_reason is not None
+            )
             and actor_id in e.turn_order
             for e in state.encounters
         ):
@@ -209,13 +214,16 @@ class RecoveryService:
                 generation=group.generation + 1,
             ),
         )
+        # A setback separates the target into a recovery subgroup. An encounter
+        # cannot keep charging one clock while its participants occupy two groups.
+        # Retain the historical fight; individual withdrawal is a separate lifecycle.
         encounters = tuple(
             encounter.model_copy(
                 update={"status": "completed", "completion_reason": f"setback:{rule.kind}"}
             )
             if encounter.status == "active"
             and actor_id in encounter.turn_order
-            and (destination != group.scene_id or rule.kind in ("retreat", "death"))
+            and (others or destination != group.scene_id or rule.kind in ("retreat", "death"))
             else encounter.model_copy(
                 update={
                     "participants": tuple(

@@ -45,6 +45,7 @@ class StartEncounter(CombatCommand):
     kind: Literal["start_encounter"] = "start_encounter"
     encounter_id: Id
     battlefield_id: Id
+    scene_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
     placements: tuple[Placement, ...] = Field(min_length=2)
     ranged_situations: tuple[RangedSituation, ...] = ()
 
@@ -399,6 +400,12 @@ class CombatService:
                     resources,
                     frozenset(actor_map),
                 )
+                from wayfarer.simulation.encounter_context import bind_scene
+
+                if self.play.engine.rules.scenes is not None or command.scene_id is not None:
+                    encounter = bind_scene(
+                        encounter, self.play.engine.rules.scenes, engine.rules, command.scene_id
+                    )
                 if engine.rules.gurps_equipment is not None:
                     from wayfarer.orchestration.location_combat import bind_initial_hands
 
@@ -407,6 +414,13 @@ class CombatService:
 
                 encounter = declare(self.play, encounter, command.ranged_situations)
                 encounters = state.encounters + (encounter,)
+                from wayfarer.simulation.encounter_context import validate_contexts
+
+                validate_contexts(
+                    state.model_copy(update={"encounters": encounters}),
+                    self.play.engine.rules.scenes,
+                    engine.rules,
+                )
                 result = CombatResult(
                     encounter_id=encounter.id,
                     code="combat.started",
@@ -416,6 +430,10 @@ class CombatService:
                 )
             else:
                 encounter = self._encounter(state, command.encounter_id)
+                if self.play.engine.rules.scenes is not None:
+                    from wayfarer.simulation.encounter_context import bind_scene
+
+                    encounter = bind_scene(encounter, self.play.engine.rules.scenes, engine.rules)
                 if encounter.hex_battlefield is not None and isinstance(
                     command, (TakeCombatTurn, TakeUnarmedTurn)
                 ):

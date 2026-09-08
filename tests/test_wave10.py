@@ -575,14 +575,15 @@ async def test_capture_and_rescue_during_resolved_combat_boundary(tmp_path: Path
     cid, play = await prepare(tmp_path, combat=True)
     await CombatService(play).execute(cid, start(), authenticated_actor_id="gm")
     state = await setback(cid, play, "capture")
-    assert state.encounters[0].status == "active"
-    assert not next(p for p in state.encounters[0].participants if p.actor_id == "a").ready_item_ids
+    assert state.encounters[0].status == "completed"
+    assert state.encounters[0].completion_reason == "setback:capture"
+    assert not any(i.ready for i in state.resources.items if i.owner_id == "a")
     await choose(cid, play, "a", "assist")
     await choose(cid, play, "b", "assist")
     await choose(cid, play, "b", "rescue")
     state = await choose(cid, play, "a", "assist")
     assert captive(state, "a") is None
-    assert state.encounters[0].status == "active"
+    assert state.encounters[0].status == "completed"
     play.engine.validate(state)
 
 
