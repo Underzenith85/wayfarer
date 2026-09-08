@@ -9,6 +9,56 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+it("shows safe provider diagnostics and a job identifier after generation fails", async () => {
+  const terminal = {
+    id: "00000000-0000-4000-8000-000000000002",
+    version: 3,
+    status: "failed",
+    request: { source_digest: null },
+    proposal_json: null,
+    report: null,
+    error_code: "codex_subscription_limit",
+    error_message:
+      "Codex usage limit reached. Failed during turn execution / response stream.",
+  };
+  vi.spyOn(globalThis, "fetch").mockImplementation(
+    async (_input, init) =>
+      new Response(
+        JSON.stringify(
+          init?.method === "POST"
+            ? {
+                ...terminal,
+                status: "queued",
+                error_code: null,
+                error_message: null,
+              }
+            : terminal,
+        ),
+        { status: init?.method === "POST" ? 202 : 200 },
+      ),
+  );
+  const user = userEvent.setup();
+  render(
+    <GuidedScenarioAuthoring
+      token="secret"
+      principal="alice"
+      source=""
+      onAccept={vi.fn()}
+    />,
+  );
+  await user.click(screen.getByRole("button", { name: "Create with AI" }));
+  await user.type(screen.getByLabelText("Premise"), "A dockside mystery");
+  await user.click(
+    screen.getByRole("button", { name: "Generate scenario proposal" }),
+  );
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    terminal.error_message,
+  );
+  await user.click(screen.getByText("Generation error details"));
+  expect(screen.getByText(`Code: ${terminal.error_code}`)).toBeVisible();
+  expect(screen.getByText(`Job ID: ${terminal.id}`)).toBeVisible();
+});
+
 it("keeps generated spoilers hidden until the author accepts the proposal", async () => {
   const proposal = JSON.stringify({
     public: {

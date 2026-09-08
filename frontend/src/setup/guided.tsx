@@ -358,7 +358,16 @@ export function GuidedScenarioAuthoring({
           {job && (
             <p role="status">Generation: {job.status.replace("_", " ")}</p>
           )}
-          {job?.error_message && <p role="alert">{job.error_message}</p>}
+          {job?.error_message && (
+            <div role="alert">
+              <p>{job.error_message}</p>
+              <details>
+                <summary>Generation error details</summary>
+                <p>Code: {job.error_code}</p>
+                <p>Job ID: {job.id}</p>
+              </details>
+            </div>
+          )}
           {publicProposal && (
             <article aria-label="Scenario proposal">
               <h4>{publicProposal.public.title}</h4>

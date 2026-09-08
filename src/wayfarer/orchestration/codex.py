@@ -11,6 +11,7 @@ from typing import Literal, Protocol, cast
 
 import aiosqlite
 from openai_codex import ApprovalMode, AsyncCodex, AsyncTurnHandle, CodexConfig, Sandbox
+from openai_codex.errors import InvalidParamsError, InvalidRequestError
 from openai_codex.generated.v2_all import (
     AgentMessageThreadItem,
     ChatgptAccount,
@@ -28,7 +29,12 @@ from openai_codex.types import (
 )
 from pydantic import Field
 
-from wayfarer.errors import ProviderError, ProviderTimeoutError
+from wayfarer.errors import (
+    ProviderError,
+    ProviderOutputError,
+    ProviderRequestError,
+    ProviderTimeoutError,
+)
 from wayfarer.orchestration.providers import ProviderReply, ProviderRequest, Usage
 from wayfarer.simulation.resources import Record
 
@@ -116,6 +122,7 @@ class CodexBackend(Protocol):
 class SDKBackend:
     def __init__(self, settings: CodexSettings) -> None:
         self.settings = settings
+        self.stage: str | None = None
         home = settings.home.resolve()
         home.mkdir(parents=True, exist_ok=True)
         cwd = home / "empty"
@@ -166,6 +173,7 @@ class SDKBackend:
         bind: Callable[[str], Awaitable[None]],
         status: Callable[[ProviderStatus], None],
     ) -> tuple[str, ProviderReply]:
+        self.stage = "account"
         account = await self.client.account(refresh_token=True)
         if account.account is None or not isinstance(account.account.root, ChatgptAccount):
             raise CodexAuthenticationError(
@@ -177,6 +185,7 @@ class SDKBackend:
             "Never use tools, read files, invent dice, or perform actions. Return only the schema."
         )
         if thread_id is None:
+            self.stage = "thread_start"
             thread = await self.client.thread_start(
                 model=self.settings.model,
                 cwd=self.cwd,
@@ -185,6 +194,7 @@ class SDKBackend:
                 base_instructions=instructions,
             )
         else:
+            self.stage = "thread_resume"
             thread = await self.client.thread_resume(
                 thread_id,
                 model=self.settings.model,
@@ -197,6 +207,7 @@ class SDKBackend:
         schema = strict_schema(request.output_schema)
         turn: AsyncTurnHandle | None = None
         try:
+            self.stage = "turn_start"
             turn = await thread.turn(
                 json.dumps(
                     {
@@ -210,6 +221,7 @@ class SDKBackend:
                 approval_mode=ApprovalMode.deny_all,
                 sandbox=Sandbox.read_only,
             )
+            self.stage = "turn_stream"
             final: str | None = None
             usage = Usage(reported=False)
             completed = False
@@ -249,6 +261,8 @@ class SDKBackend:
                                 raise CodexLimitError(
                                     "Codex subscription limit reached; retry after reset"
                                 )
+                            if info == CodexErrorInfoValue.bad_request:
+                                raise ProviderRequestError("Codex rejected the generation request")
                             raise ProviderError("Codex turn failed; retry or restart the provider")
                         completed = True
                     else:
@@ -262,9 +276,13 @@ class SDKBackend:
                         )
             finally:
                 await stream.aclose()
+            self.stage = "response_validation"
             if not completed or final is None:
-                raise ProviderError("Codex terminated without a structured response")
-            return thread.id, ProviderReply(payload_json=final, usage=usage)
+                raise ProviderOutputError("Codex terminated without a structured response")
+            try:
+                return thread.id, ProviderReply(payload_json=final, usage=usage)
+            except ValueError:
+                raise ProviderOutputError("Invalid Codex response envelope") from None
         except BaseException:
             if turn is not None:
                 try:
@@ -294,6 +312,11 @@ class CodexProvider:
         await self.backend.close()
 
     async def complete(self, request: ProviderRequest) -> object:
+        def annotate(error: ProviderError) -> ProviderError:
+            if isinstance(self.backend, SDKBackend):
+                error.stage = self.backend.stage
+            return error
+
         def notify(value: str) -> None:
             self.status(
                 ProviderStatus.model_validate(
@@ -306,6 +329,8 @@ class CodexProvider:
             )
 
         async with self.lock:
+            if isinstance(self.backend, SDKBackend):
+                self.backend.stage = None
             try:
                 async with asyncio.timeout(self.settings.timeout):
                     thread_id = await self.sessions.get(request.session_id)
@@ -330,16 +355,20 @@ class CodexProvider:
             except TimeoutError:
                 notify("timeout")
                 await self.backend.close()
-                raise ProviderTimeoutError(
-                    "Codex timed out; committed game outcomes are intact"
+                raise annotate(
+                    ProviderTimeoutError("Codex timed out; committed game outcomes are intact")
                 ) from None
-            except ProviderError:
+            except ProviderError as exc:
                 notify("failed")
+                annotate(exc)
                 raise
+            except InvalidParamsError, InvalidRequestError:
+                notify("failed")
+                raise annotate(ProviderRequestError("Codex rejected the RPC request")) from None
             except Exception:
                 notify("failed")
                 await self.backend.close()
                 # Never chain SDK exceptions: their free-form text may contain sensitive material.
-                raise ProviderError(
-                    "Codex unavailable; check login and restart the provider"
+                raise annotate(
+                    ProviderError("Codex unavailable; check login and restart the provider")
                 ) from None

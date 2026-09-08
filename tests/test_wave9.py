@@ -481,6 +481,33 @@ async def test_provider_forgery_privacy_usage_and_committed_failure(tmp_path: Pa
     assert "credential" not in json.dumps([e.model_dump() for e in orchestrator.telemetry])
 
 
+async def test_provider_usage_does_not_disable_subsequent_operations(tmp_path: Path) -> None:
+    _, play = await prepare(tmp_path)
+
+    class HighUsage(FakeProvider):
+        async def complete(self, request: ProviderRequest) -> object:
+            self.requests.append(request)
+            return ProviderReply(
+                payload_json="{}", usage=Usage(input_tokens=40000, output_tokens=10000)
+            )
+
+    provider = HighUsage()
+    orchestrator = Orchestrator(CampaignAccess(play), provider)
+    for operation in ("intent", "scenario_draft", "narration", "intent"):
+        request = ProviderRequest(
+            operation=operation,
+            session_id="usage-regression",
+            context_json="{}",
+            prompt="Generate a proposal",
+            output_schema={"type": "object"},
+        )
+        assert await orchestrator._call(request) == "{}"
+    assert len(provider.requests) == 4
+    assert orchestrator.tokens_used == 200000
+    assert len(orchestrator.telemetry) == 4
+    assert all(event.status == "ok" for event in orchestrator.telemetry)
+
+
 async def test_provider_stale_timeout_and_cancellation(tmp_path: Path) -> None:
     cid, play = await prepare(tmp_path)
     access = CampaignAccess(play)
