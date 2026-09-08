@@ -357,6 +357,25 @@ GURPS_SIZE_PROFILE: Final = replace(
     ),
 )
 
+# #215 changes statistics only in an explicit package/profile revision.
+_statistics_v2 = {
+    d.id: d for d in gurps_characters.definitions("gurps-basic-set-4e-2004", revision=2)
+}
+GURPS_STATISTICS_PACKAGE: Final = replace(
+    GURPS_SIZE_PACKAGE,
+    version="0.6.0",
+    definitions=tuple(_statistics_v2.get(d.id, d) for d in GURPS_SIZE_PACKAGE.definitions),
+)
+GURPS_STATISTICS_PROFILE: Final = replace(
+    GURPS_SIZE_PROFILE,
+    version=6,
+    packages=(GURPS_STATISTICS_PACKAGE, GURPS_CAMPAIGNS_PACKAGE),
+    rules=replace(
+        GURPS_SIZE_PROFILE.rules,
+        packages=(_pin(GURPS_STATISTICS_PACKAGE), _pin(GURPS_CAMPAIGNS_PACKAGE)),
+    ),
+)
+
 # Keep the new pin opt-in while the overall Basic Set profile still has unrelated
 # unverified blockers. Historic default-registry entries stay byte-for-byte resolvable.
 DEFAULT_REGISTRY: Final = ProfileRegistry(
@@ -372,6 +391,6 @@ DEFAULT_REGISTRY: Final = ProfileRegistry(
 GURPS_PROFILES: Final = MappingProxyType(
     {
         GURPS_LITE_PROFILE.id: GURPS_LITE_PROFILE,
-        GURPS_SIZE_PROFILE.id: GURPS_SIZE_PROFILE,
+        GURPS_STATISTICS_PROFILE.id: GURPS_STATISTICS_PROFILE,
     }
 )
