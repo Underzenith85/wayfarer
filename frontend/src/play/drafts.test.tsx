@@ -75,9 +75,19 @@ it("labels a restored draft with its age and discards it in one interaction (#20
   ).toEqual([]);
   expect(screen.queryByRole("button", { name: "Discard draft" })).toBeNull();
 });
-it("states that nothing is held when the field is empty (#201)", async () => {
-  await mount();
+it("says nothing about storage while the field is empty (#272)", async () => {
+  const store = await mount();
+  const region = composer();
+  // An empty composer counts what has been typed and offers the keyboard path
+  // to Send; it does not describe this browser's storage.
+  expect(within(region).getByText("0 / 2000")).toBeVisible();
   expect(
-    within(composer()).getByText(/Nothing saved on this device/),
+    within(region).getByText("Enter sends · Shift+Enter starts a new line"),
+  ).toBeVisible();
+  expect(within(region).queryByText(/on this device/)).toBeNull();
+  // Draft state appears once there is a draft to describe.
+  store.saveDraft("action", "I watch the quay");
+  expect(
+    await within(region).findByText(/Draft saved on this device/),
   ).toBeVisible();
 });

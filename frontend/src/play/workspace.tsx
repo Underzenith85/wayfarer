@@ -423,19 +423,28 @@ function Composer({ voice }: { voice: VoiceController }) {
   // A draft has a visible lifecycle: what it is, how old it is, and one control
   // that throws it away (#201).
   const age = draft.savedAt ? ageLabel(draft.savedAt) : "";
+  // An empty field has no draft to describe, so it says nothing about storage:
+  // the counter stands alone until there is something held to report (#272).
   const held =
     reviewing || capturing
       ? "Voice transcript, not saved"
       : !draft.text
-        ? "Nothing saved on this device"
+        ? ""
         : age
           ? `Draft saved on this device ${age}`
           : "Draft saved on this device";
-  const send = async (e: FormEvent) => {
-    e.preventDefault();
+  const submit = async () => {
     if (reviewing) await voice.submit();
     else await store.send(channel, draft.text);
   };
+  const send = async (e: FormEvent) => {
+    e.preventDefault();
+    await submit();
+  };
+  // The one condition that decides whether this turn can leave, shared by the
+  // Send control and the Enter key so they never disagree (#271).
+  const sendable =
+    !blocked && !capturing && !!text.trim() && text.trim().length <= max;
   const name =
     channel === "action"
       ? "action"
@@ -460,10 +469,21 @@ function Composer({ voice }: { voice: VoiceController }) {
         value={text}
         disabled={!!blocked}
         readOnly={capturing}
-        aria-describedby={blocked ? "composer-block" : undefined}
+        aria-describedby={
+          blocked ? "composer-block composer-keys" : "composer-keys"
+        }
         onChange={(e) => {
           if (reviewing) voice.edit(e.target.value);
           else store.saveDraft(channel, e.target.value);
+        }}
+        // Enter sends the turn and Shift+Enter breaks the line, the way every
+        // other message field a player has used behaves (#271). A composition
+        // still in progress belongs to the input method, not to the table.
+        onKeyDown={(e) => {
+          if (e.key !== "Enter" || e.shiftKey || e.nativeEvent.isComposing)
+            return;
+          e.preventDefault();
+          if (sendable) void submit();
         }}
         placeholder={
           channel === "action"
@@ -507,11 +527,7 @@ function Composer({ voice }: { voice: VoiceController }) {
             ))}
         </fieldset>
         <VoiceMic voice={voice} state={speech} />
-        <Button
-          disabled={
-            !!blocked || capturing || !text.trim() || text.trim().length > max
-          }
-        >
+        <Button disabled={!sendable}>
           <ArrowUp size={18} aria-hidden="true" />
           Send {reviewing ? `reviewed ${name}` : name}
         </Button>
@@ -520,7 +536,13 @@ function Composer({ voice }: { voice: VoiceController }) {
           it away — beneath the toolbar, so the turn keeps one primary action. */}
       <p className="composer-draft-state">
         <span className="composer-count">
-          {text.length} / {max} · {held}
+          {text.length} / {max}
+          {held && ` · ${held}`}
+        </span>
+        {/* The keyboard path to Send is discoverable from the composer itself,
+            beside the count it shares a line with (#271). */}
+        <span className="composer-keys" id="composer-keys">
+          Enter sends · Shift+Enter starts a new line
         </span>
         {!!draft.text && !reviewing && !capturing && (
           <Button

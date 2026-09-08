@@ -134,6 +134,20 @@ export const lifecycleLabel: Record<string, string> = {
 export function lifecycleOperationLabel(operation: string): string {
   return lifecycleLabel[operation] ?? humanize(operation);
 }
+/**
+ * Difficulty is a wire value (`gentle`); every surface a player reads shows the
+ * same title-cased name, so the concept step, the AI workshop and the review
+ * never disagree about what was chosen (#264).
+ */
+const DIFFICULTIES: Record<string, string> = {
+  gentle: "Gentle",
+  standard: "Standard",
+  hard: "Hard",
+};
+export const difficulties = ["gentle", "standard", "hard"] as const;
+export function difficultyLabel(value: string): string {
+  return DIFFICULTIES[value.trim().toLowerCase()] ?? humanize(value);
+}
 const PHASES: Record<string, string> = {
   draft: "Draft",
   ready: "Ready to start",

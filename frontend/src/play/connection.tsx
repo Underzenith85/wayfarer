@@ -1,4 +1,4 @@
-import { SetupLobby, type SetupSession } from "../setup/lobby";
+import { SetupLobby, type SetupMode, type SetupSession } from "../setup/lobby";
 import { useCallback, useEffect, useState } from "react";
 import { App } from "../app";
 import { NetworkPlayTransport } from "../api/play-transport";
@@ -23,8 +23,11 @@ const modes = [
   { value: "new", label: "New game" },
   { value: "continue", label: "Continue game" },
   { value: "join", label: "Join game" },
+  // Scenario authoring is a library the setup flow draws on, not a step of it
+  // (#261): it sits beside the game modes rather than inside one.
+  { value: "scenarios", label: "Scenarios" },
 ] as const;
-type Mode = (typeof modes)[number]["value"];
+type Mode = SetupMode;
 const panelId = "game-mode-panel";
 const tabId = (value: Mode) => `game-mode-${value}`;
 /** Arrow keys walk the tab bar and Home/End reach its ends, as tabs do. */
@@ -162,56 +165,70 @@ export function ConnectedApp() {
     );
   return (
     <>
+      {/* Setup is long and form-heavy, so it carries the same landmarks the
+          play shell does: a skip link that lands somewhere real, a header, a
+          navigation region, one main region and a footer (#257). */}
+      <a className="skip-link" href="#setup-main">
+        Skip to content
+      </a>
       <header className="scene-card connection-form lobby-header">
         <h1>Wayfarer</h1>
         <p>Start an adventure or return to your table.</p>
-        <div className="mode-tabs" role="tablist" aria-label="Game menu">
-          {modes.map(({ value, label }, index) => (
-            <button
-              key={value}
-              type="button"
-              role="tab"
-              id={tabId(value)}
-              className="mode-tab"
-              aria-selected={mode === value}
-              aria-controls={panelId}
-              tabIndex={mode === value ? 0 : -1}
-              onKeyDown={(event) => {
-                const target = step(index, event.key);
-                if (target === undefined) return;
-                event.preventDefault();
-                setMode(modes[target]!.value);
-                document.getElementById(tabId(modes[target]!.value))?.focus();
-              }}
-              onClick={() => setMode(value)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        <nav aria-label="Setup">
+          <div className="mode-tabs" role="tablist" aria-label="Game menu">
+            {modes.map(({ value, label }, index) => (
+              <button
+                key={value}
+                type="button"
+                role="tab"
+                id={tabId(value)}
+                className="mode-tab"
+                aria-selected={mode === value}
+                aria-controls={panelId}
+                tabIndex={mode === value ? 0 : -1}
+                onKeyDown={(event) => {
+                  const target = step(index, event.key);
+                  if (target === undefined) return;
+                  event.preventDefault();
+                  setMode(modes[target]!.value);
+                  document.getElementById(tabId(modes[target]!.value))?.focus();
+                }}
+                onClick={() => setMode(value)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </nav>
       </header>
-      <div id={panelId} role="tabpanel" aria-labelledby={tabId(mode)}>
-        <SetupLobby
-          mode={mode}
-          initialSession={session}
-          initialCampaignId={opened}
-          onSession={remember}
-          onOpen={(next) => {
-            const requested = takeRequestedPath();
-            const segment = requested
-              ? (parsePath(new URL(requested, location.origin).pathname)
-                  ?.segment ?? "")
-              : "";
-            const target = pagePath(next.initialCampaignId ?? null, segment);
-            if (location.pathname !== target)
-              history.replaceState(null, "", target);
-            if (next.initialCampaignId)
-              rememberCampaign(next.initialCampaignId);
-            setOpened(next.initialCampaignId);
-            setTransport(next);
-          }}
-        />
-      </div>
+      <main id="setup-main" tabIndex={-1}>
+        <div id={panelId} role="tabpanel" aria-labelledby={tabId(mode)}>
+          <SetupLobby
+            mode={mode}
+            onMode={setMode}
+            initialSession={session}
+            initialCampaignId={opened}
+            onSession={remember}
+            onOpen={(next) => {
+              const requested = takeRequestedPath();
+              const segment = requested
+                ? (parsePath(new URL(requested, location.origin).pathname)
+                    ?.segment ?? "")
+                : "";
+              const target = pagePath(next.initialCampaignId ?? null, segment);
+              if (location.pathname !== target)
+                history.replaceState(null, "", target);
+              if (next.initialCampaignId)
+                rememberCampaign(next.initialCampaignId);
+              setOpened(next.initialCampaignId);
+              setTransport(next);
+            }}
+          />
+        </div>
+        <footer className="scene-footer">
+          The engine keeps the facts. The story brings them to life.
+        </footer>
+      </main>
     </>
   );
 }

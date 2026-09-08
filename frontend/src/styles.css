@@ -865,6 +865,11 @@ details summary {
 .composer-count {
   margin: 0;
 }
+/* The keyboard path to Send, stated where the turn is written (#271). */
+.composer-keys {
+  margin: 0;
+  margin-right: auto;
+}
 .discard-draft {
   min-height: 32px;
   min-width: 0;
@@ -874,6 +879,7 @@ details summary {
   font-weight: 500;
 }
 .composer-count,
+.composer-keys,
 .composer-hint,
 .voice-status {
   font-size: 0.75rem;
@@ -1490,6 +1496,50 @@ details summary {
     border-radius: 50%;
   }
 }
+/* The party is the screen the wizard leads to, not one of its numbered steps:
+   it sits below the chips and reads as what comes next (#259). */
+.setup-next-screen {
+  margin: 0.75rem 0 0;
+}
+/* Two concepts, side by side, with nothing replaced until one is chosen (#258). */
+.concept-conflict {
+  margin-block: 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent, #7aa2f7);
+  border-radius: 0.5rem;
+  background: var(--surface);
+}
+.concept-conflict p {
+  margin-top: 0;
+}
+.concept-restore,
+.setup-secondary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+/* Each character opens on its own; two full sheets on one page is four screens
+   of form with the budget for each scrolled far out of reach (#270). */
+.party-character {
+  margin-block: 1rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+}
+.party-character > summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+/* The point budget tracks the character it belongs to, so it stays in view for
+   as long as that character's sheet is being spent into. */
+.party-character .point-budget {
+  top: 0;
+}
 /* The chips report progress; Back and Next are how the sequence advances. */
 .step-nav {
   display: flex;
@@ -1534,6 +1584,20 @@ details summary {
   gap: 0.75rem;
 }
 
+/* A failed generation reads as a failure, not as more help text (#263). */
+.generation-failure {
+  margin-block: 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid #ffb4b4;
+  border-left-width: 4px;
+  border-radius: 0.5rem;
+  background: #4a171f;
+  color: #ffdede;
+}
+.generation-failure p {
+  margin: 0.4rem 0 0;
+  font-size: 0.875rem;
+}
 .guided-authoring pre {
   max-height: 24rem;
   overflow: auto;
@@ -1854,6 +1918,25 @@ input[type="number"] {
 .purchase-cost {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+/* Destructive upkeep, sized as upkeep: an icon beside the row it belongs to,
+   never the widest and heaviest control in the section (#270). */
+.purchase-remove {
+  min-height: 36px;
+  min-width: 36px;
+  width: 36px;
+  padding: 0;
+  flex: 0 0 auto;
+  color: var(--muted);
+}
+.purchase-remove:hover {
+  color: #ffb4b4;
+}
+.section-unavailable,
+.section-withheld {
+  font-size: 0.875rem;
+  color: var(--muted);
+  margin: 0.5rem 0 0;
 }
 .derived-preview dl {
   display: grid;

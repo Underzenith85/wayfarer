@@ -573,25 +573,28 @@ it("walks the setup steps and creates the draft only from the review step", asyn
   render(<SetupLobby onOpen={vi.fn()} />);
   await user.type(screen.getByLabelText("Access token"), "secret");
   await user.click(screen.getByRole("button", { name: "Sign in" }));
+  const nav = async () =>
+    within(await screen.findByRole("navigation", { name: "Setup steps" }));
   const chip = async (name: string) =>
-    within(
-      await screen.findByRole("navigation", { name: "Setup steps" }),
-    ).getByRole("button", { name });
+    (await nav()).getByRole("button", { name });
+  const chips = async () =>
+    within((await nav()).getByRole("list")).getAllByRole("button");
   // The first step offers a way forward, not the action that finishes setup.
   expect(
     screen.queryByRole("button", { name: "Create game draft" }),
   ).toBeNull();
   expect(screen.getByRole("button", { name: "Back" })).toBeDisabled();
-  expect(await chip("Party")).toBeDisabled();
+  // The party is not one of the numbered steps: it is the screen that follows
+  // the draft, so it is never shown as a step nobody can walk into (#259).
+  expect((await nav()).queryByRole("button", { name: "Party" })).toBeNull();
   expect(await chip("Ready")).toBeDisabled();
   await user.type(screen.getByLabelText("Premise"), "Carry the warning");
-  // A validated concept unlocks review; the party still waits for the draft.
+  // A validated concept unlocks review, the last numbered step.
   expect(await chip("Ready")).toBeEnabled();
-  expect(await chip("Party")).toBeDisabled();
   await user.click(screen.getByRole("button", { name: "Next: Adventure" }));
   expect(await chip("Adventure")).toHaveAttribute("aria-current", "step");
   await user.click(screen.getByRole("button", { name: "Next: Rules" }));
-  // The party is skipped forward over, because it cannot be opened yet.
+  // Next walks the numbered steps in the order the chips show them.
   await user.click(screen.getByRole("button", { name: "Next: Ready" }));
   expect(
     screen.getByRole("form", { name: "Review and create" }),
@@ -601,15 +604,18 @@ it("walks the setup steps and creates the draft only from the review step", asyn
   expect(await chip("Rules")).toHaveAttribute("aria-current", "step");
   await user.click(await chip("Ready"));
   await user.click(screen.getByRole("button", { name: "Create game draft" }));
-  // The created draft opens its party, and every step is reachable from there.
-  expect(await chip("Party")).toHaveAttribute("aria-current", "step");
+  // The created draft opens its party, offered now that there is one to assign.
+  expect(await chip("Party")).toHaveAttribute("aria-current", "page");
   expect(await chip("Ready")).toBeEnabled();
+  // No numbered step is closed while a later one is open (#260).
+  expect((await chips()).filter((c) => c.hasAttribute("disabled"))).toEqual([]);
   expect(
     screen.queryByRole("button", { name: "Create game draft" }),
   ).toBeNull();
-  expect(
-    screen.getByRole("button", { name: "Next: Ready" }),
-  ).toBeInTheDocument();
+  // The party is the end of the sequence; Back returns to the review it follows.
+  expect(screen.queryByRole("button", { name: /^Next/ })).toBeNull();
+  await user.click(screen.getByRole("button", { name: "Back" }));
+  expect(await chip("Ready")).toHaveAttribute("aria-current", "step");
 });
 
 /** The signed-in lobby: what the page is for, before what keeps it tidy (#204). */
@@ -691,19 +697,20 @@ it("leads with the games list and keeps upkeep out of primary position (#204)", 
 it("names every step at every width and numbers them for narrow rows (#206)", async () => {
   await signedIn();
   const steps = within(
-    screen.getByRole("navigation", { name: "Setup steps" }),
+    within(screen.getByRole("navigation", { name: "Setup steps" })).getByRole(
+      "list",
+    ),
   ).getAllByRole("button");
   expect(steps.map((s) => s.textContent)).toEqual([
     "1Concept",
     "2Adventure",
     "3Rules",
-    "4Party",
-    "5Ready",
+    "4Ready",
   ]);
   // The number is decoration; the step name stays the accessible label.
   expect(steps[0]).toHaveAccessibleName("Concept");
   expect(steps[0]).toHaveAttribute("aria-current", "step");
-  expect(screen.getByText("Step 1 of 5: Concept")).toBeVisible();
+  expect(screen.getByText("Step 1 of 4: Concept")).toBeVisible();
 });
 
 describe("campaign lifecycle safety (#163)", () => {
@@ -871,4 +878,137 @@ describe("campaign lifecycle safety (#163)", () => {
       within(lifecycle).queryByRole("button", { name: "Create another game" }),
     ).toBeNull();
   });
+});
+
+/** A signed-in lobby holding one authored adventure with a concept of its own. */
+async function withAdventure() {
+  const template = {
+    id: "beacon-2",
+    title: "The Last Beacon (two players)",
+    brief: {
+      premise: "Carry the harbor warning to the beacon before the storm.",
+      genre: "Fantasy",
+      tone: "Adventurous",
+      duration_minutes: 30,
+      difficulty: "gentle",
+      restrictions: [],
+    },
+    actors: [],
+    npc_actor_ids: [],
+  };
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+    const path = input instanceof Request ? input.url : String(input);
+    if (path.endsWith("/session"))
+      return new Response(
+        JSON.stringify({
+          principal_id: "alice",
+          generation_available: true,
+          legacy_available: false,
+        }),
+      );
+    if (path.endsWith("/api/v1/campaigns"))
+      return new Response(JSON.stringify({ items: [], next_cursor: null }));
+    return new Response(
+      JSON.stringify(path.endsWith("/templates") ? [template] : []),
+    );
+  });
+  const user = userEvent.setup();
+  render(<SetupLobby onOpen={vi.fn()} onMode={vi.fn()} />);
+  await user.type(screen.getByLabelText("Access token"), "secret");
+  await user.click(screen.getByRole("button", { name: "Sign in" }));
+  await screen.findByRole("navigation", { name: "Setup steps" });
+  return { user, template };
+}
+const goTo = (user: ReturnType<typeof userEvent.setup>, name: string) =>
+  user.click(
+    within(screen.getByRole("navigation", { name: "Setup steps" })).getByRole(
+      "button",
+      { name },
+    ),
+  );
+
+it("never replaces an authored concept without an explicit, reversible choice (#258)", async () => {
+  const { user, template } = await withAdventure();
+  await user.type(
+    screen.getByLabelText("Premise"),
+    "A storm-battered harbor town whose lighthouse has gone dark.",
+  );
+  await user.clear(screen.getByLabelText("Duration (minutes)"));
+  await user.type(screen.getByLabelText("Duration (minutes)"), "90");
+  await goTo(user, "Adventure");
+  await user.selectOptions(
+    screen.getByLabelText("Adventure and starting party"),
+    template.id,
+  );
+  // Nothing has been replaced: the two concepts are shown and the user chooses.
+  const asked = screen.getByRole("alert");
+  expect(asked).toHaveTextContent(/comes with a concept of its own/);
+  expect(asked).toHaveTextContent(/lighthouse has gone dark/);
+  expect(asked).toHaveTextContent(/Carry the harbor warning/);
+  await user.click(screen.getByRole("button", { name: "Keep my concept" }));
+  await goTo(user, "Concept");
+  expect(screen.getByLabelText("Premise")).toHaveValue(
+    "A storm-battered harbor town whose lighthouse has gone dark.",
+  );
+  // Taking the adventure's concept is a choice that can be taken back.
+  await goTo(user, "Adventure");
+  await user.selectOptions(
+    screen.getByLabelText("Adventure and starting party"),
+    "",
+  );
+  await user.selectOptions(
+    screen.getByLabelText("Adventure and starting party"),
+    template.id,
+  );
+  await user.click(
+    screen.getByRole("button", { name: "Use the adventure’s concept" }),
+  );
+  await goTo(user, "Concept");
+  expect(screen.getByLabelText("Premise")).toHaveValue(template.brief.premise);
+  await goTo(user, "Adventure");
+  await user.click(screen.getByRole("button", { name: "Restore my concept" }));
+  await goTo(user, "Concept");
+  expect(screen.getByLabelText("Premise")).toHaveValue(
+    "A storm-battered harbor town whose lighthouse has gone dark.",
+  );
+});
+
+it("takes an adventure's concept silently when nothing was authored (#258)", async () => {
+  const { user, template } = await withAdventure();
+  await goTo(user, "Adventure");
+  await user.selectOptions(
+    screen.getByLabelText("Adventure and starting party"),
+    template.id,
+  );
+  // An untouched concept step has nothing to lose, so nothing is asked.
+  expect(screen.queryByRole("alert")).toBeNull();
+  await goTo(user, "Concept");
+  expect(screen.getByLabelText("Premise")).toHaveValue(template.brief.premise);
+});
+
+it("asks one question on the adventure step and keeps authoring elsewhere (#261, #264)", async () => {
+  const { user } = await withAdventure();
+  // Difficulty reads title-cased wherever it is shown (#264).
+  expect(
+    within(screen.getByLabelText("Difficulty"))
+      .getAllByRole("option")
+      .map((o) => o.textContent),
+  ).toEqual(["Gentle", "Standard", "Hard"]);
+  await user.type(screen.getByLabelText("Premise"), "Carry the warning");
+  await goTo(user, "Adventure");
+  // One primary choice; the document format and the saved-scenario library are
+  // not part of the numbered flow.
+  expect(
+    screen.getByLabelText("Adventure and starting party"),
+  ).toBeInTheDocument();
+  expect(screen.queryByRole("region", { name: "Scenario catalog" })).toBeNull();
+  expect(screen.queryByLabelText("Scenario document JSON")).toBeNull();
+  expect(screen.queryByRole("button", { name: "Create with AI" })).toBeNull();
+  expect(
+    screen.getByRole("button", { name: "Open the scenario library" }),
+  ).toBeEnabled();
+  await goTo(user, "Ready");
+  expect(
+    screen.getByRole("form", { name: "Review and create" }),
+  ).toHaveTextContent("90 minutes · Standard");
 });

@@ -16,6 +16,8 @@ import { TechnicalDetails } from "../components/technical-details";
 import { NetworkPlayTransport } from "../api/play-transport";
 import {
   campaignPhaseLabel,
+  difficulties,
+  difficultyLabel,
   humanize,
   lifecycleOperationLabel,
   poolLabel,
@@ -36,6 +38,8 @@ const blank: Brief = {
   difficulty: "standard",
   restrictions: [],
 };
+/** The lobby surfaces, one per tab of the shell above it. */
+export type SetupMode = "new" | "continue" | "join" | "scenarios";
 /**
  * The authenticated setup session. The caller keeps it so the setup shell can
  * unmount while a campaign is being played without asking for the token again.
@@ -46,9 +50,17 @@ export interface SetupSession {
   generationAvailable: boolean;
   legacyAvailable: boolean;
 }
-/** One step of setup is shown at a time; a draft is never a stack of forms. */
-const steps = ["Concept", "Adventure", "Rules", "Party", "Ready"] as const;
+/**
+ * One step of setup is shown at a time; a draft is never a stack of forms.
+ *
+ * The numbered steps are the four that author a setup, in the order the flow
+ * actually walks them. Party assignment happens after the draft exists, so it
+ * is the screen that follows creation rather than a step of the wizard nobody
+ * could reach going forward (#259, #260).
+ */
+const steps = ["Concept", "Adventure", "Rules", "Ready"] as const;
 type Step = (typeof steps)[number];
+type Screen = Step | "Party";
 /**
  * The lifecycle operations a host is offered in each phase, and the ones that
  * cannot be taken back. `complete` ends the campaign for everyone with no way
@@ -65,23 +77,37 @@ const lifecycleActions: Record<Lobby["phase"], readonly string[]> = {
 };
 const irreversible = new Set(["complete"]);
 /** A host resumes an editable draft at its party; anyone else at readiness. */
-const landing = (value: Lobby, principal: string): Step =>
+const landing = (value: Lobby, principal: string): Screen =>
   value.host_id === principal &&
   (value.phase === "draft" || value.phase === "ready")
     ? "Party"
     : "Ready";
+/** Whether two briefs say the same thing, so an identical adventure is silent. */
+const sameBrief = (a: Brief, b: Brief) =>
+  a.premise.trim() === b.premise.trim() &&
+  a.genre === b.genre &&
+  a.tone === b.tone &&
+  a.duration_minutes === b.duration_minutes &&
+  a.difficulty === b.difficulty &&
+  a.restrictions.join("\n") === b.restrictions.join("\n");
+/** Whether the user has written anything of their own into the concept step. */
+const authored = (value: Brief) => !sameBrief(value, blank);
+
 export function SetupLobby({
   onOpen,
   mode = "new",
   initialSession,
   initialCampaignId,
   onSession,
+  onMode,
 }: {
-  mode?: "new" | "continue" | "join";
+  mode?: SetupMode;
   onOpen: (transport: PlayTransport) => void;
   initialSession?: SetupSession | undefined;
   initialCampaignId?: string | undefined;
   onSession?: ((value: SetupSession | undefined) => void) | undefined;
+  /** Lets a surface hand the shell back to another one, such as the wizard. */
+  onMode?: ((value: SetupMode) => void) | undefined;
 }) {
   const [secret, setSecret] = useState("");
   const [session, setSession] = useState(initialSession);
@@ -96,7 +122,18 @@ export function SetupLobby({
     [invite, setInvite] = useState("");
   const [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
-  const [step, setStep] = useState<Step>("Concept");
+  const [step, setStep] = useState<Screen>("Concept");
+  /**
+   * An authored concept and an adventure's own concept, when they disagree and
+   * the user has not yet said which one wins. Nothing is replaced until they do
+   * (#258).
+   */
+  const [conflict, setConflict] = useState<{
+    authored: Brief;
+    adventure: Brief;
+  }>();
+  /** The concept an adventure replaced, kept so the choice can be taken back. */
+  const [replaced, setReplaced] = useState<Brief>();
   /** The irreversible lifecycle operation waiting on its confirmation, if any. */
   const [confirming, setConfirming] = useState<string>();
   /** Set by a pause this session, so its undo is offered where it was taken. */
@@ -139,12 +176,33 @@ export function SetupLobby({
     setLobby(value);
     setBrief(value.brief);
     setGraph(value.graph);
+    setConflict(undefined);
+    setReplaced(undefined);
   };
   const restart = () => {
     setLobby(undefined);
     setGraph(null);
     setBrief(blank);
     setStep("Concept");
+    setConflict(undefined);
+    setReplaced(undefined);
+  };
+  /**
+   * Choosing an adventure never silently rewrites the concept step. An untouched
+   * concept simply takes the adventure's; an authored one is kept, and the user
+   * is asked which of the two the draft should carry (#258).
+   */
+  const selectAdventure = (selected: Graph | null) => {
+    setGraph(selected);
+    setConflict(undefined);
+    if (!selected) return;
+    if (!authored(brief)) {
+      setBrief(selected.brief);
+      setReplaced(undefined);
+      return;
+    }
+    if (sameBrief(brief, selected.brief)) return;
+    setConflict({ authored: brief, adventure: selected.brief });
   };
   const run = async (work: () => Promise<void>) => {
     if (busy) return;
@@ -230,20 +288,18 @@ export function SetupLobby({
   const complete =
     !!brief.premise.trim() && !!brief.genre.trim() && !!brief.tone.trim();
   /**
-   * The party is only assignable once the service holds a draft; review is
-   * reachable earlier because creating the draft is its own step's action.
+   * Only the last step is gated, and only on the thing it reviews, so no chip is
+   * ever offered while an earlier one is closed (#260).
    */
   const reachable = (value: Step) =>
-    value === "Party"
-      ? !!lobby
-      : value === "Ready"
-        ? !!lobby || complete
-        : true;
+    value === "Ready" ? !!lobby || complete : true;
   /** Back and Next walk the steps that can actually be opened right now. */
   const sequence = steps.filter(reachable);
-  const at = sequence.indexOf(step);
-  const previous = at > 0 ? sequence[at - 1] : undefined;
-  const following = sequence[at + 1];
+  const at = step === "Party" ? -1 : sequence.indexOf(step);
+  /** The party follows the wizard, so its way back is the step it followed. */
+  const previous =
+    step === "Party" ? "Ready" : at > 0 ? sequence[at - 1] : undefined;
+  const following = step === "Party" ? undefined : sequence[at + 1];
   const save = (e: React.FormEvent) => {
     e.preventDefault();
     if (!client) return;
@@ -336,6 +392,47 @@ export function SetupLobby({
   const submit = lobby ? (
     <Button disabled={busy || client?.hasPending}>Save setup draft</Button>
   ) : null;
+  /** Signed-in upkeep, shared by every surface of the lobby. */
+  const account =
+    session && client ? (
+      <p className="lobby-account">
+        Signed in as {session.principal}
+        <Button
+          type="button"
+          variant="outline"
+          disabled={busy}
+          onClick={() =>
+            void run(async () => {
+              if (client.hasPending) {
+                const recovered = await client.retry();
+                choose(recovered);
+                if (recovered.phase === "active") open(recovered);
+              }
+              const values = await client.request<Lobby[]>("");
+              setLobbies(values);
+              if (lobby) choose(await client.request<Lobby>(`/${lobby.id}`));
+            })
+          }
+        >
+          Refresh this list
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => {
+            remember(undefined);
+            setSecret("");
+            setGames([]);
+            setTemplates([]);
+            setProfiles([]);
+            setLobbies([]);
+            restart();
+          }}
+        >
+          Sign out
+        </Button>
+      </p>
+    ) : null;
   /** Back and Next make the sequence the step chips describe an actual one. */
   const walk = (
     <nav className="step-nav" aria-label="Setup step navigation">
@@ -347,7 +444,7 @@ export function SetupLobby({
       >
         Back
       </Button>
-      {step !== "Ready" && (
+      {step !== "Ready" && step !== "Party" && (
         <Button
           type="button"
           disabled={!following}
@@ -356,7 +453,7 @@ export function SetupLobby({
           {following ? `Next: ${following}` : "Next"}
         </Button>
       )}
-      {!following && step !== "Ready" && (
+      {!following && step !== "Ready" && step !== "Party" && (
         <p>
           Write a premise on the concept step, or choose an authored adventure,
           to review and create the draft.
@@ -401,6 +498,31 @@ export function SetupLobby({
           </label>
           <Button disabled={busy}>Sign in</Button>
         </form>
+      ) : mode === "scenarios" ? (
+        /* Scenario authoring is a library, not a step of setting up a game: it
+           keeps its own surface, where a document format and a publish history
+           are the subject rather than an aside (#261). */
+        <>
+          <h3 className="lobby-heading">Scenario library</h3>
+          <p>
+            Write, import and publish scenarios here. A published scenario
+            becomes an adventure you can choose under <strong>New game</strong>.
+          </p>
+          {account}
+          {!session.generationAvailable && <ProviderBanner />}
+          <ScenarioCatalog
+            token={session.token}
+            principal={session.principal}
+            generationAvailable={session.generationAvailable}
+            concept={brief}
+            onCreate={(value) => {
+              choose(value);
+              setLobbies([...lobbies, value]);
+              setStep("Party");
+              onMode?.("new");
+            }}
+          />
+        </>
       ) : (
         <>
           {/* The list this page exists to show comes first; keeping the shell's
@@ -482,44 +604,7 @@ export function SetupLobby({
           </ul>
           {/* Keeping the list current and leaving setup are upkeep, so they
               read as upkeep: secondary, in user words, below the list (#204). */}
-          <p className="lobby-account">
-            Signed in as {session.principal}
-            <Button
-              type="button"
-              variant="outline"
-              disabled={busy}
-              onClick={() =>
-                void run(async () => {
-                  if (client.hasPending) {
-                    const recovered = await client.retry();
-                    choose(recovered);
-                    if (recovered.phase === "active") open(recovered);
-                  }
-                  const values = await client.request<Lobby[]>("");
-                  setLobbies(values);
-                  if (lobby)
-                    choose(await client.request<Lobby>(`/${lobby.id}`));
-                })
-              }
-            >
-              Refresh this list
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                remember(undefined);
-                setSecret("");
-                setGames([]);
-                setTemplates([]);
-                setProfiles([]);
-                setLobbies([]);
-                restart();
-              }}
-            >
-              Sign out
-            </Button>
-          </p>
+          {account}
           {!session.generationAvailable && <ProviderBanner />}
           <div className="context-actions">
             <Button
@@ -544,7 +629,9 @@ export function SetupLobby({
               label at every width. */}
           <nav className="setup-steps" aria-label="Setup steps">
             <p className="eyebrow">
-              Step {steps.indexOf(step) + 1} of {steps.length}: {step}
+              {step === "Party"
+                ? "Party · after the draft is created"
+                : `Step ${steps.indexOf(step) + 1} of ${steps.length}: ${step}`}
             </p>
             <ol>
               {steps.map((value, index) => (
@@ -564,6 +651,21 @@ export function SetupLobby({
                 </li>
               ))}
             </ol>
+            {/* Not a numbered step: the party exists only once the service
+                holds a draft, so it is the screen that follows the wizard
+                rather than a chip nobody could walk forward into (#259). */}
+            {lobby && (
+              <p className="setup-next-screen">
+                <Button
+                  type="button"
+                  variant={step === "Party" ? "default" : "outline"}
+                  aria-current={step === "Party" ? "page" : undefined}
+                  onClick={() => setStep("Party")}
+                >
+                  Party
+                </Button>
+              </p>
+            )}
           </nav>
           {step === "Concept" &&
             (canEdit ? (
@@ -625,8 +727,10 @@ export function SetupLobby({
                       })
                     }
                   >
-                    {["gentle", "standard", "hard"].map((d) => (
-                      <option key={d}>{d}</option>
+                    {difficulties.map((d) => (
+                      <option key={d} value={d}>
+                        {difficultyLabel(d)}
+                      </option>
                     ))}
                   </select>
                 </label>
@@ -662,6 +766,9 @@ export function SetupLobby({
                 with.
               </p>
             ))}
+          {/* The step asks one question and answers it: which adventure. Writing
+              scenarios, importing documents and publishing revisions are a
+              library, and the library is its own surface (#261). */}
           {step === "Adventure" && (
             <>
               {canEdit ? (
@@ -670,13 +777,12 @@ export function SetupLobby({
                     Adventure and starting party
                     <select
                       value={graph?.id ?? ""}
-                      onChange={(e) => {
-                        const selected =
+                      onChange={(e) =>
+                        selectAdventure(
                           templates.find((t) => t.id === e.target.value) ??
-                          null;
-                        setGraph(selected);
-                        if (selected) setBrief(selected.brief);
-                      }}
+                            null,
+                        )
+                      }
                     >
                       <option value="">Choose an adventure</option>
                       {templates.map((t) => (
@@ -686,6 +792,61 @@ export function SetupLobby({
                       ))}
                     </select>
                   </label>
+                  {conflict && (
+                    <div className="concept-conflict" role="alert">
+                      <p>
+                        <strong>
+                          This adventure comes with a concept of its own.
+                        </strong>{" "}
+                        Nothing has changed yet — choose which one the draft
+                        carries.
+                      </p>
+                      <dl className="setup-review">
+                        <div>
+                          <dt>Yours</dt>
+                          <dd>{conflict.authored.premise || "No premise"}</dd>
+                        </div>
+                        <div>
+                          <dt>The adventure’s</dt>
+                          <dd>{conflict.adventure.premise || "No premise"}</dd>
+                        </div>
+                      </dl>
+                      <div className="context-actions">
+                        <Button
+                          type="button"
+                          onClick={() => setConflict(undefined)}
+                        >
+                          Keep my concept
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setReplaced(conflict.authored);
+                            setBrief(conflict.adventure);
+                            setConflict(undefined);
+                          }}
+                        >
+                          Use the adventure’s concept
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  {replaced && !conflict && (
+                    <p className="concept-restore" role="status">
+                      This adventure’s concept is in the concept step now.
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setBrief(replaced);
+                          setReplaced(undefined);
+                        }}
+                      >
+                        Restore my concept
+                      </Button>
+                    </p>
+                  )}
                   {!templates.length && (
                     <p>
                       No authored adventures are installed. Save your premise,
@@ -700,17 +861,18 @@ export function SetupLobby({
                   and starting party when the draft was created.
                 </p>
               )}
-              {!lobby && (
-                <ScenarioCatalog
-                  token={session.token}
-                  principal={session.principal}
-                  generationAvailable={session.generationAvailable}
-                  onCreate={(value) => {
-                    choose(value);
-                    setLobbies([...lobbies, value]);
-                    setStep("Party");
-                  }}
-                />
+              {!lobby && onMode && (
+                <p className="setup-secondary">
+                  Writing one of your own, starting from a template or importing
+                  a scenario document happens in the scenario library.
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => onMode("scenarios")}
+                  >
+                    Open the scenario library
+                  </Button>
+                </p>
               )}
             </>
           )}
@@ -790,13 +952,20 @@ export function SetupLobby({
             <>
               {canEdit && (
                 <form onSubmit={save}>
+                  {/* Two full character sheets on one page is four screens of
+                      form; each opens on its own, and the first is the one
+                      already open (#270). */}
                   {graph?.actors
                     .filter((a) => !graph.npc_actor_ids.includes(a.actor_id))
-                    .map((actor) => (
-                      <fieldset key={actor.actor_id}>
-                        <legend>
+                    .map((actor, index) => (
+                      <details
+                        key={actor.actor_id}
+                        className="party-character"
+                        open={index === 0}
+                      >
+                        <summary>
                           Character {characterName(actor.actor_id)}
-                        </legend>
+                        </summary>
                         <CharacterDraftEditor
                           proposal={actor.proposal}
                           preview={previewPartyCharacter}
@@ -821,7 +990,7 @@ export function SetupLobby({
                             })
                           }
                         />
-                      </fieldset>
+                      </details>
                     ))}
                   <p>
                     Characters and equipment are checked against the server’s
@@ -1107,7 +1276,7 @@ export function SetupLobby({
                   <dt>Style</dt>
                   <dd>
                     {brief.genre} · {brief.tone} · {brief.duration_minutes}{" "}
-                    minutes · {brief.difficulty}
+                    minutes · {difficultyLabel(brief.difficulty)}
                   </dd>
                 </div>
                 <div>

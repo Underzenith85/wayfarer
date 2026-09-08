@@ -146,3 +146,162 @@ it("clears previous profile figures when the preview source changes", async () =
     "Profile unavailable",
   );
 });
+
+/** A catalog with one of everything, including a trait the ruleset lists but
+ *  does not implement — the shape the bundled prototype actually returns. */
+const mixed: CharacterPreview = {
+  ...result,
+  catalog: [
+    {
+      id: "attribute:st",
+      name: "ST",
+      kind: "attribute",
+      status: "implemented",
+      point_cost: 10,
+      skill: null,
+      trait: null,
+    },
+    {
+      id: "skill:stealth",
+      name: "Stealth",
+      kind: "skill",
+      status: "implemented",
+      point_cost: null,
+      skill: null,
+      trait: null,
+    },
+    {
+      id: "trait:keen-senses",
+      name: "Keen senses",
+      kind: "trait",
+      status: "manual-adjudication",
+      point_cost: 5,
+      skill: null,
+      trait: null,
+    },
+    {
+      id: "trait:code-of-honor",
+      name: "Code of honor",
+      kind: "trait",
+      status: "manual-adjudication",
+      point_cost: -5,
+      skill: null,
+      trait: null,
+    },
+  ],
+  derived: [
+    ["attribute:st", "14"],
+    ["secondary:hp", "13"],
+    ["secondary:dodge", "8"],
+  ],
+};
+const section = (name: string) =>
+  [...document.querySelectorAll("details")].find((d) =>
+    d.querySelector("summary")!.textContent!.startsWith(name),
+  )!;
+/** Sections a character sheet opens on demand; a closed one shows nothing. */
+const opened = async (name: string) => {
+  const found = section(name);
+  if (!found.open) await userEvent.click(found.querySelector("summary")!);
+  return within(found);
+};
+
+it("scopes each picker to its own section and never lists what cannot be bought (#267, #272)", async () => {
+  const preview = vi.fn<PreviewCharacter>().mockResolvedValue(mixed);
+  render(<Editor preview={preview} />);
+  await screen.findByText("73 / 150 points");
+  // The one purchase is an attribute, so its picker offers attributes alone:
+  // a skill has a section of its own and is never added from here (#267).
+  const picker = within(section("Attributes")).getByRole("combobox");
+  expect(
+    within(picker)
+      .getAllByRole("option")
+      .map((o) => o.textContent),
+  ).toEqual(["ST"]);
+  // Nothing is offered as a disabled row suffixed "Unavailable"; the traits the
+  // ruleset lists but cannot play are named once, in their section (#272).
+  expect(screen.queryByText(/Unavailable/)).toBeNull();
+  expect(
+    (await opened("Advantages")).getByText(
+      /Listed in this game’s ruleset but not playable yet: Keen senses\./,
+    ),
+  ).toBeVisible();
+  expect(
+    (await opened("Disadvantages")).getByText(/Code of honor\./),
+  ).toBeVisible();
+});
+
+it("says plainly when a section cannot be used instead of leaving it empty (#268)", async () => {
+  const preview = vi.fn<PreviewCharacter>().mockResolvedValue(mixed);
+  render(<Editor preview={preview} />);
+  await screen.findByText("73 / 150 points");
+  // A section with something to add offers the control that adds it.
+  expect(
+    within(section("Skills")).getByRole("button", { name: "Add skill" }),
+  ).toBeEnabled();
+  // A section with nothing to add says so, rather than showing a heading, a
+  // point subtotal and no content at all.
+  for (const [name, text] of [
+    ["Advantages", "Advantages are not available in this game yet."],
+    ["Disadvantages", "Disadvantages are not available in this game yet."],
+    ["Equipment", "Equipment is not available in this game yet."],
+  ] as const) {
+    const region = await opened(name);
+    expect(region.getByText(text)).toBeVisible();
+    expect(region.queryByRole("button")).toBeNull();
+  }
+});
+
+it("names each entry once and keeps removal a quiet control (#270)", async () => {
+  const preview = vi.fn<PreviewCharacter>().mockResolvedValue(mixed);
+  render(<Editor preview={preview} />);
+  await screen.findByText("73 / 150 points");
+  const row = document.querySelector<HTMLElement>(".purchase-row")!;
+  // The chosen option is the only place the entry is named; the stepper and the
+  // remove control take their accessible names from it without printing it.
+  expect(within(row).getByRole("combobox")).toHaveDisplayValue("ST");
+  expect([...row.querySelectorAll("label")].map((l) => l.className)).toEqual([
+    "visually-hidden",
+    "visually-hidden",
+  ]);
+  const remove = within(row).getByRole("button", {
+    name: "Remove Strength",
+  });
+  expect(remove).toHaveClass("button-outline");
+  expect(remove).toHaveClass("purchase-remove");
+  expect(screen.queryByRole("button", { name: /Remove ability/ })).toBeNull();
+  await userEvent.click(remove);
+  expect(document.querySelector(".purchase-row")).toBeNull();
+});
+
+it("shows what the build derives and never repeats the primary attributes (#269)", async () => {
+  const preview = vi.fn<PreviewCharacter>().mockResolvedValue(mixed);
+  render(<Editor preview={preview} />);
+  await screen.findByText("73 / 150 points");
+  const panel = within(
+    screen.getByRole("region", { name: "Derived statistics" }),
+  );
+  expect(panel.getAllByRole("term").map((t) => t.textContent)).toEqual([
+    "Hit points",
+    "Dodge",
+  ]);
+  expect(panel.queryByText("Strength")).toBeNull();
+  expect(panel.queryByText("14")).toBeNull();
+});
+
+it("states that a ruleset derives nothing rather than echoing the attributes (#269)", async () => {
+  const preview = vi.fn<PreviewCharacter>().mockResolvedValue({
+    ...mixed,
+    derived: [
+      ["attribute:st", "14"],
+      ["attribute:ht", "10"],
+    ],
+  });
+  render(<Editor preview={preview} />);
+  await screen.findByText("73 / 150 points");
+  expect(
+    within(
+      screen.getByRole("region", { name: "Derived statistics" }),
+    ).getByText(/derives no secondary characteristics/),
+  ).toBeVisible();
+});
