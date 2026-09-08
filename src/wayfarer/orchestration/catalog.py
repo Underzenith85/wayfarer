@@ -334,9 +334,7 @@ class ScenarioCatalog:
             job.version,
         )
         request = job.request
-        current_document = (
-            parse_document(working_source) if working_source is not None else None
-        )
+        current_document = parse_document(working_source) if working_source is not None else None
         current_graph = bind_party(current_document) if current_document is not None else None
         current_context: object = None
         if current_graph is not None:
