@@ -7,9 +7,11 @@ from pydantic import Field
 
 from wayfarer.errors import ValidationError, WayfarerError
 from wayfarer.orchestration.combat import (
+    COMBAT_ADAPTER,
     ChooseDefense,
     CombatService,
     MigrateEncounterHex,
+    RepairEquipment,
     ResolveChokeEffects,
     ResumeInterruptedTurn,
     TakeCombatTurn,
@@ -18,9 +20,22 @@ from wayfarer.orchestration.combat import (
 from wayfarer.orchestration.tactical_view import project, snapshot, visible_actors
 from wayfarer.simulation.resources import Record
 from wayfarer.transport.campaign_api import ACCESS_KEY, _identity, _json
+from wayfarer.transport.tactical_v1_commands import ChooseDefense as ChooseDefenseV1
+from wayfarer.transport.tactical_v1_commands import TakeUnarmedTurn as TakeUnarmedTurnV1
 
 
 class TacticalRequest(Record):
+    command: (
+        TakeCombatTurn
+        | TakeUnarmedTurnV1
+        | ChooseDefenseV1
+        | MigrateEncounterHex
+        | ResumeInterruptedTurn
+        | ResolveChokeEffects
+    ) = Field(discriminator="kind")
+
+
+class TacticalRequestV2(Record):
     command: (
         TakeCombatTurn
         | TakeUnarmedTurn
@@ -28,6 +43,7 @@ class TacticalRequest(Record):
         | MigrateEncounterHex
         | ResumeInterruptedTurn
         | ResolveChokeEffects
+        | RepairEquipment
     ) = Field(discriminator="kind")
 
 
@@ -46,8 +62,11 @@ async def execute(request: web.Request) -> web.Response:
     access = await request.app[ACCESS_KEY].runtime(cid)
     state = access.play._load(await access.play.store.read(cid))
     member = access._member(state, principal)
-    body = TacticalRequest.model_validate_json(json.dumps(await _json(request)))
-    command = body.command
+    request_type = (
+        TacticalRequestV2 if request.path.startswith("/api/tactical/v2/") else TacticalRequest
+    )
+    body = request_type.model_validate_json(json.dumps(await _json(request)))
+    command = COMBAT_ADAPTER.validate_json(body.command.model_dump_json())
     access._control(member, command.actor_id)
     payload = json.dumps(
         {"operation": "combat", "command": command.model_dump(mode="json")},
@@ -103,5 +122,7 @@ def install(app: web.Application) -> None:
         [
             web.get("/api/tactical/v1/campaigns/{cid}", read),
             web.post("/api/tactical/v1/campaigns/{cid}/commands", execute),
+            web.get("/api/tactical/v2/campaigns/{cid}", read),
+            web.post("/api/tactical/v2/campaigns/{cid}/commands", execute),
         ]
     )

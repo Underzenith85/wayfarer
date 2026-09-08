@@ -150,7 +150,7 @@ def preview(
         if interrupt is None or not interrupt.ready or interrupt.actor_id != command.actor_id:
             raise ValidationError("No interrupted turn is ready")
         return
-    guard_control(encounter, command)
+    guard_control(encounter, command, state)
     if isinstance(command, ChooseDefense):
         prepared = prepare_defense(play, state, encounter, command)
         if prepared.pending_unarmed is not None:
@@ -236,6 +236,7 @@ def preview(
             result,
             command.mode_id,
             hit_location=command.hit_location,
+            target_item_id=command.target_item_id,
             shots=command.shots,
         )
     if command.maneuver == "aim":
@@ -443,6 +444,22 @@ def choices(
                         )
                     )
                 if isinstance(mode, MeleeMode):
+                    for target_item in state.resources.items:
+                        if (
+                            target_item.owner_id == target_id
+                            and target_item.equipped
+                            and target_item.condition
+                        ):
+                            candidates.append(
+                                (
+                                    f"Strike {target_name}'s {target_item.definition_id}",
+                                    {
+                                        **attack_fields,
+                                        "maneuver": "attack",
+                                        "target_item_id": target_item.id,
+                                    },
+                                )
+                            )
                     candidates.append(
                         (
                             f"Wait for {target_name} to attack — {mode.id}",

@@ -505,3 +505,48 @@ async def test_hex_ranged_distance_accounts_for_elevation(tmp_path: Path) -> Non
     )
     encounter = encounter.model_copy(update={"hex_battlefield": raised})
     assert situation(encounter, "a", "b").distance_yards == 3
+
+
+async def test_unarmed_v2_options_do_not_change_v1_request_contract(
+    http: tuple[str, str, PlayService],
+) -> None:
+    base, cid, play = http
+    state = play._load(await play.store.read(cid))
+    body = {
+        "command": {
+            "kind": "take_unarmed_turn",
+            "id": "v2-strong",
+            "actor_id": "a",
+            "expected_revision": state.revision,
+            "encounter_id": "fight",
+            "action": "kick",
+            "target_id": "b",
+            "maneuver": "all_out_attack",
+            "attack_option": "strong",
+        }
+    }
+    headers = {"Authorization": "Bearer alice-token"}
+    play.rng = RecordedDice(())
+    async with aiohttp.ClientSession() as client:
+        async with client.post(
+            f"{base}/api/tactical/v1/campaigns/{cid}/commands", json=body, headers=headers
+        ) as response:
+            assert response.status == 400
+        assert play._load(await play.store.read(cid)) == state
+        async with client.post(
+            f"{base}/api/tactical/v2/campaigns/{cid}/commands", json=body, headers=headers
+        ) as response:
+            assert response.status == 200, await response.text()
+        after = play._load(await play.store.read(cid))
+        actor = next(p for p in after.encounters[0].participants if p.actor_id == "a")
+        assert actor.maneuver_state.strong and actor.maneuver_state.defense_forbidden
+        async with client.post(
+            f"{base}/api/tactical/v2/campaigns/{cid}/commands", json=body, headers=headers
+        ) as response:
+            assert response.status == 200, await response.text()
+        assert play._load(await play.store.read(cid)) == after
+    assert play.rng.exhausted()
+
+
+def test_tactical_v2_contract_matches_checked_in_schema() -> None:
+    assert Path("contracts/tactical/v2/openapi.json").read_text() == contract(2)

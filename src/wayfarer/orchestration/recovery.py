@@ -49,7 +49,19 @@ def captive(state: PlayState, actor_id: str) -> Captivity | None:
 
 
 def guard(state: PlayState, actor_id: str, kind: str) -> None:
+    from wayfarer.simulation.object_repairs import tasks
+
+    if kind not in ("question", "wait", "repair_equipment") and any(
+        t.actor_id == actor_id and t.status == "pending" for t in tasks(state.resources)
+    ):
+        raise ConflictError("Finish or cancel the repair attempt before acting")
     from wayfarer.rules.recovery_types import require_settled
+    from wayfarer.simulation.fright import blocked, requires_adjudication
+
+    if kind not in ("question", "wait") and (
+        blocked(state.resources, actor_id) or requires_adjudication(state.resources, actor_id)
+    ):
+        raise ValidationError("Resolve the actor's fright condition before acting")
     from wayfarer.simulation.spell_backfires import backfires
 
     if kind != "question":

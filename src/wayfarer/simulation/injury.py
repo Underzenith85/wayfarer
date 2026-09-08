@@ -61,7 +61,7 @@ class ResolveCrippling(Command):
 
 class DisableLocation(Command):
     kind: Literal["disable-location"] = "disable-location"
-    location: Literal["left-arm", "right-arm"]
+    location: Literal["left-arm", "right-arm", "left-leg", "right-leg"]
     duration_seconds: int = Field(ge=1)
 
 
@@ -134,6 +134,7 @@ def apply_injury(
     stun_iq: int | None = None,
     head_trauma: Literal["deafened", "scarred"] | None = None,
     scar_levels: int = 1,
+    pain_only: bool = False,
 ) -> tuple[ResourceState, InjuryResult]:
     """Pure reducer; persist atomically via the existing commit_turn/CAS boundary.
 
@@ -165,6 +166,8 @@ def apply_injury(
         encoded += f":stun-iq:{stun_iq}"
     if force_major_wound or double_shock:
         encoded += f":critical:{force_major_wound}:{double_shock}"
+    if pain_only:
+        encoded += ":arm-lock-pain"
     if funny_bone or halve_dr or ignore_dr:
         encoded += f":location-critical:{funny_bone}:{halve_dr}:{ignore_dr}"
     if head_trauma is not None:
@@ -195,6 +198,18 @@ def apply_injury(
     ):
         raise ValidationError("Held location bindings must identify unique authoritative hands")
     status = pool.injury
+    if pain_only and (
+        not isinstance(command, Wound)
+        or command.damage_type != "cr"
+        or command.location not in ("left-arm", "right-arm")
+        or not any(
+            w.location == command.location
+            and w.kind == "crippled"
+            and w.active(now=state.game_time, full_hp=pool.current == pool.maximum)
+            for w in status.lasting_injuries
+        )
+    ):
+        raise ValidationError("Arm-lock pain requires an already crippled arm")
     if (
         status.mortal_wound
         and not status.dead
@@ -275,7 +290,9 @@ def apply_injury(
                 1 if command.damage_type.startswith("pi") or command.damage_type == "imp" else 2,
             )
         uncapped = injury
-        threshold = crippling_threshold(location, pool.maximum) if location else None
+        threshold = (
+            crippling_threshold(location, pool.maximum) if location and not pain_only else None
+        )
         crippled = threshold is not None and injury >= threshold
         funny = funny_bone and threshold is not None and injury > 0 and not crippled
         if crippled or funny:
@@ -380,7 +397,8 @@ def apply_injury(
                     update={"lasting_injuries": status.lasting_injuries + (trauma,)}
                 )
                 lasting_ids.append(trauma.id)
-        current -= injury
+        if not pain_only:
+            current -= injury
         if injury and not status.dead:
             shock = injury // max(1, pool.maximum // 10)
             double_shock = double_shock or (
@@ -468,6 +486,8 @@ def apply_injury(
             )
             if status.unconscious:
                 dropped = tuple(i.id for i in state.items if i.id in held_item_ids)
+        if pain_only:
+            injury = 0
     elif isinstance(command, ResolveCrippling):
         require_location(status, "torso")
         pending_wound = next(
@@ -511,6 +531,8 @@ def apply_injury(
             recovery_at=state.game_time + command.duration_seconds,
         )
         status = status.model_copy(update={"lasting_injuries": status.lasting_injuries + (wound,)})
+        if part(command.location) == "leg":
+            status = status.model_copy(update={"prone": True})
         lasting_ids.append(wound.id)
         # B557 shoulder strain prevents use, but does not require dropping the weapon.
     else:

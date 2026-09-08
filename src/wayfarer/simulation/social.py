@@ -23,7 +23,7 @@ from wayfarer.world import EntityKind, World
 
 
 class SocialCommand(Command):
-    kind: Literal["reaction", "influence", "fright", "self-control"]
+    kind: Literal["reaction", "influence", "fright", "self-control", "fright-recovery"]
     subject_id: str
     trigger_id: str
 
@@ -31,9 +31,10 @@ class SocialCommand(Command):
 class SocialOutcome(Record):
     """Explicit player projection: no raw roll, threshold, modifier or secret ID."""
 
-    kind: Literal["reaction", "influence", "fright", "self-control"]
+    kind: Literal["reaction", "influence", "fright", "self-control", "fright-recovery"]
     outcome: str
     requires_adjudication: bool = False
+    adjudication: tuple[str, ...] = ()
 
 
 class SocialContext:
@@ -83,6 +84,8 @@ def apply_social(
         if any(":" in part for part in identity)
         else "social:" + ":".join(identity)
     )
+    if command.kind == "fright-recovery":
+        event_id = "social-recovery:" + hashlib.sha256(command.id.encode()).hexdigest()
     previous = next((r for r in state.receipts if r.command_id == command.id), None)
     if previous:
         if previous.digest != digest:
@@ -108,7 +111,19 @@ def apply_social(
     ):
         raise ConflictError("Social trigger already resolved")
     details: object
-    if command.kind == "reaction":
+    if command.kind == "fright-recovery":
+        from wayfarer.simulation.fright import recover
+
+        state, passed = recover(
+            state,
+            actor_id=command.subject_id,
+            trigger_id=command.trigger_id,
+            command_id=command.id,
+            rng=rng,
+        )
+        outcome = SocialOutcome(kind=command.kind, outcome="recovered" if passed else "recovering")
+        details = {}
+    elif command.kind == "reaction":
         trace = reaction_roll(context.profile_id, context.modifiers, rng=rng)
         outcome = SocialOutcome(kind=command.kind, outcome=trace.outcome)
         details = asdict(trace)
@@ -133,6 +148,27 @@ def apply_social(
             requires_adjudication=fright.effect is not None
             and (fright.effect.trait_choice != "none" or fright.effect.condition == "panic"),
         )
+        if fright.effect is not None:
+            effect = fright.effect
+            choices = []
+            if effect.trait_choice != "none":
+                choices.append(f"{effect.trait_choice}:{effect.trait_points}")
+            if effect.condition == "panic":
+                choices.append("panic-action")
+            if effect.permanent_ht_loss:
+                choices.append(f"permanent-ht-loss:{effect.permanent_ht_loss}")
+            if effect.permanent_iq_loss:
+                choices.append(f"permanent-iq-loss:{effect.permanent_iq_loss}")
+            if effect.neglect_progression:
+                choices.append("catatonia-medical-care")
+            if effect.aftermath_seconds:
+                choices.append("aftermath-penalty")
+            outcome = outcome.model_copy(
+                update={
+                    "requires_adjudication": bool(choices),
+                    "adjudication": tuple(choices),
+                }
+            )
         details = {
             "check": asdict(fright.check),
             "table_dice": fright.table_dice,

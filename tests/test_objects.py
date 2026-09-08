@@ -102,6 +102,10 @@ def test_hp_is_smallest_integer_cube_bound(weight: int) -> None:
         ("unliving", "imp", 7, 5),
         ("homogenous", "cut", 7, 7),
         ("homogenous", "cr", 2, 0),
+        ("diffuse", "imp", 102, 1),
+        ("diffuse", "pi++", 102, 1),
+        ("diffuse", "cut", 102, 2),
+        ("diffuse", "burn", 102, 2),
     ],
 )
 def test_independent_wounding(construction: str, kind: str, damage: int, expected: int) -> None:
@@ -176,7 +180,7 @@ def test_stress_once_per_second_and_authority_before_rng() -> None:
         rng=RecordedDice([5, 5, 5]),
     )
     assert next(i for i in state.items if i.id == "sword").condition == ObjectCondition(
-        hp=0, disabled=True, last_stress_at=1
+        hp=0, disabled=True, last_stress_at=1, shock=4, shock_until=1
     )
 
 

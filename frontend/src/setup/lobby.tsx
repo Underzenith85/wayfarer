@@ -285,11 +285,19 @@ export function SetupLobby({
   const complete =
     !!brief.premise.trim() && !!brief.genre.trim() && !!brief.tone.trim();
   /**
-   * Only the last step is gated, and only on the thing it reviews, so no chip is
-   * ever offered while an earlier one is closed (#260).
+   * What each step needs before it has anything to show. Today only the last
+   * one asks for something: review has a draft to review, or a brief complete
+   * enough to create one from.
+   */
+  const ready = (value: Step) =>
+    value === "Ready" ? !!lobby || complete : true;
+  /**
+   * Availability is monotonic: a step opens only once every step before it is
+   * open, so the row of chips is never a gap with a later step past it and
+   * nothing can be skipped by jumping ahead of a closed step (#260).
    */
   const reachable = (value: Step) =>
-    value === "Ready" ? !!lobby || complete : true;
+    steps.slice(0, steps.indexOf(value) + 1).every(ready);
   /** Back and Next walk the steps that can actually be opened right now. */
   const sequence = steps.filter(reachable);
   const at = step === "Party" ? -1 : sequence.indexOf(step);
@@ -620,10 +628,10 @@ export function SetupLobby({
           ) : (
             <p>Create a game, or open an invitation above.</p>
           )}
-          {/* The line names the step; the chips below it are the same five
-              steps, shown as numbered dots where a labelled row cannot fit on
-              one line (#206). Every chip keeps its step name as its accessible
-              label at every width. */}
+          {/* The line names the step; the chips below it are the same four
+              numbered steps, shown as numbered dots where a labelled row
+              cannot fit on one line (#206). Every chip keeps its step name as
+              its accessible label at every width. */}
           <nav className="setup-steps" aria-label="Setup steps">
             <p className="eyebrow">
               {step === "Party"

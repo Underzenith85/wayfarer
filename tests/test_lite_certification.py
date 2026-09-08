@@ -11,6 +11,7 @@ from scripts import lite_certification as gate
 from scripts import release_gates
 from wayfarer.rules.conformance import BASELINE_ID, CAPABILITIES, PROFILES, CoverageStatus
 from wayfarer.rules.profiles import GURPS_LITE_PROFILE
+from wayfarer.simulation.equipment_audit import lite_gaps
 
 
 def test_current_lite_certification_is_explicitly_blocked(tmp_path: Path) -> None:
@@ -26,6 +27,7 @@ def test_current_lite_certification_is_explicitly_blocked(tmp_path: Path) -> Non
     assert "Unverified Lite mechanic" in errors
     assert "Missing real-service Lite" in errors
     assert "source audit pending" in errors
+    assert "Lite equipment gap: lite-weapon-table (#121)" in errors
 
 
 @pytest.mark.parametrize(
@@ -50,6 +52,7 @@ def test_current_lite_certification_is_explicitly_blocked(tmp_path: Path) -> Non
         "ledger",
         "audit",
         "catalog",
+        "equipment",
         "journey",
     ],
 )
@@ -80,6 +83,8 @@ def test_gate_requires_complete_pinned_passing_evidence(
     monkeypatch.setattr(
         gate, "CAPABILITIES", {identifier: replace(CAPABILITIES[identifier], status=status)}
     )
+    gaps = lite_gaps() if defect == "equipment" else ()
+    monkeypatch.setattr(gate, "lite_gaps", lambda: gaps)
     manifest = gate.CertificationManifest.model_validate_json(
         (gate.ROOT / "tests/fixtures/gurps/lite-certification.json").read_text()
     )

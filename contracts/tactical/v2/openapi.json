@@ -2,11 +2,11 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Tactical play",
-    "version": "1.0.0"
+    "version": "2.0.0"
   },
   "servers": [
     {
-      "url": "/api/tactical/v1"
+      "url": "/api/tactical/v2"
     }
   ],
   "security": [
@@ -138,7 +138,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TacticalRequest"
+                "$ref": "#/components/schemas/TacticalRequestV2"
               }
             }
           }
@@ -379,6 +379,30 @@
               }
             ],
             "default": null
+          },
+          "parry_mode_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Parry Mode Id"
+          },
+          "second_parry_mode_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Second Parry Mode Id"
           }
         },
         "required": [
@@ -935,20 +959,6 @@
             "default": null,
             "title": "Hit Location"
           },
-          "target_item_id": {
-            "anyOf": [
-              {
-                "maxLength": 200,
-                "minLength": 1,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Target Item Id"
-          },
           "ready_hand": {
             "anyOf": [
               {
@@ -1226,6 +1236,34 @@
             "default": false,
             "title": "Enter Close Combat",
             "type": "boolean"
+          },
+          "maneuver": {
+            "default": "attack",
+            "enum": [
+              "attack",
+              "all_out_attack",
+              "move_and_attack"
+            ],
+            "title": "Maneuver",
+            "type": "string"
+          },
+          "attack_option": {
+            "anyOf": [
+              {
+                "enum": [
+                  "determined",
+                  "strong",
+                  "double",
+                  "feint"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Attack Option"
           }
         },
         "required": [
@@ -1575,79 +1613,6 @@
         "title": "Pose",
         "type": "object"
       },
-      "RepairEquipment": {
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "maxLength": 200,
-            "minLength": 1,
-            "title": "Id",
-            "type": "string"
-          },
-          "actor_id": {
-            "maxLength": 200,
-            "minLength": 1,
-            "title": "Actor Id",
-            "type": "string"
-          },
-          "expected_revision": {
-            "minimum": 0,
-            "title": "Expected Revision",
-            "type": "integer"
-          },
-          "kind": {
-            "const": "repair_equipment",
-            "default": "repair_equipment",
-            "title": "Kind",
-            "type": "string"
-          },
-          "encounter_id": {
-            "maxLength": 200,
-            "minLength": 1,
-            "title": "Encounter Id",
-            "type": "string"
-          },
-          "item_id": {
-            "maxLength": 200,
-            "minLength": 1,
-            "title": "Item Id",
-            "type": "string"
-          },
-          "stage": {
-            "enum": [
-              "start",
-              "finish",
-              "cancel"
-            ],
-            "title": "Stage",
-            "type": "string"
-          },
-          "task_id": {
-            "anyOf": [
-              {
-                "maxLength": 200,
-                "minLength": 1,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Task Id"
-          }
-        },
-        "required": [
-          "id",
-          "actor_id",
-          "expected_revision",
-          "encounter_id",
-          "item_id",
-          "stage"
-        ],
-        "title": "RepairEquipment",
-        "type": "object"
-      },
       "ResolveChokeEffects": {
         "additionalProperties": false,
         "properties": {
@@ -1715,7 +1680,7 @@
         "title": "Stairway",
         "type": "object"
       },
-      "TacticalRequest": {
+      "TacticalRequestV2": {
         "additionalProperties": false,
         "properties": {
           "command": {
@@ -1723,7 +1688,6 @@
               "mapping": {
                 "choose_defense": "#/components/schemas/ChooseDefense",
                 "migrate_encounter_hex": "#/components/schemas/MigrateEncounterHex",
-                "repair_equipment": "#/components/schemas/RepairEquipment",
                 "resolve_choke_effects": "#/components/schemas/ResolveChokeEffects",
                 "resume_interrupted_turn": "#/components/schemas/ResumeInterruptedTurn",
                 "take_combat_turn": "#/components/schemas/TakeCombatTurn",
@@ -1749,9 +1713,6 @@
               },
               {
                 "$ref": "#/components/schemas/ResolveChokeEffects"
-              },
-              {
-                "$ref": "#/components/schemas/RepairEquipment"
               }
             ],
             "title": "Command"
@@ -1760,7 +1721,7 @@
         "required": [
           "command"
         ],
-        "title": "TacticalRequest",
+        "title": "TacticalRequestV2",
         "type": "object"
       },
       "TacticalError": {

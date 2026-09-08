@@ -109,6 +109,16 @@ export interface components {
       second_item_id: string | null;
       /** @default null */
       retreat: components["schemas"]["Hex"] | null;
+      /**
+       * Parry Mode Id
+       * @default null
+       */
+      parry_mode_id: string | null;
+      /**
+       * Second Parry Mode Id
+       * @default null
+       */
+      second_parry_mode_id: string | null;
     };
     /** GridPoint */
     GridPoint: {
@@ -351,11 +361,6 @@ export interface components {
         | "random"
         | null;
       /**
-       * Target Item Id
-       * @default null
-       */
-      target_item_id: string | null;
-      /**
        * Ready Hand
        * @default null
        */
@@ -482,6 +487,17 @@ export interface components {
        * @default false
        */
       enter_close_combat: boolean;
+      /**
+       * Maneuver
+       * @default attack
+       * @enum {string}
+       */
+      maneuver: "attack" | "all_out_attack" | "move_and_attack";
+      /**
+       * Attack Option
+       * @default null
+       */
+      attack_option: ("determined" | "strong" | "double" | "feint") | null;
     };
     /** WaitTrigger */
     WaitTrigger: {
@@ -623,34 +639,6 @@ export interface components {
         | "sitting"
         | "lying";
     };
-    /** RepairEquipment */
-    RepairEquipment: {
-      /** Id */
-      id: string;
-      /** Actor Id */
-      actor_id: string;
-      /** Expected Revision */
-      expected_revision: number;
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      kind: "repair_equipment";
-      /** Encounter Id */
-      encounter_id: string;
-      /** Item Id */
-      item_id: string;
-      /**
-       * Stage
-       * @enum {string}
-       */
-      stage: "start" | "finish" | "cancel";
-      /**
-       * Task Id
-       * @default null
-       */
-      task_id: string | null;
-    };
     /** ResolveChokeEffects */
     ResolveChokeEffects: {
       /** Id */
@@ -677,8 +665,8 @@ export interface components {
       start: components["schemas"]["Hex"];
       end: components["schemas"]["Hex"];
     };
-    /** TacticalRequest */
-    TacticalRequest: {
+    /** TacticalRequestV2 */
+    TacticalRequestV2: {
       /** Command */
       command:
         | components["schemas"]["TakeCombatTurn"]
@@ -686,8 +674,7 @@ export interface components {
         | components["schemas"]["ChooseDefense"]
         | components["schemas"]["MigrateEncounterHex"]
         | components["schemas"]["ResumeInterruptedTurn"]
-        | components["schemas"]["ResolveChokeEffects"]
-        | components["schemas"]["RepairEquipment"];
+        | components["schemas"]["ResolveChokeEffects"];
     };
     TacticalError: {
       code: string;
@@ -800,7 +787,7 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["TacticalRequest"];
+        "application/json": components["schemas"]["TacticalRequestV2"];
       };
     };
     responses: {

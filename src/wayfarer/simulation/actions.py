@@ -925,6 +925,12 @@ class ActionEngine:
         ruling_id: str | None = None,
         advance_time: bool = True,
     ) -> tuple[PlayState, ActionResult]:
+        from wayfarer.simulation.object_repairs import tasks
+
+        if not isinstance(command, (Wait, Question)) and any(
+            t.status == "pending" and t.actor_id == command.actor_id for t in tasks(state.resources)
+        ):
+            raise ConflictError("Finish or cancel the repair attempt before acting")
         ruling = None
         extra_modifiers: tuple[Modifier, ...] = ()
         if ruling_id is not None:

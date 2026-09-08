@@ -196,7 +196,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.equipment.weapon_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; source audit pending) |
 | `gurps.equipment.armor_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; source audit pending) |
 | `gurps.equipment.catalog` | yes | yes | partial | #114 |
-| `gurps.equipment.object_durability` | no | yes | partial | #114; #181 live integration |
+| `gurps.equipment.object_durability` | no | yes | partial | #114; #181 live melee/repair integration; remaining #289/#290 |
 | `gurps.injury.damage_types` | yes | yes | partial | #102 |
 | `gurps.injury.damage_resistance` | yes | yes | partial | #102 |
 | `gurps.injury.hp_thresholds` | yes | yes | partial | #102 |
@@ -211,7 +211,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.combat.aim` | yes | yes | partial | #104/#152; target-bound accumulation, disruption, bracing and typed fixed/variable scopes; broader ranged resolution #106/#173 |
 | `gurps.combat.ammunition` | yes | yes | partial | #106; [reservations and reload timing](gurps-ranged.md); #173 adds opt-in per-round loading and magazine unloading; remaining #173 |
 | `gurps.combat.rapid_fire` | no | yes | partial | #106; [burst and Dodge resolution](gurps-ranged.md); remaining #173 |
-| `gurps.combat.unarmed` | yes | yes | partial | #108, #176; [unarmed attacks, Double Defense and remaining integrations](gurps-unarmed.md) |
+| `gurps.combat.unarmed` | yes | yes | partial | #108, #176; [unarmed critical effects, defenses and remaining integrations](gurps-unarmed.md) |
 | `gurps.combat.grappling` | yes | yes | partial | #108, #176; [durable grips and remaining integrations](gurps-unarmed.md) |
 | `gurps.tactical.hex_movement` | no | yes | partial | #105 |
 | `gurps.tactical.facing` | no | yes | partial | #105 |
@@ -409,9 +409,23 @@ timed consequence execution in #137. The complete numeric fright table is
 represented by typed FrightEffect records: durations, recovery attributes and
 intervals, HP/FP losses, aftermath penalties, permanent attribute losses and
 explicit GM trait/panic choices. Each row has executable tests. Table effects
-are persisted in the private receipt; applying timed effects to live characters
-remains an explicit integration blocker in #137. Coverage does not claim that
-recording an effect already executes it. These blockers remain visible for #122.
+are persisted in the private receipt. The #137 runtime adapter now applies HP/FP
+losses through injury/fatigue services and persists temporary conditions and
+recovery deadlines. The explicit `fright-recovery` director command resolves a
+due check once; time advancement cannot skip an unresolved deadline. Modified
+Will recovery retains the original trigger target, without the Fright Check's
+Rule-of-14 cap. Build HT/Will and explicit profile pools are validated before dice.
+
+Choice-bearing results expose typed requirement labels and do not edit approved
+builds. Catatonia stops for medical-care adjudication no later than its first day;
+permanent losses and aftermath effects conservatively block actions pending
+integration. These are not implemented consequences. #299 tracks authored
+NPC/scheduler trigger dispatch, combat-specific condition behavior, automatic
+recovery dispatch, lasting adjudication, catatonia care/neglect, and aftermath
+penalties. #137 remains incomplete and these blockers remain visible for #122.
+`tests/test_fright_runtime.py` checks independent B360-361 examples (Campaigns,
+Fourth Edition, fourth printing) for FP loss, internal injury, automatic stun,
+coma deadlines, recovery retries, privacy and unchanged approved builds.
 
 `orchestration.social.SocialService` binds a trusted trigger resolver and commits
 the resource receipt and bounded NPC disclosure together through the existing
@@ -420,8 +434,8 @@ profile, and rejects reaction/influence dispatch against player-controlled
 subjects. Persisted retries do not re-run the resolver or recheck changed world
 knowledge. Colon-bearing trigger identities cannot alias, and legacy receipts
 remain readable. Player projections and event streams omit private traces.
-Fright dispatch rejects before rolling until timed consequence integration is
-available; its pure table resolver remains separately testable. Independent
+Fright dispatch now applies the timed runtime adapter; unsupported lasting
+consequences remain explicit adjudication requirements tracked in #299. Independent
 SQLite restart, stale command, failed disclosure, authority, and projection tests
 cover this boundary. The profile registry remains gated pending certification.
 
@@ -558,15 +572,17 @@ B280 ultra-tech entries are a separate blocked index. Vehicle listings (B464)
 are separate from inventory and explicitly reject operation pending #120.
 `tests/test_basic_equipment.py` enumerates the selected rows independently.
 This is not a complete table inventory. Remaining rows and special mechanics
-are a completion blocker in #180. The source is Characters fourth edition,
-third printing (February 2008); no separate errata overlay is selected. These
-facts do not certify the frozen first-printing profile. The adapter makes no
-automatic catalog or saved-campaign changes.
+are a completion blocker in #180, which now accounts for them item by item; see
+[the equipment table audit](gurps-equipment-audit.md). The source is Characters
+fourth edition, third printing (February 2008); no separate errata overlay is
+selected. These facts do not certify the frozen first-printing profile. The
+adapter makes no automatic catalog or saved-campaign changes.
 
 Object rules reference Campaigns fourth edition, fourth printing, B380 and
 B483–484, with no additional errata overlay. `ObjectProfile` explicitly selects
-Basic Set homogeneous/unliving, nonsentient construction, maximum HP, DR and
-HT. Exact integer cube-root HP computation implements B483 rounding upward.
+Basic Set homogeneous/unliving/diffuse, nonsentient construction, maximum HP, DR and
+HT. Diffuse point attacks use B380 injury caps; cube-root HP calculation remains
+limited to homogeneous and unliving construction. Exact integer cube-root HP computation implements B483 rounding upward.
 An explicit initialization operation adds condition to individual inventory
 instances; existing items receive no implicit durability state. Unsupported
 item mechanics reject inventory-spec conversion and package binding.
@@ -579,16 +595,108 @@ multiples, and at-most-once-per-second stress checks at zero HP or below.
 `ResourceService.execute_object` uses the existing SQLite/PostgreSQL transaction
 store; actor authentication and engine authority are required before retries.
 Damage results and dice survive reload. Disabled items retain their IDs, owner,
-weight and custody, lose readiness, and cannot be equipped again. Disabled
-armor is excluded from melee/ranged protection. No frozen player endpoint is
+weight and custody. Disabled equipment loses readiness unless an explicit
+reviewed B485 residual weapon definition is bound to its recorded d6 outcome.
+Destroyed equipment never gains a residual mode. Disabled armor is excluded
+from melee/ranged protection and critical self-wounds. No frozen player endpoint is
 added and no player can supply authoritative damage through this operation.
 
-The capability remains partial. This resource transaction is not the live
-PlayService combat transaction: automatic stress scheduling, object targeting,
-shield interception, weapon critical breakage, encounter synchronization,
-shock, diffuse/fragile/sentient objects, residual broken-weapon modes and repairs
-remain #181 completion blockers. Do not invoke resource-only writes against a
-live encounter. #106 and #107 remain the hard merge prerequisites declared by #114.
+The live `CombatService` now calls the same object reducers inside its existing
+campaign CAS. A single attack can select an equipped object with `target_item_id`;
+B400 melee-weapon penalties or an explicitly pinned object SM apply. Object HP
+loss does not injure the owner. Successful melee defenses intercept on a durable
+shield only when its DB changed the result; B408/B484 cover DR determines the
+remaining damage. Attack/Parry/Block weapon use schedules an object stress check,
+at most once per shared second. A failed stress check commits loss of use without
+rolling the cancelled attack. Weapon attack use consumes the object's shock
+penalty. Readiness and hand bindings are synchronized before committing.
+
+Basic critical misses 3/4/17/18 now apply quality/resistance confirmation and
+record breakage, with the cheap-weapon exception for 9/10/11. Supported residual
+weapon definitions preserve the original item's custody. Row 14 records flight
+distance/direction, landing position and DX/collision injury. Ground items keep
+ownership but stop encumbering their owner; resource transfers/equips cannot
+bypass their location. Ready retrieves an owned weapon at its recorded location.
+The existing 5/6/15 limb reducer remains in use and excludes disabled armor.
+Original table rolls, confirmation/flight dice and effects survive command retry.
+
+`repair_equipment` starts, finishes or cancels an owned-item repair within the
+same campaign CAS. Work requires an explicit approved skill and tool binding,
+an unequipped retrieved item, and no active combat. The existing shared clock
+must advance 1,800 seconds before the skill roll. Price modifiers and the major
+repair -2 apply. Major work records and consumes its 1d x 10% parts cost at start;
+the maximum cost is checked before dice so inadequate supplies cannot fish for a
+cheaper roll. Repair tasks lock the item/tools against transfer and equipment
+use. Completion records its check and restored HP and cannot be rolled again.
+Destroyed objects are irreparable. These additive operations are exposed through
+tactical-v1; frozen gameplay-v1 is unchanged.
+
+`tests/test_object_combat.py` covers independent numeric object/shield damage,
+quality checks, collision and ground custody, live stress failure, two actor
+identities, concurrent duplicate commands, fresh-store retries, timed repairs,
+parts consumption and ownership locks. Existing limb fixtures remain required.
+
+The capability and #103/#146/#181 remain partial. #289 tracks sentient/fragile
+objects, detached secondary weapon pieces, salvage and discretionary reduced
+effectiveness. #290 tracks full ranged/spell interception and knockback, object
+hex occupancy and post-encounter retrieval, complete used-equipment/party-clock
+stress, migrated blocked-critical continuation and final UI/HTTP/browser evidence.
+A residual-mode binding alone is not full B485 support. Existing campaigns are
+not implicitly initialized or certified, and resource-only writes against live
+encounters remain forbidden. #106/#107 remain the hard prerequisites of #114.
+
+## Equipment table audit and special gear behavior (#180)
+
+`wayfarer.simulation.equipment_audit` records the item-level accounting the
+selected tables need, and nothing else: no rules prose, no invented rows and no
+second mechanics engine. Fifteen sections split B264-289 so that every registered
+row belongs to exactly one of them and every section states what it omits. No
+section is complete. Four carry inspected page anchors (B271, B280, B283, B288);
+the other eleven record no rows at all and are anchored only to the B264-289
+range, which is a coverage gap rather than a page citation. Firearms, ammunition,
+shields, heavy weapons, split and single-facing DR, higher-TL variants, weapon
+accessories, wealth and legality are all in that second group.
+
+Every special gear behavior is dispositioned as implemented or explicitly
+unsupported. An implemented behavior names a declared capability and either an
+executable binding or the exact evidence it lacks; `weapon-parry-modifier` and
+`two-handed-weapon` lack a case because no audited row exercises them, and they
+stay blockers. An unsupported behavior names only its owning issue, and its
+identifier is the same string the entry lists in `unsupported_mechanics`, so a
+catalog blocker without a matching disposition fails the audit. Power cells keep
+their own unsupported behavior rather than reusing the per-round ammunition path:
+a rechargeable cell holds charge, not disposable rounds. Smartguns, linked
+afflictions, surge damage, beam environmental effects and the special tool
+effects behind the camp stove, sleeping bag and laptop are recorded the same way.
+The typed weapon critical breakage #173 added is recorded as implemented, though
+no audited row declares a quality for it.
+
+The #101 weapon and armor profile verification is carried forward here. All 64
+fields of the equipment schema carry a declared unit, a source anchor and either
+executable coverage or an explicit gap, and adding a field without a record fails
+the audit. Every record is `pending`: nothing is reconciled with an inspected
+printing, so `gurps.equipment.weapon_profiles` and
+`gurps.equipment.armor_profiles` remain partial. Weights, including container
+capacity, are thousandths of a pound; prices are dollars. Seven fields have no
+executable case, and no audited row is a shield or a ranged weapon, so the
+`Shield` and `RangedMode` schemas rest on synthetic fixtures alone.
+
+Neither audited catalog binds to the pinned packages: no registered package
+declares an equipment definition, and the Basic Set rows cite a source ID no
+package declares. Both are recorded as unbound and the recorded status is
+rechecked against the registry on every run. `require_supported` and
+`validate_selection` are the scenario and character gate; they reject an entry
+outside the audit or one carrying an unsupported behavior, naming its owning
+issue, and `supported_equipment` refuses to build a Lite allowlist while the
+recorded Lite gaps stand. Those Lite gaps are also reported individually by
+`scripts/lite_certification.py`, so deferring Basic Set catalog work never
+satisfies #121.
+
+`source_audit.inventory()` consumes these rows directly, so the omitted groups,
+unsupported behaviors, uncovered fields, unbound catalogs and Lite gaps appear in
+the combined audit and the Basic Set certification report with their owners.
+`scripts/audit_gurps_equipment.py --require-complete` exits nonzero, which is the
+current and expected state. #114 stays partial and #122 stays blocked.
 
 ## Shared supernatural concentration (#117, #118, #171)
 

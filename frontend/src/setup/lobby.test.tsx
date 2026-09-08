@@ -653,6 +653,21 @@ it("walks the setup steps and creates the draft only from the review step", asyn
     (await nav()).getByRole("button", { name });
   const chips = async () =>
     within((await nav()).getByRole("list")).getAllByRole("button");
+  /**
+   * Availability only ever closes towards the end of the row: a step is offered
+   * only while every step before it is (#260). Checked at each state the flow
+   * passes through, because a chip is skipped past from wherever it is closed.
+   */
+  const monotonic = async () => {
+    const names = (await chips()).map((c) => [
+      c.textContent,
+      c.hasAttribute("disabled"),
+    ]);
+    const closed = names.findIndex(([, off]) => off);
+    expect(
+      closed < 0 ? [] : names.slice(closed).filter(([, off]) => !off),
+    ).toEqual([]);
+  };
   // The first step offers a way forward, not the action that finishes setup.
   expect(
     screen.queryByRole("button", { name: "Create game draft" }),
@@ -662,12 +677,16 @@ it("walks the setup steps and creates the draft only from the review step", asyn
   // the draft, so it is never shown as a step nobody can walk into (#259).
   expect((await nav()).queryByRole("button", { name: "Party" })).toBeNull();
   expect(await chip("Ready")).toBeDisabled();
+  await monotonic();
   await user.type(screen.getByLabelText("Premise"), "Carry the warning");
   // A validated concept unlocks review, the last numbered step.
   expect(await chip("Ready")).toBeEnabled();
+  await monotonic();
   await user.click(screen.getByRole("button", { name: "Next: Adventure" }));
   expect(await chip("Adventure")).toHaveAttribute("aria-current", "step");
+  await monotonic();
   await user.click(screen.getByRole("button", { name: "Next: Rules" }));
+  await monotonic();
   // Next walks the numbered steps in the order the chips show them.
   await user.click(screen.getByRole("button", { name: "Next: Ready" }));
   expect(
@@ -681,7 +700,7 @@ it("walks the setup steps and creates the draft only from the review step", asyn
   // The created draft opens its party, offered now that there is one to assign.
   expect(await chip("Party")).toHaveAttribute("aria-current", "page");
   expect(await chip("Ready")).toBeEnabled();
-  // No numbered step is closed while a later one is open (#260).
+  // Once a draft exists no numbered step is closed at all (#260).
   expect((await chips()).filter((c) => c.hasAttribute("disabled"))).toEqual([]);
   expect(
     screen.queryByRole("button", { name: "Create game draft" }),
