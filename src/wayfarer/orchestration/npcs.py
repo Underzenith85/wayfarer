@@ -8,8 +8,15 @@ from typing import TYPE_CHECKING, Literal
 
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, Event
+from wayfarer.rules.social_hooks import Audience, Reputation, Standing
 from wayfarer.simulation.actions import ActionCommand, PlayState
-from wayfarer.simulation.npcs import NPCDecision, NPCProgress, NPCSocialAction, NPCSocialTrigger
+from wayfarer.simulation.npcs import (
+    NPCDecision,
+    NPCProgress,
+    NPCSocialAction,
+    NPCSocialStanding,
+    NPCSocialTrigger,
+)
 from wayfarer.simulation.resources import Consume
 
 if TYPE_CHECKING:
@@ -229,6 +236,34 @@ def checkpoint(play: PlayService, state: PlayState) -> PlayState:
     return state
 
 
+def _standing(authored: NPCSocialStanding) -> tuple[Standing, Audience]:
+    """Translate authored standing into the engine-owned reaction hooks."""
+    return (
+        Standing(
+            appearance=authored.appearance,
+            status=authored.status,
+            charisma=authored.charisma,
+            voice=authored.voice,
+            reputations=tuple(
+                Reputation(
+                    reputation.id,
+                    reputation.level,
+                    reputation.scope,
+                    reputation.recognition,
+                    reputation.classes,
+                    reputation.hidden,
+                )
+                for reputation in authored.reputations
+            ),
+        ),
+        Audience(
+            recognizes_status=authored.audience_recognizes_status,
+            attracted=authored.audience_attracted,
+            classes=authored.audience_classes,
+        ),
+    )
+
+
 def social_occurrence(
     play: PlayService,
     state: PlayState,
@@ -285,6 +320,8 @@ def social_occurrence(
     context.required_fact_ids = trigger.required_fact_ids
     if trigger.kind in ("reaction", "influence"):
         context.modifiers = (ReactionModifier("situation", trigger.modifier, occurrence_id, True),)
+        if trigger.standing is not None:
+            context.standing, context.audience = _standing(trigger.standing)
     command = SocialCommand(
         id="social-occurrence:" + hashlib.sha256(occurrence_id.encode()).hexdigest(),
         actor_id=actor_id,

@@ -1,0 +1,243 @@
+{
+  "source": {
+    "id": "sjg:basic-set-characters-4e-2004",
+    "edition": "Basic Set: Characters, Fourth Edition, 2004 first printing",
+    "errata": "2007-01-26",
+    "pages": ["B21 Appearance", "B26-27 Reputation", "B28 Status", "B41 Charisma", "B97 Voice"],
+    "provenance": "Hand-entered from model knowledge under the provisional implementation policy; artifact verification pending"
+  },
+  "appearance": [
+    {"level": "horrific", "indifferent": -6, "attracted": -6},
+    {"level": "monstrous", "indifferent": -5, "attracted": -5},
+    {"level": "hideous", "indifferent": -4, "attracted": -4},
+    {"level": "ugly", "indifferent": -2, "attracted": -2},
+    {"level": "unattractive", "indifferent": -1, "attracted": -1},
+    {"level": "average", "indifferent": 0, "attracted": 0},
+    {"level": "attractive", "indifferent": 1, "attracted": 1},
+    {"level": "handsome", "indifferent": 2, "attracted": 4},
+    {"level": "very-handsome", "indifferent": 2, "attracted": 6},
+    {"level": "transcendent", "indifferent": 2, "attracted": 8}
+  ],
+  "reaction": [
+    {
+      "name": "court-audience-adds-appearance-status-charisma-and-voice",
+      "standing": {"appearance": "handsome", "status": 3, "charisma": 2, "voice": true},
+      "audience": {},
+      "dice": [2, 3, 3],
+      "modifier_total": 9,
+      "recognition": [],
+      "outcome": "very-good"
+    },
+    {
+      "name": "an-attracted-observer-takes-the-higher-appearance-column",
+      "standing": {"appearance": "handsome"},
+      "audience": {"attracted": true},
+      "dice": [3, 3, 3],
+      "modifier_total": 4,
+      "recognition": [],
+      "outcome": "good"
+    },
+    {
+      "name": "a-secret-reputation-recognized-on-ten-or-less",
+      "standing": {
+        "reputations": [
+          {
+            "id": "thief-taker",
+            "level": -3,
+            "scope": "small-class",
+            "recognition": "sometimes",
+            "classes": ["thieves-guild"],
+            "hidden": true
+          }
+        ]
+      },
+      "audience": {"classes": ["thieves-guild"]},
+      "dice": [3, 3, 3, 4, 4, 4],
+      "modifier_total": -3,
+      "recognition": [{"reputation_id": "thief-taker", "target": 10, "total": 9, "recognized": true}],
+      "outcome": "poor"
+    },
+    {
+      "name": "an-unrecognized-reputation-contributes-nothing",
+      "standing": {
+        "reputations": [
+          {
+            "id": "thief-taker",
+            "level": -3,
+            "scope": "small-class",
+            "recognition": "sometimes",
+            "classes": ["thieves-guild"],
+            "hidden": true
+          }
+        ]
+      },
+      "audience": {"classes": ["thieves-guild"]},
+      "dice": [5, 5, 4, 4, 4, 4],
+      "modifier_total": 0,
+      "recognition": [
+        {"reputation_id": "thief-taker", "target": 10, "total": 14, "recognized": false}
+      ],
+      "outcome": "neutral"
+    },
+    {
+      "name": "an-audience-outside-the-affected-class-never-rolls",
+      "standing": {
+        "appearance": "ugly",
+        "reputations": [
+          {
+            "id": "thief-taker",
+            "level": -3,
+            "scope": "small-class",
+            "recognition": "sometimes",
+            "classes": ["thieves-guild"]
+          }
+        ]
+      },
+      "audience": {"classes": ["watch"]},
+      "dice": [4, 4, 4],
+      "modifier_total": -2,
+      "recognition": [],
+      "outcome": "neutral"
+    },
+    {
+      "name": "standing-the-subject-cannot-perceive-does-not-apply",
+      "standing": {"appearance": "transcendent", "status": 4, "voice": true},
+      "audience": {"recognizes_status": false, "sees_appearance": false, "hears_voice": false},
+      "dice": [4, 4, 4],
+      "modifier_total": 0,
+      "recognition": [],
+      "outcome": "neutral"
+    },
+    {
+      "name": "a-universal-reputation-applies-without-a-recognition-roll",
+      "standing": {
+        "reputations": [{"id": "hero-of-the-pass", "level": 2, "scope": "everyone"}]
+      },
+      "audience": {},
+      "dice": [4, 4, 3],
+      "modifier_total": 2,
+      "recognition": [],
+      "outcome": "good"
+    },
+    {
+      "name": "occasional-recognition-succeeds-on-seven-or-less",
+      "standing": {
+        "reputations": [
+          {"id": "masked-duelist", "level": 4, "scope": "everyone", "recognition": "occasionally"}
+        ]
+      },
+      "audience": {},
+      "dice": [2, 2, 3, 3, 3, 3],
+      "modifier_total": 4,
+      "recognition": [
+        {"reputation_id": "masked-duelist", "target": 7, "total": 7, "recognized": true}
+      ],
+      "outcome": "good"
+    }
+  ],
+  "influence": [
+    {
+      "name": "recognized-status-raises-the-diplomacy-contest",
+      "skill": "diplomacy",
+      "target": 12,
+      "npc_will": 11,
+      "standing": {"status": 2},
+      "audience": {},
+      "dice": [3, 4, 4, 3, 3, 4, 3, 3, 3],
+      "effective_target": 14,
+      "winner": "actor",
+      "outcome": "good"
+    },
+    {
+      "name": "a-lost-diplomacy-contest-keeps-the-better-ordinary-reaction",
+      "skill": "diplomacy",
+      "target": 10,
+      "npc_will": 14,
+      "standing": {"appearance": "handsome", "charisma": 1},
+      "audience": {},
+      "dice": [5, 5, 5, 3, 3, 3, 5, 5, 5],
+      "effective_target": 13,
+      "winner": "npc",
+      "outcome": "very-good"
+    },
+    {
+      "name": "sex-appeal-wins-at-very-good-with-no-reaction-fallback",
+      "skill": "sex-appeal",
+      "target": 12,
+      "npc_will": 10,
+      "standing": {"appearance": "attractive"},
+      "audience": {"attracted": true},
+      "dice": [3, 3, 3, 4, 4, 4],
+      "effective_target": 13,
+      "winner": "actor",
+      "outcome": "very-good"
+    }
+  ],
+  "fright": [
+    {
+      "name": "the-rule-of-fourteen-caps-a-high-will",
+      "will": 20,
+      "modifier": 0,
+      "dice": [4, 5, 5, 3, 3, 3, 2],
+      "effective_target": 13,
+      "succeeded": false,
+      "margin": -1,
+      "table_total": 10
+    },
+    {
+      "name": "a-situational-penalty-lowers-the-target-below-the-cap",
+      "will": 15,
+      "modifier": -3,
+      "dice": [4, 4, 5, 2, 2, 2],
+      "effective_target": 12,
+      "succeeded": false,
+      "margin": -1,
+      "table_total": 7
+    },
+    {
+      "name": "a-passed-check-rolls-nothing-on-the-consequence-table",
+      "will": 12,
+      "modifier": -2,
+      "dice": [3, 3, 3],
+      "effective_target": 10,
+      "succeeded": true,
+      "margin": 1,
+      "table_total": null
+    }
+  ],
+  "rejected_standing": [
+    {"name": "status-above-the-declared-range", "standing": {"status": 9}},
+    {"name": "negative-charisma", "standing": {"charisma": -1}},
+    {"name": "an-invented-appearance-level", "standing": {"appearance": "radiant"}},
+    {
+      "name": "a-reputation-with-no-reaction-effect",
+      "standing": {"reputations": [{"id": "nobody", "level": 0}]}
+    },
+    {
+      "name": "a-reputation-beyond-plus-or-minus-four",
+      "standing": {"reputations": [{"id": "legend", "level": 5}]}
+    },
+    {
+      "name": "a-class-scoped-reputation-naming-no-class",
+      "standing": {"reputations": [{"id": "guildsman", "level": 2, "scope": "small-class"}]}
+    },
+    {
+      "name": "a-universal-reputation-naming-a-class",
+      "standing": {
+        "reputations": [{"id": "guildsman", "level": 2, "classes": ["thieves-guild"]}]
+      }
+    },
+    {
+      "name": "duplicate-reputation-identities",
+      "standing": {
+        "reputations": [{"id": "twice", "level": 1}, {"id": "twice", "level": -1}]
+      }
+    },
+    {
+      "name": "an-unsupported-recognition-frequency",
+      "standing": {
+        "reputations": [{"id": "rumor", "level": 1, "recognition": "rarely"}]
+      }
+    }
+  ]
+}

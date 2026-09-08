@@ -13,6 +13,13 @@ additional `social` record selects reaction, Diplomacy influence, fright, or
 self-control, a subject, bounded fact references, and a situation modifier.
 This is trusted scenario configuration, not an LLM command or player roll target.
 
+A trigger may also carry `NPCSocialStanding`: an authored Appearance level,
+Status, Charisma, Voice and bounded Reputations with the classes that recognize
+them. `rules.social_hooks` derives every reaction modifier from that record, so
+authored data selects standing rather than inventing an integer, and recognition
+rolls for a reputation are drawn before the reaction or influence roll they
+modify. Standing the observer cannot see, hear or place is left out entirely.
+
 `contracts/social/v2/schemas.json` specifies this opt-in policy and internal
 director decisions. `python scripts/social_contracts.py --check` checks drift.
 V1 scenario authoring cannot silently start accepting these new fields. V2

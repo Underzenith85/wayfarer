@@ -1,10 +1,35 @@
 """Finite NPC plans with actor-local evidence and explicit resource budgets."""
 
-from typing import Literal
+from typing import Literal, Self
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
+from wayfarer.rules.social_hooks import Appearance, Recognition, ReputationScope
 from wayfarer.simulation.resources import Id, Record
+
+
+class NPCReputation(Record):
+    """One authored reputation; the engine owns its reaction value and recognition."""
+
+    id: Id
+    level: int = Field(ge=-4, le=4)
+    scope: ReputationScope = "everyone"
+    recognition: Recognition = "always"
+    classes: tuple[Id, ...] = Field(default=(), max_length=10)
+    hidden: bool = False
+
+
+class NPCSocialStanding(Record):
+    """Declared standing, not an invented modifier: every value is derived by rule."""
+
+    appearance: Appearance = "average"
+    status: int = Field(default=0, ge=-2, le=8)
+    charisma: int = Field(default=0, ge=0, le=10)
+    voice: bool = False
+    reputations: tuple[NPCReputation, ...] = Field(default=(), max_length=5)
+    audience_recognizes_status: bool = True
+    audience_attracted: bool = False
+    audience_classes: tuple[Id, ...] = Field(default=(), max_length=10)
 
 
 class NPCSocialTrigger(Record):
@@ -13,11 +38,18 @@ class NPCSocialTrigger(Record):
     kind: Literal["reaction", "influence", "fright", "self-control"]
     subject_id: Id
     modifier: int = Field(default=0, ge=-100, le=100)
+    standing: NPCSocialStanding | None = None
     npc_will: int = Field(default=10, ge=1, le=100)
     skill_id: Id = "skill:diplomacy"
     trait_id: Id | None = None
     required_fact_ids: tuple[Id, ...] = ()
     disclosure_fact_ids: tuple[Id, ...] = ()
+
+    @model_validator(mode="after")
+    def standing_belongs_to_a_reaction(self) -> Self:
+        if self.standing is not None and self.kind not in ("reaction", "influence"):
+            raise ValueError("Standing modifies reaction and influence rolls only")
+        return self
 
 
 class NPCAction(Record):

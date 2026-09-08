@@ -17,6 +17,13 @@ from wayfarer.rules.gurps_social import (
     reaction_roll,
     self_control_roll,
 )
+from wayfarer.rules.social_hooks import (
+    ANY_OBSERVER,
+    Audience,
+    Standing,
+    StandingTrace,
+    standing_modifiers,
+)
 from wayfarer.rules.traits import TraitOptions, TraitRules
 from wayfarer.simulation.resources import Command, Receipt, Record, ResourceEvent, ResourceState
 from wayfarer.world import EntityKind, World
@@ -54,12 +61,15 @@ class SocialContext:
         trait_levels: int = 1,
         trait_options: TraitOptions | None = None,
         trait_rules: TraitRules | None = None,
+        standing: Standing | None = None,
+        audience: Audience = ANY_OBSERVER,
     ) -> None:
         self.profile_id, self.target, self.will = profile_id, target, will
         self.ht = ht
         self.skill, self.modifiers, self.required_fact_ids = skill, modifiers, required_fact_ids
         self.trait_base, self.trait_levels = trait_base, trait_levels
         self.trait_options, self.trait_rules = trait_options, trait_rules
+        self.standing, self.audience = standing, audience
 
 
 def apply_social(
@@ -110,6 +120,16 @@ def apply_social(
         for e in state.events
     ):
         raise ConflictError("Social trigger already resolved")
+    # Derived standing is rolled and applied before the check that uses it, so a
+    # replayed receipt consumes the same dice in the same order.
+    standing = StandingTrace(())
+    modifiers = context.modifiers
+    if command.kind in ("reaction", "influence") and context.standing is not None:
+        standing = standing_modifiers(
+            context.profile_id, context.standing, context.audience, rng=rng
+        )
+        modifiers = standing.modifiers + context.modifiers
+    recognition = {"recognition": [asdict(roll) for roll in standing.recognition]}
     details: object
     if command.kind == "fright-recovery":
         from wayfarer.simulation.fright import recover
@@ -124,9 +144,9 @@ def apply_social(
         outcome = SocialOutcome(kind=command.kind, outcome="recovered" if passed else "recovering")
         details = {}
     elif command.kind == "reaction":
-        trace = reaction_roll(context.profile_id, context.modifiers, rng=rng)
+        trace = reaction_roll(context.profile_id, modifiers, rng=rng)
         outcome = SocialOutcome(kind=command.kind, outcome=trace.outcome)
-        details = asdict(trace)
+        details = asdict(trace) | recognition
     elif command.kind == "influence":
         influence = influence_roll(
             context.profile_id,
@@ -135,11 +155,11 @@ def apply_social(
             command.subject_id,
             context.target,
             context.will,
-            context.modifiers,
+            modifiers,
             rng=rng,
         )
         outcome = SocialOutcome(kind=command.kind, outcome=influence.outcome)
-        details = asdict(influence)
+        details = asdict(influence) | recognition
     elif command.kind == "fright":
         fright = fright_roll(context.profile_id, context.target, rng=rng, ht=context.ht)
         outcome = SocialOutcome(
