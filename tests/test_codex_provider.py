@@ -386,6 +386,13 @@ def test_real_play_schema_has_object_root_and_resolves_only_needed_definitions()
     assert "oneOf" not in json.dumps(schema)
     definitions = schema["$defs"]
     assert isinstance(definitions, dict) and "Action" not in definitions
+    for name in ("TextIntent", "InspectIntent", "MoveIntent", "UseItemIntent", "WaitIntent"):
+        definition = definitions[name]
+        assert isinstance(definition, dict)
+        properties = definition["properties"]
+        assert isinstance(properties, dict)
+        kind = properties["kind"]
+        assert isinstance(kind, dict) and kind["type"] == "string"
     Draft202012Validator.check_schema(schema)
     for value in (
         {"kind": "wait", "ticks": 1},
@@ -402,6 +409,26 @@ def test_real_play_schema_has_object_root_and_resolves_only_needed_definitions()
         Draft202012Validator(schema).validate(envelope)
         assert json.loads(decode_codex_output(json.dumps(envelope), original)) == value
     assert json.dumps(original, sort_keys=True) == before
+
+
+def test_tuple_arrays_are_lowered_to_provider_supported_items() -> None:
+    schema = codex_output_schema(
+        {
+            "type": "array",
+            "prefixItems": [{"type": "string"}, {"enum": ["left", "right"]}],
+            "minItems": 2,
+            "maxItems": 2,
+        }
+    )
+    result = schema["properties"]["result"]
+    assert isinstance(result, dict)
+    assert "prefixItems" not in result
+    assert result["items"] == {
+        "anyOf": [
+            {"type": "string"},
+            {"enum": ["left", "right"], "type": "string"},
+        ]
+    }
 
 
 @pytest.mark.parametrize(
