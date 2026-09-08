@@ -220,6 +220,53 @@ def mode(
     return selected
 
 
+def heavy_parry_weight(
+    play: PlayService,
+    state: PlayState,
+    participant: Combatant,
+    incoming_item_id: str | None = None,
+) -> int | None:
+    """B376 incoming weight when the heavy-weapon parry limit applies, else None.
+
+    Only the Basic profile carries the limit; Lite (pp. 24-28) states no weight
+    rule. Callers inside the melee dispatch name the attacking item directly;
+    otherwise the persisted pending attack supplies it, and a mode that is not
+    melee, a spell attack or an unknown item carries no limit.
+    """
+    equipment = catalog(play)
+    if equipment.profile_id != "gurps-basic-set-4e-2004":
+        return None
+    mode_id: str | None = None
+    if incoming_item_id is None:
+        encounter = next(
+            (
+                e
+                for e in state.encounters
+                if e.pending_defense and e.pending_defense.defender_id == participant.actor_id
+            ),
+            None,
+        )
+        if encounter is None:
+            return None
+        pending = encounter.pending_defense
+        assert pending is not None
+        if pending.spell_cast_id is not None:
+            return None
+        incoming_item_id, mode_id = pending.weapon_id, pending.mode_id
+    item = next((i for i in state.resources.items if i.id == incoming_item_id), None)
+    if item is None or not any(
+        e.definition_id == item.definition_id and e.modes for e in equipment.entries
+    ):
+        return None
+    from wayfarer.orchestration.object_combat import effective_entry
+
+    entry = effective_entry(play, item)
+    modes = tuple(m for m in entry.modes if mode_id is None or m.id == mode_id)
+    if not modes or not all(isinstance(m, MeleeMode) for m in modes):
+        return None
+    return entry.weight_millipounds or None
+
+
 def defense_value(
     play: PlayService,
     state: PlayState,
@@ -228,6 +275,7 @@ def defense_value(
     item_id: str | None = None,
     *,
     parry_mode_id: str | None = None,
+    incoming_item_id: str | None = None,
 ) -> tuple[DerivedValue | None, str | None]:
     if selected == "none":
         return None, None
@@ -352,6 +400,11 @@ def defense_value(
             (),
         ), None
     candidates: list[tuple[int, str, str]] = []
+    incoming_weight = (
+        heavy_parry_weight(play, state, participant, incoming_item_id)
+        if selected == "parry"
+        else None
+    )
     for item in ready:
         if item_id is not None and item.id != item_id:
             continue
@@ -373,6 +426,10 @@ def defense_value(
                 (int(value.value) // 2 + 3 + height_bonus(), item.id, entry.shield.skill_id)
             )
         if selected == "parry":
+            # B376: a weapon cannot parry one weighing three or more times as
+            # much; an item with no recorded weight states no ratio.
+            if incoming_weight is not None and 0 < 3 * entry.weight_millipounds <= incoming_weight:
+                continue
             for weapon_mode in entry.modes:
                 if parry_mode_id is not None and weapon_mode.id != parry_mode_id:
                     continue
@@ -480,7 +537,7 @@ def prepare_attack(
     for candidate in ("dodge", "parry", "block"):
         try:
             defense_adjustment(encounter, attacker, defender)
-            defense_value(play, state, defender, candidate)
+            defense_value(play, state, defender, candidate, incoming_item_id=pending.weapon_id)
         except ValidationError:
             continue
         allowed.append(candidate)
@@ -577,7 +634,9 @@ def resolve_melee(
     attacker_fp = next(p for p in state.resources.pools if p.id == f"fp:{pending.attacker_id}")
     if hp.injury is None or attacker_hp.injury is None:
         raise ValidationError("GURPS injury pool requires explicit migration")
-    defense_derived, defense_item = defense_value(play, state, defender, selected, item_id)
+    defense_derived, defense_item = defense_value(
+        play, state, defender, selected, item_id, incoming_item_id=pending.weapon_id
+    )
     second_derived = None
     second_item = None
     if second_defense is not None:
@@ -588,7 +647,12 @@ def resolve_melee(
         ):
             raise ValidationError("Second defense requires All-Out Defense (Double)")
         second_derived, second_item = defense_value(
-            play, state, defender, second_defense, second_item_id
+            play,
+            state,
+            defender,
+            second_defense,
+            second_item_id,
+            incoming_item_id=pending.weapon_id,
         )
         if second_defense == selected and not (selected == "parry" and second_item != defense_item):
             raise ValidationError(
