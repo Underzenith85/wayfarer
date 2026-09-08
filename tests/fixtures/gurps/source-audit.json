@@ -2538,6 +2538,402 @@
         "tests/test_maneuver_followups.py::test_attack_then_step_is_deferred_until_defense_and_replays_once"
       ],
       "owner": 152
+    },
+    {
+      "id": "basic-statistics-v2-damage-40",
+      "sha256": "6e85b1d66adbfb42018160ab206a346c08f34800c3bc4e7d6cc83e339de62436",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-damage-45",
+      "sha256": "a166f6a88dfe1bcbf19b8aaf62c6bd52d2705e72efe685639ecbdc1a6d4794f8",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-damage-95",
+      "sha256": "6807c0f0f7b26770a2bb148de6d288510f2f61372e7132e9149d316ce5b4562c",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-damage-100",
+      "sha256": "9a0f0e290692f9fe193b0cbd400655dc3973826167cc12816cd3da0c8f43efcf",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-damage-101",
+      "sha256": "469c9929e82a23ed44ef57046ed4a4d926cb6b9a9820de1bc05c279527d2a4af",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-damage-109",
+      "sha256": "93f2f9a0336725b33fe5db7343b50fff99b77502e30e0e6d0bfcbd3cdec38212",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-damage-110",
+      "sha256": "a7f9774c3fdd859ef1a40c4b53a2a03fc29bb70bf323fc96e57f3e85a1ce378a",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-damage-119",
+      "sha256": "8c76ef60f51432854fe2c86a873d48db2da8a29ddac71254f7e2b749e7d83899",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-damage-120",
+      "sha256": "1b1529adea38b843b5004642435a4fce76f518792b8a101d37f00006d7229f82",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-damage-1000",
+      "sha256": "00a9d6c789223e1cbc323c4baa2f064a1cc0168c594b47fcd3a2cb37fa429dc5",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_damage_table_rows"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-damage-unsupported-0",
+      "sha256": "a9c0afe0e6c048b1c021c15a3e7d00f1368126f97a6d3a9a2cc9ae67b787b770",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B16: no intermediate-row rule specified; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_damage_error_fixtures"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-damage-unsupported-41",
+      "sha256": "9743368a723784e98976f1f93470ada47d6b8b6dc7b6850c71e255084cf23fea",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B16: no intermediate-row rule specified; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_damage_error_fixtures"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-damage-unsupported-44",
+      "sha256": "fdf79b67fc30e7a82b64752ac63271b197c2fc7097cac3f017a7a12dccc61719",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B16: no intermediate-row rule specified; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_damage_error_fixtures"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-damage-unsupported-46",
+      "sha256": "446da18c4b5e8d41010350592e5fa4e6d3ab185bc97267f7469dcce9af5cae75",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B16: no intermediate-row rule specified; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_damage_error_fixtures"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-damage-unsupported-94",
+      "sha256": "47a179dadfa670e2880b175a628b52088c543c948c2fd4c123d078e22eb271b4",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B16: no intermediate-row rule specified; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_damage_error_fixtures"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-damage-unsupported-96",
+      "sha256": "2403b28336ce1e27c2b16d332ab244712407246efc00b62f15100c848402cada",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B16: no intermediate-row rule specified; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_damage_error_fixtures"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-damage-unsupported-99",
+      "sha256": "5b34a91b706e10ce37e5f25d2256593f03147047c23942d95e31d71f3943b86c",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B16: no intermediate-row rule specified; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_damage_error_fixtures"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-will-minus4",
+      "sha256": "8e665f722fa993868cb0c25ac19a89f2cedad6daa18403f6e23a283443447fea",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-will-minus5",
+      "sha256": "b0b86583c8da5b9c7144886f93f23bb3363d0513f550d6f68208048a1164bffc",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-per-minus4",
+      "sha256": "a5249e3f8c777df5ce27446fe94bb8f70a00172aba1c95d189420f486c045898",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-per-minus5",
+      "sha256": "c419766819a90c42eea7ce65e026eae8f756acea2cb9676f2c7804dbc82453d8",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-will20",
+      "sha256": "d8114e2958cd5f9899e1342144abfa2cb77367eb256218472f87b1c512cb64ac",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-will21",
+      "sha256": "42a38ef1fc1c35020811cdaef3a53fdcbd85a34950e2ba53cb9c6e56e0c4bd9f",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-per20",
+      "sha256": "0e00cb3cc9701c1596876d3c3ce37f0fedf8046bc93fc613c5fac87d306675ac",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-per21",
+      "sha256": "c62e916abd95d0e1db9cf250437e77f4535c2804bce460a67e7249abebd099fe",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-speed-minus2",
+      "sha256": "db75bdcd94704b5df9d9fdc384810a180d4d913366c223445cdd32c417acbe0a",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-speed-minus225",
+      "sha256": "8161a0eb9de27f3c40b8a1b6a310acfa7d6a668351a784abd0cc3d70d54e9ba4",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-speed-plus2",
+      "sha256": "e65de6e35c44ecf58d4eae0ef6a8ea8cf7d6968fdc86255a2bb6097f0e9fb8ce",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-speed-plus225",
+      "sha256": "01e0795f89d7c705d2ae3355f7a200dee97479bd0cddb2a2c15085f803fceaf2",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-move-minus3",
+      "sha256": "614b1070d2eff32d9a64f5f15892fbf5bc003640958a2e5889d56d41569a9b0e",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-move-minus4",
+      "sha256": "c2c17d6288bc1415e6b46282e4209bc758f8879803d7c603a79d9b69b3a9693f",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-move-plus3",
+      "sha256": "2ce98460c4e402ab52bf993a6e0b6f749ec16350ba1bd5bc0a1bc2d3dd9ed81b",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-move-plus4",
+      "sha256": "e031542198415678a07e25d12346df0c59a91cf33d29600059f3b802e5502fe6",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-move-adjusted-base",
+      "sha256": "4e2ddd1163e25b35788218af84578e0f7c55606c39bb1df526fd8567194f1495",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-move-adjusted-base-plus4",
+      "sha256": "57def297b185849b9f88ef7862dd13289f07128ff97caecbe2e960152439dc37",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 215
+    },
+    {
+      "id": "basic-statistics-v2-will-per-iq-base",
+      "sha256": "1da5edfc21412b9dbe37c23621795e1bc7a9eb2a12a692eda19c709d5cec1c89",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-08",
+      "evidence": "Characters third printing, February 2008, B16; no interpolation or first-printing certification asserted.",
+      "tests": [
+        "tests/test_statistics.py::test_purchased_secondary_characteristics"
+      ],
+      "owner": 215
     }
   ]
 }

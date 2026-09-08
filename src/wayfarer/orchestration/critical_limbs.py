@@ -11,14 +11,15 @@ from wayfarer.rules.location_types import HumanLocation
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import Encounter
 from wayfarer.simulation.critical import Die, TableRoll
-from wayfarer.simulation.gurps_equipment import MeleeMode
+from wayfarer.simulation.gurps_equipment import MeleeMode, RangedMode, WeaponMode
 from wayfarer.simulation.injury import DisableLocation, Wound, apply_injury, apply_location_effect
 from wayfarer.simulation.resources import Record, ResourceEvent
 
 
 class CriticalLimbResult(Record):
     kind: Literal["critical-limb-v1"] = "critical-limb-v1"
-    table_rolls: tuple[TableRoll, ...] = Field(min_length=1, max_length=2)
+    # A ranged self-hit reroll can lead to a resistant-weapon confirmation roll.
+    table_rolls: tuple[TableRoll, ...] = Field(min_length=1, max_length=3)
     location: HumanLocation | None = None
     location_dice: tuple[Die, ...] = ()
     damage_dice: tuple[Die, ...] = ()
@@ -63,12 +64,17 @@ def resolve_limb(
         return state, encounter, result
     entries = {e.definition_id: e for e in catalog(play).entries}
     item = next(i for i in state.resources.items if i.id == item_id)
-    modes = tuple(
+    modes: tuple[WeaponMode, ...] = tuple(
         m
         for m in entries[item.definition_id].modes
-        if isinstance(m, MeleeMode)
-        and (m.parry is not None if parrying else m.id == pending.mode_id)
+        if parrying and isinstance(m, MeleeMode) and m.parry is not None
     )
+    if not parrying:
+        modes = tuple(
+            m
+            for m in entries[item.definition_id].modes
+            if isinstance(m, (MeleeMode, RangedMode)) and m.id == pending.mode_id
+        )
     if sum(table) in (5, 6) and len(modes) != 1:
         return state, encounter, result
     held = tuple(
@@ -85,7 +91,10 @@ def resolve_limb(
     assert compiled.statistics is not None
     stats = compiled.statistics
     rolls: tuple[tuple[int, ...], ...] = (table,)
-    if sum(table) in (5, 6) and modes[0].damage.damage_type in ("imp", "pi-", "pi", "pi+", "pi++"):
+    if sum(table) in (5, 6) and (
+        isinstance(modes[0], RangedMode)
+        or modes[0].damage.damage_type in ("imp", "pi-", "pi", "pi+", "pi++")
+    ):
         table = tuple(play.rng.randbelow(6) + 1 for _ in range(3))
         rolls += (table,)
         result = result.model_copy(update={"table_rolls": rolls})

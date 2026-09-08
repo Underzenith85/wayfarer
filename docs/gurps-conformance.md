@@ -94,12 +94,43 @@ The typed projection (`CharacterStatistics`) carries build values and point cost
 
 Fail-closed and advisory boundaries:
 
-- Damage lookup accepts only listed ST rows: 1 to 20 under the Lite profile, 1 to 40 and the listed five-point steps to 100 under Basic. Anything else is a `damage.unsupported_st` diagnostic rather than an interpolated guess.
+- Legacy statistics revision 1 damage lookup accepts only listed ST rows: 1 to 20 under the Lite profile, 1 to 40 and the listed five-point steps to 100 under Basic. Anything else is a `damage.unsupported_st` diagnostic rather than an interpolated guess.
 - The source's GM-permission guidelines (HP or FP more than 30% away from ST or HT, Will or Per above 20) are reported as `advisories` on the projection. They are not hard failures and not silently ignored; the power reviewer can turn them into review findings.
 - Engine invariants that are not rules claims: HP, FP, Will and Per compile to at least 1, Basic Move to at least 0.
 - Implemented by #192: the Basic Set Size Modifier construction context and the associated discounts on eligible ST and HP purchases. The Basic-only capability `gurps.character.size_modifier_costs` is now `verified`; Lifting ST, Striking ST and similar traits remain under #100.
 
 Fixture cases for both capabilities live in `tests/fixtures/gurps/conformance.json` with an `operation` field naming the executable check; `tests/test_statistics.py` runs every one of them plus property tests for fraction handling, rounding, load bands and pool carry-over.
+
+### Statistics boundaries (#215)
+
+Basic profile v6 / Characters package 0.6.0 opts into statistics revision 2.
+The exact catalog hook `character.statistics.v2` must agree across all attribute
+and secondary definitions; mixed revisions fail closed. Direct adapter callers
+select `revision=2` explicitly. Omission keeps revision 1; Lite rejects revision 2.
+Historic packages, default registry entries and prototype build hashes are unchanged.
+The new profile remains opt-in and blocked by the existing certification gates.
+
+- B15 progression: from ST 100, each full additional 10 ST adds one die to both
+  damage expressions. ST 100/109: 11d/13d; 110/119: 12d/14d; 120: 13d/15d.
+- B16 only lists five-point rows above 40. The inspected B15-17 text supplies no
+  rounding or interpolation rule for missing rows through 99. These remain
+  `damage.unsupported_st`, including 41-44 and 96-99. This is an explicit
+  unsupported boundary, not a claim that intermediate ST is illegal in GURPS.
+- Will/Per reductions greater than four below IQ produce permission advisories.
+  Above-20 advisories remain. Limits compare against IQ, not a fixed score of 10.
+- Basic Speed adjustments beyond +/-2.00 (eight quarter units) and Basic Move
+  adjustments beyond +/-3 produce realistic-human guideline advisories. Move
+  compares against the floor of purchased Basic Speed. These describe review
+  needs, not universal legality: nonhumans/supers are exempt from the movement
+  guidelines, and the reviewer determines applicability. No automatic approval
+  or hard rejection is inferred from an advisory.
+- Compiler rebuilds and advancement retain injury/fatigue deficits in both pools.
+
+Thirty-six independent revision-2 cases in the conformance ledger cover damage,
+unsupported intermediate boundaries, inclusive purchase limits and their first
+out-of-limit values. The #191 source ledger binds each to its executable test.
+They are later-printing comparisons (Characters third printing, B15-17), not
+first-printing certification; selected errata reconciliation remains open in #191.
 
 ## Independent evidence
 
@@ -176,7 +207,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.combat.active_defense` | yes | yes | partial | #103 |
 | `gurps.combat.maneuvers` | yes | yes | partial | #104 and #152 bounded transitions implemented; [executable behavior and certification boundary](gurps-maneuvers.md) |
 | `gurps.combat.turn_timing` | yes | yes | partial | #104 and #152; durable Wait zones, stop thrust, and attack-then-step implemented; #191 source reconciliation remains |
-| `gurps.combat.ranged_attack` | yes | yes | partial | #106; [ranged dispatch and evidence](gurps-ranged.md); #173 adds bounded critical effects, causal records, locations and armed thrown Parries; remaining #173 |
+| `gurps.combat.ranged_attack` | yes | yes | partial | #106; [ranged dispatch and evidence](gurps-ranged.md); #173 adds persisted critical misses, typed breakage, per-projectile locations and armed thrown Parry consequences; [remaining protocols](gurps-ranged.md) stay #173 |
 | `gurps.combat.aim` | yes | yes | partial | #104/#152; target-bound accumulation, disruption, bracing and typed fixed/variable scopes; broader ranged resolution #106/#173 |
 | `gurps.combat.ammunition` | yes | yes | partial | #106; [reservations and reload timing](gurps-ranged.md); #173 adds opt-in per-round loading and magazine unloading; remaining #173 |
 | `gurps.combat.rapid_fire` | no | yes | partial | #106; [burst and Dodge resolution](gurps-ranged.md); remaining #173 |
@@ -792,7 +823,7 @@ item-inventory ownership, optional decisions and every expectation-ledger case's
 review disposition. Its report separates later-printing comparisons from frozen
 source verification. Eighteen Basic statistics fixtures have been compared;
 exhaustive rule/item enumeration and baseline reconciliation remain incomplete.
-Statistics boundary gaps discovered by this comparison are tracked in #215.
+Statistics boundary behavior is implemented by #215 in opt-in revision 2; missing intermediate rows and frozen-source reconciliation remain explicit boundaries.
 
 CI now checks this document's full capability table against the registry. Aim
 and environmental hazards are reconciled to partial; Size Modifier cost ownership

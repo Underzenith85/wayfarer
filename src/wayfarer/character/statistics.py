@@ -80,6 +80,10 @@ class Advisory(StrEnum):
     FP_BEYOND_GUIDELINE = "fp.beyond-30-percent-of-ht"
     WILL_ABOVE_20 = "will.above-20"
     PER_ABOVE_20 = "per.above-20"
+    WILL_BELOW_BASE = "will.more-than-4-below-iq"
+    PER_BELOW_BASE = "per.more-than-4-below-iq"
+    SPEED_BEYOND_GUIDELINE = "basic-speed.beyond-2-adjustment"
+    MOVE_BEYOND_GUIDELINE = "basic-move.beyond-3-adjustment"
 
 
 class StatisticsError(ValidationError):
@@ -160,10 +164,10 @@ _DAMAGE: Final = MappingProxyType(
 )
 
 
-def rules(profile_id: str) -> StatisticsRules:
+def rules(profile_id: str, *, revision: int = 1) -> StatisticsRules:
     """Resolve profile numbers only when the registry verifies both capabilities."""
 
-    selected = table(profile_id)
+    selected = table(profile_id, revision=revision)
     require_capabilities(profile_id, CAPABILITY_IDS)
     return selected
 
@@ -307,11 +311,21 @@ def basic_lift(profile_id: str, st: int) -> Decimal:
     return _exact(exact)
 
 
-def damage(profile_id: str, st: int) -> tuple[DiceExpression, DiceExpression]:
-    """Thrust and swing for a listed ST; unlisted or out-of-profile scores fail closed."""
+def damage(profile_id: str, st: int, *, revision: int = 1) -> tuple[DiceExpression, DiceExpression]:
+    """Listed damage rows, plus B15 high-ST progression in Basic revision 2.
 
-    selected = rules(profile_id)
+    Missing intermediate rows below 100 fail closed; no interpolation is assumed.
+    """
+
+    selected = rules(profile_id, revision=revision)
     st = _integer(st, "attribute.type", "ST must be an integer")
+    if selected.high_st_progression and st >= 100:
+        extra_dice = (st - 100) // 10
+        thrust, swing = _DAMAGE[100]
+        return (
+            DiceExpression(thrust.dice + extra_dice, thrust.add),
+            DiceExpression(swing.dice + extra_dice, swing.add),
+        )
     row = _DAMAGE.get(st)
     if row is None or st > selected.damage_table_maximum_st:
         raise StatisticsError(
@@ -357,10 +371,12 @@ def compile_statistics(
     profile_id: str,
     attributes: PrimaryAttributes,
     purchased: SecondaryLevels | None = None,
+    *,
+    revision: int = 1,
 ) -> CharacterStatistics:
     """Derive the projection from purchased levels under one exact profile."""
 
-    selected = rules(profile_id)
+    selected = rules(profile_id, revision=revision)
     if purchased is None:
         purchased = SecondaryLevels()
     levels = {
@@ -416,7 +432,19 @@ def compile_statistics(
         advisories.append(Advisory.WILL_ABOVE_20)
     if resolved[Secondary.PER] > selected.will_per_guideline_maximum:
         advisories.append(Advisory.PER_ABOVE_20)
-    thrust, swing = damage(profile_id, st)
+    reduction_limit = selected.will_per_reduction_limit
+    if reduction_limit is not None:
+        if iq - resolved[Secondary.WILL] > reduction_limit:
+            advisories.append(Advisory.WILL_BELOW_BASE)
+        if iq - resolved[Secondary.PER] > reduction_limit:
+            advisories.append(Advisory.PER_BELOW_BASE)
+    speed_limit = selected.speed_adjustment_limit_quarters
+    if speed_limit is not None and abs(resolved[Secondary.BASIC_SPEED] - dx - ht) > speed_limit:
+        advisories.append(Advisory.SPEED_BEYOND_GUIDELINE)
+    move_limit = selected.move_adjustment_limit
+    if move_limit is not None and abs(move - default_move) > move_limit:
+        advisories.append(Advisory.MOVE_BEYOND_GUIDELINE)
+    thrust, swing = damage(profile_id, st, revision=revision)
     return CharacterStatistics(
         profile_id=profile_id,
         st=st,

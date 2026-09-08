@@ -284,7 +284,7 @@ async def test_minimum_st_penalty_and_determined_bonus(tmp_path: Path) -> None:
     assert result.injury.per_hit_damage == (1,)
 
 
-async def test_basic_critical_is_persisted_without_using_melee_miss_table(tmp_path: Path) -> None:
+async def test_basic_critical_drop_is_persisted_without_melee_fallback(tmp_path: Path) -> None:
     cid, play = await setup(
         tmp_path, "gurps-basic-set-4e-2004", ranged_mode=weapon(), ranged_scene=scene()
     )
@@ -293,11 +293,12 @@ async def test_basic_critical_is_persisted_without_using_melee_miss_table(tmp_pa
     play.rng = RecordedDice([6, 6, 6, 3, 3, 3])
     result = await defend(cid, play, "b")
     assert result.injury is not None
-    assert result.injury.adjudication_required == "ranged-critical-table"
+    assert result.injury.adjudication_required is None
     assert result.injury.critical_table == (3, 3, 3)
     state = play._load(await play.store.read(cid))
     assert next(i.quantity for i in state.resources.items if i.id == "ammo-a") == 9
-    assert state.encounters[0].blocked_reason == "ranged-critical-table"
+    assert state.encounters[0].blocked_reason is None
+    assert not next(i for i in state.resources.items if i.id == "sword-a").ready
     assert await play.store.read(cid) == await play.store.replay(cid)
 
 

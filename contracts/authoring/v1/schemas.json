@@ -3111,6 +3111,23 @@
             ],
             "default": null
           },
+          "critical_breakage": {
+            "anyOf": [
+              {
+                "enum": [
+                  "ordinary",
+                  "cheap",
+                  "resistant"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Critical Breakage"
+          },
           "container_capacity_millipounds": {
             "anyOf": [
               {
