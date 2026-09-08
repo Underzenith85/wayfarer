@@ -223,6 +223,8 @@ def defense_value(
     participant: Combatant,
     selected: Defense,
     item_id: str | None = None,
+    *,
+    parry_mode_id: str | None = None,
 ) -> tuple[DerivedValue | None, str | None]:
     if selected == "none":
         return None, None
@@ -356,6 +358,8 @@ def defense_value(
             )
         if selected == "parry":
             for weapon_mode in entry.modes:
+                if parry_mode_id is not None and weapon_mode.id != parry_mode_id:
+                    continue
                 if not isinstance(weapon_mode, MeleeMode) or weapon_mode.parry is None:
                     continue
                 try:

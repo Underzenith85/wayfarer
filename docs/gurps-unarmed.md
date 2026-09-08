@@ -8,15 +8,15 @@ Issue #108 adds internal commands to the existing `CombatService` transaction. T
 | --- | --- |
 | `TakeUnarmedTurn`: `punch`, `kick` | Compiled DX or selected striking skill, thrust-based crushing damage and per-die training bonus. Punches require a named free hand; kicks name a foot. A missed kick checks balance. Armor and resulting wounds use the existing injury service, including injury to a bare striking limb against DR 3+. |
 | `grapple` | Explicit one/two-hand control of torso, neck, arm or leg; reach C and explicit entry into the target's square. No damage on initiation. Torso control imposes the DX-related attack/defense penalties; a controlled arm cannot strike or parry. |
-| `ChooseDefense` | The existing authenticated command resolves an unarmed pause. Supported choices are Dodge, barehanded Parry and no defense. All-Out Defense (Double) permits an ordered fallback using a different defense or a different free parrying hand. Both choices are validated before dice; the fallback rolls only after an ordinary failure. Ordered choices and actual checks survive receipt replay. No other combat command can bypass the pause. |
+| `ChooseDefense` | The existing authenticated command resolves an unarmed pause. Supported choices are Dodge, barehanded Parry, an explicitly selected armed Parry, and no defense. Weapon damage modes are selected explicitly in tactical v2; ambiguous modes are rejected before dice. All-Out Defense (Double) permits an ordered fallback using a different defense or a different free parrying hand. Both choices are validated before dice; the fallback rolls only after an ordinary failure. Ordered choices and actual checks survive receipt replay. No other combat command can bypass the pause. |
 | `break_free` | One Quick Contest with grip, pin, stun and lock modifiers. A failed arm-lock escape makes subsequent attempts harder. Pin escape attempts have a ten-round interval. |
 | `takedown` | One Quick Contest using ST, DX or grappling skill against a standing opponent. The loser falls and loses the reciprocal grip. |
 | `pin` | One Regular Contest round, using the existing contest normalization. The free-hand advantage is included. Both-success/both-failure leaves control unchanged and requires another turn, without rolling ahead in time. |
 | `arm_lock` | Offensive path from a surviving, two-hand Judo/Wrestling grapple on an earlier turn; an attack/defense pause captures the selected arm. |
-| `lock_damage` | Once on each subsequent holder turn, a passive contest applies crushing damage to the arm, excluding flexible armor. The action does not consume the holder's attack. Already-crippled-arm pain effects remain unsupported. |
+| `lock_damage` | Once on each subsequent holder turn, a passive contest applies crushing damage to the arm, excluding flexible armor. The action does not consume the holder's attack. Winning a contest on an already crippled arm applies shock and knockdown/stun checks through the injury service, without losing more HP or adding another crippling injury. |
 | `strangle` | A neck-grip contest applies crushing neck damage. Penetrating injury starts the existing durable suffocation schedule; one-hand use carries its penalty. |
 | `ResolveChokeEffects` | The victim settles a due grip-specific suffocation deadline. Existing hazard/fatigue logic owns FP, consciousness and the no-air deadline. It consumes no combat turn and cannot duplicate a tick. |
-| `release` | Free release on the holder's turn. Releasing a choking grip ends its hazard after due effects are settled. |
+| `release` | Free release on the holder's turn, including a selected subset of hands. An arm lock cannot retain only one hand. Releasing a choking grip ends its hazard after due effects are settled. |
 
 The suffocation adapter uses the existing one-second shared combat clock. It does not introduce a second clock or a player-authored damage parameter. Individual-actor phase timing for choking, alongside other tactical timing refinements, remains part of #176.
 
@@ -32,11 +32,28 @@ The declared source is Basic Set Fourth Edition, first printing (2004), with the
 
 Both `gurps.combat.unarmed` and `gurps.combat.grappling` remain **partial**, which keeps the existing scenario/character capability checks fail-closed. #108 remains open. [Follow-up #176](https://github.com/Underzenith85/wayfarer/issues/176) tracks the remaining work:
 
-- Unarmed critical tables and critical-defense consequences. Table dice are recorded and the encounter blocks, rather than substituting the armed critical-miss table or ordinary damage.
-- Armed parries versus bare limbs, skill-specific advanced defenses, Wait/resume, attack options, evaluation/feint bonuses, retreat and tactical hex integration.
-- The defensive parry-to-arm-lock route, pain on an already crippled locked limb and the distinct Choke Hold technique.
-- Free-hand Ready, partial hand release, escape steps, dragging/carrying, twice-ST movement exceptions, Size Modifier/multiarm variants and additional strikes/targets. Unsupported movement/Ready/maneuver combinations are rejected explicitly.
+- Remaining unarmed critical-miss consequences: knockout/recovery (3/18), attacking stumble displacement (7/14), dropped-guard Evaluate/Feint timing (13), torn-muscle lasting penalties (15), and falling onto a ready impaling weapon (5/6/16). Armed critical-parry failures also retain an explicit blocker. These outcomes keep their recorded dice and halt continuation.
+- Wait/resume, All-Out Attack Double/Feint, movement paths beyond the existing close-combat entry, two-handed Wrestling/Sumo parries, remaining skill-specific defenses, and retreat/following during control attacks.
+- The defensive parry-to-arm-lock route and the distinct Choke Hold technique.
+- Escape steps, dragging/carrying, twice-ST movement exceptions, Size Modifier/multiarm variants and additional strikes/targets. Unsupported movement/reload/maneuver combinations are rejected explicitly.
 
 Current bodies have no authored Size Modifier, so tests cover equal-sized human participants. This does not implement large/small creature grappling. Optional/supplement grappling systems and control points are excluded.
 
-The Double Defense subset of #176 has restart, duplicate-receipt, pre-dice rejection, distinct-hand, fallback ordering and critical-blocker regression tests in `tests/test_unarmed_double_defense.py`. Critical outcomes still preserve table dice and block continuation, including when reached through the fallback. This subset does not complete #176 or the source-baseline audit.
+The Double Defense subset of #176 has restart, duplicate-receipt, pre-dice rejection, distinct-hand, fallback ordering and critical-blocker regression tests in `tests/test_unarmed_double_defense.py`. Unimplemented contextual critical outcomes still preserve table dice and block continuation, including when reached through the fallback. This subset does not complete #176 or the source-baseline audit.
+
+## Additional #176 integrations
+
+- All B556 non-head critical-hit table entries resolve for the supported strikes. Critical hits bypass active defenses, while damage, DR reduction, major-wound checks, double shock, transient limb injury and forced item drops use authoritative injury/equipment state.
+- B557 strain (4/17), solid-object self-injury without an impaling-weapon exception (5/6/16), falls (8 and parrying 7/14), lost balance (9-11), and trip checks (12) execute immediately. Limb strain lasts 1,800 seconds and self-injury uses the attacking limb, without treating it as a breakable weapon. A subject already prone takes the table's general injury for an unarmed-table fall. B382 critical Dodge failure falls without table dice; critical defense success applies the attacker's unarmed miss table. Contextual results listed above remain blockers.
+- Armed parries roll a separate weapon-skill check to injure the attacking arm or leg. Judo/Karate attacks impose the B376 -4 on that check. The selected weapon mode supplies damage type, armor divisor and damage dice. Extra checks and dice persist in the unarmed trace and in injury receipts.
+- All-Out Attack (Determined/Strong) and stationary/close-entry Move and Attack retain their attack modifiers and defense restrictions. Existing Evaluate/Feint benefits apply to the immediately following unarmed attack and cannot be reused on later attacks. Judo/Karate use encumbrance penalties; Boxing's kick-parry penalty participates in automatic best-defense selection.
+- Punches and kicks can target torso, neck, arms or legs. A neck strike missed by one resolves against the torso and records both intent and resolved location. Hex retreat is supported against strikes, with the trained unarmed parry bonus. Legacy square coordinates are unchanged.
+- Ready while grappling requires explicitly selected free hands. A grappled actor makes a DX check (including applicable shock/control penalties); failure drops only the selected item. The check and result survive restart and command replay. Partial release does not consume an attack or release other hands.
+
+`tests/test_unarmed_integrations.py` contains independent numeric cases and transaction/replay tests; `tests/test_tactical.py` verifies the v1/v2 HTTP boundary. Both capability families remain partial. These integrations do **not** complete #176 or #108.
+
+## Versioned command contract
+
+`/api/tactical/v2/campaigns/{cid}/commands` accepts `TakeUnarmedTurn.maneuver` and `attack_option`, plus `ChooseDefense.parry_mode_id` and `second_parry_mode_id`. The unchanged snapshot format remains `tactical-v1`. Gameplay v1 and the tactical v1 input schema remain unchanged; the latter rejects the new options. Omitted v2 options do not alter the canonical command payload, preserving existing receipt digests. See `contracts/tactical/v2/openapi.json` and `frontend/src/api/tactical-v2.generated.ts`.
+
+Verify both contracts with `uv run python -m scripts.tactical_contracts --check` and `uv run python -m scripts.tactical_contracts --version 2 --check`. The exact historical printing/errata equivalence audit remains open; numeric tests are not a source-baseline certification.
