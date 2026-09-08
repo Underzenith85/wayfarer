@@ -154,7 +154,12 @@ def _purchased(value: object) -> SecondaryLevels:
 def test_purchased_secondary_characteristics(case: dict[str, object]) -> None:
     given_ = inputs(case)
     attributes = PrimaryAttributes(*(int(str(given_[name])) for name in ("ST", "DX", "IQ", "HT")))
-    result = compile_statistics(profile_of(case), attributes, _purchased(given_["purchased"]))
+    result = compile_statistics(
+        profile_of(case),
+        attributes,
+        _purchased(given_["purchased"]),
+        revision=int(str(case.get("statistics_revision", 1))),
+    )
     for key, value in expected(case).items():
         if key == "point_cost":
             assert sum(result.costs.secondaries.values()) == value, key
@@ -204,7 +209,9 @@ def test_encumbered_move_and_dodge(case: dict[str, object]) -> None:
 def test_damage_table_rows(case: dict[str, object]) -> None:
     st_ = inputs(case)["ST"]
     assert isinstance(st_, int)
-    thrust, swing = statistics.damage(profile_of(case), st_)
+    thrust, swing = statistics.damage(
+        profile_of(case), st_, revision=int(str(case.get("statistics_revision", 1)))
+    )
     assert (str(thrust), str(swing)) == (expected(case)["thrust"], expected(case)["swing"])
 
 
@@ -538,3 +545,116 @@ def test_definitions_are_catalog_ready_and_named() -> None:
         key.split(":", 1)[1] for key in names if key.startswith("secondary:")
     }
     assert Advisory.HP_BEYOND_GUIDELINE.value == "hp.beyond-30-percent-of-st"
+
+
+@pytest.mark.parametrize("case", cases("damage_error"), ids=lambda c: str(c["id"]))
+def test_damage_error_fixtures(case: dict[str, object]) -> None:
+    with pytest.raises(StatisticsError) as caught:
+        statistics.damage(
+            profile_of(case),
+            int(str(inputs(case)["ST"])),
+            revision=int(str(case["statistics_revision"])),
+        )
+    assert caught.value.code == expected(case)["code"]
+
+
+def test_statistics_revision_is_explicit_and_basic_only() -> None:
+    for revision in (0, 3, True):
+        with pytest.raises(ValidationError, match="Unknown statistics revision"):
+            statistics.rules(BASIC, revision=revision)
+    with pytest.raises(ValidationError, match="requires Basic Set"):
+        statistics.rules(LITE, revision=2)
+    for profile in (BASIC, LITE):
+        result = compile_statistics(
+            profile,
+            PrimaryAttributes(10, 10, 10, 10),
+            SecondaryLevels(will=5, per=5, basic_speed=29, basic_move=11),
+        )
+        assert result.advisories == ()
+
+
+def test_revision_two_compiles_advisories_without_rejecting_and_preserves_pools() -> None:
+    package = replace(
+        profile_package(BASIC),
+        version="0.6.0",
+        definitions=statistics.definitions(BASIC, revision=2),
+    )
+    engine = profile_compiler(BASIC, package=package)
+    assert engine.statistics is not None and engine.statistics.revision == 2
+    draft = gurps_draft(
+        Purchase(definition_id="secondary:hp", amount=13),
+        Purchase(definition_id="secondary:fp", amount=12),
+        Purchase(definition_id="secondary:will", amount=5),
+        Purchase(definition_id="secondary:basic-speed", amount=29),
+        Purchase(definition_id="secondary:basic-move", amount=11),
+    )
+    build = engine.compile(draft).build
+    assert build is not None and build.statistics is not None
+    assert build.statistics.advisories == (
+        Advisory.WILL_BELOW_BASE,
+        Advisory.SPEED_BEYOND_GUIDELINE,
+        Advisory.MOVE_BEYOND_GUIDELINE,
+    )
+    for key, current, maximum, expected_current, expected_maximum in (
+        ("hp", 6, 10, 9, 13),
+        ("fp", 7, 10, 9, 12),
+    ):
+        previous = Pool(id=key + ":a", current=current, maximum=maximum)
+        refreshed = _refreshed(previous, pool_limits(build)[key], build)
+        assert (refreshed.current, refreshed.maximum) == (expected_current, expected_maximum)
+        assert _refreshed(refreshed, pool_limits(build)[key], build) == refreshed
+    mixed = replace(
+        package, definitions=(statistics.definitions(BASIC)[0],) + package.definitions[1:]
+    )
+    with pytest.raises(ValidationError, match="mix statistics revisions"):
+        profile_compiler(BASIC, package=mixed)
+
+
+def test_registered_statistics_revision_keeps_old_package_pins() -> None:
+    from wayfarer.rules.profiles import (
+        GURPS_SIZE_PACKAGE,
+        GURPS_SIZE_PROFILE,
+        GURPS_STATISTICS_PACKAGE,
+        GURPS_STATISTICS_PROFILE,
+        ProfileRegistry,
+    )
+
+    assert GURPS_SIZE_PACKAGE.version == "0.5.0"
+    assert GURPS_STATISTICS_PACKAGE.version == "0.6.0"
+    assert GURPS_SIZE_PACKAGE.digest != GURPS_STATISTICS_PACKAGE.digest
+    old = {d.id: d for d in GURPS_SIZE_PACKAGE.definitions}
+    for definition in GURPS_STATISTICS_PACKAGE.definitions:
+        if (
+            definition.id not in statistics.ATTRIBUTE_IDS
+            and definition.id not in statistics.SECONDARY_IDS
+        ):
+            assert definition == old[definition.id]
+    registry = ProfileRegistry((GURPS_SIZE_PROFILE, GURPS_STATISTICS_PROFILE))
+    assert registry is not None
+
+
+@pytest.mark.parametrize(
+    "strength, thrust, swing",
+    [
+        (100, "11d", "13d"),
+        (109, "11d", "13d"),
+        (110, "12d", "14d"),
+        (119, "12d", "14d"),
+        (120, "13d", "15d"),
+    ],
+)
+def test_registered_package_compiles_high_strength(strength: int, thrust: str, swing: str) -> None:
+    from wayfarer.rules.profiles import GURPS_STATISTICS_PROFILE
+
+    profile = GURPS_STATISTICS_PROFILE
+    engine = CharacterCompiler(
+        profile.catalog,
+        profile.rules,
+        replace(profile.policy, point_budget=2000, attribute_ceiling=200),
+        statistics_profile=profile.conformance_profile_id,
+    )
+    result = engine.compile(gurps_draft(st_level=strength))
+    assert result.build is not None, result.diagnostics
+    projected = result.build.statistics
+    assert projected is not None
+    assert (str(projected.thrust), str(projected.swing)) == (thrust, swing)

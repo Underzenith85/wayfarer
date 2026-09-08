@@ -25,16 +25,21 @@ export const providerReason = {
     "Out-of-character questions need an AI provider. Use the scene actions above for now.",
   creation: "AI creation needs an AI provider.",
 } as const;
-/** The reason a campaign that does not advertise an action kind cannot run it. */
+/**
+ * The reason a campaign that does not advertise an action kind cannot run it.
+ * These lines sit in the scene card, above the transcript, so they are written
+ * as something a player is told about the place they are standing in — never as
+ * a statement about what the adventure's data does or does not define (#272).
+ */
 export function capabilityReason(kind: string): string {
   return (
     {
       text: providerReason.text,
       question: providerReason.question,
-      inspect: "This adventure defines no examination for these details.",
-      move: "This adventure defines no travel from this scene.",
-      use_item: "This adventure defines no usable items.",
-      wait: "This adventure does not let time be passed on request.",
-    }[kind] ?? "This campaign does not support that action."
+      inspect: "There is nothing more to make out from here.",
+      move: "There is nowhere to travel to from here.",
+      use_item: "Nothing you are carrying can be used here.",
+      wait: "Time does not pass here on request.",
+    }[kind] ?? "That is not something you can do here."
   );
 }

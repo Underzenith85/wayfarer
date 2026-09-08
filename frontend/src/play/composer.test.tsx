@@ -144,3 +144,28 @@ it("promotes acting as to a select once the player controls more than one", asyn
       .map((o) => o.textContent),
   ).toEqual(["Mara", "Sera"]);
 });
+
+it("sends on Enter and breaks the line on Shift+Enter (#271)", async () => {
+  const store = await solo();
+  const region = composer();
+  const field = screen.getByLabelText("What do you do?");
+  // The keyboard path is stated in the composer, beside the counter.
+  expect(
+    within(region).getByText("Enter sends · Shift+Enter starts a new line"),
+  ).toBeVisible();
+  await userEvent.type(field, "I search the dock{Shift>}{Enter}{/Shift}again");
+  // Shift+Enter breaks the line and leaves the turn unsent.
+  expect(field).toHaveValue("I search the dock\nagain");
+  expect(store.readDraft("action").text).toBe("I search the dock\nagain");
+  await userEvent.type(field, "{Enter}");
+  expect(field).toHaveValue("");
+  expect(store.readDraft("action").text).toBe("");
+});
+
+it("leaves an unsendable turn where it is when Enter is pressed (#271)", async () => {
+  await solo();
+  const field = screen.getByLabelText("What do you do?");
+  await userEvent.type(field, "   {Enter}");
+  // Whitespace alone is not a turn: Enter neither sends it nor adds a line.
+  expect(field).toHaveValue("   ");
+});

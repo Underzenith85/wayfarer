@@ -292,11 +292,11 @@ async def test_punch_and_missed_kick_balance(tmp_path: Path) -> None:
 async def test_critical_dice_persist_and_block(tmp_path: Path) -> None:
     cid, play = await setup(tmp_path)
     await action(cid, play, "a", "kick")
-    play.rng = RecordedDice((6, 6, 6, 3, 3, 3))
+    play.rng = RecordedDice((6, 6, 6, 1, 1, 1))
     await defend(cid, play)
     state = await state_of(cid, play)
     assert state.encounters[0].blocked_reason is not None
-    assert state.encounters[0].unarmed_history[-1].table_dice == (3, 3, 3)
+    assert state.encounters[0].unarmed_history[-1].table_dice == (1, 1, 1)
     assert play.rng.exhausted()
     with pytest.raises(ConflictError):
         await action(cid, play, "a", "kick")

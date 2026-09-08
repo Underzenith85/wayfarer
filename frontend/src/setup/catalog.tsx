@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "../components/ui/button";
-import type { Lobby } from "./client";
+import type { Brief, Lobby } from "./client";
 import { GuidedScenarioAuthoring } from "./guided";
 import { providerReason } from "../presentation/availability";
 
@@ -30,11 +30,14 @@ export function ScenarioCatalog({
   token,
   principal,
   generationAvailable,
+  concept,
   onCreate,
 }: {
   token: string;
   principal: string;
   generationAvailable: boolean;
+  /** The concept setup already captured, so the workshop never asks again (#262). */
+  concept?: Brief | undefined;
   onCreate: (lobby: Lobby) => void;
 }) {
   const [entries, setEntries] = useState<Summary[]>([]);
@@ -168,6 +171,7 @@ export function ScenarioCatalog({
           token={token}
           principal={principal}
           source={source}
+          concept={concept}
           onAccept={setSource}
         />
       ) : (

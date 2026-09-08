@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "../components/ui/button";
+import { difficulties, difficultyLabel } from "../presentation/labels";
 import type { Brief } from "./client";
 
 type Finding = {
@@ -44,22 +45,44 @@ async function digest(source: string) {
   ).join("");
 }
 
+/**
+ * What a provider failure leaves the author able to do. A missing provider is
+ * not a defect in the request, so the advice names the next move rather than
+ * asking for the same button again (#263).
+ */
+const failureAdvice: Record<string, string> = {
+  provider_unavailable:
+    "The AI provider did not answer. Check its login on the server, or write the scenario yourself below — nothing you have entered is lost.",
+  provider_limited:
+    "The AI provider refused further requests for now. Wait a little and retry, or write the scenario yourself below.",
+};
+
 export function GuidedScenarioAuthoring({
   token,
   principal,
   source,
+  concept,
   onAccept,
 }: {
   token: string;
   principal: string;
   source: string;
+  /** The concept already captured in setup; the workshop never asks again (#262). */
+  concept?: Brief | undefined;
   onAccept: (proposal: string) => void;
 }) {
   const storageKey = `wayfarer-scenario-generation:${principal}`;
   const [open, setOpen] = useState(
     () => sessionStorage.getItem(storageKey) !== null,
   );
-  const [brief, setBrief] = useState(initialBrief);
+  /**
+   * The workshop shows the concept setup already captured, so the same five
+   * questions are never asked twice (#262). It holds a copy of its own only
+   * once the author changes something here, and follows the concept step until
+   * they do.
+   */
+  const [own, setOwn] = useState<Brief>();
+  const brief = own ?? concept ?? initialBrief;
   const [instructions, setInstructions] = useState("");
   const [capabilities, setCapabilities] = useState("");
   const [section, setSection] = useState("all");
@@ -68,6 +91,7 @@ export function GuidedScenarioAuthoring({
   const [authorMode, setAuthorMode] = useState(false);
   const [submittedSource, setSubmittedSource] = useState<string | null>(null);
 
+  const edit = (value: Brief) => setOwn(value);
   const request = async (path: string, body?: object) => {
     const response = await fetch(
       `/authoring/v1/scenarios/generation-jobs${path}`,
@@ -173,6 +197,16 @@ export function GuidedScenarioAuthoring({
     }
   };
 
+  const running =
+    !!job && (job.status === "queued" || job.status === "running");
+  const failure = job?.status === "failed" ? job : undefined;
+  /** A run to report: one that failed, or any the service left a message on. */
+  const trouble = failure ?? (job?.error_message ? job : undefined);
+  /** A run that ended without a proposal, however it ended, is retried in place. */
+  const stalled =
+    job && (job.status === "failed" || job.status === "cancelled")
+      ? job
+      : undefined;
   const changedSinceGeneration =
     !!job?.proposal_json &&
     submittedSource !== null &&
@@ -196,7 +230,7 @@ export function GuidedScenarioAuthoring({
               maxLength={4000}
               value={brief.premise}
               onChange={(event) =>
-                setBrief({ ...brief, premise: event.target.value })
+                edit({ ...brief, premise: event.target.value })
               }
             />
           </label>
@@ -206,7 +240,7 @@ export function GuidedScenarioAuthoring({
               <input
                 value={brief.genre}
                 onChange={(event) =>
-                  setBrief({ ...brief, genre: event.target.value })
+                  edit({ ...brief, genre: event.target.value })
                 }
               />
             </label>
@@ -215,7 +249,7 @@ export function GuidedScenarioAuthoring({
               <input
                 value={brief.tone}
                 onChange={(event) =>
-                  setBrief({ ...brief, tone: event.target.value })
+                  edit({ ...brief, tone: event.target.value })
                 }
               />
             </label>
@@ -227,7 +261,7 @@ export function GuidedScenarioAuthoring({
                 max={10000}
                 value={brief.duration_minutes}
                 onChange={(event) =>
-                  setBrief({
+                  edit({
                     ...brief,
                     duration_minutes: Number(event.target.value),
                   })
@@ -239,15 +273,17 @@ export function GuidedScenarioAuthoring({
               <select
                 value={brief.difficulty}
                 onChange={(event) =>
-                  setBrief({
+                  edit({
                     ...brief,
                     difficulty: event.target.value as Brief["difficulty"],
                   })
                 }
               >
-                <option value="gentle">Gentle</option>
-                <option value="standard">Standard</option>
-                <option value="hard">Hard</option>
+                {difficulties.map((value) => (
+                  <option key={value} value={value}>
+                    {difficultyLabel(value)}
+                  </option>
+                ))}
               </select>
             </label>
           </div>
@@ -256,7 +292,7 @@ export function GuidedScenarioAuthoring({
             <textarea
               value={brief.restrictions.join("\n")}
               onChange={(event) =>
-                setBrief({
+                edit({
                   ...brief,
                   restrictions: event.target.value.split("\n").filter(Boolean),
                 })
@@ -295,43 +331,14 @@ export function GuidedScenarioAuthoring({
             </label>
           )}
           <div className="context-actions">
-            <Button
-              type="button"
-              disabled={
-                !brief.premise ||
-                job?.status === "queued" ||
-                job?.status === "running"
-              }
-              onClick={() => void generate()}
-            >
-              {source
-                ? "Generate proposed changes"
-                : "Generate scenario proposal"}
-            </Button>
-            {(job?.status === "queued" || job?.status === "running") && (
+            {/* Retry replaces Generate rather than joining it: one control runs
+                generation, whatever the last attempt did (#263). */}
+            {stalled ? (
               <Button
                 type="button"
                 onClick={() =>
-                  void request(`/${job.id}/cancel`, {})
-                    .then(setJob)
-                    .catch((reason: unknown) =>
-                      setError(
-                        reason instanceof Error
-                          ? reason.message
-                          : "Cancellation failed",
-                      ),
-                    )
-                }
-              >
-                Cancel generation
-              </Button>
-            )}
-            {(job?.status === "failed" || job?.status === "cancelled") && (
-              <Button
-                type="button"
-                onClick={() =>
-                  void request(`/${job.id}/retry`, {
-                    expected_version: job.version,
+                  void request(`/${stalled.id}/retry`, {
+                    expected_version: stalled.version,
                   })
                     .then((value) => {
                       sessionStorage.setItem(storageKey, value.id);
@@ -353,12 +360,61 @@ export function GuidedScenarioAuthoring({
               >
                 Retry generation
               </Button>
+            ) : (
+              <Button
+                type="button"
+                disabled={!brief.premise || running}
+                onClick={() => void generate()}
+              >
+                {source
+                  ? "Generate proposed changes"
+                  : "Generate scenario proposal"}
+              </Button>
+            )}
+            {running && (
+              <Button
+                type="button"
+                onClick={() =>
+                  void request(`/${job!.id}/cancel`, {})
+                    .then(setJob)
+                    .catch((reason: unknown) =>
+                      setError(
+                        reason instanceof Error
+                          ? reason.message
+                          : "Cancellation failed",
+                      ),
+                    )
+                }
+              >
+                Cancel generation
+              </Button>
             )}
           </div>
-          {job && (
+          {job && !trouble && (
             <p role="status">Generation: {job.status.replace("_", " ")}</p>
           )}
-          {job?.error_message && <p role="alert">{job.error_message}</p>}
+          {/* A failure is not help text: it is announced, it looks like a
+              failure, and it says what the author can do next (#263). The
+              provider's own code and the job identifier stay a disclosure,
+              for the maintainer the author reports it to. */}
+          {trouble && (
+            <div className="generation-failure" role="alert">
+              <strong>Generation failed</strong>
+              <p>
+                {trouble.error_message ??
+                  "The provider did not return a usable scenario."}
+              </p>
+              <p>
+                {failureAdvice[trouble.error_code ?? ""] ??
+                  "Retry the generation, or write the scenario yourself below — nothing you have entered is lost."}
+              </p>
+              <details>
+                <summary>Generation error details</summary>
+                <p>Code: {trouble.error_code}</p>
+                <p>Job ID: {trouble.id}</p>
+              </details>
+            </div>
+          )}
           {publicProposal && (
             <article aria-label="Scenario proposal">
               <h4>{publicProposal.public.title}</h4>

@@ -9,13 +9,20 @@ from typing import cast
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from jsonschema import Draft202012Validator
 from openai_codex import ApprovalMode, AsyncCodex, Sandbox
 from openai_codex.generated.v2_all import GetAccountResponse, ItemCompletedNotification
 from openai_codex.models import Notification
 from openai_codex.types import TurnCompletedNotification
 from test_wave9 import prepare
 
-from wayfarer.errors import ProviderError, ProviderTimeoutError
+from wayfarer.errors import (
+    ProviderError,
+    ProviderOutputError,
+    ProviderRequestError,
+    ProviderTimeoutError,
+    provider_diagnostic,
+)
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.codex import (
     CodexAuthenticationError,
@@ -25,7 +32,9 @@ from wayfarer.orchestration.codex import (
     CodexSettings,
     ProviderStatus,
     SDKBackend,
-    strict_schema,
+    codex_output_schema,
+    codex_turn_failure,
+    decode_codex_output,
 )
 from wayfarer.orchestration.providers import (
     Intent,
@@ -187,7 +196,7 @@ def sdk_fake(status: str = "completed", info: str | None = None) -> MagicMock:
                     "id": "message",
                     "type": "agentMessage",
                     "phase": "final_answer",
-                    "text": '{"kind":"wait","ticks":1}',
+                    "text": '{"result":{"kind":"wait","ticks":1}}',
                 },
             }
         )
@@ -217,6 +226,7 @@ def sdk_fake(status: str = "completed", info: str | None = None) -> MagicMock:
         ("failed", "usageLimitExceeded", CodexLimitError),
         ("interrupted", None, CodexCancelledError),
         ("failed", "other", ProviderError),
+        ("failed", "badRequest", ProviderRequestError),
     ],
 )
 async def test_sdk_structured_stream_and_failure_mapping(
@@ -243,9 +253,9 @@ async def test_sdk_structured_stream_and_failure_mapping(
     assert bound[0] == "sdk-thread"
     assert fake.thread_start.call_args.kwargs["sandbox"] is Sandbox.read_only
     assert fake.thread_start.call_args.kwargs["approval_mode"] is ApprovalMode.deny_all
-    assert fake.thread_start.return_value.turn.call_args.kwargs["output_schema"] == strict_schema(
-        Intent.model_json_schema()
-    )
+    assert fake.thread_start.return_value.turn.call_args.kwargs[
+        "output_schema"
+    ] == codex_output_schema(Intent.model_json_schema())
 
 
 async def test_sdk_missing_authentication_and_safe_runtime_config(tmp_path: Path) -> None:
@@ -271,25 +281,214 @@ async def test_sdk_missing_authentication_and_safe_runtime_config(tmp_path: Path
     fake.thread_start.assert_not_called()
 
 
+@pytest.mark.parametrize(
+    "stage", ["account", "thread_start", "thread_resume", "turn_start", "turn_stream"]
+)
+async def test_sdk_failure_stage_is_public_but_raw_details_are_not(
+    tmp_path: Path, stage: str
+) -> None:
+    backend = SDKBackend(CodexSettings(home=tmp_path / "profile"))
+    fake = sdk_fake()
+    backend.client = cast(AsyncCodex, fake)
+    failure = RuntimeError("SECRET_TOKEN private prompt /private/profile")
+    if stage == "turn_start":
+        fake.thread_start.return_value.turn.side_effect = failure
+    elif stage == "turn_stream":
+
+        async def broken_stream() -> AsyncIterator[Notification]:
+            yield Notification(
+                method="item/completed",
+                payload=ItemCompletedNotification.model_validate(
+                    {
+                        "threadId": "sdk-thread",
+                        "turnId": "turn-1",
+                        "completedAtMs": 1,
+                        "item": {"id": "message", "type": "agentMessage", "text": "{}"},
+                    }
+                ),
+            )
+            raise failure
+
+        fake.thread_start.return_value.turn.return_value.stream = broken_stream
+    else:
+        getattr(fake, stage).side_effect = failure
+    provider = CodexProvider(CodexSettings(sessions=tmp_path / "map.db"), backend=backend)
+    if stage == "thread_resume":
+        await provider.sessions.get("actor-session")
+        await provider.sessions.put("actor-session", "existing-thread")
+    with pytest.raises(ProviderError) as caught:
+        await provider.complete(request())
+    assert caught.value.stage == stage
+    diagnostic = provider_diagnostic(caught.value)
+    assert "Failed during" in diagnostic.message
+    assert "SECRET_TOKEN" not in diagnostic.message
+    assert "/private" not in diagnostic.message
+    assert diagnostic.code == (
+        "provider_stream_error" if stage == "turn_stream" else "provider_unavailable"
+    )
+
+
+def test_diagnostics_allowlist_reasons_and_stage() -> None:
+    error = CodexAuthenticationError("SECRET_TOKEN")
+    error.stage = "account"
+    diagnostic = provider_diagnostic(error)
+    assert diagnostic.code == "codex_login_required"
+    assert not diagnostic.retryable
+    assert "wayfarer-codex-login" in diagnostic.message
+    assert "account check" in diagnostic.message
+    error.code = "SECRET_TOKEN"
+    error.stage = "SECRET_TOKEN"
+    diagnostic = provider_diagnostic(error)
+    assert diagnostic.code == "provider_unavailable"
+    assert "SECRET_TOKEN" not in diagnostic.message
+
+
 async def test_authenticated_codex_smoke(tmp_path: Path) -> None:
+    from wayfarer.transport.v1.common import validate
+    from wayfarer.transport.v1.provider import interpretation_schema
+
     if os.environ.get("WAYFARER_CODEX_SMOKE") != "1":
         pytest.skip("Enable WAYFARER_CODEX_SMOKE=1 after Codex login into a dedicated profile")
     home = os.environ.get("WAYFARER_CODEX_HOME")
     if not home:
         pytest.skip("Set WAYFARER_CODEX_HOME to the logged-in dedicated profile")
     provider = CodexProvider(CodexSettings(home=Path(home), sessions=tmp_path / "map.db"))
+    proposal_request = request().model_copy(
+        update={
+            "output_schema": interpretation_schema(),
+            "prompt": "Propose exactly the wait intent with ticks equal to 1.",
+        }
+    )
     try:
         try:
-            reply = ProviderReply.model_validate(await provider.complete(request()))
+            reply = ProviderReply.model_validate(await provider.complete(proposal_request))
         except CodexAuthenticationError:
             pytest.skip("No suitable Codex subscription login")
         Intent.model_validate_json(reply.payload_json)
+        validate("Intent", json.loads(reply.payload_json))
         # A second call resumes the same persisted campaign/actor session.
         Intent.model_validate_json(
-            ProviderReply.model_validate(await provider.complete(request())).payload_json
+            ProviderReply.model_validate(await provider.complete(proposal_request)).payload_json
         )
     finally:
         await provider.close()
+
+
+def test_real_play_schema_has_object_root_and_resolves_only_needed_definitions() -> None:
+    from wayfarer.transport.v1.provider import interpretation_schema
+
+    original = interpretation_schema()
+    before = json.dumps(original, sort_keys=True)
+    schema = codex_output_schema(original)
+    assert schema["type"] == "object"
+    assert schema["additionalProperties"] is False
+    assert schema["required"] == ["result"]
+    assert "oneOf" not in json.dumps(schema)
+    definitions = schema["$defs"]
+    assert isinstance(definitions, dict) and "Action" not in definitions
+    Draft202012Validator.check_schema(schema)
+    for value in (
+        {"kind": "wait", "ticks": 1},
+        {
+            "clarification": {
+                "id": "choose",
+                "prompt": "Which way?",
+                "choices": [{"id": "dock", "label": "Dock"}],
+                "allows_text": False,
+            }
+        },
+    ):
+        envelope = {"result": value}
+        Draft202012Validator(schema).validate(envelope)
+        assert json.loads(decode_codex_output(json.dumps(envelope), original)) == value
+    assert json.dumps(original, sort_keys=True) == before
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        '{"kind":"wait","ticks":1}',
+        '{"result":{"kind":"wait","ticks":1,"roll":20}}',
+        '{"result":{"kind":"wait","ticks":0}}',
+        '{"result":{"kind":"wait","ticks":1},"secret":"private"}',
+        "not json",
+    ],
+)
+def test_invalid_codex_envelope_or_proposal_is_rejected(text: str) -> None:
+    from wayfarer.transport.v1.provider import interpretation_schema
+
+    with pytest.raises(ProviderOutputError):
+        decode_codex_output(text, interpretation_schema())
+
+
+def test_normalizing_union_does_not_weaken_original_exclusivity() -> None:
+    schema: dict[str, object] = {"oneOf": [{"type": "object"}, {"type": "object"}]}
+    # The provider-facing anyOf accepts this, but original oneOf must reject it.
+    Draft202012Validator(codex_output_schema(schema)).validate({"result": {}})
+    with pytest.raises(ProviderOutputError):
+        decode_codex_output('{"result":{}}', schema)
+
+
+def test_scenario_schema_normalizes_nested_tagged_unions() -> None:
+    from wayfarer.simulation.studio import ScenarioGraph
+
+    schema = codex_output_schema(ScenarioGraph.model_json_schema())
+    Draft202012Validator.check_schema(schema)
+    encoded = json.dumps(schema)
+    assert '"oneOf"' not in encoded
+    assert '"discriminator"' not in encoded
+    assert schema["type"] == "object"
+
+
+async def test_sdk_uses_actual_play_schema_and_unwraps_response(tmp_path: Path) -> None:
+    from wayfarer.transport.v1.provider import interpretation_schema
+
+    backend = SDKBackend(CodexSettings(home=tmp_path / "profile"))
+    fake = sdk_fake()
+    backend.client = cast(AsyncCodex, fake)
+    provider = CodexProvider(CodexSettings(sessions=tmp_path / "map.db"), backend=backend)
+    reply = ProviderReply.model_validate(
+        await provider.complete(
+            request().model_copy(update={"output_schema": interpretation_schema()})
+        )
+    )
+    assert json.loads(reply.payload_json) == {"kind": "wait", "ticks": 1}
+    schema = fake.thread_start.return_value.turn.call_args.kwargs["output_schema"]
+    Draft202012Validator(schema).validate({"result": json.loads(reply.payload_json)})
+
+
+@pytest.mark.parametrize(
+    "status,code",
+    [
+        (400, "provider_request_rejected"),
+        (401, "codex_login_required"),
+        (429, "codex_subscription_limit"),
+        (503, "provider_connection_failed"),
+    ],
+)
+def test_typed_upstream_status_is_preserved_without_raw_error(status: int, code: str) -> None:
+    from openai_codex.generated.v2_all import TurnCompletedNotification
+
+    event = TurnCompletedNotification.model_validate(
+        {
+            "threadId": "thread",
+            "turn": {
+                "id": "turn",
+                "status": "failed",
+                "items": [],
+                "error": {
+                    "message": "SECRET_TOKEN",
+                    "codexErrorInfo": {"httpConnectionFailed": {"httpStatusCode": status}},
+                },
+            },
+        }
+    )
+    assert event.turn.error is not None and event.turn.error.codex_error_info is not None
+    error = codex_turn_failure(event.turn.error.codex_error_info.root)
+    diagnostic = provider_diagnostic(error)
+    assert diagnostic.code == code
+    assert f"HTTP status: {status}" in diagnostic.message
+    assert "SECRET_TOKEN" not in diagnostic.message
 
 
 async def test_configured_provider_http_path_and_scoped_status(

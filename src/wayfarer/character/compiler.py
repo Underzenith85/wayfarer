@@ -37,7 +37,7 @@ from wayfarer.rules.catalog import (
     RulesCatalog,
 )
 from wayfarer.rules.effects import DerivedValue, Effect, EffectEvaluator, MechanicalTarget
-from wayfarer.rules.gurps_characters import SIZE_MODIFIER_DEFINITION_ID
+from wayfarer.rules.gurps_characters import SIZE_MODIFIER_DEFINITION_ID, STATISTICS_V2_HOOK
 from wayfarer.rules.traits import TraitOptions
 from wayfarer.rules.traits import cost as trait_cost
 
@@ -181,15 +181,18 @@ class CharacterCompiler:
             raise ValidationError("Ambiguous definition IDs")
         # Exact profile selection: statistics never activate from a package name,
         # and a package cannot smuggle secondary characteristics without a profile.
+        revision = 2 if any(STATISTICS_V2_HOOK in d.hooks for d in definitions) else 1
         self.statistics_profile = statistics_profile
         self.statistics = (
-            None if statistics_profile is None else statistics.rules(statistics_profile)
+            None
+            if statistics_profile is None
+            else statistics.rules(statistics_profile, revision=revision)
         )
         if self.statistics is None:
             if any(d.kind is DefinitionKind.SECONDARY for d in definitions):
                 raise ValidationError("Secondary characteristics require a selected rules profile")
         else:
-            for expected in statistics.definitions(self.statistics.profile_id):
+            for expected in statistics.definitions(self.statistics.profile_id, revision=revision):
                 actual = self.definitions.get(expected.id)
                 if actual is None or (actual.kind, actual.point_cost, actual.status) != (
                     expected.kind,
@@ -199,6 +202,8 @@ class CharacterCompiler:
                     raise ValidationError(
                         f"Pinned packages do not carry profile statistics: {expected.id}"
                     )
+                if (STATISTICS_V2_HOOK in actual.hooks) != (revision == 2):
+                    raise ValidationError("Pinned packages mix statistics revisions")
         from wayfarer.rules.gurps_magic import validate_definitions
 
         validate_definitions(statistics_profile, self.definitions)
@@ -620,6 +625,7 @@ class CharacterCompiler:
                     basic_speed=levels.get(Secondary.BASIC_SPEED),
                     basic_move=levels.get(Secondary.BASIC_MOVE),
                 ),
+                revision=self.statistics.revision,
             )
         except StatisticsError as exc:
             diagnostics.append(Diagnostic(exc.code, ("sheet",), str(exc)))

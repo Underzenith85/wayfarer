@@ -3,10 +3,11 @@
 import hashlib
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.simulation.combat import Combatant, InjuryTrace, RangedSituation
+from wayfarer.simulation.critical import TableRoll
 from wayfarer.simulation.gurps_equipment import EquipmentCatalog, RangedMode
 from wayfarer.simulation.resources import (
     AmmunitionLoad,
@@ -35,6 +36,20 @@ class RangedCritical(Record):
     items: tuple[Item, ...]
     pools: tuple[Pool, ...]
     trace: InjuryTrace
+    table_rolls: tuple[TableRoll, ...] = Field(default=(), max_length=3, exclude_if=lambda v: not v)
+    subject_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
+    affected_item_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
+
+    @model_validator(mode="after")
+    def validate_rolls(self) -> RangedCritical:
+        if self.table_rolls and self.table_rolls[-1] != self.trace.critical_table:
+            raise ValueError("Critical trace must retain the final table roll")
+        if self.subject_id is not None and self.subject_id not in (
+            self.attacker.actor_id,
+            self.defender.actor_id,
+        ):
+            raise ValueError("Critical subject must be an attack participant")
+        return self
 
 
 def save_ranged_critical(state: ResourceState, record: RangedCritical) -> ResourceState:

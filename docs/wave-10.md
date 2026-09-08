@@ -55,6 +55,23 @@ actor-session-scoped status buffer. It is ephemeral progress, not game history.
 Raw provider text/reasoning/errors are never published as progress. The app closes
 the process at shutdown; cancellation/timeouts interrupt turns and close it.
 
+### Provider failure diagnostics
+
+Play action errors and scenario-generation errors show fixed, safe diagnostics
+for login requirements, Codex usage limits, request rejection, timeouts and invalid
+structured output. Codex failures also identify the stage when known: account
+check/token refresh, thread creation/resume, turn submission, response streaming
+or response validation. Expand **Error details** in play or **Generation error
+details** in authoring for the request/job identifier. Login and invalid-request
+failures require intervention before retrying; a usage limit requires waiting for
+the provider allowance to reset. Raw SDK errors, credentials, profile paths,
+prompts and model output are never included in these diagnostics.
+
+The frozen play API retains its `service_unavailable` code and carries diagnostic
+text in the existing error message; authoring retains the specific diagnostic
+code. Usage totals are telemetry only: there is no cumulative application token
+cutoff. Per-request timeouts, bounded retries and provider-side limits still apply.
+
 Settings: `WAYFARER_CODEX_MODEL` (default `gpt-5.6-terra`),
 `WAYFARER_CODEX_EFFORT` (`low`, `medium`, `high`),
 `WAYFARER_MODEL_TIMEOUT_SECONDS` (provider maximum 120 seconds),
@@ -89,6 +106,22 @@ normal CI requirement. Setup/API references:
 [official SDK documentation](https://learn.chatgpt.com/docs/codex-sdk),
 [App Server](https://learn.chatgpt.com/docs/app-server), and
 [configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference).
+
+The authenticated smoke uses the actual v1 play intent/clarification schema and
+checks a fresh thread followed by resume over the SDK's persistent app-server
+transport. A successful unstructured `codex exec` invocation does not verify this
+structured-output path. Codex proposals use an internal `{ "result": ... }`
+envelope so the output schema has an object root; nested unions use `anyOf`.
+Only referenced definitions are sent. The adapter unwraps the response and checks
+the original application schema (including its `oneOf` constraints) before any
+proposal reaches the engine. Public API contracts are unchanged.
+
+Failed turns now distinguish typed upstream connection failures, context limits,
+overload and sandbox errors from SDK stream handling errors. When supplied by a
+typed Codex error, the diagnostic includes the upstream HTTP status; status 400
+or 422 indicates request rejection. Raw provider messages remain private. This
+schema correction is an attempted fix for the reported streamed-turn failures;
+successful authenticated generation still needs verification on the deployment.
 
 ## NPCs and faction clocks
 

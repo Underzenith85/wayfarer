@@ -21,7 +21,8 @@ test("play replaces setup, and a second draft replaces the step view", async ({
   page,
 }) => {
   const lobby = await login(page);
-  // One creation surface at a time: the catalog and the brief never stack.
+  // One surface at a time, and the numbered flow carries none of the scenario
+  // authoring surface: step 2 asks which adventure, and nothing else (#261).
   await lobby.getByRole("button", { name: "Concept", exact: true }).click();
   await expect(
     page.getByRole("region", { name: "Scenario catalog" }),
@@ -30,7 +31,11 @@ test("play replaces setup, and a second draft replaces the step view", async ({
   await expect(page.getByLabel("Premise", { exact: true })).toHaveCount(0);
   await expect(
     page.getByRole("region", { name: "Scenario catalog" }),
-  ).toBeVisible();
+  ).toHaveCount(0);
+  await expect(
+    page.getByLabel("Scenario document JSON", { exact: true }),
+  ).toHaveCount(0);
+  await expect(lobby.getByLabel("Adventure and starting party")).toBeVisible();
   const forms = await page.locator("form").count();
   await lobby
     .getByLabel("Adventure and starting party")
@@ -101,9 +106,9 @@ test("the setup stepper stays one readable line at 320px (#206)", async ({
   await page.setViewportSize({ width: 320, height: 900 });
   const lobby = await login(page);
   const steps = lobby.getByRole("navigation", { name: "Setup steps" });
-  await expect(steps.getByText("Step 1 of 5: Concept")).toBeVisible();
+  await expect(steps.getByText("Step 1 of 4: Concept")).toBeVisible();
   const chips = steps.getByRole("listitem");
-  await expect(chips).toHaveCount(5);
+  await expect(chips).toHaveCount(4);
   // One row, no staircase: every chip shares a top edge, and none of it forces
   // the page to scroll sideways.
   const tops = await chips.evaluateAll((items) =>

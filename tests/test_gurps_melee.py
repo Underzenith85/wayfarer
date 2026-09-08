@@ -73,6 +73,7 @@ async def setup(
     ready_after_attack: bool = False,
     unarmed_fixture: bool = False,
     third_actor: bool = False,
+    critical_breakage: Literal["ordinary", "cheap", "resistant"] | None = None,
 ) -> tuple[str, PlayService]:
     equipment = EquipmentCatalog(
         profile_id=profile,
@@ -221,6 +222,26 @@ async def setup(
     package = profile_package(
         profile, *extras, *((definition(ability),) if ability_defense else ())
     )
+    if critical_breakage is not None:
+        from wayfarer.rules.object_types import ObjectProfile
+
+        equipment = equipment.model_copy(
+            update={
+                "entries": tuple(
+                    e.model_copy(
+                        update={
+                            "critical_breakage": critical_breakage,
+                            "durability": ObjectProfile(
+                                construction="unliving", hp=12, dr=4, ht=10
+                            ),
+                        }
+                    )
+                    if e.definition_id == "equipment:broadsword"
+                    else e
+                    for e in equipment.entries
+                )
+            }
+        )
     catalog = RulesCatalog((package,))
     policy = CampaignPolicy(
         id="melee-test",
@@ -361,6 +382,19 @@ async def setup(
                         owner_id="a",
                         quantity=10,
                     ),
+                )
+            }
+        )
+    if critical_breakage is not None:
+        from wayfarer.rules.object_types import ObjectCondition
+
+        seed = seed.model_copy(
+            update={
+                "items": tuple(
+                    i.model_copy(update={"condition": ObjectCondition(hp=12)})
+                    if i.definition_id == "equipment:broadsword"
+                    else i
+                    for i in seed.items
                 )
             }
         )
