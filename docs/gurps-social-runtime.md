@@ -26,6 +26,12 @@ catalog metadata; unknown/unapproved traits reject before dice. Character
 compilation still requires the exact runtime-hook capability, and this change
 does not enable an uncertified trait catalog or profile.
 
+Reaction and influence dispatch adds the modifiers the initiator's approved
+build implies, from the pinned definition's implemented runtime binding
+(#113, [selected trait inventory](gurps-mundane-traits.md)). A resolver that
+supplies its own trait modifier is rejected, and an initiator without an
+approved build contributes none.
+
 Social disclosures must come from the subject's known facts and use the social
 outcome policy. Ordinary unconditional NPC disclosures cannot be mixed into a
 social action. Player characters cannot become reaction/influence subjects.

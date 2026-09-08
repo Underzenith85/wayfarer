@@ -107,7 +107,7 @@
       "owner": 113,
       "decision": "required",
       "reviewed": false,
-      "reason": "Selected constructions and backgrounds are integrated; remaining traits, perks, quirks and variable constructions must be enumerated by the owner."
+      "reason": "Selected constructions and backgrounds are integrated and seven of them have bound runtime effects; remaining traits, perks, quirks, variable constructions and every unbound effect must be enumerated by the owner."
     },
     {
       "id": "supernatural-skills",

@@ -12,6 +12,7 @@ from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, Event
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
+from wayfarer.rules.mundane_traits.runtime import Check
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.social import (
     SocialCommand,
@@ -30,6 +31,34 @@ class ResolvedInteraction:
 
 
 InteractionResolver = Callable[[PlayService, PlayState, SocialCommand], ResolvedInteraction]
+
+
+def bind_trait_modifiers(
+    play: PlayService, state: PlayState, command: SocialCommand, context: SocialContext
+) -> None:
+    """Add the reaction/influence modifiers the initiator's approved build implies.
+
+    An approved build is the only source: a resolver cannot supply a trait
+    modifier, and an unbound or unpurchased trait contributes nothing. An
+    unapproved initiator (an NPC without a build) contributes nothing either.
+    """
+    from wayfarer.character.social_traits import reaction_modifiers
+
+    check: Check = "influence" if command.kind == "influence" else "reaction"
+    actor = next((a for a in state.actors if a.actor_id == command.actor_id), None)
+    if actor is None or actor.approval is None:
+        context.bind_trait_modifiers(())
+        return
+    from wayfarer.orchestration.gurps_melee import build
+
+    context.bind_trait_modifiers(
+        reaction_modifiers(
+            build(play, state, command.actor_id),
+            play.engine.reviewer.compiler.definitions,
+            check,
+            context.audience,
+        )
+    )
 
 
 def dispatch(
@@ -56,10 +85,10 @@ def dispatch(
             raise ValidationError("Fright context must match approved HT and Will")
     # A player subject may resist fear or a disadvantage, but reaction
     # and influence never select behavior or disclose facts on their behalf.
-    if command.kind in ("reaction", "influence") and any(
-        m.role == "player" and command.subject_id in m.actor_ids for m in before.members
-    ):
-        raise ValidationError("NPC social outcomes cannot control a player character")
+    if command.kind in ("reaction", "influence"):
+        if any(m.role == "player" and command.subject_id in m.actor_ids for m in before.members):
+            raise ValidationError("NPC social outcomes cannot control a player character")
+        bind_trait_modifiers(play, before, command, interaction.context)
     resources, world, outcome = apply_interaction(
         before.resources,
         before.world,
