@@ -283,7 +283,7 @@ async def test_unknown_disclosure_foreign_profile_and_unavailable_fright_do_not_
     for resolver, error in ((unknown, "unknown facts"), (foreign, "campaign profile")):
         with pytest.raises(ValidationError, match=error):
             await SocialService(play, resolver).execute(cid, command(), authenticated_gm_id="gm")
-    with pytest.raises(ValidationError, match="timed consequence"):
+    with pytest.raises(ValidationError, match="authoritative HP and FP"):
         await SocialService(play, resolve).execute(
             cid, command().model_copy(update={"kind": "fright"}), authenticated_gm_id="gm"
         )

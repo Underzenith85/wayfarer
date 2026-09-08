@@ -409,9 +409,23 @@ timed consequence execution in #137. The complete numeric fright table is
 represented by typed FrightEffect records: durations, recovery attributes and
 intervals, HP/FP losses, aftermath penalties, permanent attribute losses and
 explicit GM trait/panic choices. Each row has executable tests. Table effects
-are persisted in the private receipt; applying timed effects to live characters
-remains an explicit integration blocker in #137. Coverage does not claim that
-recording an effect already executes it. These blockers remain visible for #122.
+are persisted in the private receipt. The #137 runtime adapter now applies HP/FP
+losses through injury/fatigue services and persists temporary conditions and
+recovery deadlines. The explicit `fright-recovery` director command resolves a
+due check once; time advancement cannot skip an unresolved deadline. Modified
+Will recovery retains the original trigger target, without the Fright Check's
+Rule-of-14 cap. Build HT/Will and explicit profile pools are validated before dice.
+
+Choice-bearing results expose typed requirement labels and do not edit approved
+builds. Catatonia stops for medical-care adjudication no later than its first day;
+permanent losses and aftermath effects conservatively block actions pending
+integration. These are not implemented consequences. #299 tracks authored
+NPC/scheduler trigger dispatch, combat-specific condition behavior, automatic
+recovery dispatch, lasting adjudication, catatonia care/neglect, and aftermath
+penalties. #137 remains incomplete and these blockers remain visible for #122.
+`tests/test_fright_runtime.py` checks independent B360-361 examples (Campaigns,
+Fourth Edition, fourth printing) for FP loss, internal injury, automatic stun,
+coma deadlines, recovery retries, privacy and unchanged approved builds.
 
 `orchestration.social.SocialService` binds a trusted trigger resolver and commits
 the resource receipt and bounded NPC disclosure together through the existing
@@ -420,8 +434,8 @@ profile, and rejects reaction/influence dispatch against player-controlled
 subjects. Persisted retries do not re-run the resolver or recheck changed world
 knowledge. Colon-bearing trigger identities cannot alias, and legacy receipts
 remain readable. Player projections and event streams omit private traces.
-Fright dispatch rejects before rolling until timed consequence integration is
-available; its pure table resolver remains separately testable. Independent
+Fright dispatch now applies the timed runtime adapter; unsupported lasting
+consequences remain explicit adjudication requirements tracked in #299. Independent
 SQLite restart, stale command, failed disclosure, authority, and projection tests
 cover this boundary. The profile registry remains gated pending certification.
 

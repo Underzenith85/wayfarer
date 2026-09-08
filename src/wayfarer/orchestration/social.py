@@ -67,11 +67,24 @@ class SocialService:
 
         def reduce(campaign: Campaign) -> Event:
             before = play._load(campaign)
-            if command.kind == "fright":
-                raise ValidationError("Fright dispatch requires timed consequence integration")
             interaction = self.resolve(play, before, command)
             if interaction.context.profile_id != profile_id:
                 raise ValidationError("Social context does not match campaign profile")
+            if command.kind == "fright":
+                from wayfarer.simulation.fright import validate_subject
+
+                validate_subject(before.resources, command.subject_id, profile_id)
+                from wayfarer.orchestration.gurps_melee import build
+
+                if not any(a.actor_id == command.subject_id for a in before.actors):
+                    raise ValidationError("Fright requires an approved character")
+                statistics = build(play, before, command.subject_id).statistics
+                assert statistics is not None
+                if (
+                    interaction.context.ht != statistics.ht
+                    or interaction.context.will != statistics.will
+                ):
+                    raise ValidationError("Fright context must match approved HT and Will")
             # A player subject may resist fear or a disadvantage, but reaction
             # and influence never select behavior or disclose facts on their behalf.
             if command.kind in ("reaction", "influence") and any(
@@ -87,6 +100,24 @@ class SocialService:
                 rng=play.rng,
                 system=True,
             )
+            if command.kind == "fright":
+                from wayfarer.rules.fright import FrightEffect
+                from wayfarer.simulation.fright import apply_effect
+
+                raw = json.loads(resources.events[-1].kind)["private"]["effect"]
+                if raw is not None:
+                    resources = apply_effect(
+                        resources,
+                        FrightEffect.model_validate_json(json.dumps(raw)),
+                        actor_id=command.subject_id,
+                        trigger_id=command.trigger_id,
+                        command_id=command.id,
+                        ht=interaction.context.ht,
+                        will=interaction.context.will,
+                        modified_will=interaction.context.target,
+                        rng=play.rng,
+                    )
+                    resources = resources.model_copy(update={"revision": before.revision + 1})
             updated = before.model_copy(
                 update={"revision": resources.revision, "resources": resources, "world": world}
             )
