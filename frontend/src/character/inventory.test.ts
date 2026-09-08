@@ -100,7 +100,9 @@ describe("authoritative item operations", () => {
       const { store } = await setup(journey);
       const before = store.getSnapshot().snapshot;
       await store.sendInventory(intent);
-      const action = store.getSnapshot().entries[0]?.action;
+      // Nothing reached the game, so nothing reached the story either (#298).
+      expect(store.getSnapshot().entries).toEqual([]);
+      const action = store.getSnapshot().attempts[0]?.action;
       expect(action?.status).toBe("rejected");
       if (action?.status === "rejected")
         expect(action.error.message).toContain(message);
@@ -273,7 +275,13 @@ describe("inventory fixture contracts", () => {
           : { kind: "equip", item_id: "sword-1", slot_id: "main-hand" },
       );
       if (store.getSnapshot().retry) await store.retry();
-      check("Action", store.getSnapshot().entries[0]?.action);
+      const state = store.getSnapshot();
+      check(
+        "Action",
+        journey === "use-retry"
+          ? state.entries[0]?.action
+          : state.attempts[0]?.action,
+      );
       if (journey === "use-retry")
         check("SubmitAction", transport.inventoryRequests[0]);
       else {

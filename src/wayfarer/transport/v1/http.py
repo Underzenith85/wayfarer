@@ -127,7 +127,16 @@ async def page(request: web.Request, values: list[Obj], policy: str) -> Obj:
             values = [obj(v) for v in array(cursor["items"])]
             start = int(str(cursor["start"]))
             expires = float(str(cursor["expires"]))
-        ordered = sorted(values, key=lambda x: str(x.get("id", x.get("principal_id"))))
+        # A total order the cursor can resume from: chronological where the
+        # resource records when it was created, and by identifier otherwise,
+        # so a page boundary never reorders a session log (#295).
+        ordered = sorted(
+            values,
+            key=lambda x: (
+                str(x.get("created_at", "")),
+                str(x.get("id", x.get("principal_id"))),
+            ),
+        )
         selected = ordered[start : start + limit]
         token: str | None = None
         if start + limit < len(ordered):

@@ -692,8 +692,11 @@ details summary {
   overflow-wrap: anywhere;
   line-height: 1.8;
 }
+/* The narrative answer is the body of a turn, so it reads like prose and sits
+   directly under what the player wrote; the engine's account of the same turn
+   follows it (#294). */
 .gm-message {
-  padding: 1.5rem 0 0.5rem;
+  padding: 1rem 0 0.5rem;
 }
 .gm-message p {
   font-family: Georgia, serif;
@@ -926,6 +929,39 @@ details summary {
   padding: 1rem;
   border: 1px solid var(--accent);
   border-radius: 0.5rem;
+}
+/* A refused attempt is reported where it was submitted, not in the story (#298). */
+.failed-attempts {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 1px solid var(--accent);
+  border-left-width: 4px;
+  border-radius: 0.5rem;
+  background: var(--accent-soft);
+}
+.failed-attempts p {
+  margin: 0 0 0.5rem;
+}
+.failed-attempts details,
+.attempt-diagnostics {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.attempt-diagnostics summary {
+  cursor: pointer;
+}
+.attempt-diagnostics ul {
+  margin: 0.4rem 0 0;
+  padding-left: 1.2rem;
+}
+/* Finishing an adventure is an outcome, not a permission failure (#297). */
+.campaign-complete {
+  border: 1px solid var(--accent);
+  background: var(--accent-soft);
+}
+.campaign-complete h2 {
+  margin-top: 0.25rem;
 }
 /* An empty region is quiet prose; a failed one carries the accent and a retry (#162). */
 .empty-region {
@@ -1476,15 +1512,15 @@ main.setup-main > .scene-footer {
 .setup-steps .step-index {
   display: none;
 }
-/* Five labelled chips cannot share a phone-width line, so below this breakpoint
-   the row becomes numbered dots under the "Step N of 5: Name" line (#206). */
+/* Labelled chips cannot share a phone-width line, so below this breakpoint the
+   row becomes numbered dots under the "Step N of 4: Name" line (#206). */
 @media (max-width: 700px) {
   .setup-steps ol {
     flex-wrap: nowrap;
     gap: 0.4rem;
   }
   /* Sized explicitly: the hidden step name still feeds the item's intrinsic
-     width, which pushed the fifth dot past the row. */
+     width, which pushed the last dot past the row. */
   .setup-steps li {
     display: flex;
     flex: 0 0 44px;
@@ -1933,6 +1969,10 @@ input[type="number"] {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
+}
+.purchase-stepper .step-button {
+  touch-action: none;
+  user-select: none;
 }
 .purchase-stepper input[type="number"] {
   width: 5rem;

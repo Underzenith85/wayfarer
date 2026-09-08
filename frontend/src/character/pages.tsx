@@ -5,6 +5,7 @@ import { Backpack, Heart, Shield, Footprints, Coins } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Sheet } from "../components/ui/sheet";
 import { usePlay } from "../play/use-play";
+import type { Action } from "../play/transport";
 import type { components } from "../api/contracts.generated";
 import {
   operationLabel,
@@ -304,8 +305,15 @@ export function CharacterPage() {
 }
 export function InventoryFeedback() {
   const { state, store } = usePlay();
-  const entry = state.entries.at(-1),
-    action = entry?.action;
+  // What this dialog reports on is the operation it just sent, which the store
+  // names. A refused one is a failed attempt rather than a transcript entry
+  // (#298), and it is still exactly the thing the player is waiting to hear
+  // about, so both lists answer to the same identifier.
+  const entry: { text: string; action: Action | null } | undefined =
+    state.entries.find((e) => e.id === state.actedId) ??
+    state.attempts.find((a) => a.id === state.actedId) ??
+    state.entries.at(-1);
+  const action = entry?.action;
   return (
     <>
       <div className="inventory-feedback" aria-live="polite">

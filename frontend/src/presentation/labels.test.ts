@@ -5,8 +5,10 @@ import {
   definitionLabel,
   conditionLabel,
   encumbranceLabel,
+  changedLabel,
   humanize,
   lifecycleOperationLabel,
+  lifecycleReason,
   poolLabel,
   presentStats,
   sceneDescription,
@@ -160,17 +162,21 @@ describe("sceneDescription", () => {
 describe("timestampLabel", () => {
   const now = new Date(2026, 8, 7, 20);
   it("gives an entry from today a time and an older one a date too", () => {
-    const today = timestampLabel(
-      new Date(2026, 8, 7, 9, 30).toISOString(),
-      now,
+    const today = new Date(now);
+    today.setHours(9, 30, 0, 0);
+    const older = new Date(today);
+    older.setDate(older.getDate() - 3);
+    const time = { hour: "numeric", minute: "2-digit" } as const;
+    expect(timestampLabel(today.toISOString(), now)).toBe(
+      today.toLocaleTimeString(undefined, time),
     );
-    const older = timestampLabel(
-      new Date(2026, 8, 4, 9, 30).toISOString(),
-      now,
+    expect(timestampLabel(older.toISOString(), now)).toBe(
+      older.toLocaleString(undefined, {
+        month: "short",
+        day: "numeric",
+        ...time,
+      }),
     );
-    expect(today).not.toBe("");
-    expect(older).not.toBe("");
-    expect(older.length).toBeGreaterThan(today.length);
   });
   it("says nothing rather than something wrong about an unusable time", () => {
     expect(timestampLabel("not a time", now)).toBe("");
@@ -189,6 +195,36 @@ describe("ageLabel", () => {
   it("never reports a draft as saved in the future", () => {
     expect(ageLabel(new Date(now + 60_000).toISOString(), now)).toBe(
       "just now",
+    );
+  });
+});
+describe("lifecycleReason", () => {
+  it("separates a finished adventure from a locked-out one (#297)", () => {
+    expect(lifecycleReason("completed")).toContain("finished");
+    expect(lifecycleReason("completed")).not.toBe(lifecycleReason("paused"));
+    expect(lifecycleReason("paused")).toContain("paused");
+    expect(lifecycleReason("archived")).toContain("archived");
+    expect(lifecycleReason("draft")).toBe(lifecycleReason("ready"));
+  });
+  it("falls back to the plain condition for a phase it does not name", () => {
+    expect(lifecycleReason("suspended")).toContain("not active");
+  });
+});
+describe("changedLabel", () => {
+  it("names what a turn changed without its ids or digests (#296)", () => {
+    expect(
+      changedLabel([
+        { resource_type: "character" },
+        { resource_type: "inventory" },
+        { resource_type: "scene" },
+      ]),
+    ).toBe("your character, your inventory and this scene");
+    expect(changedLabel([{ resource_type: "scene" }])).toBe("this scene");
+    expect(changedLabel([])).toBe("");
+  });
+  it("reads an unfamiliar resource type rather than echoing the key", () => {
+    expect(changedLabel([{ resource_type: "world_state" }])).toBe(
+      "World State",
     );
   });
 });

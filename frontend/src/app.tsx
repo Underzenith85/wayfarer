@@ -271,9 +271,6 @@ function Shell() {
           </div>
           <ConnectionStatus />
           <Outlet />
-          <footer className="scene-footer">
-            The engine keeps the facts. The story brings them to life.
-          </footer>
         </main>
         <aside className="character-panel" aria-label="At a glance">
           <span className="eyebrow">At a glance</span>
