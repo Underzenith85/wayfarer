@@ -142,10 +142,10 @@ async def test_invalid_fallback_rejected_before_dice(
     ("rolls", "check_count", "blocked", "won", "parries"),
     [
         ((2, 2, 2, 4, 4, 4, 4, 4, 4, 1), 3, False, True, ("left-hand", "right-hand")),
-        ((2, 2, 2, 6, 6, 6, 3, 3, 3), 2, True, False, ("left-hand",)),
-        ((2, 2, 2, 4, 4, 4, 6, 6, 6, 3, 3, 3), 3, True, False, ("left-hand", "right-hand")),
+        ((2, 2, 2, 6, 6, 6, 3, 3, 3, 1), 2, False, True, ("left-hand",)),
+        ((2, 2, 2, 4, 4, 4, 6, 6, 6, 3, 3, 3, 1), 3, False, True, ("left-hand", "right-hand")),
         ((3, 3, 3, 2, 2, 2), 2, False, False, ()),
-        ((1, 1, 1, 3, 3, 3), 1, True, False, ()),
+        ((1, 1, 1, 3, 3, 3, 1), 1, False, True, ()),
     ],
 )
 async def test_double_defense_damage_miss_and_critical_boundaries(
@@ -176,7 +176,9 @@ async def test_double_defense_damage_miss_and_critical_boundaries(
     trace = encounter.unarmed_history[-1]
     assert len(trace.checks) == check_count and trace.won == won
     assert bool(encounter.blocked_reason) == blocked
-    assert trace.table_dice == ((3, 3, 3) if blocked else ())
+    assert trace.table_dice == (
+        (3, 3, 3) if any(c.outcome.value.startswith("critical") for c in trace.checks) else ()
+    )
     assert trace.defenses == (("parry", "left-hand"), ("parry", "right-hand"))
     assert next(p for p in encounter.participants if p.actor_id == "a").parries == parries
     assert encounter.current_actor_id == ("b" if blocked else "c")

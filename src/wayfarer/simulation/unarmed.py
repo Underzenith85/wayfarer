@@ -99,6 +99,11 @@ class UnarmedTrace(Record):
     blocked_reason: str | None = None
     # Extra table dice must survive even when a consequence is not yet implemented.
     table_dice: tuple[int, ...] = ()
+    effect_dice: tuple[int, ...] = Field(default=(), exclude_if=lambda value: not value)
+    effect_checks: tuple[CheckTrace, ...] = Field(default=(), exclude_if=lambda value: not value)
+    resolved_location: GrappleLocation | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     # Ordered choices include an unused fallback, so a receipt retains full intent.
     defenses: tuple[tuple[Literal["dodge", "parry", "none"], str | None], ...] = Field(
         default=(), exclude_if=lambda value: not value

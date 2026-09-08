@@ -87,6 +87,10 @@ class TakeUnarmedTurn(CombatCommand):
     location: GrappleLocation = "torso"
     grip_id: Id | None = None
     enter_close_combat: bool = False
+    maneuver: Literal["attack", "all_out_attack", "move_and_attack"] = Field(
+        default="attack", exclude_if=lambda value: value == "attack"
+    )
+    attack_option: AttackOption | None = Field(default=None, exclude_if=lambda value: value is None)
 
 
 class ResolveChokeEffects(CombatCommand):
@@ -109,6 +113,8 @@ class ChooseDefense(CombatCommand):
     second_defense: Defense | None = None
     second_item_id: str | None = None
     retreat: Hex | None = None
+    parry_mode_id: str | None = Field(default=None, exclude_if=lambda value: value is None)
+    second_parry_mode_id: str | None = Field(default=None, exclude_if=lambda value: value is None)
 
 
 class HexPlacement(Record):
@@ -394,10 +400,17 @@ class CombatService:
                             raise ValidationError("Target is unavailable")
                 from wayfarer.orchestration.unarmed import guard_control
 
-                guard_control(encounter, command)
+                guard_control(encounter, command, state)
                 from wayfarer.orchestration.tactical import prepare_defense
 
                 if isinstance(command, ChooseDefense):
+                    if encounter.pending_unarmed is None and (
+                        command.parry_mode_id is not None
+                        or command.second_parry_mode_id is not None
+                    ):
+                        raise ValidationError(
+                            "Explicit parry damage modes are only supported against unarmed attacks"
+                        )
                     encounter = prepare_defense(self.play, state, encounter, command)
                 if isinstance(command, MigrateEncounterHex):
                     from wayfarer.orchestration.tactical import migrate
@@ -867,6 +880,15 @@ class CombatService:
                             command.item_id or "",
                             command.ready_hand,
                         )
+                        from wayfarer.orchestration.unarmed import grapple_ready
+
+                        state, encounter = grapple_ready(
+                            self.play,
+                            state.model_copy(update={"resources": resources}),
+                            encounter,
+                            command_for_turn,
+                        )
+                        resources = state.resources
                     if (
                         engine.rules.gurps_equipment is not None
                         and result.code != "combat.wait_triggered"

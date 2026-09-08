@@ -1,0 +1,1744 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Tactical play",
+    "version": "2.0.0"
+  },
+  "servers": [
+    {
+      "url": "/api/tactical/v2"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/campaigns/{cid}": {
+      "get": {
+        "operationId": "readTactical",
+        "parameters": [
+          {
+            "name": "cid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "actor_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "TacticalSnapshot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TacticalSnapshot"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "TacticalError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TacticalError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "TacticalError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TacticalError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "TacticalError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TacticalError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "TacticalError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TacticalError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "TacticalError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TacticalError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "TacticalError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TacticalError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "TacticalError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TacticalError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/campaigns/{cid}/commands": {
+      "post": {
+        "operationId": "executeTactical",
+        "parameters": [
+          {
+            "name": "cid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TacticalRequestV2"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "TacticalSnapshot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TacticalSnapshot"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "TacticalError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TacticalError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "TacticalError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TacticalError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "TacticalError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TacticalError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "TacticalError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TacticalError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "TacticalError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TacticalError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "TacticalError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TacticalError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "TacticalError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TacticalError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "Cell": {
+        "additionalProperties": false,
+        "properties": {
+          "position": {
+            "$ref": "#/components/schemas/Hex"
+          },
+          "elevation": {
+            "default": 0,
+            "description": "Yards above map datum",
+            "maximum": 1000,
+            "minimum": -1000,
+            "title": "Elevation",
+            "type": "integer"
+          },
+          "blocked": {
+            "default": false,
+            "title": "Blocked",
+            "type": "boolean"
+          },
+          "extra_cost": {
+            "default": 0,
+            "description": "Authored terrain MP surcharge",
+            "maximum": 100,
+            "minimum": 0,
+            "title": "Extra Cost",
+            "type": "integer"
+          },
+          "opaque_height": {
+            "default": 0,
+            "description": "Yards above ground",
+            "maximum": 1000,
+            "minimum": 0,
+            "title": "Opaque Height",
+            "type": "integer"
+          },
+          "elevation_inches": {
+            "description": "Additional inches above elevation datum",
+            "exclusiveMaximum": 36,
+            "minimum": 0,
+            "title": "Elevation Inches",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "position"
+        ],
+        "title": "Cell",
+        "type": "object"
+      },
+      "ChooseDefense": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "choose_defense",
+            "default": "choose_defense",
+            "title": "Kind",
+            "type": "string"
+          },
+          "encounter_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Encounter Id",
+            "type": "string"
+          },
+          "defense": {
+            "enum": [
+              "dodge",
+              "parry",
+              "block",
+              "none"
+            ],
+            "title": "Defense",
+            "type": "string"
+          },
+          "item_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Item Id"
+          },
+          "second_defense": {
+            "anyOf": [
+              {
+                "enum": [
+                  "dodge",
+                  "parry",
+                  "block",
+                  "none"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Second Defense"
+          },
+          "second_item_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Second Item Id"
+          },
+          "retreat": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Hex"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "parry_mode_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Parry Mode Id"
+          },
+          "second_parry_mode_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Second Parry Mode Id"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "expected_revision",
+          "encounter_id",
+          "defense"
+        ],
+        "title": "ChooseDefense",
+        "type": "object"
+      },
+      "GridPoint": {
+        "additionalProperties": false,
+        "properties": {
+          "x": {
+            "maximum": 1000,
+            "minimum": 0,
+            "title": "X",
+            "type": "integer"
+          },
+          "y": {
+            "maximum": 1000,
+            "minimum": 0,
+            "title": "Y",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "x",
+          "y"
+        ],
+        "title": "GridPoint",
+        "type": "object"
+      },
+      "Hex": {
+        "additionalProperties": false,
+        "properties": {
+          "q": {
+            "maximum": 1000,
+            "minimum": -1000,
+            "title": "Q",
+            "type": "integer"
+          },
+          "r": {
+            "maximum": 1000,
+            "minimum": -1000,
+            "title": "R",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "q",
+          "r"
+        ],
+        "title": "Hex",
+        "type": "object"
+      },
+      "ResumeInterruptedTurn": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "resume_interrupted_turn",
+            "default": "resume_interrupted_turn",
+            "title": "Kind",
+            "type": "string"
+          },
+          "encounter_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Encounter Id",
+            "type": "string"
+          },
+          "cancel": {
+            "default": false,
+            "title": "Cancel",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "expected_revision",
+          "encounter_id"
+        ],
+        "title": "ResumeInterruptedTurn",
+        "type": "object"
+      },
+      "TacticalActor": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "position": {
+            "$ref": "#/components/schemas/Hex"
+          },
+          "facing": {
+            "title": "Facing",
+            "type": "integer"
+          },
+          "posture": {
+            "title": "Posture",
+            "type": "string"
+          },
+          "controlled": {
+            "title": "Controlled",
+            "type": "boolean"
+          },
+          "grappled": {
+            "title": "Grappled",
+            "type": "boolean"
+          },
+          "pinned": {
+            "title": "Pinned",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "position",
+          "facing",
+          "posture",
+          "controlled",
+          "grappled",
+          "pinned"
+        ],
+        "title": "TacticalActor",
+        "type": "object"
+      },
+      "TacticalChoice": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "command": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TakeCombatTurn"
+              },
+              {
+                "$ref": "#/components/schemas/TakeUnarmedTurn"
+              },
+              {
+                "$ref": "#/components/schemas/ChooseDefense"
+              },
+              {
+                "$ref": "#/components/schemas/ResumeInterruptedTurn"
+              }
+            ],
+            "title": "Command"
+          }
+        },
+        "required": [
+          "label",
+          "command"
+        ],
+        "title": "TacticalChoice",
+        "type": "object"
+      },
+      "TacticalEncounter": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "round": {
+            "title": "Round",
+            "type": "integer"
+          },
+          "current_actor_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Actor Id"
+          },
+          "coordinate_system": {
+            "default": "hex-axial-v1",
+            "title": "Coordinate System",
+            "type": "string"
+          },
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/Cell"
+            },
+            "title": "Cells",
+            "type": "array"
+          },
+          "actors": {
+            "items": {
+              "$ref": "#/components/schemas/TacticalActor"
+            },
+            "title": "Actors",
+            "type": "array"
+          },
+          "grips": {
+            "items": {
+              "$ref": "#/components/schemas/TacticalGrip"
+            },
+            "title": "Grips",
+            "type": "array"
+          },
+          "choices": {
+            "items": {
+              "$ref": "#/components/schemas/TacticalChoice"
+            },
+            "title": "Choices",
+            "type": "array"
+          },
+          "notice": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Notice"
+          },
+          "traces": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/TacticalTrace"
+            },
+            "title": "Traces",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "round",
+          "current_actor_id",
+          "cells",
+          "actors",
+          "grips",
+          "choices"
+        ],
+        "title": "TacticalEncounter",
+        "type": "object"
+      },
+      "TacticalGrip": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "holder_id": {
+            "title": "Holder Id",
+            "type": "string"
+          },
+          "target_id": {
+            "title": "Target Id",
+            "type": "string"
+          },
+          "location": {
+            "title": "Location",
+            "type": "string"
+          },
+          "hands": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Hands",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "holder_id",
+          "target_id",
+          "location",
+          "hands"
+        ],
+        "title": "TacticalGrip",
+        "type": "object"
+      },
+      "TacticalTrace": {
+        "additionalProperties": false,
+        "properties": {
+          "command_id": {
+            "title": "Command Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "totals": {
+            "default": [],
+            "items": {
+              "type": "integer"
+            },
+            "title": "Totals",
+            "type": "array"
+          },
+          "targets": {
+            "default": [],
+            "items": {
+              "type": "integer"
+            },
+            "title": "Targets",
+            "type": "array"
+          },
+          "injury": {
+            "default": 0,
+            "title": "Injury",
+            "type": "integer"
+          },
+          "source": {
+            "default": "GURPS Basic Set 4e (2004), B367-377, B384-392; baseline errata 2007-01-26",
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "command_id",
+          "actor_id",
+          "code"
+        ],
+        "title": "TacticalTrace",
+        "type": "object"
+      },
+      "TakeCombatTurn": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "take_combat_turn",
+            "default": "take_combat_turn",
+            "title": "Kind",
+            "type": "string"
+          },
+          "encounter_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Encounter Id",
+            "type": "string"
+          },
+          "maneuver": {
+            "enum": [
+              "do_nothing",
+              "move",
+              "ready",
+              "change_posture",
+              "attack",
+              "wait",
+              "concentrate",
+              "aim",
+              "evaluate",
+              "feint",
+              "all_out_attack",
+              "all_out_defense",
+              "move_and_attack"
+            ],
+            "title": "Maneuver",
+            "type": "string"
+          },
+          "destination": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GridPoint"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "facing": {
+            "anyOf": [
+              {
+                "enum": [
+                  "north",
+                  "east",
+                  "south",
+                  "west"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Facing"
+          },
+          "posture": {
+            "anyOf": [
+              {
+                "enum": [
+                  "standing",
+                  "kneeling",
+                  "prone"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Posture"
+          },
+          "item_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Item Id"
+          },
+          "target_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Target Id"
+          },
+          "mode_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Mode Id"
+          },
+          "shots": {
+            "default": 1,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Shots",
+            "type": "integer"
+          },
+          "reload_ammunition_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Reload Ammunition Id"
+          },
+          "unload_ammunition": {
+            "default": false,
+            "title": "Unload Ammunition",
+            "type": "boolean"
+          },
+          "hit_location": {
+            "anyOf": [
+              {
+                "enum": [
+                  "torso",
+                  "vitals",
+                  "skull",
+                  "face",
+                  "neck",
+                  "groin",
+                  "left-arm",
+                  "right-arm",
+                  "left-leg",
+                  "right-leg",
+                  "left-hand",
+                  "right-hand",
+                  "left-foot",
+                  "right-foot",
+                  "left-eye",
+                  "right-eye"
+                ],
+                "type": "string"
+              },
+              {
+                "const": "random",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Hit Location"
+          },
+          "ready_hand": {
+            "anyOf": [
+              {
+                "enum": [
+                  "left-hand",
+                  "right-hand"
+                ],
+                "type": "string"
+              },
+              {
+                "const": "both",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Ready Hand"
+          },
+          "attack_option": {
+            "anyOf": [
+              {
+                "enum": [
+                  "determined",
+                  "strong",
+                  "double",
+                  "feint"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Attack Option"
+          },
+          "defense_option": {
+            "anyOf": [
+              {
+                "enum": [
+                  "dodge",
+                  "parry",
+                  "block",
+                  "double"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Defense Option"
+          },
+          "wait_trigger": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WaitTrigger"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "step_timing": {
+            "default": "before",
+            "enum": [
+              "before",
+              "after"
+            ],
+            "title": "Step Timing",
+            "type": "string"
+          },
+          "second_item_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Second Item Id"
+          },
+          "second_target_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Second Target Id"
+          },
+          "second_mode_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Second Mode Id"
+          },
+          "braced": {
+            "default": false,
+            "title": "Braced",
+            "type": "boolean"
+          },
+          "hex_path": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Hex"
+            },
+            "maxItems": 100,
+            "title": "Hex Path",
+            "type": "array"
+          },
+          "hex_facing": {
+            "anyOf": [
+              {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3,
+                  4,
+                  5
+                ],
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Hex Facing"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "expected_revision",
+          "encounter_id",
+          "maneuver"
+        ],
+        "title": "TakeCombatTurn",
+        "type": "object"
+      },
+      "TakeUnarmedTurn": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "take_unarmed_turn",
+            "default": "take_unarmed_turn",
+            "title": "Kind",
+            "type": "string"
+          },
+          "encounter_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Encounter Id",
+            "type": "string"
+          },
+          "action": {
+            "enum": [
+              "punch",
+              "kick",
+              "grapple",
+              "break_free",
+              "takedown",
+              "pin",
+              "release",
+              "arm_lock",
+              "lock_damage",
+              "strangle"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "foot": {
+            "default": "right-foot",
+            "enum": [
+              "left-foot",
+              "right-foot"
+            ],
+            "title": "Foot",
+            "type": "string"
+          },
+          "target_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Target Id",
+            "type": "string"
+          },
+          "skill": {
+            "default": "attribute:dx",
+            "enum": [
+              "attribute:dx",
+              "skill:brawling",
+              "skill:boxing",
+              "skill:karate",
+              "skill:judo",
+              "skill:wrestling",
+              "skill:sumo-wrestling"
+            ],
+            "title": "Skill",
+            "type": "string"
+          },
+          "hands": {
+            "default": [],
+            "items": {
+              "enum": [
+                "left-hand",
+                "right-hand"
+              ],
+              "type": "string"
+            },
+            "title": "Hands",
+            "type": "array"
+          },
+          "location": {
+            "default": "torso",
+            "enum": [
+              "torso",
+              "neck",
+              "left-arm",
+              "right-arm",
+              "left-leg",
+              "right-leg"
+            ],
+            "title": "Location",
+            "type": "string"
+          },
+          "grip_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Grip Id"
+          },
+          "enter_close_combat": {
+            "default": false,
+            "title": "Enter Close Combat",
+            "type": "boolean"
+          },
+          "maneuver": {
+            "default": "attack",
+            "enum": [
+              "attack",
+              "all_out_attack",
+              "move_and_attack"
+            ],
+            "title": "Maneuver",
+            "type": "string"
+          },
+          "attack_option": {
+            "anyOf": [
+              {
+                "enum": [
+                  "determined",
+                  "strong",
+                  "double",
+                  "feint"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Attack Option"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "expected_revision",
+          "encounter_id",
+          "action",
+          "target_id"
+        ],
+        "title": "TakeUnarmedTurn",
+        "type": "object"
+      },
+      "WaitTrigger": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Actor Id"
+          },
+          "action": {
+            "enum": [
+              "attack",
+              "move"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "target_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Target Id"
+          },
+          "reaction": {
+            "default": "attack",
+            "enum": [
+              "attack",
+              "all_out_attack",
+              "feint",
+              "ready"
+            ],
+            "title": "Reaction",
+            "type": "string"
+          },
+          "item_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Item Id",
+            "type": "string"
+          },
+          "reaction_target_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Reaction Target Id"
+          },
+          "mode_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Mode Id"
+          },
+          "attack_option": {
+            "anyOf": [
+              {
+                "enum": [
+                  "determined",
+                  "strong",
+                  "double",
+                  "feint"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Attack Option"
+          },
+          "zone": {
+            "default": [],
+            "items": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Zone",
+            "type": "array"
+          },
+          "stop_thrust": {
+            "default": false,
+            "title": "Stop Thrust",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "action",
+          "item_id"
+        ],
+        "title": "WaitTrigger",
+        "type": "object"
+      },
+      "TacticalSnapshot": {
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "default": "tactical-v1",
+            "title": "Version",
+            "type": "string"
+          },
+          "campaign_id": {
+            "title": "Campaign Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 0,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "encounters": {
+            "items": {
+              "$ref": "#/components/schemas/TacticalEncounter"
+            },
+            "title": "Encounters",
+            "type": "array"
+          }
+        },
+        "required": [
+          "campaign_id",
+          "actor_id",
+          "revision",
+          "encounters"
+        ],
+        "title": "TacticalSnapshot",
+        "type": "object"
+      },
+      "HexBattlefield": {
+        "additionalProperties": false,
+        "description": "New tagged contract. Legacy square maps cannot validate as hex maps.",
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "coordinate_system": {
+            "const": "hex-axial-v1",
+            "title": "Coordinate System",
+            "type": "string"
+          },
+          "profile_id": {
+            "const": "gurps-basic-set-4e-2004",
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "baseline_id": {
+            "const": "gurps-4e-2004-first-printing+errata-2007-01-26",
+            "title": "Baseline Id",
+            "type": "string"
+          },
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/Cell"
+            },
+            "maxItems": 10000,
+            "minItems": 1,
+            "title": "Cells",
+            "type": "array"
+          },
+          "stairs": {
+            "items": {
+              "$ref": "#/components/schemas/Stairway"
+            },
+            "title": "Stairs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "coordinate_system",
+          "profile_id",
+          "baseline_id",
+          "cells"
+        ],
+        "title": "HexBattlefield",
+        "type": "object"
+      },
+      "HexPlacement": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "pose": {
+            "$ref": "#/components/schemas/Pose"
+          }
+        },
+        "required": [
+          "actor_id",
+          "pose"
+        ],
+        "title": "HexPlacement",
+        "type": "object"
+      },
+      "MigrateEncounterHex": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "migrate_encounter_hex",
+            "default": "migrate_encounter_hex",
+            "title": "Kind",
+            "type": "string"
+          },
+          "encounter_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Encounter Id",
+            "type": "string"
+          },
+          "battlefield": {
+            "$ref": "#/components/schemas/HexBattlefield"
+          },
+          "placements": {
+            "items": {
+              "$ref": "#/components/schemas/HexPlacement"
+            },
+            "maxItems": 100,
+            "minItems": 2,
+            "title": "Placements",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "expected_revision",
+          "encounter_id",
+          "battlefield",
+          "placements"
+        ],
+        "title": "MigrateEncounterHex",
+        "type": "object"
+      },
+      "Pose": {
+        "additionalProperties": false,
+        "properties": {
+          "position": {
+            "$ref": "#/components/schemas/Hex"
+          },
+          "facing": {
+            "enum": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "title": "Facing",
+            "type": "integer"
+          },
+          "posture": {
+            "default": "standing",
+            "enum": [
+              "standing",
+              "crouching",
+              "kneeling",
+              "crawling",
+              "sitting",
+              "lying"
+            ],
+            "title": "Posture",
+            "type": "string"
+          }
+        },
+        "required": [
+          "position",
+          "facing"
+        ],
+        "title": "Pose",
+        "type": "object"
+      },
+      "ResolveChokeEffects": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "resolve_choke_effects",
+            "default": "resolve_choke_effects",
+            "title": "Kind",
+            "type": "string"
+          },
+          "encounter_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Encounter Id",
+            "type": "string"
+          },
+          "grip_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Grip Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "expected_revision",
+          "encounter_id",
+          "grip_id"
+        ],
+        "title": "ResolveChokeEffects",
+        "type": "object"
+      },
+      "Stairway": {
+        "additionalProperties": false,
+        "description": "Authored traversable edge, not permission to climb or jump a cliff.",
+        "properties": {
+          "start": {
+            "$ref": "#/components/schemas/Hex"
+          },
+          "end": {
+            "$ref": "#/components/schemas/Hex"
+          }
+        },
+        "required": [
+          "start",
+          "end"
+        ],
+        "title": "Stairway",
+        "type": "object"
+      },
+      "TacticalRequestV2": {
+        "additionalProperties": false,
+        "properties": {
+          "command": {
+            "discriminator": {
+              "mapping": {
+                "choose_defense": "#/components/schemas/ChooseDefense",
+                "migrate_encounter_hex": "#/components/schemas/MigrateEncounterHex",
+                "resolve_choke_effects": "#/components/schemas/ResolveChokeEffects",
+                "resume_interrupted_turn": "#/components/schemas/ResumeInterruptedTurn",
+                "take_combat_turn": "#/components/schemas/TakeCombatTurn",
+                "take_unarmed_turn": "#/components/schemas/TakeUnarmedTurn"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TakeCombatTurn"
+              },
+              {
+                "$ref": "#/components/schemas/TakeUnarmedTurn"
+              },
+              {
+                "$ref": "#/components/schemas/ChooseDefense"
+              },
+              {
+                "$ref": "#/components/schemas/MigrateEncounterHex"
+              },
+              {
+                "$ref": "#/components/schemas/ResumeInterruptedTurn"
+              },
+              {
+                "$ref": "#/components/schemas/ResolveChokeEffects"
+              }
+            ],
+            "title": "Command"
+          }
+        },
+        "required": [
+          "command"
+        ],
+        "title": "TacticalRequestV2",
+        "type": "object"
+      },
+      "TacticalError": {
+        "type": "object",
+        "required": [
+          "code",
+          "error"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
