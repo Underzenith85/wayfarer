@@ -159,6 +159,49 @@ const PHASES: Record<string, string> = {
 export function campaignPhaseLabel(phase: string): string {
   return PHASES[phase] ?? humanize(phase);
 }
+/**
+ * Why a campaign that is not in play accepts no turn. Reaching the end of an
+ * adventure and being locked out of one are different conditions, and a single
+ * authorization sentence for both told a player who had just won that they were
+ * not allowed to act (#297).
+ */
+const LIFECYCLE_REASONS: Record<string, string> = {
+  draft: "This campaign has not started yet, so it accepts no actions.",
+  ready: "This campaign has not started yet, so it accepts no actions.",
+  paused: "This campaign is paused, so it accepts no actions.",
+  completed: "This adventure is finished. Its story accepts no further turns.",
+  archived: "This campaign is archived, so it accepts no actions.",
+};
+export function lifecycleReason(status: string): string {
+  return (
+    LIFECYCLE_REASONS[status] ??
+    "This campaign is not active, so it accepts no actions."
+  );
+}
+/**
+ * Engine bookkeeping named for a reader: what a committed turn changed, without
+ * the identifier or the content digest that names it to the service (#296).
+ */
+const RESOURCES: Record<string, string> = {
+  campaign: "the campaign",
+  character: "your character",
+  inventory: "your inventory",
+  scene: "this scene",
+  session: "the session",
+};
+export function resourceLabel(resourceType: string): string {
+  return RESOURCES[engineKey(resourceType)] ?? humanize(resourceType);
+}
+/** "your character and this scene" — a readable list of what a turn touched. */
+export function changedLabel(
+  resources: readonly { resource_type: string }[],
+): string {
+  const names = [
+    ...new Set(resources.map((r) => resourceLabel(r.resource_type))),
+  ];
+  if (names.length < 2) return names[0] ?? "";
+  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]!}`;
+}
 const CONDITIONS: Record<string, { label: string; description: string }> = {
   unconscious: {
     label: "Unconscious",

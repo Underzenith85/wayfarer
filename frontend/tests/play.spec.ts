@@ -31,10 +31,22 @@ test("send resolves with authoritative trace and versioned summaries", async ({
   await open(page);
   await send(page);
   await expect(page.getByText("Committed", { exact: true })).toBeVisible();
+  // The narrative answer is the turn's body, and it is what a player reads
+  // first — before the engine's account of the same turn (#294).
+  const turn = page.locator(".transcript-entry").last();
+  await expect(turn.locator(".gm-message")).toContainText(
+    "You draw the clean linen tight",
+  );
   await page.getByText("Rolls and consequences", { exact: true }).click();
+  const rolls = turn.locator(".committed-result > details");
   await expect(
     page.getByText("First Aid: 2 + 3 + 4 against 12", { exact: false }),
   ).toBeVisible();
+  // What changed is named; the versions naming it to the service are not (#296).
+  await expect(rolls).toContainText("Updated your character");
+  await expect(rolls.getByText("h2", { exact: false })).toBeHidden();
+  await rolls.getByText("Technical details", { exact: true }).click();
+  await expect(rolls.getByText("h2", { exact: false }).first()).toBeVisible();
   const summary = await glance(page);
   await expect(summary.getByText("Character version h2")).toBeHidden();
   await summary.getByText("Technical details", { exact: true }).click();
@@ -59,16 +71,25 @@ test("clarification continues the original action", async ({ page }) => {
   await expect(page.getByText("Committed", { exact: true })).toBeVisible();
   await expect(page.locator(".transcript-entry")).toHaveCount(1);
 });
-test("rejected action has no committed result", async ({ page }) => {
+test("rejected action reports at the composer and stays out of the story", async ({
+  page,
+}) => {
   await open(page, "reject");
   await send(page);
-  await expect(page.getByText("Rejected — no game changes")).toBeVisible();
+  const failure = page.getByRole("region", { name: "Failed attempts" });
+  await expect(
+    failure.getByText("That item is not accessible from this scene."),
+  ).toBeVisible();
+  // Nothing reached the game, so nothing is written into the log (#298).
+  await expect(page.locator(".transcript-entry")).toHaveCount(0);
   await expect(
     page.getByRole("heading", { name: "Authoritative result" }),
   ).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: "Retry same request" }),
   ).toHaveCount(0);
+  await failure.getByRole("button", { name: "Dismiss" }).click();
+  await expect(failure).toHaveCount(0);
 });
 test("unknown acknowledgement retries without duplicating an action", async ({
   page,

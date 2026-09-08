@@ -43,7 +43,7 @@ can authorize a model provider or reveal provider credentials.
 | `listCharacters`, `getCharacter`, `getInventory` | Controlled actors or explicit GM role; spectators receive no detailed sheets |
 | `listScenes`, `getScene` | Authorized scenes and observations only; GM can inspect all scenes |
 | `submitAction`, `clarifyAction`, `cancelAction` | Player role, controlled actor, current authorized scene; GM role alone cannot act as a player |
-| `listActions`, `getAction` | Own actor actions in authorized scene, or explicit GM inspection |
+| `listActions`, `getAction` | Own actor actions in authorized scene, or explicit GM inspection. An action's authorized scene is the one it was taken in or, once committed, the one its receipt left the actor in — the rule `getAction` has always applied, which `listActions` now filters by too, so a journey stays readable from its destination |
 | `createInvitation` | GM; invite player/spectator only, never grant GM or character control |
 | `redeemInvitation` | Authenticated holder of valid single-use token; no existing-role escalation |
 
@@ -161,7 +161,9 @@ authoritative resolution, even when the character's check failed.
 | succeeded, rejected, cancelled | none | Terminal, immutable gameplay outcome |
 
 Action versions increment for each visible transition. 202 may already contain a
-terminal state if processing completed quickly. `getAction`/`listActions` provide
+terminal state if processing completed quickly. `listActions` returns ascending
+creation order, with the action id only as a tiebreak, and pagination preserves
+that order across cursors. `getAction`/`listActions` provide
 polling recovery without waiting for #48; poll no faster than once per second,
 back off while inactive, and obey 429. Only a needs_clarification record contains
 `clarification`; only succeeded contains `resolution`; only rejected contains

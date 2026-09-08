@@ -225,9 +225,6 @@ export function ConnectedApp() {
             }}
           />
         </div>
-        <footer className="scene-footer">
-          The engine keeps the facts. The story brings them to life.
-        </footer>
       </main>
     </>
   );

@@ -34,6 +34,8 @@ import { TechnicalDetails } from "../components/technical-details";
 import { EmptyRegion, UnavailableRegion } from "../components/region-state";
 import {
   ageLabel,
+  campaignPhaseLabel,
+  changedLabel,
   conditionLabel,
   encumbranceLabel,
   sceneDescription,
@@ -294,10 +296,14 @@ export function Transcript({ entries }: { entries: Entry[] }) {
 }
 
 /**
- * What was submitted, when, and only then how it went (#202). The frozen v1
- * action carries no intent text, so a turn taken on another device — or before
- * this browser's storage was cleared — says so rather than borrowing a
- * placeholder that makes every entry read alike.
+ * What was submitted, when, then what the game master made of it, and only then
+ * how the engine recorded it (#202, #294). The narrative answer is the body of
+ * a turn: a player who wrote a sentence is owed a reply in prose, and the
+ * mechanical detail is what that reply is an account of, not a substitute for
+ * it. The frozen v1 action carries neither the intent text nor the narration, so
+ * a turn taken on another device — or before this browser's storage was cleared
+ * — says so rather than borrowing a placeholder that makes every entry read
+ * alike.
  */
 function ActionEntry({ entry }: { entry: Entry }) {
   const a = entry.action;
@@ -307,6 +313,7 @@ function ActionEntry({ entry }: { entry: Entry }) {
     ooc: "Out of character",
   }[entry.channel];
   const at = a?.created_at ?? entry.at;
+  const committed = a?.status === "succeeded";
   return (
     <li className="transcript-entry">
       <div className={`player-message channel-${entry.channel}`}>
@@ -326,6 +333,29 @@ function ActionEntry({ entry }: { entry: Entry }) {
           </time>
         )}
       </div>
+      {entry.narration ? (
+        <div className="gm-message">
+          <span className="eyebrow">
+            Game master
+            {entry.narration.status === "provisional"
+              ? " · still writing"
+              : entry.narration.status === "failed"
+                ? " · narration unavailable"
+                : ""}
+          </span>
+          <p>{entry.narration.text}</p>
+          {entry.narration.status === "provisional" && (
+            <small>Story text does not change the committed result.</small>
+          )}
+        </div>
+      ) : (
+        committed && (
+          <div className="gm-message" role="status">
+            <span className="eyebrow">Game master</span>
+            <p className="entry-unrecorded">The game master is writing…</p>
+          </div>
+        )
+      )}
       <div className="action-status" role="status">
         {!a
           ? "Awaiting acknowledgement"
@@ -345,21 +375,6 @@ function ActionEntry({ entry }: { entry: Entry }) {
                     ? "Rejected — no game changes"
                     : "Cancelled"}
       </div>
-      {a?.status === "rejected" && (
-        <div role="alert">
-          <p>{a.error.message}</p>
-          <details>
-            <summary>Error details</summary>
-            <p>Code: {a.error.code}</p>
-            <p>Request ID: {a.error.request_id}</p>
-            <p>
-              {a.error.retryable
-                ? "Retry is available."
-                : "Resolve the issue before retrying."}
-            </p>
-          </details>
-        </div>
-      )}
       <Clarification entry={entry} />
       {a?.status === "succeeded" && (
         <section className="committed-result">
@@ -377,35 +392,143 @@ function ActionEntry({ entry }: { entry: Entry }) {
                 </p>
               ))
             )}
-            <ul>
-              {a.resolution.changed_resources.map((resource) => (
-                <li key={`${resource.resource_type}:${resource.resource_id}`}>
-                  {resource.resource_type} · {resource.resource_id} · version{" "}
-                  {resource.version}
-                </li>
-              ))}
-            </ul>
+            {/* What changed, named for a reader. The identifiers and content
+                digests that name the same things to the service are engine
+                bookkeeping and sit behind the usual disclosure (#296). */}
+            {a.resolution.changed_resources.length > 0 && (
+              <p>Updated {changedLabel(a.resolution.changed_resources)}.</p>
+            )}
             <p>Game time: {a.resolution.game_time.ticks} ticks</p>
+            <TechnicalDetails
+              entries={a.resolution.changed_resources.map((resource) => ({
+                label: `${resource.resource_type} · ${resource.resource_id} · version`,
+                value: resource.version,
+              }))}
+            />
           </details>
         </section>
       )}
-      {entry.narration && (
-        <div className="gm-message">
-          <span className="eyebrow">
-            Game master ·{" "}
-            {entry.narration.status === "provisional"
-              ? "Provisional narration"
-              : entry.narration.status === "failed"
-                ? "Narration unavailable"
-                : "Narration"}
-          </span>
-          <p>{entry.narration.text}</p>
-          {entry.narration.status === "provisional" && (
-            <small>Story text does not change the committed result.</small>
+    </li>
+  );
+}
+/**
+ * A turn the engine refused reached no game state, so it is not part of the
+ * story: it belongs at the point of submission, where the player can act on it,
+ * and it leaves when they do. Its diagnostics stay reachable for support without
+ * standing in the narrative log for the rest of the campaign (#298).
+ */
+function FailedAttempts() {
+  const { state, store } = usePlay();
+  if (!state.attempts.length) return null;
+  const last = state.attempts[state.attempts.length - 1]!;
+  // Only the turn this device just sent is news. A refusal read back from an
+  // earlier session is history, and history goes in the disclosure.
+  const latest = last.id === state.actedId ? last : null;
+  const earlier = latest ? state.attempts.slice(0, -1) : state.attempts;
+  const a = latest?.action;
+  const message =
+    a?.status === "rejected" ? a.error.message : "This turn was cancelled.";
+  return (
+    <section className="failed-attempts" aria-label="Failed attempts">
+      {latest && a && (
+        <div role="alert">
+          <p>{message}</p>
+          <p className="entry-unrecorded">
+            Nothing in your story changed.{" "}
+            {latest.text ? "Your words are kept" : "Nothing was kept"}
+            {latest.text ? ", so you can send them again." : "."}
+          </p>
+          <div className="context-actions">
+            {!!latest.text.trim() && (
+              <Button
+                type="button"
+                disabled={
+                  !store.canSend(latest.channel === "ooc" ? "question" : "text")
+                }
+                onClick={() => void store.retryAttempt(latest.id)}
+              >
+                Try again
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => store.dismissAttempt(latest.id)}
+            >
+              Dismiss
+            </Button>
+          </div>
+          {a.status === "rejected" && (
+            <details>
+              <summary>Error details</summary>
+              <p>Code: {a.error.code}</p>
+              <p>Request ID: {a.error.request_id}</p>
+              <p>
+                {a.error.retryable
+                  ? "Retry is available."
+                  : "Resolve the issue before retrying."}
+              </p>
+            </details>
           )}
         </div>
       )}
-    </li>
+      {earlier.length > 0 && (
+        <details className="attempt-diagnostics">
+          <summary>
+            {latest ? "Earlier failed" : "Failed"} attempts ({earlier.length})
+          </summary>
+          <ul>
+            {earlier.map((attempt) => (
+              <li key={attempt.id}>
+                <time dateTime={attempt.at}>{timestampLabel(attempt.at)}</time>{" "}
+                ·{" "}
+                {attempt.action.status === "rejected"
+                  ? `${attempt.action.error.message} (${attempt.action.error.code})`
+                  : "Cancelled"}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+    </section>
+  );
+}
+/**
+ * Reaching the end of an adventure is the best moment the game has, and it is
+ * not a permission failure. It names the outcome, says what the session came to
+ * and offers the ways onward, instead of a disabled field under a sentence
+ * about what this campaign will not accept (#297).
+ */
+function CampaignComplete() {
+  const { state } = usePlay();
+  const s = state.snapshot!;
+  const turns = state.entries.filter(
+    (e) => e.action?.status === "succeeded",
+  ).length;
+  return (
+    <section className="scene-card campaign-complete">
+      <span className="eyebrow">{campaignPhaseLabel(s.campaign.status)}</span>
+      <h2>Adventure complete</h2>
+      <p>
+        {s.campaign.name} is over. You saw it through: {s.campaign.premise}
+      </p>
+      {s.session?.summary && (
+        <p className="scene-description">{s.session.summary}</p>
+      )}
+      <p>
+        {turns === 1 ? "One turn" : `${turns} turns`} played ·{" "}
+        {s.campaign.game_time.ticks} ticks of game time · last scene{" "}
+        {s.scene.title}
+      </p>
+      <div className="context-actions">
+        <Button asChild>
+          <ScopedLink segment="campaign">Start another adventure</ScopedLink>
+        </Button>
+        <Button variant="outline" asChild>
+          <ScopedLink segment="journal">Review this session</ScopedLink>
+        </Button>
+      </div>
+    </section>
   );
 }
 /**
@@ -467,7 +590,7 @@ function Composer({ voice }: { voice: VoiceController }) {
         : "question";
   return (
     <form className="composer" onSubmit={(e) => void send(e)}>
-      <SceneSuggestions />
+      <SceneSuggestions blocked={blocked} />
       <label htmlFor="play-draft">
         {channel === "action"
           ? "What do you do?"
@@ -641,11 +764,15 @@ function sceneActions(state: PlayState, store: PlayStore) {
 /**
  * The suggested actions and the free-text field are two ways to take the same
  * turn, so they are one decision in one place, directly above the input (#197).
+ * They share the composer's condition when it is the same condition, and the
+ * composer states it: the notice belongs once, beside the control the player
+ * would reach for, not above the input and below it (#297).
  */
-function SceneSuggestions() {
+function SceneSuggestions({ blocked }: { blocked: string | null }) {
   const { state, store } = usePlay();
   if (!state.snapshot) return null;
-  const { waiting, offered, pending } = sceneActions(state, store);
+  const { waiting, offered, pending: reasons } = sceneActions(state, store);
+  const pending = reasons.filter((reason) => reason !== blocked);
   if (!waiting && !offered.length) return null;
   return (
     <div className="composer-suggestions">
@@ -861,11 +988,18 @@ export function PlayWorkspace() {
           )}
         </div>
       )}
-      <ActingAs />
-      <Composer
-        voice={voice}
-        key={`${s.campaign.id}:${s.scene.id}:${state.actorId}:${s.campaign.membership.version}`}
-      />
+      {s.campaign.status === "completed" ? (
+        <CampaignComplete />
+      ) : (
+        <>
+          <FailedAttempts />
+          <ActingAs />
+          <Composer
+            voice={voice}
+            key={`${s.campaign.id}:${s.scene.id}:${state.actorId}:${s.campaign.membership.version}`}
+          />
+        </>
+      )}
     </div>
   );
 }

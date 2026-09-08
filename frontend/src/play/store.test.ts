@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PlayStore } from "./store";
 import { FixtureTransport, fixtureSnapshot, type Journey } from "./fixtures";
-import type { Snapshot } from "./transport";
+import type { Action, Snapshot } from "./transport";
 import { providerReason } from "../presentation/availability";
 const stores: PlayStore[] = [];
 function make(journey: Journey = "resolve") {
@@ -26,7 +26,7 @@ afterEach(() => {
   stores.length = 0;
 });
 describe("scoped play journeys", () => {
-  it("finishes travel with the destination snapshot without waiting on old-scene narration", async () => {
+  it("narrates a committed journey from the scene it arrives in (#294)", async () => {
     const { store, transport } = await start();
     const destination = structuredClone(store.getSnapshot().snapshot!);
     destination.scene.id = "destination";
@@ -35,9 +35,80 @@ describe("scoped play journeys", () => {
     await store.send("action", "Travel onward");
     expect(store.getSnapshot().snapshot?.scene.id).toBe("destination");
     expect(store.getSnapshot().entries[0]?.action?.status).toBe("succeeded");
+    // The turn that moved the party is the one most worth reading, and it used
+    // to be the only kind of turn that produced no prose at all.
+    expect(narration).toHaveBeenCalled();
+    expect(store.getSnapshot().entries[0]?.narration).toMatchObject({
+      status: "complete",
+    });
     expect(store.getSnapshot().busy).toBe(false);
     expect(store.getSnapshot().expired).toBe(false);
-    expect(narration).not.toHaveBeenCalled();
+  });
+  it("finishes a committed turn whose narration never arrives", async () => {
+    const { store, transport } = await start();
+    // A stream that stays open and says nothing must not hold the turn open.
+    vi.spyOn(transport, "narrate").mockImplementation(
+      // eslint-disable-next-line require-yield
+      async function* (_c, _a, signal: AbortSignal) {
+        await new Promise((_, reject) =>
+          signal.addEventListener("abort", () => reject(signal.reason), {
+            once: true,
+          }),
+        );
+      },
+    );
+    store.narrationMs = 5;
+    await store.send("action", "Dress the wound");
+    expect(store.getSnapshot().entries[0]).toMatchObject({
+      action: { status: "succeeded" },
+      narration: { status: "failed" },
+    });
+    expect(store.getSnapshot().busy).toBe(false);
+  });
+  it("restores the game master's prose for a turn read back after a reload (#294)", async () => {
+    const { store } = await start();
+    await store.send("action", "Dress the wound");
+    const told = store.getSnapshot().entries[0]?.narration?.text;
+    expect(told).toContain("clean linen");
+    await store.select("campaign-1");
+    expect(store.getSnapshot().entries[0]?.narration).toEqual({
+      text: told,
+      status: "complete",
+    });
+  });
+  it("orders the transcript by service time, not by the order replies arrived", async () => {
+    const { store, transport } = await start();
+    // The service is the authority on when a turn happened, and it does not
+    // have to agree with the order this device saw the replies in.
+    const recorded = new Map<string, string>();
+    let next = "2026-09-06T22:00:02Z";
+    const getAction = transport.getAction.bind(transport);
+    const listActions = transport.listActions.bind(transport);
+    const stamp = (a: Action) => ({
+      ...a,
+      created_at: recorded.get(a.id) ?? a.created_at,
+    });
+    vi.spyOn(transport, "getAction").mockImplementation(
+      async (cid, id, signal) => {
+        recorded.set(id, recorded.get(id) ?? next);
+        return stamp(await getAction(cid, id, signal));
+      },
+    );
+    vi.spyOn(transport, "listActions").mockImplementation(async (cid, signal) =>
+      (await listActions(cid, signal)).map(stamp),
+    );
+    await store.send("action", "First taken, later recorded");
+    next = "2026-09-06T22:00:01Z";
+    await store.send("action", "Second taken, earlier recorded");
+    expect(store.getSnapshot().entries.map((e) => e.text)).toEqual([
+      "Second taken, earlier recorded",
+      "First taken, later recorded",
+    ]);
+    // And the same order comes back from the service, not from arrival order.
+    await store.select("campaign-1");
+    expect(
+      store.getSnapshot().entries.map((e) => e.action?.created_at),
+    ).toEqual(["2026-09-06T22:00:01Z", "2026-09-06T22:00:02Z"]);
   });
   it("updates summaries only after committed results and preserves provisional narration separation", async () => {
     const { store } = await start();
@@ -94,9 +165,31 @@ describe("scoped play journeys", () => {
   it("does not treat business rejection as a retry or apply resource changes", async () => {
     const { store } = await start("reject");
     await store.send("action", "Use the item");
-    expect(store.getSnapshot().entries[0]?.action?.status).toBe("rejected");
+    // A refused attempt is a failed attempt, not a turn of the story (#298).
+    expect(store.getSnapshot().entries).toEqual([]);
+    expect(store.getSnapshot().attempts[0]).toMatchObject({
+      text: "Use the item",
+      action: { status: "rejected" },
+    });
     expect(store.getSnapshot().retry).toBeNull();
     expect(store.getSnapshot().snapshot?.characters[0]?.version).toBe("h1");
+  });
+  it("keeps a refused attempt out of the log across a reload, and retries it (#298)", async () => {
+    const { store, transport } = await start("reject");
+    await store.send("action", "Use the item");
+    await store.select("campaign-1");
+    expect(store.getSnapshot().entries).toEqual([]);
+    expect(store.getSnapshot().attempts).toHaveLength(1);
+    const id = store.getSnapshot().attempts[0]!.id;
+    store.dismissAttempt(id);
+    expect(store.getSnapshot().attempts).toEqual([]);
+    // Retrying resends the same words as a new command, never the same one.
+    await store.send("action", "Use the item");
+    await store.retryAttempt(store.getSnapshot().attempts[0]!.id);
+    expect(transport.requests).toHaveLength(3);
+    expect(
+      new Set(transport.requests.map((r) => r.request.command_id)).size,
+    ).toBe(3);
   });
   it("keeps the successful action when narration fails", async () => {
     const { store } = await start("narration-failure");

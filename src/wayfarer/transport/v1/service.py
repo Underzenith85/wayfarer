@@ -153,13 +153,20 @@ class V1Service:
         result: list[Obj] = []
         for record in await tx.items("action:"):
             wire = obj(record["wire"])
-            if record["campaign"] == cid and wire["scene_id"] == scene:
+            # A turn belongs to the scene it was taken in and to the scene its
+            # committed result left the actor standing in. A journey would
+            # otherwise vanish from both: filtered out of its destination and
+            # unreadable in an origin the actor can no longer see (#294).
+            scenes = {str(wire["scene_id"]), str(record.get("receipt_scene_id", wire["scene_id"]))}
+            if record["campaign"] == cid and scene in scenes:
                 try:
                     await self.action(tx, str(record["id"]), cid, principal)
                 except Fault:
                     continue
                 result.append(wire)
-        return sorted(result, key=lambda x: str(x["id"]))
+        # Chronological, with the id only as a tiebreak: a session log is read in
+        # the order it happened, not in the order random identifiers sort (#295).
+        return sorted(result, key=lambda x: (str(x["created_at"]), str(x["id"])))
 
     async def submit(self, principal: str, cid: str, path: str, request: Obj) -> Obj:
         validate("SubmitAction", request)
