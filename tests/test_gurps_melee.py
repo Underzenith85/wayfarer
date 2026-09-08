@@ -80,6 +80,7 @@ async def setup(
     durability: ObjectProfile | None = None,
     object_hp: int | None = None,
     critical_breakage: Literal["ordinary", "cheap", "resistant"] | None = None,
+    attacker_weight: int | None = None,
 ) -> tuple[str, PlayService]:
     equipment = EquipmentCatalog(
         profile_id=profile,
@@ -96,6 +97,32 @@ async def setup(
             ),
         ),
     )
+    if attacker_weight is not None:
+        equipment = equipment.model_copy(
+            update={
+                "entries": equipment.entries
+                + (
+                    EquipmentProfile(
+                        definition_id="equipment:maul",
+                        provenance=LITE_SOURCE,
+                        weight_millipounds=attacker_weight,
+                        price=80,
+                        technology_level=2,
+                        slot="hand",
+                        modes=(
+                            MeleeMode(
+                                id="swing",
+                                skill_id="skill:broadsword",
+                                minimum_st=10,
+                                damage=Damage(basis="swing", adds=1, damage_type="cr"),
+                                reach=(1,),
+                                parry=Parry(),
+                            ),
+                        ),
+                    ),
+                )
+            }
+        )
     if ready_after_attack:
         equipment = equipment.model_copy(
             update={
@@ -453,6 +480,17 @@ async def setup(
             ),
         ),
     )
+    if attacker_weight is not None:
+        seed = seed.model_copy(
+            update={
+                "items": tuple(
+                    i.model_copy(update={"definition_id": "equipment:maul"})
+                    if i.id == "sword-a"
+                    else i
+                    for i in seed.items
+                )
+            }
+        )
     if ranged_mode is not None and ranged_mode.ammunition_id:
         seed = seed.model_copy(
             update={
@@ -665,6 +703,58 @@ async def test_dodge_parry_block_and_repeats(
     else:
         value, _ = defense_value(play, state, spent, "parry")
         assert value is not None and value.value == 6
+
+
+async def test_heavy_weapon_parry_limit(tmp_path: Path) -> None:
+    """B376: a weapon cannot parry one weighing three or more times as much.
+
+    The Lite fixture broadsword weighs 3 lbs, so a 9 lb attacking weapon reaches
+    the limit exactly and an 8.999 lb one does not. Dodge and shield Block are
+    unaffected, and the Lite profile keeps its own defenses.
+    """
+    basic: Literal["gurps-basic-set-4e-2004"] = "gurps-basic-set-4e-2004"
+    cid, play = await setup(tmp_path, basic, attacker_weight=9000)
+    result = await CombatService(play).execute(
+        cid,
+        TakeCombatTurn(
+            id="attack",
+            actor_id="a",
+            expected_revision=1,
+            encounter_id="fight",
+            maneuver="attack",
+            item_id="sword-a",
+            mode_id="swing",
+            target_id="b",
+        ),
+        authenticated_actor_id="a",
+    )
+    assert result.available == ("none", "dodge", "block")
+    state = play._load(await play.store.read(cid))
+    defender = state.encounters[0].participants[1]
+    with pytest.raises(ValidationError):
+        defense_value(play, state, defender, "parry")
+    unaffected: tuple[tuple[Defense, int], ...] = (("dodge", 9), ("block", 10))
+    for defense, expected in unaffected:
+        value, _ = defense_value(play, state, defender, defense)
+        assert value is not None and value.value == expected
+    before = await play.store.read(cid)
+    with pytest.raises(ValidationError):
+        await CombatService(play).execute(cid, choice("parry"), authenticated_actor_id="b")
+    assert await play.store.read(cid) == before
+
+    cid, play = await setup(tmp_path / "under", basic, attacker_weight=8999)
+    await attack(cid, play)
+    state = play._load(await play.store.read(cid))
+    defender = state.encounters[0].participants[1]
+    value, item = defense_value(play, state, defender, "parry")
+    assert value is not None and value.value == 10 and item == "sword-b"
+
+    cid, play = await setup(tmp_path / "lite", attacker_weight=9000)
+    await attack(cid, play)
+    state = play._load(await play.store.read(cid))
+    defender = state.encounters[0].participants[1]
+    value, _ = defense_value(play, state, defender, "parry")
+    assert value is not None and value.value == 10
 
 
 async def test_unbalanced_and_fencing_parry_columns(tmp_path: Path) -> None:
