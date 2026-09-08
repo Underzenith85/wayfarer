@@ -128,11 +128,18 @@ def critical_breakage(
     entry = next(e for e in catalog(play).entries if e.definition_id == item.definition_id)
     profile = entry.durability
     number = sum(table)
+    drop = number in (9, 10, 11) or (
+        number == 14
+        and (
+            parrying
+            or any(m.id == pending.mode_id and m.damage.basis != "swing" for m in entry.modes)
+        )
+    )
     if number not in (3, 4, 17, 18) and not (
-        number in (9, 10, 11) and profile and profile.quality == "cheap"
+        drop and profile and entry.critical_breakage == "cheap"
     ):
         return state, encounter, (), False
-    if profile is None or item.condition is None:
+    if profile is None or item.condition is None or entry.critical_breakage is None:
         return state, encounter, (), False
     event_id = "critical-breakage:" + hashlib.sha256(pending.id.encode()).hexdigest()
     prior = next((e for e in state.resources.events if e.id == event_id), None)
@@ -148,11 +155,9 @@ def critical_breakage(
         )
     confirmation = None
     broken = True
-    if profile.break_resistant or profile.quality in ("fine", "very-fine"):
+    if entry.critical_breakage == "resistant":
         confirmation = tuple(play.rng.randbelow(6) + 1 for _ in range(3))
-        broken = sum(confirmation) in (3, 4, 17, 18) or (
-            profile.quality == "cheap" and sum(confirmation) in (9, 10, 11)
-        )
+        broken = sum(confirmation) in (3, 4, 17, 18)
     residual = play.rng.randbelow(6) + 1 if broken and profile.residual_definitions else None
     condition = (
         item.condition.model_copy(update={"disabled": True, "residual_roll": residual})

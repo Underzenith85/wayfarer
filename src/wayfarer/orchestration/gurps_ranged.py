@@ -7,7 +7,7 @@ certification gate. No alternative inventory, injury or command receipt engine.
 from __future__ import annotations
 
 from dataclasses import replace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from wayfarer.errors import ValidationError
 from wayfarer.rules.checks import Outcome
@@ -292,10 +292,6 @@ def prepare(
     from wayfarer.orchestration.location_combat import validate_target
 
     validate_target(play, state, encounter, actor.actor_id, target.actor_id, weapon, hit_location)
-    if shots > 1 and hit_location == "random":
-        raise ValidationError(
-            "Random locations for multiple projectiles require per-hit location traces"
-        )
     if actor.last_maneuver == "feint" or (
         actor.last_maneuver == "all_out_attack" and actor.maneuver_state.attack_bonus != 4
     ):
@@ -491,7 +487,6 @@ def resolve(
             defense_value_ = DerivedValue(defense_value_.target, defense_value_.value - penalty, ())
         if second_defense == "parry" and second_value is not None:
             second_value = DerivedValue(second_value.target, second_value.value - penalty, ())
-    state, encounter = expend(play, state, encounter, weapon)
     attack = success_roll(equipment.profile_id, attack_target, rng=play.rng)
     # B382 excludes ranged attacks from the generic failure-by-ten rule.
     if equipment.profile_id == "gurps-basic-set-4e-2004":
@@ -576,20 +571,44 @@ def resolve(
     )
     critical = sum(critical_table) if attack.outcome is Outcome.CRITICAL_SUCCESS else 0
     blocked = "ranged-critical-table" if critical_table and not critical else None
-    if blocked and sum(critical_table) in (7, 13, 16):
-        # B557: a ranged 16 loses balance rather than falling prone.
-        subject = next(p for p in encounter.participants if p.actor_id == actor.actor_id)
-        encounter = CombatEngine._replace(
-            encounter, subject.model_copy(update={"defense_penalty": -2})
-        )
-        blocked = None
-    # Armed projectile Parries use their own critical-miss context, never a Dodge consequence.
-    if any(
-        choice == "parry" and roll is not None and roll.outcome is Outcome.CRITICAL_FAILURE
-        for choice, roll in ((selected, defense), (second_defense, second_trace))
-    ):
-        blocked = "ranged-critical-parry"
+    parry_item = next(
+        (
+            equipment_id
+            for choice, roll, equipment_id in (
+                (selected, defense, defense_item),
+                (second_defense, second_trace, second_item),
+            )
+            if choice == "parry" and roll is not None and roll.outcome is Outcome.CRITICAL_FAILURE
+        ),
+        None,
+    )
+    if parry_item is not None:
         critical_table = tuple(play.rng.randbelow(6) + 1 for _ in range(3))
+        blocked = "ranged-critical-parry"
+    critical_rolls: tuple[tuple[int, int, int], ...] = (
+        (cast(tuple[int, int, int], critical_table),) if critical_table else ()
+    )
+    miss_effect_dice: tuple[int, ...] = ()
+    miss_lasting_ids: tuple[str, ...] = ()
+    if blocked:
+        from wayfarer.orchestration.ranged_misses import resolve_miss
+
+        # Preserve defense counters/posture before applying consequences to the defender.
+        encounter = CombatEngine._replace(encounter, target)
+        state, encounter, miss, blocked = resolve_miss(
+            play,
+            state,
+            encounter,
+            critical_table,
+            parry_item=parry_item,
+        )
+        critical_rolls = miss.table_rolls
+        critical_table = miss.table_rolls[-1]
+        miss_effect_dice = miss.location_dice + miss.damage_dice
+        miss_lasting_ids = miss.lasting_injury_ids
+        if parry_item is not None:
+            target = next(p for p in encounter.participants if p.actor_id == target.actor_id)
+    state, encounter = expend(play, state, encounter, weapon)
     location: HumanLocation | None = None
     location_dice: tuple[int, ...] = ()
     if hits and pending.hit_location:
@@ -611,8 +630,8 @@ def resolve(
         and location_special_effects(hp.injury, location)
     )
     critical_eye = False
-    lasting_ids: tuple[str, ...] = ()
-    effect_dice: tuple[int, ...] = ()
+    lasting_ids: tuple[str, ...] = miss_lasting_ids
+    effect_dice: tuple[int, ...] = miss_effect_dice
     if critical and head and blocked is None:
         from wayfarer.orchestration.location_combat import from_behind
 
@@ -632,28 +651,37 @@ def resolve(
     injuries: list[int] = []
     damage_dice: list[int] = []
     entries = {e.definition_id: e for e in equipment.entries}
-    dr = max(
-        (
-            armor.dr
-            for i in state.resources.items
-            if i.owner_id == target.actor_id
-            and i.equipped
-            and (i.condition is None or not i.condition.disabled)
-            for armor in (entries[i.definition_id].armor,)
-            if armor is not None
-            and (
-                (location or "torso") in armor.locations
-                or (part(location) + "s" if location else "torso") in armor.locations
-            )
-        ),
-        default=0,
-    )
+
+    def armor_dr() -> int:
+        return max(
+            (
+                armor.dr
+                for i in state.resources.items
+                if i.owner_id == target.actor_id
+                and i.equipped
+                and (i.condition is None or not i.condition.disabled)
+                for armor in (entries[i.definition_id].armor,)
+                if armor is not None
+                and (
+                    (location or "torso") in armor.locations
+                    or (part(location) + "s" if location else "torso") in armor.locations
+                )
+            ),
+            default=0,
+        )
+
+    dr_bonus = 0
     from wayfarer.simulation.abilities import damage_resistance
 
     if play.engine.rules.abilities is not None:
-        dr += damage_resistance(
+        dr_bonus = damage_resistance(
             state.resources, target.actor_id, build_revision=defender_build.revision
         )
+    dr = armor_dr() + dr_bonus
+    first_location, first_location_dice, first_dr = location, location_dice, dr
+    hit_resistances: list[int] = []
+    hit_locations: list[HumanLocation | None] = []
+    hit_location_dice: list[tuple[int, ...]] = []
     expression = stats.swing if weapon.damage.basis == "swing" else stats.thrust
     count = weapon.damage.dice or expression.dice
     adds = weapon.damage.adds + (0 if weapon.damage.basis == "fixed" else expression.add)
@@ -661,6 +689,21 @@ def resolve(
         weapon.half_damage_range
     ) * (st if weapon.range_basis == "st" else 1)
     for index in range(hits if blocked is None else 0):
+        if index and pending.hit_location == "random":
+            from wayfarer.orchestration.location_combat import from_behind
+
+            location, location_dice = select_location(
+                "random",
+                rng=play.rng,
+                from_behind=from_behind(actor, target),
+            )
+            current_hp = next(p for p in state.resources.pools if p.id == hp.id)
+            if current_hp.injury and missing_location(current_hp.injury, location):
+                location = "torso"
+            dr = armor_dr() + dr_bonus
+        hit_resistances.append(dr)
+        hit_locations.append(location)
+        hit_location_dice.append(location_dice)
         hit_critical = critical
         maximum = hit_critical in ((3, 15) if head else (6, 15)) or (
             equipment.profile_id == "gurps-lite-4e-2004" and sum(attack.dice) <= 4
@@ -822,7 +865,7 @@ def resolve(
         defense_value=defense_value_,
         damage_dice=tuple(damage_dice),
         basic_damage=sum(damages),
-        resistance=dr,
+        resistance=first_dr,
         injury=sum(injuries),
         hp_before=hp.current,
         hp_after=updated.current,
@@ -830,8 +873,8 @@ def resolve(
         profile_id=equipment.profile_id,
         rules_version="2004",
         critical_table=critical_table,
-        location=location,
-        location_dice=location_dice,
+        location=first_location,
+        location_dice=first_location_dice,
         effect_dice=effect_dice,
         lasting_injury_ids=lasting_ids,
         adjudication_required=blocked,
@@ -839,6 +882,9 @@ def resolve(
         hits=hits,
         per_hit_damage=tuple(damages),
         per_hit_injury=tuple(injuries),
+        per_hit_resistance=tuple(hit_resistances) if pending.shots > 1 else (),
+        per_hit_locations=tuple(hit_locations) if pending.shots > 1 else (),
+        per_hit_location_dice=tuple(hit_location_dice) if pending.shots > 1 else (),
     )
     if critical_table:
         from wayfarer.simulation.ranged_critical import RangedCritical, save_ranged_critical
@@ -883,6 +929,9 @@ def resolve(
                             )
                         ),
                         trace=trace,
+                        table_rolls=critical_rolls,
+                        subject_id=target.actor_id if parry_item else actor.actor_id,
+                        affected_item_id=parry_item or pending.weapon_id,
                     ),
                 )
             }

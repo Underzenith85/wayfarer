@@ -12,10 +12,6 @@ class ObjectProfile(BaseModel):
     hp: int = Field(gt=0)
     dr: int = Field(ge=0)
     ht: int = Field(gt=0)
-    quality: Literal["cheap", "average", "fine", "very-fine"] = Field(
-        default="average", exclude_if=lambda v: v == "average"
-    )
-    break_resistant: bool = Field(default=False, exclude_if=lambda v: not v)
     high_pain_threshold: bool = Field(default=False, exclude_if=lambda v: not v)
     size_modifier: int | None = Field(default=None, exclude_if=lambda v: v is None)
     repair_skill_id: str | None = Field(default=None, exclude_if=lambda v: v is None)

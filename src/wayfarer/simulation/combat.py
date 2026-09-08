@@ -117,6 +117,13 @@ class InjuryTrace(Record):
     hits: int = Field(default=0, ge=0)
     per_hit_damage: tuple[int, ...] = ()
     per_hit_injury: tuple[int, ...] = ()
+    per_hit_resistance: tuple[int, ...] = Field(default=(), exclude_if=lambda v: not v)
+    per_hit_locations: tuple[HumanLocation | None, ...] = Field(
+        default=(), exclude_if=lambda v: not v
+    )
+    per_hit_location_dice: tuple[tuple[int, ...], ...] = Field(
+        default=(), exclude_if=lambda v: not v
+    )
 
 
 class CombatConsequence(Record):

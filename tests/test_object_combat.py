@@ -27,8 +27,8 @@ async def test_breakage_retains_custody_and_replays(
             hp=12,
             dr=6,
             ht=12,
-            quality="cheap" if sum(table) == 9 else "average",
         ),
+        critical_breakage="cheap" if sum(table) == 9 else "ordinary",
     )
     await attack(cid, play)
     play.rng = RecordedDice([6, 6, 6, *table])
@@ -61,7 +61,8 @@ async def test_fine_weapon_confirmation_is_recorded_not_dispatched(
     cid, play = await setup(
         tmp_path,
         "gurps-basic-set-4e-2004",
-        durability=ObjectProfile(construction="homogenous", hp=12, dr=6, ht=12, quality="fine"),
+        durability=ObjectProfile(construction="homogenous", hp=12, dr=6, ht=12),
+        critical_breakage="resistant",
     )
     await attack(cid, play)
     play.rng = RecordedDice([6, 6, 6, 1, 1, 1, *confirmation])
@@ -369,3 +370,20 @@ def test_reviewed_additive_requests_never_accept_damage_authority() -> None:
         for forged in ("basic_damage", "skill", "restored_hp", "due"):
             with pytest.raises(SchemaError):
                 TacticalRequest.model_validate({"command": {**example["command"], forged: 99}})
+
+
+async def test_cheap_weapon_breaks_on_parry_drop_exception(tmp_path: Path) -> None:
+    cid, play = await setup(
+        tmp_path,
+        "gurps-basic-set-4e-2004",
+        durability=ObjectProfile(construction="homogenous", hp=12, dr=6, ht=12),
+        critical_breakage="cheap",
+    )
+    await attack(cid, play)
+    play.rng = RecordedDice([3, 3, 3, 6, 6, 6, 4, 5, 5, 4, 3, 3, 3])
+    result = await CombatService(play).execute(cid, choice("parry"), authenticated_actor_id="b")
+    state = play._load(await play.store.read(cid))
+    item = next(i for i in state.resources.items if i.id == "sword-b")
+    assert item.condition and item.condition.disabled and not item.condition.destroyed
+    assert result.injury and result.injury.adjudication_required is None
+    assert result.injury.injury == 7  # Failed parry still admits the incoming 5 cutting damage.

@@ -3111,6 +3111,23 @@
             ],
             "default": null
           },
+          "critical_breakage": {
+            "anyOf": [
+              {
+                "enum": [
+                  "ordinary",
+                  "cheap",
+                  "resistant"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Critical Breakage"
+          },
           "container_capacity_millipounds": {
             "anyOf": [
               {
@@ -4604,22 +4621,6 @@
             "exclusiveMinimum": 0,
             "title": "Ht",
             "type": "integer"
-          },
-          "quality": {
-            "default": "average",
-            "enum": [
-              "cheap",
-              "average",
-              "fine",
-              "very-fine"
-            ],
-            "title": "Quality",
-            "type": "string"
-          },
-          "break_resistant": {
-            "default": false,
-            "title": "Break Resistant",
-            "type": "boolean"
           },
           "high_pain_threshold": {
             "default": false,
