@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from collections import Counter
 from dataclasses import asdict, dataclass, replace
+from enum import StrEnum
 from pathlib import Path
 
 from pydantic import TypeAdapter
@@ -28,6 +29,22 @@ from wayfarer.rules.skill_types import SkillDefault, SkillPrerequisite, SkillSpe
 
 PROFILE = "gurps-basic-set-4e-2004"
 SOURCE = source(PROFILE)
+OWNER = 112
+
+
+class StructuralClass(StrEnum):
+    """Audit shapes an inventory row can take; every class must be sampled."""
+
+    LISTING_ONLY = "listing-only"
+    ATTRIBUTE_DEFAULT = "attribute-default"
+    SKILL_DEFAULT = "skill-default"
+    NO_DEFAULT = "no-default"
+    PREREQUISITE = "prerequisite"
+    OPTIONAL_SPECIALTY = "optional-specialty"
+    REQUIRED_SPECIALTY = "required-specialty"
+    UNEXPANDED_SPECIALTY = "unexpanded-specialty"
+    TECHNIQUE = "technique"
+    TECHNOLOGY_LEVEL = "technology-level"
 
 
 @dataclass(frozen=True)
@@ -52,6 +69,46 @@ class SkillAudit:
             and self.definition.status is ImplementationStatus.IMPLEMENTED
         )
 
+    @property
+    def implementation(self) -> str:
+        """Certification state of this row, never a family-level claim."""
+        return "unsupported" if self.definition is not None else "listing-only"
+
+    @property
+    def owners(self) -> tuple[int, ...]:
+        """Named mechanics issues other than this inventory's own accounting."""
+        return tuple(issue for issue in self.followup_issues if issue != OWNER)
+
+    @property
+    def structural_classes(self) -> tuple[StructuralClass, ...]:
+        """Classify recorded structure only; absent metadata is never inferred."""
+        spec = self.definition.skill if self.definition else None
+        found = set()
+        if spec is None:
+            found.add(StructuralClass.LISTING_ONLY)
+        else:
+            if not spec.defaults:
+                found.add(StructuralClass.NO_DEFAULT)
+            if any(default.target in A for default in spec.defaults):
+                found.add(StructuralClass.ATTRIBUTE_DEFAULT)
+            if any(default.target not in A for default in spec.defaults):
+                found.add(StructuralClass.SKILL_DEFAULT)
+            if spec.prerequisites:
+                found.add(StructuralClass.PREREQUISITE)
+            if spec.specialty is not None:
+                found.add(
+                    StructuralClass.OPTIONAL_SPECIALTY
+                    if spec.specialty.optional_parent
+                    else StructuralClass.REQUIRED_SPECIALTY
+                )
+            if spec.technique is not None:
+                found.add(StructuralClass.TECHNIQUE)
+        if self.specialty_required and (spec is None or spec.specialty is None):
+            found.add(StructuralClass.UNEXPANDED_SPECIALTY)
+        if self.tl_required:
+            found.add(StructuralClass.TECHNOLOGY_LEVEL)
+        return tuple(sorted(found))
+
 
 def source_inventory() -> tuple[InventoryRow, ...]:
     return TypeAdapter(tuple[InventoryRow, ...]).validate_json(
@@ -66,6 +123,36 @@ def exclusions() -> tuple[Exclusion, ...]:
     if len(set(names)) != len(names) or included.intersection(names):
         raise ValidationError("Duplicate or overlapping excluded skills")
     return rows.excluded
+
+
+def transferred_exclusions() -> tuple[Exclusion, ...]:
+    """Reuse the owning supernatural catalog as the authority for excluded skills.
+
+    An excluded skill is only accounted for while another inventory carries it
+    with the same page and the same named follow-up issues. Drift there is a
+    coverage failure here, not a silent removal from the Basic Set chapter.
+    """
+    from wayfarer.rules.supernatural import inventory as owning_catalog
+
+    owned = {entry.id: entry for entry in owning_catalog().entries if entry.kind == "skill"}
+    rows = exclusions()
+    if len(owned) != len(rows):
+        raise ValidationError("Excluded skills and their owning catalog differ")
+    for row in rows:
+        entry = owned.get(f"skill:{row.id}")
+        if entry is None or entry.name != row.name or entry.page != row.page:
+            raise ValidationError(f"Excluded skill is not carried by its owner: {row.name}")
+        if entry.blockers != row.owners:
+            raise ValidationError(f"Excluded skill owner drift: {row.name}")
+    return rows
+
+
+def coverage_blockers(profile_id: str) -> tuple[int, ...]:
+    """Aggregate item-level owners for certification and authoring reports."""
+    if profile_id != PROFILE:
+        raise ValidationError("Mundane skill inventory is outside the selected profile")
+    entries = inventory()
+    return tuple(sorted({issue for entry in entries for issue in entry.followup_issues}))
 
 
 def inventory() -> tuple[SkillAudit, ...]:
@@ -188,6 +275,14 @@ def validate_inventory(entries: tuple[SkillAudit, ...]) -> None:
                 raise ValidationError(f"Unresolved skill references for {entry.id}")
             if any(p.target == entry.id or p.minimum < 1 for p in spec.prerequisites):
                 raise ValidationError(f"Invalid prerequisite references for {entry.id}")
+        if not entry.structural_classes:
+            raise ValidationError(f"Unclassified inventory row: {entry.id}")
+        if OWNER not in entry.followup_issues:
+            raise ValidationError(f"Inventory row leaves this audit unowned: {entry.id}")
+    sampled = {structural for entry in entries for structural in entry.structural_classes}
+    missing = sorted(set(StructuralClass) - sampled)
+    if missing:
+        raise ValidationError(f"Structural classes are unsampled: {', '.join(missing)}")
 
 
 def require_available(identifier: str) -> RuleDefinition:
@@ -202,16 +297,33 @@ def require_available(identifier: str) -> RuleDefinition:
 def audit_report() -> dict[str, object]:
     entries = inventory()
     validate_inventory(entries)
-    excluded = exclusions()
+    excluded = transferred_exclusions()
     return {
         "profile": PROFILE,
         "source_id": SOURCE.id,
         "baseline": "2004 first printing; errata 2007-01-26; verification pending",
         "inventory_completeness": "indexed-skill-families; specialty expansions explicitly blocked",
-        "skills": [asdict(entry) for entry in entries],
+        "skills": [
+            asdict(entry)
+            | {
+                "implementation": entry.implementation,
+                "structural_classes": [c.value for c in entry.structural_classes],
+                "owners": list(entry.owners),
+            }
+            for entry in entries
+        ],
         "excluded": [e.model_dump() for e in excluded],
         "excluded_total": len(excluded),
         "blocker_counts": dict(sorted(Counter(b for e in entries for b in e.blockers).items())),
+        "structural_class_counts": {
+            structural.value: sum(structural in e.structural_classes for e in entries)
+            for structural in StructuralClass
+        },
+        "implementation_counts": dict(sorted(Counter(e.implementation for e in entries).items())),
+        "coverage_blockers": list(coverage_blockers(PROFILE)),
+        # Rows whose only recorded issue is this audit have no named mechanics
+        # owner yet; that is a visible certification blocker for #122, not silence.
+        "runtime_owner_unassigned": sum(not entry.owners for entry in entries),
         "structured": sum(e.definition is not None for e in entries),
         "required_specialties": sum(e.specialty_required for e in entries),
         "technology_level_dependent": sum(e.tl_required for e in entries),

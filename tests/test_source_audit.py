@@ -103,3 +103,16 @@ def test_compared_fixture_cannot_be_promoted_without_source_reconciliation() -> 
     fixtures[index] = fixtures[index].model_copy(update={"status": "reviewed"})
     with pytest.raises(ValidationError, match="requires reconciled source"):
         validate(ROOT, manifest.model_copy(update={"fixtures": tuple(fixtures)}))
+
+
+def test_mundane_skill_rows_carry_item_level_owners_and_certification_state() -> None:
+    """#112 item-level blockers reach certification; no family-level rollup."""
+    from wayfarer.rules.mundane_skills import PROFILE, coverage_blockers
+
+    rows = [r for r in inventory() if r.scope == "mundane-skills"]
+    assert len(rows) == 257
+    assert all(r.owner == 112 and r.blockers for r in rows)
+    assert {b for r in rows for b in r.blockers} == set(coverage_blockers(PROFILE))
+    assert {r.implementation for r in rows} == {"unsupported", "listing-only"}
+    assert sum(r.implementation == "listing-only" for r in rows) == 19
+    assert next(r for r in rows if r.id == "skill:broadsword").blockers == (103, 112)

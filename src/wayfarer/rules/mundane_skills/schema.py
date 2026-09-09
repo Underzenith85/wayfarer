@@ -85,9 +85,19 @@ class InventoryRow(Record):
 
 
 class Exclusion(Record):
+    id: Identifier
     name: Annotated[str, Field(min_length=1)]
     page: Annotated[int, Field(ge=174, le=228)]
     reason: Annotated[str, Field(min_length=1)]
+    # The owning follow-up issues that must resolve the transferred skill. An
+    # exclusion without a named owner would silently drop it from the Basic Set.
+    owners: Annotated[tuple[Annotated[int, Field(gt=0)], ...], Field(min_length=1)]
+
+    @model_validator(mode="after")
+    def distinct_owners(self) -> Self:
+        if len(set(self.owners)) != len(self.owners):
+            raise ValueError("Duplicate exclusion owner")
+        return self
 
 
 class Exclusions(Record):
