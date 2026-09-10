@@ -79,6 +79,13 @@ class MeleeMode(Record):
         return self
 
 
+class RatedStrength(Record):
+    """Explicit B270 weapon ST; never inferred from a skill or ammunition name."""
+
+    kind: Literal["bow", "crossbow"]
+    st: Positive
+
+
 class RangedMode(Record):
     kind: Literal["ranged"] = "ranged"
     id: Id
@@ -106,6 +113,9 @@ class RangedMode(Record):
     )
     scope_bonus: Nonnegative = Field(default=0, exclude_if=lambda value: value == 0)
     fixed_power_scope: bool = Field(default=False, exclude_if=lambda value: not value)
+    rated_strength: RatedStrength | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
     @model_validator(mode="after")
     def valid_range(self) -> Self:
@@ -124,6 +134,20 @@ class RangedMode(Record):
             raise ValueError("Bipod bracing requires a two-handed weapon")
         if self.fixed_power_scope and not self.scope_bonus:
             raise ValueError("A fixed-power scope requires a scope bonus")
+        if self.rated_strength is not None and (
+            self.thrown
+            or self.shots != 1
+            or self.rate_of_fire != 1
+            or self.hands != 2
+            or self.range_basis != "st"
+            or self.damage.basis != "thrust"
+            or self.reload_protocol != "magazine"
+        ):
+            raise ValueError("Rated bows require two hands, ST range and single-shot thrust damage")
+        if self.rated_strength is not None and self.reload_seconds != (
+            2 if self.rated_strength.kind == "bow" else 4
+        ):
+            raise ValueError("Rated bows require their ordinary two- or four-second reload timing")
         return self
 
 
@@ -222,6 +246,12 @@ class EquipmentCatalog(Record):
             if entry.durability is not None and entry.durability.profile_id != self.profile_id:
                 raise ValueError("Object durability requires the exact Basic Set profile")
             for mode in entry.modes:
+                if isinstance(mode, RangedMode) and mode.rated_strength is not None:
+                    if self.profile_id != "gurps-basic-set-4e-2004":
+                        raise ValueError("Rated weapon ST requires the exact Basic Set profile")
+                    from wayfarer.character.statistics import damage
+
+                    damage(self.profile_id, mode.rated_strength.st)
                 if isinstance(mode, RangedMode) and mode.ammunition_id is not None:
                     ammo = entries.get(mode.ammunition_id)
                     if ammo is None or not ammo.ammunition:
