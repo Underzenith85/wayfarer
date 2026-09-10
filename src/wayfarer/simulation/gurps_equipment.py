@@ -24,6 +24,7 @@ from wayfarer.rules.firearm_types import FirearmSpec
 from wayfarer.rules.location_types import HumanLocation
 from wayfarer.rules.mount_types import MountSpec
 from wayfarer.rules.object_types import ObjectProfile
+from wayfarer.rules.spray_types import SprayerSpec
 from wayfarer.simulation.resources import EquipmentSpec, Id, Record, ResourceEngine, ResourceState
 
 Nonnegative = Annotated[int, Field(ge=0)]
@@ -121,6 +122,7 @@ class RangedMode(Record):
     )
     entangle: EntangleSpec | None = Field(default=None, exclude_if=lambda value: value is None)
     mount: MountSpec | None = Field(default=None, exclude_if=lambda value: value is None)
+    sprayer: SprayerSpec | None = Field(default=None, exclude_if=lambda value: value is None)
     firearm: FirearmSpec | None = Field(default=None, exclude_if=lambda v: v is None)
 
     @model_validator(mode="after")
@@ -168,6 +170,14 @@ class RangedMode(Record):
         # A mounted weapon is served, not thrown or bound by hand.
         if self.mount is not None and (self.thrown or self.entangle is not None):
             raise ValueError("Mounted weapons are neither thrown nor entangling")
+        # A stream is held on a target; it is not thrown, bound or rapid-fired.
+        if self.sprayer is not None and (
+            self.thrown
+            or self.entangle is not None
+            or self.rate_of_fire != 1
+            or self.ammunition_id is None
+        ):
+            raise ValueError("Liquid projector streams are single held discharges")
         if self.entangle is not None and (
             not self.thrown
             or self.rate_of_fire != 1
@@ -207,6 +217,7 @@ def require_skill_procedure(profile_id: str, mode: MeleeMode | RangedMode) -> No
         entangling=isinstance(mode, RangedMode) and mode.entangle is not None,
         conventional_firearm=isinstance(mode, RangedMode) and mode.firearm is not None,
         mounted=isinstance(mode, RangedMode) and mode.mount is not None,
+        spraying=isinstance(mode, RangedMode) and mode.sprayer is not None,
     )
 
 
@@ -316,6 +327,9 @@ class EquipmentCatalog(Record):
                 if isinstance(mode, RangedMode) and mode.mount is not None:
                     if self.profile_id != "gurps-basic-set-4e-2004":
                         raise ValueError("Mounted weapons require the exact Basic Set profile")
+                if isinstance(mode, RangedMode) and mode.sprayer is not None:
+                    if self.profile_id != "gurps-basic-set-4e-2004":
+                        raise ValueError("Liquid projectors require the exact Basic Set profile")
                 if isinstance(mode, RangedMode) and mode.firearm is not None:
                     if self.profile_id != "gurps-basic-set-4e-2004":
                         raise ValueError("Firearm malfunctions require the exact Basic Set profile")

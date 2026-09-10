@@ -2324,6 +2324,46 @@
       ]
     },
     {
+      "id": "liquid-projector-flamethrower",
+      "name": "Liquid Projector (Flamethrower)",
+      "page": 205,
+      "kind": "expansion",
+      "targets": [
+        "liquid-projector-flamethrower"
+      ],
+      "parent": "liquid-projector"
+    },
+    {
+      "id": "liquid-projector-sprayer",
+      "name": "Liquid Projector (Sprayer)",
+      "page": 205,
+      "kind": "expansion",
+      "targets": [
+        "liquid-projector-sprayer"
+      ],
+      "parent": "liquid-projector"
+    },
+    {
+      "id": "liquid-projector-squirt-gun",
+      "name": "Liquid Projector (Squirt Gun)",
+      "page": 205,
+      "kind": "expansion",
+      "targets": [
+        "liquid-projector-squirt-gun"
+      ],
+      "parent": "liquid-projector"
+    },
+    {
+      "id": "liquid-projector-water-cannon",
+      "name": "Liquid Projector (Water Cannon)",
+      "page": 205,
+      "kind": "expansion",
+      "targets": [
+        "liquid-projector-water-cannon"
+      ],
+      "parent": "liquid-projector"
+    },
+    {
       "id": "literature",
       "name": "Literature",
       "page": 205,

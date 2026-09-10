@@ -17,6 +17,7 @@ from wayfarer.rules.checks import CheckTrace
 from wayfarer.rules.effects import DerivedValue
 from wayfarer.rules.entangle_types import Entanglement
 from wayfarer.rules.location_types import HitLocation, HumanLocation
+from wayfarer.rules.spray_types import Stream
 from wayfarer.simulation.gurps_equipment import EquipmentCatalog
 from wayfarer.simulation.hex_geometry import Hex, HexBattlefield
 from wayfarer.simulation.maneuvers import (
@@ -195,6 +196,7 @@ class Combatant(Record):
     grappled: bool = False
     pinned: bool = False
     entangled: Entanglement | None = Field(default=None, exclude_if=lambda v: v is None)
+    stream: Stream | None = Field(default=None, exclude_if=lambda v: v is None)
     forced_do_nothing: bool = False
     maneuver_state: ManeuverState = Field(default_factory=ManeuverState)
 
@@ -842,6 +844,13 @@ class CombatEngine:
         if maneuver == "concentrate" and self.rules.gurps_equipment is None:
             raise ValidationError("Concentration requires a bound ability command")
         participant = next(p for p in encounter.participants if p.actor_id == actor_id)
+        # B205: a stream lasts only while its holder keeps pouring it on the same
+        # weapon and mode. Any other maneuver lets go of it (#359).
+        if participant.stream is not None and not (
+            maneuver in ATTACK_MANEUVERS and item_id == participant.stream.weapon_id
+        ):
+            participant = participant.model_copy(update={"stream": None})
+            encounter = self._replace(encounter, participant)
         battlefield = self.battlefields[encounter.battlefield_id]
         deferred_step = step_timing == "after"
         if deferred_step and maneuver != "attack":

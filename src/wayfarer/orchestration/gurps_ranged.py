@@ -14,6 +14,7 @@ from wayfarer.rules.checks import Outcome
 from wayfarer.rules.effects import DerivedValue
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.rules.location_types import HitLocation, HumanLocation
+from wayfarer.rules.spray_types import Stream
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import (
     CombatEngine,
@@ -396,13 +397,24 @@ def prepare(
             (loaded for loaded in state.resources.ammunition_loads if loaded.weapon_id == item.id),
             None,
         )
+        needed = shots if weapon.sprayer is None else weapon.sprayer.rounds_per_second
         if (
             load is None
             or load.mode_id != weapon.id
-            or load.rounds < shots
+            or load.rounds < needed
             or (load.reload_progress and weapon.reload_protocol != "per-round")
         ):
             raise ValidationError("Weapon is unloaded or reload is incomplete")
+    if weapon.sprayer is not None:
+        # B205: a stream is held, second by second, until the firer stops or the
+        # projector's own sustained-seconds ceiling is reached (#359).
+        held = actor.stream
+        if (
+            held is not None
+            and (held.weapon_id, held.mode_id) == (item.id, weapon.id)
+            and held.exhausted
+        ):
+            raise ValidationError("This stream has run for as long as it can be held")
     allowed: list[Defense] = ["none"]
     # B178: a shot laid indirectly arrives without warning, so the target has no
     # active defense against it. A directly laid mount is defended normally.
@@ -803,7 +815,13 @@ def resolve(
         miss_lasting_ids = miss.lasting_injury_ids
         if parry_item is not None:
             target = next(p for p in encounter.participants if p.actor_id == target.actor_id)
-    state, encounter = expend(play, state, encounter, weapon, shots=shots_fired)
+    state, encounter = expend(
+        play,
+        state,
+        encounter,
+        weapon,
+        shots=shots_fired if weapon.sprayer is None else weapon.sprayer.rounds_per_second,
+    )
     location: HumanLocation | None = None
     location_dice: tuple[int, ...] = ()
     if hits and pending.hit_location:
@@ -1056,6 +1074,23 @@ def resolve(
                     )
                 }
             )
+    if weapon.sprayer is not None:
+        # Hold the stream for this second, walking it to whichever target the
+        # firer laid it on. Every second is paid for and rolled separately.
+        held = actor.stream
+        opened = (
+            held.sustain(target.actor_id)
+            if held is not None and (held.weapon_id, held.mode_id) == (pending.weapon_id, weapon.id)
+            else Stream(
+                weapon_id=pending.weapon_id,
+                mode_id=weapon.id,
+                target_id=target.actor_id,
+                seconds=1,
+                sustained_seconds=weapon.sprayer.sustained_seconds,
+                ignites=weapon.sprayer.ignites,
+            )
+        )
+        encounter = CombatEngine._replace(encounter, actor.model_copy(update={"stream": opened}))
     updated = next(p for p in state.resources.pools if p.id == hp.id)
     assert updated.injury is not None
     # B181/B211: a landed binding holds the target whatever damage it also did.
