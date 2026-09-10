@@ -317,15 +317,19 @@ class CombatService:
                 ):
                     raise ValidationError("Wait reaction must use the declared weapon mode")
             from wayfarer.orchestration.recovery import guard
-            from wayfarer.simulation.fright import can_defend
+            from wayfarer.simulation.fright import can_defend, maneuver_allowed
 
+            if isinstance(command, (TakeCombatTurn, TakeUnarmedTurn)) and not maneuver_allowed(
+                state.resources, command.actor_id, command.maneuver
+            ):
+                raise ValidationError("This fright condition does not permit that maneuver")
             guard(
                 state,
                 command.actor_id,
                 command.kind,
                 allow_fright=(
                     isinstance(command, TakeCombatTurn)
-                    and command.maneuver == "do_nothing"
+                    and maneuver_allowed(state.resources, command.actor_id, command.maneuver)
                     or isinstance(command, ChooseDefense)
                     and (command.defense == "none" or can_defend(state.resources, command.actor_id))
                 ),

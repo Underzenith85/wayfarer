@@ -10,6 +10,7 @@ from wayfarer.models import Campaign, Event
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.checks import Modifier, Outcome, success_check
 from wayfarer.simulation.actions import ActionCommand, PlayState
+from wayfarer.simulation.condition_checks import definition_modifiers
 from wayfarer.simulation.noncombat import NoncombatEncounter
 from wayfarer.simulation.resources import Advance, Id
 
@@ -119,6 +120,12 @@ class NoncombatService:
                         check_rule.definition_id,
                         check_rule.package_version,
                     ),
+                )
+                + definition_modifiers(
+                    state.resources,
+                    actor.actor_id,
+                    check_rule.definition_id,
+                    self.play.engine.reviewer.compiler.definitions,
                 ),
                 rng=self.play.rng,
                 rules_package=check_rule.package_id,

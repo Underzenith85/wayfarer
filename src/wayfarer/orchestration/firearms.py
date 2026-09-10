@@ -9,6 +9,7 @@ from wayfarer.rules.firearm_types import FirearmFailure
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import Encounter
+from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.firearms import spend_rounds
 from wayfarer.simulation.gurps_equipment import RangedMode
 from wayfarer.simulation.resources import Record, ResourceEvent, ResourceState
@@ -88,7 +89,8 @@ def roll_malfunction(
         # The single shot uses the already-recorded attack dice, without the burst bonus.
         single = success_roll(
             "gurps-basic-set-4e-2004",
-            attack.effective_target - rapid_bonus,
+            attack.base_target - rapid_bonus,
+            attack.modifiers,
             rng=RecordedDice(list(attack.dice)),
         )
         attack = replace(single, rule_id="gurps.combat.ranged_attack")
@@ -205,7 +207,12 @@ def service(
                 }
             ),
         )
-    roll = success_roll(equipment.profile_id, target, rng=play.rng)
+    roll = success_roll(
+        equipment.profile_id,
+        target,
+        check_modifiers(state.resources, command.actor_id, "iq"),
+        rng=play.rng,
+    )
     updated: FirearmFailure | None = failure.model_copy(update={"progress": 0})
     if roll.outcome.succeeded:
         if operation == "diagnose":

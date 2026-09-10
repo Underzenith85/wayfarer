@@ -1,11 +1,16 @@
 # Basic Set mundane skill inventory (#112)
 
 `rules/mundane_skills` accounts for the Characters skill chapter without making
-unimplemented procedures playable, and `rules/mundane_skills/technology` holds the
-executable procedures #346 landed for its technology, science and vehicle rows.
-Implementing a row's procedure does not make it playable either. The candidate
-package is `0.3.0`; no saved campaign pin or live representative definition
-changes.
+unimplemented procedures playable. The candidate package is `0.3.0`; no saved
+campaign pin or live representative definition changes.
+
+Accounting for an entry never makes a skill playable. A row becomes executable
+only when a runtime module binds it to a service that already resolves it and a
+**new** package pin carries that definition; the candidate package here stays
+separate, immutable and hookless. See
+[Ranged combat procedures](#ranged-combat-procedures-344) and
+[Technology, science and vehicle procedures](#technology-science-and-vehicle-procedures-346)
+for the groups bound this way.
 
 ## Source boundary and completeness
 
@@ -20,16 +25,17 @@ audit machinery. No rulebook prose is bundled.
 | --- | ---: |
 | Indexed skill listings, B301–B304 | 275 |
 | Named technique listings, B304 | 27 |
-| Explicit chapter examples and parent-specific expansions | 50 |
-| **Source index total** | **352** |
+| Explicit chapter examples and parent-specific expansions | 57 |
+| **Source index total** | **359** |
 
 The combined Combat Art or Sport listing maps to two candidate records. Thus
-352 source entries map to **353 records: 325 mundane and 28 transferred** to
-#119's inventory. 39 of the expansions are the concrete Boating, Driving,
-Piloting, Shiphandling, Submarine and Explosives specialties #346 records.
-Specialty families remain explicitly blocked where context or expansion is
-incomplete. These counts do not claim enumeration of every possible
-player-defined specialty.
+359 source entries map to **360 records: 332 mundane and 28 transferred** to
+#119's inventory. The expansions include the seven concrete Thrown Weapon
+specialties #344 expands from the B226 family, and the 39 concrete Boating,
+Driving, Piloting, Shiphandling, Submarine and Explosives specialties #346
+expands from theirs. Specialty families remain explicitly blocked where context
+or expansion is incomplete. These counts do not claim enumeration of every
+possible player-defined specialty.
 
 Index reconciliation rejects missing records, unindexed additions, overlapping
 transfers, invalid expansion parents and page drift. It runs when consumers load
@@ -42,11 +48,11 @@ also verifies names, pages and owners against the supernatural catalog.
 
 | Accounting group | Rows | Decision |
 | --- | ---: | --- |
-| Implemented procedures | 83 | A specific procedure resolves the row and dispatches into an existing authoritative service. The definition stays unsupported. |
-| Structured candidate definitions | 214 | Unsupported; source/runtime blockers remain. |
+| Structured candidate definitions | 209 | Unsupported; source/runtime blockers remain. |
+| Bound runtime procedures | 95 | Implemented and dispatched by #344 and #346; still blocked by the printing delta, so still unavailable here. |
 | Listing-only records | 28 | 23 technique templates and five variable families. |
 | Transferred cinematic/supernatural skills | 28 | Owned by #242/#243 and source audit #191. |
-| **Total accounted records** | **353** | **Zero available mundane candidates.** |
+| **Total accounted records** | **360** | **Zero available mundane candidates.** |
 
 This revision fills the previously empty Aerobatics, Aquabatics, crewman, suit
 and weapon entries; records Weather Sense as a TL-dependent Meteorology alias;
@@ -62,18 +68,18 @@ is not converted into an ordinary DX skill.
 
 | Structural class | Rows |
 | --- | ---: |
-| `attribute-default` | 227 |
+| `attribute-default` | 234 |
 | `skill-default` | 44 |
 | `no-default` | 46 |
 | `technology-level` | 126 |
+| `required-specialty` | 61 |
 | `unexpanded-specialty` | 59 |
 | `listing-only` | 28 |
-| `required-specialty` | 54 |
-| `prerequisite` | 3 |
+| `technique-template` | 24 |
 | `technique` | 6 |
+| `prerequisite` | 3 |
 | `optional-specialty` | 1 |
 | `alias` | 1 |
-| `technique-template` | 23 |
 
 Classes overlap. `no-default` means no default is recorded, not a claim that
 conditional defaults have been exhaustively verified. Fixtures sample every
@@ -95,69 +101,125 @@ retained where previously recorded, but they do not replace the active owners.
 | #341 | Knowledge, investigation and professional information procedures. |
 | #342 | Medicine and mental procedures. |
 | #343 | Physical, outdoor and animal procedures. |
-| #344 | Ranged combat skill procedures. |
+| #344 | Ranged combat skill procedures; see below for what it bound and what it transferred. |
+| #354 | Entangling ranged attacks (Bolas, Net). |
+| #355 | TL-indexed personal firearm and beam weapon specialties. |
+| #357 | Crew-served and vehicle-mounted ranged weapons. |
+| #359 | Liquid Projector streams and sprays. |
+| #360 | The Spear Thrower launcher procedure. |
+| #361 | Innate Attack specialties beyond Projectile. |
+| #362 | Cross-specialty and conditional defaults for ranged combat skills. |
 | #345 | Social skill procedures. |
-| #346 | Technology, science and vehicle procedures. |
-| #356 | Science, electronics and engineering specialty expansion, split out of #346. |
-| #358 | Vehicle movement and combat capability verification, split out of #346. |
+| #346 | Technology, science and vehicle procedures; see below for what it bound and what it transferred. |
+| #356 | Science, electronics and engineering specialty expansion. |
+| #358 | Vehicle movement and combat capability verification for the bound vehicle rows. |
 
 Each procedure follow-up lists its exact candidate IDs and must reuse existing
 authoritative services. Accounting completion does not certify those procedures.
 
-## Implemented procedures (#346)
+## Ranged combat procedures (#344)
 
-`rules/mundane_skills/technology` implements the technology, science and vehicle
-group. A procedure is declared once per family and resolved for a specialty
-through its family and for a technique through its parent, so a family cannot
-drift from its children. Each one supplies a trusted target, typed modifiers, a
-repeated-attempt policy and an outcome quantity to a service that already exists;
-it never resolves the effect itself, and scoring stays in `gurps_checks`.
+`rules/mundane_skills/ranged.py` is the only place a listed ranged combat row
+becomes executable. A row is implemented when the module binds it to the ranged
+dispatch that already resolves it (`orchestration/gurps_ranged`), declares the
+exact weapon modes it governs and names a registered capability
+(`gurps.combat.ranged_weapon_skills`, #344). Naming a procedure never implements
+one, and neither does a generic target calculation: a weapon whose mode falls
+outside its skill's class is refused before dice by
+`simulation.gurps_equipment.require_skill_procedure`, which runs when an
+equipment catalog is built and again when a mode is selected in play.
 
-| Dispatch | Rows | What the service owns |
-| --- | ---: | --- |
-| `simulation.transport:transport-control` | 45 | Loss of control, skid, collision and occupant injury for Boating, Driving, Piloting, Shiphandling, Submarine and Crewman. |
-| `simulation.noncombat:approach` | 23 | Progress and revealed facts for the information tasks (Research, Criminology, Forensics, Mathematics, Physics and the rest). |
-| `simulation.hazards:resolve` | 14 | Scheduled exposure for Environment Suit, Explosives and Traps. |
-| `simulation.object_repairs:record` | 1 | Recorded repair work for Electrician. |
+| Row | Reference | State |
+| --- | --- | --- |
+| `skill:bow` | B182, DX/A, DX-5 | Implemented. Two-handed launcher, pinned missile, one shot, no recoil ladder, and the only skill that may carry a B270 bow rating. |
+| `skill:crossbow` | B186, DX/E, DX-4 | Implemented. Launcher with a pinned missile and the B270 crossbow rating. |
+| `skill:sling` | B221, DX/H, DX-6 | Implemented. Launcher with a pinned missile. |
+| `skill:blowpipe` | B180, DX/H, DX-6 | Implemented. Launcher with a pinned missile. Poisoned ammunition is an ammunition mechanic, not part of this skill. |
+| `skill:thrown-weapon` | B226, DX/E, DX-4 | Family expanded into seven concrete specialties (Axe/Mace, Dart, Harpoon, Knife, Shuriken, Spear, Stick) and never dispatched itself. |
+| `skill:thrown-weapon-*` | B226, DX/E, DX-4 | Implemented. The projectile is the item; it leaves active inventory and is retained in `expended_items`. |
+| `skill:bolas` | B181, DX/A | Transferred to #354; the outcome is a persisted entangled condition, not injury. |
+| `skill:net` | B211, DX/H | Transferred to #354 and #362. |
+| `skill:spear-thrower` | B222, DX/A, DX-5 | Transferred to #360 and #362; a launcher that modifies a projectile it does not consume. |
+| `skill:guns` | B198, DX/E, DX-4 | Transferred to #355; needs TL context and pinned firearm specialties. |
+| `skill:beam-weapons` | B179, DX/E, DX-4 | Transferred to #355. |
+| `skill:artillery` | B178, IQ/A, IQ-5 | Transferred to #357; mounted or crew-served, and IQ-based. |
+| `skill:gunner` | B198, DX/E, DX-4 | Transferred to #357. |
+| `skill:liquid-projector` | B205, DX/E, DX-4 | Transferred to #359; needs stream and spray state the dispatch does not have. |
+| `skill:innate-attack` | B201, DX/E, DX-4 | Transferred to #361. The Projectile specialty is already dispatched by the opt-in spell adapter under its own pin; reconciling it here is an explicit migration. |
 
-Two modifiers are applied by the procedure itself: the B168 technology-level
-difference (one point of effective skill per level, either direction) and the
-B169 familiarity penalty. Handling is accepted only by a procedure that actually
-steers; passing it to any other is rejected rather than ignored. A caller's
-situational ruling stays a separate typed modifier in the receipt.
+A binding may only resolve or keep the blockers the inventory recorded, and its
+numbers must be the recorded ones: `inventory()` raises on either drift, and on
+a kept blocker that names no owner. A blocker a procedure owner splits keeps
+naming the child that owns it in `blocker_owners`, so a transfer stays visible
+instead of resolving into silence. Every row still carries
+`first-printing-delta-audit`, so a bound procedure reports as `implemented` and
+remains unavailable.
 
-Boating, Driving, Piloting, Shiphandling, Submarine and Explosives gained their
-concrete specialty rows, and the four B233 non-combat techniques of this group
-(Motion-Picture Camera, No-Landing Extraction, Set Trap and Work by Touch) now
-record a parent-specific default and cap instead of a technique template.
+The definitions live in a new pin, package `0.7.0` with profile version 7
+(`rules/profiles.py`). Existing v2–v6 campaign pins resolve byte-for-byte
+unchanged; switching a campaign still uses the existing explicit migration.
+Evidence is in `tests/test_ranged_skills.py`.
 
-Clearing `runtime-procedure` is the only blocker an implemented procedure
-resolves. Contextual blockers stay with #336, every vehicle-control row keeps
-`capability:gurps.vehicles.movement` until #358 verifies that capability row, and
-thirteen scoped rows are transferred by moving their procedure owner rather than
-by guessing their specialties:
+## Technology, science and vehicle procedures (#346)
 
-| Rows | Procedure owner |
-| --- | --- |
-| Bioengineering, Biology, Current Affairs, Disguise, Electronics Operation, Electronics Repair, Engineer, Geography, Geology, Hazardous Materials, Mechanic, Paleontology | #356 — their specialty axis is a discipline, not a vehicle class |
-| Motion-Picture Camera | #338 — its parent Photography belongs to the arts and trades group |
+`rules/mundane_skills/technology.py` is the only place a listed technology row
+becomes executable. A row is implemented when the module binds it to a service
+that already resolves it, declares the exact task it governs, and produces a
+quantity that service consumes. Scoring stays in `rules/gurps_checks`, so no
+second engine exists. Naming a procedure never implements one, and neither does
+a generic target calculation: a family row, a transferred row and a skill outside
+this group are all refused before dice by `technology.require_task`.
 
-`unsupported_scope()` publishes every unplayable row with its blockers and their
-owners to the scenario, character and LLM validators.
+| Dispatch | Service | What it owns |
+| --- | --- | --- |
+| `transport.vehicle-control` | `simulation/transport` | Loss of control, skid, collision and occupant injury. |
+| `hazard.exposure` | `simulation/hazards` | Scheduled exposure for a broken seal or placed ordnance. |
+| `object.repair` | `simulation/object_repairs` | Recorded repair work and restored HP. |
+| `noncombat.approach` | `simulation/noncombat` | Progress and revealed facts for an information task. |
+
+| Row | Reference | State |
+| --- | --- | --- |
+| `skill:boating` `skill:driving` `skill:piloting` `skill:shiphandling` `skill:submarine` | B180, B188, B214, B220, B223 | Families expanded into 34 concrete specialties and never dispatched themselves. |
+| `skill:boating-*` `skill:driving-*` `skill:piloting-*` `skill:shiphandling-*` `skill:submarine-*` | as their family | Implemented. Operator control: skill plus Handling, which no other procedure accepts. |
+| `skill:crewman` | B185 | Family expanded into Airshipman, Seamanship, Spacer and Submariner. |
+| `skill:airshipman` `skill:seamanship` `skill:spacer` `skill:submariner` | B185, IQ/E, IQ-4 | Implemented. A rated station is held, not steered, so Handling is refused. |
+| `skill:environment-suit` | B192 | Family expanded into the four concrete suits, with their recorded cross-defaults. |
+| `skill:battlesuit` `skill:diving-suit` `skill:nbc-suit` `skill:vacc-suit` | B192, DX/A, DX-5 | Implemented. Failure hands the scheduled exposure to the hazard service. |
+| `skill:explosives` | B194 | Family expanded into five concrete specialties. |
+| `skill:explosives-*` `skill:traps` `skill:set-trap` `skill:work-by-touch` | B194, B226, B233 | Implemented. Emplacement; failure is hazardous. |
+| `skill:mathematics` | B207 | Family completed by the six recorded specialties. |
+| `skill:mathematics-*` `skill:physics` `skill:physics-acoustics` and the other information rows | B176–B217 | Implemented. The margin decides how much is learned, capped where the task is a single object. |
+| `skill:electrician` | B189, IQ/A, IQ-5 | Implemented. Repair progress scales with the margin. |
+| `skill:no-landing-extraction` | B233 | Implemented. Bought against the concrete Piloting specialty flown, so it carries that control dispatch. |
+| `skill:motion-picture-camera` | B233 | Transferred to #338; its parent Photography belongs to that group, and a parent with no dispatch cannot lend one. |
+| `skill:bioengineering` `skill:biology` `skill:current-affairs` `skill:disguise` `skill:electronics-operation` `skill:electronics-repair` `skill:engineer` `skill:geography` `skill:geology` `skill:hazardous-materials` `skill:mechanic` `skill:paleontology` | B180–B212 | Transferred to #356; their specialty axis is a discipline, not a vehicle class, so expanding them here would be a guess. B207 keys a Mechanic specialty to a machine type, so its expansion is derived from the vehicle specialties above rather than authored twice. |
+
+Two modifiers belong to the procedure: the B168 technology-level difference (one
+point of effective skill per level, either direction) and the B169 familiarity
+penalty. A caller's situational ruling stays a separate typed modifier in the
+receipt. Conditional defaults and alternative prerequisites are not implemented
+and keep naming #336.
+
+Every bound vehicle row also records `gurps.vehicles.movement`, which is still
+`partial`; #358 must verify it before live play may offer those rows. The
+capability registry, not a typed task, is what says so.
+
+These definitions are **not** yet carried by a package pin. Two things must be
+settled first, and `tests/test_technology_skills.py` pins both so neither is
+discovered by a broken build: `skill:physics` and `skill:physics-acoustics`
+already exist in the pinned package as representative definitions on the
+`check.target` hook, so binding them changes what those ids mean; and the
+recorded Diving Suit default reaches `skill:scuba`, which another group owns, so
+these definitions do not resolve as a standalone catalog. Evidence for the
+bindings themselves is in `tests/test_technology_skills.py` and
+`tests/fixtures/gurps/technology_skills.json`.
 
 ## Validation and runtime contract
 
-All candidates have unsupported status and no runtime hooks. `require_available`
+Candidates in this package have unsupported status and no runtime hooks. `require_available`
 rejects unknown IDs, blocked rows and unsupported definitions even if their
 blocker list is mistakenly cleared. Scenario/character/LLM validation therefore
 cannot turn catalog presence into playable mechanics.
-
-An implemented procedure changes none of that: `require_available` still refuses
-`skill:driving-automobile` and `skill:vacc-suit`.
-`tests/test_mundane_skill_technology.py` pins the procedure expectations against
-`tests/fixtures/gurps/mundane_skill_technology.json`, whose targets, margins,
-outcomes and unit counts were worked out from the source rules rather than
-generated from the services under test.
 
 Reference checks cover defaults, prerequisites, specialty/technique parents,
 aliases and source-index targets. Prerequisite, technique and alias cycles fail;

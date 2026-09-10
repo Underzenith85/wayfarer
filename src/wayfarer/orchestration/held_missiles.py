@@ -5,6 +5,7 @@ from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.spell_effects import armor
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.simulation.actions import PlayState
+from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.injury import Wound, apply_injury
 from wayfarer.simulation.resources import ResourceEvent
 from wayfarer.simulation.spells import PROFILE, SpellEvent, SpellResult, active_spells, event_id
@@ -37,7 +38,12 @@ def checkpoint(play: PlayService, state: PlayState, before: PlayState) -> PlaySt
         check = (
             None
             if hp.injury.incapacitated
-            else success_roll(PROFILE, compiled.statistics.will, rng=play.rng)
+            else success_roll(
+                PROFILE,
+                compiled.statistics.will,
+                check_modifiers(resources, effect.actor_id, "will"),
+                rng=play.rng,
+            )
         )
         lost = check is None or not check.outcome.succeeded
         resources = resources.model_copy(
@@ -127,7 +133,12 @@ def concentration_checkpoint(play: PlayService, state: PlayState, before: PlaySt
             continue
         compiled = build(play, state, effect.actor_id)
         assert compiled.statistics
-        check = success_roll(PROFILE, compiled.statistics.will - 3, rng=play.rng)
+        check = success_roll(
+            PROFILE,
+            compiled.statistics.will - 3,
+            check_modifiers(resources, effect.actor_id, "will"),
+            rng=play.rng,
+        )
         effect = effect.model_copy(
             update={
                 "concentrating": check.outcome.succeeded,

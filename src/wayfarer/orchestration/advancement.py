@@ -8,12 +8,14 @@ from pydantic import Field
 from pydantic import ValidationError as SchemaError
 
 from wayfarer.character.compiler import CharacterDraft, ValidatedBuild, pool_limits
+from wayfarer.character.physical_traits import physical_traits
 from wayfarer.character.power import CharacterProposal
 from wayfarer.character.statistics import RuntimePool, carry_over
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, Event
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.catalog import reference
+from wayfarer.rules.physical_traits import PhysicalTraits
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.adjudication import expire_rulings
 from wayfarer.simulation.advancement import (
@@ -92,13 +94,19 @@ def _diff(actor_id: str, before: ValidatedBuild, after: ValidatedBuild) -> Build
     )
 
 
-def _refreshed(pool: Pool, maximum: int, build: ValidatedBuild) -> Pool:
+def _refreshed(
+    pool: Pool, maximum: int, build: ValidatedBuild, physical: PhysicalTraits | None = None
+) -> Pool:
     """Move a pool ceiling for a recompiled build without healing anything.
 
     The prototype package keeps its original clamp. Profile builds preserve the
     deficit, so purchased HP or FP raise the current value by the same amount.
     """
 
+    if pool.injury is not None and physical is not None:
+        pool = pool.model_copy(
+            update={"injury": pool.injury.model_copy(update={"physical_traits": physical})}
+        )
     if build.statistics is None:
         return pool.model_copy(update={"maximum": maximum, "current": min(pool.current, maximum)})
     if pool.fatigue is not None and maximum - (pool.maximum - pool.current) < -maximum:
@@ -244,9 +252,23 @@ class AdvancementService:
             else owner
             for owner in state.resources.owners
         )
+        old_physical = physical_traits(before, self.play.engine.reviewer.compiler.definitions)
+        new_physical = physical_traits(after, self.play.engine.reviewer.compiler.definitions)
+        if old_physical.fitness != new_physical.fitness:
+            fp = next(p for p in state.resources.pools if p.id == f"fp:{command.actor_id}")
+            if fp.current != fp.maximum or any(
+                not t.settled and t.target_id == command.actor_id
+                for t in state.resources.recovery_tasks
+            ):
+                raise ValidationError("Changing fitness requires settled recovery and full FP")
         maxima = pool_limits(after)
         pools = tuple(
-            _refreshed(pool, maxima[pool.id.split(":", 1)[0]], after)
+            _refreshed(
+                pool,
+                maxima[pool.id.split(":", 1)[0]],
+                after,
+                physical_traits(after, self.play.engine.reviewer.compiler.definitions),
+            )
             if pool.id in (f"hp:{command.actor_id}", f"fp:{command.actor_id}")
             else pool
             for pool in state.resources.pools

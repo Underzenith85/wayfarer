@@ -181,12 +181,23 @@ def test_candidate_audit_and_runtime_agree(monkeypatch: pytest.MonkeyPatch) -> N
     assert all(
         d.status is ImplementationStatus.UNSUPPORTED and not d.hooks for d in package.definitions
     )
+    # The accounting package never carries a hook, even for a row whose runtime
+    # procedure is bound in a separate campaign pin.
     assert all(
         e.definition is None
         or (e.definition.status is ImplementationStatus.UNSUPPORTED and not e.definition.hooks)
         for e in entries
+        if not e.bound
     )
-    entry = next(e for e in entries if e.definition)
+    bow = next(e for e in entries if e.id == "skill:bow")
+    assert bow.bound and bow.dispatch == "combat.ranged-attack"
+    assert bow.definition is not None
+    assert bow.definition.status is ImplementationStatus.IMPLEMENTED
+    # #191's printing delta still blocks every row, so nothing is runtime-available.
+    assert all(e.blockers for e in entries) and not bow.available
+    with pytest.raises(ValidationError, match="unavailable"):
+        require_available("skill:bow")
+    entry = next(e for e in entries if e.definition and not e.bound)
     monkeypatch.setattr(module, "inventory", lambda: (replace(entry, blockers=()),))
     # Even a mistakenly cleared blocker list cannot activate an unsupported definition.
     with pytest.raises(ValidationError, match="unavailable"):
@@ -269,6 +280,15 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     assert entries["skill:broadsword"].owners == (339,)
     assert entries["skill:first-aid"].owners == (342,)
     assert entries["skill:accounting"].owners == (341,)
+    # #344 keeps the ranged rows it did not implement visible under the concrete
+    # children that own them, instead of resolving them into its own number.
+    assert entries["skill:bow"].owners == (344,)
+    assert entries["skill:bolas"].owners == (344, 354)
+    assert entries["skill:net"].blocker_owners == {
+        "first-printing-delta-audit": (336,),
+        "runtime-procedure": (344, 354),
+        "conditional-or-skill-defaults": (336, 362),
+    }
     assert coverage_blockers(PROFILE) == (
         103,
         109,
@@ -285,8 +305,15 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         344,
         345,
         346,
+        354,
+        355,
         356,
+        357,
         358,
+        359,
+        360,
+        361,
+        362,
     )
     with pytest.raises(ValidationError, match="outside the selected profile"):
         coverage_blockers("gurps-lite-4e-2004")
@@ -307,16 +334,21 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         344,
         345,
         346,
+        354,
+        355,
         356,
+        357,
         358,
+        359,
+        360,
+        361,
+        362,
     ]
     assert report["runtime_owner_unassigned"] == 0
-    # #346 implements the technology and vehicle procedures; the rows it could not
-    # source stay unsupported under the concrete children #356 and #338.
     assert report["implementation_counts"] == {
-        "implemented": 83,
+        "implemented": 95,
         "listing-only": 28,
-        "unsupported": 214,
+        "unsupported": 209,
     }
     counts = report["structural_class_counts"]
     assert isinstance(counts, dict) and counts["listing-only"] == 28
@@ -353,6 +385,10 @@ def test_exclusion_records_reject_unowned_transfers(changes: dict[str, object]) 
         Exclusion.model_validate_json(json.dumps(row | changes))
 
 
+def indexed_expansions(index: object, parent: str) -> int:
+    return sum(e.parent == parent for e in index.entries)  # type: ignore[attr-defined]
+
+
 def test_independent_source_index_accounts_for_every_listing() -> None:
     """Characters third printing B301-304: 275 skills and 27 named techniques."""
     index = source_index()
@@ -360,7 +396,9 @@ def test_independent_source_index_accounts_for_every_listing() -> None:
     assert "third printing" in index.observed_source
     assert len([e for e in index.entries if e.kind == "skill"]) == 275
     assert len([e for e in index.entries if e.kind == "technique"]) == 27
-    assert len([e for e in index.entries if e.kind == "expansion"]) == 50
+    # #344 expands the Thrown Weapon family into seven concrete specialties.
+    assert len([e for e in index.entries if e.kind == "expansion"]) == 57
+    assert indexed_expansions(index, "thrown-weapon") == 7
     indexed = {e.id: e for e in index.entries}
     assert indexed["brain-hacking"].page == 182
     assert indexed["melee-weapon"].page == 208
@@ -542,7 +580,11 @@ def test_every_blocker_has_a_named_followup() -> None:
         assert all(
             set(owners) <= set(entry.followup_issues) for owners in entry.blocker_owners.values()
         )
-        assert entry.owners == (entry.procedure_owner,)
+        # A procedure owner that split a blocker into a bounded child keeps that
+        # child visible; every other row still resolves to its single owner.
+        assert entry.owners[0] == entry.procedure_owner
+        assert set(entry.owners) <= set(entry.followup_issues)
+        assert entry.owners == (entry.procedure_owner,) or entry.transferred
 
 
 def test_alias_and_owner_validation() -> None:

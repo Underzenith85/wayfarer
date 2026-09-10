@@ -20,12 +20,14 @@ from wayfarer.rules.location_types import HitLocation, HumanLocation
 from wayfarer.rules.recovery_types import interrupt_tasks
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import Combatant, Defense, Encounter, InjuryTrace
+from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.fatigue import ContinueExertion, apply_fatigue, fatigue_value
 from wayfarer.simulation.gurps_equipment import (
     EquipmentCatalog,
     MeleeMode,
     RangedMode,
     inventory_load,
+    require_skill_procedure,
 )
 from wayfarer.simulation.hit_locations import (
     attack_penalty,
@@ -127,7 +129,7 @@ def injury_turn(
             do_nothing=do_nothing,
         ),
         ht=compiled.statistics.ht,
-        stun_iq=compiled.statistics.iq if was_mental else None,
+        stun_iq=compiled.statistics.iq if was_mental or hp.injury.surprise is not None else None,
         rng=play.rng,
         system=True,
     )
@@ -216,6 +218,7 @@ def mode(
     )
     if selected.hands + held_others > 2:
         raise ValidationError("Selected grip exceeds available hands")
+    require_skill_procedure(catalog(play).profile_id, selected)
     level(build(play, state, actor_id), selected.skill_id)
     return selected
 
@@ -347,6 +350,7 @@ def defense_value(
 
     penalty = (
         participant.defense_penalty
+        + int(hp.injury.physical_traits.combat_reflexes)
         + participant.tactical_defense_bonus
         - 4 * int(participant.arm_locked)
         + (-1 if selected == "dodge" else -2) * int(participant.grappled)
@@ -704,6 +708,7 @@ def resolve_melee(
         raise ValidationError("Second defense equipment requires a second defense")
     attack_target = (
         int(attack_value.value)
+        + attacker_hp.injury.physical_traits.darkness(encounter.darkness_penalty)
         - attacker_hp.injury.shock
         - max(0, weapon.minimum_st - fatigue_value(attacker_fp, attack_build.statistics.st))
     )
@@ -741,14 +746,26 @@ def resolve_melee(
             None,
         )
         attack_target += attack_penalty(pending.hit_location, shield_side=shield_side)
-    attack_target = attack_modifier(attacker.maneuver_state, defender.actor_id, attack_target)
+    attack_target = attack_modifier(
+        attacker.maneuver_state,
+        defender.actor_id,
+        attack_target,
+        check_adjustment=sum(
+            m.value for m in check_modifiers(state.resources, attacker.actor_id, "dx")
+        ),
+    )
     if defense_derived is not None and attacker.maneuver_state.feint_target_id == defender.actor_id:
         defense_derived = DerivedValue(
             defense_derived.target,
             defense_derived.value - attacker.maneuver_state.feint_penalty,
             defense_derived.explanations,
         )
-    attack = success_roll(equipment.profile_id, attack_target, rng=play.rng)
+    attack = success_roll(
+        equipment.profile_id,
+        attack_target,
+        check_modifiers(state.resources, attacker.actor_id, "dx"),
+        rng=play.rng,
+    )
     defense = None
     second_trace = None
     from wayfarer.simulation.hit_locations import location_special_effects, torso_near_miss

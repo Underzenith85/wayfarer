@@ -13,6 +13,7 @@ from pydantic import Field
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.rules.checks import CheckTrace, RandomSource
 from wayfarer.rules.gurps_checks import success_roll
+from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.resources import Id, Record, ResourceEvent, ResourceState
 
 PREFIX = "spell-backfire:"
@@ -112,7 +113,9 @@ def remember(
     )
     if item is None or item.remember_at is None or state.game_time < item.remember_at:
         raise ConflictError("Forgotten spell is not due for its weekly IQ check")
-    trace = success_roll("gurps-basic-set-4e-2004", iq, rng=rng)
+    trace = success_roll(
+        "gurps-basic-set-4e-2004", iq, check_modifiers(state, actor_id, "iq"), rng=rng
+    )
     item = item.model_copy(
         update={
             "forgotten": not trace.outcome.succeeded,
@@ -257,6 +260,7 @@ def refund_due(state: ResourceState, actor_id: str, *, turn: int | None = None) 
                 "current": current,
                 "fatigue": status.model_copy(
                     update={
+                        "power": max(0, status.power - granted),
                         "collapsed": status.collapsed and current <= 0,
                         "unconscious": status.unconscious and current <= 0,
                     }

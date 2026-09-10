@@ -16,6 +16,7 @@ from wayfarer.rules.checks import Outcome, RandomSource, draw_dice, evaluate_suc
 from wayfarer.rules.hazard_types import require_hazards_settled
 from wayfarer.rules.recovery_types import require_settled
 from wayfarer.rules.transport_types import Transport
+from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.hex_geometry import DIRECTIONS, Hex, HexBattlefield, neighbor
 from wayfarer.simulation.injury import Wound, apply_injury, impaired_movement
 from wayfarer.simulation.objects import DamageObject, apply_object
@@ -236,7 +237,7 @@ def apply_transport(
             raise ValidationError("Unsupported control recovery; resolve the pending loss first")
         check = evaluate_success(
             command.skill + command.modifier + (0 if mount else t.handling),
-            (),
+            check_modifiers(state, t.operator_id, "dx"),
             draw_dice(rng),
             rules_package=t.profile_id,
             rules_version="1",

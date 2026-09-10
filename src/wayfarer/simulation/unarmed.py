@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Literal, Self
 from pydantic import Field, model_validator
 
 from wayfarer.errors import ValidationError
-from wayfarer.rules.checks import CheckTrace, RandomSource
+from wayfarer.rules.checks import CheckTrace, Modifier, RandomSource
 from wayfarer.rules.gurps_checks import Contestant, quick_contest, regular_contest_round
 from wayfarer.rules.location_types import Hand
 from wayfarer.simulation.resources import Id, Record, ResourceState
@@ -163,6 +163,8 @@ def contest(
     second: int,
     *,
     regular: bool = False,
+    first_modifiers: tuple[Modifier, ...] = (),
+    second_modifiers: tuple[Modifier, ...] = (),
     rng: RandomSource,
 ) -> tuple[bool, tuple[CheckTrace, ...], bool]:
     """One committed contest round. An undecided pin never rolls ahead in time."""
@@ -170,16 +172,16 @@ def contest(
     if regular:
         a, b = regular_contest_round(
             profile_id,
-            Contestant(actor_id, first),
-            Contestant(target_id, second),
+            Contestant(actor_id, first, first_modifiers),
+            Contestant(target_id, second, second_modifiers),
             rng=rng,
         )
         decided = a.outcome.succeeded != b.outcome.succeeded
         return decided and a.outcome.succeeded, (a, b), decided
     trace = quick_contest(
         profile_id,
-        Contestant(actor_id, first),
-        Contestant(target_id, second),
+        Contestant(actor_id, first, first_modifiers),
+        Contestant(target_id, second, second_modifiers),
         rng=rng,
     )
     return trace.winner == actor_id, (trace.first, trace.second), trace.winner is not None

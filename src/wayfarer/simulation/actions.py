@@ -23,6 +23,7 @@ from wayfarer.simulation.access import CampaignMember
 from wayfarer.simulation.adjudication import Ruling, RulingPolicy, expire_rulings
 from wayfarer.simulation.advancement import AdvancementEntry, MigrationEntry
 from wayfarer.simulation.combat import CombatEngine, CombatResult, CombatRules, Encounter
+from wayfarer.simulation.condition_checks import definition_modifiers
 from wayfarer.simulation.director import AuthorDraft, DirectorTurn
 from wayfarer.simulation.noncombat import NoncombatEncounter, NoncombatRules
 from wayfarer.simulation.npcs import NPCRules, NPCState
@@ -565,6 +566,16 @@ class ActionEngine:
                 pool = pools.get(f"{kind}:{actor.actor_id}")
                 if pool is None or pool.maximum != maximum:
                     raise ValidationError("Runtime pool limit does not match the compiled build")
+            from wayfarer.character.physical_traits import physical_traits
+
+            hp = pools.get(f"hp:{actor.actor_id}")
+            if (
+                hp is not None
+                and hp.injury is not None
+                and hp.injury.physical_traits
+                != physical_traits(build, self.reviewer.compiler.definitions)
+            ):
+                raise ValidationError("Physical trait projection does not match the pinned build")
             entity = entities.get(actor.actor_id)
             if entity is None or entity.kind is not EntityKind.ACTOR:
                 raise ValidationError("Play actor is not a world actor")
@@ -722,7 +733,7 @@ class ActionEngine:
         from wayfarer.simulation.fright import blocked, requires_adjudication
 
         if not isinstance(command, Wait) and (
-            blocked(state.resources, command.actor_id)
+            blocked(state.resources, command.actor_id, kind=command.kind)
             or requires_adjudication(state.resources, command.actor_id)
         ):
             return result("rejected", "actor.fright")
@@ -1066,7 +1077,13 @@ class ActionEngine:
                     if darkness
                     else ()
                 )
-                + extra_modifiers,
+                + extra_modifiers
+                + definition_modifiers(
+                    state.resources,
+                    actor.actor_id,
+                    rule.definition_id,
+                    self.reviewer.compiler.definitions,
+                ),
                 rng=rng,
                 rules_package=rule.package_id,
                 rules_version=rule.package_version,

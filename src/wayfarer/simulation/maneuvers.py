@@ -102,8 +102,14 @@ class WaitInterrupt(Record):
     ready: bool = False
 
 
-def attack_modifier(state: ManeuverState, target_id: str, target: int) -> int:
-    value = target + state.attack_bonus
+def attack_modifier(
+    state: ManeuverState, target_id: str, target: int, *, check_adjustment: int = 0
+) -> int:
+    # A maneuver caps the final modified skill. Return a base target so the
+    # caller can still record its condition modifiers explicitly in the trace.
+    value = target + state.attack_bonus + check_adjustment
     if state.evaluate_target_id == target_id:
         value += state.evaluate_bonus
-    return min(value, state.attack_cap) if state.attack_cap is not None else value
+    return (
+        min(value, state.attack_cap) if state.attack_cap is not None else value
+    ) - check_adjustment

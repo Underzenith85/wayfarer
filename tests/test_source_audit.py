@@ -110,12 +110,14 @@ def test_mundane_skill_rows_carry_item_level_owners_and_certification_state() ->
     from wayfarer.rules.mundane_skills import PROFILE, coverage_blockers
 
     rows = [r for r in inventory() if r.scope == "mundane-skills"]
-    assert len(rows) == 325
+    assert len(rows) == 332
     assert all(r.owner == 112 and r.blockers for r in rows)
     assert {b for r in rows for b in r.blockers} == set(coverage_blockers(PROFILE))
     assert {r.implementation for r in rows} == {"implemented", "unsupported", "listing-only"}
     assert sum(r.implementation == "listing-only" for r in rows) == 28
-    # #346 implements the technology and vehicle procedures; an implemented row is
-    # still not certifiable while its source review and capability rows are open.
-    assert sum(r.implementation == "implemented" for r in rows) == 83
+    # #344: a bound ranged procedure reaches certification as implemented, and a
+    # transferred one reaches it naming the concrete open child that owns it.
+    assert sum(r.implementation == "implemented" for r in rows) == 95
+    assert next(r for r in rows if r.id == "skill:bow").blockers == (112, 336, 344)
+    assert next(r for r in rows if r.id == "skill:net").blockers == (112, 336, 344, 354, 362)
     assert next(r for r in rows if r.id == "skill:broadsword").blockers == (103, 112, 336, 339)

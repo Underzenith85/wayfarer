@@ -6,11 +6,11 @@
   "references": [
     "B168 technology level",
     "B169 familiarity and specialties",
-    "B176-B233 technology, science and vehicle skill entries",
+    "B176-B226 technology, science and vehicle skill entries",
     "B230-B233 techniques",
     "B301-B304 skill index"
   ],
-  "provenance": "Hand-entered expected results under the provisional implementation policy; every effective target, margin, outcome and unit count was worked out from the source rules and never generated from engine output. Frozen first-printing artifact verification remains #336.",
+  "provenance": "Hand-entered expected results under the provisional implementation policy. Every effective target, margin, outcome and unit count was worked out from the source rules and never generated from engine output. Frozen first-printing artifact verification remains #336.",
   "cases": [
     {
       "id": "driving-automobile-controlled",
@@ -26,8 +26,7 @@
         "dice": [3, 4, 4]
       },
       "expected": {
-        "procedure": "procedure:driving",
-        "dispatch": "simulation.transport:transport-control",
+        "dispatch": "transport.vehicle-control",
         "effect": "vehicle-control",
         "effective_target": 13,
         "total": 11,
@@ -53,8 +52,7 @@
         "dice": [4, 4, 5]
       },
       "expected": {
-        "procedure": "procedure:driving",
-        "dispatch": "simulation.transport:transport-control",
+        "dispatch": "transport.vehicle-control",
         "effect": "vehicle-control",
         "effective_target": 10,
         "total": 13,
@@ -80,8 +78,7 @@
         "dice": [6, 6, 6]
       },
       "expected": {
-        "procedure": "procedure:piloting",
-        "dispatch": "simulation.transport:transport-control",
+        "dispatch": "transport.vehicle-control",
         "effect": "vehicle-control",
         "effective_target": 11,
         "total": 18,
@@ -96,7 +93,7 @@
     {
       "id": "vacc-suit-seal-holds",
       "skill_id": "skill:vacc-suit",
-      "reference": "B192, B228",
+      "reference": "B192",
       "note": "Vacc Suit is a concrete Environment Suit specialty and resolves as one.",
       "input": {
         "level": 11,
@@ -107,8 +104,7 @@
         "dice": [2, 3, 4]
       },
       "expected": {
-        "procedure": "procedure:environment-suit",
-        "dispatch": "simulation.hazards:resolve",
+        "dispatch": "hazard.exposure",
         "effect": "sealed-suit-integrity",
         "effective_target": 11,
         "total": 9,
@@ -121,8 +117,8 @@
       }
     },
     {
-      "id": "crewman-station-held-on-an-exact-success",
-      "skill_id": "skill:crewman",
+      "id": "seamanship-station-held-on-an-exact-success",
+      "skill_id": "skill:seamanship",
       "reference": "B185",
       "note": "A total equal to the effective target succeeds with a margin of zero.",
       "input": {
@@ -134,8 +130,7 @@
         "dice": [3, 3, 4]
       },
       "expected": {
-        "procedure": "procedure:crewman",
-        "dispatch": "simulation.transport:transport-control",
+        "dispatch": "transport.vehicle-control",
         "effect": "crew-station",
         "effective_target": 10,
         "total": 10,
@@ -161,8 +156,7 @@
         "dice": [3, 3, 4]
       },
       "expected": {
-        "procedure": "procedure:research",
-        "dispatch": "simulation.noncombat:approach",
+        "dispatch": "noncombat.approach",
         "effect": "task-finding",
         "effective_target": 13,
         "total": 10,
@@ -188,8 +182,7 @@
         "dice": [3, 3, 3]
       },
       "expected": {
-        "procedure": "procedure:cryptography",
-        "dispatch": "simulation.noncombat:approach",
+        "dispatch": "noncombat.approach",
         "effect": "task-finding",
         "effective_target": 14,
         "total": 9,
@@ -214,8 +207,7 @@
         "dice": [2, 2, 3]
       },
       "expected": {
-        "procedure": "procedure:electrician",
-        "dispatch": "simulation.object_repairs:record",
+        "dispatch": "object.repair",
         "effect": "repair-progress",
         "effective_target": 12,
         "total": 7,
@@ -241,8 +233,7 @@
         "dice": [1, 1, 2]
       },
       "expected": {
-        "procedure": "procedure:cartography",
-        "dispatch": "simulation.noncombat:approach",
+        "dispatch": "noncombat.approach",
         "effect": "task-finding",
         "effective_target": 12,
         "total": 4,
@@ -269,8 +260,7 @@
         "dice": [4, 4, 4]
       },
       "expected": {
-        "procedure": "procedure:astronomy",
-        "dispatch": "simulation.noncombat:approach",
+        "dispatch": "noncombat.approach",
         "effect": "task-finding",
         "effective_target": 12,
         "total": 12,
@@ -295,8 +285,7 @@
         "dice": [5, 5, 6]
       },
       "expected": {
-        "procedure": "procedure:explosives",
-        "dispatch": "simulation.hazards:resolve",
+        "dispatch": "hazard.exposure",
         "effect": "ordnance-placement",
         "effective_target": 12,
         "total": 16,
@@ -311,7 +300,7 @@
     {
       "id": "no-landing-extraction-at-its-parent-default",
       "skill_id": "skill:no-landing-extraction",
-      "reference": "B214, B232",
+      "reference": "B214, B233",
       "note": "The technique's floor is Piloting-5 and its cap is Piloting; it dispatches as Piloting does.",
       "input": {
         "level": 9,
@@ -323,8 +312,7 @@
         "dice": [2, 3, 3]
       },
       "expected": {
-        "procedure": "procedure:piloting",
-        "dispatch": "simulation.transport:transport-control",
+        "dispatch": "transport.vehicle-control",
         "effect": "vehicle-control",
         "effective_target": 9,
         "total": 8,
@@ -351,8 +339,7 @@
         "dice": [4, 4, 4]
       },
       "expected": {
-        "procedure": "procedure:traps",
-        "dispatch": "simulation.hazards:resolve",
+        "dispatch": "hazard.exposure",
         "effect": "ordnance-placement",
         "effective_target": 13,
         "total": 12,
@@ -365,7 +352,7 @@
       }
     },
     {
-      "id": "physics-acoustics-resolves-through-its-unspecialized-parent",
+      "id": "physics-acoustics-is-bound-in-its-own-right",
       "skill_id": "skill:physics-acoustics",
       "reference": "B169, B213",
       "input": {
@@ -377,8 +364,7 @@
         "dice": [3, 3, 4]
       },
       "expected": {
-        "procedure": "procedure:physics",
-        "dispatch": "simulation.noncombat:approach",
+        "dispatch": "noncombat.approach",
         "effect": "task-finding",
         "effective_target": 15,
         "total": 10,

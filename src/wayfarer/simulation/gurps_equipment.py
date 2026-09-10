@@ -165,6 +165,31 @@ class RangedMode(Record):
 WeaponMode = Annotated[MeleeMode | RangedMode, Field(discriminator="kind")]
 
 
+def require_skill_procedure(profile_id: str, mode: MeleeMode | RangedMode) -> None:
+    """Refuse a weapon that claims a ranged combat skill with no bound procedure.
+
+    Skills outside the #344 audit pass through unchanged. A row that this
+    repository accounts for but does not execute fails closed here, naming the
+    concrete open issue that owns it, so authoring, scenario, character and LLM
+    validators cannot turn an accounted-for skill into a mechanic.
+    """
+    from wayfarer.rules.mundane_skills.ranged import require_mode
+
+    rated = mode.rated_strength if isinstance(mode, RangedMode) else None
+    require_mode(
+        profile_id,
+        mode.skill_id,
+        ranged=isinstance(mode, RangedMode),
+        thrown=isinstance(mode, RangedMode) and mode.thrown,
+        ammunition=isinstance(mode, RangedMode) and mode.ammunition_id is not None,
+        rate_of_fire=mode.rate_of_fire if isinstance(mode, RangedMode) else 1,
+        recoil=mode.recoil if isinstance(mode, RangedMode) else 1,
+        hands=mode.hands,
+        tight_beam=mode.damage.tight_beam,
+        rated_kind=rated.kind if rated is not None else None,
+    )
+
+
 class Armor(Record):
     locations: tuple[Location, ...] = Field(min_length=1)
     dr: Nonnegative
@@ -264,6 +289,7 @@ class EquipmentCatalog(Record):
             if entry.durability is not None and entry.durability.profile_id != self.profile_id:
                 raise ValueError("Object durability requires the exact Basic Set profile")
             for mode in entry.modes:
+                require_skill_procedure(self.profile_id, mode)
                 if isinstance(mode, RangedMode) and mode.firearm is not None:
                     if self.profile_id != "gurps-basic-set-4e-2004":
                         raise ValueError("Firearm malfunctions require the exact Basic Set profile")

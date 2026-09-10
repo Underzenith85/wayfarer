@@ -1,16 +1,9 @@
-"""Strict source-inventory records; audit-only flags are not runtime mechanics.
-
-A row may drop its ``runtime-procedure`` blocker only when an implemented
-procedure covers it. :mod:`wayfarer.rules.mundane_skills.technology` is the single
-authority for that, so a cleared blocker can never be asserted by the source
-record alone. Contextual blockers stay owned by the source review either way.
-"""
+"""Strict source-inventory records; audit-only flags are not runtime mechanics."""
 
 from typing import Annotated, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from wayfarer.rules.mundane_skills.technology import covers
 from wayfarer.rules.skill_types import Difficulty
 
 AttributeName = Literal["IQ", "DX", "HT", "ST", "Will", "Per", "Perception"]
@@ -76,18 +69,9 @@ class InventoryRow(Record):
     alias_of: Identifier | None = None
     specialty_required: bool = False
     tl_required: bool = False
-    blockers: tuple[Blocker, ...] = ()
+    blockers: Annotated[tuple[Blocker, ...], Field(min_length=1)]
     issues: Annotated[tuple[Annotated[int, Field(gt=0)], ...], Field(min_length=1)]
     procedure_owner: Annotated[int, Field(gt=0)]
-
-    @property
-    def covered(self) -> bool:
-        """Whether an implemented procedure resolves this row, family or parent."""
-        return covers(
-            f"skill:{self.id}",
-            self.specialty.family if self.specialty else None,
-            f"skill:{self.technique.parent}" if self.technique else None,
-        )
 
     @model_validator(mode="after")
     def coherent(self) -> Self:
@@ -120,13 +104,6 @@ class InventoryRow(Record):
             raise ValueError("Unexpanded required specialties need an explicit blocker")
         if self.tl_required and "technology-level-context" not in self.blockers:
             raise ValueError("Unimplemented TL context needs an explicit blocker")
-        if self.covered:
-            if self.attribute is None:
-                raise ValueError("A covered row must record its mechanics")
-            if "runtime-procedure" in self.blockers:
-                raise ValueError("A covered row cannot also block on its own runtime procedure")
-        elif not self.blockers:
-            raise ValueError("An uncovered row must record why it is unavailable")
         for values in (
             self.blockers,
             self.issues,

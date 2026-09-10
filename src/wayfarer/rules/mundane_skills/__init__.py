@@ -22,8 +22,9 @@ from wayfarer.rules.catalog import (
     RulesPackage,
 )
 from wayfarer.rules.gurps_characters import source
-from wayfarer.rules.mundane_skills import technology
+from wayfarer.rules.mundane_skills.ranged import PROCEDURES as RANGED_PROCEDURES
 from wayfarer.rules.mundane_skills.schema import Exclusion, Exclusions, InventoryRow, SourceIndex
+from wayfarer.rules.mundane_skills.technology import PROCEDURES as TECHNOLOGY_PROCEDURES
 from wayfarer.rules.skill_types import ControllingAttribute as A
 from wayfarer.rules.skill_types import (
     SkillDefault,
@@ -37,6 +38,9 @@ PROFILE = "gurps-basic-set-4e-2004"
 SOURCE = source(PROFILE)
 OWNER = 112
 CONTEXT_OWNER = 336
+# One runtime binding per procedure group. A row bound by two groups would let
+# either one claim it, so overlap is rejected rather than resolved by order.
+BINDINGS = (RANGED_PROCEDURES, TECHNOLOGY_PROCEDURES)
 
 
 class StructuralClass(StrEnum):
@@ -68,10 +72,14 @@ class SkillAudit:
     tl_required: bool = False
     alias_of: str | None = None
     procedure_owner: int = 0
-    # The implemented procedure covering this row, resolved through its family or
-    # technique parent. Absent means no runtime procedure exists for it yet.
-    procedure: str | None = None
+    # A row is bound only when a runtime module executes it through a service
+    # that already resolves it; recording mechanics never sets this. A family
+    # row is bound by its concrete specialties and has no dispatch of its own.
+    bound: bool = False
     dispatch: str | None = None
+    # Blockers this row's procedure owner transferred, each naming the concrete
+    # open child that must resolve it.
+    transferred: tuple[tuple[str, tuple[int, ...]], ...] = ()
     provenance: str = (
         "Characters Fourth Edition, third printing; first-printing delta audit pending"
     )
@@ -87,24 +95,38 @@ class SkillAudit:
     @property
     def implementation(self) -> str:
         """Certification state of this row, never a family-level claim."""
-        if self.procedure is not None:
-            return "implemented"
-        return "unsupported" if self.definition is not None else "listing-only"
+        if self.definition is None:
+            return "listing-only"
+        return "implemented" if self.bound else "unsupported"
 
     @property
     def owners(self) -> tuple[int, ...]:
         """Named mechanics issues other than this inventory's own accounting."""
-        return (self.procedure_owner,) if self.procedure_owner else ()
+        transferred = tuple(i for _, owners in self.transferred for i in owners)
+        return tuple(
+            dict.fromkeys(((self.procedure_owner,) if self.procedure_owner else ()) + transferred)
+        )
 
     @property
     def blocker_owners(self) -> dict[str, tuple[int, ...]]:
-        """Every blocker has an explicit live follow-up, including source review."""
+        """Every blocker has an explicit live follow-up, including source review.
+
+        A procedure owner that split a blocker into a bounded child adds that
+        child here, so a transfer stays visible instead of resolving into
+        silence under the owner that handed it on.
+        """
+        transferred = dict(self.transferred)
         return {
-            blocker: (self.procedure_owner,)
-            if blocker in ("runtime-procedure", "combat-procedure")
-            else (technology.CAPABILITY_OWNER,)
-            if blocker.startswith("capability:")
-            else (CONTEXT_OWNER,)
+            blocker: tuple(
+                dict.fromkeys(
+                    (
+                        (self.procedure_owner,)
+                        if blocker in ("runtime-procedure", "combat-procedure")
+                        else (CONTEXT_OWNER,)
+                    )
+                    + transferred.get(blocker, ())
+                )
+            )
             for blocker in self.blockers
         }
 
@@ -276,20 +298,30 @@ def inventory() -> tuple[SkillAudit, ...]:
                 ImplementationStatus.UNSUPPORTED,
                 skill=spec,
             )
-        covering = (
-            technology.procedure(definition.skill, identifier)
-            if definition is not None and definition.skill is not None
-            else None
-        )
         blockers = ["first-printing-delta-audit", *row.blockers]
         if definition is None:
             blockers.append("metadata-audit")
-        # An implemented procedure whose capability rows are still partial stays
-        # visible as an item-level blocker; it never silently activates.
-        blockers.extend(
-            f"capability:{capability}"
-            for capability in (technology.activation_blockers(covering) if covering else ())
-        )
+        dispatch: str | None = None
+        bound = [group[identifier] for group in BINDINGS if identifier in group]
+        if len(bound) > 1:
+            raise ValidationError(f"Row is bound by more than one procedure group: {identifier}")
+        procedure = bound[0] if bound else None
+        transferred: tuple[tuple[str, tuple[int, ...]], ...] = ()
+        if procedure is not None:
+            # A binding may only resolve or keep the blockers this inventory
+            # recorded, its numbers must be the recorded ones, and every blocker
+            # it keeps must name a child that the row already owns.
+            if set(procedure.resolved) | set(procedure.blockers) != set(row.blockers):
+                raise ValidationError(f"Runtime binding disagrees with the inventory: {identifier}")
+            if procedure.spec() != spec:
+                raise ValidationError(f"Runtime binding changes recorded mechanics: {identifier}")
+            if any(not owners for owners in procedure.transferred.values()):
+                raise ValidationError(f"Transferred blocker names no owner: {identifier}")
+            blockers = [b for b in blockers if b not in procedure.resolved]
+            transferred = tuple(procedure.transferred.items())
+            if procedure.dispatchable:
+                definition = procedure.definition()
+                dispatch = procedure.dispatch
         result.append(
             SkillAudit(
                 identifier,
@@ -302,8 +334,9 @@ def inventory() -> tuple[SkillAudit, ...]:
                 row.tl_required,
                 f"skill:{row.alias_of}" if row.alias_of else None,
                 row.procedure_owner,
-                covering.id if covering else None,
-                covering.dispatch.value if covering else None,
+                bound=procedure is not None and procedure.implemented,
+                dispatch=dispatch,
+                transferred=transferred,
             )
         )
     entries = tuple(result)
@@ -344,7 +377,14 @@ def validate_inventory(entries: tuple[SkillAudit, ...]) -> None:
         if entry.definition and entry.definition.skill:
             if entry.definition.id != entry.id:
                 raise ValidationError(f"Mismatched skill definition ID for {entry.id}")
-            if entry.definition.status is not ImplementationStatus.UNSUPPORTED:
+            implemented = entry.definition.status is ImplementationStatus.IMPLEMENTED
+            if implemented != (entry.dispatch is not None):
+                raise ValidationError(f"Only a dispatched row may be implemented: {entry.id}")
+            if entry.dispatch is not None and (
+                not entry.bound or entry.dispatch not in entry.definition.hooks
+            ):
+                raise ValidationError(f"Dispatched row must carry its hook: {entry.id}")
+            if not implemented and entry.definition.status is not ImplementationStatus.UNSUPPORTED:
                 raise ValidationError(f"Provisional definition must be unsupported: {entry.id}")
             spec = entry.definition.skill
             allowed_targets = identifiers | {a.value for a in A}
@@ -420,60 +460,6 @@ def validate_inventory(entries: tuple[SkillAudit, ...]) -> None:
     missing = sorted(set(StructuralClass) - sampled)
     if missing:
         raise ValidationError(f"Structural classes are unsampled: {', '.join(missing)}")
-    validate_procedures(entries)
-
-
-def validate_procedures(entries: tuple[SkillAudit, ...]) -> None:
-    """A procedure must cover a real family, and an expanded family must have children.
-
-    Without both checks a procedure could claim coverage for a row that does not
-    exist, or a family could report itself implemented while still unexpanded.
-    """
-    by_id = {entry.id: entry for entry in entries}
-    for family in technology.implemented_rows():
-        if family not in by_id:
-            raise ValidationError(f"Procedure covers a row outside the inventory: {family}")
-    families = {
-        entry.definition.skill.specialty.family
-        for entry in entries
-        if entry.definition and entry.definition.skill and entry.definition.skill.specialty
-    }
-    for entry in entries:
-        if entry.procedure is None:
-            continue
-        if technology.OWNER not in entry.followup_issues:
-            raise ValidationError(f"Implemented row leaves its procedure unowned: {entry.id}")
-        spec = entry.definition.skill if entry.definition else None
-        if spec is None:
-            raise ValidationError(f"Implemented row records no mechanics: {entry.id}")
-        if (
-            entry.specialty_required
-            and spec.specialty is None
-            and entry.id.removeprefix("skill:") not in families
-        ):
-            raise ValidationError(f"Implemented family is still unexpanded: {entry.id}")
-
-
-def unsupported_scope() -> tuple[dict[str, object], ...]:
-    """Rows the scenario, character and LLM validators must not treat as playable.
-
-    Every entry names the concrete open issues that own each blocker, so a validator
-    can refuse the row and say who is expected to finish it. An implemented row
-    still appears here while any blocker remains; only an empty list is playable.
-    """
-    return tuple(
-        {
-            "id": entry.id,
-            "name": entry.name,
-            "reference": entry.reference,
-            "implementation": entry.implementation,
-            "procedure": entry.procedure,
-            "blockers": list(entry.blockers),
-            "blocker_owners": entry.blocker_owners,
-        }
-        for entry in inventory()
-        if not entry.available
-    )
 
 
 def require_available(identifier: str) -> RuleDefinition:
@@ -514,17 +500,6 @@ def audit_report() -> dict[str, object]:
             for structural in StructuralClass
         },
         "implementation_counts": dict(sorted(Counter(e.implementation for e in entries).items())),
-        "procedures": [
-            {
-                "id": entry.id,
-                "reference": entry.reference,
-                "procedure": entry.procedure,
-                "dispatch": entry.dispatch,
-            }
-            for entry in entries
-            if entry.procedure is not None
-        ],
-        "implemented": sum(e.procedure is not None for e in entries),
         "coverage_blockers": list(coverage_blockers(PROFILE)),
         # Rows whose only recorded issue is this audit have no named mechanics
         # owner yet; that is a visible certification blocker for #122, not silence.

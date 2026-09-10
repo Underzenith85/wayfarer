@@ -153,6 +153,7 @@
     "name": "Airshipman",
     "page": 185,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -289,6 +290,7 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context",
       "conditional-or-skill-defaults"
     ],
@@ -410,7 +412,8 @@
     "issues": [
       112,
       336,
-      344
+      344,
+      357
     ],
     "procedure_owner": 344
   },
@@ -454,6 +457,7 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -559,6 +563,7 @@
     "name": "Battlesuit",
     "page": 192,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -617,7 +622,8 @@
     "issues": [
       112,
       336,
-      344
+      344,
+      355
     ],
     "procedure_owner": 344
   },
@@ -667,7 +673,7 @@
       346,
       356
     ],
-    "procedure_owner": 356
+    "procedure_owner": 346
   },
   {
     "id": "biology",
@@ -695,7 +701,7 @@
       346,
       356
     ],
-    "procedure_owner": 356
+    "procedure_owner": 346
   },
   {
     "id": "blowpipe",
@@ -740,6 +746,7 @@
     "specialty_required": true,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "specialty-expansion",
       "technology-level-context",
       "conditional-or-skill-defaults"
@@ -747,8 +754,7 @@
     "issues": [
       112,
       336,
-      346,
-      358
+      346
     ],
     "procedure_owner": 346
   },
@@ -768,15 +774,16 @@
         "modifier": -5
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "boating",
       "name": "large-powerboat"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
-      "technology-level-context",
-      "conditional-or-skill-defaults"
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
       112,
@@ -802,15 +809,16 @@
         "modifier": -5
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "boating",
       "name": "motorboat"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
-      "technology-level-context",
-      "conditional-or-skill-defaults"
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
       112,
@@ -836,15 +844,16 @@
         "modifier": -5
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "boating",
       "name": "sailboat"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
-      "technology-level-context",
-      "conditional-or-skill-defaults"
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
       112,
@@ -870,15 +879,16 @@
         "modifier": -5
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "boating",
       "name": "unpowered"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
-      "technology-level-context",
-      "conditional-or-skill-defaults"
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
       112,
@@ -957,7 +967,8 @@
     "issues": [
       112,
       336,
-      344
+      344,
+      354
     ],
     "procedure_owner": 344
   },
@@ -1214,6 +1225,7 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context",
       "conditional-or-skill-defaults"
     ],
@@ -1239,6 +1251,7 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context",
       "conditional-or-skill-defaults"
     ],
@@ -1357,6 +1370,7 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -1376,6 +1390,7 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -1482,14 +1497,14 @@
     "specialty_required": true,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context",
       "specialty-expansion"
     ],
     "issues": [
       112,
       336,
-      346,
-      358
+      346
     ],
     "procedure_owner": 346
   },
@@ -1508,6 +1523,7 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context",
       "conditional-or-skill-defaults"
     ],
@@ -1552,6 +1568,7 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context",
       "conditional-or-skill-defaults"
     ],
@@ -1588,7 +1605,7 @@
       346,
       356
     ],
-    "procedure_owner": 356
+    "procedure_owner": 346
   },
   {
     "id": "dancing",
@@ -1751,13 +1768,14 @@
       346,
       356
     ],
-    "procedure_owner": 356
+    "procedure_owner": 346
   },
   {
     "id": "diving-suit",
     "name": "Diving Suit",
     "page": 192,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -1841,6 +1859,7 @@
     "specialty_required": true,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "specialty-expansion",
       "technology-level-context",
       "conditional-or-skill-defaults"
@@ -1848,8 +1867,7 @@
     "issues": [
       112,
       336,
-      346,
-      358
+      346
     ],
     "procedure_owner": 346
   },
@@ -1869,15 +1887,16 @@
         "modifier": -5
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "driving",
       "name": "automobile"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
-      "technology-level-context",
-      "conditional-or-skill-defaults"
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
       112,
@@ -1903,15 +1922,16 @@
         "modifier": -5
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "driving",
       "name": "construction-equipment"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
-      "technology-level-context",
-      "conditional-or-skill-defaults"
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
       112,
@@ -1937,15 +1957,16 @@
         "modifier": -5
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "driving",
       "name": "halftrack"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
-      "technology-level-context",
-      "conditional-or-skill-defaults"
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
       112,
@@ -1971,15 +1992,16 @@
         "modifier": -5
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "driving",
       "name": "heavy-wheeled"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
-      "technology-level-context",
-      "conditional-or-skill-defaults"
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
       112,
@@ -2005,15 +2027,16 @@
         "modifier": -5
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "driving",
       "name": "hovercraft"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
-      "technology-level-context",
-      "conditional-or-skill-defaults"
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
       112,
@@ -2039,15 +2062,16 @@
         "modifier": -5
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "driving",
       "name": "locomotive"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
-      "technology-level-context",
-      "conditional-or-skill-defaults"
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
       112,
@@ -2073,15 +2097,16 @@
         "modifier": -5
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "driving",
       "name": "mecha"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
-      "technology-level-context",
-      "conditional-or-skill-defaults"
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
       112,
@@ -2107,15 +2132,16 @@
         "modifier": -5
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "driving",
       "name": "motorcycle"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
-      "technology-level-context",
-      "conditional-or-skill-defaults"
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
       112,
@@ -2141,15 +2167,16 @@
         "modifier": -5
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "driving",
       "name": "tracked"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
-      "technology-level-context",
-      "conditional-or-skill-defaults"
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
       112,
@@ -2255,6 +2282,7 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context",
       "conditional-or-skill-defaults"
     ],
@@ -2291,7 +2319,7 @@
       346,
       356
     ],
-    "procedure_owner": 356
+    "procedure_owner": 346
   },
   {
     "id": "electronics-repair",
@@ -2319,7 +2347,7 @@
       346,
       356
     ],
-    "procedure_owner": 356
+    "procedure_owner": 346
   },
   {
     "id": "engineer",
@@ -2343,7 +2371,7 @@
       346,
       356
     ],
-    "procedure_owner": 356
+    "procedure_owner": 346
   },
   {
     "id": "environment-suit",
@@ -2360,6 +2388,7 @@
     "specialty_required": true,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context",
       "conditional-or-skill-defaults",
       "specialty-expansion"
@@ -2504,6 +2533,7 @@
     "specialty_required": true,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "specialty-expansion",
       "technology-level-context",
       "conditional-or-skill-defaults"
@@ -2527,15 +2557,16 @@
         "modifier": -5
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "explosives",
       "name": "demolition"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
-      "technology-level-context",
-      "conditional-or-skill-defaults"
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
       112,
@@ -2556,15 +2587,16 @@
         "modifier": -5
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "explosives",
       "name": "explosive-ordnance-disposal"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
-      "technology-level-context",
-      "conditional-or-skill-defaults"
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
       112,
@@ -2585,15 +2617,16 @@
         "modifier": -5
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "explosives",
       "name": "fireworks"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
-      "technology-level-context",
-      "conditional-or-skill-defaults"
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
       112,
@@ -2614,15 +2647,16 @@
         "modifier": -5
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "explosives",
       "name": "nuclear-ordnance-disposal"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
-      "technology-level-context",
-      "conditional-or-skill-defaults"
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
       112,
@@ -2643,15 +2677,16 @@
         "modifier": -5
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "explosives",
       "name": "underwater-demolition"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
-      "technology-level-context",
-      "conditional-or-skill-defaults"
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
       112,
@@ -3073,6 +3108,7 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context",
       "conditional-or-skill-defaults"
     ],
@@ -3150,6 +3186,7 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context",
       "conditional-or-skill-defaults"
     ],
@@ -3204,6 +3241,7 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -3338,7 +3376,7 @@
       346,
       356
     ],
-    "procedure_owner": 356
+    "procedure_owner": 346
   },
   {
     "id": "geology",
@@ -3366,7 +3404,7 @@
       346,
       356
     ],
-    "procedure_owner": 356
+    "procedure_owner": 346
   },
   {
     "id": "gesture",
@@ -3455,7 +3493,8 @@
     "issues": [
       112,
       336,
-      344
+      344,
+      357
     ],
     "procedure_owner": 344
   },
@@ -3481,7 +3520,8 @@
     "issues": [
       112,
       336,
-      344
+      344,
+      355
     ],
     "procedure_owner": 344
   },
@@ -3510,7 +3550,7 @@
       346,
       356
     ],
-    "procedure_owner": 356
+    "procedure_owner": 346
   },
   {
     "id": "heraldry",
@@ -3740,7 +3780,8 @@
     "issues": [
       112,
       336,
-      344
+      344,
+      361
     ],
     "procedure_owner": 344
   },
@@ -3759,6 +3800,7 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context",
       "conditional-or-skill-defaults"
     ],
@@ -4310,7 +4352,8 @@
     "issues": [
       112,
       336,
-      344
+      344,
+      359
     ],
     "procedure_owner": 344
   },
@@ -4519,6 +4562,7 @@
     "specialty_required": true,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "specialty-expansion",
       "technology-level-context",
       "conditional-or-skill-defaults"
@@ -4575,6 +4619,7 @@
     "specialty_required": true,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context",
       "conditional-or-skill-defaults"
     ],
@@ -4630,6 +4675,7 @@
     "specialty_required": true,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -4684,6 +4730,7 @@
     "specialty_required": true,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -4734,6 +4781,7 @@
     "specialty_required": true,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -4784,6 +4832,7 @@
     "specialty_required": true,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -4838,6 +4887,7 @@
     "specialty_required": true,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context",
       "conditional-or-skill-defaults"
     ],
@@ -4874,7 +4924,7 @@
       346,
       356
     ],
-    "procedure_owner": 356
+    "procedure_owner": 346
   },
   {
     "id": "meditation",
@@ -4952,6 +5002,7 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context",
       "conditional-or-skill-defaults"
     ],
@@ -5076,6 +5127,7 @@
     "name": "Motion-Picture Camera",
     "page": 233,
     "blockers": [
+      "technique-expansion",
       "runtime-procedure"
     ],
     "issues": [
@@ -5084,7 +5136,7 @@
       338,
       346
     ],
-    "procedure_owner": 338,
+    "procedure_owner": 346,
     "attribute": "IQ",
     "difficulty": "average",
     "technique": {
@@ -5211,6 +5263,7 @@
     "name": "NBC Suit",
     "page": 192,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -5278,7 +5331,9 @@
     "issues": [
       112,
       336,
-      344
+      344,
+      354,
+      362
     ],
     "procedure_owner": 344
   },
@@ -5286,7 +5341,10 @@
     "id": "no-landing-extraction",
     "name": "No-Landing Extraction",
     "page": 233,
-    "blockers": [],
+    "blockers": [
+      "technique-expansion",
+      "runtime-procedure"
+    ],
     "issues": [
       112,
       336,
@@ -5412,7 +5470,7 @@
       346,
       356
     ],
-    "procedure_owner": 356
+    "procedure_owner": 346
   },
   {
     "id": "panhandling",
@@ -5638,6 +5696,7 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context",
       "prerequisite-procedure"
     ],
@@ -5652,6 +5711,7 @@
     "id": "physics-acoustics",
     "name": "Physics (Acoustics)",
     "blockers": [
+      "runtime-procedure",
       "technology-level-context",
       "prerequisite-procedure"
     ],
@@ -5738,14 +5798,14 @@
     "specialty_required": true,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "specialty-expansion",
       "technology-level-context"
     ],
     "issues": [
       112,
       336,
-      346,
-      358
+      346
     ],
     "procedure_owner": 346
   },
@@ -5761,13 +5821,14 @@
         "modifier": -6
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "piloting",
       "name": "aerospace"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -5790,13 +5851,14 @@
         "modifier": -6
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "piloting",
       "name": "airship"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -5819,13 +5881,14 @@
         "modifier": -6
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "piloting",
       "name": "autogyro"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -5848,13 +5911,14 @@
         "modifier": -6
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "piloting",
       "name": "contragravity"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -5877,13 +5941,14 @@
         "modifier": -6
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "piloting",
       "name": "flight-pack"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -5906,13 +5971,14 @@
         "modifier": -6
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "piloting",
       "name": "glider"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -5935,13 +6001,14 @@
         "modifier": -6
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "piloting",
       "name": "heavy-airplane"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -5964,13 +6031,14 @@
         "modifier": -6
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "piloting",
       "name": "high-performance-airplane"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -5993,13 +6061,14 @@
         "modifier": -6
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "piloting",
       "name": "high-performance-spacecraft"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -6022,13 +6091,14 @@
         "modifier": -6
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "piloting",
       "name": "light-airplane"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -6051,13 +6121,14 @@
         "modifier": -6
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "piloting",
       "name": "lighter-than-air"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -6080,13 +6151,14 @@
         "modifier": -6
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "piloting",
       "name": "low-performance-spacecraft"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -6109,13 +6181,14 @@
         "modifier": -6
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "piloting",
       "name": "ultralight"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -6138,13 +6211,14 @@
         "modifier": -6
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "piloting",
       "name": "vertol"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -6469,6 +6543,7 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context",
       "conditional-or-skill-defaults",
       "prerequisite-procedure"
@@ -6701,6 +6776,7 @@
     "name": "Seamanship",
     "page": 185,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -6753,7 +6829,10 @@
     "id": "set-trap",
     "name": "Set Trap",
     "page": 233,
-    "blockers": [],
+    "blockers": [
+      "technique-expansion",
+      "runtime-procedure"
+    ],
     "issues": [
       112,
       336,
@@ -6883,6 +6962,7 @@
     "specialty_required": true,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "specialty-expansion",
       "technology-level-context",
       "conditional-or-skill-defaults",
@@ -6891,8 +6971,7 @@
     "issues": [
       112,
       336,
-      346,
-      358
+      346
     ],
     "procedure_owner": 346
   },
@@ -6908,16 +6987,17 @@
         "modifier": -6
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "shiphandling",
       "name": "airship"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
-      "technology-level-context",
       "conditional-or-skill-defaults",
-      "prerequisite-procedure"
+      "prerequisite-procedure",
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
       112,
@@ -6939,16 +7019,17 @@
         "modifier": -6
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "shiphandling",
       "name": "ship"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
-      "technology-level-context",
       "conditional-or-skill-defaults",
-      "prerequisite-procedure"
+      "prerequisite-procedure",
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
       112,
@@ -6970,16 +7051,17 @@
         "modifier": -6
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "shiphandling",
       "name": "starship"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
-      "technology-level-context",
       "conditional-or-skill-defaults",
-      "prerequisite-procedure"
+      "prerequisite-procedure",
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
       112,
@@ -7001,16 +7083,17 @@
         "modifier": -6
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "shiphandling",
       "name": "submarine"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
-      "technology-level-context",
       "conditional-or-skill-defaults",
-      "prerequisite-procedure"
+      "prerequisite-procedure",
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
       112,
@@ -7341,6 +7424,7 @@
     "name": "Spacer",
     "page": 185,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -7413,7 +7497,9 @@
     "issues": [
       112,
       336,
-      344
+      344,
+      360,
+      362
     ],
     "procedure_owner": 344
   },
@@ -7604,14 +7690,14 @@
     "specialty_required": true,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "specialty-expansion",
       "technology-level-context"
     ],
     "issues": [
       112,
       336,
-      346,
-      358
+      346
     ],
     "procedure_owner": 346
   },
@@ -7627,13 +7713,14 @@
         "modifier": -6
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "submarine",
       "name": "free-flooding"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -7656,13 +7743,14 @@
         "modifier": -6
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "submarine",
       "name": "large"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -7685,13 +7773,14 @@
         "modifier": -6
       }
     ],
+    "specialty_required": false,
+    "tl_required": true,
     "specialty": {
       "family": "submarine",
       "name": "mini"
     },
-    "specialty_required": true,
-    "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -7707,6 +7796,7 @@
     "name": "Submariner",
     "page": 185,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -8029,7 +8119,218 @@
     "issues": [
       112,
       336,
-      344
+      344,
+      362
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "thrown-weapon-axe-mace",
+    "name": "Thrown Weapon (Axe/Mace)",
+    "page": 226,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "specialty": {
+      "family": "thrown-weapon",
+      "name": "axe-mace"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "thrown-weapon-dart",
+    "name": "Thrown Weapon (Dart)",
+    "page": 226,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "specialty": {
+      "family": "thrown-weapon",
+      "name": "dart"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "thrown-weapon-harpoon",
+    "name": "Thrown Weapon (Harpoon)",
+    "page": 226,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "specialty": {
+      "family": "thrown-weapon",
+      "name": "harpoon"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "thrown-weapon-knife",
+    "name": "Thrown Weapon (Knife)",
+    "page": 226,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "specialty": {
+      "family": "thrown-weapon",
+      "name": "knife"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "thrown-weapon-shuriken",
+    "name": "Thrown Weapon (Shuriken)",
+    "page": 226,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "specialty": {
+      "family": "thrown-weapon",
+      "name": "shuriken"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "thrown-weapon-spear",
+    "name": "Thrown Weapon (Spear)",
+    "page": 226,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "specialty": {
+      "family": "thrown-weapon",
+      "name": "spear"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "thrown-weapon-stick",
+    "name": "Thrown Weapon (Stick)",
+    "page": 226,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "specialty": {
+      "family": "thrown-weapon",
+      "name": "stick"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362
     ],
     "procedure_owner": 344
   },
@@ -8097,6 +8398,7 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context",
       "conditional-or-skill-defaults"
     ],
@@ -8253,6 +8555,7 @@
     "name": "Vacc Suit",
     "page": 192,
     "blockers": [
+      "runtime-procedure",
       "technology-level-context"
     ],
     "issues": [
@@ -8407,7 +8710,10 @@
     "id": "work-by-touch",
     "name": "Work by Touch",
     "page": 233,
-    "blockers": [],
+    "blockers": [
+      "technique-expansion",
+      "runtime-procedure"
+    ],
     "issues": [
       112,
       336,
