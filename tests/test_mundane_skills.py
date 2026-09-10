@@ -291,14 +291,14 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     # #344 keeps the ranged rows it did not implement visible under the concrete
     # children that own them, instead of resolving them into its own number.
     assert entries["skill:bow"].owners == (344,)
-    assert entries["skill:bolas"].owners == (344, 354)
+    assert entries["skill:bolas"].owners == (344,)
     # #336 split its remaining contextual work into concrete children, so a
     # blocker names the residual that owns it, plus any child a procedure split.
     assert entries["skill:net"].blocker_owners == {
         "first-printing-delta-audit": (382,),
-        "runtime-procedure": (344, 354),
         "conditional-or-skill-defaults": (383, 362),
     }
+    assert entries["skill:guns"].owners == (344, 355)
     assert coverage_blockers(PROFILE) == (
         103,
         109,
@@ -315,7 +315,6 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         344,
         345,
         346,
-        354,
         355,
         356,
         357,
@@ -353,7 +352,6 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         344,
         345,
         346,
-        354,
         355,
         356,
         357,
@@ -374,13 +372,13 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     ]
     assert report["runtime_owner_unassigned"] == 0
     assert report["implementation_counts"] == {
-        # 12 ranged (#344), 16 social (#345) and 83 technology (#346) rows
-        # dispatch a real procedure.
-        "implemented": 111,
+        # 14 ranged (#344, #354), 16 social (#345) and 83 technology (#346)
+        # rows dispatch a real procedure.
+        "implemented": 113,
         # 23 technique templates and five open families record a contextual
         # shape rather than a rollable definition (#336).
         "contextual": 28,
-        "unsupported": 193,
+        "unsupported": 191,
     }
     # A bound row can still leave part of its entry to another issue; that gap is
     # published rather than folded into the blocker list.
@@ -397,8 +395,6 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     }
     assert all(row["owner_issue"] in (368, 369, 370) and row["detail"] for row in scope)
     counts = report["structural_class_counts"]
-    # The structural class still reads "no rollable definition recorded"; the
-    # certification state is what distinguishes a recorded shape from a gap.
     assert isinstance(counts, dict) and counts["listing-only"] == 28
 
 

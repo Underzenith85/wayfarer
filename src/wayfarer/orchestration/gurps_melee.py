@@ -21,6 +21,9 @@ from wayfarer.rules.recovery_types import interrupt_tasks
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import Combatant, Defense, Encounter, InjuryTrace
 from wayfarer.simulation.condition_checks import check_modifiers
+from wayfarer.simulation.entangle import attack_penalty as entangle_attack_penalty
+from wayfarer.simulation.entangle import defense_penalty as entangle_defense_penalty
+from wayfarer.simulation.entangle import immobilized
 from wayfarer.simulation.fatigue import ContinueExertion, apply_fatigue, fatigue_value
 from wayfarer.simulation.gurps_equipment import (
     EquipmentCatalog,
@@ -84,6 +87,15 @@ def movement(play: PlayService, state: PlayState, actor_id: str) -> int:
 
     if any(part(p) in ("leg", "foot") for p in disabled(state, actor_id)):
         # Supported combat movement is walking; crutches/crawling require an explicit mode.
+        return 0
+    # A binding that pins the legs stops movement outright until it is shed.
+    if any(
+        immobilized(p)
+        for e in state.encounters
+        if e.status == "active"
+        for p in e.participants
+        if p.actor_id == actor_id
+    ):
         return 0
     compiled = build(play, state, actor_id)
     assert compiled.statistics is not None
@@ -373,7 +385,8 @@ def defense_value(
     from wayfarer.simulation.fright import stunned as fright_stunned
 
     penalty = (
-        participant.defense_penalty
+        entangle_defense_penalty(participant)
+        + participant.defense_penalty
         + int(hp.injury.physical_traits.combat_reflexes)
         + participant.tactical_defense_bonus
         - 4 * int(participant.arm_locked)
@@ -799,6 +812,7 @@ def resolve_melee(
             None,
         )
         attack_target += attack_penalty(pending.hit_location, shield_side=shield_side)
+    attack_target += entangle_attack_penalty(attacker)
     attack_target = attack_modifier(
         attacker.maneuver_state,
         defender.actor_id,
