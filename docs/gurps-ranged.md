@@ -111,3 +111,7 @@ timing. Certification and generation validators must continue using the
 capability registry rather than inferring support from a typed weapon or manual
 ruling. Shotguns, automatic-only minimum bursts, suppression and spraying remain
 unsupported; this change does not widen the permitted fire modes.
+
+#286 adds [opt-in projectile readiness](gurps-projectile-readiness.md): typed
+preparation/drawing/cocking, exact ammunition Fast-Draw specialties, and authored
+individual-round unloading. Legacy catalogs retain their existing protocols.

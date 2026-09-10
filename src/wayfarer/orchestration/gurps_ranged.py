@@ -168,6 +168,7 @@ def validate_command(
         and command.mode_id is not None
         and command.reload_ammunition_id is None
         and not command.unload_ammunition
+        and not command.let_down_bow
         and command.firearm_service is None
     ):
         raise ValidationError("Ready mode selection requires a reload")
@@ -196,10 +197,29 @@ def validate_command(
         if command.maneuver != "ready" or command.reload_ammunition_id is not None:
             raise ValidationError("Unload requires a separate Ready maneuver")
         unload_weapon(play, state, command)
+    if command.fast_draw and command.reload_ammunition_id is None:
+        raise ValidationError("Fast-Draw requires an explicit projectile reload")
+    if command.cocking_aid_id is not None and command.reload_ammunition_id is None:
+        raise ValidationError("Cocking aids require a reload")
+    if command.let_down_bow:
+        if (
+            command.maneuver != "ready"
+            or command.reload_ammunition_id is not None
+            or command.unload_ammunition
+            or command.firearm_service is not None
+        ):
+            raise ValidationError("Bow let-down requires its own Ready")
+        from wayfarer.orchestration.gurps_melee import mode
+        from wayfarer.orchestration.projectile_readiness import let_down
+
+        selected = mode(play, state, command.actor_id, command.item_id or "", command.mode_id)
+        if not isinstance(selected, RangedMode):
+            raise ValidationError("Let-down requires a bow mode")
+        let_down(state, command, selected)
     if command.reload_ammunition_id is not None:
         if command.maneuver != "ready":
             raise ValidationError("Reload requires a Ready maneuver")
-        reload_weapon(play, state, command)  # Validate before consciousness/exertion dice.
+        reload_weapon(play, state, command, validate_only=True)
 
 
 def unload_weapon(play: PlayService, state: PlayState, command: TakeCombatTurn) -> ResourceState:
@@ -221,6 +241,10 @@ def unload_weapon(play: PlayService, state: PlayState, command: TakeCombatTurn) 
         raise ValidationError("Unload requires the loaded weapon mode")
     entry = next(e for e in equipment.entries if e.definition_id == item.definition_id)
     weapon = next((m for m in entry.modes if m.id == loaded.mode_id), None)
+    if isinstance(weapon, RangedMode) and weapon.readiness is not None:
+        from wayfarer.orchestration.projectile_readiness import unload
+
+        return unload(state, command, weapon)
     if not isinstance(weapon, RangedMode) or weapon.reload_protocol != "magazine":
         raise ValidationError("Individual-round unloading requires its own timing protocol")
     result = state.resources.model_copy(
@@ -234,7 +258,9 @@ def unload_weapon(play: PlayService, state: PlayState, command: TakeCombatTurn) 
     return result
 
 
-def reload_weapon(play: PlayService, state: PlayState, command: TakeCombatTurn) -> ResourceState:
+def reload_weapon(
+    play: PlayService, state: PlayState, command: TakeCombatTurn, *, validate_only: bool = False
+) -> ResourceState:
     from wayfarer.orchestration.gurps_melee import catalog
 
     equipment = catalog(play)
@@ -258,6 +284,12 @@ def reload_weapon(play: PlayService, state: PlayState, command: TakeCombatTurn) 
     weapon = modes[0]
     if item.firearm_failure is not None:
         raise ValidationError("Service the firearm failure before reloading")
+    if weapon.readiness is not None:
+        from wayfarer.orchestration.projectile_readiness import reload
+
+        return reload(play, state, command, weapon, validate_only=validate_only)
+    if command.fast_draw or command.cocking_aid_id is not None:
+        raise ValidationError("This weapon has no explicit readiness protocol")
     reload_seconds = weapon.reload_seconds
     if weapon.rated_strength is not None:
         from wayfarer.orchestration.gurps_melee import build
@@ -403,6 +435,11 @@ def prepare(
             or load.mode_id != weapon.id
             or load.rounds < needed
             or (load.reload_progress and weapon.reload_protocol != "per-round")
+            or (
+                load.readiness is not None
+                and load.readiness.stage not in ("loaded", "unload")
+                and weapon.reload_protocol != "per-round"
+            )
         ):
             raise ValidationError("Weapon is unloaded or reload is incomplete")
     if weapon.sprayer is not None:
