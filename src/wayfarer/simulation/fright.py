@@ -40,6 +40,12 @@ class TimedFright(Record):
     next_care_due: int | None = None
     panic_responses: tuple[str, ...] = ()
     recovery_checks: tuple[CheckTrace, ...] = ()
+    proposed_draft: str | None = None
+    proposal_id: str | None = None
+    proposal_build_revision: str | None = None
+    proposed_by: str | None = None
+    proposed_related_trait: str | None = None
+    adjudicated_build_revision: str | None = None
 
 
 def effects(state: ResourceState) -> tuple[TimedFright, ...]:
@@ -66,10 +72,10 @@ def projection(
             continue
         effect = item.effect
         choices: list[dict[str, object]] = []
-        if effect.trait_choice != "none":
+        if effect.trait_choice != "none" and item.adjudicated_build_revision is None:
             choices.append({"kind": effect.trait_choice, "points": effect.trait_points})
         for attribute, loss in (("ht", effect.permanent_ht_loss), ("iq", effect.permanent_iq_loss)):
-            if loss:
+            if loss and item.adjudicated_build_revision is None:
                 choices.append(
                     {"kind": "permanent-attribute-loss", "attribute": attribute, "loss": loss}
                 )
@@ -87,6 +93,8 @@ def projection(
             "aftermath_penalty": effect.aftermath_penalty if aftermath else 0,
             "panic_response_required": item.active and effect.condition == "panic",
             "care_required": item.active and effect.neglect_progression,
+            "proposal_id": item.proposal_id,
+            "proposed_draft": json.loads(item.proposed_draft) if item.proposed_draft else None,
         }
         if director:
             value.update(
@@ -121,8 +129,14 @@ def save(state: ResourceState, item: TimedFright, command_id: str) -> ResourceSt
     )
 
 
-def blocked(state: ResourceState, actor_id: str) -> bool:
-    return any(item.actor_id == actor_id and item.active for item in effects(state))
+def blocked(state: ResourceState, actor_id: str, *, kind: str | None = None) -> bool:
+    return any(
+        item.actor_id == actor_id
+        and item.active
+        and item.effect.condition != "retching"
+        and not (kind == "move" and item.effect.condition == "panic")
+        for item in effects(state)
+    )
 
 
 def stunned(state: ResourceState, actor_id: str) -> bool:
@@ -134,7 +148,7 @@ def stunned(state: ResourceState, actor_id: str) -> bool:
 
 def can_defend(state: ResourceState, actor_id: str) -> bool:
     return all(
-        i.effect.condition == "stunned"
+        i.effect.condition in ("stunned", "retching", "panic")
         for i in effects(state)
         if i.actor_id == actor_id and i.active
     )
@@ -167,13 +181,15 @@ def aftermath_modifiers(state: ResourceState, actor_id: str) -> tuple[Modifier, 
 
 
 def requires_adjudication(
-    state: ResourceState, actor_id: str, *, handles_aftermath: bool = False
+    state: ResourceState, actor_id: str, *, handles_aftermath: bool = True
 ) -> bool:
     return any(
         item.actor_id == actor_id
         and (
-            item.effect.permanent_ht_loss
-            or item.effect.permanent_iq_loss
+            (
+                item.adjudicated_build_revision is None
+                and (item.effect.permanent_ht_loss or item.effect.permanent_iq_loss)
+            )
             or (
                 not handles_aftermath
                 and item.aftermath_until is not None
@@ -222,7 +238,7 @@ def apply_effect(
                 damage_type="cr",
                 injury_source="internal",
             ),
-            ht=ht + aftermath_penalty(state, actor_id),
+            ht=ht,
             rng=rng,
             system=True,
         )
@@ -235,7 +251,7 @@ def apply_effect(
                 expected_revision=state.revision,
                 amount=effect.fp_loss,
             ),
-            ht=ht + aftermath_penalty(state, actor_id),
+            ht=ht,
             rng=rng,
             system=True,
         )
@@ -303,7 +319,7 @@ def recover(
                         damage_type="cr",
                         injury_source="internal",
                     ),
-                    ht=item.recovery_target + aftermath_penalty(state, actor_id),
+                    ht=item.recovery_target,
                     rng=rng,
                     system=True,
                 )
@@ -346,7 +362,7 @@ def recover(
                 expected_revision=state.revision,
                 amount=1,
             ),
-            ht=item.recovery_target + aftermath_penalty(state, actor_id),
+            ht=item.recovery_target,
             rng=rng,
             system=True,
         )
@@ -422,3 +438,19 @@ def advance(
         raise ValidationError("Fright recovery budget exceeded; advance a shorter interval")
     state = state.model_copy(update={"revision": revision})
     return engine.apply(state, command, system=True)
+
+
+def maneuver_allowed(state: ResourceState, actor_id: str, maneuver: str) -> bool:
+    for item in effects(state):
+        if item.actor_id != actor_id or not item.active:
+            continue
+        condition = item.effect.condition
+        if condition == "retching":
+            if maneuver == "concentrate":
+                return False
+        elif condition == "panic":
+            if maneuver not in ("move", "do_nothing"):
+                return False
+        elif maneuver != "do_nothing":
+            return False
+    return True

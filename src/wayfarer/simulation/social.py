@@ -173,15 +173,30 @@ def apply_social(
         outcome = SocialOutcome(kind=command.kind, outcome=trace.outcome)
         details = asdict(trace) | recognition
     elif command.kind == "influence":
-        from wayfarer.simulation.fright import aftermath_penalty
+        from wayfarer.simulation.condition_checks import check_modifiers
 
         influence = influence_roll(
             context.profile_id,
             context.skill,
             command.actor_id,
             command.subject_id,
-            context.target + aftermath_penalty(state, command.actor_id),
-            context.will + aftermath_penalty(state, command.subject_id),
+            context.target
+            + sum(
+                m.value
+                for m in check_modifiers(
+                    state,
+                    command.actor_id,
+                    "ht"
+                    if context.skill == "sex-appeal"
+                    else "will"
+                    if context.skill == "intimidation"
+                    else "iq",
+                )
+            ),
+            context.will
+            + sum(
+                m.value for m in check_modifiers(state, command.subject_id, "will", defensive=True)
+            ),
             modifiers,
             rng=rng,
             conditions=context.influence_conditions,

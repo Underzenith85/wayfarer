@@ -338,12 +338,30 @@ class CampaignAccess:
         if (
             isinstance(value.get("actor_id"), str)
             and isinstance(kind, str)
-            and kind not in ("gurps_recovery", "care", "panic-response")
+            and kind
+            not in (
+                "gurps_recovery",
+                "care",
+                "panic-response",
+                "propose_fright_build",
+                "approve_fright_build",
+                "take_combat_turn",
+                "take_unarmed_turn",
+                "choose_defense",
+                "resume_interrupted_turn",
+            )
         ):
             guard(state, str(value["actor_id"]), kind)
         raw = json.dumps(value)
         try:
-            if kind in ("care", "panic-response"):
+            if kind in (
+                "propose_fright_build",
+                "approve_fright_build",
+            ):
+                from wayfarer.orchestration.fright_builds import FrightBuildService
+
+                await FrightBuildService(self.play).execute(cid, value, principal_id=principal_id)
+            elif kind in ("care", "panic-response"):
                 from wayfarer.orchestration.fright import FrightDecision, FrightService
 
                 await FrightService(self.play).execute(

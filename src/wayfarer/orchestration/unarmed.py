@@ -28,6 +28,7 @@ from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.rules.location_types import Hand, HumanLocation
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import Combatant, CombatEngine, CombatResult, Encounter
+from wayfarer.simulation.condition_checks import check_modifiers, retching_penalty
 from wayfarer.simulation.fatigue import fatigue_value
 from wayfarer.simulation.gurps_equipment import DamageType
 from wayfarer.simulation.injury import Wound, apply_injury
@@ -181,7 +182,9 @@ def grapple_ready(
     assert hp.injury is not None
     score = skill_value(play, state, command.actor_id, "attribute:dx") - hp.injury.shock
     score -= 4 if actor.grappled else 0
-    check = success_roll(BASIC, score, rng=play.rng)
+    check = success_roll(
+        BASIC, score, check_modifiers(state.resources, command.actor_id, "dx"), rng=play.rng
+    )
     resources = state.resources.model_copy(
         update={
             "events": state.resources.events
@@ -1013,8 +1016,17 @@ def defend(
         value += height_effect(
             encounter, actor, target, reach=1, location=pending.location
         ).attack_modifier
-    value = attack_modifier(actor.maneuver_state, target.actor_id, value)
-    attack = success_roll(BASIC, value, rng=play.rng)
+    value = attack_modifier(
+        actor.maneuver_state,
+        target.actor_id,
+        value,
+        check_adjustment=sum(
+            m.value for m in check_modifiers(state.resources, actor.actor_id, "dx")
+        ),
+    )
+    attack = success_roll(
+        BASIC, value, check_modifiers(state.resources, actor.actor_id, "dx"), rng=play.rng
+    )
     from wayfarer.simulation.hit_locations import torso_near_miss
 
     near_miss = pending.action in ("punch", "kick") and torso_near_miss(pending.location, attack)
@@ -1111,7 +1123,10 @@ def defend(
         and blocked is None
     ):
         balance = success_roll(
-            BASIC, skill_value(play, state, actor.actor_id, "attribute:dx"), rng=play.rng
+            BASIC,
+            skill_value(play, state, actor.actor_id, "attribute:dx"),
+            check_modifiers(state.resources, actor.actor_id, "dx"),
+            rng=play.rng,
         )
         checks += (balance,)
         if not balance.outcome.succeeded:
@@ -1440,7 +1455,9 @@ def critical_miss(
     if number == 12:
         score = skill_value(play, state, actor_id, "attribute:dx")
         score -= 4 if actor_id == pending.actor_id and pending.action == "kick" else 0
-        check = success_roll(BASIC, score, rng=play.rng)
+        check = success_roll(
+            BASIC, score, check_modifiers(state.resources, actor_id, "dx"), rng=play.rng
+        )
         checks = (check,)
         fall = not check.outcome.succeeded
     elif number in (9, 10, 11):
@@ -1482,7 +1499,12 @@ def armed_parry_injury(
     assert isinstance(weapon, MeleeMode)
     score = skill_value(play, state, pending.target_id, weapon.skill_id)
     score -= 4 if pending.skill in ("skill:judo", "skill:karate") else 0
-    check = success_roll(BASIC, score, rng=play.rng)
+    check = success_roll(
+        BASIC,
+        score,
+        check_modifiers(state.resources, pending.target_id, "dx", defensive=True),
+        rng=play.rng,
+    )
     if not check.outcome.succeeded:
         return state, encounter, (check,), ()
     compiled = build(play, state, pending.target_id)
@@ -1569,7 +1591,14 @@ def control(
             - (4 if target_hp.injury.stunned else 0)
         )
         won, checks, _ = contest(
-            BASIC, actor.actor_id, target.actor_id, first, second, rng=play.rng
+            BASIC,
+            actor.actor_id,
+            target.actor_id,
+            first,
+            second,
+            first_modifiers=check_modifiers(state.resources, actor.actor_id, "st"),
+            second_modifiers=check_modifiers(state.resources, target.actor_id, "st"),
+            rng=play.rng,
         )
         encounter = encounter.model_copy(
             update={
@@ -1604,14 +1633,21 @@ def control(
             first = max(
                 first,
                 *(
-                    int(v.value)
+                    int(v.value) + retching_penalty(state.resources, actor.actor_id)
                     for v in attacker.sheet.values
                     if v.target in {"skill:judo", "skill:wrestling"}
                 ),
             )
         second = max(strength(play, state, target.actor_id, trained=False), compiled.statistics.ht)
         won, checks, _ = contest(
-            BASIC, actor.actor_id, target.actor_id, first, second, rng=play.rng
+            BASIC,
+            actor.actor_id,
+            target.actor_id,
+            first,
+            second,
+            first_modifiers=check_modifiers(state.resources, actor.actor_id, "st"),
+            second_modifiers=check_modifiers(state.resources, target.actor_id, "st"),
+            rng=play.rng,
         )
         if won:
             damage = checks[0].margin - checks[1].margin
@@ -1649,7 +1685,7 @@ def control(
             return max(
                 strength(play, state, actor_id),
                 *(
-                    int(v.value)
+                    int(v.value) + retching_penalty(state.resources, actor_id)
                     for v in compiled.sheet.values
                     if v.target
                     in {"attribute:dx", "skill:judo", "skill:wrestling", "skill:sumo-wrestling"}
@@ -1663,6 +1699,8 @@ def control(
             score(actor.actor_id)
             - (4 if actor.posture == "prone" else 2 if actor.posture == "kneeling" else 0),
             score(target.actor_id),
+            first_modifiers=check_modifiers(state.resources, actor.actor_id, "st"),
+            second_modifiers=check_modifiers(state.resources, target.actor_id, "st"),
             rng=play.rng,
         )
         if decided:
@@ -1692,6 +1730,8 @@ def control(
             strength(play, state, actor.actor_id) + (3 if hands_a > hands_b else 0),
             strength(play, state, target.actor_id) + (3 if hands_b > hands_a else 0),
             regular=True,
+            first_modifiers=check_modifiers(state.resources, actor.actor_id, "st"),
+            second_modifiers=check_modifiers(state.resources, target.actor_id, "st"),
             rng=play.rng,
         )
         if won:

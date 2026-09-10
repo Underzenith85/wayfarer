@@ -9,6 +9,7 @@ from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.rules.hazard_types import HazardSchedule, RecoveryRestriction
+from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.fatigue import FatigueCost, apply_fatigue
 from wayfarer.simulation.injury import Wound, apply_injury
 from wayfarer.simulation.resources import Command, Receipt, Record, ResourceEvent, ResourceState
@@ -101,12 +102,15 @@ def apply_hazard(
                     success_roll(
                         spec.profile_id,
                         schedule.swimming if spec.kind == "drowning" else schedule.ht,
-                        modifiers=(),
+                        modifiers=(()) + check_modifiers(state, schedule.actor_id, "ht"),
                         rng=rng,
                     )
                     if spec.kind == "drowning"
                     else success_roll(
-                        spec.profile_id, max(1, schedule.ht + spec.resistance_modifier), rng=rng
+                        spec.profile_id,
+                        max(1, schedule.ht + spec.resistance_modifier),
+                        check_modifiers(state, schedule.actor_id, "ht"),
+                        rng=rng,
                     )
                 )
             damage = 0
@@ -185,7 +189,12 @@ def apply_hazard(
             if spec.kind in ("suffocation", "drowning"):
                 latest_fp = next(p for p in state.pools if p.id == fp.id)
                 if latest_fp.current <= 0 and latest_fp.fatigue is not None:
-                    consciousness = success_roll(spec.profile_id, schedule.will, rng=rng)
+                    consciousness = success_roll(
+                        spec.profile_id,
+                        schedule.will,
+                        check_modifiers(state, schedule.actor_id, "will", defensive=True),
+                        rng=rng,
+                    )
                     if not consciousness.outcome.succeeded:
                         latest_fp = latest_fp.model_copy(
                             update={

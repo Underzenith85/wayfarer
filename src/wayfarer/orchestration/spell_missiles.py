@@ -12,6 +12,7 @@ from wayfarer.rules.conformance import BASELINE_ID
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import CombatEngine, Defense, Encounter, InjuryTrace
+from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.injury import Wound, apply_injury
 from wayfarer.simulation.resources import ResourceEvent
 from wayfarer.simulation.spells import PROFILE, SpellEvent, SpellResult, event_id, latest
@@ -58,6 +59,7 @@ def resolve(
         int(value.value)
         + range_penalty(distance)
         - (actor_hp.injury.shock if actor_hp.injury else 0),
+        check_modifiers(state.resources, attacker.actor_id, "dx"),
         rng=play.rng,
     )
     attack = replace(attack, rule_id="gurps.combat.ranged_attack")

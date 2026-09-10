@@ -18,6 +18,7 @@ from wayfarer.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.rules.location_types import HitLocation, HumanLocation, LastingInjury
 from wayfarer.rules.recovery_types import interrupt_tasks, require_settled, retire_tasks
+from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.gurps_equipment import DamageType
 from wayfarer.simulation.hit_locations import (
     crippling_threshold,
@@ -234,7 +235,16 @@ def apply_injury(
         threshold: int | None = None,
     ) -> CheckTrace:
         score = stun_iq if reason == "stun-recovery" and stun_iq is not None else ht
-        trace = success_roll(status.profile_id, score + penalty, rng=rng)
+        trace = success_roll(
+            status.profile_id,
+            score + penalty,
+            check_modifiers(
+                state,
+                command.actor_id,
+                "iq" if reason == "stun-recovery" and stun_iq is not None else "ht",
+            ),
+            rng=rng,
+        )
         checks.append(InjuryCheck(reason=reason, threshold=threshold, check=trace))
         return trace
 
@@ -340,7 +350,12 @@ def apply_injury(
                 if sum(i == item_id for i, _ in held_item_locations) > 1:
                     if dx is None:
                         raise ValidationError("Two-handed grip loss requires compiled DX")
-                    grip = success_roll(status.profile_id, dx, rng=rng)
+                    grip = success_roll(
+                        status.profile_id,
+                        dx,
+                        check_modifiers(state, command.actor_id, "dx"),
+                        rng=rng,
+                    )
                     checks.append(InjuryCheck(reason="grip-retention", check=grip))
                     if grip.outcome.succeeded:
                         continue

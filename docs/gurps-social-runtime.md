@@ -1,7 +1,7 @@
 # Social runtime integration (#137 / #299)
 
 Numeric references: Basic Set Campaigns, Fourth Edition, fourth printing,
-B360-361 (fright consequences), B420 (stun), and Characters B120-121
+B360-361 (fright consequences), B420-421 (stun and temporary attributes), B428 (retching), and Characters B120-121
 (self-control). No rulebook prose is bundled.
 
 ## Explicit policy selection
@@ -41,8 +41,10 @@ rather than from the trigger.
 
 `contracts/social/v2/schemas.json` specifies this opt-in policy and internal
 director decisions. `python scripts/social_contracts.py --check` checks drift.
-V1 scenario authoring cannot silently start accepting these new fields. V2
-scenario document/transport adoption remains tracked in #299.
+V1 scenario authoring cannot silently start accepting these new fields. `SocialScenarioDocument(schema_version=2)` provides explicit portable authoring.
+Import, publication, party binding and saved-campaign rebinding retain the v2
+policy. The existing authenticated authoring endpoint accepts its JSON content;
+v1 documents and their frozen schemas remain unchanged.
 
 NPC occurrences use the plan ID, spent-action count and selected action ID as
 their stable trigger identity. The existing NPC budget and decisions prevent
@@ -84,15 +86,21 @@ days. The director can change care prospectively using `FrightService` and a
 `FrightDecision(kind="care")`. Past-due care cannot be rewritten. Upon recovery,
 the recorded aftermath lasts as long as the entire catatonic episode.
 
-Recovered coma/catatonia applies its recorded penalty to influence skill/Will,
-new Fright Checks, immediate fright HT checks, and fright recovery/panic Will
-checks. Each episode expires at its own deadline. This modifies checks, not
-purchased statistics, HT-based durations, reaction totals, or self-control
-ratings. Social NPC actions can run with this penalty; unrelated action adapters
-retain their conservative aftermath guard until #299 implements their checks.
-Permanent losses still require adjudication before new social checks; recovery
-can continue. When retching ends, B428's 1 FP loss is applied once through the
-fatigue service, within the same command revision and receipt as recovery.
+Recovered coma/catatonia applies its recorded penalty to skill and attribute
+checks across social, combat attacks/contests, physical feats, injury, fatigue,
+hazards, medicine, spells, abilities and transport control. Each episode expires
+at its own deadline, evaluated when the roll occurs. This modifies checks, not
+purchased statistics, HT-based durations, reaction totals, self-control ratings
+or active defenses. Medical contests select the better effective patient HT or
+physician skill after applying each person's conditions.
+
+Retching permits action at -5 to DX/IQ/Per and dependent Will-based skills.
+B421 defensive reactions are exempt from this temporary attribute penalty.
+Concentration is unavailable, while combat attacks and active defenses use their
+normal paths. Stun permits Do Nothing and defenses at -4; unconsciousness,
+catatonia and seizures permit no active defense. Panic permits player-selected
+movement or Do Nothing; ordinary attack maneuvers are unavailable. When retching
+ends, B428's 1 FP loss commits once through fatigue in the recovery receipt.
 
 For row-33 panic, `FrightDecision(kind="panic-response")` records a response
 already adjudicated with the player, then checks recovery. A failed Will check
@@ -105,8 +113,23 @@ membership, pinned director authority, CAS and stable command receipts.
 Campaign reads and resumable event projections include a `fright` collection.
 Players see only their controlled actors; directors see all consequences.
 Trait choices, point requirements and permanent attribute losses stay visible
-after temporary recovery and explicitly require build approval. These records
-do not change the approved build or claim that a trait has been selected.
+after temporary recovery. `propose_fright_build` accepts an owner or director's
+complete proposed draft, the current build revision, a reason, and optionally a
+related self-control trait. It does not change the approved character.
+`approve_fright_build` requires a current director and the exact proposal ID.
+
+Approval enforces the table's point value or exact one-step self-control change,
+required HT/IQ loss, and absence of unrelated edits. The director confirms that
+the selected trait's mental/physical/delusion classification fits the event.
+Only implemented, pinned catalog purchases can be approved, under the existing
+campaign compiler and power policy. Missing catalog entries are not invented.
+The approved build recalculates dependent attributes and skills, preserves HP/FP
+deficits, refreshes stored medical/hazard/fright recovery inputs, and grants no
+spendable point refund. Existing spell/ability build pins still require
+cancellation if their approved build changed. Unapproved permanent losses remain
+action blockers; approved consequences stop producing choice prompts. Stale
+builds/proposals and changed retry payloads reject without mutation.
+
 References are opaque hashes, excluding authored trigger identities, table rolls,
 recovery targets and private responses from player projections.
 
@@ -120,17 +143,17 @@ service still enforces director authority, active consequences, CAS and retries.
 requirements after recovery/restart, event projection privacy, unchanged builds,
 panic command replay, and care through the authenticated HTTP endpoint.
 
-## Remaining limits
+## Evidence and certification
 
-Permanent attribute losses remain explicit blockers, not implemented arithmetic.
-Aftermath penalties outside the social/fright paths remain blocked. Trait/quirk selection still needs approval-aware build
-adjudication. Condition-specific retching and panic movement need fuller combat
-integration. These limits remain visible under #299; neither #137 nor social
-certification is marked complete.
+`tests/test_fright_builds.py` covers lasting trait/stat proposals, exact director
+approval, unauthorized/stale requests, derived statistics, no point refunds,
+owner privacy and restart replay. `tests/test_fright_conditions.py` covers live
+combat attack penalties, defense exclusions, maneuver restrictions and forced
+injury/fatigue checks. `tests/test_social_scenario_v2.py` imports, publishes,
+activates and restarts a real social scenario before resolving its NPC occurrence
+once. Existing live-social suites cover automatic recovery, catatonia care and
+neglect, timed aftermath, panic decisions and private traces.
 
-`tests/test_live_social.py` exercises real campaign waits, NPC dispatch, automatic
-failed recovery, SQLite restart replay, hidden traces, care decisions, coma
-rescheduling, catatonia injury/duration, panic responses, and v2 contract drift.
-`tests/test_social_completion.py` adds source-referenced influence exceptions,
-all six procedures, compiled authored skill dispatch, modified self-control,
-aftermath expiration and exclusions, and retry-safe retching recovery.
+These runtime integrations complete #299. Social capability certification stays
+partial: the separate frozen-source/errata review and broader catalog population
+are not promoted by runtime tests.

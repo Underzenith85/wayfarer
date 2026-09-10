@@ -20,6 +20,7 @@ from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.checks import Modifier, Outcome, success_check
 from wayfarer.simulation.actions import ActionCommand, PlayState
 from wayfarer.simulation.advancement import AdvancementEntry
+from wayfarer.simulation.condition_checks import definition_modifiers
 from wayfarer.simulation.party import QueuedActivity, Subgroup, group_for
 from wayfarer.simulation.recovery import (
     Captivity,
@@ -59,7 +60,7 @@ def guard(state: PlayState, actor_id: str, kind: str, *, allow_fright: bool = Fa
     from wayfarer.simulation.fright import blocked, requires_adjudication
 
     if kind not in ("question", "wait") and (
-        (blocked(state.resources, actor_id) and not allow_fright)
+        (blocked(state.resources, actor_id, kind=kind) and not allow_fright)
         or requires_adjudication(state.resources, actor_id)
     ):
         raise ValidationError("Resolve the actor's fright condition before acting")
@@ -467,10 +468,12 @@ class RecoveryService:
                     raise ValidationError("Recovery check lacks skill or equipment")
                 trace = success_check(
                     int(value.value),
-                    (
-                        Modifier(
-                            rule.modifier, "recovery", rule.definition_id, rule.package_version
-                        ),
+                    (Modifier(rule.modifier, "recovery", rule.definition_id, rule.package_version),)
+                    + definition_modifiers(
+                        state.resources,
+                        command.actor_id,
+                        rule.definition_id,
+                        self.play.engine.reviewer.compiler.definitions,
                     ),
                     rng=self.play.rng,
                     rules_package=rule.package_id,

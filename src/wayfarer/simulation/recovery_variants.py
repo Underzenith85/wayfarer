@@ -16,6 +16,7 @@ from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.rules.hazard_types import HazardSchedule, HazardSpec
 from wayfarer.rules.location_types import LastingInjury
 from wayfarer.rules.recovery_types import ProfileId, RecoveryTask, require_settled, retire_tasks
+from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.injury import Wound, apply_injury
 from wayfarer.simulation.resources import (
     Command,
@@ -338,7 +339,17 @@ def apply_recovery_variant(
                 raise ValidationError("Advanced recovery must settle at its shared-clock deadline")
             if trauma:
                 assert task.skill is not None and task.wound_id is not None
-                check = success_roll(context.profile_id, max(task.ht, task.skill), rng=rng)
+                patient = check_modifiers(state, target, "ht")
+                physician = check_modifiers(state, task.actor_id, "iq")
+                use_physician = task.skill + sum(m.value for m in physician) > task.ht + sum(
+                    m.value for m in patient
+                )
+                check = success_roll(
+                    context.profile_id,
+                    task.skill if use_physician else task.ht,
+                    physician if use_physician else patient,
+                    rng=rng,
+                )
                 if check.outcome is Outcome.CRITICAL_SUCCESS:
                     assert hp.injury is not None
                     stabilized = True
@@ -386,7 +397,10 @@ def apply_recovery_variant(
                 if injury.duration != "lasting" or injury.recovery_at is None:
                     raise ValidationError("Recorded lasting injury is no longer repairable")
                 check = success_roll(
-                    context.profile_id, task.skill + task.treatment_modifier, rng=rng
+                    context.profile_id,
+                    task.skill + task.treatment_modifier,
+                    check_modifiers(state, task.actor_id, "iq"),
+                    rng=rng,
                 )
                 if check.outcome.succeeded:
                     remaining = max(1, injury.recovery_at - state.game_time)
@@ -436,6 +450,7 @@ def apply_recovery_variant(
                     infection_check = success_roll(
                         context.profile_id,
                         max(1, task.ht + 3 + infection_modifier),
+                        check_modifiers(state, target, "ht"),
                         rng=rng,
                     )
                     if not infection_check.outcome.succeeded:

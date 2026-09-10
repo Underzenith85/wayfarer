@@ -6,6 +6,7 @@ from wayfarer.rules.hazard_types import require_hazards_settled
 from wayfarer.rules.recovery_types import require_settled
 from wayfarer.rules.transport_types import Transport
 from wayfarer.rules.vehicle_capabilities import VEHICLE_OPERATIONS
+from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.hex_geometry import Hex, HexBattlefield, neighbor
 from wayfarer.simulation.resources import ResourceEngine, ResourceState
 from wayfarer.simulation.vehicle_collisions import durability, impact
@@ -94,9 +95,15 @@ def resolve_vehicle(
         profile = engine.specs[item.definition_id].durability
         assert profile is not None
         affected = (
-            move_vehicle(t, command, board, occupied | other_cells, rng, profile.ht).model_copy(
-                update={"last_turn": state.game_time}
-            ),
+            move_vehicle(
+                t,
+                command,
+                board,
+                occupied | other_cells,
+                rng,
+                profile.ht,
+                check_modifiers(state, t.operator_id, "dx"),
+            ).model_copy(update={"last_turn": state.game_time}),
         )
     elif isinstance(command, VehicleControl):
         item = next(i for i in state.items if i.id == t.body_id)
@@ -107,7 +114,9 @@ def resolve_vehicle(
         recovering = t.locomotion == "air" and t.status in ("diving", "stalled")
         if recovering and t.recovery_turn == state.game_time:
             raise ConflictError("Air recovery already attempted this second")
-        controlled = control_vehicle(t, command, rng, profile.ht)
+        controlled = control_vehicle(
+            t, command, rng, profile.ht, check_modifiers(state, t.operator_id, "dx")
+        )
         if recovering:
             controlled = controlled.model_copy(update={"recovery_turn": state.game_time})
         affected = (controlled,)

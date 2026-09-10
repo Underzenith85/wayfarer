@@ -11,6 +11,10 @@ def require_idle_concentration(resources: ResourceState, actor_id: str) -> None:
     stays a commitment until explicitly resolved, interrupted or cancelled,
     including after restart or a missed deadline.
     """
+    from wayfarer.simulation.condition_checks import retching_penalty
+
+    if retching_penalty(resources, actor_id):
+        raise ConflictError("Retching prevents concentration")
     from wayfarer.simulation.abilities import effects
     from wayfarer.simulation.spells import latest
 

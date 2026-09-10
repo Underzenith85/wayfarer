@@ -23,6 +23,7 @@ from wayfarer.rules.recovery_types import (
     rest_entitlement,
     retire_tasks,
 )
+from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.injury import InjuryResult, Wound, apply_injury
 from wayfarer.simulation.resources import Command, Receipt, Record, ResourceEvent, ResourceState
 
@@ -260,7 +261,9 @@ def apply_recovery(
     if isinstance(command, BeginRecovery) and command.kind == "mortal-check":
         if hp.injury.mortal_wound_due is None or state.game_time != hp.injury.mortal_wound_due:
             raise ValidationError("Mortal-wound survival check is not due")
-        check = success_roll(context.profile_id, context.ht, rng=rng)
+        check = success_roll(
+            context.profile_id, context.ht, check_modifiers(state, target, "ht"), rng=rng
+        )
         stabilized = check.outcome is Outcome.CRITICAL_SUCCESS
         dead = not check.outcome.succeeded
         hp = hp.model_copy(
@@ -496,7 +499,12 @@ def apply_recovery(
         elif task.kind == "resuscitate":
             if task.skill is None:
                 raise ValidationError("Resuscitation requires a compiled medical skill")
-            check = success_roll(context.profile_id, task.skill + task.treatment_modifier, rng=rng)
+            check = success_roll(
+                context.profile_id,
+                task.skill + task.treatment_modifier,
+                check_modifiers(state, task.actor_id, "iq"),
+                rng=rng,
+            )
             if check.outcome.succeeded:
                 assert fp is not None and fp.fatigue is not None
                 fp = fp.model_copy(
@@ -516,7 +524,12 @@ def apply_recovery(
             if hp.injury.mortal_wound_due is None or state.game_time >= hp.injury.mortal_wound_due:
                 raise ValidationError("Settle the patient's survival check before surgery finishes")
             assert task.skill is not None
-            check = success_roll(context.profile_id, task.skill + task.treatment_modifier, rng=rng)
+            check = success_roll(
+                context.profile_id,
+                task.skill + task.treatment_modifier,
+                check_modifiers(state, task.actor_id, "iq"),
+                rng=rng,
+            )
             if check.outcome.succeeded:
                 hp = hp.model_copy(
                     update={
@@ -539,13 +552,16 @@ def apply_recovery(
                 context.profile_id,
                 task.ht
                 + (1 if task.physician_skill is not None and task.physician_skill >= 12 else 0),
+                check_modifiers(state, target, "ht"),
                 rng=rng,
             )
             healed = multiplier if check.outcome.succeeded else 0
         else:
             if task.skill is None or task.skill < 1:
                 raise ValidationError("Treatment requires a compiled medical skill")
-            check = success_roll(context.profile_id, task.skill, rng=rng)
+            check = success_roll(
+                context.profile_id, task.skill, check_modifiers(state, task.actor_id, "iq"), rng=rng
+            )
             if check.outcome is Outcome.CRITICAL_FAILURE:
                 healed = -2 if task.kind == "first-aid" else -1
             elif check.outcome.succeeded:
