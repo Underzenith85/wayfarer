@@ -711,6 +711,8 @@ def resolve_melee(
             item_id,
             second_defense=second_defense,
             second_item_id=second_item_id,
+            parry_mode_id=parry_mode_id,
+            second_parry_mode_id=second_parry_mode_id,
         )
     attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     defender = next(p for p in encounter.participants if p.actor_id == pending.defender_id)

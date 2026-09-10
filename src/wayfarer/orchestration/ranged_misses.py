@@ -14,6 +14,7 @@ def resolve_miss(
     table: tuple[int, ...],
     *,
     parry_item: str | None = None,
+    parry_mode_id: str | None = None,
 ) -> tuple[PlayState, Encounter, CriticalLimbResult, str | None]:
     from wayfarer.orchestration.gurps_melee import catalog
 
@@ -31,6 +32,7 @@ def resolve_miss(
         encounter,
         table=table,
         defender_item=parry_item,
+        defender_mode_id=parry_mode_id,
         blocker="basic-critical-miss:" + ("defender" if parrying else "attacker"),
     )
     if result.resolved:
@@ -62,7 +64,11 @@ def resolve_miss(
             assert item.condition is not None
             updates["condition"] = item.condition.model_copy(update={"disabled": True})
         if broken or number in (9, 10, 11, 14):
+            from wayfarer.orchestration.weapon_flight import position
+
             updates["equipped"] = False
+            updates["ground"] = position(encounter, subject)
+            updates["container_id"] = None
         item = item.model_copy(update=updates)
         state = state.model_copy(
             update={

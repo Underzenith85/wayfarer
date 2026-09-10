@@ -39,6 +39,7 @@ class RangedCritical(Record):
     table_rolls: tuple[TableRoll, ...] = Field(default=(), max_length=3, exclude_if=lambda v: not v)
     subject_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
     affected_item_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
+    affected_mode_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
 
     @model_validator(mode="after")
     def validate_rolls(self) -> RangedCritical:

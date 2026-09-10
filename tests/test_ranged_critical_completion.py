@@ -141,6 +141,11 @@ async def test_critical_thrown_parry_drop_also_takes_incoming_hit(tmp_path: Path
     assert result.injury.injury == 2
     saved = play._load(await play.store.read(cid))
     assert not next(i for i in saved.resources.items if i.id == "sword-b").ready
+    from wayfarer.orchestration.weapon_flight import position
+
+    assert next(i for i in saved.resources.items if i.id == "sword-b").ground == position(
+        saved.encounters[0], saved.encounters[0].participants[1]
+    )
     context = RangedCritical.model_validate_json(
         next(e.kind for e in saved.resources.events if e.id.startswith("ranged-critical:"))
     )

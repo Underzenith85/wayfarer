@@ -493,9 +493,12 @@ def resolve(
     *,
     second_defense: Defense | None,
     second_item_id: str | None,
+    parry_mode_id: str | None = None,
+    second_parry_mode_id: str | None = None,
 ) -> tuple[PlayState, Encounter, InjuryTrace]:
     from wayfarer.orchestration.gurps_maneuvers import distracted
     from wayfarer.orchestration.gurps_melee import build, catalog, defense_value, level
+    from wayfarer.orchestration.weapon_flight import position
 
     original_resources = state.resources
     pending = encounter.pending_defense
@@ -583,9 +586,16 @@ def resolve(
             None,
         )
         attack_target += attack_penalty(pending.hit_location, shield_side=shield_side)
-    defense_value_, defense_item = defense_value(play, state, target, selected, item_id)
+    defense_value_, defense_item = defense_value(
+        play, state, target, selected, item_id, parry_mode_id=parry_mode_id
+    )
     second_value, second_item = defense_value(
-        play, state, target, second_defense or "none", second_item_id
+        play,
+        state,
+        target,
+        second_defense or "none",
+        second_item_id,
+        parry_mode_id=second_parry_mode_id,
     )
     if weapon.thrown:
         thrown_item = next(i for i in state.resources.items if i.id == pending.weapon_id)
@@ -679,6 +689,7 @@ def resolve(
                 target,
                 second_defense or "none",
                 second_item,
+                parry_mode_id=second_parry_mode_id,
             )
             if weapon.thrown and second_defense == "parry" and second_value:
                 second_value = DerivedValue(second_value.target, second_value.value - penalty, ())
@@ -746,17 +757,18 @@ def resolve(
     )
     critical = sum(critical_table) if attack.outcome is Outcome.CRITICAL_SUCCESS else 0
     blocked = "ranged-critical-table" if critical_table and not critical else None
-    parry_item = next(
+    critical_parry = next(
         (
-            equipment_id
-            for choice, roll, equipment_id in (
-                (selected, defense, defense_item),
-                (second_defense, second_trace, second_item),
+            (equipment_id, selected_mode)
+            for choice, roll, equipment_id, selected_mode in (
+                (selected, defense, defense_item, parry_mode_id),
+                (second_defense, second_trace, second_item, second_parry_mode_id),
             )
             if choice == "parry" and roll is not None and roll.outcome is Outcome.CRITICAL_FAILURE
         ),
         None,
     )
+    parry_item, critical_parry_mode = critical_parry or (None, None)
     if parry_item is not None:
         critical_table = tuple(play.rng.randbelow(6) + 1 for _ in range(3))
         blocked = "ranged-critical-parry"
@@ -776,6 +788,7 @@ def resolve(
             encounter,
             critical_table,
             parry_item=parry_item,
+            parry_mode_id=critical_parry_mode,
         )
         critical_rolls = miss.table_rolls
         critical_table = miss.table_rolls[-1]
@@ -999,7 +1012,14 @@ def resolve(
                 "resources": state.resources.model_copy(
                     update={
                         "items": tuple(
-                            i.model_copy(update={"ready": False, "equipped": False})
+                            i.model_copy(
+                                update={
+                                    "ready": False,
+                                    "equipped": False,
+                                    "container_id": None,
+                                    "ground": position(encounter, target),
+                                }
+                            )
                             if i.owner_id == target.actor_id and i.ready
                             else i
                             for i in state.resources.items
@@ -1027,7 +1047,14 @@ def resolve(
                     "resources": state.resources.model_copy(
                         update={
                             "items": tuple(
-                                i.model_copy(update={"ready": False, "equipped": False})
+                                i.model_copy(
+                                    update={
+                                        "ready": False,
+                                        "equipped": False,
+                                        "container_id": None,
+                                        "ground": position(encounter, target),
+                                    }
+                                )
                                 if i.id == drop
                                 else i
                                 for i in state.resources.items
@@ -1196,6 +1223,7 @@ def resolve(
                         table_rolls=critical_rolls,
                         subject_id=target.actor_id if parry_item else actor.actor_id,
                         affected_item_id=parry_item or pending.weapon_id,
+                        affected_mode_id=critical_parry_mode if parry_item else weapon.id,
                     ),
                 )
             }
