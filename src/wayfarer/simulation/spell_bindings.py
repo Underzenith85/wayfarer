@@ -1,11 +1,18 @@
 """Authored spell targeting permissions; no player-supplied skill or resistance."""
 
-from typing import Literal
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import Field, model_validator
 
+from wayfarer.errors import ValidationError
 from wayfarer.models import Id, Record
 from wayfarer.simulation.spells import SpellId
+from wayfarer.world import EntityKind
+
+if TYPE_CHECKING:
+    from wayfarer.simulation.actions import PlayState
 
 
 class SpellChannel(Record):
@@ -62,3 +69,19 @@ class SpellRules(Record):
         if len({c.id for c in self.channels}) != len(self.channels):
             raise ValueError("Duplicate spell channel")
         return self
+
+
+def validate_channels(rules: SpellRules, state: PlayState) -> None:
+    """Spell channels and backfire alternatives must reference approved world entities."""
+    entities = {e.id: e for e in state.world.entities}
+    actor_ids = {a.actor_id for a in state.actors}
+    if any(t not in actor_ids for option in rules.backfire_alternatives for t in option.target_ids):
+        raise ValidationError("Backfire alternatives require approved campaign actors")
+    for channel in rules.channels:
+        if (
+            channel.actor_id not in entities
+            or channel.target_id not in entities
+            or channel.location_id not in entities
+            or entities[channel.location_id].kind is not EntityKind.LOCATION
+        ):
+            raise ValidationError("Invalid spell spell_channel entity references")

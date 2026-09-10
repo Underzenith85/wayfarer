@@ -10,7 +10,8 @@ from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.scenes import ObserveScene, SceneService, TravelScene
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.simulation.actions import ActionEngine, Inspect
+from wayfarer.simulation.action_engine import ActionEngine
+from wayfarer.simulation.actions import Inspect
 from wayfarer.simulation.scenes import (
     Discovery,
     Obstacle,

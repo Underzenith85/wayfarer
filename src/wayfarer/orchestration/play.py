@@ -22,9 +22,9 @@ from wayfarer.rules.checks import Outcome, RandomSource
 from wayfarer.rules.injury_types import InjuryStatus
 from wayfarer.rules.recovery_types import FatigueStatus
 from wayfarer.simulation.access import CampaignMember
+from wayfarer.simulation.action_engine import ActionEngine
 from wayfarer.simulation.actions import (
     ACTION_ADAPTER,
-    ActionEngine,
     ActionResult,
     ActorSetup,
     PlayActor,

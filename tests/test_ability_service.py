@@ -24,7 +24,8 @@ from wayfarer.rules.injury_types import InjuryStatus
 from wayfarer.rules.recovery_types import FatigueStatus, RecoveryTask
 from wayfarer.simulation.abilities import apply_ability, damage_resistance, effects
 from wayfarer.simulation.ability_types import AbilityRules, AbilitySpec
-from wayfarer.simulation.actions import ActionEngine, ActionRules, ActorSetup, Wait
+from wayfarer.simulation.action_engine import ActionEngine
+from wayfarer.simulation.actions import ActionRules, ActorSetup, Wait
 from wayfarer.simulation.combat import Battlefield, CombatRules, GridPoint, Placement
 from wayfarer.simulation.resources import Pool, ResourceEngine
 

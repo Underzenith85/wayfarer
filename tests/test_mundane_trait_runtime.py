@@ -29,7 +29,8 @@ from wayfarer.rules.mundane_traits import PROFILE
 from wayfarer.rules.mundane_traits.runtime import Audience, Check
 from wayfarer.rules.traits import TraitOptions
 from wayfarer.simulation.access import CampaignMember
-from wayfarer.simulation.actions import ActionEngine, ActionRules, ActorSetup, PlayState
+from wayfarer.simulation.action_engine import ActionEngine
+from wayfarer.simulation.actions import ActionRules, ActorSetup, PlayState
 from wayfarer.simulation.resources import Owner, ResourceEngine, ResourceState
 from wayfarer.simulation.social import SocialCommand, SocialContext, apply_social
 

@@ -18,7 +18,8 @@ from wayfarer.rules.checks import RecordedDice
 from wayfarer.rules.gurps_social import ReactionModifier, influence_roll
 from wayfarer.rules.profiles import DEFAULT_REGISTRY
 from wayfarer.simulation.access import CampaignMember
-from wayfarer.simulation.actions import ActionEngine, ActionRules, ActorSetup, PlayState
+from wayfarer.simulation.action_engine import ActionEngine
+from wayfarer.simulation.actions import ActionRules, ActorSetup, PlayState
 from wayfarer.simulation.npcs import NPCSocialRules
 from wayfarer.simulation.party import PartyRules
 from wayfarer.simulation.resources import Owner, ResourceEngine, ResourceState

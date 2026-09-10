@@ -32,8 +32,8 @@ from wayfarer.rules.catalog import (
     RulesCatalog,
     reference,
 )
+from wayfarer.simulation.action_engine import ActionEngine
 from wayfarer.simulation.actions import (
-    ActionEngine,
     ActionResult,
     ActionRules,
     ActorSetup,

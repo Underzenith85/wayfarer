@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import Field, model_validator
 
+from wayfarer.errors import ValidationError
 from wayfarer.models import Id, Record
 from wayfarer.rules.checks import CheckTrace
+
+if TYPE_CHECKING:
+    from wayfarer.simulation.actions import PlayState
 
 
 class Approach(Record):
@@ -64,3 +68,44 @@ class NoncombatEncounter(Record):
     checks: tuple[CheckTrace, ...] = ()
     revealed_fact_ids: tuple[Id, ...] = ()
     revision: int = Field(ge=1)
+
+
+def validate_state(
+    rules: NoncombatRules | None,
+    state: PlayState,
+    *,
+    check_ids: frozenset[str],
+    scene_ids: frozenset[str],
+) -> None:
+    """Encounter rules must bind to scenes, checks and facts; instances must bind to rules."""
+    if rules is None:
+        if state.noncombat:
+            raise ValidationError("Noncombat state requires rules")
+        return
+    facts = {f.id for f in state.world.facts}
+    for encounter_rule in rules.encounters:
+        if encounter_rule.scene_id not in scene_ids:
+            raise ValidationError("Noncombat encounter requires a scene")
+        for approach in encounter_rule.approaches:
+            if approach.check_rule_id not in check_ids:
+                raise ValidationError("Unknown noncombat check")
+            if not set((*approach.success_fact_ids, *approach.failure_fact_ids)) <= facts:
+                raise ValidationError("Unknown approach consequence")
+        if (
+            not set(
+                (
+                    *encounter_rule.completion_fact_ids,
+                    *encounter_rule.defeat_fact_ids,
+                    *encounter_rule.withdrawal_fact_ids,
+                )
+            )
+            <= facts
+        ):
+            raise ValidationError("Unknown encounter consequence")
+    if len({e.id for e in state.noncombat}) != len(state.noncombat):
+        raise ValidationError("Duplicate noncombat instance")
+    rule_ids = {r.id for r in rules.encounters}
+    actor_ids = {a.actor_id for a in state.actors}
+    for encounter_state in state.noncombat:
+        if encounter_state.rule_id not in rule_ids or encounter_state.actor_id not in actor_ids:
+            raise ValidationError("Invalid noncombat instance")

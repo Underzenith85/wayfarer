@@ -19,7 +19,8 @@ from wayfarer.orchestration.recovery import RecoveryCommand, RecoveryService, ca
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
 from wayfarer.simulation.access import CampaignMember
-from wayfarer.simulation.actions import ActionEngine, PlayState, Wait
+from wayfarer.simulation.action_engine import ActionEngine
+from wayfarer.simulation.actions import PlayState, Wait
 from wayfarer.simulation.npcs import NPCAction, NPCPlan, NPCRules
 from wayfarer.simulation.objectives import Objective, ObjectiveRules, Predicate
 from wayfarer.simulation.party import PartyRules

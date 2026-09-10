@@ -1,13 +1,19 @@
 """Pinned, authored supernatural channels; never accepted as player input."""
 
-from typing import Literal
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import Field, model_validator
 
+from wayfarer.errors import ValidationError
 from wayfarer.models import Id, Record
 from wayfarer.rules.ability_types import AbilitySpec as AbilitySpec
 from wayfarer.rules.checks import CheckTrace
 from wayfarer.simulation.resources import Command
+
+if TYPE_CHECKING:
+    from wayfarer.simulation.actions import PlayState
 
 
 class AbilityChannel(Record):
@@ -109,3 +115,25 @@ class AbilityEvent(Record):
     critical_failure: bool = False
     checks: tuple[CheckTrace, ...] = ()
     damage_dice: tuple[int, ...] = ()
+
+
+def validate_channels(rules: AbilityRules, state: PlayState) -> None:
+    """Ability channels must reference world entities and facts that exist."""
+    entities = {e.id for e in state.world.entities}
+    facts = {f.id for f in state.world.facts}
+    for channel in rules.channels:
+        if not {channel.actor_id, channel.target_id, channel.location_id} <= entities:
+            raise ValidationError("Invalid ability channel entity references")
+        if (
+            not set(
+                (
+                    *channel.presence_fact_ids,
+                    *channel.detection_fact_ids,
+                    *channel.precise_fact_ids,
+                    *channel.analysis_fact_ids,
+                    *channel.thought_fact_ids,
+                )
+            )
+            <= facts
+        ):
+            raise ValidationError("Invalid ability channel fact references")

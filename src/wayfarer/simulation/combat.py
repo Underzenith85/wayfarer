@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import Field, model_validator
 
@@ -52,6 +52,9 @@ Maneuver = Literal[
     "move_and_attack",
 ]
 Defense = Literal["dodge", "parry", "block", "none"]
+
+if TYPE_CHECKING:
+    from wayfarer.simulation.actions import PlayState
 
 
 class GridPoint(Record):
@@ -1474,3 +1477,20 @@ class CombatEngine:
                 available=self.available(encounter, encounter.current_actor_id),
             ),
         )
+
+
+def validate_consequences(rules: CombatRules, state: PlayState) -> None:
+    """Authored consequences must name known battlefields, approved actors and facts."""
+    actor_ids = {a.actor_id for a in state.actors}
+    facts = {f.id for f in state.world.facts}
+    fields = {b.id for b in rules.battlefields}
+    if len({c.id for c in rules.consequences}) != len(rules.consequences):
+        raise ValidationError("Duplicate combat consequence")
+    if any(
+        c.battlefield_id not in fields
+        or c.defeated_actor_id not in actor_ids
+        or not set(c.recipient_actor_ids) <= actor_ids
+        or not set(c.fact_ids) <= facts
+        for c in rules.consequences
+    ):
+        raise ValidationError("Invalid combat consequence references")

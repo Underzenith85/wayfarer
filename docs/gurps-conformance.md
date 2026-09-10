@@ -304,7 +304,7 @@ and #107; these data structures do not authorize those unverified mechanics.
 ## Skill compilation (#98)
 
 `character.skills.SkillCompiler` runs inside the existing `CharacterCompiler` and
-`ActionEngine`. Its typed `RuleDefinition.skill` metadata is included in package
+`ActionEngine` in `wayfarer.simulation.action_engine`. Its typed `RuleDefinition.skill` metadata is included in package
 digests. No draft or action can supply a difficulty, default, prerequisite, or cap.
 The prototype four-skill dispatch and point restrictions are unchanged, including
 its package digest and build revision regression cases. A GURPS compiler rejects

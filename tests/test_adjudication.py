@@ -21,7 +21,8 @@ from wayfarer.orchestration.adjudication import (
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
-from wayfarer.simulation.actions import ActionEngine, ActionResult, PlayState, Social, Wait
+from wayfarer.simulation.action_engine import ActionEngine
+from wayfarer.simulation.actions import ActionResult, PlayState, Social, Wait
 from wayfarer.simulation.adjudication import Ruling, RulingAlternative, RulingPolicy
 
 

@@ -14,7 +14,8 @@ from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.providers import Orchestrator, ProviderRequest
 from wayfarer.rules.catalog import CampaignPolicy
 from wayfarer.simulation.access import CampaignMember
-from wayfarer.simulation.actions import ActionEngine, ActorSetup
+from wayfarer.simulation.action_engine import ActionEngine
+from wayfarer.simulation.actions import ActorSetup
 from wayfarer.simulation.studio import GenerationBrief, ScenarioGraph, StudioFinding, StudioReport
 
 

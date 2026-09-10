@@ -27,7 +27,8 @@ from wayfarer.persistence.postgres import AsyncPostgresStore
 from wayfarer.rules.catalog import reference
 from wayfarer.rules.checks import RandomSource
 from wayfarer.rules.profiles import ProfileRegistry, RegisteredProfile
-from wayfarer.simulation.actions import ActionEngine, PlayState
+from wayfarer.simulation.action_engine import ActionEngine
+from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.advancement import BuildDiff, MigrationEntry
 from wayfarer.simulation.profiles import (
     Incompatibility,
