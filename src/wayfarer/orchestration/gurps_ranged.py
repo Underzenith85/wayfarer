@@ -151,10 +151,17 @@ def validate_command(
         and command.mode_id is not None
         and command.reload_ammunition_id is None
         and not command.unload_ammunition
+        and command.firearm_service is None
     ):
         raise ValidationError("Ready mode selection requires a reload")
     if command.shots != 1 and command.maneuver not in ATTACK_MANEUVERS:
         raise ValidationError("Shot count requires an attack")
+    if command.firearm_service is not None:
+        from wayfarer.orchestration.firearms import service
+
+        service(play, state, encounter, command, validate_only=True)
+    elif command.firearm_service_skill != "weapon":
+        raise ValidationError("Firearm service skill requires a service operation")
     if command.unload_ammunition:
         if command.maneuver != "ready" or command.reload_ammunition_id is not None:
             raise ValidationError("Unload requires a separate Ready maneuver")
@@ -175,6 +182,8 @@ def unload_weapon(play: PlayService, state: PlayState, command: TakeCombatTurn) 
     item = next((i for i in state.resources.items if i.id == command.item_id), None)
     if item is None or item.owner_id != command.actor_id:
         raise ValidationError("Unload requires an owned weapon")
+    if item.firearm_failure is not None:
+        raise ValidationError("Service the firearm failure before unloading")
     loaded = next(
         (load for load in state.resources.ammunition_loads if load.weapon_id == item.id), None
     )
@@ -217,6 +226,24 @@ def reload_weapon(play: PlayService, state: PlayState, command: TakeCombatTurn) 
     if len(modes) != 1 or modes[0].thrown:
         raise ValidationError("Reload requires one projectile mode")
     weapon = modes[0]
+    if item.firearm_failure is not None:
+        raise ValidationError("Service the firearm failure before reloading")
+    reload_seconds = weapon.reload_seconds
+    if weapon.rated_strength is not None:
+        from wayfarer.orchestration.gurps_melee import build
+
+        stats = build(play, state, command.actor_id).statistics
+        assert stats is not None
+        fp = next(p for p in state.resources.pools if p.id == f"fp:{command.actor_id}")
+        st = fatigue_value(fp, stats.st)
+        validate_rated_strength(equipment.profile_id, weapon, st)
+        if weapon.rated_strength.kind == "crossbow":
+            difference = weapon.rated_strength.st - st
+            if difference >= 5:
+                raise ValidationError("Crossbow ST is too high to reload")
+            if difference >= 3:
+                raise ValidationError("Crossbow reload requires an explicit cocking-aid protocol")
+            reload_seconds = 8 if difference > 0 else 4
     if weapon.reload_protocol == "per-round" and equipment.profile_id != "gurps-basic-set-4e-2004":
         raise ValidationError("Per-round reload requires the exact Basic Set profile")
     if ammo.definition_id != weapon.ammunition_id or item.quantity != 1:
@@ -237,7 +264,7 @@ def reload_weapon(play: PlayService, state: PlayState, command: TakeCombatTurn) 
     if ammo.quantity <= reserved:
         raise ValidationError("No unreserved ammunition remains")
     progress = (old.reload_progress if old else 0) + 1
-    if progress >= max(1, weapon.reload_seconds):
+    if progress >= max(1, reload_seconds):
         rounds += min(
             1 if weapon.reload_protocol == "per-round" else weapon.shots - rounds,
             ammo.quantity - reserved,
@@ -260,6 +287,15 @@ def reload_weapon(play: PlayService, state: PlayState, command: TakeCombatTurn) 
     )
     play.engine.resources.validate(result)
     return result
+
+
+def validate_rated_strength(profile_id: str, weapon: RangedMode, st: int) -> None:
+    if weapon.rated_strength is None:
+        return
+    if profile_id != "gurps-basic-set-4e-2004":
+        raise ValidationError("Rated weapon ST requires the exact Basic Set profile")
+    if weapon.rated_strength.kind == "bow" and weapon.rated_strength.st > st:
+        raise ValidationError("Bow ST exceeds the wielder's effective ST")
 
 
 def prepare(
@@ -286,8 +322,10 @@ def prepare(
     assert stats is not None
     fp = next(p for p in state.resources.pools if p.id == f"fp:{actor.actor_id}")
     st = fatigue_value(fp, stats.st)
+    validate_rated_strength(catalog(play).profile_id, weapon, st)
+    range_st = weapon.rated_strength.st if weapon.rated_strength is not None else st
     if scene.distance_yards > float(weapon.maximum_range) * (
-        st if weapon.range_basis == "st" else 1
+        range_st if weapon.range_basis == "st" else 1
     ):
         raise ValidationError("Target exceeds maximum ranged weapon range")
     if shots > min(weapon.rate_of_fire, 100) or (
@@ -302,6 +340,11 @@ def prepare(
     ):
         raise ValidationError("Ranged All-Out Attack supports Determined only")
     item = next(i for i in state.resources.items if i.id == pending.weapon_id)
+    from wayfarer.orchestration.firearms import validate_attack
+
+    if weapon.firearm is not None and catalog(play).profile_id != "gurps-basic-set-4e-2004":
+        raise ValidationError("Firearm malfunctions require the exact Basic Set profile")
+    validate_attack(state.resources, item.id, weapon, shots)
     if item.quantity != 1:
         raise ValidationError("Ranged weapon requires an individual inventory item")
     if not weapon.thrown:
@@ -347,7 +390,12 @@ def prepare(
 
 
 def expend(
-    play: PlayService, state: PlayState, encounter: Encounter, weapon: RangedMode
+    play: PlayService,
+    state: PlayState,
+    encounter: Encounter,
+    weapon: RangedMode,
+    *,
+    shots: int | None = None,
 ) -> tuple[PlayState, Encounter]:
     pending = encounter.pending_defense
     assert pending is not None
@@ -380,26 +428,11 @@ def expend(
             ),
         )
     else:
-        load = next(
-            loaded for loaded in resources.ammunition_loads if loaded.weapon_id == pending.weapon_id
+        from wayfarer.simulation.firearms import spend_rounds
+
+        resources = spend_rounds(
+            resources, pending.weapon_id, pending.shots if shots is None else shots
         )
-        loads = tuple(
-            loaded.model_copy(
-                update={"rounds": loaded.rounds - pending.shots, "reload_progress": 0}
-            )
-            if loaded == load
-            else loaded
-            for loaded in resources.ammunition_loads
-        )
-        items = tuple(
-            i.model_copy(update={"quantity": i.quantity - pending.shots})
-            if i.id == load.ammunition_item_id
-            else i
-            for i in resources.items
-            if i.id != load.ammunition_item_id or i.quantity > pending.shots
-        )
-        loads = tuple(loaded for loaded in loads if loaded.rounds or loaded.reload_progress)
-        resources = resources.model_copy(update={"items": items, "ammunition_loads": loads})
     play.engine.resources.validate(resources)
     return state.model_copy(update={"resources": resources}), encounter
 
@@ -440,6 +473,7 @@ def resolve(
     hp = next(p for p in state.resources.pools if p.id == f"hp:{target.actor_id}")
     fp = next(p for p in state.resources.pools if p.id == f"fp:{actor.actor_id}")
     st = fatigue_value(fp, stats.st)
+    validate_rated_strength(equipment.profile_id, weapon, st)
     aim = actor.maneuver_state
     aimed = (aim.aim_item_id, aim.aim_mode_id, aim.aim_target_id) == (
         pending.weapon_id,
@@ -492,7 +526,25 @@ def resolve(
             defense_value_ = DerivedValue(defense_value_.target, defense_value_.value - penalty, ())
         if second_defense == "parry" and second_value is not None:
             second_value = DerivedValue(second_value.target, second_value.value - penalty, ())
+    from wayfarer.orchestration.firearms import before_attack, roll_malfunction, set_failure
+
+    state = state.model_copy(
+        update={"resources": before_attack(state.resources, pending.weapon_id, weapon)}
+    )
     attack = success_roll(equipment.profile_id, attack_target, rng=play.rng)
+    original_attack = attack
+    attack, shots_fired, malfunction_table, failure = roll_malfunction(
+        play,
+        weapon,
+        attack,
+        cause_id=pending.id,
+        shots=pending.shots,
+        rapid_bonus=rapid_fire_bonus(pending.shots),
+    )
+    if failure is not None:
+        state = state.model_copy(
+            update={"resources": set_failure(state.resources, pending.weapon_id, failure)}
+        )
     # B382 excludes ranged attacks from the generic failure-by-ten rule.
     if equipment.profile_id == "gurps-basic-set-4e-2004":
         attack = replace(attack, rule_id="gurps.combat.ranged_attack")
@@ -500,9 +552,9 @@ def resolve(
             attack = replace(attack, outcome=Outcome.FAILURE)
     from wayfarer.simulation.hit_locations import location_special_effects, torso_near_miss
 
-    near_miss = torso_near_miss(pending.hit_location, attack)
+    near_miss = bool(shots_fired) and torso_near_miss(pending.hit_location, attack)
     hits = (
-        min(pending.shots, 1 + max(0, attack_target - sum(attack.dice)) // weapon.recoil)
+        min(shots_fired, 1 + max(0, attack.effective_target - sum(attack.dice)) // weapon.recoil)
         if attack.outcome.succeeded
         else int(near_miss)
     )
@@ -613,7 +665,7 @@ def resolve(
         miss_lasting_ids = miss.lasting_injury_ids
         if parry_item is not None:
             target = next(p for p in encounter.participants if p.actor_id == target.actor_id)
-    state, encounter = expend(play, state, encounter, weapon)
+    state, encounter = expend(play, state, encounter, weapon, shots=shots_fired)
     location: HumanLocation | None = None
     location_dice: tuple[int, ...] = ()
     if hits and pending.hit_location:
@@ -689,11 +741,17 @@ def resolve(
     hit_locations: list[HumanLocation | None] = []
     hit_location_dice: list[tuple[int, ...]] = []
     expression = stats.swing if weapon.damage.basis == "swing" else stats.thrust
+    range_st = st
+    if weapon.rated_strength is not None:
+        from wayfarer.character.statistics import damage as strength_damage
+
+        range_st = weapon.rated_strength.st
+        expression = strength_damage(equipment.profile_id, range_st)[0]
     count = weapon.damage.dice or expression.dice
     adds = weapon.damage.adds + (0 if weapon.damage.basis == "fixed" else expression.add)
-    half = weapon.half_damage_range is not None and scene.distance_yards > float(
+    half = weapon.half_damage_range is not None and scene.distance_yards >= float(
         weapon.half_damage_range
-    ) * (st if weapon.range_basis == "st" else 1)
+    ) * (range_st if weapon.range_basis == "st" else 1)
     for index in range(hits if blocked is None else 0):
         if index and pending.hit_location == "random":
             from wayfarer.orchestration.location_combat import from_behind
@@ -887,7 +945,9 @@ def resolve(
         effect_dice=effect_dice,
         lasting_injury_ids=lasting_ids,
         adjudication_required=blocked,
-        shots_fired=pending.shots,
+        shots_fired=shots_fired,
+        malfunction_table=malfunction_table,
+        malfunction=failure.kind if failure is not None else None,
         hits=hits,
         per_hit_damage=tuple(damages),
         per_hit_injury=tuple(injuries),
@@ -895,6 +955,51 @@ def resolve(
         per_hit_locations=tuple(hit_locations) if pending.shots > 1 else (),
         per_hit_location_dice=tuple(hit_location_dice) if pending.shots > 1 else (),
     )
+    if failure is not None:
+        from wayfarer.simulation.firearms import MalfunctionRecord, save_malfunction
+
+        state = state.model_copy(
+            update={
+                "resources": save_malfunction(
+                    state.resources,
+                    MalfunctionRecord(
+                        id=pending.id,
+                        encounter_id=encounter.id,
+                        attacker=actor,
+                        defender=original_target,
+                        attacker_build_revision=compiled.revision,
+                        defender_build_revision=defender_build.revision,
+                        catalog=equipment,
+                        weapon=weapon,
+                        scene=scene,
+                        original_attack=original_attack,
+                        ammunition_load=next(
+                            v
+                            for v in original_resources.ammunition_loads
+                            if v.weapon_id == pending.weapon_id
+                        ),
+                        items=tuple(
+                            i
+                            for i in original_resources.items
+                            if i.owner_id in (actor.actor_id, target.actor_id)
+                        ),
+                        pools=tuple(
+                            p
+                            for p in original_resources.pools
+                            if p.id
+                            in (
+                                f"hp:{actor.actor_id}",
+                                f"fp:{actor.actor_id}",
+                                f"hp:{target.actor_id}",
+                                f"fp:{target.actor_id}",
+                            )
+                        ),
+                        failure=failure,
+                        trace=trace,
+                    ),
+                )
+            }
+        )
     if critical_table:
         from wayfarer.simulation.ranged_critical import RangedCritical, save_ranged_critical
 

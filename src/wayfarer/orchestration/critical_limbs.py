@@ -36,6 +36,7 @@ def resolve_limb(
     table: tuple[int, ...],
     defender_item: str | None,
     blocker: str,
+    defender_mode_id: str | None = None,
 ) -> tuple[PlayState, Encounter, CriticalLimbResult]:
     """Missing anatomy/grips/mode preserves the exact original blocker, before dice."""
     from wayfarer.orchestration.gurps_melee import build, catalog
@@ -64,15 +65,21 @@ def resolve_limb(
         return state, encounter, result
     entries = {e.definition_id: e for e in catalog(play).entries}
     item = next(i for i in state.resources.items if i.id == item_id)
+    from wayfarer.orchestration.object_combat import effective_entry
+
+    entry = effective_entry(play, item)
     modes: tuple[WeaponMode, ...] = tuple(
         m
-        for m in entries[item.definition_id].modes
-        if parrying and isinstance(m, MeleeMode) and m.parry is not None
+        for m in entry.modes
+        if parrying
+        and isinstance(m, MeleeMode)
+        and m.parry is not None
+        and (defender_mode_id is None or m.id == defender_mode_id)
     )
     if not parrying:
         modes = tuple(
             m
-            for m in entries[item.definition_id].modes
+            for m in entry.modes
             if isinstance(m, (MeleeMode, RangedMode)) and m.id == pending.mode_id
         )
     if sum(table) in (5, 6) and len(modes) != 1:
@@ -131,6 +138,10 @@ def resolve_limb(
             else ("right-leg" if side_die <= 3 else "left-leg")
         )
         expression = stats.swing if mode.damage.basis == "swing" else stats.thrust
+        if isinstance(mode, RangedMode) and mode.rated_strength is not None:
+            from wayfarer.character.statistics import damage as strength_damage
+
+            expression = strength_damage(catalog(play).profile_id, mode.rated_strength.st)[0]
         dice = tuple(play.rng.randbelow(6) + 1 for _ in range(mode.damage.dice or expression.dice))
         damage = max(
             0 if mode.damage.damage_type == "cr" else 1,

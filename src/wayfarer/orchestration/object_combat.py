@@ -18,6 +18,8 @@ from wayfarer.simulation.resources import Item, Record, ResourceEvent
 def effective_entry(play: PlayService, item: Item) -> EquipmentProfile:
     from wayfarer.orchestration.gurps_melee import catalog
 
+    if item.firearm_failure is not None and item.firearm_failure.kind == "destroyed":
+        raise ValidationError("Destroyed firearm has no usable weapon mode")
     entries = {e.definition_id: e for e in catalog(play).entries}
     entry = entries[item.definition_id]
     residual = residual_definition(entry.durability, item.condition)
@@ -210,7 +212,12 @@ def critical_breakage(
 
 
 def intercepting_shield(
-    play: PlayService, state: PlayState, encounter: Encounter, defense: CheckTrace | None
+    play: PlayService,
+    state: PlayState,
+    encounter: Encounter,
+    defense: CheckTrace | None,
+    *,
+    require_durable: bool = True,
 ) -> str | None:
     """B484: the DB must change an ordinary failed defense into success."""
     from wayfarer.orchestration.gurps_melee import catalog
@@ -246,7 +253,11 @@ def intercepting_shield(
     if not shields:
         return None
     bonus, item_id, durable = max(shields)
-    return item_id if durable and defense.total > defense.effective_target - bonus else None
+    return (
+        item_id
+        if (durable or not require_durable) and defense.total > defense.effective_target - bonus
+        else None
+    )
 
 
 def shield_damage(

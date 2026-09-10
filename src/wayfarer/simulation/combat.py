@@ -108,6 +108,8 @@ class InjuryTrace(Record):
     profile_id: Id
     rules_version: str
     critical_table: tuple[int, ...] = ()
+    malfunction_table: tuple[int, ...] = Field(default=(), exclude_if=lambda v: not v)
+    malfunction: str | None = Field(default=None, exclude_if=lambda v: v is None)
     adjudication_required: str | None = None
     location: HumanLocation | None = None
     location_dice: tuple[int, ...] = ()

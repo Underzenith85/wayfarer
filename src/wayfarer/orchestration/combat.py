@@ -63,6 +63,12 @@ class TakeCombatTurn(CombatCommand):
     shots: int = Field(default=1, ge=1, le=100)
     reload_ammunition_id: str | None = None
     unload_ammunition: bool = Field(default=False, exclude_if=lambda v: not v)
+    firearm_service: Literal["diagnose", "clear", "repair"] | None = Field(
+        default=None, exclude_if=lambda v: v is None
+    )
+    firearm_service_skill: Literal["weapon", "armoury"] = Field(
+        default="weapon", exclude_if=lambda v: v == "weapon"
+    )
     hit_location: HitLocation | None = None
     target_item_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
     ready_hand: Hand | Literal["both"] | None = None
@@ -263,6 +269,8 @@ class CombatService:
                             "shots": 1,
                             "reload_ammunition_id": None,
                             "unload_ammunition": False,
+                            "firearm_service": None,
+                            "firearm_service_skill": "weapon",
                             "destination": None,
                             "hex_path": (),
                             "hex_facing": None,
@@ -465,9 +473,28 @@ class CombatService:
                         command.parry_mode_id is not None
                         or command.second_parry_mode_id is not None
                     ):
-                        raise ValidationError(
-                            "Explicit parry damage modes are only supported against unarmed attacks"
-                        )
+                        from wayfarer.orchestration.gurps_melee import mode
+                        from wayfarer.simulation.gurps_equipment import MeleeMode
+
+                        pending = encounter.pending_defense
+                        if (
+                            engine.rules.gurps_equipment is None
+                            or pending is None
+                            or pending.spell_cast_id is not None
+                            or not isinstance(
+                                mode(
+                                    self.play,
+                                    state,
+                                    pending.attacker_id,
+                                    pending.weapon_id,
+                                    pending.mode_id,
+                                ),
+                                MeleeMode,
+                            )
+                        ):
+                            raise ValidationError(
+                                "Explicit parry damage modes require a melee or unarmed attack"
+                            )
                     encounter = prepare_defense(self.play, state, encounter, command)
                 if isinstance(command, MigrateEncounterHex):
                     from wayfarer.orchestration.tactical import migrate
@@ -915,6 +942,8 @@ class CombatService:
                                     "shots": 1,
                                     "reload_ammunition_id": None,
                                     "unload_ammunition": False,
+                                    "firearm_service": None,
+                                    "firearm_service_skill": "weapon",
                                     "item_id": None,
                                     "mode_id": None,
                                     "target_id": None,
@@ -1006,6 +1035,15 @@ class CombatService:
                             resources = unload_weapon(
                                 self.play,
                                 state.model_copy(update={"resources": resources}),
+                                command_for_turn,
+                            )
+                        if command_for_turn.firearm_service is not None:
+                            from wayfarer.orchestration.firearms import service
+
+                            resources = service(
+                                self.play,
+                                state.model_copy(update={"resources": resources}),
+                                encounter,
                                 command_for_turn,
                             )
                         from wayfarer.orchestration.location_combat import bind_ready_hand
@@ -1110,6 +1148,8 @@ class CombatService:
                             command.item_id,
                             command.second_defense,
                             command.second_item_id,
+                            parry_mode_id=command.parry_mode_id,
+                            second_parry_mode_id=command.second_parry_mode_id,
                         )
                         if selected_defense != "none":
                             state, allowed = exertion(
@@ -1125,7 +1165,12 @@ class CombatService:
                                 p for p in encounter.participants if p.actor_id == command.actor_id
                             )
                             _, used = defense_value(
-                                self.play, state, participant, selected_defense, command.item_id
+                                self.play,
+                                state,
+                                participant,
+                                selected_defense,
+                                command.item_id,
+                                parry_mode_id=command.parry_mode_id,
                             )
                             if used:
                                 state, encounter = stress(
@@ -1148,6 +1193,12 @@ class CombatService:
                             if selected_defense != "none"
                             else None,
                             second_item_id=command.second_item_id
+                            if selected_defense != "none"
+                            else None,
+                            parry_mode_id=command.parry_mode_id
+                            if selected_defense != "none"
+                            else None,
+                            second_parry_mode_id=command.second_parry_mode_id
                             if selected_defense != "none"
                             else None,
                         )

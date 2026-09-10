@@ -19,6 +19,7 @@ from wayfarer.character.statistics import (
 from wayfarer.errors import ValidationError
 from wayfarer.rules.catalog import DefinitionKind, RulesPackage
 from wayfarer.rules.conformance import require_capabilities
+from wayfarer.rules.firearm_types import FirearmSpec
 from wayfarer.rules.location_types import HumanLocation
 from wayfarer.rules.object_types import ObjectProfile
 from wayfarer.simulation.resources import EquipmentSpec, Id, Record, ResourceEngine, ResourceState
@@ -79,6 +80,13 @@ class MeleeMode(Record):
         return self
 
 
+class RatedStrength(Record):
+    """Explicit B270 weapon ST; never inferred from a skill or ammunition name."""
+
+    kind: Literal["bow", "crossbow"]
+    st: Positive
+
+
 class RangedMode(Record):
     kind: Literal["ranged"] = "ranged"
     id: Id
@@ -106,9 +114,22 @@ class RangedMode(Record):
     )
     scope_bonus: Nonnegative = Field(default=0, exclude_if=lambda value: value == 0)
     fixed_power_scope: bool = Field(default=False, exclude_if=lambda value: not value)
+    rated_strength: RatedStrength | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+    firearm: FirearmSpec | None = Field(default=None, exclude_if=lambda v: v is None)
 
     @model_validator(mode="after")
     def valid_range(self) -> Self:
+        if self.firearm is not None and (
+            self.thrown
+            or self.blockable
+            or self.rated_strength is not None
+            or self.damage.basis != "fixed"
+            or self.damage.tight_beam
+            or self.damage.damage_type not in ("pi-", "pi", "pi+", "pi++")
+        ):
+            raise ValueError("Malfunctions require an explicit conventional firearm mode")
         if self.half_damage_range is not None and self.half_damage_range > self.maximum_range:
             raise ValueError("Half-damage range exceeds maximum range")
         if self.thrown and self.reload_protocol != "magazine":
@@ -124,6 +145,20 @@ class RangedMode(Record):
             raise ValueError("Bipod bracing requires a two-handed weapon")
         if self.fixed_power_scope and not self.scope_bonus:
             raise ValueError("A fixed-power scope requires a scope bonus")
+        if self.rated_strength is not None and (
+            self.thrown
+            or self.shots != 1
+            or self.rate_of_fire != 1
+            or self.hands != 2
+            or self.range_basis != "st"
+            or self.damage.basis != "thrust"
+            or self.reload_protocol != "magazine"
+        ):
+            raise ValueError("Rated bows require two hands, ST range and single-shot thrust damage")
+        if self.rated_strength is not None and self.reload_seconds != (
+            2 if self.rated_strength.kind == "bow" else 4
+        ):
+            raise ValueError("Rated bows require their ordinary two- or four-second reload timing")
         return self
 
 
@@ -164,12 +199,17 @@ class EquipmentProfile(Record):
     critical_breakage: Literal["ordinary", "cheap", "resistant"] | None = Field(
         default=None, exclude_if=lambda v: v is None
     )
+    parry_quality: Literal["cheap", "good", "fine", "very-fine"] | None = Field(
+        default=None, exclude_if=lambda v: v is None
+    )
     container_capacity_millipounds: Nonnegative | None = Field(
         default=None, exclude_if=lambda v: v is None
     )
 
     @model_validator(mode="after")
     def valid_modes(self) -> Self:
+        if self.parry_quality is not None and (self.durability is None or not self.modes):
+            raise ValueError("Parry quality requires a durable weapon")
         if self.critical_breakage is not None and (self.durability is None or not self.modes):
             raise ValueError("Critical breakage requires a durable weapon")
         if len({mode.id for mode in self.modes}) != len(self.modes):
@@ -217,11 +257,24 @@ class EquipmentCatalog(Record):
                         raise ValueError(
                             "Residual modes require a pinned non-durable weapon definition"
                         )
+            if entry.parry_quality is not None and self.profile_id != "gurps-basic-set-4e-2004":
+                raise ValueError("Parry quality requires the exact Basic Set profile")
             if entry.critical_breakage is not None and self.profile_id != "gurps-basic-set-4e-2004":
                 raise ValueError("Critical breakage requires the exact Basic Set profile")
             if entry.durability is not None and entry.durability.profile_id != self.profile_id:
                 raise ValueError("Object durability requires the exact Basic Set profile")
             for mode in entry.modes:
+                if isinstance(mode, RangedMode) and mode.firearm is not None:
+                    if self.profile_id != "gurps-basic-set-4e-2004":
+                        raise ValueError("Firearm malfunctions require the exact Basic Set profile")
+                    if mode.firearm.technology_level != entry.technology_level:
+                        raise ValueError("Firearm and equipment technology levels must agree")
+                if isinstance(mode, RangedMode) and mode.rated_strength is not None:
+                    if self.profile_id != "gurps-basic-set-4e-2004":
+                        raise ValueError("Rated weapon ST requires the exact Basic Set profile")
+                    from wayfarer.character.statistics import damage
+
+                    damage(self.profile_id, mode.rated_strength.st)
                 if isinstance(mode, RangedMode) and mode.ammunition_id is not None:
                     ammo = entries.get(mode.ammunition_id)
                     if ammo is None or not ammo.ammunition:
@@ -252,6 +305,10 @@ class EquipmentCatalog(Record):
             ):
                 raise ValidationError("Equipment source mismatch")
             skills = [mode.skill_id for mode in entry.modes]
+            for mode in entry.modes:
+                if isinstance(mode, RangedMode) and mode.firearm is not None:
+                    if mode.firearm.armoury_skill_id is not None:
+                        skills.append(mode.firearm.armoury_skill_id)
             if entry.shield is not None:
                 skills.append(entry.shield.skill_id)
             for skill in skills:

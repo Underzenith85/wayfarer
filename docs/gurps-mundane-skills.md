@@ -1,86 +1,117 @@
 # Basic Set mundane skill inventory (#112)
 
-`rules/mundane_skills` is the item-level accounting for the Basic Set skill
-chapter (B168–B233), and `rules/mundane_skills/technology` holds the executable
-procedures #346 landed for its technology, science and vehicle rows.
-**Accounting a row and implementing its procedure still do not make a skill
-playable.** Every row keeps an explicit blocker, no row is available at runtime,
-and no campaign profile, package pin or saved character changes because of it.
+`rules/mundane_skills` accounts for the Characters skill chapter without making
+unimplemented procedures playable, and `rules/mundane_skills/technology` holds the
+executable procedures #346 landed for its technology, science and vehicle rows.
+Implementing a row's procedure does not make it playable either. The candidate
+package is `0.3.0`; no saved campaign pin or live representative definition
+changes.
 
-## Source boundary
+## Source boundary and completeness
 
-| Observed source | References | Reconciliation |
-| --- | --- | --- |
-| Characters, Fourth Edition, third printing | B168–B233 skill chapter and index | The frozen baseline is `gurps-4e-2004-first-printing+errata-2007-01-26`. Every row carries the `first-printing-delta-audit` blocker until #191 reconciles the printings. |
+The supplied **Characters, Fourth Edition, third printing (2008), ISBN
+978-1-55634-729-0** is the observed source. `source_index.json` records its SHA-256
+and independently indexes B301–B304, with explicit chapter expansions at
+B168–B233. This observation is not verification of the selected first-printing
+plus 2007-01-26 errata baseline. That reconciliation remains #336, using #191's
+audit machinery. No rulebook prose is bundled.
 
-Records hold identifiers, page references, controlling attribute, difficulty,
-numeric defaults, prerequisites and specialty metadata. No rulebook prose is
-bundled. Values not confirmed against the source stay absent and blocked rather
-than reconstructed into a runnable roll.
+| Source accounting | Entries |
+| --- | ---: |
+| Indexed skill listings, B301–B304 | 275 |
+| Named technique listings, B304 | 27 |
+| Explicit chapter examples and parent-specific expansions | 50 |
+| **Source index total** | **352** |
+
+The combined Combat Art or Sport listing maps to two candidate records. Thus
+352 source entries map to **353 records: 325 mundane and 28 transferred** to
+#119's inventory. 39 of the expansions are the concrete Boating, Driving,
+Piloting, Shiphandling, Submarine and Explosives specialties #346 records.
+Specialty families remain explicitly blocked where context or expansion is
+incomplete. These counts do not claim enumeration of every possible
+player-defined specialty.
+
+Index reconciliation rejects missing records, unindexed additions, overlapping
+transfers, invalid expansion parents and page drift. It runs when consumers load
+the inventory, including the source-certification report. The exclusion transfer
+also verifies names, pages and owners against the supernatural catalog.
 
 ## Accounting matrix
 
-`python -m scripts.audit_mundane_skills` emits this matrix from the inventory
-itself; the counts below are the current report, not a separate transcription.
+`python -m scripts.audit_mundane_skills` generates the report from the typed data.
 
-| Accounting group | Rows | Coverage decision |
+| Accounting group | Rows | Decision |
 | --- | ---: | --- |
-| Implemented procedures | 83 | A specific procedure resolves the row and dispatches into an existing authoritative service. The definition is still normalized to `unsupported`. |
-| Structured candidate definitions | 206 | Attribute, difficulty and recorded defaults exist, but no procedure resolves the row yet. |
-| Listing-only rows | 11 | Family, variable-scope and unexpanded entries whose mechanics are not recorded at all. They carry `metadata-audit` and cannot be mistaken for a definition. |
-| Transferred exclusions | 28 | Cinematic and supernatural skills owned by #119 with named follow-ups #242/#243 and #191. Exclusion from this inventory is not exclusion from the Basic Set. |
-| **Total accounted** | **328** | **No available row.** |
+| Implemented procedures | 83 | A specific procedure resolves the row and dispatches into an existing authoritative service. The definition stays unsupported. |
+| Structured candidate definitions | 214 | Unsupported; source/runtime blockers remain. |
+| Listing-only records | 28 | 23 technique templates and five variable families. |
+| Transferred cinematic/supernatural skills | 28 | Owned by #242/#243 and source audit #191. |
+| **Total accounted records** | **353** | **Zero available mundane candidates.** |
 
-Each row is also classified by the structure it actually records, so fixtures
-sample every class instead of the common shape only. Every class below must stay
-populated; an unsampled class fails `validate_inventory`.
+This revision fills the previously empty Aerobatics, Aquabatics, crewman, suit
+and weapon entries; records Weather Sense as a TL-dependent Meteorology alias;
+and accounts for Brain Hacking, Melee Weapon and every named technique. B208–B209
+weapon defaults include category cross-defaults. The scope of Force Sword's
+"any sword" default remains explicitly blocked. Brain Hacking's cross-package
+prerequisite, variable families and context-sensitive definitions remain blocked.
 
-| Structural class | Rows | Meaning |
-| --- | ---: | --- |
-| `attribute-default` | 224 | At least one numeric attribute default. |
-| `skill-default` | 18 | At least one default from another accounted-for skill. |
-| `no-default` | 63 | No default is recorded; a missing default is not an implied attribute default. |
-| `technology-level` | 123 | Records a TL-tagged entry. An implemented procedure supplies the B168 difference penalty; the rest still have no TL context. |
-| `unexpanded-specialty` | 57 | The row itself records no specialty. A family whose children exist elsewhere in the inventory still appears here, because the class reads one row's own structure; `validate_procedures` is what refuses an implemented family with no children. |
-| `listing-only` | 11 | No recorded mechanics. |
-| `required-specialty` | 54 | Expanded distinct specialty with no cross-specialty inference. |
-| `prerequisite` | 3 | Needs another trained skill. |
-| `technique` | 6 | Parent-relative technique, not an independent skill. |
-| `optional-specialty` | 1 | Optional specialty bound to its unspecialized parent. |
+The candidate package now owns its numeric data instead of inheriting it from
+live representative definitions. B230 Arm Lock (Judo) and B231 Kicking (Karate)
+are typed parent-relative techniques. A named template such as ST-based Neck Snap
+is not converted into an ordinary DX skill.
 
-## Ownership and remaining blockers
+| Structural class | Rows |
+| --- | ---: |
+| `attribute-default` | 227 |
+| `skill-default` | 44 |
+| `no-default` | 46 |
+| `technology-level` | 126 |
+| `unexpanded-specialty` | 59 |
+| `listing-only` | 28 |
+| `required-specialty` | 54 |
+| `prerequisite` | 3 |
+| `technique` | 6 |
+| `optional-specialty` | 1 |
+| `alias` | 1 |
+| `technique-template` | 23 |
 
-Item blockers name the issue that must resolve them, and those numbers reach the
-certification report directly: `source_audit` consumes each row with its own
-blockers and `unsupported`/`listing-only` state instead of one family status.
+Classes overlap. `no-default` means no default is recorded, not a claim that
+conditional defaults have been exhaustively verified. Fixtures sample every
+class with independently stated source expectations.
 
-| Blocker | Rows | Owner |
-| --- | ---: | --- |
-| `first-printing-delta-audit` | 300 | #191 printing/errata reconciliation; contextual definitions #336 |
-| `runtime-procedure` | 188 | #103, #109, #110, #111, #338, #356 where named; otherwise unassigned |
-| `conditional-or-skill-defaults` | 115 | #353 for the #346 group; otherwise unassigned |
-| `specialty-expansion` | 50 | #356 for the #346 group; otherwise unassigned |
-| `capability:gurps.vehicles.movement` | 45 | #358 |
-| `technology-level-context` | 44 | #356 for the #346 group; otherwise unassigned |
-| `weapon-default-audit` / `combat-procedure` | 18 | #103 |
-| `metadata-audit` | 11 | Unassigned |
-| `family-specialty-expansion` | 7 | Unassigned |
-| `prerequisite-procedure` | 7 | #353 for the #346 group; otherwise unassigned |
-| `variable-family-metadata` | 4 | Unassigned |
+## Remaining ownership
 
-170 of 300 rows currently name no mechanics owner beyond this audit. The report
-publishes that as `runtime_owner_unassigned`, so the gap is visible to #122
-rather than implied by a family-level "partial". Naming those owners requires
-dependency-linked follow-up issues and remains outstanding.
+Every mundane row retains #112 for accounting, #336 for source/context work,
+and a named procedure owner. The report maps each blocker to its owning issue;
+`runtime_owner_unassigned` is zero. Historical mechanics issue references are
+retained where previously recorded, but they do not replace the active owners.
+
+| Owner | Remaining scope |
+| --- | --- |
+| #336 | Printing/errata reconciliation; conditional defaults, prerequisites, TL, aliases, specialties, variable families and technique expansion/policy. |
+| #338 | Arts, crafts and trade procedures. |
+| #339 | Melee, defense and tactical skill procedures. |
+| #340 | Combat technique procedures and parent-specific dispatch. |
+| #341 | Knowledge, investigation and professional information procedures. |
+| #342 | Medicine and mental procedures. |
+| #343 | Physical, outdoor and animal procedures. |
+| #344 | Ranged combat skill procedures. |
+| #345 | Social skill procedures. |
+| #346 | Technology, science and vehicle procedures. |
+| #356 | Science, electronics and engineering specialty expansion, split out of #346. |
+| #358 | Vehicle movement and combat capability verification, split out of #346. |
+
+Each procedure follow-up lists its exact candidate IDs and must reuse existing
+authoritative services. Accounting completion does not certify those procedures.
 
 ## Implemented procedures (#346)
 
 `rules/mundane_skills/technology` implements the technology, science and vehicle
 group. A procedure is declared once per family and resolved for a specialty
-through its family and for a technique through its parent, so a family can never
+through its family and for a technique through its parent, so a family cannot
 drift from its children. Each one supplies a trusted target, typed modifiers, a
 repeated-attempt policy and an outcome quantity to a service that already exists;
-it never resolves the effect itself.
+it never resolves the effect itself, and scoring stays in `gurps_checks`.
 
 | Dispatch | Rows | What the service owns |
 | --- | ---: | --- |
@@ -95,45 +126,41 @@ B169 familiarity penalty. Handling is accepted only by a procedure that actually
 steers; passing it to any other is rejected rather than ignored. A caller's
 situational ruling stays a separate typed modifier in the receipt.
 
-Eight cross-reference rows became the concrete specialties they point at:
-Airshipman, Seamanship, Spacer and Submariner are Crewman (B185); Battlesuit,
-Diving Suit, NBC Suit and Vacc Suit are Environment Suit (B192). Boating,
-Driving, Piloting, Shiphandling, Submarine and Explosives gained their concrete
-specialty rows, and the four B230–B233 non-combat techniques of this group
-(Motion Picture Camera, No-Landing Extraction, Set Trap and Work by Touch) are
-recorded with a parent-specific default and cap.
+Boating, Driving, Piloting, Shiphandling, Submarine and Explosives gained their
+concrete specialty rows, and the four B233 non-combat techniques of this group
+(Motion-Picture Camera, No-Landing Extraction, Set Trap and Work by Touch) now
+record a parent-specific default and cap instead of a technique template.
 
-Thirteen scoped rows are not implemented here and are transferred, each with a
-concrete open blocker rather than silence:
+Clearing `runtime-procedure` is the only blocker an implemented procedure
+resolves. Contextual blockers stay with #336, every vehicle-control row keeps
+`capability:gurps.vehicles.movement` until #358 verifies that capability row, and
+thirteen scoped rows are transferred by moving their procedure owner rather than
+by guessing their specialties:
 
-| Rows | Blocker owner |
+| Rows | Procedure owner |
 | --- | --- |
 | Bioengineering, Biology, Current Affairs, Disguise, Electronics Operation, Electronics Repair, Engineer, Geography, Geology, Hazardous Materials, Mechanic, Paleontology | #356 — their specialty axis is a discipline, not a vehicle class |
-| Motion Picture Camera | #338 — its parent Photography belongs to the arts and trades group |
+| Motion-Picture Camera | #338 — its parent Photography belongs to the arts and trades group |
 
-Conditional and alternative defaults and prerequisites stay blocked on #353 for
-every row that records one, and every vehicle-control procedure additionally
-records `capability:gurps.vehicles.movement` until #358 verifies that capability
-row. `unsupported_scope()` publishes all of this to the scenario, character and
-LLM validators, so an unfinished row is refused by name and by owner.
+`unsupported_scope()` publishes every unplayable row with its blockers and their
+owners to the scenario, character and LLM validators.
 
-Exclusions are validated against the catalog that took them: each excluded skill
-must exist in the #119 inventory with the same page and the same follow-up
-issues. Drift there fails this audit instead of dropping the skill.
+## Validation and runtime contract
 
-## Runtime contract
+All candidates have unsupported status and no runtime hooks. `require_available`
+rejects unknown IDs, blocked rows and unsupported definitions even if their
+blocker list is mistakenly cleared. Scenario/character/LLM validation therefore
+cannot turn catalog presence into playable mechanics.
 
-`require_available` rejects every unknown identifier and every blocked row, and
-cleared blockers still cannot activate an unsupported definition. The candidate
-package `package:gurps-mundane-skill-candidates` is separate and immutable; its
-definitions carry no hooks, so scenario, character and LLM validators cannot
-turn an accounted-for row into a mechanic. An implemented procedure changes
-none of that: `require_available` still refuses `skill:driving-automobile` and
-`skill:vacc-suit`. `tests/test_mundane_skill_technology.py` pins the procedure
-expectations against `tests/fixtures/gurps/mundane_skill_technology.json`, whose
-targets, margins, outcomes and unit counts were worked out from the source rules
-rather than generated from the services under test.
-`tests/test_mundane_skills.py` fixes
-the structural classes, numeric default alternatives, specialty and prerequisite
-identities, owner propagation and the exclusion transfer independently of the
-audit report that consumes them.
+An implemented procedure changes none of that: `require_available` still refuses
+`skill:driving-automobile` and `skill:vacc-suit`.
+`tests/test_mundane_skill_technology.py` pins the procedure expectations against
+`tests/fixtures/gurps/mundane_skill_technology.json`, whose targets, margins,
+outcomes and unit counts were worked out from the source rules rather than
+generated from the services under test.
+
+Reference checks cover defaults, prerequisites, specialty/technique parents,
+aliases and source-index targets. Prerequisite, technique and alias cycles fail;
+valid reciprocal defaults remain source data. Tests independently assert numeric
+suit/crewman/weapon defaults, technique caps and pages, the complete source-index
+classes, deletion detection, owner propagation and exclusion transfer integrity.

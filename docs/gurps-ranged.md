@@ -13,7 +13,7 @@ specified numeric expectations, not a claim of source certification.
 | Behavior | Implementation and evidence |
 | --- | --- |
 | Scene modifiers | GM StartEncounter declares directed distance in yards, speed in yards/second and size modifier. Shots use the speed/range table, maximum and half-damage ranges. Missing declarations reject. With #115's selected hex adapter, attacks recalculate distance from current poses; declared-only movement rejects. |
-| Weapon selection | Exact trained/default skill, minimum-ST penalty, explicit ranged mode, individual ready item and existing hand/grip validation. |
+| Weapon selection | Exact trained/default skill, minimum-ST penalty, explicit ranged mode, individual ready item and existing hand/grip validation. Basic catalogs may opt into `rated_strength` for bows/crossbows: damage and ST-multiplied ranges use the weapon rating. Bows above the wielder's effective (fatigue-adjusted) ST reject before dice, including Aim. |
 | Aim and maneuvers | Matching weapon/mode/target gains Acc and up to two extra seconds. Move and Attack uses the worse of Bulk or -2, without melee's cap; ranged All-Out Attack (Determined) gives +1. Other ranged All-Out options reject. |
 | Reload | Ready plus `reload_ammunition_id` and `mode_id` advances the catalog's reload timer; partial progress survives interruptions/restarts. Ordinary Ready never creates ammunition. Legacy catalogs retain magazine loading. Basic catalogs may explicitly select `per-round`: each completed timer reserves one round; firing available rounds cancels unfinished round-loading work. |
 | Unload | Basic Ready with `unload_ammunition=true` releases a magazine reservation, including interrupted reload progress. It is separate from loading, allowing a later source switch; owned inventory quantities never change. Individual-round unloading rejects pending its own timing protocol. |
@@ -25,6 +25,22 @@ specified numeric expectations, not a claim of source certification.
 | Critical results | Single-projectile Basic critical hits use B556 body/head damage, DR, major-wound, shock, eye and held-item effects. Head scarring/deafness uses the shared lasting-injury reducer. Ranged critical misses resolve balance (7/13/16), unreadiness (8/12), drops (9/10/11/14), self-wounds (5/6, including the mandatory one-time ranged reroll), and timed wielding-arm strain (15). Armed thrown-Parry failures use the parrying weapon and defender; their 16 falls prone, while ranged attack 16 only loses balance. A failed Parry still permits incoming damage. Breakage (3/4/17/18 and cheap-weapon drops) requires pinned durability and `critical_breakage` metadata. Resistant weapons get the B556 confirmation roll; a non-break result drops the weapon. A rapid-fire critical rolls the B556 table once and applies it to a single projectile of the burst: that projectile takes the table's damage multiplier, maximum damage, forced major wound, shock, eye redirection and held-item consequences, and the burst's remaining projectiles are ordinary hits at the declared or separately rolled location. One-shot critical-hit consequences (dropped held items and the forced Do Nothing) still apply once per attack. Missing anatomy/grips and unspecified breakage data remain paused. B382 excludes ranged attacks from failure-by-ten critical misses. |
 | Critical persistence | `ranged-critical-v1` resource events retain the table/result trace, pre-resolution combatants, equipment catalog, selected mode, build revisions, scene, ammunition load, inventory and pools inside the existing command CAS. New records also retain the complete ordered table-roll chain (including self-hit and breakage rerolls), the roll subject and affected weapon. Retried commands return the saved receipt. Unresolved contexts do not claim completed consequences. |
 | Evidence | `tests/test_gurps_ranged.py`: numeric thrown/bow/burst fixtures, modifier boundaries, independent per-hit damage, minimum ST, defense filtering, reload interruption/restart, lost-response retries and reservation conservation. `tests/test_ranged_critical_bursts.py`: burst critical hits, undefended criticals, single-projectile redirection and restart/retry receipts. |
+
+`tests/test_rated_projectiles.py` adds independent Characters third-printing
+B16/B270 and Campaigns fourth-printing B378 cases. Half damage starts **at**
+the listed 1/2D range, rounding down. Rated crossbows reload in four Ready
+maneuvers at or below the wielder's effective ST, or eight at one or two ST
+above it. Interruptions and retries preserve progress without duplicating rounds.
+At three or four ST above the wielder, reloading rejects pending the explicit
+cocking-aid/standing protocol tracked with #286; at five or more it rejects as
+impossible. A loaded crossbow retains its rated damage when the wielder tires.
+Ordinary bow reload remains two Ready maneuvers; Fast-Draw and draw/hold state
+remain #286. Ratings are explicit Basic-only catalog metadata, with listed
+damage-table rows validated when the catalog loads. Existing catalogs omit the
+new field and retain their existing ST basis and reload timers. To adopt weapon
+ratings, publish and explicitly select a new pinned catalog revision; saved
+definitions are not inferred or rewritten. Authoring and scenario schemas expose
+the new metadata; the frozen player command contract is unchanged.
 
 Additional numeric regression evidence is in `tests/test_ranged_followups.py`,
 checked against Campaigns fourth printing, B373, B376, B382, B399-400 and
@@ -44,12 +60,12 @@ ordinary drop semantics are retained, while break results remain paused.
 
 Burst critical hits are implemented here, with independent evidence in
 `tests/test_ranged_critical_bursts.py` (Campaigns fourth printing B373, B399,
-B556). #173 remains open for complete firearm malfunction precedence and catalog
-facts: the ledger's `malfunction` behaviour stays unsupported because #180's
-firearms section records no pinned row, so no audited weapon can carry a
-malfunction number, and the table's own printing reconciliation stays with #191.
-A malfunction number must not be inferred from a skill name, damage type or
-existing recoil data. Named follow-ups retain the other required scope:
+B556). #173 now supplies [opt-in conventional firearm malfunctions](gurps-firearms.md):
+B407 precedence, single-shot stoppages, retained misfires, diagnosis, clearing,
+and mechanical repair with persisted consequences and receipts. Catalog auditing
+remains #180, low-TL/exotic malfunction variants remain #371; printing reconciliation
+remains #191. No malfunction number is inferred from a skill or damage type.
+Named follow-ups retain the other required scope:
 #286 owns individual-round unloading, Fast-Draw and bow draw/hold fatigue;
 #287 owns bare-handed catches and thrown-item battlefield recovery. Those
 protocols require additional typed skill, weapon readiness, and ground-item state;

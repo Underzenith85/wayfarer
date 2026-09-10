@@ -21,6 +21,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from wayfarer.errors import ValidationError
 from wayfarer.rules.catalog import DefinitionKind, RulesPackage
 from wayfarer.rules.conformance import CAPABILITIES, PROFILES
+from wayfarer.rules.firearm_types import FirearmSpec
 from wayfarer.rules.profiles import (
     GURPS_CAMPAIGNS_PACKAGE,
     GURPS_CHARACTERS_PACKAGE,
@@ -37,6 +38,7 @@ from wayfarer.simulation.gurps_equipment import (
     Parry,
     Provenance,
     RangedMode,
+    RatedStrength,
     Shield,
 )
 
@@ -48,7 +50,18 @@ EQUIPMENT_ISSUE = 180
 PROFILE_FIELD_ISSUE = 101
 """Origin of the weapon/armor profile field verification carried forward into #180."""
 
-AUDITED_MODELS = (Provenance, Damage, Parry, MeleeMode, RangedMode, Armor, Shield, EquipmentProfile)
+AUDITED_MODELS = (
+    Provenance,
+    Damage,
+    Parry,
+    MeleeMode,
+    RangedMode,
+    RatedStrength,
+    FirearmSpec,
+    Armor,
+    Shield,
+    EquipmentProfile,
+)
 """Every equipment schema model whose fields require a declared unit and source anchor."""
 
 PINNED_PACKAGES: tuple[RulesPackage, ...] = (

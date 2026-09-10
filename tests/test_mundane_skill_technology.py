@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 from dataclasses import replace
 from pathlib import Path
-from typing import Any, cast
+from typing import cast
 
 import pytest
 
@@ -19,6 +19,7 @@ from wayfarer.rules.checks import Modifier, ModifierKind, RecordedDice
 from wayfarer.rules.conformance import BASELINE_ID
 from wayfarer.rules.mundane_skills import (
     PROFILE,
+    SkillAudit,
     audit_report,
     inventory,
     require_available,
@@ -42,39 +43,50 @@ SCOPE = (
     "seamanship set-trap shiphandling spacer submarine submariner traps vacc-suit work-by-touch"
 ).split()
 # The concrete open issues every unimplemented scoped row is transferred to.
-CHILD_BLOCKERS = {338, 353, 356, 358}
+CHILD_BLOCKERS = {338, 356}
 
 
-def load_cases() -> list[dict[str, Any]]:
+Case = dict[str, object]
+
+
+def load_cases() -> list[Case]:
     data = json.loads(FIXTURE.read_text())
     assert data["baseline_id"] == BASELINE_ID
     assert data["profile"] == PROFILE
-    return cast(list[dict[str, Any]], data["cases"])
+    return cast(list[Case], data["cases"])
 
 
-def definitions() -> dict[str, Any]:
+def field(case: Case, name: str) -> Case:
+    return cast(Case, case[name])
+
+
+def definitions() -> dict[str, SkillAudit]:
     return {entry.id: entry for entry in inventory()}
 
 
-def operator_and_task(case: dict[str, Any]) -> tuple[tech.Operator, tech.Task]:
-    given = case["input"]
+def operator_and_task(case: Case) -> tuple[tech.Operator, tech.Task]:
+    given = field(case, "input")
+    parent = given.get("parent_level")
     operator = tech.Operator(
-        case["skill_id"],
-        given["level"],
-        given["operator_tl"],
-        frozenset(given.get("trained", ())),
-        given.get("parent_level"),
+        cast(str, case["skill_id"]),
+        cast(int, given["level"]),
+        cast(int, given["operator_tl"]),
+        frozenset(cast(list[str], given.get("trained", []))),
+        cast(int, parent) if parent is not None else None,
     )
-    return operator, tech.Task(given["task_tl"], given["familiar"], given["handling"])
+    return operator, tech.Task(
+        cast(int, given["task_tl"]), cast(bool, given["familiar"]), cast(int, given["handling"])
+    )
 
 
 @pytest.mark.parametrize("case", load_cases(), ids=lambda case: str(case["id"]))
-def test_procedure_cases_match_hand_entered_expectations(case: dict[str, Any]) -> None:
-    entry = definitions()[case["skill_id"]]
+def test_procedure_cases_match_hand_entered_expectations(case: Case) -> None:
+    entry = definitions()[cast(str, case["skill_id"])]
     assert entry.definition is not None
     operator, task = operator_and_task(case)
-    result = tech.attempt(entry.definition, operator, task, rng=RecordedDice(case["input"]["dice"]))
-    expected = case["expected"]
+    dice = cast(list[int], field(case, "input")["dice"])
+    result = tech.attempt(entry.definition, operator, task, rng=RecordedDice(dice))
+    expected = field(case, "expected")
     assert result.procedure_id == expected["procedure"]
     assert result.dispatch.value == expected["dispatch"]
     assert result.effect.value == expected["effect"]
@@ -85,7 +97,7 @@ def test_procedure_cases_match_hand_entered_expectations(case: dict[str, Any]) -
     assert result.units == expected["units"]
     assert result.unit == expected["unit"]
     assert result.hazard is expected["hazard"]
-    assert result.succeeded is expected["outcome"].endswith("success")
+    assert result.succeeded == (expected["outcome"] in {"success", "critical-success"})
     assert list(result.activation_blockers) == expected["activation_blockers"]
     # A recorded attempt re-scores to the identical receipt and never rerolls.
     assert tech.replay(entry.definition, result) == result
@@ -95,15 +107,14 @@ def test_every_case_binds_a_source_reference_and_a_scoped_row() -> None:
     cases = load_cases()
     assert len({case["id"] for case in cases}) == len(cases)
     for case in cases:
-        assert case["reference"].startswith("B")
-        assert case["note"] if "note" in case else True
+        assert cast(str, case["reference"]).startswith("B")
         assert case["skill_id"] in definitions()
     # Every dispatch target and effect the procedure catalog declares is exercised.
-    covered = {case["expected"]["dispatch"] for case in cases}
+    covered = {field(case, "expected")["dispatch"] for case in cases}
     assert covered == {member.value for member in tech.Dispatch}
-    effects = {case["expected"]["effect"] for case in cases}
+    effects = {field(case, "expected")["effect"] for case in cases}
     assert effects == {member.value for member in tech.Effect}
-    outcomes = {case["expected"]["outcome"] for case in cases}
+    outcomes = {field(case, "expected")["outcome"] for case in cases}
     assert outcomes == {"critical-success", "success", "failure", "critical-failure"}
 
 
@@ -116,8 +127,10 @@ def test_the_named_scope_is_implemented_or_transferred_to_an_open_child() -> Non
             assert entry.implementation == "implemented"
             assert tech.OWNER in entry.followup_issues
         else:
-            transferred = CHILD_BLOCKERS.intersection(entry.followup_issues)
-            assert transferred, f"{entry.id} has no concrete child blocker"
+            # The row's own procedure owner is the concrete open child that must
+            # implement it, not this issue.
+            assert entry.procedure_owner in CHILD_BLOCKERS, entry.id
+            assert entry.procedure_owner in entry.followup_issues
         # Nothing in this group may activate while its source review is open.
         assert not entry.available
         assert "first-printing-delta-audit" in entry.blockers
@@ -288,13 +301,17 @@ def test_unsupported_scope_names_owners_for_every_unplayable_row() -> None:
     driving = rows["skill:driving-automobile"]
     assert driving["implementation"] == "implemented"
     assert driving["procedure"] == "procedure:driving"
-    # The implemented procedure still names the capability row gating activation.
+    # The implemented procedure still names the capability row gating activation,
+    # and that blocker is owned by the child that must verify it.
+    owners = cast(dict[str, tuple[int, ...]], driving["blocker_owners"])
     assert "capability:gurps.vehicles.movement" in cast(list[str], driving["blockers"])
-    assert 358 in cast(list[int], driving["owners"])
+    assert owners["capability:gurps.vehicles.movement"] == (tech.CAPABILITY_OWNER,)
     mechanic = rows["skill:mechanic"]
     assert mechanic["implementation"] == "unsupported"
     assert mechanic["procedure"] is None
-    assert 356 in cast(list[int], mechanic["owners"])
+    assert cast(dict[str, tuple[int, ...]], mechanic["blocker_owners"])["runtime-procedure"] == (
+        356,
+    )
 
 
 def test_activation_blockers_track_the_capability_registry() -> None:

@@ -8,7 +8,7 @@ import hashlib
 import json
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.rules.checks import CheckTrace, RandomSource
+from wayfarer.rules.checks import CheckTrace, Modifier, RandomSource
 from wayfarer.rules.fright import FrightEffect
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.simulation.fatigue import FatigueCost, apply_fatigue
@@ -51,6 +51,60 @@ def effects(state: ResourceState) -> tuple[TimedFright, ...]:
     return tuple(latest.values())
 
 
+def public_id(item: TimedFright) -> str:
+    """An opaque reference that cannot disclose an authored NPC occurrence ID."""
+    return hashlib.sha256(item.id.encode()).hexdigest()
+
+
+def projection(
+    state: ResourceState, actor_ids: tuple[str, ...], *, director: bool = False
+) -> tuple[dict[str, object], ...]:
+    """Expose consequences and required decisions, never their hidden cause or rolls."""
+    result: list[dict[str, object]] = []
+    for item in effects(state):
+        if not director and item.actor_id not in actor_ids:
+            continue
+        effect = item.effect
+        choices: list[dict[str, object]] = []
+        if effect.trait_choice != "none":
+            choices.append({"kind": effect.trait_choice, "points": effect.trait_points})
+        for attribute, loss in (("ht", effect.permanent_ht_loss), ("iq", effect.permanent_iq_loss)):
+            if loss:
+                choices.append(
+                    {"kind": "permanent-attribute-loss", "attribute": attribute, "loss": loss}
+                )
+        aftermath = item.aftermath_until is not None and state.game_time < item.aftermath_until
+        if not (item.active or choices or aftermath):
+            continue
+        value: dict[str, object] = {
+            "id": public_id(item),
+            "actor_id": item.actor_id,
+            "condition": effect.condition if item.active else "none",
+            "active": item.active,
+            "choices": tuple(choices),
+            "build_approval_required": bool(choices),
+            "aftermath_until": item.aftermath_until if aftermath else None,
+            "aftermath_penalty": effect.aftermath_penalty if aftermath else 0,
+            "panic_response_required": item.active and effect.condition == "panic",
+            "care_required": item.active and effect.neglect_progression,
+        }
+        if director:
+            value.update(
+                {
+                    "care": item.care,
+                    "panic_severity": effect.panic_severity,
+                    "panic_responses": item.panic_responses,
+                    "decision_kinds": ("care",)
+                    if item.active and effect.neglect_progression
+                    else ("panic-response",)
+                    if item.active and effect.table_total == 33
+                    else (),
+                }
+            )
+        result.append(value)
+    return tuple(result)
+
+
 def save(state: ResourceState, item: TimedFright, command_id: str) -> ResourceState:
     return state.model_copy(
         update={
@@ -86,13 +140,45 @@ def can_defend(state: ResourceState, actor_id: str) -> bool:
     )
 
 
-def requires_adjudication(state: ResourceState, actor_id: str) -> bool:
+def aftermath_penalty(state: ResourceState, actor_id: str) -> int:
+    """B361: recovered coma/catatonia penalizes skill and attribute checks.
+
+    This is a check modifier, not a reduction of purchased attributes, damage,
+    resource maxima, reaction totals, self-control ratings or active defenses.
+    Each independent episode retains its own expiration in the event ledger.
+    """
+    return sum(m.value for m in aftermath_modifiers(state, actor_id))
+
+
+def aftermath_modifiers(state: ResourceState, actor_id: str) -> tuple[Modifier, ...]:
+    return tuple(
+        Modifier(
+            item.effect.aftermath_penalty,
+            "Fright aftermath",
+            item.id,
+            "Basic Set Campaigns 4e B361",
+        )
+        for item in effects(state)
+        if item.actor_id == actor_id
+        and not item.active
+        and item.aftermath_until is not None
+        and state.game_time < item.aftermath_until
+    )
+
+
+def requires_adjudication(
+    state: ResourceState, actor_id: str, *, handles_aftermath: bool = False
+) -> bool:
     return any(
         item.actor_id == actor_id
         and (
             item.effect.permanent_ht_loss
             or item.effect.permanent_iq_loss
-            or (item.aftermath_until is not None and state.game_time < item.aftermath_until)
+            or (
+                not handles_aftermath
+                and item.aftermath_until is not None
+                and state.game_time < item.aftermath_until
+            )
         )
         for item in effects(state)
     )
@@ -136,7 +222,7 @@ def apply_effect(
                 damage_type="cr",
                 injury_source="internal",
             ),
-            ht=ht,
+            ht=ht + aftermath_penalty(state, actor_id),
             rng=rng,
             system=True,
         )
@@ -149,7 +235,7 @@ def apply_effect(
                 expected_revision=state.revision,
                 amount=effect.fp_loss,
             ),
-            ht=ht,
+            ht=ht + aftermath_penalty(state, actor_id),
             rng=rng,
             system=True,
         )
@@ -217,7 +303,7 @@ def recover(
                         damage_type="cr",
                         injury_source="internal",
                     ),
-                    ht=item.recovery_target,
+                    ht=item.recovery_target + aftermath_penalty(state, actor_id),
                     rng=rng,
                     system=True,
                 )
@@ -244,10 +330,26 @@ def recover(
         else success_roll(
             "gurps-basic-set-4e-2004",
             item.recovery_target,
+            aftermath_modifiers(state, actor_id),
             rng=rng,
         )
     )
     passed = check is None or check.outcome.succeeded
+    if passed and effect.condition == "retching":
+        # B428: the FP loss occurs when retching ends, not when it starts or
+        # on each failed recovery check. The enclosing receipt makes it once-only.
+        state, _ = apply_fatigue(
+            state,
+            FatigueCost(
+                id="fright-retching:" + command_id,
+                actor_id=actor_id,
+                expected_revision=state.revision,
+                amount=1,
+            ),
+            ht=item.recovery_target + aftermath_penalty(state, actor_id),
+            rng=rng,
+            system=True,
+        )
     interval = effect.recovery_interval_seconds
     if not passed and effect.repeat_duration_dice:
         interval = sum(rng.randbelow(6) + 1 for _ in range(effect.repeat_duration_dice))

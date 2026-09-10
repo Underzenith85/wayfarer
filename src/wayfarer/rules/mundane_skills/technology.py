@@ -51,7 +51,10 @@ FAMILIARITY_PENALTY: Final = -2
 # B168 technology level: using a TL-tagged skill at another TL costs one point of
 # effective skill per level of difference, in either direction.
 TECHNOLOGY_LEVEL_PENALTY: Final = -1
+# The capability rows the vehicle procedures need before live play may offer
+# them, and the concrete open issue that must verify those rows (#358).
 VEHICLE_ACTIVATION: Final = ("gurps.vehicles.movement",)
+CAPABILITY_OWNER: Final = 358
 
 
 class Dispatch(StrEnum):

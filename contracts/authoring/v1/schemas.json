@@ -3128,6 +3128,24 @@
             "default": null,
             "title": "Critical Breakage"
           },
+          "parry_quality": {
+            "anyOf": [
+              {
+                "enum": [
+                  "cheap",
+                  "good",
+                  "fine",
+                  "very-fine"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Parry Quality"
+          },
           "container_capacity_millipounds": {
             "anyOf": [
               {
@@ -3242,6 +3260,162 @@
           "profile_id"
         ],
         "title": "FatigueStatus",
+        "type": "object"
+      },
+      "FirearmFailure": {
+        "additionalProperties": false,
+        "properties": {
+          "mode_id": {
+            "minLength": 1,
+            "title": "Mode Id",
+            "type": "string"
+          },
+          "cause_id": {
+            "minLength": 1,
+            "title": "Cause Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "misfire",
+              "stoppage",
+              "mechanical",
+              "destroyed"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "diagnosed": {
+            "default": false,
+            "title": "Diagnosed",
+            "type": "boolean"
+          },
+          "blocked_round": {
+            "default": false,
+            "title": "Blocked Round",
+            "type": "boolean"
+          },
+          "progress": {
+            "default": 0,
+            "maximum": 3599,
+            "minimum": 0,
+            "title": "Progress",
+            "type": "integer"
+          },
+          "service_actor_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Service Actor Id"
+          },
+          "service_kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "clear",
+                  "repair"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Service Kind"
+          },
+          "service_skill": {
+            "anyOf": [
+              {
+                "enum": [
+                  "weapon",
+                  "armoury"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Service Skill"
+          }
+        },
+        "required": [
+          "mode_id",
+          "cause_id",
+          "kind"
+        ],
+        "title": "FirearmFailure",
+        "type": "object"
+      },
+      "FirearmSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "technology_level": {
+            "maximum": 12,
+            "minimum": 5,
+            "title": "Technology Level",
+            "type": "integer"
+          },
+          "action": {
+            "enum": [
+              "repeating",
+              "revolver"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "quality": {
+            "default": "ordinary",
+            "enum": [
+              "cheap",
+              "ordinary",
+              "fine",
+              "very-fine"
+            ],
+            "title": "Quality",
+            "type": "string"
+          },
+          "malfunction_override": {
+            "anyOf": [
+              {
+                "maximum": 19,
+                "minimum": 3,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Malfunction Override"
+          },
+          "armoury_skill_id": {
+            "anyOf": [
+              {
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Armoury Skill Id"
+          }
+        },
+        "required": [
+          "technology_level",
+          "action"
+        ],
+        "title": "FirearmSpec",
         "type": "object"
       },
       "GenerationBrief": {
@@ -3977,6 +4151,17 @@
             "anyOf": [
               {
                 "$ref": "#/$defs/GroundPosition"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "firearm_failure": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/FirearmFailure"
               },
               {
                 "type": "null"
@@ -5695,6 +5880,28 @@
             "default": false,
             "title": "Fixed Power Scope",
             "type": "boolean"
+          },
+          "rated_strength": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/RatedStrength"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "firearm": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/FirearmSpec"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           }
         },
         "required": [
@@ -5710,6 +5917,31 @@
           "bulk"
         ],
         "title": "RangedMode",
+        "type": "object"
+      },
+      "RatedStrength": {
+        "additionalProperties": false,
+        "description": "Explicit B270 weapon ST; never inferred from a skill or ammunition name.",
+        "properties": {
+          "kind": {
+            "enum": [
+              "bow",
+              "crossbow"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "st": {
+            "minimum": 1,
+            "title": "St",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "st"
+        ],
+        "title": "RatedStrength",
         "type": "object"
       },
       "RecoveryOption": {

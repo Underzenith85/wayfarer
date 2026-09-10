@@ -9,7 +9,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from wayfarer.errors import ValidationError
-from wayfarer.rules.checks import CheckTrace, Outcome, RandomSource
+from wayfarer.rules.checks import CheckTrace, Modifier, Outcome, RandomSource
 from wayfarer.rules.gurps_checks import success_roll
 
 
@@ -40,7 +40,9 @@ class FrightEffect(BaseModel):
     checks: tuple[CheckTrace, ...] = ()
 
 
-def fright_effect(total: int, ht: int, *, rng: RandomSource) -> FrightEffect:
+def fright_effect(
+    total: int, ht: int, *, rng: RandomSource, check_modifiers: tuple[Modifier, ...] = ()
+) -> FrightEffect:
     if type(total) is not int or total < 4 or type(ht) is not int or ht < 1:
         raise ValidationError("Invalid fright consequence inputs")
     dice: list[int] = []
@@ -52,7 +54,7 @@ def fright_effect(total: int, ht: int, *, rng: RandomSource) -> FrightEffect:
         return sum(values)
 
     def health() -> CheckTrace:
-        check = success_roll("gurps-basic-set-4e-2004", ht, rng=rng)
+        check = success_roll("gurps-basic-set-4e-2004", ht, check_modifiers, rng=rng)
         checks.append(check)
         return check
 

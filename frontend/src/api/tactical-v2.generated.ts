@@ -336,6 +336,17 @@ export interface components {
        */
       unload_ammunition: boolean;
       /**
+       * Firearm Service
+       * @default null
+       */
+      firearm_service: ("diagnose" | "clear" | "repair") | null;
+      /**
+       * Firearm Service Skill
+       * @default weapon
+       * @enum {string}
+       */
+      firearm_service_skill: "weapon" | "armoury";
+      /**
        * Hit Location
        * @default null
        */
