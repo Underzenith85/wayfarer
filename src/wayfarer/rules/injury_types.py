@@ -5,11 +5,16 @@ from typing import Literal, Self
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from wayfarer.rules.location_types import InjuryTolerance, LastingInjury
+from wayfarer.rules.physical_traits import NO_PHYSICAL_TRAITS, PhysicalTraits, SurpriseState
 
 
 class InjuryStatus(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
     profile_id: Literal["gurps-lite-4e-2004", "gurps-basic-set-4e-2004"]
+    physical_traits: PhysicalTraits = Field(
+        default=NO_PHYSICAL_TRAITS, exclude_if=lambda v: v == NO_PHYSICAL_TRAITS
+    )
+    surprise: SurpriseState | None = Field(default=None, exclude_if=lambda v: v is None)
     shock: int = Field(default=0, ge=0, le=8)
     stunned: bool = False
     prone: bool = False
@@ -28,6 +33,11 @@ class InjuryStatus(BaseModel):
 
     @model_validator(mode="after")
     def anatomy_consistent(self) -> Self:
+        if (
+            self.physical_traits != NO_PHYSICAL_TRAITS
+            and self.profile_id != "gurps-basic-set-4e-2004"
+        ):
+            raise ValueError("Physical traits require their exact Basic Set profile")
         if self.tolerance is not None and (
             self.anatomy != "human" or self.profile_id != "gurps-basic-set-4e-2004"
         ):

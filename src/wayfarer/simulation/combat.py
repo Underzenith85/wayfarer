@@ -62,6 +62,7 @@ class Battlefield(Record):
     width: int = Field(ge=1, le=1000)
     height: int = Field(ge=1, le=1000)
     blocked: tuple[GridPoint, ...] = ()
+    darkness_penalty: int = Field(default=0, ge=-10, le=0, exclude_if=lambda v: v == 0)
 
     @model_validator(mode="after")
     def validate_grid(self) -> Battlefield:
@@ -236,6 +237,7 @@ class Encounter(Record):
     version: Literal[1, 2] = Field(default=1, exclude_if=lambda v: v == 1)
     scene_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
     battlefield_id: Id
+    darkness_penalty: int = Field(default=0, ge=-10, le=0, exclude_if=lambda v: v == 0)
     status: Literal["active", "completed"] = "active"
     participants: tuple[Combatant, ...] = Field(min_length=2)
     turn_order: tuple[str, ...] = Field(min_length=2)
@@ -478,6 +480,7 @@ class CombatEngine:
             p.actor_id for p in sorted(participants, key=lambda p: (-p.initiative, p.actor_id))
         )
         encounter = Encounter(
+            darkness_penalty=self.battlefields[battlefield_id].darkness_penalty,
             id=encounter_id,
             battlefield_id=battlefield_id,
             participants=participants,

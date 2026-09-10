@@ -627,6 +627,7 @@ def apply_spell(
                 actor_id=command.actor_id,
                 expected_revision=state.revision,
                 amount=fp_cost,
+                power=True,
             ),
             ht=context.ht,
             rng=rng,

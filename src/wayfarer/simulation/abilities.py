@@ -335,6 +335,7 @@ def apply_ability(
                 expected_revision=resources.revision,
                 amount=cost,
                 cause="ordinary",
+                power=True,
             ),
             ht=context.ht,
             rng=rng,

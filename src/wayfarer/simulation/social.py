@@ -190,10 +190,11 @@ def apply_social(
         details = asdict(influence) | recognition
     elif command.kind == "fright":
         from wayfarer.simulation.fright import aftermath_modifiers
+        from wayfarer.simulation.physical_traits import physical_traits
 
         fright = fright_roll(
             context.profile_id,
-            context.target,
+            context.target + 2 * int(physical_traits(state, command.subject_id).combat_reflexes),
             rng=rng,
             ht=context.ht,
             check_modifiers=aftermath_modifiers(state, command.subject_id),
