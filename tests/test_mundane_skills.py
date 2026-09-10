@@ -305,6 +305,7 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         344,
         345,
         346,
+        353,
         354,
         355,
         356,
@@ -314,6 +315,11 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         360,
         361,
         362,
+        366,
+        367,
+        368,
+        369,
+        370,
     )
     with pytest.raises(ValidationError, match="outside the selected profile"):
         coverage_blockers("gurps-lite-4e-2004")
@@ -334,6 +340,7 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         344,
         345,
         346,
+        353,
         354,
         355,
         356,
@@ -343,13 +350,34 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         360,
         361,
         362,
+        366,
+        367,
+        368,
+        369,
+        370,
     ]
     assert report["runtime_owner_unassigned"] == 0
     assert report["implementation_counts"] == {
-        "implemented": 95,
+        # 12 ranged (#344), 16 social (#345) and 83 technology (#346) rows
+        # dispatch a real procedure.
+        "implemented": 111,
         "listing-only": 28,
-        "unsupported": 209,
+        "unsupported": 193,
     }
+    # A bound row can still leave part of its entry to another issue; that gap is
+    # published rather than folded into the blocker list.
+    scope = report["transferred_procedure_scope"]
+    assert isinstance(scope, list)
+    assert {str(row["skill"]) for row in scope} == {
+        "skill:carousing",
+        "skill:interrogation",
+        "skill:leadership",
+        "skill:panhandling",
+        "skill:performance",
+        "skill:public-speaking",
+        "skill:teaching",
+    }
+    assert all(row["owner_issue"] in (368, 369, 370) and row["detail"] for row in scope)
     counts = report["structural_class_counts"]
     assert isinstance(counts, dict) and counts["listing-only"] == 28
 

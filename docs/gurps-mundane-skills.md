@@ -9,6 +9,7 @@ only when a runtime module binds it to a service that already resolves it and a
 **new** package pin carries that definition; the candidate package here stays
 separate, immutable and hookless. See
 [Ranged combat procedures](#ranged-combat-procedures-344) and
+[Social procedures](#social-procedures-345) and
 [Technology, science and vehicle procedures](#technology-science-and-vehicle-procedures-346)
 for the groups bound this way.
 
@@ -48,8 +49,8 @@ also verifies names, pages and owners against the supernatural catalog.
 
 | Accounting group | Rows | Decision |
 | --- | ---: | --- |
-| Structured candidate definitions | 209 | Unsupported; source/runtime blockers remain. |
-| Bound runtime procedures | 95 | Implemented and dispatched by #344 and #346; still blocked by the printing delta, so still unavailable here. |
+| Structured candidate definitions | 193 | Unsupported; source/runtime blockers remain. |
+| Bound runtime procedures | 111 | Implemented and dispatched by #344 (12), #345 (16) and #346 (83); still blocked by the printing delta, so still unavailable here. |
 | Listing-only records | 28 | 23 technique templates and five variable families. |
 | Transferred cinematic/supernatural skills | 28 | Owned by #242/#243 and source audit #191. |
 | **Total accounted records** | **360** | **Zero available mundane candidates.** |
@@ -109,10 +110,16 @@ retained where previously recorded, but they do not replace the active owners.
 | #360 | The Spear Thrower launcher procedure. |
 | #361 | Innate Attack specialties beyond Projectile. |
 | #362 | Cross-specialty and conditional defaults for ranged combat skills. |
-| #345 | Social skill procedures. |
+| #345 | Social skill procedures; see below for what it bound and what it transferred. |
 | #346 | Technology, science and vehicle procedures; see below for what it bound and what it transferred. |
+| #353 | Conditional and alternative mundane skill defaults and prerequisites. |
 | #356 | Science, electronics and engineering specialty expansion. |
 | #358 | Vehicle movement and combat capability verification for the bound vehicle rows. |
+| #366 | Fortune-Telling and Savoir-Faire specialties. |
+| #367 | The Propaganda technology-level media context. |
+| #368 | Interrogation coercion and its reaction consequences. |
+| #369 | Teaching and Leadership advancement and group-activity bindings. |
+| #370 | Social skill audience reactions, income and material outcomes. |
 
 Each procedure follow-up lists its exact candidate IDs and must reuse existing
 authoritative services. Accounting completion does not certify those procedures.
@@ -159,6 +166,63 @@ The definitions live in a new pin, package `0.7.0` with profile version 7
 (`rules/profiles.py`). Existing v2–v6 campaign pins resolve byte-for-byte
 unchanged; switching a campaign still uses the existing explicit migration.
 Evidence is in `tests/test_ranged_skills.py`.
+
+## Social procedures (#345)
+
+A social row is implemented only when `rules/mundane_skills/social.py` binds it to
+a service that already resolves it — `rules.gurps_checks` for success rolls and
+contests, `rules.gurps_social.influence_roll` for the six B359 influence skills —
+declares the shape that decides it, and names a registered capability
+(`gurps.social.skill_procedures`, #345). Naming a procedure never implements it.
+
+Each bound procedure declares the contextual conditions it cannot proceed without,
+the modifiers it derives itself, and a named effect for every verdict its shape can
+reach. Conditions are facts about the situation, never numbers: an authored trigger
+asserts `credible-threat` and the procedure owns what it is worth. A missing
+required condition rejects before dice.
+
+| Row | Recorded | Bound resolution |
+| --- | --- | --- |
+| `skill:acting` | B174, IQ/A | Quick Contest against the observer. |
+| `skill:carousing` | B183, HT/E | Success roll; B183 goodwill of +2, or -2 and 1 FP on a critical failure. |
+| `skill:diplomacy` | B187, IQ/H | B359 influence roll, keeping the better ordinary reaction. |
+| `skill:fast-talk` | B195, IQ/A | B359 influence roll; the subject reacts at -3 once he realizes. |
+| `skill:gesture` | B198, IQ/E | Success roll at the less fluent party's level. |
+| `skill:interrogation` | B202, IQ/A | Regular Contest against the subject's Will. |
+| `skill:intimidation` | B202, Will/A | B359 influence roll. |
+| `skill:leadership` | B204, IQ/A | Success roll. |
+| `skill:lip-reading` | B205, Per/A | Success roll. |
+| `skill:panhandling` | B212, IQ/E | Success roll. |
+| `skill:performance` | B212, IQ/A | Success roll. |
+| `skill:politics` | B215, IQ/A | Quick Contest. |
+| `skill:public-speaking` | B216, IQ/A | Success roll. |
+| `skill:sex-appeal` | B219, HT/A | B359 influence roll; a win is Very Good. |
+| `skill:streetwise` | B223, IQ/A | B359 influence roll. |
+| `skill:teaching` | B224, IQ/A | Success roll. |
+
+Three rows keep `runtime-procedure` because they cannot resolve at all yet:
+`skill:fortune-telling` and `skill:savoir-faire` are not learnable without their
+required specialties (#366), and `skill:propaganda` has no medium, reach or
+duration without a technology level (#367). Those rows are absent from the pin.
+
+A bound row can still leave a named part of its entry elsewhere. That is not a
+blocker — the roll runs — so it is published as `transferred_procedure_scope`
+rather than folded into the blocker list: coercion for Interrogation (#368),
+advancement and group activity for Teaching and Leadership (#369), and audience
+reactions, income and outlay for Carousing, Panhandling, Performance and Public
+Speaking (#370). Conditional and alternative defaults stay with #353.
+
+The B97 Voice bonus reaches Diplomacy, Fast-Talk, Leadership, Performance,
+Politics, Public Speaking and Sex Appeal through
+`character.social_traits.skill_conditions`, which reads approved purchases only,
+so the build asserts the condition and the procedure owns the +2.
+
+The definitions live in a new pin, package `0.8.0` with profile version 8
+(`rules/profiles.py`). Existing v2–v7 campaign pins resolve byte-for-byte
+unchanged; switching a campaign still uses the existing explicit migration.
+Evidence is in `tests/test_social_skills.py`, with the declared table and every
+expected result pinned by hand in `tests/fixtures/gurps/social_skills.json`.
+Runtime behaviour is described in [the social runtime](gurps-social-runtime.md).
 
 ## Technology, science and vehicle procedures (#346)
 

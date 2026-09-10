@@ -20,15 +20,36 @@ from wayfarer.rules.gurps_social import (
     self_control_roll,
     validate_influence,
 )
+from wayfarer.rules.mundane_skills.social import (
+    Resolution,
+    SocialSkillContext,
+    effect_ids,
+    require_procedure,
+    resolve,
+)
 from wayfarer.rules.mundane_traits.runtime import DEFAULT_AUDIENCE, Audience
 from wayfarer.rules.social_hooks import Standing, StandingTrace, standing_modifiers
 from wayfarer.rules.traits import TraitOptions, TraitRules
 from wayfarer.simulation.resources import Command, Receipt, Record, ResourceEvent, ResourceState
 from wayfarer.world import EntityKind, World
 
+REACTIONS: frozenset[str] = frozenset(
+    {
+        "disastrous",
+        "very-bad",
+        "bad",
+        "poor",
+        "neutral",
+        "good",
+        "very-good",
+        "excellent",
+    }
+)
+"""The reaction bands an authored disclosure may be gated on (B359)."""
+
 
 class SocialCommand(Command):
-    kind: Literal["reaction", "influence", "fright", "self-control", "fright-recovery"]
+    kind: Literal["reaction", "influence", "fright", "self-control", "fright-recovery", "skill"]
     subject_id: str
     trigger_id: str
 
@@ -36,7 +57,7 @@ class SocialCommand(Command):
 class SocialOutcome(Record):
     """Explicit player projection: no raw roll, threshold, modifier or secret ID."""
 
-    kind: Literal["reaction", "influence", "fright", "self-control", "fright-recovery"]
+    kind: Literal["reaction", "influence", "fright", "self-control", "fright-recovery", "skill"]
     outcome: str
     requires_adjudication: bool = False
     adjudication: tuple[str, ...] = ()
@@ -63,6 +84,12 @@ class SocialContext:
         audience: Audience = DEFAULT_AUDIENCE,
         self_control_modifier: int = 0,
         influence_conditions: InfluenceConditions = DEFAULT_INFLUENCE_CONDITIONS,
+        procedure_id: str | None = None,
+        # A procedure without an explicit approved level fails closed rather than
+        # rolling against a default nobody chose.
+        skill_level: int = 0,
+        partner_skill: int | None = None,
+        conditions: frozenset[str] = frozenset(),
     ) -> None:
         self.profile_id, self.target, self.will = profile_id, target, will
         self.ht = ht
@@ -72,6 +99,10 @@ class SocialContext:
         self.standing, self.audience = standing, audience
         self.self_control_modifier = self_control_modifier
         self.influence_conditions = influence_conditions
+        # #345 whole-entry social skill procedures. `conditions` are named facts
+        # about the situation; the procedure owns every integer they are worth.
+        self.procedure_id, self.skill_level = procedure_id, skill_level
+        self.partner_skill, self.conditions = partner_skill, conditions
 
     def bind_trait_modifiers(self, modifiers: tuple[ReactionModifier, ...]) -> None:
         """Attach server-derived trait modifiers; a resolver never supplies them."""
@@ -147,7 +178,17 @@ def apply_social(
         validate_influence(context.profile_id, context.skill, context.influence_conditions)
         if command.actor_id == command.subject_id:
             raise ValidationError("Influence requires distinct actor and subject IDs")
-    if command.kind in ("reaction", "influence") and context.standing is not None:
+    # A social skill procedure takes standing only when B359 influence decides it;
+    # an unopposed procedure must not consume the recognition dice it cannot use.
+    procedure = (
+        require_procedure(context.profile_id, context.procedure_id)
+        if command.kind == "skill" and context.procedure_id is not None
+        else None
+    )
+    influenced = command.kind == "influence" or (
+        procedure is not None and procedure.resolution is Resolution.INFLUENCE
+    )
+    if (command.kind == "reaction" or influenced) and context.standing is not None:
         standing = standing_modifiers(
             context.profile_id, context.standing, context.audience, rng=rng
         )
@@ -203,6 +244,31 @@ def apply_social(
         )
         outcome = SocialOutcome(kind=command.kind, outcome=influence.outcome)
         details = asdict(influence) | recognition
+    elif command.kind == "skill":
+        if procedure is None:
+            raise ValidationError("Social skill checks require a declared procedure")
+        skill = resolve(
+            context.profile_id,
+            procedure.id,
+            SocialSkillContext(
+                context.skill_level,
+                context.will,
+                context.partner_skill,
+                context.conditions,
+                command.actor_id,
+                command.subject_id,
+                modifiers if influenced else (),
+                context.influence_conditions if influenced else DEFAULT_INFLUENCE_CONDITIONS,
+            ),
+            rng=rng,
+        )
+        outcome = SocialOutcome(
+            kind=command.kind,
+            outcome=skill.effect.id,
+            requires_adjudication=skill.effect.requires_adjudication,
+            adjudication=(skill.effect.id,) if skill.effect.requires_adjudication else (),
+        )
+        details = asdict(skill) | recognition
     elif command.kind == "fright":
         from wayfarer.simulation.fright import aftermath_modifiers
         from wayfarer.simulation.physical_traits import physical_traits
@@ -314,23 +380,14 @@ def apply_interaction(
         raise ValidationError("Social interactions require authoritative trigger context")
     replay = any(r.command_id == command.id for r in state.receipts)
     if not replay and disclosure.fact_ids:
-        if command.kind not in ("reaction", "influence"):
+        if command.kind not in ("reaction", "influence", "skill"):
             raise ValidationError("Only NPC interactions can disclose facts")
         known = {f.id for f in world.perspective(command.subject_id).facts}
         if not set(disclosure.fact_ids) <= known:
             raise ValidationError("NPC cannot communicate unknown facts")
         if len(set(disclosure.fact_ids)) != len(disclosure.fact_ids):
             raise ValidationError("Duplicate social disclosure fact")
-        if not disclosure.outcomes or not set(disclosure.outcomes) <= {
-            "disastrous",
-            "very-bad",
-            "bad",
-            "poor",
-            "neutral",
-            "good",
-            "very-good",
-            "excellent",
-        }:
+        if not disclosure.outcomes or not set(disclosure.outcomes) <= REACTIONS | effect_ids():
             raise ValidationError("Unsupported disclosure outcome")
     updated, outcome = apply_social(state, world, command, context, rng=rng, system=True)
     if not replay and outcome.outcome in disclosure.outcomes:
