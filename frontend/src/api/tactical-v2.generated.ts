@@ -474,6 +474,11 @@ export interface components {
        */
       unload_ammunition: boolean;
       /**
+       * Escape Entanglement
+       * @default false
+       */
+      escape_entanglement: boolean;
+      /**
        * Firearm Service
        * @default null
        */
