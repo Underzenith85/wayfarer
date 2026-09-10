@@ -260,6 +260,26 @@ the ranged dispatch hook the adapter never carried. The fireball channel gate
 accepts either, so no existing pin changes and no saved campaign is broken.
 Evidence is in `tests/test_innate_attack_specialties.py`.
 
+### Unrecorded defaults (#362)
+
+Forty ranged rows carry #112's `conditional-or-skill-defaults` blocker: the
+source states a default for them that is conditional or comes from another
+skill, and neither the skill it comes from nor its modifier is recorded here.
+Verifying those values needs the frozen first-printing plus 2007-01-26 errata
+artifact that #336 and #191 own, and reading either off a different printing
+would defeat the baseline the audit exists to protect.
+
+So the gap is published rather than closed. Every blocked row emits an
+`unrecorded-default` scope entry naming what is missing, and a cross-specialty
+row also names the family the default would run between, so the reviewer knows
+exactly what to look up. The blocker stays with #383 for the source
+reconciliation and #362 for these rows' share of it.
+
+The regression guard is the other half: `tests/test_ranged_default_gaps.py`
+asserts that every ranged default is an attribute default and that the rows
+recording none still record none, so no cross-specialty modifier can be
+reconstructed into a runnable roll while the blocker stands.
+
 A binding may only resolve or keep the blockers the inventory recorded, and its
 numbers must be the recorded ones: `inventory()` raises on either drift, and on
 a kept blocker that names no owner. A blocker a procedure owner splits keeps

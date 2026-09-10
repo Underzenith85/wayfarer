@@ -138,6 +138,32 @@ BEAM: Final = WeaponClass(
 )
 
 
+def defaults_gap(family: str | None) -> UnsupportedScope:
+    """State exactly what a row's unrecorded default leaves open, for #362.
+
+    The frozen inventory records that the source states a default for this row
+    which is conditional or comes from another skill, and that neither its
+    source skill nor its modifier is recorded. Reading either off a different
+    printing would defeat the baseline the audit exists to protect, so the gap
+    is published with the sibling rows a cross-specialty default would run
+    between rather than reconstructed into a runnable roll.
+    """
+    return UnsupportedScope(
+        "unrecorded-default",
+        (
+            "The source states a conditional or cross-skill default for this row."
+            " Neither the skill it comes from nor its modifier is recorded, and"
+            " neither is inferred here."
+            + (
+                f" A cross-specialty default would run between the {family} specialties."
+                if family
+                else ""
+            )
+        ),
+        362,
+    )
+
+
 # B205 streams: what #359 binds, and what it leaves to #398.
 STREAM_RESIDUALS: Final = (
     UnsupportedScope(
@@ -181,6 +207,16 @@ class RangedProcedure:
     @property
     def blockers(self) -> tuple[str, ...]:
         return tuple(self.transferred)
+
+    @property
+    def published(self) -> tuple[UnsupportedScope, ...]:
+        """Named scope this row leaves open, including its unrecorded default."""
+        gap = (
+            (defaults_gap(self.specialty.family if self.specialty else None),)
+            if CONDITIONAL_DEFAULTS in self.transferred
+            else ()
+        )
+        return self.unsupported + gap
 
     @property
     def owners(self) -> tuple[int, ...]:
@@ -806,7 +842,7 @@ PROCEDURES: Final = MappingProxyType({entry.id: entry for entry in _ROWS})
 def ranged_scope() -> tuple[tuple[str, UnsupportedScope], ...]:
     """Named scope a bound ranged row leaves to another issue, for the report."""
     return tuple(
-        (entry.id, scope) for entry in _ROWS for scope in entry.unsupported if entry.implemented
+        (entry.id, scope) for entry in _ROWS for scope in entry.published if entry.implemented
     )
 
 

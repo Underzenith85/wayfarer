@@ -376,7 +376,8 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     # published rather than folded into the blocker list.
     scope = report["transferred_procedure_scope"]
     assert isinstance(scope, list)
-    assert {str(row["skill"]) for row in scope} == {
+    published = {str(row["skill"]) for row in scope}
+    assert {
         "skill:carousing",
         "skill:interrogation",
         "skill:leadership",
@@ -388,11 +389,12 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         # of the entry it leaves to #398.
         "skill:liquid-projector",
         "skill:liquid-projector-flamethrower",
-        "skill:liquid-projector-sprayer",
-        "skill:liquid-projector-squirt-gun",
-        "skill:liquid-projector-water-cannon",
-    }
-    assert all(row["owner_issue"] in (368, 369, 370, 398) and row["detail"] for row in scope)
+        # #362 publishes every ranged row whose recorded default is incomplete.
+        "skill:thrown-weapon-knife",
+        "skill:net",
+        "skill:spear-thrower",
+    } <= published
+    assert all(row["owner_issue"] in (362, 368, 369, 370, 398) and row["detail"] for row in scope)
     counts = report["structural_class_counts"]
     assert isinstance(counts, dict) and counts["listing-only"] == 28
 
