@@ -45,9 +45,13 @@ explicit injury/fatigue pools requires migration, not implicit conversion.
   torso critical hits execute the numeric B556 table, including extra damage,
   reduced DR, forced major wounds, double shock and dropped held equipment.
 - Basic critical misses execute unready/drop, balance penalties and falling.
-  Quality-driven breakage and flying-weapon collisions use the existing object
-  reducers. Missing required equipment/anatomy bindings preserve the table roll
-  and block with `adjudication_required` and `blocked_reason`.
+  Breakage rows 3/4/17/18 use pinned durability and breakage resistance, including
+  one confirmation roll for resistant weapons and usable broken-weapon remnants.
+  Cheap weapons break on drop results. Swinging row 14 records a landing 1d yards
+  forward or backward, checks DX for occupants, and applies half basic damage
+  through canonical injury. A Ready requires retrieval at the recorded location.
+  Missing required equipment/anatomy bindings preserve the table roll and block
+  with `adjudication_required` and `blocked_reason`.
   The blocked event also preserves immutable weapon modes and damage, build
   revision, equipment digest, HT, position/facing, limb DR, held items and any
   deferred incoming attack. Retrying or restarting reads the same record; it
@@ -89,9 +93,15 @@ checks selected-mode Parry values, critical self-wound damage, deferred context,
 invalid-choice rejection and pending-defense restart/replay. The first-printing
 and declared-errata comparison remains a separate #191 certification gate.
 
-Coverage remains **partial**. [#146](https://github.com/Underzenith85/wayfarer/issues/146)
-tracks the remaining Basic critical consequences and their dependencies on
-#104/#107/#114. Complete maneuvers, initiative/timing and tactical defense options
+`tests/test_critical_miss_completion.py`, `tests/test_critical_limbs.py`, and
+`tests/test_object_combat.py` cover #146's numeric consequences, equipment and
+lasting injuries, first/second parries, collision success/failure, backward
+flight, and SQLite restart/retry without new dice. B556-557 were inspected in
+the supplied Campaigns PDF for this completion; this does not certify the
+entire profile or resolve unrelated source-audit blockers.
+
+Coverage of the broader profile remains **partial**.
+Complete maneuvers, initiative/timing and tactical defense options
 remain #104; unarmed/grappling #108; ranged attacks #106. The heavy-parry path
 does not add deliberately futile over-BL attempts and their
 drop/knockback consequences, improvised weapon destruction, or effective weights
