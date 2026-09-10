@@ -4374,6 +4374,44 @@
         "title": "LastingInjury",
         "type": "object"
       },
+      "LauncherSpec": {
+        "additionalProperties": false,
+        "description": "The launcher one thrown mode requires, and what it does for the throw.",
+        "properties": {
+          "launcher_definition_id": {
+            "minLength": 1,
+            "title": "Launcher Definition Id",
+            "type": "string"
+          },
+          "range_multiplier": {
+            "anyOf": [
+              {
+                "maximum": 10.0,
+                "minimum": 1.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "title": "Range Multiplier"
+          },
+          "damage_bonus": {
+            "default": 0,
+            "maximum": 10,
+            "minimum": 0,
+            "title": "Damage Bonus",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "launcher_definition_id",
+          "range_multiplier"
+        ],
+        "title": "LauncherSpec",
+        "type": "object"
+      },
       "MeleeMode": {
         "additionalProperties": false,
         "properties": {
@@ -6131,6 +6169,17 @@
             "anyOf": [
               {
                 "$ref": "#/$defs/SprayerSpec"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "launcher": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/LauncherSpec"
               },
               {
                 "type": "null"

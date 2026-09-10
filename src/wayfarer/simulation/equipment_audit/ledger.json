@@ -1854,6 +1854,58 @@
       "gap": null
     },
     {
+      "id": "RangedMode.launcher",
+      "unit": "optional launcher-assisted throw protocol",
+      "reference": "Characters third printing B222; frozen first-printing/errata reconciliation pending #191",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_launcher_throws.py::test_the_launcher_improves_the_throw_and_is_not_consumed"
+      ],
+      "gap": null
+    },
+    {
+      "id": "LauncherSpec.launcher_definition_id",
+      "unit": "pinned launcher catalog reference",
+      "reference": "Characters third printing B222; frozen first-printing/errata reconciliation pending #191",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_launcher_throws.py::test_without_the_launcher_in_hand_the_throw_is_refused"
+      ],
+      "gap": null
+    },
+    {
+      "id": "LauncherSpec.range_multiplier",
+      "unit": "range multiplier",
+      "reference": "Characters third printing B222; frozen first-printing/errata reconciliation pending #191",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_launcher_throws.py::test_the_launcher_extends_the_throws_reach"
+      ],
+      "gap": null
+    },
+    {
+      "id": "LauncherSpec.damage_bonus",
+      "unit": "damage adds",
+      "reference": "Characters third printing B222; frozen first-printing/errata reconciliation pending #191",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_launcher_throws.py::test_the_launcher_improves_the_throw_and_is_not_consumed"
+      ],
+      "gap": null
+    },
+    {
       "id": "FirearmSpec.technology_level",
       "unit": "technology level",
       "reference": "Campaigns fourth printing B382/B407; baseline reconciliation remains #191",

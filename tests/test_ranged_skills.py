@@ -142,10 +142,7 @@ def test_listed_scope_is_completely_accounted_for() -> None:
         for identifier in LISTED
         if not PROCEDURES[identifier].implemented
     }
-    assert transferred == {
-        "skill:innate-attack": (361,),
-        "skill:spear-thrower": (360, 362),
-    }
+    assert transferred == {"skill:innate-attack": (361,)}
 
 
 def test_thrown_weapon_family_is_expanded_into_concrete_specialties() -> None:
@@ -248,7 +245,6 @@ async def test_thrown_specialties_dispatch_and_expend_the_item(
 @pytest.mark.parametrize(
     ("identifier", "expected"),
     [
-        ("skill:spear-thrower", "#360"),
         ("skill:innate-attack", "#361"),
     ],
 )

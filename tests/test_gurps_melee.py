@@ -88,6 +88,8 @@ async def setup(
     extra_definitions: tuple[RuleDefinition, ...] = (),
     extra_purchases: tuple[Purchase, ...] = (),
     campaign_technology_level: int | None = None,
+    extra_equipment: tuple[EquipmentProfile, ...] = (),
+    extra_items: tuple[Item, ...] = (),
 ) -> tuple[str, PlayService]:
     equipment = EquipmentCatalog(
         profile_id=profile,
@@ -230,6 +232,8 @@ async def setup(
                 ),
             )
         equipment = equipment.model_copy(update={"entries": entries})
+    if extra_equipment:
+        equipment = equipment.model_copy(update={"entries": equipment.entries + extra_equipment})
     source = "sjg:gurps-lite-4e-2004" if profile == LITE else "sjg:basic-set-characters-4e-2004"
     if durability:
         equipment = equipment.model_copy(
@@ -571,6 +575,8 @@ async def setup(
                 )
             }
         )
+    if extra_items:
+        seed = seed.model_copy(update={"items": seed.items + extra_items})
     if durability is None and critical_breakage is not None:
         seed = seed.model_copy(
             update={

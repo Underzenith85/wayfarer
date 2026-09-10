@@ -116,7 +116,6 @@ retained where previously recorded, but they do not replace the active owners.
 | #342 | Medicine and mental procedures. |
 | #343 | Physical, outdoor and animal procedures. |
 | #344 | Ranged combat skill procedures; see below for what it bound and what it transferred. |
-| #360 | The Spear Thrower launcher procedure. |
 | #361 | Innate Attack specialties beyond Projectile. |
 | #362 | Cross-specialty and conditional defaults for ranged combat skills. |
 | #345 | Social skill procedures; see below for what it bound and what it transferred. |
@@ -156,7 +155,7 @@ equipment catalog is built and again when a mode is selected in play.
 | `skill:thrown-weapon-*` | B226, DX/E, DX-4 | Implemented. The projectile is the item; it leaves active inventory and is retained in `expended_items`. |
 | `skill:bolas` | B181, DX/A | Implemented. A landed throw binds the target; the binding, not the damage, is the outcome. |
 | `skill:net` | B211, DX/H | Implemented. Cross-skill defaults remain with #362. |
-| `skill:spear-thrower` | B222, DX/A, DX-5 | Transferred to #360 and #362; a launcher that modifies a projectile it does not consume. |
+| `skill:spear-thrower` | B222, DX/A, DX-5 | Implemented. A separate held launcher improves the throw and is not consumed. Cross-skill defaults remain with #362. |
 | `skill:guns` | B198, DX/E, DX-4 | Family expanded into eight concrete specialties (Pistol, Rifle, Shotgun, Submachine Gun, Light Machine Gun, Musket, Grenade Launcher, Light Anti-Armor Weapon); never dispatched itself. |
 | `skill:beam-weapons` | B179, DX/E, DX-4 | Family expanded into three concrete specialties (Pistol, Rifle, Projector); never dispatched itself. |
 | `skill:guns-*`, `skill:beam-weapons-*` | B198, B179, DX/E, DX-4 | Implemented. TL-indexed: each dispatches a weapon of the campaign's own era. Cross-specialty defaults remain with #362. |
@@ -233,6 +232,19 @@ transferred procedure scope under #398 rather than folded into a blocker:
 lingering fire after the stream stops, and one second of stream covering
 several combatants at once. Evidence is in
 `tests/test_liquid_projector_streams.py`.
+
+### Launcher-assisted throws (#360)
+
+Every other thrown row uses the projectile's own item. A spear thrower carries
+pinned `LauncherSpec` facts on the projectile's thrown mode: the catalog entry
+the thrower must be holding, and what that launcher multiplies the throw's
+ranges by and adds to its damage. Launchers are Basic-only, the launcher must
+be a pinned holdable entry, and a launcher only assists a thrown mode.
+
+Firing requires the launcher in hand: without it the mode does not exist, and a
+bare thrown spear is Thrown Weapon (Spear) rather than this row at a penalty.
+The projectile is expended exactly as any other thrown weapon and the launcher
+stays ready for the next throw. Evidence is in `tests/test_launcher_throws.py`.
 
 A binding may only resolve or keep the blockers the inventory recorded, and its
 numbers must be the recorded ones: `inventory()` raises on either drift, and on
