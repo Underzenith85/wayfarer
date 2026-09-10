@@ -5,7 +5,7 @@ Vertical navigation and environmental aftermath require dedicated consumers.
 """
 
 from wayfarer.errors import ValidationError
-from wayfarer.rules.checks import Outcome, RandomSource, draw_dice, evaluate_success
+from wayfarer.rules.checks import Modifier, Outcome, RandomSource, draw_dice, evaluate_success
 from wayfarer.rules.transport_types import Transport
 from wayfarer.rules.vehicle_types import VehicleTrace
 from wayfarer.simulation.hex_geometry import DIRECTIONS, Hex, HexBattlefield, neighbor
@@ -42,6 +42,7 @@ def move_vehicle(
     occupied: frozenset[Hex],
     rng: RandomSource,
     ht: int,
+    modifiers: tuple[Modifier, ...] = (),
 ) -> Transport:
     if t.status != "controlled":
         raise ValidationError("Resolve vehicle control consequences before movement")
@@ -166,6 +167,7 @@ def move_vehicle(
             ),
             rng,
             ht,
+            modifiers,
         )
         traces = (*traces, *checked.traces[len(before.traces) :])
         if checked.status != "controlled":
@@ -186,7 +188,13 @@ def move_vehicle(
     )
 
 
-def control_vehicle(t: Transport, command: VehicleControl, rng: RandomSource, ht: int) -> Transport:
+def control_vehicle(
+    t: Transport,
+    command: VehicleControl,
+    rng: RandomSource,
+    ht: int,
+    modifiers: tuple[Modifier, ...] = (),
+) -> Transport:
     if t.locomotion == "ground-mount":
         raise ValidationError("Mount control uses Riding and the mounted loss table")
     recovering = t.locomotion == "air" and t.status in ("diving", "stalled")
@@ -195,7 +203,7 @@ def control_vehicle(t: Transport, command: VehicleControl, rng: RandomSource, ht
     target = command.skill + t.handling + command.modifier - (5 if recovering else 0)
     check = evaluate_success(
         target,
-        (),
+        modifiers,
         draw_dice(rng),
         rules_package=t.profile_id,
         rules_version="2",
@@ -203,7 +211,7 @@ def control_vehicle(t: Transport, command: VehicleControl, rng: RandomSource, ht
     )
     changes: dict[str, object] = {
         "control_dice": check.dice,
-        "control_target": target,
+        "control_target": check.effective_target,
         "control_margin": check.margin,
     }
     traces = [
@@ -212,7 +220,7 @@ def control_vehicle(t: Transport, command: VehicleControl, rng: RandomSource, ht
             reason="control",
             actor_id=t.operator_id,
             dice=check.dice,
-            target=target,
+            target=check.effective_target,
             margin=check.margin,
         )
     ]

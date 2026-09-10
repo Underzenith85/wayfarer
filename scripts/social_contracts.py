@@ -5,7 +5,9 @@ import json
 from pathlib import Path
 
 from wayfarer.orchestration.fright import FrightDecision
+from wayfarer.orchestration.fright_builds import ApproveFrightBuild, ProposeFrightBuild
 from wayfarer.simulation.npcs import NPCSocialRules
+from wayfarer.simulation.social_policy import SocialScenarioDocument
 
 PATH = Path(__file__).resolve().parents[1] / "contracts/social/v2/schemas.json"
 
@@ -15,7 +17,13 @@ def contract() -> str:
         json.dumps(
             {
                 model.__name__: model.model_json_schema()
-                for model in (NPCSocialRules, FrightDecision)
+                for model in (
+                    NPCSocialRules,
+                    SocialScenarioDocument,
+                    FrightDecision,
+                    ProposeFrightBuild,
+                    ApproveFrightBuild,
+                )
             },
             indent=2,
         )

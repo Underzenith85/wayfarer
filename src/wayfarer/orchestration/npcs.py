@@ -116,7 +116,7 @@ def checkpoint(play: PlayService, state: PlayState) -> PlayState:
                 from wayfarer.simulation.fright import blocked, requires_adjudication
 
                 if blocked(resources, plan.actor_id) or requires_adjudication(
-                    resources, plan.actor_id, handles_aftermath=isinstance(choice, NPCSocialAction)
+                    resources, plan.actor_id
                 ):
                     raise ValidationError("NPC cannot act through a fright consequence")
                 if isinstance(choice, NPCSocialAction) and (

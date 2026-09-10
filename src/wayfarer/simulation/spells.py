@@ -16,6 +16,7 @@ from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.rules.hazard_types import require_hazards_settled
 from wayfarer.rules.recovery_types import interrupt_tasks, require_settled
 from wayfarer.simulation.concentration import require_idle_concentration
+from wayfarer.simulation.condition_checks import check_modifiers, retching_penalty
 from wayfarer.simulation.fatigue import FatigueCost, apply_fatigue
 from wayfarer.simulation.resources import Command, Id, Receipt, Record, ResourceEvent, ResourceState
 
@@ -296,6 +297,8 @@ def apply_spell(
         raise ValidationError("Spellcasting requires matching GURPS HP and FP pools")
     if effect and (effect.actor_id != command.actor_id or effect.spell_id != command.spell_id):
         raise ConflictError("Cast identity belongs to another actor or spell")
+    if command.kind in ("concentrate", "focus") and retching_penalty(state, command.actor_id):
+        raise ValidationError("Retching prevents concentration")
     if command.kind != "cancel":
         if context.mana == "none" or (
             context.mana == "very-high" and context.execution_version == 1
@@ -544,15 +547,27 @@ def apply_spell(
                 hp_budget = effect.hp_energy
                 if fp.current < effect.cost - hp_budget:
                     raise ConflictError("Caster no longer has casting energy")
-                interrupted = False
-                if effect.distracted or context.distracted or hp.current < effect.hp_at_start:
-                    check = success_roll(PROFILE, context.will - 3, rng=rng)
+                interrupted = bool(retching_penalty(state, command.actor_id))
+                if not interrupted and (
+                    effect.distracted or context.distracted or hp.current < effect.hp_at_start
+                ):
+                    check = success_roll(
+                        PROFILE,
+                        context.will - 3,
+                        check_modifiers(state, command.actor_id, "will"),
+                        rng=rng,
+                    )
                     checks.append(check)
                     interrupted = not check.outcome.succeeded
                 if interrupted:
                     outcome = "interrupted"
                 else:
-                    check = success_roll(PROFILE, effect.skill, rng=rng)
+                    check = success_roll(
+                        PROFILE,
+                        effect.skill,
+                        check_modifiers(state, command.actor_id, "iq"),
+                        rng=rng,
+                    )
                     checks.append(check)
                     if check.outcome is Outcome.CRITICAL_FAILURE or (
                         context.mana == "very-high" and not check.outcome.succeeded
@@ -567,11 +582,18 @@ def apply_spell(
                             spec.kind == "resisted"
                             and check.outcome is not Outcome.CRITICAL_SUCCESS
                         ):
-                            resistance = success_roll(PROFILE, context.target_ht, rng=rng)
+                            resistance = success_roll(
+                                PROFILE,
+                                context.target_ht,
+                                check_modifiers(state, effect.target_id, "ht"),
+                                rng=rng,
+                            )
                             checks.append(resistance)
                             # One casting roll serves as the attack roll. Rule of 16
                             # caps its contest margin; failed casting never affects.
-                            margin = min(effect.skill, max(16, context.target_ht)) - sum(check.dice)
+                            margin = min(
+                                check.effective_target, max(16, resistance.effective_target)
+                            ) - sum(check.dice)
                             if resistance.outcome.succeeded and resistance.margin >= margin:
                                 outcome = "resisted"
                 effect = effect.model_copy(

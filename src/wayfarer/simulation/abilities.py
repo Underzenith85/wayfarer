@@ -17,6 +17,7 @@ from wayfarer.simulation.ability_types import (
     AbilityOutcomeKind,
     AbilitySpec,
 )
+from wayfarer.simulation.condition_checks import check_modifiers, retching_penalty
 from wayfarer.simulation.injury import Wound, apply_injury
 from wayfarer.simulation.resources import ResourceEvent, ResourceState
 from wayfarer.world import World
@@ -342,13 +343,18 @@ def apply_ability(
             system=True,
         )
     channel = context.channel
-    interrupted = context.interrupted
+    interrupted = context.interrupted or bool(retching_penalty(resources, command.actor_id))
     if command.kind == "resolve" and old is not None and not interrupted:
         if old.distracted or (
             next(p.current for p in resources.pools if p.id == f"hp:{command.actor_id}")
             < old.hp_at_start
         ):
-            distraction = success_roll(PROFILE, context.will - 3, rng=rng)
+            distraction = success_roll(
+                PROFILE,
+                context.will - 3,
+                check_modifiers(resources, command.actor_id, "will"),
+                rng=rng,
+            )
             checks.append(distraction)
             interrupted = not distraction.outcome.succeeded
     outcome: AbilityOutcomeKind
@@ -387,8 +393,16 @@ def apply_ability(
         assert channel is not None
         trace = resistance_roll(
             PROFILE,
-            Contestant(command.actor_id, context.will - channel.distance_yards),
-            Contestant(target_id, context.target_will),
+            Contestant(
+                command.actor_id,
+                context.will - channel.distance_yards,
+                check_modifiers(resources, command.actor_id, "will"),
+            ),
+            Contestant(
+                target_id,
+                context.target_will,
+                check_modifiers(resources, target_id, "will", defensive=True),
+            ),
             rng=rng,
             rule_of_16=True,
         )
@@ -434,11 +448,13 @@ def apply_ability(
                 - (old.activation_shock if old else context.shock)
                 + range_penalty(channel.distance_yards)
                 + penalty,
+                check_modifiers(resources, command.actor_id, "iq"),
             ),
             Contestant(
                 target_id,
                 context.target_will
                 + (context.mind_shield if "telepathic" in spec.modifiers else 0),
+                check_modifiers(resources, target_id, "will", defensive=True),
             ),
             rng=rng,
             rule_of_16=True,
@@ -457,11 +473,16 @@ def apply_ability(
             context.iq - (old.activation_shock if old else context.shock)
             if analyzing
             else context.per,
-            ()
-            if analyzing
-            else (
-                Modifier(range_penalty(channel.distance_yards), "range", spec.definition_id, "1"),
-            ),
+            (
+                ()
+                if analyzing
+                else (
+                    Modifier(
+                        range_penalty(channel.distance_yards), "range", spec.definition_id, "1"
+                    ),
+                )
+            )
+            + check_modifiers(resources, command.actor_id, "iq"),
             rng=rng,
         )
         failed, critical = not check.outcome.succeeded, check.outcome is Outcome.CRITICAL_FAILURE

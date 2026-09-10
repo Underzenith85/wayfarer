@@ -144,7 +144,14 @@ def test_ranged_roundtrip_and_missing_ammunition() -> None:
     entry = LITE_EQUIPMENT.entries[0]
     with pytest.raises(SchemaError, match="ammunition"):
         EquipmentCatalog(
-            profile_id="gurps-lite-4e-2004", entries=(entry.model_copy(update={"modes": (mode,)}),)
+            profile_id="gurps-basic-set-4e-2004",
+            entries=(entry.model_copy(update={"modes": (mode,)}),),
+        )
+    # B182 Bow is pinned in the Basic Set package only; a Lite catalog cannot claim it.
+    with pytest.raises(ValidationError, match="exact Basic Set profile"):
+        EquipmentCatalog(
+            profile_id="gurps-lite-4e-2004",
+            entries=(entry.model_copy(update={"modes": (mode,)}),),
         )
 
 

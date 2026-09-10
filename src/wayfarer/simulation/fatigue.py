@@ -15,6 +15,7 @@ from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.rules.recovery_types import FatigueCause, interrupt_tasks, require_settled
+from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.injury import InjuryResult, Wound, apply_injury
 from wayfarer.simulation.resources import (
     Command,
@@ -117,14 +118,19 @@ def apply_fatigue(
         if allowed and current <= 0:
             if type(will) is not int or will < 1:
                 raise ValidationError("Continued exertion requires compiled Will")
-            check = success_roll(status.profile_id, will, rng=rng)
+            check = success_roll(
+                status.profile_id, will, check_modifiers(state, command.actor_id, "will"), rng=rng
+            )
             checks.append(check)
             allowed = check.outcome.succeeded
             if not allowed:
                 updates: dict[str, object] = {"collapsed": True}
                 if check.outcome is Outcome.CRITICAL_FAILURE:
                     heart = success_roll(
-                        status.profile_id, ht + hp.injury.physical_traits.fitness, rng=rng
+                        status.profile_id,
+                        ht + hp.injury.physical_traits.fitness,
+                        check_modifiers(state, command.actor_id, "ht"),
+                        rng=rng,
                     )
                     checks.append(heart)
                     updates["heart_attack"] = not heart.outcome.succeeded

@@ -75,6 +75,9 @@ _CAPABILITIES: Final = (
     Capability("gurps.combat.aim", True, True, CoverageStatus.PARTIAL, 106),
     Capability("gurps.combat.ammunition", True, True, CoverageStatus.PARTIAL, 106),
     Capability("gurps.combat.rapid_fire", False, True, CoverageStatus.PARTIAL, 106),
+    # Whole-entry ranged weapon skill procedures, separate from the shared
+    # ranged attack machinery: an implemented row dispatches its own weapon class.
+    Capability("gurps.combat.ranged_weapon_skills", False, True, CoverageStatus.PARTIAL, 344),
     Capability("gurps.combat.unarmed", True, True, CoverageStatus.PARTIAL, 108),
     Capability("gurps.combat.grappling", True, True, CoverageStatus.PARTIAL, 108),
     Capability("gurps.tactical.hex_movement", False, True, CoverageStatus.PARTIAL, 105),

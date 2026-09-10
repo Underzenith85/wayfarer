@@ -72,12 +72,12 @@ class PlayService:
 
     def bind(self, campaign: Campaign) -> PlayService:
         """Bind a saved scenario without sharing mutable per-campaign runtime state."""
-        from wayfarer.simulation.studio import ScenarioGraph
+        from wayfarer.simulation.social_policy import parse_graph
 
         encoded = campaign.get("scenario_graph_json")
         if encoded is None:
             return self
-        graph = ScenarioGraph.model_validate_json(encoded)
+        graph = parse_graph(encoded)
         engine = ActionEngine(
             self.engine.reviewer,
             self.engine.resources.for_world(graph.world),

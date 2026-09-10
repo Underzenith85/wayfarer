@@ -34,7 +34,7 @@ from wayfarer.simulation.scenario_document import (
     InitialResources,
     Provenance,
     PublicBrief,
-    ScenarioDocument,
+    ScenarioDocumentBase,
 )
 from wayfarer.simulation.setup import CreateSetup
 from wayfarer.simulation.studio import ScenarioGraph, StudioFinding
@@ -378,7 +378,7 @@ class ScenarioCatalog:
         revision = (current_document.revision + 1) if current_document else 1
         graph: ScenarioGraph | None = current_graph
         report = self.documents.studio.validate(current_graph) if current_graph else None
-        document: ScenarioDocument | None = current_document
+        document: ScenarioDocumentBase | None = current_document
         best_error_count: int | None = (
             sum(finding.severity == "error" for finding in report.findings)
             if report is not None
@@ -410,7 +410,7 @@ class ScenarioCatalog:
             if current_graph is not None:
                 proposed = self._merge_section(current_graph, proposed, request.section)
             proposed_report = self.documents.studio.validate(proposed)
-            portable_document: ScenarioDocument | None = None
+            portable_document: ScenarioDocumentBase | None = None
             try:
                 portable_document = adapt_graph(
                     proposed,

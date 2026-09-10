@@ -17,6 +17,7 @@ from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.rules.physical_traits import Sense
 from wayfarer.simulation.actions import PlayState
+from wayfarer.simulation.condition_checks import check_modifiers, definition_modifiers
 from wayfarer.simulation.physical_traits import physical_traits
 from wayfarer.simulation.resources import Command, ResourceEvent
 
@@ -97,7 +98,30 @@ class PhysicalCheckService:
                 )
             else:
                 raise ValidationError("Unsupported physical check")
-            trace = success_roll(stats.profile_id, target + spec.modifier, rng=play.rng)
+            attribute = {
+                "sense": "per",
+                "wake": "iq",
+                "torture": "will",
+                "ht": "ht",
+                "fast-draw": "dx",
+                "off-hand": "dx",
+            }[spec.kind]
+            modifiers = (
+                definition_modifiers(
+                    state.resources,
+                    command.actor_id,
+                    spec.skill_id,
+                    play.engine.reviewer.compiler.definitions,
+                )
+                if spec.skill_id is not None
+                else check_modifiers(
+                    state.resources,
+                    command.actor_id,
+                    attribute,
+                    defensive=spec.kind in ("wake", "torture"),
+                )
+            )
+            trace = success_roll(stats.profile_id, target + spec.modifier, modifiers, rng=play.rng)
             resources = state.resources.model_copy(
                 update={
                     "revision": state.revision + 1,
