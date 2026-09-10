@@ -565,6 +565,16 @@ class ActionEngine:
                 pool = pools.get(f"{kind}:{actor.actor_id}")
                 if pool is None or pool.maximum != maximum:
                     raise ValidationError("Runtime pool limit does not match the compiled build")
+            from wayfarer.character.physical_traits import physical_traits
+
+            hp = pools.get(f"hp:{actor.actor_id}")
+            if (
+                hp is not None
+                and hp.injury is not None
+                and hp.injury.physical_traits
+                != physical_traits(build, self.reviewer.compiler.definitions)
+            ):
+                raise ValidationError("Physical trait projection does not match the pinned build")
             entity = entities.get(actor.actor_id)
             if entity is None or entity.kind is not EntityKind.ACTOR:
                 raise ValidationError("Play actor is not a world actor")

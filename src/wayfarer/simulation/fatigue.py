@@ -30,6 +30,7 @@ class FatigueCost(Command):
     kind: Literal["fatigue-cost"] = "fatigue-cost"
     amount: int = Field(ge=0, le=100000)
     cause: FatigueCause = "ordinary"
+    power: bool = Field(default=False, exclude_if=lambda v: not v)
 
 
 class ContinueExertion(Command):
@@ -76,6 +77,21 @@ def apply_fatigue(
     if pool is None or pool.fatigue is None or hp is None or hp.injury is None:
         raise ValidationError("Explicit GURPS FP and HP pools required")
     status = pool.fatigue
+    status = status.model_copy(
+        update={
+            "power": min(
+                status.power,
+                max(
+                    0,
+                    pool.maximum
+                    - pool.current
+                    - status.starvation
+                    - status.dehydration
+                    - status.sleep,
+                ),
+            )
+        }
+    )
     if hp.injury.profile_id != status.profile_id or type(ht) is not int or ht < 1:
         raise ValidationError("Fatigue requires matching profile and compiled HT")
     current = pool.current
@@ -107,7 +123,9 @@ def apply_fatigue(
             if not allowed:
                 updates: dict[str, object] = {"collapsed": True}
                 if check.outcome is Outcome.CRITICAL_FAILURE:
-                    heart = success_roll(status.profile_id, ht, rng=rng)
+                    heart = success_roll(
+                        status.profile_id, ht + hp.injury.physical_traits.fitness, rng=rng
+                    )
                     checks.append(heart)
                     updates["heart_attack"] = not heart.outcome.succeeded
                     if not heart.outcome.succeeded:
@@ -126,10 +144,22 @@ def apply_fatigue(
                     )
                 }
             )
-        fp_lost = min(command.amount, current + pool.maximum)
-        hp_lost = max(0, command.amount - max(0, current))
+        amount = command.amount
+        if (
+            hp.injury.physical_traits.fitness == 2
+            and command.cause == "ordinary"
+            and not command.power
+        ):
+            amount = (command.amount + int(not status.half_paid)) // 2
+            status = status.model_copy(
+                update={"half_paid": bool((int(status.half_paid) + command.amount) % 2)}
+            )
+        fp_lost = min(amount, current + pool.maximum)
+        hp_lost = max(0, amount - max(0, current))
         current -= fp_lost
         changes: dict[str, object] = {"unconscious": status.unconscious or current <= -pool.maximum}
+        if command.power:
+            changes["power"] = status.power + fp_lost
         if command.cause != "ordinary":
             changes[command.cause] = getattr(status, command.cause) + fp_lost
         status = status.model_copy(update=changes)

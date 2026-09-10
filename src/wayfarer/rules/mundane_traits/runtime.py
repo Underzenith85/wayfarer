@@ -11,6 +11,8 @@ from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Final, Literal
 
+from wayfarer.rules.physical_traits import PHYSICAL_HOOKS
+
 Check = Literal["reaction", "influence"]
 Appearance = Literal[
     "horrific",
@@ -119,5 +121,8 @@ REPUTATION_BINDINGS: Final = MappingProxyType(
 )
 STANDING_HOOKS: Final = frozenset({"trait.appearance", "trait.reputation"})
 SUPPORTED_HOOKS: Final = frozenset(
-    {SELF_CONTROL_HOOK} | {binding.hook for binding in REACTION_BINDINGS.values()} | STANDING_HOOKS
+    {SELF_CONTROL_HOOK}
+    | {binding.hook for binding in REACTION_BINDINGS.values()}
+    | STANDING_HOOKS
+    | PHYSICAL_HOOKS
 )

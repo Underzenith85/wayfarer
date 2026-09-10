@@ -403,6 +403,18 @@ class CharacterCompiler:
         if self.statistics is not None:
             projection = self._statistics(effective_attributes, secondary_levels, diagnostics)
             if projection is not None:
+                for identifier, minimum in (
+                    ("trait:rapid-healing", 10),
+                    ("trait:very-rapid-healing", 12),
+                ):
+                    if identifier in selected and projection.ht < minimum:
+                        diagnostics.append(
+                            Diagnostic(
+                                "trait.prerequisite_ht",
+                                ("purchases",),
+                                f"{identifier} requires HT {minimum}+",
+                            )
+                        )
                 if size_modifier:
                     attribute_costs = dict(projection.costs.attributes)
                     attribute_costs[Attribute.ST] = size_modifier_cost(

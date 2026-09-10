@@ -376,7 +376,11 @@ def recover_stuns(play: PlayService, state: PlayState) -> PlayState:
             continue
         compiled = build(play, state, item.actor_id)
         assert compiled.statistics
-        check = success_roll(PROFILE, compiled.statistics.iq, rng=play.rng)
+        check = success_roll(
+            PROFILE,
+            compiled.statistics.iq + 6 * int(hp.injury.physical_traits.combat_reflexes),
+            rng=play.rng,
+        )
         if check.outcome.succeeded:
             hp = hp.model_copy(update={"injury": hp.injury.model_copy(update={"stunned": False})})
             resources = resources.model_copy(

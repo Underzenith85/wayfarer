@@ -32,6 +32,7 @@ from wayfarer.simulation.fatigue import fatigue_value
 from wayfarer.simulation.gurps_equipment import DamageType
 from wayfarer.simulation.injury import Wound, apply_injury
 from wayfarer.simulation.maneuvers import ManeuverState, WaitInterrupt, WaitTrigger
+from wayfarer.simulation.physical_traits import physical_traits
 from wayfarer.simulation.unarmed import (
     BASIC,
     GrappleLocation,
@@ -909,7 +910,9 @@ def unarmed_defense(
         - 4 * int(actor.arm_locked)
         + (2 if actor.maneuver_state.enhanced_defense == "parry" else 0)
     )
-    return max(targets) + penalty + height_bonus - 4 * actor.parries.count(hand), hand
+    return max(targets) + int(
+        hp.injury.physical_traits.combat_reflexes
+    ) + penalty + height_bonus - 4 * actor.parries.count(hand), hand
 
 
 def encumbrance_level(play: PlayService, state: PlayState, actor_id: str) -> int:
@@ -979,6 +982,7 @@ def defend(
     hp = next(p for p in state.resources.pools if p.id == f"hp:{actor.actor_id}")
     assert hp.injury is not None
     value = skill_value(play, state, actor.actor_id, pending.skill) - hp.injury.shock
+    value += hp.injury.physical_traits.darkness(encounter.darkness_penalty)
     if pending.skill in ("skill:judo", "skill:karate"):
         value -= encumbrance_level(play, state, actor.actor_id)
     value -= 4 if actor.grappled else 0
@@ -1609,7 +1613,10 @@ def control(
                     if v.target in {"skill:judo", "skill:wrestling"}
                 ),
             )
-        second = max(strength(play, state, target.actor_id, trained=False), compiled.statistics.ht)
+        second = max(
+            strength(play, state, target.actor_id, trained=False),
+            compiled.statistics.ht + physical_traits(state.resources, target.actor_id).fitness,
+        )
         won, checks, _ = contest(
             BASIC, actor.actor_id, target.actor_id, first, second, rng=play.rng
         )

@@ -2205,6 +2205,13 @@
             },
             "title": "Blocked",
             "type": "array"
+          },
+          "darkness_penalty": {
+            "default": 0,
+            "maximum": 0,
+            "minimum": -10,
+            "title": "Darkness Penalty",
+            "type": "integer"
           }
         },
         "required": [
@@ -3237,6 +3244,17 @@
             "default": null,
             "title": "Heart Attack Deadline"
           },
+          "power": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Power",
+            "type": "integer"
+          },
+          "half_paid": {
+            "default": false,
+            "title": "Half Paid",
+            "type": "boolean"
+          },
           "starvation": {
             "default": 0,
             "minimum": 0,
@@ -3925,6 +3943,32 @@
             ],
             "title": "Profile Id",
             "type": "string"
+          },
+          "physical_traits": {
+            "$ref": "#/$defs/PhysicalTraits",
+            "default": {
+              "ambidexterity": false,
+              "combat_reflexes": false,
+              "fitness": 0,
+              "high_pain_threshold": false,
+              "night_vision": 0,
+              "acute_hearing": 0,
+              "acute_taste_smell": 0,
+              "acute_touch": 0,
+              "acute_vision": 0,
+              "healing": 0
+            }
+          },
+          "surprise": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/SurpriseState"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           },
           "shock": {
             "default": 0,
@@ -5292,6 +5336,77 @@
         "title": "PartySlot",
         "type": "object"
       },
+      "PhysicalTraits": {
+        "additionalProperties": false,
+        "properties": {
+          "ambidexterity": {
+            "default": false,
+            "title": "Ambidexterity",
+            "type": "boolean"
+          },
+          "combat_reflexes": {
+            "default": false,
+            "title": "Combat Reflexes",
+            "type": "boolean"
+          },
+          "fitness": {
+            "default": 0,
+            "maximum": 2,
+            "minimum": 0,
+            "title": "Fitness",
+            "type": "integer"
+          },
+          "high_pain_threshold": {
+            "default": false,
+            "title": "High Pain Threshold",
+            "type": "boolean"
+          },
+          "night_vision": {
+            "default": 0,
+            "maximum": 9,
+            "minimum": 0,
+            "title": "Night Vision",
+            "type": "integer"
+          },
+          "acute_hearing": {
+            "default": 0,
+            "maximum": 10,
+            "minimum": 0,
+            "title": "Acute Hearing",
+            "type": "integer"
+          },
+          "acute_taste_smell": {
+            "default": 0,
+            "maximum": 10,
+            "minimum": 0,
+            "title": "Acute Taste Smell",
+            "type": "integer"
+          },
+          "acute_touch": {
+            "default": 0,
+            "maximum": 10,
+            "minimum": 0,
+            "title": "Acute Touch",
+            "type": "integer"
+          },
+          "acute_vision": {
+            "default": 0,
+            "maximum": 10,
+            "minimum": 0,
+            "title": "Acute Vision",
+            "type": "integer"
+          },
+          "healing": {
+            "default": 0,
+            "maximum": 2,
+            "minimum": 0,
+            "title": "Healing",
+            "type": "integer"
+          }
+        },
+        "title": "PhysicalTraits",
+        "type": "object"
+      },
       "Pool": {
         "additionalProperties": false,
         "properties": {
@@ -6415,6 +6530,36 @@
             "title": "Treatment Modifier",
             "type": "integer"
           },
+          "fp_interval": {
+            "default": 600,
+            "enum": [
+              300,
+              600
+            ],
+            "title": "Fp Interval",
+            "type": "integer"
+          },
+          "power_entitlement": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Power Entitlement",
+            "type": "integer"
+          },
+          "healing_bonus": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Healing Bonus",
+            "type": "integer"
+          },
+          "healing_rate": {
+            "default": 1,
+            "enum": [
+              1,
+              2
+            ],
+            "title": "Healing Rate",
+            "type": "integer"
+          },
           "ordinary_entitlement": {
             "default": 0,
             "minimum": 0,
@@ -7208,6 +7353,33 @@
           "channels"
         ],
         "title": "SpellRules",
+        "type": "object"
+      },
+      "SurpriseState": {
+        "additionalProperties": false,
+        "properties": {
+          "partial": {
+            "title": "Partial",
+            "type": "boolean"
+          },
+          "freeze_turns": {
+            "default": 0,
+            "maximum": 6,
+            "minimum": 0,
+            "title": "Freeze Turns",
+            "type": "integer"
+          },
+          "attempts": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Attempts",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "partial"
+        ],
+        "title": "SurpriseState",
         "type": "object"
       },
       "TraitOptions": {

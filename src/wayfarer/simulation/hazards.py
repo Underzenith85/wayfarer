@@ -11,6 +11,7 @@ from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.rules.hazard_types import HazardSchedule, RecoveryRestriction
 from wayfarer.simulation.fatigue import FatigueCost, apply_fatigue
 from wayfarer.simulation.injury import Wound, apply_injury
+from wayfarer.simulation.physical_traits import physical_traits
 from wayfarer.simulation.resources import Command, Receipt, Record, ResourceEvent, ResourceState
 
 
@@ -100,13 +101,22 @@ def apply_hazard(
                 check = (
                     success_roll(
                         spec.profile_id,
-                        schedule.swimming if spec.kind == "drowning" else schedule.ht,
+                        schedule.swimming
+                        if spec.kind == "drowning"
+                        else schedule.ht + physical_traits(state, schedule.actor_id).fitness,
                         modifiers=(),
                         rng=rng,
                     )
                     if spec.kind == "drowning"
                     else success_roll(
-                        spec.profile_id, max(1, schedule.ht + spec.resistance_modifier), rng=rng
+                        spec.profile_id,
+                        max(
+                            1,
+                            schedule.ht
+                            + physical_traits(state, schedule.actor_id).fitness
+                            + spec.resistance_modifier,
+                        ),
+                        rng=rng,
                     )
                 )
             damage = 0
