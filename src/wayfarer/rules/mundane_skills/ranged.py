@@ -62,6 +62,13 @@ class WeaponClass:
     # Whether the mode must carry pinned entangling facts. A skill that binds
     # its target needs them; every other ranged skill must not have them.
     entangling: bool = False
+    # A TL-indexed skill only dispatches a weapon of the campaign's pinned
+    # technology level; cross-TL familiarity is not approximated here.
+    technology_level_indexed: bool = False
+    # Tight-beam damage belongs to the beam weapon rows and to nothing else.
+    tight_beam: bool = False
+    # Conventional firearm metadata (#372) belongs to conventional firearms.
+    conventional_firearm: bool | None = None
     # The only B270 rated weapon ST (#348) this skill may carry, if any.
     rated_kind: Literal["bow", "crossbow"] | None = None
 
@@ -73,6 +80,26 @@ NET: Final = WeaponClass(thrown=True, ammunition=False, entangling=True)
 BOW: Final = WeaponClass(thrown=False, ammunition=True, hands=(2,), rated_kind="bow")
 CROSSBOW: Final = WeaponClass(thrown=False, ammunition=True, rated_kind="crossbow")
 THROWN: Final = WeaponClass(thrown=True, ammunition=False, hands=(1,))
+# TL-indexed personal weapons (#355). Rapid fire and recoil are the mode's own
+# pinned facts, so these ceilings are the engine's supported bounds, not a
+# table value. A beam is never a conventional firearm and a gun is never a beam.
+GUN: Final = WeaponClass(
+    thrown=False,
+    ammunition=True,
+    maximum_rate_of_fire=100,
+    maximum_recoil=20,
+    technology_level_indexed=True,
+    conventional_firearm=None,
+)
+BEAM: Final = WeaponClass(
+    thrown=False,
+    ammunition=True,
+    maximum_rate_of_fire=100,
+    maximum_recoil=20,
+    technology_level_indexed=True,
+    tight_beam=True,
+    conventional_firearm=False,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -257,6 +284,8 @@ _ROWS: Final = (
         (SkillDefault(A.DX, -5),),
         transferred={RUNTIME_PROCEDURE: (360,), CONDITIONAL_DEFAULTS: (362,)},
     ),
+    # B198/B179: TL-indexed families, expanded into concrete specialties that
+    # each dispatch a weapon of the campaign's own technology level (#355).
     RangedProcedure(
         "skill:guns",
         "Guns",
@@ -264,9 +293,116 @@ _ROWS: Final = (
         A.DX,
         D.EASY,
         (SkillDefault(A.DX, -4),),
-        transferred=dict.fromkeys(
-            (RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL), (355,)
+        specialties=tuple(
+            f"skill:guns-{key}"
+            for key in (
+                "pistol",
+                "rifle",
+                "shotgun",
+                "submachine-gun",
+                "light-machine-gun",
+                "musket",
+                "grenade-launcher",
+                "light-anti-armor-weapon",
+            )
         ),
+        resolved=(RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL),
+    ),
+    RangedProcedure(
+        "skill:guns-pistol",
+        "Guns (Pistol)",
+        198,
+        A.DX,
+        D.EASY,
+        (SkillDefault(A.DX, -4),),
+        GUN,
+        Specialty("guns", "pistol"),
+        resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
+    ),
+    RangedProcedure(
+        "skill:guns-rifle",
+        "Guns (Rifle)",
+        198,
+        A.DX,
+        D.EASY,
+        (SkillDefault(A.DX, -4),),
+        GUN,
+        Specialty("guns", "rifle"),
+        resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
+    ),
+    RangedProcedure(
+        "skill:guns-shotgun",
+        "Guns (Shotgun)",
+        198,
+        A.DX,
+        D.EASY,
+        (SkillDefault(A.DX, -4),),
+        GUN,
+        Specialty("guns", "shotgun"),
+        resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
+    ),
+    RangedProcedure(
+        "skill:guns-submachine-gun",
+        "Guns (Submachine Gun)",
+        198,
+        A.DX,
+        D.EASY,
+        (SkillDefault(A.DX, -4),),
+        GUN,
+        Specialty("guns", "submachine-gun"),
+        resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
+    ),
+    RangedProcedure(
+        "skill:guns-light-machine-gun",
+        "Guns (Light Machine Gun)",
+        198,
+        A.DX,
+        D.EASY,
+        (SkillDefault(A.DX, -4),),
+        GUN,
+        Specialty("guns", "light-machine-gun"),
+        resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
+    ),
+    RangedProcedure(
+        "skill:guns-musket",
+        "Guns (Musket)",
+        198,
+        A.DX,
+        D.EASY,
+        (SkillDefault(A.DX, -4),),
+        GUN,
+        Specialty("guns", "musket"),
+        resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
+    ),
+    RangedProcedure(
+        "skill:guns-grenade-launcher",
+        "Guns (Grenade Launcher)",
+        198,
+        A.DX,
+        D.EASY,
+        (SkillDefault(A.DX, -4),),
+        GUN,
+        Specialty("guns", "grenade-launcher"),
+        resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
+    ),
+    RangedProcedure(
+        "skill:guns-light-anti-armor-weapon",
+        "Guns (Light Anti-Armor Weapon)",
+        198,
+        A.DX,
+        D.EASY,
+        (SkillDefault(A.DX, -4),),
+        GUN,
+        Specialty("guns", "light-anti-armor-weapon"),
+        resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:beam-weapons",
@@ -275,9 +411,44 @@ _ROWS: Final = (
         A.DX,
         D.EASY,
         (SkillDefault(A.DX, -4),),
-        transferred=dict.fromkeys(
-            (RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL), (355,)
-        ),
+        specialties=tuple(f"skill:beam-weapons-{key}" for key in ("pistol", "rifle", "projector")),
+        resolved=(RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL),
+    ),
+    RangedProcedure(
+        "skill:beam-weapons-pistol",
+        "Beam Weapons (Pistol)",
+        179,
+        A.DX,
+        D.EASY,
+        (SkillDefault(A.DX, -4),),
+        BEAM,
+        Specialty("beam-weapons", "pistol"),
+        resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
+    ),
+    RangedProcedure(
+        "skill:beam-weapons-rifle",
+        "Beam Weapons (Rifle)",
+        179,
+        A.DX,
+        D.EASY,
+        (SkillDefault(A.DX, -4),),
+        BEAM,
+        Specialty("beam-weapons", "rifle"),
+        resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
+    ),
+    RangedProcedure(
+        "skill:beam-weapons-projector",
+        "Beam Weapons (Projector)",
+        179,
+        A.DX,
+        D.EASY,
+        (SkillDefault(A.DX, -4),),
+        BEAM,
+        Specialty("beam-weapons", "projector"),
+        resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:artillery",
@@ -340,6 +511,24 @@ def require_capability(profile_id: str, capability_id: str) -> None:
         raise ValidationError(f"Rules capability has no coverage: {capability_id}")
 
 
+def require_technology(skill_id: str, campaign: int | None, weapon: int) -> None:
+    """A TL-indexed skill needs a campaign technology level and a matching weapon.
+
+    Cross-TL familiarity is a separate construction that this repository does
+    not carry, so an out-of-era weapon fails closed instead of being resolved
+    with an invented penalty (#355).
+    """
+    entry = PROCEDURES.get(skill_id)
+    if entry is None or entry.weapon is None or not entry.weapon.technology_level_indexed:
+        return
+    if campaign is None:
+        raise ValidationError(
+            f"TL-indexed ranged skill requires a pinned campaign technology level: {skill_id}"
+        )
+    if weapon != campaign:
+        raise ValidationError(f"Weapon technology level is outside the campaign's era: {skill_id}")
+
+
 def require_mode(
     profile_id: str,
     skill_id: str,
@@ -353,6 +542,7 @@ def require_mode(
     tight_beam: bool,
     rated_kind: str | None = None,
     entangling: bool = False,
+    conventional_firearm: bool = False,
 ) -> RangedProcedure | None:
     """Fail closed before dice when a weapon claims an unbound ranged skill.
 
@@ -382,7 +572,7 @@ def require_mode(
         require_capability(profile_id, capability_id)
     weapon = entry.weapon
     assert weapon is not None
-    if not ranged or tight_beam:
+    if not ranged or (tight_beam and not weapon.tight_beam):
         raise ValidationError(f"Ranged skill cannot resolve this weapon mode: {skill_id}")
     if thrown != weapon.thrown or ammunition != weapon.ammunition:
         raise ValidationError(f"Weapon mode is outside the skill's class: {skill_id}")
@@ -392,6 +582,11 @@ def require_mode(
         raise ValidationError(f"Weapon grip is outside the skill's class: {skill_id}")
     if entangling != weapon.entangling:
         raise ValidationError(f"Entangling facts are outside the skill's class: {skill_id}")
+    if (
+        weapon.conventional_firearm is not None
+        and conventional_firearm != weapon.conventional_firearm
+    ):
+        raise ValidationError(f"Firearm metadata is outside the skill's class: {skill_id}")
     # B270 rated weapon ST (#348) belongs to the launcher its own skill governs.
     if rated_kind != weapon.rated_kind and not (rated_kind is None and weapon.rated_kind):
         raise ValidationError(f"Rated weapon ST is outside the skill's class: {skill_id}")

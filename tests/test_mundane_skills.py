@@ -288,7 +288,8 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         "first-printing-delta-audit": (336,),
         "conditional-or-skill-defaults": (336, 362),
     }
-    assert entries["skill:guns"].owners == (344, 355)
+    assert entries["skill:guns"].owners == (344,)
+    assert entries["skill:artillery"].owners == (344, 357)
     assert coverage_blockers(PROFILE) == (
         103,
         109,
@@ -306,7 +307,6 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         345,
         346,
         353,
-        355,
         356,
         357,
         358,
@@ -340,7 +340,6 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         345,
         346,
         353,
-        355,
         356,
         357,
         358,
@@ -356,11 +355,11 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     ]
     assert report["runtime_owner_unassigned"] == 0
     assert report["implementation_counts"] == {
-        # 14 ranged (#344, #354), 16 social (#345) and 83 technology (#346)
-        # rows dispatch a real procedure.
-        "implemented": 113,
+        # 27 ranged (#344, #354, #355), 16 social (#345) and 83 technology
+        # (#346) rows dispatch a real procedure.
+        "implemented": 126,
         "listing-only": 28,
-        "unsupported": 191,
+        "unsupported": 189,
     }
     # A bound row can still leave part of its entry to another issue; that gap is
     # published rather than folded into the blocker list.
@@ -422,8 +421,8 @@ def test_independent_source_index_accounts_for_every_listing() -> None:
     assert "third printing" in index.observed_source
     assert len([e for e in index.entries if e.kind == "skill"]) == 275
     assert len([e for e in index.entries if e.kind == "technique"]) == 27
-    # #344 expands the Thrown Weapon family into seven concrete specialties.
-    assert len([e for e in index.entries if e.kind == "expansion"]) == 57
+    # #344 expands Thrown Weapon and #355 the two TL-indexed weapon families.
+    assert len([e for e in index.entries if e.kind == "expansion"]) == 68
     assert indexed_expansions(index, "thrown-weapon") == 7
     indexed = {e.id: e for e in index.entries}
     assert indexed["brain-hacking"].page == 182
