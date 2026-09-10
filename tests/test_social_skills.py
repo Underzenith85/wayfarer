@@ -70,13 +70,16 @@ SCOPE = (
 
 @contextmanager
 def monkeypatched(module: object, registry: Mapping[str, SocialProcedure]) -> Iterator[None]:
-    """Swap the social registry the inventory reads, without touching the module."""
-    original = module.SOCIAL_PROCEDURES  # type: ignore[attr-defined]
-    module.SOCIAL_PROCEDURES = registry  # type: ignore[attr-defined]
+    """Swap the social binding the inventory reads, without touching the module."""
+    original = module.BINDINGS  # type: ignore[attr-defined]
+    module.BINDINGS = tuple(  # type: ignore[attr-defined]
+        registry if group is module.SOCIAL_PROCEDURES else group  # type: ignore[attr-defined]
+        for group in original
+    )
     try:
         yield
     finally:
-        module.SOCIAL_PROCEDURES = original  # type: ignore[attr-defined]
+        module.BINDINGS = original  # type: ignore[attr-defined]
 
 
 def fixture() -> dict[str, object]:

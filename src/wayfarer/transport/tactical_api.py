@@ -10,14 +10,19 @@ from wayfarer.orchestration.combat import (
     COMBAT_ADAPTER,
     ChooseDefense,
     CombatService,
+    ContinueCriticalMiss,
     MigrateEncounterHex,
     RepairEquipment,
     ResolveChokeEffects,
     ResumeInterruptedTurn,
+    RetrieveEquipment,
     TakeCombatTurn,
     TakeUnarmedTurn,
 )
-from wayfarer.orchestration.tactical_view import project, snapshot, visible_actors
+from wayfarer.orchestration.equipment_view import TacticalSnapshotV2, equipment_view
+from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.tactical_view import TacticalSnapshot, project, snapshot, visible_actors
+from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.resources import Record
 from wayfarer.transport.campaign_api import ACCESS_KEY, _identity, _json
 from wayfarer.transport.tactical_v1_commands import ChooseDefense as ChooseDefenseV1
@@ -45,6 +50,8 @@ class TacticalRequestV2(Record):
         | ResumeInterruptedTurn
         | ResolveChokeEffects
         | RepairEquipment
+        | RetrieveEquipment
+        | ContinueCriticalMiss
     ) = Field(discriminator="kind")
 
 
@@ -55,7 +62,36 @@ async def read(request: web.Request) -> web.Response:
         _identity(request),
         request.query.get("actor_id", ""),
     )
+    if request.path.startswith("/api/tactical/v2/"):
+        runtime = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
+        state = runtime.play._load(await runtime.play.store.read(request.match_info["cid"]))
+        runtime._control(runtime._member(state, _identity(request)), result.actor_id)
+        result = enrich(
+            runtime.play,
+            state,
+            project(
+                runtime.play,
+                state,
+                runtime._member(state, _identity(request)),
+                result.actor_id,
+                include_object_choices=True,
+            ),
+        )
     return web.json_response(result.model_dump(mode="json"))
+
+
+def enrich(play: PlayService, state: PlayState, result: TacticalSnapshot) -> TacticalSnapshotV2:
+    return TacticalSnapshotV2.model_validate_json(
+        json.dumps(
+            {
+                **result.model_dump(mode="json"),
+                "version": "tactical-v2",
+                "equipment": [
+                    v.model_dump(mode="json") for v in equipment_view(play, state, result.actor_id)
+                ],
+            }
+        )
+    )
 
 
 async def execute(request: web.Request) -> web.Response:
@@ -76,13 +112,20 @@ async def execute(request: web.Request) -> web.Response:
     )
     duplicate = await access.play.store.duplicate(cid, command.id, payload)
     if duplicate is not None:
-        return web.json_response(
-            project(access.play, state, member, command.actor_id).model_dump(mode="json")
+        result = project(
+            access.play,
+            state,
+            member,
+            command.actor_id,
+            include_object_choices=request_type is TacticalRequestV2,
         )
+        if request_type is TacticalRequestV2:
+            result = enrich(access.play, state, result)
+        return web.json_response(result.model_dump(mode="json"))
     if state.lifecycle != "active":
         raise ValidationError("Resume the campaign before acting")
     encounter = CombatService._encounter(state, command.encounter_id)
-    if isinstance(command, MigrateEncounterHex):
+    if isinstance(command, (MigrateEncounterHex, ContinueCriticalMiss)):
         if member.role != "gm":
             raise ValidationError("Migration requires GM authority")
     else:
@@ -113,9 +156,16 @@ async def execute(request: web.Request) -> web.Response:
             status=exc.status,
         )
     state = access.play._load(await access.play.store.read(cid))
-    return web.json_response(
-        project(access.play, state, member, command.actor_id).model_dump(mode="json")
+    result = project(
+        access.play,
+        state,
+        member,
+        command.actor_id,
+        include_object_choices=request_type is TacticalRequestV2,
     )
+    if request_type is TacticalRequestV2:
+        result = enrich(access.play, state, result)
+    return web.json_response(result.model_dump(mode="json"))
 
 
 def install(app: web.Application) -> None:

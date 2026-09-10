@@ -120,8 +120,55 @@ export interface components {
        */
       second_parry_mode_id: string | null;
     };
+    /** EquipmentChoice */
+    EquipmentChoice: {
+      /** Label */
+      label: string;
+      /** Command */
+      command:
+        | components["schemas"]["RepairEquipment"]
+        | components["schemas"]["RetrieveEquipment"];
+    };
+    /** EquipmentView */
+    EquipmentView: {
+      /** Id */
+      id: string;
+      /** Name */
+      name: string;
+      condition: components["schemas"]["ObjectCondition"] | null;
+      ground: components["schemas"]["GroundPosition"] | null;
+      /**
+       * Work
+       * @default null
+       */
+      work: string | null;
+      /**
+       * Due In
+       * @default null
+       */
+      due_in: number | null;
+      /**
+       * Choices
+       * @default []
+       */
+      choices: components["schemas"]["EquipmentChoice"][];
+    };
     /** GridPoint */
     GridPoint: {
+      /** X */
+      x: number;
+      /** Y */
+      y: number;
+    };
+    /** GroundPosition */
+    GroundPosition: {
+      /** Encounter Id */
+      encounter_id: string;
+      /**
+       * Geometry
+       * @enum {string}
+       */
+      geometry: "grid" | "hex";
       /** X */
       x: number;
       /** Y */
@@ -133,6 +180,69 @@ export interface components {
       q: number;
       /** R */
       r: number;
+    };
+    /** ObjectCondition */
+    ObjectCondition: {
+      /** Hp */
+      hp: number;
+      /**
+       * Disabled
+       * @default false
+       */
+      disabled: boolean;
+      /**
+       * Destroyed
+       * @default false
+       */
+      destroyed: boolean;
+      /**
+       * Last Stress At
+       * @default null
+       */
+      last_stress_at: number | null;
+      /**
+       * Residual Roll
+       * @default null
+       */
+      residual_roll: number | null;
+      /**
+       * Shock
+       * @default 0
+       */
+      shock: number;
+      /**
+       * Shock Until
+       * @default null
+       */
+      shock_until: number | null;
+    };
+    /** RepairEquipment */
+    RepairEquipment: {
+      /** Id */
+      id: string;
+      /** Actor Id */
+      actor_id: string;
+      /** Expected Revision */
+      expected_revision: number;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: "repair_equipment";
+      /** Encounter Id */
+      encounter_id: string;
+      /** Item Id */
+      item_id: string;
+      /**
+       * Stage
+       * @enum {string}
+       */
+      stage: "start" | "finish" | "cancel";
+      /**
+       * Task Id
+       * @default null
+       */
+      task_id: string | null;
     };
     /** ResumeInterruptedTurn */
     ResumeInterruptedTurn: {
@@ -154,6 +264,34 @@ export interface components {
        * @default false
        */
       cancel: boolean;
+    };
+    /** RetrieveEquipment */
+    RetrieveEquipment: {
+      /** Id */
+      id: string;
+      /** Actor Id */
+      actor_id: string;
+      /** Expected Revision */
+      expected_revision: number;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: "retrieve_equipment";
+      /** Encounter Id */
+      encounter_id: string;
+      /** Item Id */
+      item_id: string;
+      /**
+       * Stage
+       * @enum {string}
+       */
+      stage: "start" | "finish" | "cancel";
+      /**
+       * Task Id
+       * @default null
+       */
+      task_id: string | null;
     };
     /** TacticalActor */
     TacticalActor: {
@@ -622,11 +760,11 @@ export interface components {
       /** @default null */
       unarmed: components["schemas"]["UnarmedReaction"] | null;
     };
-    /** TacticalSnapshot */
-    TacticalSnapshot: {
+    /** TacticalSnapshotV2 */
+    TacticalSnapshotV2: {
       /**
        * Version
-       * @default tactical-v1
+       * @default tactical-v2
        */
       version: string;
       /** Campaign Id */
@@ -637,6 +775,34 @@ export interface components {
       revision: number;
       /** Encounters */
       encounters: components["schemas"]["TacticalEncounter"][];
+      /**
+       * Equipment
+       * @default []
+       */
+      equipment: components["schemas"]["EquipmentView"][];
+    };
+    /** ContinueCriticalMiss */
+    ContinueCriticalMiss: {
+      /** Id */
+      id: string;
+      /** Actor Id */
+      actor_id: string;
+      /** Expected Revision */
+      expected_revision: number;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: "continue_critical_miss";
+      /** Encounter Id */
+      encounter_id: string;
+      /** Critical Id */
+      critical_id: string;
+      /**
+       * Stage
+       * @enum {string}
+       */
+      stage: "migrate" | "resume";
     };
     /**
      * HexBattlefield
@@ -711,34 +877,6 @@ export interface components {
         | "sitting"
         | "lying";
     };
-    /** RepairEquipment */
-    RepairEquipment: {
-      /** Id */
-      id: string;
-      /** Actor Id */
-      actor_id: string;
-      /** Expected Revision */
-      expected_revision: number;
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      kind: "repair_equipment";
-      /** Encounter Id */
-      encounter_id: string;
-      /** Item Id */
-      item_id: string;
-      /**
-       * Stage
-       * @enum {string}
-       */
-      stage: "start" | "finish" | "cancel";
-      /**
-       * Task Id
-       * @default null
-       */
-      task_id: string | null;
-    };
     /** ResolveChokeEffects */
     ResolveChokeEffects: {
       /** Id */
@@ -775,7 +913,9 @@ export interface components {
         | components["schemas"]["MigrateEncounterHex"]
         | components["schemas"]["ResumeInterruptedTurn"]
         | components["schemas"]["ResolveChokeEffects"]
-        | components["schemas"]["RepairEquipment"];
+        | components["schemas"]["RepairEquipment"]
+        | components["schemas"]["RetrieveEquipment"]
+        | components["schemas"]["ContinueCriticalMiss"];
     };
     TacticalError: {
       code: string;
@@ -803,13 +943,13 @@ export interface operations {
     };
     requestBody?: never;
     responses: {
-      /** @description TacticalSnapshot */
+      /** @description TacticalSnapshotV2 */
       200: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["TacticalSnapshot"];
+          "application/json": components["schemas"]["TacticalSnapshotV2"];
         };
       };
       /** @description TacticalError */
@@ -892,13 +1032,13 @@ export interface operations {
       };
     };
     responses: {
-      /** @description TacticalSnapshot */
+      /** @description TacticalSnapshotV2 */
       200: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["TacticalSnapshot"];
+          "application/json": components["schemas"]["TacticalSnapshotV2"];
         };
       };
       /** @description TacticalError */

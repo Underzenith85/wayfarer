@@ -159,7 +159,8 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      358
     ],
     "attribute": "IQ",
     "difficulty": "easy",
@@ -669,7 +670,8 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      356
     ],
     "procedure_owner": 346
   },
@@ -696,7 +698,8 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      356
     ],
     "procedure_owner": 346
   },
@@ -752,6 +755,146 @@
       112,
       336,
       346
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "boating-large-powerboat",
+    "name": "Boating (Large Powerboat)",
+    "page": 180,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "boating",
+      "name": "large-powerboat"
+    },
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "boating-motorboat",
+    "name": "Boating (Motorboat)",
+    "page": 180,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "boating",
+      "name": "motorboat"
+    },
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "boating-sailboat",
+    "name": "Boating (Sailboat)",
+    "page": 180,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "boating",
+      "name": "sailboat"
+    },
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "boating-unpowered",
+    "name": "Boating (Unpowered)",
+    "page": 180,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "boating",
+      "name": "unpowered"
+    },
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
     ],
     "procedure_owner": 346
   },
@@ -1460,7 +1603,8 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      356
     ],
     "procedure_owner": 346
   },
@@ -1622,7 +1766,8 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      356
     ],
     "procedure_owner": 346
   },
@@ -1724,6 +1869,321 @@
       112,
       336,
       346
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "driving-automobile",
+    "name": "Driving (Automobile)",
+    "page": 188,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "driving",
+      "name": "automobile"
+    },
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "driving-construction-equipment",
+    "name": "Driving (Construction Equipment)",
+    "page": 188,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "driving",
+      "name": "construction-equipment"
+    },
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "driving-halftrack",
+    "name": "Driving (Halftrack)",
+    "page": 188,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "driving",
+      "name": "halftrack"
+    },
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "driving-heavy-wheeled",
+    "name": "Driving (Heavy Wheeled)",
+    "page": 188,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "driving",
+      "name": "heavy-wheeled"
+    },
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "driving-hovercraft",
+    "name": "Driving (Hovercraft)",
+    "page": 188,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "driving",
+      "name": "hovercraft"
+    },
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "driving-locomotive",
+    "name": "Driving (Locomotive)",
+    "page": 188,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "driving",
+      "name": "locomotive"
+    },
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "driving-mecha",
+    "name": "Driving (Mecha)",
+    "page": 188,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "driving",
+      "name": "mecha"
+    },
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "driving-motorcycle",
+    "name": "Driving (Motorcycle)",
+    "page": 188,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "driving",
+      "name": "motorcycle"
+    },
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "driving-tracked",
+    "name": "Driving (Tracked)",
+    "page": 188,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "driving",
+      "name": "tracked"
+    },
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
     ],
     "procedure_owner": 346
   },
@@ -1857,7 +2317,8 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      356
     ],
     "procedure_owner": 346
   },
@@ -1884,7 +2345,8 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      356
     ],
     "procedure_owner": 346
   },
@@ -1907,7 +2369,8 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      356
     ],
     "procedure_owner": 346
   },
@@ -2075,6 +2538,156 @@
       "specialty-expansion",
       "technology-level-context",
       "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "explosives-demolition",
+    "name": "Explosives (Demolition)",
+    "page": 194,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "explosives",
+      "name": "demolition"
+    },
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "explosives-explosive-ordnance-disposal",
+    "name": "Explosives (Explosive Ordnance Disposal)",
+    "page": 194,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "explosives",
+      "name": "explosive-ordnance-disposal"
+    },
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "explosives-fireworks",
+    "name": "Explosives (Fireworks)",
+    "page": 194,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "explosives",
+      "name": "fireworks"
+    },
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "explosives-nuclear-ordnance-disposal",
+    "name": "Explosives (Nuclear Ordnance Disposal)",
+    "page": 194,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "explosives",
+      "name": "nuclear-ordnance-disposal"
+    },
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "explosives-underwater-demolition",
+    "name": "Explosives (Underwater Demolition)",
+    "page": 194,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "explosives",
+      "name": "underwater-demolition"
+    },
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
       112,
@@ -2764,7 +3377,8 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      356
     ],
     "procedure_owner": 346
   },
@@ -2791,7 +3405,8 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      356
     ],
     "procedure_owner": 346
   },
@@ -2936,7 +3551,8 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      356
     ],
     "procedure_owner": 346
   },
@@ -4313,7 +4929,8 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      356
     ],
     "procedure_owner": 346
   },
@@ -4524,9 +5141,17 @@
     "issues": [
       112,
       336,
+      338,
       346
     ],
-    "procedure_owner": 346
+    "procedure_owner": 346,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "technique": {
+      "parent": "photography",
+      "default_modifier": -2,
+      "maximum_modifier": 0
+    }
   },
   {
     "id": "mount",
@@ -4731,9 +5356,17 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      358
     ],
-    "procedure_owner": 346
+    "procedure_owner": 346,
+    "attribute": "DX",
+    "difficulty": "hard",
+    "technique": {
+      "parent": "piloting",
+      "default_modifier": -5,
+      "maximum_modifier": 0
+    }
   },
   {
     "id": "observation",
@@ -4842,7 +5475,8 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      356
     ],
     "procedure_owner": 346
   },
@@ -5184,6 +5818,426 @@
       112,
       336,
       346
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "piloting-aerospace",
+    "name": "Piloting (Aerospace)",
+    "page": 214,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "piloting",
+      "name": "aerospace"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "piloting-airship",
+    "name": "Piloting (Airship)",
+    "page": 214,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "piloting",
+      "name": "airship"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "piloting-autogyro",
+    "name": "Piloting (Autogyro)",
+    "page": 214,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "piloting",
+      "name": "autogyro"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "piloting-contragravity",
+    "name": "Piloting (Contragravity)",
+    "page": 214,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "piloting",
+      "name": "contragravity"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "piloting-flight-pack",
+    "name": "Piloting (Flight Pack)",
+    "page": 214,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "piloting",
+      "name": "flight-pack"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "piloting-glider",
+    "name": "Piloting (Glider)",
+    "page": 214,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "piloting",
+      "name": "glider"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "piloting-heavy-airplane",
+    "name": "Piloting (Heavy Airplane)",
+    "page": 214,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "piloting",
+      "name": "heavy-airplane"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "piloting-high-performance-airplane",
+    "name": "Piloting (High-Performance Airplane)",
+    "page": 214,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "piloting",
+      "name": "high-performance-airplane"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "piloting-high-performance-spacecraft",
+    "name": "Piloting (High-Performance Spacecraft)",
+    "page": 214,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "piloting",
+      "name": "high-performance-spacecraft"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "piloting-light-airplane",
+    "name": "Piloting (Light Airplane)",
+    "page": 214,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "piloting",
+      "name": "light-airplane"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "piloting-lighter-than-air",
+    "name": "Piloting (Lighter-Than-Air)",
+    "page": 214,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "piloting",
+      "name": "lighter-than-air"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "piloting-low-performance-spacecraft",
+    "name": "Piloting (Low-Performance Spacecraft)",
+    "page": 214,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "piloting",
+      "name": "low-performance-spacecraft"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "piloting-ultralight",
+    "name": "Piloting (Ultralight)",
+    "page": 214,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "piloting",
+      "name": "ultralight"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "piloting-vertol",
+    "name": "Piloting (Vertol)",
+    "page": 214,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "piloting",
+      "name": "vertol"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
     ],
     "procedure_owner": 346
   },
@@ -5746,7 +6800,8 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      358
     ],
     "attribute": "IQ",
     "difficulty": "easy",
@@ -5801,7 +6856,14 @@
       336,
       346
     ],
-    "procedure_owner": 346
+    "procedure_owner": 346,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "technique": {
+      "parent": "traps",
+      "default_modifier": -2,
+      "maximum_modifier": 0
+    }
   },
   {
     "id": "sewing",
@@ -5928,6 +6990,134 @@
       112,
       336,
       346
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "shiphandling-airship",
+    "name": "Shiphandling (Airship)",
+    "page": 220,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "shiphandling",
+      "name": "airship"
+    },
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "prerequisite-procedure",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "shiphandling-ship",
+    "name": "Shiphandling (Ship)",
+    "page": 220,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "shiphandling",
+      "name": "ship"
+    },
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "prerequisite-procedure",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "shiphandling-starship",
+    "name": "Shiphandling (Starship)",
+    "page": 220,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "shiphandling",
+      "name": "starship"
+    },
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "prerequisite-procedure",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "shiphandling-submarine",
+    "name": "Shiphandling (Submarine)",
+    "page": 220,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "shiphandling",
+      "name": "submarine"
+    },
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "prerequisite-procedure",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
     ],
     "procedure_owner": 346
   },
@@ -6258,7 +7448,8 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      358
     ],
     "attribute": "IQ",
     "difficulty": "easy",
@@ -6529,6 +7720,96 @@
     "procedure_owner": 346
   },
   {
+    "id": "submarine-free-flooding",
+    "name": "Submarine (Free-Flooding Sub)",
+    "page": 223,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "submarine",
+      "name": "free-flooding"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "submarine-large",
+    "name": "Submarine (Large Sub)",
+    "page": 223,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "submarine",
+      "name": "large"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "submarine-mini",
+    "name": "Submarine (Mini-Sub)",
+    "page": 223,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "submarine",
+      "name": "mini"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      346,
+      358
+    ],
+    "procedure_owner": 346
+  },
+  {
     "id": "submariner",
     "name": "Submariner",
     "page": 185,
@@ -6539,7 +7820,8 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      358
     ],
     "attribute": "IQ",
     "difficulty": "easy",
@@ -7456,7 +8738,14 @@
       336,
       346
     ],
-    "procedure_owner": 346
+    "procedure_owner": 346,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "technique": {
+      "parent": "traps",
+      "default_modifier": -5,
+      "maximum_modifier": 0
+    }
   },
   {
     "id": "wrestling",

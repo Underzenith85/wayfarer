@@ -331,6 +331,8 @@ class SpellService:
         principal_id: str | None = None,
     ) -> SpellResult:
         command = SpellCommand.model_validate(value)
+        if command.target_item_id is not None and command.kind != "release":
+            raise ValidationError("Object targeting requires a missile release")
         play = self.play.for_campaign(await self.play.store.read(cid))
         state = play._load(await play.store.read(cid))
         if (principal_id is None) == (authenticated_gm_id is None):
@@ -509,6 +511,16 @@ class SpellService:
                 )
 
                 target = next(p for p in encounter.participants if p.actor_id == context.target_id)
+                if command.target_item_id:
+                    from wayfarer.orchestration.object_combat import target_modifier
+
+                    target_modifier(play, before, target.actor_id, command.target_item_id)
+                    if next(
+                        i for i in before.resources.items if i.id == command.target_item_id
+                    ).ground:
+                        raise ValidationError(
+                            "Ground spell targets require a dedicated geometry adapter"
+                        )
                 allowed: list[Defense] = ["none"]
                 for defense in ("dodge", "block"):
                     try:
@@ -537,6 +549,7 @@ class SpellService:
                             opened_round=encounter.round,
                             opened_turn=encounter.turn_index,
                             spell_cast_id=command.cast_id,
+                            target_item_id=command.target_item_id,
                         )
                     }
                 )

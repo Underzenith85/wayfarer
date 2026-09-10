@@ -197,6 +197,10 @@ class SocialProcedure:
         return self.implemented
 
     @property
+    def dispatch(self) -> str | None:
+        return DISPATCH if self.dispatchable else None
+
+    @property
     def complete(self) -> bool:
         """Whether the whole entry is carried, not merely its roll."""
         return self.implemented and not self.unsupported

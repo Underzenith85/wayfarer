@@ -163,6 +163,35 @@ export function TacticalPanel({
           Retry same action
         </Button>
       )}
+      {!!snapshot.equipment?.length && (
+        <section aria-label="Equipment condition and work">
+          <h3>Equipment</h3>
+          <ul>
+            {snapshot.equipment.map((item) => (
+              <li key={item.id}>
+                {item.name}
+                {item.condition &&
+                  ` · HP ${item.condition.hp} · ${item.condition.destroyed ? "Destroyed" : item.condition.disabled ? "Disabled" : "Usable"}`}
+                {item.ground &&
+                  ` · Ground (${item.ground.x}, ${item.ground.y})`}
+                {item.work &&
+                  ` · ${item.work}: ${item.due_in === 0 ? "ready to finish" : `${item.due_in} seconds remaining`}`}
+                <div className="tactical-actions">
+                  {item.choices?.map((choice) => (
+                    <Button
+                      key={choice.command.id}
+                      disabled={busy || retry !== null}
+                      onClick={() => void run(choice.command)}
+                    >
+                      {choice.label}
+                    </Button>
+                  ))}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       {snapshot.encounters.map((encounter) => (
         <div key={encounter.id}>
           <h3>

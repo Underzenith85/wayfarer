@@ -378,15 +378,16 @@ and unavailable/unknown IDs. Full specialty expansion and runtime availability
 remain visible item-level blockers under #112 and the indicated mechanics owners.
 
 The candidate `0.3.0` audit reconciles an independent B301–B304 source index:
-275 skill listings, 27 named techniques and 18 explicit expansions map to 293
+275 skill listings, 27 named techniques and 57 explicit expansions map to 332
 mundane records plus 28 transferred exclusions. The combined Combat Art or Sport
 listing maps to two records. Missing entries, unindexed additions, invalid parents,
 page drift and transfer drift fail validation. Required contextual specialties
 remain explicitly blocked; these counts do not certify every possible specialty.
 
-There are 233 structured unsupported definitions, 12 implemented ranged combat
-procedures (#344), 16 implemented social procedures (#345) and 32 listing-only
-records (27 technique templates and five variable families). Previously empty suit,
+There are 193 structured unsupported definitions, 111 implemented procedures
+(12 ranged combat rows from #344, 16 social rows from #345 and 83 technology,
+science and vehicle rows from #346) and 28 listing-only records (23 technique
+templates and five variable families). Previously empty suit,
 crewman and weapon definitions now carry source-indexed metadata, and candidate
 techniques no longer inherit definitions from live packages. Source/printing,
 context and runtime limitations are visible per row. Independent fixtures sample
@@ -402,6 +403,12 @@ Fortune-Telling and Savoir-Faire to #366, Propaganda to #367 and the conditional
 defaults to #353, and declares the part of a *bound* entry it still does not
 carry — coercion (#368), advancement and group activity (#369), audience
 reactions and income (#370) — as `transferred_procedure_scope` in the report.
+#346 binds 83 technology, science and vehicle rows the same way — expanding six
+families into 39 concrete specialties and four B233 techniques — and transfers
+twelve discipline-keyed rows to #356 and Motion-Picture Camera to #338; its bound
+vehicle rows additionally record `gurps.vehicles.movement` until #358 verifies
+that capability. Those definitions are not yet in a package pin: two ids already
+exist in the pinned package on another hook, which is a deliberate migration.
 A bound row reports as `implemented` and stays blocked by the printing delta. Item-level owners and unsupported/listing-only states reach `source_audit`.
 All candidates remain unavailable; no saved profile/package pin changes. See
 [the mundane skill inventory](gurps-mundane-skills.md) for the coverage matrix.

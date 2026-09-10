@@ -21,6 +21,7 @@ def repair(
     command_id: str,
     stage: Literal["start", "finish", "cancel"],
     task_id: str | None,
+    preview: bool = False,
 ) -> tuple[PlayState, RepairTask]:
     from wayfarer.orchestration.gurps_melee import build, catalog, fatigue_ready, level
 
@@ -121,7 +122,7 @@ def repair(
                 raise ValidationError(
                     "Major repair requires supplies covering the maximum parts cost"
                 )
-            parts_die = play.rng.randbelow(6) + 1
+            parts_die = 6 if preview else play.rng.randbelow(6) + 1
             quantity = (entry.price * parts_die + part_entry.price * 10 - 1) // (
                 part_entry.price * 10
             )
@@ -161,6 +162,8 @@ def repair(
             for i in resources.items
         ):
             raise ConflictError("Repair equipment changed; cancel this attempt")
+        if preview:
+            return state, task
         check = success_roll(
             profile.profile_id, task.skill, check_modifiers(resources, actor_id, "iq"), rng=play.rng
         )

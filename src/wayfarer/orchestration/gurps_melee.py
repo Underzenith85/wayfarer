@@ -284,6 +284,28 @@ def defense_value(
 ) -> tuple[DerivedValue | None, str | None]:
     if selected == "none":
         return None, None
+    object_target = next(
+        (
+            e.pending_defense.target_item_id
+            for e in state.encounters
+            if e.status == "active"
+            and e.pending_defense
+            and e.pending_defense.defender_id == participant.actor_id
+        ),
+        None,
+    )
+    from wayfarer.orchestration.object_combat import weapon_target
+
+    if object_target and next(i for i in state.resources.items if i.id == object_target).ground:
+        raise ValidationError("Unheld objects have no active defense")
+    targeted_weapon = weapon_target(play, state, object_target)
+    if targeted_weapon:
+        if selected == "block":
+            raise ValidationError("A weapon target cannot be protected by Block")
+        if selected == "parry":
+            if item_id not in (None, object_target):
+                raise ValidationError("Only the targeted weapon can parry this attack")
+            item_id = object_target
     from wayfarer.simulation.fright import can_defend
 
     if not can_defend(state.resources, participant.actor_id):
@@ -346,6 +368,8 @@ def defense_value(
         ),
         default=0,
     )
+    if targeted_weapon:
+        bonus = 0
     from wayfarer.simulation.fright import stunned as fright_stunned
 
     penalty = (
@@ -510,7 +534,7 @@ def prepare_attack(
     if target_item_id:
         from wayfarer.orchestration.object_combat import target_modifier
 
-        if not isinstance(selected, MeleeMode) or selected.damage.damage_type not in (
+        if selected.damage.damage_type not in (
             "cr",
             "cut",
             "imp",
@@ -520,12 +544,20 @@ def prepare_attack(
             "pi++",
             "burn",
         ):
-            raise ValidationError("Object target requires a supported melee damage mode")
+            raise ValidationError("Object target requires a supported damage mode")
         target_modifier(play, state, pending.defender_id, target_item_id)
     if isinstance(selected, RangedMode):
         from wayfarer.orchestration.gurps_ranged import prepare
 
-        return prepare(play, state, encounter, selected, shots=shots, hit_location=hit_location)
+        return prepare(
+            play,
+            state,
+            encounter,
+            selected,
+            shots=shots,
+            hit_location=hit_location,
+            target_item_id=target_item_id,
+        )
     if shots != 1:
         raise ValidationError("Shot count requires a ranged mode")
     attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
@@ -546,11 +578,31 @@ def prepare_attack(
     from wayfarer.simulation.combat import CombatEngine
     from wayfarer.simulation.tactical import attack_geometry, defense_adjustment
 
-    attack_geometry(encounter, attacker, defender, frozenset(selected.reach), location=hit_location)
-    if CombatEngine.distance(attacker.position, defender.position) not in selected.reach:
+    geometry = encounter
+    if target_item_id:
+        from wayfarer.orchestration.object_combat import target_geometry
+
+        geometry = target_geometry(
+            play, state, encounter, target_item_id, frozenset(selected.reach)
+        )
+    target_position = next(p for p in geometry.participants if p.actor_id == defender.actor_id)
+    attack_geometry(
+        geometry, attacker, target_position, frozenset(selected.reach), location=hit_location
+    )
+    if CombatEngine.distance(attacker.position, target_position.position) not in selected.reach:
         raise ValidationError("Target is outside selected weapon reach")
     allowed: list[Defense] = ["none"]
     for candidate in ("dodge", "parry", "block"):
+        from wayfarer.orchestration.object_combat import weapon_target
+
+        if (
+            target_item_id
+            and next(i for i in state.resources.items if i.id == target_item_id).ground
+        ):
+            continue
+        targeting_weapon = weapon_target(play, state, target_item_id)
+        if targeting_weapon and candidate == "block":
+            continue
         try:
             defense_adjustment(encounter, attacker, defender)
             defense_value(
@@ -558,6 +610,7 @@ def prepare_attack(
                 state,
                 defender,
                 candidate,
+                target_item_id if targeting_weapon and candidate == "parry" else None,
                 incoming_item_id=pending.weapon_id,
                 incoming_mode_id=selected.id,
             )
@@ -863,6 +916,37 @@ def resolve_melee(
     ):
         critical_dice = tuple(play.rng.randbelow(6) + 1 for _ in range(3))
         critical = sum(critical_dice)
+    if hit and defense is not None and second_derived is not None and blocked is None:
+        from wayfarer.orchestration.object_combat import defense_stress
+
+        state, encounter = defense_stress(
+            play,
+            state,
+            encounter,
+            defender.actor_id,
+            pending.id + ":second",
+            second_item,
+        )
+        defender = defender.model_copy(
+            update={
+                "ready_item_ids": tuple(
+                    i.id
+                    for i in state.resources.items
+                    if i.owner_id == defender.actor_id and i.equipped and i.ready
+                )
+            }
+        )
+        try:
+            second_derived, second_item = defense_value(
+                play,
+                state,
+                defender,
+                second_defense or "none",
+                second_item,
+                parry_mode_id=second_parry_mode_id,
+            )
+        except ValidationError:
+            second_derived = None
     if hit and defense is not None and second_derived is not None and blocked is None:
         second_target = int(second_derived.value) - (
             attacker.maneuver_state.feint_penalty

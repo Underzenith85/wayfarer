@@ -4,6 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
+from wayfarer.orchestration.equipment_view import TacticalSnapshotV2
 from wayfarer.orchestration.tactical_view import TacticalSnapshot
 from wayfarer.transport.tactical_api import TacticalRequest, TacticalRequestV2
 
@@ -13,7 +14,8 @@ def contract(version: int = 1) -> str:
         raise ValueError("Unsupported tactical contract version")
     request_model = TacticalRequest if version == 1 else TacticalRequestV2
     schemas: dict[str, object] = {}
-    for model in (TacticalSnapshot, request_model):
+    snapshot_model = TacticalSnapshot if version == 1 else TacticalSnapshotV2
+    for model in (snapshot_model, request_model):
         schema = model.model_json_schema()
         schemas.update(schema.pop("$defs", {}))
         schemas[model.__name__] = schema
@@ -32,7 +34,7 @@ def contract(version: int = 1) -> str:
         }
 
     responses = {
-        "200": response("TacticalSnapshot"),
+        "200": response(snapshot_model.__name__),
         **{str(n): response("TacticalError") for n in (400, 401, 403, 404, 409, 413, 429)},
     }
     document = {

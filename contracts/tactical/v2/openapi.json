@@ -38,11 +38,11 @@
         ],
         "responses": {
           "200": {
-            "description": "TacticalSnapshot",
+            "description": "TacticalSnapshotV2",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TacticalSnapshot"
+                  "$ref": "#/components/schemas/TacticalSnapshotV2"
                 }
               }
             }
@@ -145,11 +145,11 @@
         },
         "responses": {
           "200": {
-            "description": "TacticalSnapshot",
+            "description": "TacticalSnapshotV2",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TacticalSnapshot"
+                  "$ref": "#/components/schemas/TacticalSnapshotV2"
                 }
               }
             }
@@ -415,6 +415,105 @@
         "title": "ChooseDefense",
         "type": "object"
       },
+      "EquipmentChoice": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "command": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RepairEquipment"
+              },
+              {
+                "$ref": "#/components/schemas/RetrieveEquipment"
+              }
+            ],
+            "title": "Command"
+          }
+        },
+        "required": [
+          "label",
+          "command"
+        ],
+        "title": "EquipmentChoice",
+        "type": "object"
+      },
+      "EquipmentView": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "condition": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ObjectCondition"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "ground": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GroundPosition"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "work": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Work"
+          },
+          "due_in": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Due In"
+          },
+          "choices": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/EquipmentChoice"
+            },
+            "title": "Choices",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "condition",
+          "ground"
+        ],
+        "title": "EquipmentView",
+        "type": "object"
+      },
       "GridPoint": {
         "additionalProperties": false,
         "properties": {
@@ -438,6 +537,41 @@
         "title": "GridPoint",
         "type": "object"
       },
+      "GroundPosition": {
+        "additionalProperties": false,
+        "properties": {
+          "encounter_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Encounter Id",
+            "type": "string"
+          },
+          "geometry": {
+            "enum": [
+              "grid",
+              "hex"
+            ],
+            "title": "Geometry",
+            "type": "string"
+          },
+          "x": {
+            "title": "X",
+            "type": "integer"
+          },
+          "y": {
+            "title": "Y",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "encounter_id",
+          "geometry",
+          "x",
+          "y"
+        ],
+        "title": "GroundPosition",
+        "type": "object"
+      },
       "Hex": {
         "additionalProperties": false,
         "properties": {
@@ -459,6 +593,150 @@
           "r"
         ],
         "title": "Hex",
+        "type": "object"
+      },
+      "ObjectCondition": {
+        "additionalProperties": false,
+        "properties": {
+          "hp": {
+            "title": "Hp",
+            "type": "integer"
+          },
+          "disabled": {
+            "default": false,
+            "title": "Disabled",
+            "type": "boolean"
+          },
+          "destroyed": {
+            "default": false,
+            "title": "Destroyed",
+            "type": "boolean"
+          },
+          "last_stress_at": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Last Stress At"
+          },
+          "residual_roll": {
+            "anyOf": [
+              {
+                "maximum": 6,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Residual Roll"
+          },
+          "shock": {
+            "default": 0,
+            "maximum": 4,
+            "minimum": 0,
+            "title": "Shock",
+            "type": "integer"
+          },
+          "shock_until": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Shock Until"
+          }
+        },
+        "required": [
+          "hp"
+        ],
+        "title": "ObjectCondition",
+        "type": "object"
+      },
+      "RepairEquipment": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "repair_equipment",
+            "default": "repair_equipment",
+            "title": "Kind",
+            "type": "string"
+          },
+          "encounter_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Encounter Id",
+            "type": "string"
+          },
+          "item_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Item Id",
+            "type": "string"
+          },
+          "stage": {
+            "enum": [
+              "start",
+              "finish",
+              "cancel"
+            ],
+            "title": "Stage",
+            "type": "string"
+          },
+          "task_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Task Id"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "expected_revision",
+          "encounter_id",
+          "item_id",
+          "stage"
+        ],
+        "title": "RepairEquipment",
         "type": "object"
       },
       "ResumeInterruptedTurn": {
@@ -506,6 +784,79 @@
           "encounter_id"
         ],
         "title": "ResumeInterruptedTurn",
+        "type": "object"
+      },
+      "RetrieveEquipment": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "retrieve_equipment",
+            "default": "retrieve_equipment",
+            "title": "Kind",
+            "type": "string"
+          },
+          "encounter_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Encounter Id",
+            "type": "string"
+          },
+          "item_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Item Id",
+            "type": "string"
+          },
+          "stage": {
+            "enum": [
+              "start",
+              "finish",
+              "cancel"
+            ],
+            "title": "Stage",
+            "type": "string"
+          },
+          "task_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Task Id"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "expected_revision",
+          "encounter_id",
+          "item_id",
+          "stage"
+        ],
+        "title": "RetrieveEquipment",
         "type": "object"
       },
       "TacticalActor": {
@@ -1547,11 +1898,11 @@
         "title": "WaitTrigger",
         "type": "object"
       },
-      "TacticalSnapshot": {
+      "TacticalSnapshotV2": {
         "additionalProperties": false,
         "properties": {
           "version": {
-            "default": "tactical-v1",
+            "default": "tactical-v2",
             "title": "Version",
             "type": "string"
           },
@@ -1574,6 +1925,14 @@
             },
             "title": "Encounters",
             "type": "array"
+          },
+          "equipment": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/EquipmentView"
+            },
+            "title": "Equipment",
+            "type": "array"
           }
         },
         "required": [
@@ -1582,7 +1941,65 @@
           "revision",
           "encounters"
         ],
-        "title": "TacticalSnapshot",
+        "title": "TacticalSnapshotV2",
+        "type": "object"
+      },
+      "ContinueCriticalMiss": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "continue_critical_miss",
+            "default": "continue_critical_miss",
+            "title": "Kind",
+            "type": "string"
+          },
+          "encounter_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Encounter Id",
+            "type": "string"
+          },
+          "critical_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Critical Id",
+            "type": "string"
+          },
+          "stage": {
+            "enum": [
+              "migrate",
+              "resume"
+            ],
+            "title": "Stage",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "expected_revision",
+          "encounter_id",
+          "critical_id",
+          "stage"
+        ],
+        "title": "ContinueCriticalMiss",
         "type": "object"
       },
       "HexBattlefield": {
@@ -1752,79 +2169,6 @@
         "title": "Pose",
         "type": "object"
       },
-      "RepairEquipment": {
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "maxLength": 200,
-            "minLength": 1,
-            "title": "Id",
-            "type": "string"
-          },
-          "actor_id": {
-            "maxLength": 200,
-            "minLength": 1,
-            "title": "Actor Id",
-            "type": "string"
-          },
-          "expected_revision": {
-            "minimum": 0,
-            "title": "Expected Revision",
-            "type": "integer"
-          },
-          "kind": {
-            "const": "repair_equipment",
-            "default": "repair_equipment",
-            "title": "Kind",
-            "type": "string"
-          },
-          "encounter_id": {
-            "maxLength": 200,
-            "minLength": 1,
-            "title": "Encounter Id",
-            "type": "string"
-          },
-          "item_id": {
-            "maxLength": 200,
-            "minLength": 1,
-            "title": "Item Id",
-            "type": "string"
-          },
-          "stage": {
-            "enum": [
-              "start",
-              "finish",
-              "cancel"
-            ],
-            "title": "Stage",
-            "type": "string"
-          },
-          "task_id": {
-            "anyOf": [
-              {
-                "maxLength": 200,
-                "minLength": 1,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Task Id"
-          }
-        },
-        "required": [
-          "id",
-          "actor_id",
-          "expected_revision",
-          "encounter_id",
-          "item_id",
-          "stage"
-        ],
-        "title": "RepairEquipment",
-        "type": "object"
-      },
       "ResolveChokeEffects": {
         "additionalProperties": false,
         "properties": {
@@ -1899,10 +2243,12 @@
             "discriminator": {
               "mapping": {
                 "choose_defense": "#/components/schemas/ChooseDefense",
+                "continue_critical_miss": "#/components/schemas/ContinueCriticalMiss",
                 "migrate_encounter_hex": "#/components/schemas/MigrateEncounterHex",
                 "repair_equipment": "#/components/schemas/RepairEquipment",
                 "resolve_choke_effects": "#/components/schemas/ResolveChokeEffects",
                 "resume_interrupted_turn": "#/components/schemas/ResumeInterruptedTurn",
+                "retrieve_equipment": "#/components/schemas/RetrieveEquipment",
                 "take_combat_turn": "#/components/schemas/TakeCombatTurn",
                 "take_unarmed_turn": "#/components/schemas/TakeUnarmedTurn"
               },
@@ -1929,6 +2275,12 @@
               },
               {
                 "$ref": "#/components/schemas/RepairEquipment"
+              },
+              {
+                "$ref": "#/components/schemas/RetrieveEquipment"
+              },
+              {
+                "$ref": "#/components/schemas/ContinueCriticalMiss"
               }
             ],
             "title": "Command"
