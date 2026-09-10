@@ -11,6 +11,7 @@ from pydantic import Field
 from pydantic import ValidationError as SchemaError
 
 from wayfarer.character.compiler import pool_limits
+from wayfarer.character.physical_traits import physical_traits
 from wayfarer.character.power import Approval
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, Event, Roll
@@ -71,12 +72,12 @@ class PlayService:
 
     def bind(self, campaign: Campaign) -> PlayService:
         """Bind a saved scenario without sharing mutable per-campaign runtime state."""
-        from wayfarer.simulation.studio import ScenarioGraph
+        from wayfarer.simulation.social_policy import parse_graph
 
         encoded = campaign.get("scenario_graph_json")
         if encoded is None:
             return self
-        graph = ScenarioGraph.model_validate_json(encoded)
+        graph = parse_graph(encoded)
         engine = ActionEngine(
             self.engine.reviewer,
             self.engine.resources.for_world(graph.world),
@@ -109,6 +110,16 @@ class PlayService:
             raise ValidationError("Campaign rules do not match the play engine")
         if "resources_json" in campaign or "play_json" in campaign:
             raise ValidationError("Campaign already has an engine checkpoint")
+        from wayfarer.rules.physical_traits import NO_PHYSICAL_TRAITS
+
+        if any(
+            p.injury is not None
+            and (p.injury.physical_traits != NO_PHYSICAL_TRAITS or p.injury.surprise is not None)
+            for p in resources.pools
+        ):
+            raise ValidationError(
+                "Initial resources cannot seed physical trait projections or surprise"
+            )
         approvals: list[Approval] = []
         play_actors: list[PlayActor] = []
         owners = {o.actor_id: o for o in resources.owners}
@@ -135,6 +146,9 @@ class PlayService:
                     injury = InjuryStatus.model_validate(
                         {
                             "profile_id": profile,
+                            "physical_traits": physical_traits(
+                                build, self.engine.reviewer.compiler.definitions
+                            ),
                             "anatomy": actor.body.anatomy if actor.body else None,
                             "male_groin": actor.body.male_groin if actor.body else False,
                             "tolerance": actor.body.tolerance if actor.body else None,

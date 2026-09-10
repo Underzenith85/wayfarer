@@ -30,6 +30,8 @@ from wayfarer.rules.catalog import (
     SourceReference,
     reference,
 )
+from wayfarer.rules.mundane_skills import ranged as ranged_skills
+from wayfarer.rules.mundane_skills import social as social_skills
 
 
 @dataclass(frozen=True, slots=True)
@@ -376,6 +378,42 @@ GURPS_STATISTICS_PROFILE: Final = replace(
     ),
 )
 
+# #344 binds the ranged combat skill procedures in another explicit pin. Existing
+# v2-v6 campaigns keep their exact definitions; only v7 carries the new skills,
+# and switching a campaign still uses the existing explicit migration.
+GURPS_RANGED_SKILLS_PACKAGE: Final = replace(
+    GURPS_STATISTICS_PACKAGE,
+    version="0.7.0",
+    definitions=GURPS_STATISTICS_PACKAGE.definitions + ranged_skills.definitions(),
+)
+GURPS_RANGED_SKILLS_PROFILE: Final = replace(
+    GURPS_STATISTICS_PROFILE,
+    version=7,
+    packages=(GURPS_RANGED_SKILLS_PACKAGE, GURPS_CAMPAIGNS_PACKAGE),
+    rules=replace(
+        GURPS_STATISTICS_PROFILE.rules,
+        packages=(_pin(GURPS_RANGED_SKILLS_PACKAGE), _pin(GURPS_CAMPAIGNS_PACKAGE)),
+    ),
+)
+
+# #345 binds the social skill procedures in another explicit pin. Existing v2-v7
+# campaigns keep their exact definitions; only v8 carries the new skills, and
+# switching a campaign still uses the existing explicit migration.
+GURPS_SOCIAL_SKILLS_PACKAGE: Final = replace(
+    GURPS_RANGED_SKILLS_PACKAGE,
+    version="0.8.0",
+    definitions=GURPS_RANGED_SKILLS_PACKAGE.definitions + social_skills.definitions(),
+)
+GURPS_SOCIAL_SKILLS_PROFILE: Final = replace(
+    GURPS_RANGED_SKILLS_PROFILE,
+    version=8,
+    packages=(GURPS_SOCIAL_SKILLS_PACKAGE, GURPS_CAMPAIGNS_PACKAGE),
+    rules=replace(
+        GURPS_RANGED_SKILLS_PROFILE.rules,
+        packages=(_pin(GURPS_SOCIAL_SKILLS_PACKAGE), _pin(GURPS_CAMPAIGNS_PACKAGE)),
+    ),
+)
+
 # Keep the new pin opt-in while the overall Basic Set profile still has unrelated
 # unverified blockers. Historic default-registry entries stay byte-for-byte resolvable.
 DEFAULT_REGISTRY: Final = ProfileRegistry(
@@ -391,6 +429,6 @@ DEFAULT_REGISTRY: Final = ProfileRegistry(
 GURPS_PROFILES: Final = MappingProxyType(
     {
         GURPS_LITE_PROFILE.id: GURPS_LITE_PROFILE,
-        GURPS_STATISTICS_PROFILE.id: GURPS_STATISTICS_PROFILE,
+        GURPS_SOCIAL_SKILLS_PROFILE.id: GURPS_SOCIAL_SKILLS_PROFILE,
     }
 )

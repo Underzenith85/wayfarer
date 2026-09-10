@@ -4,6 +4,8 @@ from typing import Literal, Self
 
 from pydantic import Field, model_validator
 
+from wayfarer.errors import ValidationError
+from wayfarer.rules.gurps_social import influence_procedure
 from wayfarer.rules.mundane_skills.social import CONDITIONS, PROCEDURES
 from wayfarer.rules.social_hooks import Appearance, Recognition, ReputationScope
 from wayfarer.simulation.resources import Id, Record
@@ -46,6 +48,7 @@ class NPCSocialTrigger(Record):
     standing: NPCSocialStanding | None = None
     npc_will: int = Field(default=10, ge=1, le=100)
     skill_id: Id = "skill:diplomacy"
+    specious_intimidation: bool = False
     trait_id: Id | None = None
     required_fact_ids: tuple[Id, ...] = ()
     disclosure_fact_ids: tuple[Id, ...] = ()
@@ -58,6 +61,15 @@ class NPCSocialTrigger(Record):
     def standing_belongs_to_a_reaction(self) -> Self:
         if self.standing is not None and self.kind not in ("reaction", "influence", "skill"):
             raise ValueError("Standing modifies reaction and influence rolls only")
+        if self.kind == "influence":
+            try:
+                influence_procedure(self.skill_id)
+            except ValidationError as exc:
+                raise ValueError(str(exc)) from exc
+        elif self.specious_intimidation:
+            raise ValueError("Influence options require an influence trigger")
+        if self.specious_intimidation and self.skill_id != "skill:intimidation":
+            raise ValueError("Specious intimidation requires Intimidation")
         return self
 
     @model_validator(mode="after")
@@ -69,6 +81,10 @@ class NPCSocialTrigger(Record):
             return self
         if self.skill_id not in PROCEDURES:
             raise ValueError(f"Unsupported social skill procedure: {self.skill_id}")
+        if self.modifier:
+            # A procedure derives its own modifiers from the conditions below, so
+            # an authored integer here would be mechanics the rule does not own.
+            raise ValueError("A social skill trigger selects conditions, not a modifier")
         if len(set(self.conditions)) != len(self.conditions):
             raise ValueError("Duplicate social skill condition")
         unknown = sorted(set(self.conditions) - CONDITIONS)

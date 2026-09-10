@@ -8,14 +8,17 @@ from dataclasses import asdict, dataclass
 from typing import Literal
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.rules.checks import RandomSource
+from wayfarer.rules.checks import Modifier, RandomSource
 from wayfarer.rules.gurps_social import (
+    DEFAULT_INFLUENCE_CONDITIONS,
+    InfluenceConditions,
     InfluenceSkill,
     ReactionModifier,
     fright_roll,
     influence_roll,
     reaction_roll,
     self_control_roll,
+    validate_influence,
 )
 from wayfarer.rules.mundane_skills.social import (
     Resolution,
@@ -79,6 +82,8 @@ class SocialContext:
         trait_rules: TraitRules | None = None,
         standing: Standing | None = None,
         audience: Audience = DEFAULT_AUDIENCE,
+        self_control_modifier: int = 0,
+        influence_conditions: InfluenceConditions = DEFAULT_INFLUENCE_CONDITIONS,
         procedure_id: str | None = None,
         # A procedure without an explicit approved level fails closed rather than
         # rolling against a default nobody chose.
@@ -92,6 +97,8 @@ class SocialContext:
         self.trait_base, self.trait_levels = trait_base, trait_levels
         self.trait_options, self.trait_rules = trait_options, trait_rules
         self.standing, self.audience = standing, audience
+        self.self_control_modifier = self_control_modifier
+        self.influence_conditions = influence_conditions
         # #345 whole-entry social skill procedures. `conditions` are named facts
         # about the situation; the procedure owns every integer they are worth.
         self.procedure_id, self.skill_level = procedure_id, skill_level
@@ -152,10 +159,25 @@ def apply_social(
         for e in state.events
     ):
         raise ConflictError("Social trigger already resolved")
+    from wayfarer.simulation.fright import blocked, requires_adjudication
+
+    if command.kind != "fright-recovery" and any(
+        requires_adjudication(state, actor_id, handles_aftermath=True)
+        for actor_id in (command.actor_id, command.subject_id)
+    ):
+        raise ValidationError("Resolve permanent fright losses before further social checks")
+    if command.kind in ("reaction", "influence") and any(
+        blocked(state, actor_id) for actor_id in (command.actor_id, command.subject_id)
+    ):
+        raise ValidationError("Incapacitated actors cannot participate in a social interaction")
     # Derived standing is rolled and applied before the check that uses it, so a
     # replayed receipt consumes the same dice in the same order.
     standing = StandingTrace(())
     modifiers = context.modifiers
+    if command.kind == "influence":
+        validate_influence(context.profile_id, context.skill, context.influence_conditions)
+        if command.actor_id == command.subject_id:
+            raise ValidationError("Influence requires distinct actor and subject IDs")
     # A social skill procedure takes standing only when B359 influence decides it;
     # an unopposed procedure must not consume the recognition dice it cannot use.
     procedure = (
@@ -176,6 +198,7 @@ def apply_social(
     if command.kind == "fright-recovery":
         from wayfarer.simulation.fright import recover
 
+        revision = state.revision
         state, passed = recover(
             state,
             actor_id=command.subject_id,
@@ -183,6 +206,7 @@ def apply_social(
             command_id=command.id,
             rng=rng,
         )
+        state = state.model_copy(update={"revision": revision})
         outcome = SocialOutcome(kind=command.kind, outcome="recovered" if passed else "recovering")
         details = {}
     elif command.kind == "reaction":
@@ -190,15 +214,33 @@ def apply_social(
         outcome = SocialOutcome(kind=command.kind, outcome=trace.outcome)
         details = asdict(trace) | recognition
     elif command.kind == "influence":
+        from wayfarer.simulation.condition_checks import check_modifiers
+
         influence = influence_roll(
             context.profile_id,
             context.skill,
             command.actor_id,
             command.subject_id,
-            context.target,
-            context.will,
+            context.target
+            + sum(
+                m.value
+                for m in check_modifiers(
+                    state,
+                    command.actor_id,
+                    "ht"
+                    if context.skill == "sex-appeal"
+                    else "will"
+                    if context.skill == "intimidation"
+                    else "iq",
+                )
+            ),
+            context.will
+            + sum(
+                m.value for m in check_modifiers(state, command.subject_id, "will", defensive=True)
+            ),
             modifiers,
             rng=rng,
+            conditions=context.influence_conditions,
         )
         outcome = SocialOutcome(kind=command.kind, outcome=influence.outcome)
         details = asdict(influence) | recognition
@@ -216,6 +258,7 @@ def apply_social(
                 command.actor_id,
                 command.subject_id,
                 modifiers if influenced else (),
+                context.influence_conditions if influenced else DEFAULT_INFLUENCE_CONDITIONS,
             ),
             rng=rng,
         )
@@ -227,7 +270,16 @@ def apply_social(
         )
         details = asdict(skill) | recognition
     elif command.kind == "fright":
-        fright = fright_roll(context.profile_id, context.target, rng=rng, ht=context.ht)
+        from wayfarer.simulation.fright import aftermath_modifiers
+        from wayfarer.simulation.physical_traits import physical_traits
+
+        fright = fright_roll(
+            context.profile_id,
+            context.target + 2 * int(physical_traits(state, command.subject_id).combat_reflexes),
+            rng=rng,
+            ht=context.ht,
+            check_modifiers=aftermath_modifiers(state, command.subject_id),
+        )
         outcome = SocialOutcome(
             kind=command.kind,
             outcome="passed" if fright.check.outcome.succeeded else "failed",
@@ -271,6 +323,16 @@ def apply_social(
             context.trait_options,
             context.trait_rules,
             rng=rng,
+            modifiers=(
+                Modifier(
+                    context.self_control_modifier,
+                    "Self-control situation",
+                    command.trigger_id,
+                    "Basic Set Characters 4e B121",
+                ),
+            )
+            if context.self_control_modifier
+            else (),
         )
         outcome = SocialOutcome(
             kind=command.kind, outcome="resisted" if control.outcome.succeeded else "triggered"

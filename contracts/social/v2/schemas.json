@@ -495,6 +495,11 @@
             "title": "Skill Id",
             "type": "string"
           },
+          "specious_intimidation": {
+            "default": false,
+            "title": "Specious Intimidation",
+            "type": "boolean"
+          },
           "trait_id": {
             "anyOf": [
               {
@@ -587,6 +592,6739 @@
     "title": "NPCSocialRules",
     "type": "object"
   },
+  "SocialScenarioDocument": {
+    "$defs": {
+      "AbilityChannel": {
+        "additionalProperties": false,
+        "description": "An authored permission, not general access to the target's knowledge.\n\nDistance is valid only in the named location. Moving out invalidates it.\nDetect facts encode presence/direction/quantity separately from analysis;\nthought facts contain only currently authored surface thoughts.",
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "ability_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Ability Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "target_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Target Id",
+            "type": "string"
+          },
+          "location_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Location Id",
+            "type": "string"
+          },
+          "distance_yards": {
+            "default": 0,
+            "maximum": 1000000,
+            "minimum": 0,
+            "title": "Distance Yards",
+            "type": "integer"
+          },
+          "presence_fact_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Presence Fact Ids",
+            "type": "array"
+          },
+          "detection_fact_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Detection Fact Ids",
+            "type": "array"
+          },
+          "precise_fact_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Precise Fact Ids",
+            "type": "array"
+          },
+          "analysis_fact_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Analysis Fact Ids",
+            "type": "array"
+          },
+          "thought_fact_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Thought Fact Ids",
+            "type": "array"
+          },
+          "shared_language": {
+            "default": true,
+            "title": "Shared Language",
+            "type": "boolean"
+          },
+          "digital_mind": {
+            "default": false,
+            "title": "Digital Mind",
+            "type": "boolean"
+          },
+          "psionic_blocked": {
+            "default": false,
+            "title": "Psionic Blocked",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "ability_id",
+          "actor_id",
+          "target_id",
+          "location_id"
+        ],
+        "title": "AbilityChannel",
+        "type": "object"
+      },
+      "AbilityRules": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          },
+          "profile_id": {
+            "const": "gurps-basic-set-4e-2004",
+            "default": "gurps-basic-set-4e-2004",
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "abilities": {
+            "items": {
+              "$ref": "#/$defs/AbilitySpec"
+            },
+            "title": "Abilities",
+            "type": "array"
+          },
+          "channels": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/AbilityChannel"
+            },
+            "title": "Channels",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "abilities"
+        ],
+        "title": "AbilityRules",
+        "type": "object"
+      },
+      "AbilitySpec": {
+        "additionalProperties": false,
+        "properties": {
+          "definition_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Definition Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "burning-malediction",
+              "damage-resistance",
+              "detect",
+              "mind-reading"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "modifiers": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Modifiers",
+            "type": "array"
+          }
+        },
+        "required": [
+          "definition_id",
+          "kind"
+        ],
+        "title": "AbilitySpec",
+        "type": "object"
+      },
+      "ActorSetup": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "proposal": {
+            "$ref": "#/$defs/CharacterProposal"
+          },
+          "aware_of": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Aware Of",
+            "type": "array"
+          },
+          "conditions": {
+            "default": [],
+            "items": {
+              "enum": [
+                "unconscious",
+                "stunned",
+                "restrained"
+              ],
+              "type": "string"
+            },
+            "title": "Conditions",
+            "type": "array"
+          },
+          "available_at": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Available At",
+            "type": "integer"
+          },
+          "body": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/HumanBody"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "held_item_hands": {
+            "default": [],
+            "items": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "string"
+                },
+                {
+                  "enum": [
+                    "left-hand",
+                    "right-hand"
+                  ],
+                  "type": "string"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Held Item Hands",
+            "type": "array"
+          }
+        },
+        "required": [
+          "actor_id",
+          "proposal"
+        ],
+        "title": "ActorSetup",
+        "type": "object"
+      },
+      "AmmunitionLoad": {
+        "additionalProperties": false,
+        "description": "Reserved inventory rounds; they retain mass and cannot be traded/consumed.",
+        "properties": {
+          "weapon_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Weapon Id",
+            "type": "string"
+          },
+          "mode_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Mode Id",
+            "type": "string"
+          },
+          "ammunition_item_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Ammunition Item Id",
+            "type": "string"
+          },
+          "rounds": {
+            "minimum": 0,
+            "title": "Rounds",
+            "type": "integer"
+          },
+          "reload_progress": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Reload Progress",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "weapon_id",
+          "mode_id",
+          "ammunition_item_id",
+          "rounds"
+        ],
+        "title": "AmmunitionLoad",
+        "type": "object"
+      },
+      "Approach": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "check_rule_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Check Rule Id",
+            "type": "string"
+          },
+          "success_progress": {
+            "default": 2,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Success Progress",
+            "type": "integer"
+          },
+          "failure_progress": {
+            "default": 1,
+            "maximum": 100,
+            "minimum": 0,
+            "title": "Failure Progress",
+            "type": "integer"
+          },
+          "fatigue_cost": {
+            "default": 0,
+            "maximum": 100,
+            "minimum": 0,
+            "title": "Fatigue Cost",
+            "type": "integer"
+          },
+          "failure_hp_cost": {
+            "default": 0,
+            "maximum": 100,
+            "minimum": 0,
+            "title": "Failure Hp Cost",
+            "type": "integer"
+          },
+          "success_fact_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Success Fact Ids",
+            "type": "array"
+          },
+          "failure_fact_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Failure Fact Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "check_rule_id"
+        ],
+        "title": "Approach",
+        "type": "object"
+      },
+      "ApproachSupport": {
+        "additionalProperties": false,
+        "description": "Evidence that a declared approach uses a supported runtime check.",
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "scene_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Scene Id",
+            "type": "string"
+          },
+          "check_rule_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Check Rule Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "scene_id",
+          "check_rule_id",
+          "actor_id"
+        ],
+        "title": "ApproachSupport",
+        "type": "object"
+      },
+      "Armor": {
+        "additionalProperties": false,
+        "properties": {
+          "locations": {
+            "items": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "torso",
+                    "vitals",
+                    "skull",
+                    "face",
+                    "neck",
+                    "groin",
+                    "left-arm",
+                    "right-arm",
+                    "left-leg",
+                    "right-leg",
+                    "left-hand",
+                    "right-hand",
+                    "left-foot",
+                    "right-foot",
+                    "left-eye",
+                    "right-eye"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "enum": [
+                    "arms",
+                    "hands",
+                    "legs",
+                    "feet",
+                    "eyes"
+                  ],
+                  "type": "string"
+                }
+              ]
+            },
+            "minItems": 1,
+            "title": "Locations",
+            "type": "array"
+          },
+          "dr": {
+            "minimum": 0,
+            "title": "Dr",
+            "type": "integer"
+          },
+          "flexible": {
+            "default": false,
+            "title": "Flexible",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "locations",
+          "dr"
+        ],
+        "title": "Armor",
+        "type": "object"
+      },
+      "AttackProfile": {
+        "additionalProperties": false,
+        "description": "Server-authored original subset, bound to an implemented equipment entry.",
+        "properties": {
+          "definition_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Definition Id",
+            "type": "string"
+          },
+          "mode": {
+            "const": "melee",
+            "default": "melee",
+            "title": "Mode",
+            "type": "string"
+          },
+          "target": {
+            "const": "torso",
+            "default": "torso",
+            "title": "Target",
+            "type": "string"
+          },
+          "attack_target": {
+            "const": "attribute:dx",
+            "default": "attribute:dx",
+            "title": "Attack Target",
+            "type": "string"
+          },
+          "attack_modifier": {
+            "default": 0,
+            "maximum": 20,
+            "minimum": -20,
+            "title": "Attack Modifier",
+            "type": "integer"
+          },
+          "damage_dice": {
+            "default": 1,
+            "maximum": 10,
+            "minimum": 1,
+            "title": "Damage Dice",
+            "type": "integer"
+          },
+          "damage_bonus": {
+            "default": 0,
+            "maximum": 100,
+            "minimum": -10,
+            "title": "Damage Bonus",
+            "type": "integer"
+          },
+          "injury_multiplier": {
+            "default": 1,
+            "maximum": 4,
+            "minimum": 1,
+            "title": "Injury Multiplier",
+            "type": "integer"
+          },
+          "stun_ticks": {
+            "default": 1,
+            "maximum": 100,
+            "minimum": 0,
+            "title": "Stun Ticks",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "definition_id"
+        ],
+        "title": "AttackProfile",
+        "type": "object"
+      },
+      "BackfireAlternative": {
+        "additionalProperties": false,
+        "description": "Campaign-authored interpretation of a contextual B236 result.",
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "spell_id": {
+            "enum": [
+              "light",
+              "daze",
+              "fireball",
+              "create-fire"
+            ],
+            "title": "Spell Id",
+            "type": "string"
+          },
+          "rows": {
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 18,
+            "minItems": 1,
+            "title": "Rows",
+            "type": "array"
+          },
+          "severity": {
+            "default": "normal",
+            "enum": [
+              "normal",
+              "disaster"
+            ],
+            "title": "Severity",
+            "type": "string"
+          },
+          "effect": {
+            "enum": [
+              "retarget",
+              "reverse",
+              "damage",
+              "summon",
+              "waive",
+              "reroll"
+            ],
+            "title": "Effect",
+            "type": "string"
+          },
+          "target_ids": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Target Ids",
+            "type": "array"
+          },
+          "relationship": {
+            "default": "any",
+            "enum": [
+              "caster",
+              "companion",
+              "foe",
+              "any"
+            ],
+            "title": "Relationship",
+            "type": "string"
+          },
+          "damage_dice": {
+            "default": 1,
+            "maximum": 20,
+            "minimum": 0,
+            "title": "Damage Dice",
+            "type": "integer"
+          },
+          "damage_add": {
+            "default": 0,
+            "maximum": 100,
+            "minimum": -20,
+            "title": "Damage Add",
+            "type": "integer"
+          },
+          "damage_type": {
+            "default": "burn",
+            "enum": [
+              "burn",
+              "cr",
+              "tox"
+            ],
+            "title": "Damage Type",
+            "type": "string"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Position"
+          },
+          "reason": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "spell_id",
+          "rows",
+          "effect",
+          "target_ids",
+          "reason"
+        ],
+        "title": "BackfireAlternative",
+        "type": "object"
+      },
+      "Battlefield": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "location_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Location Id",
+            "type": "string"
+          },
+          "width": {
+            "maximum": 1000,
+            "minimum": 1,
+            "title": "Width",
+            "type": "integer"
+          },
+          "height": {
+            "maximum": 1000,
+            "minimum": 1,
+            "title": "Height",
+            "type": "integer"
+          },
+          "blocked": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/GridPoint"
+            },
+            "title": "Blocked",
+            "type": "array"
+          },
+          "darkness_penalty": {
+            "default": 0,
+            "maximum": 0,
+            "minimum": -10,
+            "title": "Darkness Penalty",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "location_id",
+          "width",
+          "height"
+        ],
+        "title": "Battlefield",
+        "type": "object"
+      },
+      "Belief": {
+        "properties": {
+          "actor_id": {
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "fact_id": {
+            "title": "Fact Id",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "actor_id",
+          "fact_id",
+          "value"
+        ],
+        "title": "Belief",
+        "type": "object"
+      },
+      "CampaignRules": {
+        "properties": {
+          "edition": {
+            "title": "Edition",
+            "type": "string"
+          },
+          "packages": {
+            "items": {
+              "$ref": "#/$defs/PackagePin"
+            },
+            "title": "Packages",
+            "type": "array"
+          },
+          "policy_id": {
+            "title": "Policy Id",
+            "type": "string"
+          },
+          "policy_version": {
+            "title": "Policy Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "edition",
+          "packages",
+          "policy_id",
+          "policy_version"
+        ],
+        "title": "CampaignRules",
+        "type": "object"
+      },
+      "CharacterDraft": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "backstory": {
+            "default": "",
+            "maxLength": 10000,
+            "title": "Backstory",
+            "type": "string"
+          },
+          "purchases": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/Purchase"
+            },
+            "maxItems": 1000,
+            "title": "Purchases",
+            "type": "array"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "CharacterDraft",
+        "type": "object"
+      },
+      "CharacterProposal": {
+        "additionalProperties": false,
+        "properties": {
+          "draft": {
+            "$ref": "#/$defs/CharacterDraft"
+          },
+          "custom": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/CustomConstruction"
+            },
+            "maxItems": 100,
+            "title": "Custom",
+            "type": "array"
+          }
+        },
+        "required": [
+          "draft"
+        ],
+        "title": "CharacterProposal",
+        "type": "object"
+      },
+      "CheckRule": {
+        "additionalProperties": false,
+        "description": "Trusted scenario check with catalog skill and modifier provenance.",
+        "properties": {
+          "id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "action": {
+            "enum": [
+              "inspect",
+              "social"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "target_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Target Id",
+            "type": "string"
+          },
+          "definition_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Definition Id",
+            "type": "string"
+          },
+          "package_id": {
+            "title": "Package Id",
+            "type": "string"
+          },
+          "package_version": {
+            "title": "Package Version",
+            "type": "string"
+          },
+          "duration": {
+            "default": 1,
+            "maximum": 10000,
+            "minimum": 1,
+            "title": "Duration",
+            "type": "integer"
+          },
+          "modifier": {
+            "default": 0,
+            "maximum": 20,
+            "minimum": -20,
+            "title": "Modifier",
+            "type": "integer"
+          },
+          "reveal_fact_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Reveal Fact Ids",
+            "type": "array"
+          },
+          "required_equipment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Required Equipment"
+          },
+          "not_before": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Not Before",
+            "type": "integer"
+          },
+          "darkness_penalty": {
+            "default": 0,
+            "maximum": 0,
+            "minimum": -9,
+            "title": "Darkness Penalty",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "action",
+          "target_id",
+          "definition_id",
+          "package_id",
+          "package_version"
+        ],
+        "title": "CheckRule",
+        "type": "object"
+      },
+      "CombatConsequence": {
+        "additionalProperties": false,
+        "description": "Authored revelation after recorded incapacitation in a completed encounter.",
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "battlefield_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Battlefield Id",
+            "type": "string"
+          },
+          "defeated_actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Defeated Actor Id",
+            "type": "string"
+          },
+          "recipient_actor_ids": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Recipient Actor Ids",
+            "type": "array"
+          },
+          "fact_ids": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Fact Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "battlefield_id",
+          "defeated_actor_id",
+          "recipient_actor_ids",
+          "fact_ids"
+        ],
+        "title": "CombatConsequence",
+        "type": "object"
+      },
+      "CombatRules": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          },
+          "movement_allowance": {
+            "default": 5,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Movement Allowance",
+            "type": "integer"
+          },
+          "prone_movement_allowance": {
+            "default": 1,
+            "maximum": 100,
+            "minimum": 0,
+            "title": "Prone Movement Allowance",
+            "type": "integer"
+          },
+          "default_reach": {
+            "default": 1,
+            "maximum": 20,
+            "minimum": 1,
+            "title": "Default Reach",
+            "type": "integer"
+          },
+          "max_combatants": {
+            "default": 30,
+            "maximum": 100,
+            "minimum": 2,
+            "title": "Max Combatants",
+            "type": "integer"
+          },
+          "battlefields": {
+            "items": {
+              "$ref": "#/$defs/Battlefield"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Battlefields",
+            "type": "array"
+          },
+          "consequences": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/CombatConsequence"
+            },
+            "title": "Consequences",
+            "type": "array"
+          },
+          "attacks": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/AttackProfile"
+            },
+            "title": "Attacks",
+            "type": "array"
+          },
+          "protection": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/ProtectionProfile"
+            },
+            "title": "Protection",
+            "type": "array"
+          },
+          "gurps_equipment": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/EquipmentCatalog"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "battlefields"
+        ],
+        "title": "CombatRules",
+        "type": "object"
+      },
+      "Commitment": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/$defs/CommitmentKind"
+          },
+          "debtor_id": {
+            "title": "Debtor Id",
+            "type": "string"
+          },
+          "creditor_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Creditor Id"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "reveal_fact_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Reveal Fact Id"
+          },
+          "complete_fact_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Complete Fact Id"
+          },
+          "status": {
+            "$ref": "#/$defs/CommitmentStatus",
+            "default": "hidden"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "debtor_id",
+          "creditor_id",
+          "description"
+        ],
+        "title": "Commitment",
+        "type": "object"
+      },
+      "CommitmentKind": {
+        "enum": [
+          "promise",
+          "threat",
+          "debt",
+          "objective"
+        ],
+        "title": "CommitmentKind",
+        "type": "string"
+      },
+      "CommitmentStatus": {
+        "enum": [
+          "hidden",
+          "active",
+          "completed"
+        ],
+        "title": "CommitmentStatus",
+        "type": "string"
+      },
+      "Compatibility": {
+        "additionalProperties": false,
+        "properties": {
+          "rules": {
+            "$ref": "#/$defs/CampaignRules"
+          },
+          "engine_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Engine Digest",
+            "type": "string"
+          },
+          "capabilities": {
+            "items": {
+              "enum": [
+                "actions-v1",
+                "scenes-v1",
+                "objectives-v1",
+                "combat-v1",
+                "noncombat-v1",
+                "npc-plans-v1",
+                "recovery-v1",
+                "split-party-v1",
+                "adjudication-v1"
+              ],
+              "type": "string"
+            },
+            "minItems": 3,
+            "title": "Capabilities",
+            "type": "array"
+          }
+        },
+        "required": [
+          "rules",
+          "engine_digest",
+          "capabilities"
+        ],
+        "title": "Compatibility",
+        "type": "object"
+      },
+      "Connection": {
+        "properties": {
+          "source_id": {
+            "title": "Source Id",
+            "type": "string"
+          },
+          "destination_id": {
+            "title": "Destination Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_id",
+          "destination_id",
+          "label"
+        ],
+        "title": "Connection",
+        "type": "object"
+      },
+      "CrossSceneEffect": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "source_scene_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Source Scene Id",
+            "type": "string"
+          },
+          "recipient_actor_ids": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Recipient Actor Ids",
+            "type": "array"
+          },
+          "fact_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Fact Id",
+            "type": "string"
+          },
+          "delay": {
+            "default": 0,
+            "maximum": 10000,
+            "minimum": 0,
+            "title": "Delay",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "source_scene_id",
+          "recipient_actor_ids",
+          "fact_id"
+        ],
+        "title": "CrossSceneEffect",
+        "type": "object"
+      },
+      "CustomConstruction": {
+        "additionalProperties": false,
+        "description": "A named grouping of purchased catalog components, never new mechanics.",
+        "properties": {
+          "id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "components": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Components",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "components"
+        ],
+        "title": "CustomConstruction",
+        "type": "object"
+      },
+      "Damage": {
+        "additionalProperties": false,
+        "properties": {
+          "basis": {
+            "enum": [
+              "thrust",
+              "swing",
+              "fixed"
+            ],
+            "title": "Basis",
+            "type": "string"
+          },
+          "dice": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Dice"
+          },
+          "adds": {
+            "default": 0,
+            "title": "Adds",
+            "type": "integer"
+          },
+          "damage_type": {
+            "enum": [
+              "cr",
+              "cut",
+              "imp",
+              "pi-",
+              "pi",
+              "pi+",
+              "pi++",
+              "burn",
+              "cor",
+              "tox",
+              "fat"
+            ],
+            "title": "Damage Type",
+            "type": "string"
+          },
+          "armor_divisor": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "default": "1",
+            "title": "Armor Divisor"
+          },
+          "tight_beam": {
+            "default": false,
+            "title": "Tight Beam",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "basis",
+          "damage_type"
+        ],
+        "title": "Damage",
+        "type": "object"
+      },
+      "Discovery": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "scene_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Scene Id",
+            "type": "string"
+          },
+          "fact_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Fact Id",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "automatic",
+              "check"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "target_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Target Id"
+          }
+        },
+        "required": [
+          "id",
+          "scene_id",
+          "fact_id",
+          "mode"
+        ],
+        "title": "Discovery",
+        "type": "object"
+      },
+      "Entity": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/$defs/EntityKind"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "location_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Location Id"
+          },
+          "owner_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Owner Id"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "name"
+        ],
+        "title": "Entity",
+        "type": "object"
+      },
+      "EntityKind": {
+        "enum": [
+          "actor",
+          "location",
+          "faction",
+          "object"
+        ],
+        "title": "EntityKind",
+        "type": "string"
+      },
+      "EquipmentCatalog": {
+        "additionalProperties": false,
+        "properties": {
+          "profile_id": {
+            "enum": [
+              "gurps-lite-4e-2004",
+              "gurps-basic-set-4e-2004"
+            ],
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/$defs/EquipmentProfile"
+            },
+            "title": "Entries",
+            "type": "array"
+          }
+        },
+        "required": [
+          "profile_id",
+          "entries"
+        ],
+        "title": "EquipmentCatalog",
+        "type": "object"
+      },
+      "EquipmentProfile": {
+        "additionalProperties": false,
+        "properties": {
+          "definition_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Definition Id",
+            "type": "string"
+          },
+          "provenance": {
+            "$ref": "#/$defs/wayfarer__simulation__gurps_equipment__Provenance"
+          },
+          "weight_millipounds": {
+            "minimum": 0,
+            "title": "Weight Millipounds",
+            "type": "integer"
+          },
+          "price": {
+            "minimum": 0,
+            "title": "Price",
+            "type": "integer"
+          },
+          "technology_level": {
+            "minimum": 0,
+            "title": "Technology Level",
+            "type": "integer"
+          },
+          "slot": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Slot"
+          },
+          "ammunition": {
+            "default": false,
+            "title": "Ammunition",
+            "type": "boolean"
+          },
+          "modes": {
+            "default": [],
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "melee": "#/$defs/MeleeMode",
+                  "ranged": "#/$defs/RangedMode"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/MeleeMode"
+                },
+                {
+                  "$ref": "#/$defs/RangedMode"
+                }
+              ]
+            },
+            "title": "Modes",
+            "type": "array"
+          },
+          "armor": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Armor"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "shield": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Shield"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "unsupported_mechanics": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Unsupported Mechanics",
+            "type": "array"
+          },
+          "durability": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ObjectProfile"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "critical_breakage": {
+            "anyOf": [
+              {
+                "enum": [
+                  "ordinary",
+                  "cheap",
+                  "resistant"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Critical Breakage"
+          },
+          "parry_quality": {
+            "anyOf": [
+              {
+                "enum": [
+                  "cheap",
+                  "good",
+                  "fine",
+                  "very-fine"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Parry Quality"
+          },
+          "container_capacity_millipounds": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Container Capacity Millipounds"
+          }
+        },
+        "required": [
+          "definition_id",
+          "provenance",
+          "weight_millipounds",
+          "price",
+          "technology_level"
+        ],
+        "title": "EquipmentProfile",
+        "type": "object"
+      },
+      "Fact": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "subject_id": {
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "predicate": {
+            "title": "Predicate",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "subject_id",
+          "predicate",
+          "value"
+        ],
+        "title": "Fact",
+        "type": "object"
+      },
+      "FatigueStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "profile_id": {
+            "enum": [
+              "gurps-lite-4e-2004",
+              "gurps-basic-set-4e-2004"
+            ],
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "collapsed": {
+            "default": false,
+            "title": "Collapsed",
+            "type": "boolean"
+          },
+          "unconscious": {
+            "default": false,
+            "title": "Unconscious",
+            "type": "boolean"
+          },
+          "heart_attack": {
+            "default": false,
+            "title": "Heart Attack",
+            "type": "boolean"
+          },
+          "heart_attack_deadline": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Heart Attack Deadline"
+          },
+          "power": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Power",
+            "type": "integer"
+          },
+          "half_paid": {
+            "default": false,
+            "title": "Half Paid",
+            "type": "boolean"
+          },
+          "starvation": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Starvation",
+            "type": "integer"
+          },
+          "dehydration": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Dehydration",
+            "type": "integer"
+          },
+          "sleep": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Sleep",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "profile_id"
+        ],
+        "title": "FatigueStatus",
+        "type": "object"
+      },
+      "FirearmFailure": {
+        "additionalProperties": false,
+        "properties": {
+          "mode_id": {
+            "minLength": 1,
+            "title": "Mode Id",
+            "type": "string"
+          },
+          "cause_id": {
+            "minLength": 1,
+            "title": "Cause Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "misfire",
+              "stoppage",
+              "mechanical",
+              "destroyed"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "diagnosed": {
+            "default": false,
+            "title": "Diagnosed",
+            "type": "boolean"
+          },
+          "blocked_round": {
+            "default": false,
+            "title": "Blocked Round",
+            "type": "boolean"
+          },
+          "progress": {
+            "default": 0,
+            "maximum": 3599,
+            "minimum": 0,
+            "title": "Progress",
+            "type": "integer"
+          },
+          "service_actor_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Service Actor Id"
+          },
+          "service_kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "clear",
+                  "repair"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Service Kind"
+          },
+          "service_skill": {
+            "anyOf": [
+              {
+                "enum": [
+                  "weapon",
+                  "armoury"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Service Skill"
+          }
+        },
+        "required": [
+          "mode_id",
+          "cause_id",
+          "kind"
+        ],
+        "title": "FirearmFailure",
+        "type": "object"
+      },
+      "FirearmSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "technology_level": {
+            "maximum": 12,
+            "minimum": 5,
+            "title": "Technology Level",
+            "type": "integer"
+          },
+          "action": {
+            "enum": [
+              "repeating",
+              "revolver"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "quality": {
+            "default": "ordinary",
+            "enum": [
+              "cheap",
+              "ordinary",
+              "fine",
+              "very-fine"
+            ],
+            "title": "Quality",
+            "type": "string"
+          },
+          "malfunction_override": {
+            "anyOf": [
+              {
+                "maximum": 19,
+                "minimum": 3,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Malfunction Override"
+          },
+          "armoury_skill_id": {
+            "anyOf": [
+              {
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Armoury Skill Id"
+          }
+        },
+        "required": [
+          "technology_level",
+          "action"
+        ],
+        "title": "FirearmSpec",
+        "type": "object"
+      },
+      "GenerationBrief": {
+        "additionalProperties": false,
+        "properties": {
+          "premise": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Premise",
+            "type": "string"
+          },
+          "genre": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Genre",
+            "type": "string"
+          },
+          "tone": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Tone",
+            "type": "string"
+          },
+          "duration_minutes": {
+            "maximum": 10000,
+            "minimum": 10,
+            "title": "Duration Minutes",
+            "type": "integer"
+          },
+          "difficulty": {
+            "enum": [
+              "gentle",
+              "standard",
+              "hard"
+            ],
+            "title": "Difficulty",
+            "type": "string"
+          },
+          "restrictions": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 30,
+            "title": "Restrictions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "premise",
+          "genre",
+          "tone",
+          "duration_minutes",
+          "difficulty"
+        ],
+        "title": "GenerationBrief",
+        "type": "object"
+      },
+      "GridPoint": {
+        "additionalProperties": false,
+        "properties": {
+          "x": {
+            "maximum": 1000,
+            "minimum": 0,
+            "title": "X",
+            "type": "integer"
+          },
+          "y": {
+            "maximum": 1000,
+            "minimum": 0,
+            "title": "Y",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "x",
+          "y"
+        ],
+        "title": "GridPoint",
+        "type": "object"
+      },
+      "GroundPosition": {
+        "additionalProperties": false,
+        "properties": {
+          "encounter_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Encounter Id",
+            "type": "string"
+          },
+          "geometry": {
+            "enum": [
+              "grid",
+              "hex"
+            ],
+            "title": "Geometry",
+            "type": "string"
+          },
+          "x": {
+            "title": "X",
+            "type": "integer"
+          },
+          "y": {
+            "title": "Y",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "encounter_id",
+          "geometry",
+          "x",
+          "y"
+        ],
+        "title": "GroundPosition",
+        "type": "object"
+      },
+      "HazardSchedule": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "spec": {
+            "$ref": "#/$defs/HazardSpec"
+          },
+          "started": {
+            "minimum": 0,
+            "title": "Started",
+            "type": "integer"
+          },
+          "due": {
+            "minimum": 0,
+            "title": "Due",
+            "type": "integer"
+          },
+          "remaining": {
+            "minimum": 0,
+            "title": "Remaining",
+            "type": "integer"
+          },
+          "ht": {
+            "minimum": 1,
+            "title": "Ht",
+            "type": "integer"
+          },
+          "will": {
+            "minimum": 1,
+            "title": "Will",
+            "type": "integer"
+          },
+          "swimming": {
+            "minimum": 1,
+            "title": "Swimming",
+            "type": "integer"
+          },
+          "resistance": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Resistance",
+            "type": "integer"
+          },
+          "active": {
+            "default": true,
+            "title": "Active",
+            "type": "boolean"
+          },
+          "cycle": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Cycle",
+            "type": "integer"
+          },
+          "successes": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Successes",
+            "type": "integer"
+          },
+          "stage": {
+            "default": "cycles",
+            "enum": [
+              "exposure",
+              "cycles",
+              "struggling",
+              "recovering",
+              "swimming"
+            ],
+            "title": "Stage",
+            "type": "string"
+          },
+          "no_air_since": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "No Air Since"
+          },
+          "next_check_at": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Next Check At"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "spec",
+          "started",
+          "due",
+          "remaining",
+          "ht",
+          "will",
+          "swimming"
+        ],
+        "title": "HazardSchedule",
+        "type": "object"
+      },
+      "HazardSpec": {
+        "additionalProperties": false,
+        "description": "Scenario-owned configuration, never accepted as a player command payload.",
+        "properties": {
+          "id": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "profile_id": {
+            "const": "gurps-basic-set-4e-2004",
+            "default": "gurps-basic-set-4e-2004",
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "cold",
+              "heat",
+              "fire",
+              "suffocation",
+              "drowning",
+              "poison",
+              "disease"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "scene_id": {
+            "title": "Scene Id",
+            "type": "string"
+          },
+          "delay": {
+            "default": 0,
+            "maximum": 31536000,
+            "minimum": 0,
+            "title": "Delay",
+            "type": "integer"
+          },
+          "interval": {
+            "default": 1,
+            "maximum": 31536000,
+            "minimum": 1,
+            "title": "Interval",
+            "type": "integer"
+          },
+          "cycles": {
+            "default": 1,
+            "maximum": 100000,
+            "minimum": 1,
+            "title": "Cycles",
+            "type": "integer"
+          },
+          "resistance_modifier": {
+            "default": 0,
+            "maximum": 30,
+            "minimum": -30,
+            "title": "Resistance Modifier",
+            "type": "integer"
+          },
+          "damage_dice": {
+            "default": 0,
+            "maximum": 100,
+            "minimum": 0,
+            "title": "Damage Dice",
+            "type": "integer"
+          },
+          "damage_add": {
+            "default": 1,
+            "maximum": 1000,
+            "minimum": -10,
+            "title": "Damage Add",
+            "type": "integer"
+          },
+          "resistible": {
+            "default": true,
+            "title": "Resistible",
+            "type": "boolean"
+          },
+          "reference": {
+            "minLength": 1,
+            "title": "Reference",
+            "type": "string"
+          },
+          "recovery_successes": {
+            "default": 1,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Recovery Successes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "scene_id",
+          "reference"
+        ],
+        "title": "HazardSpec",
+        "type": "object"
+      },
+      "HumanBody": {
+        "additionalProperties": false,
+        "description": "Trusted scenario anatomy; absence never selects a human implicitly.",
+        "properties": {
+          "anatomy": {
+            "const": "human",
+            "title": "Anatomy",
+            "type": "string"
+          },
+          "male_groin": {
+            "default": false,
+            "title": "Male Groin",
+            "type": "boolean"
+          },
+          "tolerance": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/InjuryTolerance"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "anatomy"
+        ],
+        "title": "HumanBody",
+        "type": "object"
+      },
+      "InitialResources": {
+        "additionalProperties": false,
+        "description": "Only initial resources; runtime history and elapsed time are forbidden.",
+        "properties": {
+          "revision": {
+            "const": 0,
+            "default": 0,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "game_time": {
+            "const": 0,
+            "default": 0,
+            "title": "Game Time",
+            "type": "integer"
+          },
+          "items": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/Item"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "owners": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/Owner"
+            },
+            "title": "Owners",
+            "type": "array"
+          },
+          "pools": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/Pool"
+            },
+            "title": "Pools",
+            "type": "array"
+          },
+          "active_effect_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Active Effect Ids",
+            "type": "array"
+          },
+          "scheduled": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/Scheduled"
+            },
+            "title": "Scheduled",
+            "type": "array"
+          },
+          "fired": {
+            "default": [],
+            "maxItems": 0,
+            "minItems": 0,
+            "title": "Fired",
+            "type": "array"
+          },
+          "receipts": {
+            "default": [],
+            "maxItems": 0,
+            "minItems": 0,
+            "title": "Receipts",
+            "type": "array"
+          },
+          "events": {
+            "default": [],
+            "maxItems": 0,
+            "minItems": 0,
+            "title": "Events",
+            "type": "array"
+          },
+          "ammunition_loads": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/AmmunitionLoad"
+            },
+            "title": "Ammunition Loads",
+            "type": "array"
+          },
+          "expended_items": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/Item"
+            },
+            "title": "Expended Items",
+            "type": "array"
+          },
+          "recovery_tasks": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/RecoveryTask"
+            },
+            "title": "Recovery Tasks",
+            "type": "array"
+          },
+          "hazards": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/HazardSchedule"
+            },
+            "title": "Hazards",
+            "type": "array"
+          },
+          "illnesses": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/RecoveryRestriction"
+            },
+            "title": "Illnesses",
+            "type": "array"
+          },
+          "object_results": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/ObjectResult"
+            },
+            "title": "Object Results",
+            "type": "array"
+          }
+        },
+        "title": "InitialResources",
+        "type": "object"
+      },
+      "InjuryStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "profile_id": {
+            "enum": [
+              "gurps-lite-4e-2004",
+              "gurps-basic-set-4e-2004"
+            ],
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "physical_traits": {
+            "$ref": "#/$defs/PhysicalTraits",
+            "default": {
+              "ambidexterity": false,
+              "combat_reflexes": false,
+              "fitness": 0,
+              "high_pain_threshold": false,
+              "night_vision": 0,
+              "acute_hearing": 0,
+              "acute_taste_smell": 0,
+              "acute_touch": 0,
+              "acute_vision": 0,
+              "healing": 0
+            }
+          },
+          "surprise": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/SurpriseState"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "shock": {
+            "default": 0,
+            "maximum": 8,
+            "minimum": 0,
+            "title": "Shock",
+            "type": "integer"
+          },
+          "stunned": {
+            "default": false,
+            "title": "Stunned",
+            "type": "boolean"
+          },
+          "prone": {
+            "default": false,
+            "title": "Prone",
+            "type": "boolean"
+          },
+          "unconscious": {
+            "default": false,
+            "title": "Unconscious",
+            "type": "boolean"
+          },
+          "mortal_wound": {
+            "default": false,
+            "title": "Mortal Wound",
+            "type": "boolean"
+          },
+          "mortal_wound_due": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Mortal Wound Due"
+          },
+          "mortal_wound_started": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Mortal Wound Started",
+            "type": "integer"
+          },
+          "dead": {
+            "default": false,
+            "title": "Dead",
+            "type": "boolean"
+          },
+          "turn": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Turn",
+            "type": "integer"
+          },
+          "phase": {
+            "default": "between",
+            "enum": [
+              "between",
+              "acting"
+            ],
+            "title": "Phase",
+            "type": "string"
+          },
+          "shock_expires": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Shock Expires",
+            "type": "integer"
+          },
+          "anatomy": {
+            "anyOf": [
+              {
+                "const": "human",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Anatomy"
+          },
+          "male_groin": {
+            "default": false,
+            "title": "Male Groin",
+            "type": "boolean"
+          },
+          "tolerance": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/InjuryTolerance"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "lasting_injuries": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/LastingInjury"
+            },
+            "title": "Lasting Injuries",
+            "type": "array"
+          }
+        },
+        "required": [
+          "profile_id"
+        ],
+        "title": "InjuryStatus",
+        "type": "object"
+      },
+      "InjuryTolerance": {
+        "additionalProperties": false,
+        "description": "Trusted anatomy facts; never accepted as player-authored damage modifiers.",
+        "properties": {
+          "structure": {
+            "default": "living",
+            "enum": [
+              "living",
+              "unliving",
+              "homogenous",
+              "diffuse"
+            ],
+            "title": "Structure",
+            "type": "string"
+          },
+          "no_brain": {
+            "default": false,
+            "title": "No Brain",
+            "type": "boolean"
+          },
+          "no_eyes": {
+            "default": false,
+            "title": "No Eyes",
+            "type": "boolean"
+          },
+          "no_head": {
+            "default": false,
+            "title": "No Head",
+            "type": "boolean"
+          },
+          "no_neck": {
+            "default": false,
+            "title": "No Neck",
+            "type": "boolean"
+          },
+          "no_vitals": {
+            "default": false,
+            "title": "No Vitals",
+            "type": "boolean"
+          }
+        },
+        "title": "InjuryTolerance",
+        "type": "object"
+      },
+      "Item": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "definition_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Definition Id",
+            "type": "string"
+          },
+          "owner_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Owner Id",
+            "type": "string"
+          },
+          "quantity": {
+            "default": 1,
+            "maximum": 1000000,
+            "minimum": 1,
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "container_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Container Id"
+          },
+          "equipped": {
+            "default": false,
+            "title": "Equipped",
+            "type": "boolean"
+          },
+          "ready": {
+            "default": false,
+            "title": "Ready",
+            "type": "boolean"
+          },
+          "condition": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ObjectCondition"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "ground": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/GroundPosition"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "firearm_failure": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/FirearmFailure"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "id",
+          "definition_id",
+          "owner_id"
+        ],
+        "title": "Item",
+        "type": "object"
+      },
+      "LastingInjury": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "location": {
+            "enum": [
+              "torso",
+              "vitals",
+              "skull",
+              "face",
+              "neck",
+              "groin",
+              "left-arm",
+              "right-arm",
+              "left-leg",
+              "right-leg",
+              "left-hand",
+              "right-hand",
+              "left-foot",
+              "right-foot",
+              "left-eye",
+              "right-eye"
+            ],
+            "title": "Location",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "crippled",
+              "destroyed",
+              "severed",
+              "disabled",
+              "deafened",
+              "scarred"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "duration": {
+            "enum": [
+              "pending",
+              "temporary",
+              "lasting",
+              "permanent",
+              "timed"
+            ],
+            "title": "Duration",
+            "type": "string"
+          },
+          "inflicted_at": {
+            "minimum": 0,
+            "title": "Inflicted At",
+            "type": "integer"
+          },
+          "injury": {
+            "minimum": 0,
+            "title": "Injury",
+            "type": "integer"
+          },
+          "recovery_at": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Recovery At"
+          }
+        },
+        "required": [
+          "id",
+          "location",
+          "kind",
+          "duration",
+          "inflicted_at",
+          "injury"
+        ],
+        "title": "LastingInjury",
+        "type": "object"
+      },
+      "MeleeMode": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "const": "melee",
+            "default": "melee",
+            "title": "Kind",
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "skill_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Skill Id",
+            "type": "string"
+          },
+          "minimum_st": {
+            "minimum": 1,
+            "title": "Minimum St",
+            "type": "integer"
+          },
+          "hands": {
+            "default": 1,
+            "enum": [
+              1,
+              2
+            ],
+            "title": "Hands",
+            "type": "integer"
+          },
+          "damage": {
+            "$ref": "#/$defs/Damage"
+          },
+          "reach": {
+            "items": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "minItems": 1,
+            "title": "Reach",
+            "type": "array"
+          },
+          "parry": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Parry"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "ready_after_attack": {
+            "default": false,
+            "title": "Ready After Attack",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "skill_id",
+          "minimum_st",
+          "damage",
+          "reach"
+        ],
+        "title": "MeleeMode",
+        "type": "object"
+      },
+      "NPCAction": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "patrol",
+              "communicate",
+              "alarm",
+              "reinforce",
+              "transfer_prisoner"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "required_fact_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Required Fact Ids",
+            "type": "array"
+          },
+          "reveal_fact_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Reveal Fact Ids",
+            "type": "array"
+          },
+          "recipient_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Recipient Ids",
+            "type": "array"
+          },
+          "cost_definition_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Cost Definition Id"
+          },
+          "cost": {
+            "default": 0,
+            "maximum": 1000000,
+            "minimum": 0,
+            "title": "Cost",
+            "type": "integer"
+          },
+          "setback_rule_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Setback Rule Id"
+          },
+          "target_actor_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Target Actor Id"
+          }
+        },
+        "required": [
+          "id",
+          "kind"
+        ],
+        "title": "NPCAction",
+        "type": "object"
+      },
+      "NPCReputation": {
+        "additionalProperties": false,
+        "description": "One authored reputation; the engine owns its reaction value and recognition.",
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "level": {
+            "maximum": 4,
+            "minimum": -4,
+            "title": "Level",
+            "type": "integer"
+          },
+          "scope": {
+            "default": "everyone",
+            "enum": [
+              "everyone",
+              "large-class",
+              "small-class"
+            ],
+            "title": "Scope",
+            "type": "string"
+          },
+          "recognition": {
+            "default": "always",
+            "enum": [
+              "always",
+              "sometimes",
+              "occasionally"
+            ],
+            "title": "Recognition",
+            "type": "string"
+          },
+          "classes": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Classes",
+            "type": "array"
+          },
+          "hidden": {
+            "default": false,
+            "title": "Hidden",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "level"
+        ],
+        "title": "NPCReputation",
+        "type": "object"
+      },
+      "NPCSocialAction": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "patrol",
+              "communicate",
+              "alarm",
+              "reinforce",
+              "transfer_prisoner"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "required_fact_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Required Fact Ids",
+            "type": "array"
+          },
+          "reveal_fact_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Reveal Fact Ids",
+            "type": "array"
+          },
+          "recipient_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Recipient Ids",
+            "type": "array"
+          },
+          "cost_definition_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Cost Definition Id"
+          },
+          "cost": {
+            "default": 0,
+            "maximum": 1000000,
+            "minimum": 0,
+            "title": "Cost",
+            "type": "integer"
+          },
+          "setback_rule_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Setback Rule Id"
+          },
+          "target_actor_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Target Actor Id"
+          },
+          "social": {
+            "$ref": "#/$defs/NPCSocialTrigger"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "social"
+        ],
+        "title": "NPCSocialAction",
+        "type": "object"
+      },
+      "NPCSocialPlan": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "faction_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Faction Id"
+          },
+          "goal": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Goal",
+            "type": "string"
+          },
+          "disposition": {
+            "default": "neutral",
+            "enum": [
+              "hostile",
+              "neutral",
+              "friendly"
+            ],
+            "title": "Disposition",
+            "type": "string"
+          },
+          "first_due": {
+            "minimum": 0,
+            "title": "First Due",
+            "type": "integer"
+          },
+          "interval": {
+            "maximum": 10000,
+            "minimum": 1,
+            "title": "Interval",
+            "type": "integer"
+          },
+          "action_budget": {
+            "default": 10,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Action Budget",
+            "type": "integer"
+          },
+          "clock_limit": {
+            "default": 4,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Clock Limit",
+            "type": "integer"
+          },
+          "actions": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/NPCAction"
+                },
+                {
+                  "$ref": "#/$defs/NPCSocialAction"
+                }
+              ]
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Actions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "goal",
+          "first_due",
+          "interval",
+          "actions"
+        ],
+        "title": "NPCSocialPlan",
+        "type": "object"
+      },
+      "NPCSocialRules": {
+        "additionalProperties": false,
+        "description": "Opt-in v2 authored policy; the frozen v1 scenario schema stays unchanged.",
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "version": {
+            "const": 2,
+            "default": 2,
+            "title": "Version",
+            "type": "integer"
+          },
+          "plans": {
+            "items": {
+              "$ref": "#/$defs/NPCSocialPlan"
+            },
+            "maxItems": 50,
+            "title": "Plans",
+            "type": "array"
+          },
+          "checkpoint_budget": {
+            "default": 100,
+            "maximum": 1000,
+            "minimum": 1,
+            "title": "Checkpoint Budget",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "plans"
+        ],
+        "title": "NPCSocialRules",
+        "type": "object"
+      },
+      "NPCSocialStanding": {
+        "additionalProperties": false,
+        "description": "Declared standing and observer, not an invented modifier: values follow rules.\n\nStatus, Charisma and Voice are absent on purpose: dispatch derives those from\nthe initiator's approved build, and declaring them here would double-count.\nThe audience fields describe the reacting party for both sources.",
+        "properties": {
+          "appearance": {
+            "default": "average",
+            "enum": [
+              "horrific",
+              "monstrous",
+              "hideous",
+              "ugly",
+              "unattractive",
+              "average",
+              "attractive",
+              "handsome",
+              "very-handsome",
+              "transcendent"
+            ],
+            "title": "Appearance",
+            "type": "string"
+          },
+          "reputations": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/NPCReputation"
+            },
+            "maxItems": 5,
+            "title": "Reputations",
+            "type": "array"
+          },
+          "audience_perceptible": {
+            "default": true,
+            "title": "Audience Perceptible",
+            "type": "boolean"
+          },
+          "audience_audible": {
+            "default": true,
+            "title": "Audience Audible",
+            "type": "boolean"
+          },
+          "audience_recognizes_status": {
+            "default": true,
+            "title": "Audience Recognizes Status",
+            "type": "boolean"
+          },
+          "audience_attracted": {
+            "default": false,
+            "title": "Audience Attracted",
+            "type": "boolean"
+          },
+          "audience_classes": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Audience Classes",
+            "type": "array"
+          }
+        },
+        "title": "NPCSocialStanding",
+        "type": "object"
+      },
+      "NPCSocialTrigger": {
+        "additionalProperties": false,
+        "description": "Pinned scenario data, not model-supplied roll targets or trait options.",
+        "properties": {
+          "kind": {
+            "enum": [
+              "reaction",
+              "influence",
+              "fright",
+              "self-control",
+              "skill"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "subject_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "modifier": {
+            "default": 0,
+            "maximum": 100,
+            "minimum": -100,
+            "title": "Modifier",
+            "type": "integer"
+          },
+          "standing": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/NPCSocialStanding"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "npc_will": {
+            "default": 10,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Npc Will",
+            "type": "integer"
+          },
+          "skill_id": {
+            "default": "skill:diplomacy",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Skill Id",
+            "type": "string"
+          },
+          "specious_intimidation": {
+            "default": false,
+            "title": "Specious Intimidation",
+            "type": "boolean"
+          },
+          "trait_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Trait Id"
+          },
+          "required_fact_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Required Fact Ids",
+            "type": "array"
+          },
+          "disclosure_fact_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Disclosure Fact Ids",
+            "type": "array"
+          },
+          "conditions": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 15,
+            "title": "Conditions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "kind",
+          "subject_id"
+        ],
+        "title": "NPCSocialTrigger",
+        "type": "object"
+      },
+      "NoncombatRule": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "scene_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Scene Id",
+            "type": "string"
+          },
+          "category": {
+            "enum": [
+              "negotiation",
+              "investigation",
+              "infiltration",
+              "pursuit",
+              "hazard"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "stakes": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Stakes",
+            "type": "string"
+          },
+          "required_progress": {
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Required Progress",
+            "type": "integer"
+          },
+          "maximum_failures": {
+            "default": 3,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Maximum Failures",
+            "type": "integer"
+          },
+          "approaches": {
+            "items": {
+              "$ref": "#/$defs/Approach"
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Approaches",
+            "type": "array"
+          },
+          "completion_fact_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Completion Fact Ids",
+            "type": "array"
+          },
+          "defeat_fact_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Defeat Fact Ids",
+            "type": "array"
+          },
+          "withdrawal_fact_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Withdrawal Fact Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "scene_id",
+          "category",
+          "stakes",
+          "required_progress",
+          "approaches"
+        ],
+        "title": "NoncombatRule",
+        "type": "object"
+      },
+      "NoncombatRules": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          },
+          "encounters": {
+            "items": {
+              "$ref": "#/$defs/NoncombatRule"
+            },
+            "minItems": 1,
+            "title": "Encounters",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "encounters"
+        ],
+        "title": "NoncombatRules",
+        "type": "object"
+      },
+      "ObjectCondition": {
+        "additionalProperties": false,
+        "properties": {
+          "hp": {
+            "title": "Hp",
+            "type": "integer"
+          },
+          "disabled": {
+            "default": false,
+            "title": "Disabled",
+            "type": "boolean"
+          },
+          "destroyed": {
+            "default": false,
+            "title": "Destroyed",
+            "type": "boolean"
+          },
+          "last_stress_at": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Last Stress At"
+          },
+          "residual_roll": {
+            "anyOf": [
+              {
+                "maximum": 6,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Residual Roll"
+          },
+          "shock": {
+            "default": 0,
+            "maximum": 4,
+            "minimum": 0,
+            "title": "Shock",
+            "type": "integer"
+          },
+          "shock_until": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Shock Until"
+          }
+        },
+        "required": [
+          "hp"
+        ],
+        "title": "ObjectCondition",
+        "type": "object"
+      },
+      "ObjectProfile": {
+        "additionalProperties": false,
+        "properties": {
+          "profile_id": {
+            "const": "gurps-basic-set-4e-2004",
+            "default": "gurps-basic-set-4e-2004",
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "construction": {
+            "enum": [
+              "unliving",
+              "homogenous",
+              "diffuse"
+            ],
+            "title": "Construction",
+            "type": "string"
+          },
+          "hp": {
+            "exclusiveMinimum": 0,
+            "title": "Hp",
+            "type": "integer"
+          },
+          "dr": {
+            "minimum": 0,
+            "title": "Dr",
+            "type": "integer"
+          },
+          "ht": {
+            "exclusiveMinimum": 0,
+            "title": "Ht",
+            "type": "integer"
+          },
+          "high_pain_threshold": {
+            "default": false,
+            "title": "High Pain Threshold",
+            "type": "boolean"
+          },
+          "size_modifier": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Size Modifier"
+          },
+          "repair_skill_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Repair Skill Id"
+          },
+          "repair_tools_definition": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Repair Tools Definition"
+          },
+          "repair_parts_definition": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Repair Parts Definition"
+          },
+          "residual_definitions": {
+            "default": [],
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Residual Definitions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "construction",
+          "hp",
+          "dr",
+          "ht"
+        ],
+        "title": "ObjectProfile",
+        "type": "object"
+      },
+      "ObjectResult": {
+        "additionalProperties": false,
+        "properties": {
+          "command_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Command Id",
+            "type": "string"
+          },
+          "item_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Item Id",
+            "type": "string"
+          },
+          "injury": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Injury",
+            "type": "integer"
+          },
+          "effective_dr": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Effective Dr",
+            "type": "integer"
+          },
+          "checks": {
+            "default": [],
+            "items": {
+              "maxItems": 3,
+              "minItems": 3,
+              "prefixItems": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Checks",
+            "type": "array"
+          },
+          "condition": {
+            "$ref": "#/$defs/ObjectCondition"
+          }
+        },
+        "required": [
+          "command_id",
+          "item_id",
+          "condition"
+        ],
+        "title": "ObjectResult",
+        "type": "object"
+      },
+      "Objective": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "required": {
+            "default": true,
+            "title": "Required",
+            "type": "boolean"
+          },
+          "visible_to": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Visible To",
+            "type": "array"
+          },
+          "predicates": {
+            "items": {
+              "$ref": "#/$defs/Predicate"
+            },
+            "maxItems": 30,
+            "minItems": 1,
+            "title": "Predicates",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "predicates"
+        ],
+        "title": "Objective",
+        "type": "object"
+      },
+      "ObjectiveRules": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          },
+          "objectives": {
+            "items": {
+              "$ref": "#/$defs/Objective"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Objectives",
+            "type": "array"
+          },
+          "failures": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/Predicate"
+            },
+            "title": "Failures",
+            "type": "array"
+          },
+          "deadline": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Deadline"
+          },
+          "partial_on_deadline": {
+            "default": true,
+            "title": "Partial On Deadline",
+            "type": "boolean"
+          },
+          "rewards": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/Reward"
+            },
+            "title": "Rewards",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "objectives"
+        ],
+        "title": "ObjectiveRules",
+        "type": "object"
+      },
+      "Obstacle": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "exit_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Exit Id",
+            "type": "string"
+          },
+          "description": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "bypass_fact_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Bypass Fact Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "exit_id",
+          "description"
+        ],
+        "title": "Obstacle",
+        "type": "object"
+      },
+      "Owner": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "capacity": {
+            "minimum": 0,
+            "title": "Capacity",
+            "type": "integer"
+          },
+          "definitions": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Definitions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "actor_id",
+          "capacity"
+        ],
+        "title": "Owner",
+        "type": "object"
+      },
+      "PackagePin": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          },
+          "digest": {
+            "title": "Digest",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "digest"
+        ],
+        "title": "PackagePin",
+        "type": "object"
+      },
+      "Parry": {
+        "additionalProperties": false,
+        "properties": {
+          "modifier": {
+            "default": 0,
+            "title": "Modifier",
+            "type": "integer"
+          },
+          "unbalanced": {
+            "default": false,
+            "title": "Unbalanced",
+            "type": "boolean"
+          },
+          "fencing": {
+            "default": false,
+            "title": "Fencing",
+            "type": "boolean"
+          }
+        },
+        "title": "Parry",
+        "type": "object"
+      },
+      "PartyRequirements": {
+        "additionalProperties": false,
+        "properties": {
+          "slots": {
+            "items": {
+              "$ref": "#/$defs/PartySlot"
+            },
+            "maxItems": 30,
+            "minItems": 1,
+            "title": "Slots",
+            "type": "array"
+          },
+          "minimum_points": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Minimum Points",
+            "type": "integer"
+          },
+          "maximum_points": {
+            "minimum": 0,
+            "title": "Maximum Points",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "slots",
+          "maximum_points"
+        ],
+        "title": "PartyRequirements",
+        "type": "object"
+      },
+      "PartyRules": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          },
+          "effects": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/CrossSceneEffect"
+            },
+            "title": "Effects",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "version"
+        ],
+        "title": "PartyRules",
+        "type": "object"
+      },
+      "PartySlot": {
+        "additionalProperties": false,
+        "description": "An actor ID local to this scenario, never an account or membership ID.",
+        "properties": {
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "role": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Role",
+            "type": "string"
+          },
+          "required_definitions": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Required Definitions",
+            "type": "array"
+          },
+          "aware_of": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Aware Of",
+            "type": "array"
+          },
+          "conditions": {
+            "default": [],
+            "items": {
+              "enum": [
+                "unconscious",
+                "stunned",
+                "restrained"
+              ],
+              "type": "string"
+            },
+            "title": "Conditions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "actor_id",
+          "role"
+        ],
+        "title": "PartySlot",
+        "type": "object"
+      },
+      "PhysicalTraits": {
+        "additionalProperties": false,
+        "properties": {
+          "ambidexterity": {
+            "default": false,
+            "title": "Ambidexterity",
+            "type": "boolean"
+          },
+          "combat_reflexes": {
+            "default": false,
+            "title": "Combat Reflexes",
+            "type": "boolean"
+          },
+          "fitness": {
+            "default": 0,
+            "maximum": 2,
+            "minimum": 0,
+            "title": "Fitness",
+            "type": "integer"
+          },
+          "high_pain_threshold": {
+            "default": false,
+            "title": "High Pain Threshold",
+            "type": "boolean"
+          },
+          "night_vision": {
+            "default": 0,
+            "maximum": 9,
+            "minimum": 0,
+            "title": "Night Vision",
+            "type": "integer"
+          },
+          "acute_hearing": {
+            "default": 0,
+            "maximum": 10,
+            "minimum": 0,
+            "title": "Acute Hearing",
+            "type": "integer"
+          },
+          "acute_taste_smell": {
+            "default": 0,
+            "maximum": 10,
+            "minimum": 0,
+            "title": "Acute Taste Smell",
+            "type": "integer"
+          },
+          "acute_touch": {
+            "default": 0,
+            "maximum": 10,
+            "minimum": 0,
+            "title": "Acute Touch",
+            "type": "integer"
+          },
+          "acute_vision": {
+            "default": 0,
+            "maximum": 10,
+            "minimum": 0,
+            "title": "Acute Vision",
+            "type": "integer"
+          },
+          "healing": {
+            "default": 0,
+            "maximum": 2,
+            "minimum": 0,
+            "title": "Healing",
+            "type": "integer"
+          }
+        },
+        "title": "PhysicalTraits",
+        "type": "object"
+      },
+      "Pool": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "current": {
+            "title": "Current",
+            "type": "integer"
+          },
+          "maximum": {
+            "minimum": 0,
+            "title": "Maximum",
+            "type": "integer"
+          },
+          "injury": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/InjuryStatus"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "fatigue": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/FatigueStatus"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "id",
+          "current",
+          "maximum"
+        ],
+        "title": "Pool",
+        "type": "object"
+      },
+      "Predicate": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "fact",
+              "known",
+              "item",
+              "condition",
+              "location",
+              "time",
+              "event",
+              "custody"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "subject_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "value": {
+            "maxLength": 500,
+            "title": "Value",
+            "type": "string"
+          },
+          "minimum": {
+            "default": 1,
+            "minimum": 0,
+            "title": "Minimum",
+            "type": "integer"
+          },
+          "negate": {
+            "default": false,
+            "title": "Negate",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "kind",
+          "subject_id",
+          "value"
+        ],
+        "title": "Predicate",
+        "type": "object"
+      },
+      "PregeneratedCharacter": {
+        "additionalProperties": false,
+        "properties": {
+          "slot_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Slot Id",
+            "type": "string"
+          },
+          "proposal": {
+            "$ref": "#/$defs/CharacterProposal"
+          }
+        },
+        "required": [
+          "slot_id",
+          "proposal"
+        ],
+        "title": "PregeneratedCharacter",
+        "type": "object"
+      },
+      "ProtectionProfile": {
+        "additionalProperties": false,
+        "properties": {
+          "definition_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Definition Id",
+            "type": "string"
+          },
+          "resistance": {
+            "maximum": 100,
+            "minimum": 0,
+            "title": "Resistance",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "definition_id",
+          "resistance"
+        ],
+        "title": "ProtectionProfile",
+        "type": "object"
+      },
+      "PublicBrief": {
+        "additionalProperties": false,
+        "description": "Explicit author-approved allowlist, never populated from the private graph.",
+        "properties": {
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "summary": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Summary",
+            "type": "string"
+          },
+          "tags": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 30,
+            "title": "Tags",
+            "type": "array"
+          },
+          "setup": {
+            "$ref": "#/$defs/GenerationBrief"
+          },
+          "opening_prompt": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Opening Prompt",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "summary",
+          "setup",
+          "opening_prompt"
+        ],
+        "title": "PublicBrief",
+        "type": "object"
+      },
+      "Purchase": {
+        "additionalProperties": false,
+        "properties": {
+          "definition_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Definition Id",
+            "type": "string"
+          },
+          "amount": {
+            "default": 1,
+            "maximum": 10000,
+            "minimum": 1,
+            "title": "Amount",
+            "type": "integer"
+          },
+          "trait": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/TraitOptions"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "definition_id"
+        ],
+        "title": "Purchase",
+        "type": "object"
+      },
+      "RangedMode": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "const": "ranged",
+            "default": "ranged",
+            "title": "Kind",
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "skill_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Skill Id",
+            "type": "string"
+          },
+          "minimum_st": {
+            "minimum": 1,
+            "title": "Minimum St",
+            "type": "integer"
+          },
+          "hands": {
+            "default": 1,
+            "enum": [
+              1,
+              2
+            ],
+            "title": "Hands",
+            "type": "integer"
+          },
+          "damage": {
+            "$ref": "#/$defs/Damage"
+          },
+          "accuracy": {
+            "minimum": 0,
+            "title": "Accuracy",
+            "type": "integer"
+          },
+          "range_basis": {
+            "enum": [
+              "yards",
+              "st"
+            ],
+            "title": "Range Basis",
+            "type": "string"
+          },
+          "half_damage_range": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ],
+                "gt": 0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Half Damage Range"
+          },
+          "maximum_range": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "gt": 0,
+            "title": "Maximum Range"
+          },
+          "rate_of_fire": {
+            "default": 1,
+            "minimum": 1,
+            "title": "Rate Of Fire",
+            "type": "integer"
+          },
+          "shots": {
+            "minimum": 1,
+            "title": "Shots",
+            "type": "integer"
+          },
+          "reload_seconds": {
+            "minimum": 0,
+            "title": "Reload Seconds",
+            "type": "integer"
+          },
+          "reload_protocol": {
+            "default": "magazine",
+            "enum": [
+              "magazine",
+              "per-round"
+            ],
+            "title": "Reload Protocol",
+            "type": "string"
+          },
+          "bulk": {
+            "maximum": 0,
+            "title": "Bulk",
+            "type": "integer"
+          },
+          "recoil": {
+            "default": 1,
+            "minimum": 1,
+            "title": "Recoil",
+            "type": "integer"
+          },
+          "ammunition_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Ammunition Id"
+          },
+          "thrown": {
+            "default": false,
+            "title": "Thrown",
+            "type": "boolean"
+          },
+          "blockable": {
+            "default": false,
+            "title": "Blockable",
+            "type": "boolean"
+          },
+          "brace_kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "one-handed",
+                  "bipod"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Brace Kind"
+          },
+          "scope_bonus": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Scope Bonus",
+            "type": "integer"
+          },
+          "fixed_power_scope": {
+            "default": false,
+            "title": "Fixed Power Scope",
+            "type": "boolean"
+          },
+          "rated_strength": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/RatedStrength"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "firearm": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/FirearmSpec"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "id",
+          "skill_id",
+          "minimum_st",
+          "damage",
+          "accuracy",
+          "range_basis",
+          "maximum_range",
+          "shots",
+          "reload_seconds",
+          "bulk"
+        ],
+        "title": "RangedMode",
+        "type": "object"
+      },
+      "RatedStrength": {
+        "additionalProperties": false,
+        "description": "Explicit B270 weapon ST; never inferred from a skill or ammunition name.",
+        "properties": {
+          "kind": {
+            "enum": [
+              "bow",
+              "crossbow"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "st": {
+            "minimum": 1,
+            "title": "St",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "st"
+        ],
+        "title": "RatedStrength",
+        "type": "object"
+      },
+      "RecoveryOption": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "observe",
+              "communicate",
+              "negotiate",
+              "escape",
+              "rescue",
+              "recover_items",
+              "rest",
+              "resupply",
+              "replace",
+              "assist",
+              "advance"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "scene_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Scene Id",
+            "type": "string"
+          },
+          "actor_ids": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Actor Ids",
+            "type": "array"
+          },
+          "target_actor_ids": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Target Actor Ids",
+            "type": "array"
+          },
+          "required_fact_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Required Fact Ids",
+            "type": "array"
+          },
+          "ticks": {
+            "default": 1,
+            "maximum": 10000,
+            "minimum": 1,
+            "title": "Ticks",
+            "type": "integer"
+          },
+          "check_rule_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Check Rule Id"
+          },
+          "supported": {
+            "default": true,
+            "title": "Supported",
+            "type": "boolean"
+          },
+          "success_fact_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Success Fact Ids",
+            "type": "array"
+          },
+          "failure_fact_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Failure Fact Ids",
+            "type": "array"
+          },
+          "cost_definition_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Cost Definition Id"
+          },
+          "cost": {
+            "default": 0,
+            "maximum": 1000000,
+            "minimum": 0,
+            "title": "Cost",
+            "type": "integer"
+          },
+          "recovery_hp": {
+            "default": 0,
+            "maximum": 100,
+            "minimum": 0,
+            "title": "Recovery Hp",
+            "type": "integer"
+          },
+          "recovery_fp": {
+            "default": 0,
+            "maximum": 100,
+            "minimum": 0,
+            "title": "Recovery Fp",
+            "type": "integer"
+          },
+          "stock_item_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Stock Item Id"
+          },
+          "stock_quantity": {
+            "default": 1,
+            "maximum": 1000000,
+            "minimum": 1,
+            "title": "Stock Quantity",
+            "type": "integer"
+          },
+          "replacement": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/CharacterProposal"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "advancement": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/CharacterDraft"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "recipient_actor_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Recipient Actor Ids",
+            "type": "array"
+          },
+          "communication_fact_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Communication Fact Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "scene_id",
+          "actor_ids",
+          "target_actor_ids"
+        ],
+        "title": "RecoveryOption",
+        "type": "object"
+      },
+      "RecoveryRestriction": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "active": {
+            "default": true,
+            "title": "Active",
+            "type": "boolean"
+          },
+          "hp_debt": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Hp Debt",
+            "type": "integer"
+          },
+          "fp_debt": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Fp Debt",
+            "type": "integer"
+          },
+          "blocks_natural_healing": {
+            "default": true,
+            "title": "Blocks Natural Healing",
+            "type": "boolean"
+          },
+          "blocks_physician_healing": {
+            "default": false,
+            "title": "Blocks Physician Healing",
+            "type": "boolean"
+          },
+          "blocks_rest": {
+            "default": false,
+            "title": "Blocks Rest",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id"
+        ],
+        "title": "RecoveryRestriction",
+        "type": "object"
+      },
+      "RecoveryRules": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          },
+          "setbacks": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/SetbackRule"
+            },
+            "title": "Setbacks",
+            "type": "array"
+          },
+          "options": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/RecoveryOption"
+            },
+            "title": "Options",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "version"
+        ],
+        "title": "RecoveryRules",
+        "type": "object"
+      },
+      "RecoveryTask": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "target_id": {
+            "title": "Target Id",
+            "type": "string"
+          },
+          "profile_id": {
+            "enum": [
+              "gurps-lite-4e-2004",
+              "gurps-basic-set-4e-2004"
+            ],
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "rest",
+              "natural",
+              "bandage",
+              "first-aid",
+              "physician",
+              "resuscitate",
+              "stabilize"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "start": {
+            "minimum": 0,
+            "title": "Start",
+            "type": "integer"
+          },
+          "due": {
+            "minimum": 0,
+            "title": "Due",
+            "type": "integer"
+          },
+          "status": {
+            "default": "pending",
+            "enum": [
+              "pending",
+              "completed",
+              "interrupted",
+              "cancelled"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "interrupted_at": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Interrupted At"
+          },
+          "settled": {
+            "default": false,
+            "title": "Settled",
+            "type": "boolean"
+          },
+          "wound_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Wound Id"
+          },
+          "bandaged_hp": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Bandaged Hp",
+            "type": "integer"
+          },
+          "technology_level": {
+            "default": 8,
+            "maximum": 12,
+            "minimum": 0,
+            "title": "Technology Level",
+            "type": "integer"
+          },
+          "food": {
+            "default": false,
+            "title": "Food",
+            "type": "boolean"
+          },
+          "water": {
+            "default": false,
+            "title": "Water",
+            "type": "boolean"
+          },
+          "sleep": {
+            "default": false,
+            "title": "Sleep",
+            "type": "boolean"
+          },
+          "physician_skill": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Physician Skill"
+          },
+          "physician_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Physician Id"
+          },
+          "ht": {
+            "default": 10,
+            "minimum": 1,
+            "title": "Ht",
+            "type": "integer"
+          },
+          "skill": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Skill"
+          },
+          "treatment_modifier": {
+            "default": 0,
+            "title": "Treatment Modifier",
+            "type": "integer"
+          },
+          "fp_interval": {
+            "default": 600,
+            "enum": [
+              300,
+              600
+            ],
+            "title": "Fp Interval",
+            "type": "integer"
+          },
+          "power_entitlement": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Power Entitlement",
+            "type": "integer"
+          },
+          "healing_bonus": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Healing Bonus",
+            "type": "integer"
+          },
+          "healing_rate": {
+            "default": 1,
+            "enum": [
+              1,
+              2
+            ],
+            "title": "Healing Rate",
+            "type": "integer"
+          },
+          "ordinary_entitlement": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Ordinary Entitlement",
+            "type": "integer"
+          },
+          "starvation_entitlement": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Starvation Entitlement",
+            "type": "integer"
+          },
+          "dehydration_entitlement": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Dehydration Entitlement",
+            "type": "integer"
+          },
+          "sleep_entitlement": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Sleep Entitlement",
+            "type": "integer"
+          },
+          "ordinary_granted": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Ordinary Granted",
+            "type": "integer"
+          },
+          "starvation_granted": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Starvation Granted",
+            "type": "integer"
+          },
+          "dehydration_granted": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Dehydration Granted",
+            "type": "integer"
+          },
+          "sleep_granted": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Sleep Granted",
+            "type": "integer"
+          },
+          "hp_entitlement": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Hp Entitlement",
+            "type": "integer"
+          },
+          "fp_recovered_total": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Fp Recovered Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "target_id",
+          "profile_id",
+          "kind",
+          "start",
+          "due"
+        ],
+        "title": "RecoveryTask",
+        "type": "object"
+      },
+      "Reward": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "points": {
+            "default": 0,
+            "maximum": 10000,
+            "minimum": 0,
+            "title": "Points",
+            "type": "integer"
+          },
+          "item_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Item Id"
+          },
+          "outcomes": {
+            "default": [
+              "success"
+            ],
+            "items": {
+              "enum": [
+                "success",
+                "partial-success"
+              ],
+              "type": "string"
+            },
+            "title": "Outcomes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id"
+        ],
+        "title": "Reward",
+        "type": "object"
+      },
+      "RulingAlternative": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "check_rule_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Check Rule Id",
+            "type": "string"
+          },
+          "modifier": {
+            "maximum": 20,
+            "minimum": -20,
+            "title": "Modifier",
+            "type": "integer"
+          },
+          "affected_mechanic": {
+            "const": "social.diplomacy.target",
+            "default": "social.diplomacy.target",
+            "title": "Affected Mechanic",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "check_rule_id",
+          "modifier"
+        ],
+        "title": "RulingAlternative",
+        "type": "object"
+      },
+      "RulingPolicy": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          },
+          "minimum_modifier": {
+            "default": -4,
+            "maximum": 20,
+            "minimum": -20,
+            "title": "Minimum Modifier",
+            "type": "integer"
+          },
+          "maximum_modifier": {
+            "default": 4,
+            "maximum": 20,
+            "minimum": -20,
+            "title": "Maximum Modifier",
+            "type": "integer"
+          },
+          "automatic": {
+            "default": false,
+            "title": "Automatic",
+            "type": "boolean"
+          },
+          "automatic_minimum": {
+            "default": -1,
+            "maximum": 20,
+            "minimum": -20,
+            "title": "Automatic Minimum",
+            "type": "integer"
+          },
+          "automatic_maximum": {
+            "default": 1,
+            "maximum": 20,
+            "minimum": -20,
+            "title": "Automatic Maximum",
+            "type": "integer"
+          },
+          "player_approval": {
+            "default": false,
+            "title": "Player Approval",
+            "type": "boolean"
+          },
+          "lifetime_ticks": {
+            "default": 10,
+            "maximum": 10000,
+            "minimum": 1,
+            "title": "Lifetime Ticks",
+            "type": "integer"
+          },
+          "alternatives": {
+            "items": {
+              "$ref": "#/$defs/RulingAlternative"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Alternatives",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "alternatives"
+        ],
+        "title": "RulingPolicy",
+        "type": "object"
+      },
+      "Scene": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          },
+          "location_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Location Id",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "exits": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/SceneExit"
+            },
+            "title": "Exits",
+            "type": "array"
+          },
+          "obstacles": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/Obstacle"
+            },
+            "title": "Obstacles",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "location_id",
+          "title"
+        ],
+        "title": "Scene",
+        "type": "object"
+      },
+      "SceneExit": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "destination_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Destination Id",
+            "type": "string"
+          },
+          "ticks": {
+            "default": 1,
+            "maximum": 10000,
+            "minimum": 1,
+            "title": "Ticks",
+            "type": "integer"
+          },
+          "required_fact_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Required Fact Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "destination_id"
+        ],
+        "title": "SceneExit",
+        "type": "object"
+      },
+      "SceneRules": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          },
+          "scenes": {
+            "items": {
+              "$ref": "#/$defs/Scene"
+            },
+            "minItems": 1,
+            "title": "Scenes",
+            "type": "array"
+          },
+          "discoveries": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/Discovery"
+            },
+            "title": "Discoveries",
+            "type": "array"
+          },
+          "triggers": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/SceneTrigger"
+            },
+            "title": "Triggers",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "scenes"
+        ],
+        "title": "SceneRules",
+        "type": "object"
+      },
+      "SceneTrigger": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "scene_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Scene Id",
+            "type": "string"
+          },
+          "phase": {
+            "enum": [
+              "entry",
+              "exit"
+            ],
+            "title": "Phase",
+            "type": "string"
+          },
+          "fact_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Fact Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "scene_id",
+          "phase",
+          "fact_id"
+        ],
+        "title": "SceneTrigger",
+        "type": "object"
+      },
+      "Scheduled": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "due": {
+            "minimum": 0,
+            "title": "Due",
+            "type": "integer"
+          },
+          "kind": {
+            "enum": [
+              "expire",
+              "recover",
+              "consequence"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "target_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Target Id",
+            "type": "string"
+          },
+          "amount": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Amount",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "due",
+          "kind",
+          "target_id"
+        ],
+        "title": "Scheduled",
+        "type": "object"
+      },
+      "SetbackRule": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "retreat",
+              "surrender",
+              "capture",
+              "incapacitation",
+              "death"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "actor_ids": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Actor Ids",
+            "type": "array"
+          },
+          "required_fact_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Required Fact Ids",
+            "type": "array"
+          },
+          "destination_scene_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Destination Scene Id"
+          },
+          "captor_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Captor Id"
+          },
+          "custody_owner_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Custody Owner Id"
+          },
+          "restraints": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Restraints",
+            "type": "array"
+          },
+          "permitted": {
+            "default": [
+              "observe",
+              "communicate",
+              "negotiate",
+              "escape",
+              "assist"
+            ],
+            "items": {
+              "enum": [
+                "observe",
+                "communicate",
+                "negotiate",
+                "escape",
+                "rescue",
+                "recover_items",
+                "rest",
+                "resupply",
+                "replace",
+                "assist",
+                "advance"
+              ],
+              "type": "string"
+            },
+            "title": "Permitted",
+            "type": "array"
+          },
+          "consequence_fact_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Consequence Fact Ids",
+            "type": "array"
+          },
+          "impossible_objective_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Impossible Objective Ids",
+            "type": "array"
+          },
+          "failure_fact_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Failure Fact Id"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "actor_ids"
+        ],
+        "title": "SetbackRule",
+        "type": "object"
+      },
+      "Shield": {
+        "additionalProperties": false,
+        "properties": {
+          "skill_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Skill Id",
+            "type": "string"
+          },
+          "defense_bonus": {
+            "minimum": 1,
+            "title": "Defense Bonus",
+            "type": "integer"
+          },
+          "can_block": {
+            "default": true,
+            "title": "Can Block",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "skill_id",
+          "defense_bonus"
+        ],
+        "title": "Shield",
+        "type": "object"
+      },
+      "SocialActionRules": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          },
+          "movement_ticks": {
+            "default": 1,
+            "maximum": 10000,
+            "minimum": 1,
+            "title": "Movement Ticks",
+            "type": "integer"
+          },
+          "item_ticks": {
+            "default": 1,
+            "maximum": 10000,
+            "minimum": 1,
+            "title": "Item Ticks",
+            "type": "integer"
+          },
+          "maximum_wait": {
+            "default": 100,
+            "maximum": 10000,
+            "minimum": 1,
+            "title": "Maximum Wait",
+            "type": "integer"
+          },
+          "fatigue_cost": {
+            "default": 0,
+            "maximum": 100,
+            "minimum": 0,
+            "title": "Fatigue Cost",
+            "type": "integer"
+          },
+          "checks": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/CheckRule"
+            },
+            "title": "Checks",
+            "type": "array"
+          },
+          "consumables": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Consumables",
+            "type": "array"
+          },
+          "adjudication": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/RulingPolicy"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "combat": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/CombatRules"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "scenes": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/SceneRules"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "objectives": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ObjectiveRules"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "noncombat": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/NoncombatRules"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "party": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/PartyRules"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "npcs": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/NPCSocialRules"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "recovery": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/RecoveryRules"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "abilities": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/AbilityRules"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "spells": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/SpellRules"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "id",
+          "version"
+        ],
+        "title": "SocialActionRules",
+        "type": "object"
+      },
+      "SocialPortableGraph": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "brief": {
+            "$ref": "#/$defs/GenerationBrief"
+          },
+          "opening_scene_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Opening Scene Id",
+            "type": "string"
+          },
+          "opening_action": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Opening Action",
+            "type": "string"
+          },
+          "failure_consequence": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Failure Consequence",
+            "type": "string"
+          },
+          "world": {
+            "$ref": "#/$defs/World"
+          },
+          "resources": {
+            "$ref": "#/$defs/InitialResources"
+          },
+          "npc_actor_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Npc Actor Ids",
+            "type": "array"
+          },
+          "combat_consequences": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/CombatConsequence"
+            },
+            "title": "Combat Consequences",
+            "type": "array"
+          },
+          "combat_attacks": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/AttackProfile"
+            },
+            "title": "Combat Attacks",
+            "type": "array"
+          },
+          "combat_equipment": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/EquipmentCatalog"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "combat_protection": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/ProtectionProfile"
+            },
+            "title": "Combat Protection",
+            "type": "array"
+          },
+          "actions": {
+            "$ref": "#/$defs/SocialActionRules"
+          },
+          "scenes": {
+            "$ref": "#/$defs/SceneRules"
+          },
+          "objectives": {
+            "$ref": "#/$defs/ObjectiveRules"
+          },
+          "noncombat": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/NoncombatRules"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "npcs": {
+            "$ref": "#/$defs/NPCSocialRules"
+          },
+          "recovery": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/RecoveryRules"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "party": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/PartyRules"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "abilities": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/AbilityRules"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "spells": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/SpellRules"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "approaches": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/ApproachSupport"
+            },
+            "title": "Approaches",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "title",
+          "brief",
+          "opening_scene_id",
+          "opening_action",
+          "failure_consequence",
+          "world",
+          "resources",
+          "actions",
+          "scenes",
+          "objectives",
+          "npcs"
+        ],
+        "title": "SocialPortableGraph",
+        "type": "object"
+      },
+      "SpellChannel": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "target_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Target Id",
+            "type": "string"
+          },
+          "location_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Location Id",
+            "type": "string"
+          },
+          "spell_id": {
+            "enum": [
+              "light",
+              "daze",
+              "fireball",
+              "create-fire"
+            ],
+            "title": "Spell Id",
+            "type": "string"
+          },
+          "distance_yards": {
+            "default": 0,
+            "maximum": 10000,
+            "minimum": 0,
+            "title": "Distance Yards",
+            "type": "integer"
+          },
+          "mana": {
+            "default": "normal",
+            "enum": [
+              "none",
+              "low",
+              "normal",
+              "high",
+              "very-high"
+            ],
+            "title": "Mana",
+            "type": "string"
+          },
+          "light_radius": {
+            "default": 2,
+            "maximum": 100,
+            "minimum": 0,
+            "title": "Light Radius",
+            "type": "integer"
+          },
+          "light_penalty": {
+            "default": -3,
+            "maximum": 0,
+            "minimum": -9,
+            "title": "Light Penalty",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "target_id",
+          "location_id",
+          "spell_id"
+        ],
+        "title": "SpellChannel",
+        "type": "object"
+      },
+      "SpellRules": {
+        "additionalProperties": false,
+        "properties": {
+          "execution_version": {
+            "default": 1,
+            "enum": [
+              1,
+              2
+            ],
+            "title": "Execution Version",
+            "type": "integer"
+          },
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          },
+          "profile_id": {
+            "const": "gurps-basic-set-4e-2004",
+            "default": "gurps-basic-set-4e-2004",
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "channels": {
+            "items": {
+              "$ref": "#/$defs/SpellChannel"
+            },
+            "title": "Channels",
+            "type": "array"
+          },
+          "backfire_alternatives": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/BackfireAlternative"
+            },
+            "title": "Backfire Alternatives",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "channels"
+        ],
+        "title": "SpellRules",
+        "type": "object"
+      },
+      "SurpriseState": {
+        "additionalProperties": false,
+        "properties": {
+          "partial": {
+            "title": "Partial",
+            "type": "boolean"
+          },
+          "freeze_turns": {
+            "default": 0,
+            "maximum": 6,
+            "minimum": 0,
+            "title": "Freeze Turns",
+            "type": "integer"
+          },
+          "attempts": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Attempts",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "partial"
+        ],
+        "title": "SurpriseState",
+        "type": "object"
+      },
+      "TraitOptions": {
+        "additionalProperties": false,
+        "properties": {
+          "parameters": {
+            "default": [],
+            "items": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "string"
+                },
+                {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "boolean"
+                    }
+                  ]
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Parameters",
+            "type": "array"
+          },
+          "self_control": {
+            "anyOf": [
+              {
+                "enum": [
+                  6,
+                  9,
+                  12,
+                  15
+                ],
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Self Control"
+          },
+          "modifiers": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Modifiers",
+            "type": "array"
+          }
+        },
+        "title": "TraitOptions",
+        "type": "object"
+      },
+      "World": {
+        "properties": {
+          "entities": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/Entity"
+            },
+            "title": "Entities",
+            "type": "array"
+          },
+          "connections": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/Connection"
+            },
+            "title": "Connections",
+            "type": "array"
+          },
+          "facts": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/Fact"
+            },
+            "title": "Facts",
+            "type": "array"
+          },
+          "knowledge": {
+            "default": [],
+            "items": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Knowledge",
+            "type": "array"
+          },
+          "beliefs": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/Belief"
+            },
+            "title": "Beliefs",
+            "type": "array"
+          },
+          "commitments": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/Commitment"
+            },
+            "title": "Commitments",
+            "type": "array"
+          }
+        },
+        "title": "World",
+        "type": "object"
+      },
+      "wayfarer__simulation__gurps_equipment__Provenance": {
+        "additionalProperties": false,
+        "properties": {
+          "source_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Source Id",
+            "type": "string"
+          },
+          "edition": {
+            "enum": [
+              "August 2004, Rev. 07/12/04",
+              "Fourth Edition, first printing (2004)",
+              "Fourth Edition, third printing (2008)"
+            ],
+            "title": "Edition",
+            "type": "string"
+          },
+          "pages": {
+            "items": {
+              "minimum": 1,
+              "type": "integer"
+            },
+            "minItems": 1,
+            "title": "Pages",
+            "type": "array"
+          },
+          "errata": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Errata",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_id",
+          "edition",
+          "pages",
+          "errata"
+        ],
+        "title": "Provenance",
+        "type": "object"
+      },
+      "wayfarer__simulation__scenario_document__Provenance": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "authored",
+              "generated",
+              "adapted"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "author": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Author",
+            "type": "string"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Source"
+          },
+          "generator": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Generator"
+          },
+          "source_digest": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Source Digest"
+          }
+        },
+        "required": [
+          "kind",
+          "author"
+        ],
+        "title": "Provenance",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "schema_version": {
+        "const": 2,
+        "title": "Schema Version",
+        "type": "integer"
+      },
+      "scenario_id": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Scenario Id",
+        "type": "string"
+      },
+      "revision_id": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Revision Id",
+        "type": "string"
+      },
+      "revision": {
+        "minimum": 1,
+        "title": "Revision",
+        "type": "integer"
+      },
+      "public": {
+        "$ref": "#/$defs/PublicBrief"
+      },
+      "provenance": {
+        "$ref": "#/$defs/wayfarer__simulation__scenario_document__Provenance"
+      },
+      "compatibility": {
+        "$ref": "#/$defs/Compatibility"
+      },
+      "party": {
+        "$ref": "#/$defs/PartyRequirements"
+      },
+      "graph": {
+        "$ref": "#/$defs/SocialPortableGraph"
+      },
+      "npc_actors": {
+        "default": [],
+        "items": {
+          "$ref": "#/$defs/ActorSetup"
+        },
+        "title": "Npc Actors",
+        "type": "array"
+      },
+      "pregenerated": {
+        "default": [],
+        "items": {
+          "$ref": "#/$defs/PregeneratedCharacter"
+        },
+        "title": "Pregenerated",
+        "type": "array"
+      },
+      "gm_notes": {
+        "default": "",
+        "maxLength": 20000,
+        "title": "Gm Notes",
+        "type": "string"
+      }
+    },
+    "required": [
+      "schema_version",
+      "scenario_id",
+      "revision_id",
+      "revision",
+      "public",
+      "provenance",
+      "compatibility",
+      "party",
+      "graph"
+    ],
+    "title": "SocialScenarioDocument",
+    "type": "object"
+  },
   "FrightDecision": {
     "additionalProperties": false,
     "properties": {
@@ -654,6 +7392,255 @@
       "fright_id"
     ],
     "title": "FrightDecision",
+    "type": "object"
+  },
+  "ProposeFrightBuild": {
+    "$defs": {
+      "CharacterDraft": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "backstory": {
+            "default": "",
+            "maxLength": 10000,
+            "title": "Backstory",
+            "type": "string"
+          },
+          "purchases": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/Purchase"
+            },
+            "maxItems": 1000,
+            "title": "Purchases",
+            "type": "array"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "CharacterDraft",
+        "type": "object"
+      },
+      "Purchase": {
+        "additionalProperties": false,
+        "properties": {
+          "definition_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Definition Id",
+            "type": "string"
+          },
+          "amount": {
+            "default": 1,
+            "maximum": 10000,
+            "minimum": 1,
+            "title": "Amount",
+            "type": "integer"
+          },
+          "trait": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/TraitOptions"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "definition_id"
+        ],
+        "title": "Purchase",
+        "type": "object"
+      },
+      "TraitOptions": {
+        "additionalProperties": false,
+        "properties": {
+          "parameters": {
+            "default": [],
+            "items": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "string"
+                },
+                {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "boolean"
+                    }
+                  ]
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Parameters",
+            "type": "array"
+          },
+          "self_control": {
+            "anyOf": [
+              {
+                "enum": [
+                  6,
+                  9,
+                  12,
+                  15
+                ],
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Self Control"
+          },
+          "modifiers": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Modifiers",
+            "type": "array"
+          }
+        },
+        "title": "TraitOptions",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "id": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Id",
+        "type": "string"
+      },
+      "actor_id": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Actor Id",
+        "type": "string"
+      },
+      "expected_revision": {
+        "minimum": 0,
+        "title": "Expected Revision",
+        "type": "integer"
+      },
+      "kind": {
+        "const": "propose_fright_build",
+        "default": "propose_fright_build",
+        "title": "Kind",
+        "type": "string"
+      },
+      "fright_id": {
+        "title": "Fright Id",
+        "type": "string"
+      },
+      "expected_build_revision": {
+        "title": "Expected Build Revision",
+        "type": "string"
+      },
+      "draft": {
+        "$ref": "#/$defs/CharacterDraft"
+      },
+      "related_trait_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Related Trait Id"
+      },
+      "reason": {
+        "maxLength": 2000,
+        "minLength": 1,
+        "title": "Reason",
+        "type": "string"
+      }
+    },
+    "required": [
+      "id",
+      "actor_id",
+      "expected_revision",
+      "fright_id",
+      "expected_build_revision",
+      "draft",
+      "reason"
+    ],
+    "title": "ProposeFrightBuild",
+    "type": "object"
+  },
+  "ApproveFrightBuild": {
+    "additionalProperties": false,
+    "properties": {
+      "id": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Id",
+        "type": "string"
+      },
+      "actor_id": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Actor Id",
+        "type": "string"
+      },
+      "expected_revision": {
+        "minimum": 0,
+        "title": "Expected Revision",
+        "type": "integer"
+      },
+      "kind": {
+        "const": "approve_fright_build",
+        "default": "approve_fright_build",
+        "title": "Kind",
+        "type": "string"
+      },
+      "fright_id": {
+        "title": "Fright Id",
+        "type": "string"
+      },
+      "proposal_id": {
+        "title": "Proposal Id",
+        "type": "string"
+      },
+      "reason": {
+        "maxLength": 2000,
+        "minLength": 1,
+        "title": "Reason",
+        "type": "string"
+      }
+    },
+    "required": [
+      "id",
+      "actor_id",
+      "expected_revision",
+      "fright_id",
+      "proposal_id",
+      "reason"
+    ],
+    "title": "ApproveFrightBuild",
     "type": "object"
   }
 }

@@ -57,6 +57,9 @@ _CAPABILITIES: Final = (
     Capability("gurps.social.reaction", True, True, CoverageStatus.PARTIAL, 111),
     Capability("gurps.social.influence", True, True, CoverageStatus.PARTIAL, 111),
     Capability("gurps.social.fright", False, True, CoverageStatus.PARTIAL, 111),
+    # Whole-entry social skill procedures, separate from the shared reaction and
+    # influence machinery: an implemented row dispatches its own resolution shape.
+    Capability("gurps.social.skill_procedures", False, True, CoverageStatus.PARTIAL, 345),
     Capability("gurps.equipment.weapon_profiles", True, True, CoverageStatus.PARTIAL, 101),
     Capability("gurps.equipment.armor_profiles", True, True, CoverageStatus.PARTIAL, 101),
     Capability("gurps.equipment.catalog", True, True, CoverageStatus.PARTIAL, 114),
@@ -75,6 +78,9 @@ _CAPABILITIES: Final = (
     Capability("gurps.combat.aim", True, True, CoverageStatus.PARTIAL, 106),
     Capability("gurps.combat.ammunition", True, True, CoverageStatus.PARTIAL, 106),
     Capability("gurps.combat.rapid_fire", False, True, CoverageStatus.PARTIAL, 106),
+    # Whole-entry ranged weapon skill procedures, separate from the shared
+    # ranged attack machinery: an implemented row dispatches its own weapon class.
+    Capability("gurps.combat.ranged_weapon_skills", False, True, CoverageStatus.PARTIAL, 344),
     Capability("gurps.combat.unarmed", True, True, CoverageStatus.PARTIAL, 108),
     Capability("gurps.combat.grappling", True, True, CoverageStatus.PARTIAL, 108),
     Capability("gurps.tactical.hex_movement", False, True, CoverageStatus.PARTIAL, 105),

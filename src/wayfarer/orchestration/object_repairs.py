@@ -7,6 +7,7 @@ from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.simulation.actions import PlayState
+from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.object_repairs import RepairTask, record, tasks
 from wayfarer.simulation.resources import Consume
 
@@ -160,7 +161,9 @@ def repair(
             for i in resources.items
         ):
             raise ConflictError("Repair equipment changed; cancel this attempt")
-        check = success_roll(profile.profile_id, task.skill, rng=play.rng)
+        check = success_roll(
+            profile.profile_id, task.skill, check_modifiers(resources, actor_id, "iq"), rng=play.rng
+        )
         restored = (
             min(profile.hp - item.condition.hp, max(1, check.margin))
             if check.outcome.succeeded

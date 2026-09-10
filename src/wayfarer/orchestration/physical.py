@@ -29,9 +29,11 @@ from wayfarer.rules.physical import (
     swimming_yards,
 )
 from wayfarer.simulation.actions import PlayState
+from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.fatigue import FatigueCost, apply_fatigue, exertion_cost, fatigue_value
 from wayfarer.simulation.injury import Wound, apply_injury, impaired_movement
 from wayfarer.simulation.party import synchronous
+from wayfarer.simulation.physical_traits import physical_traits
 from wayfarer.simulation.resources import Advance, Command, Record, ResourceEvent
 
 
@@ -198,7 +200,14 @@ class PhysicalService:
                 )
 
             def roll(target: int) -> bool:
-                check = success_roll(stats.profile_id, max(1, target), rng=play.rng)
+                check = success_roll(
+                    stats.profile_id,
+                    max(1, target),
+                    check_modifiers(
+                        state.resources, actor.actor_id, "dx" if command.kind == "climb" else "ht"
+                    ),
+                    rng=play.rng,
+                )
                 checks.append(check)
                 return check.outcome.succeeded
 
@@ -276,7 +285,9 @@ class PhysicalService:
                     cost = 0 if succeeded else 1
                     if not succeeded:
                         seconds = 1
-                    if seconds == 60 and not roll(stats.ht):
+                    if seconds == 60 and not roll(
+                        stats.ht + physical_traits(state.resources, command.actor_id).fitness
+                    ):
                         cost += 1
                 else:
                     dice, adds = falling_damage(stats.hp, route.distance, hard=route.hard)

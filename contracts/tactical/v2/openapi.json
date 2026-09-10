@@ -925,6 +925,32 @@
             "title": "Unload Ammunition",
             "type": "boolean"
           },
+          "firearm_service": {
+            "anyOf": [
+              {
+                "enum": [
+                  "diagnose",
+                  "clear",
+                  "repair"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Firearm Service"
+          },
+          "firearm_service_skill": {
+            "default": "weapon",
+            "enum": [
+              "weapon",
+              "armoury"
+            ],
+            "title": "Firearm Service Skill",
+            "type": "string"
+          },
           "hit_location": {
             "anyOf": [
               {

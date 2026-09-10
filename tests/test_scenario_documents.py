@@ -49,6 +49,7 @@ def setup(tmp_path: Path) -> tuple[ScenarioDocuments, ScenarioDocument]:
             opening_prompt="Explore the docks.",
         ),
     )
+    assert isinstance(document, ScenarioDocument)
     return ScenarioDocuments(studio), document
 
 

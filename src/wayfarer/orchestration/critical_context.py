@@ -20,6 +20,7 @@ def capture_critical(
     tables: tuple[tuple[int, ...], ...],
     defender_item: str | None,
     incoming: IncomingWound | None,
+    defender_mode_id: str | None = None,
 ) -> PlayState:
     pending = encounter.pending_defense
     rules = play.engine.rules.combat
@@ -37,12 +38,21 @@ def capture_critical(
     assert compiled.statistics is not None
     statistics = compiled.statistics
     item = next(i for i in state.resources.items if i.id == item_id)
-    entry = next(e for e in equipment.entries if e.definition_id == item.definition_id)
+    from wayfarer.orchestration.object_combat import effective_entry
+
+    entry = effective_entry(play, item)
     modes = tuple(
         m
         for m in entry.modes
         if isinstance(m, MeleeMode)
-        and ((parrying and m.parry is not None) or (not parrying and m.id == pending.mode_id))
+        and (
+            (
+                parrying
+                and m.parry is not None
+                and (defender_mode_id is None or m.id == defender_mode_id)
+            )
+            or (not parrying and m.id == pending.mode_id)
+        )
     )
     weapons = tuple(
         CriticalWeapon(

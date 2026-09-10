@@ -1,6 +1,8 @@
 """Whole-entry social skill procedures, their fixtures and their fail-closed edges (#345)."""
 
 import json
+from collections.abc import Iterator, Mapping
+from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
@@ -8,14 +10,17 @@ import pytest
 from wayfarer.errors import ValidationError
 from wayfarer.rules.checks import ModifierKind, RecordedDice
 from wayfarer.rules.conformance import CAPABILITIES
-from wayfarer.rules.mundane_skills import inventory, procedure_registry, validate_procedures
+from wayfarer.rules.mundane_skills import inventory
 from wayfarer.rules.mundane_skills.social import (
     CONDITIONS,
+    DISPATCH,
     PROCEDURES,
     VOICE,
     Resolution,
+    SocialProcedure,
     SocialSkillContext,
     Verdict,
+    definitions,
     effect_ids,
     procedure,
     procedures,
@@ -63,6 +68,17 @@ SCOPE = (
 )
 
 
+@contextmanager
+def monkeypatched(module: object, registry: Mapping[str, SocialProcedure]) -> Iterator[None]:
+    """Swap the social registry the inventory reads, without touching the module."""
+    original = module.SOCIAL_PROCEDURES  # type: ignore[attr-defined]
+    module.SOCIAL_PROCEDURES = registry  # type: ignore[attr-defined]
+    try:
+        yield
+    finally:
+        module.SOCIAL_PROCEDURES = original  # type: ignore[attr-defined]
+
+
 def fixture() -> dict[str, object]:
     data: dict[str, object] = json.loads(FIXTURE.read_text())
     return data
@@ -106,21 +122,36 @@ def context(case: dict[str, object]) -> SocialSkillContext:
     )
 
 
-def test_every_listed_row_has_a_procedure_inside_the_declared_scope() -> None:
+# Rows this issue binds; the rest keep `runtime-procedure` for a named child.
+BOUND = tuple(
+    name for name in SCOPE if name not in ("fortune-telling", "propaganda", "savoir-faire")
+)
+
+
+def test_every_listed_row_is_accounted_for_and_only_bound_rows_dispatch() -> None:
     assert {entry.id for entry in procedures()} == {f"skill:{name}" for name in SCOPE}
-    assert supported(PROFILE) == tuple(PROCEDURES)
+    assert supported(PROFILE) == tuple(f"skill:{name}" for name in BOUND)
+    assert {d.id for d in definitions()} == set(supported(PROFILE))
     for entry in procedures():
         assert entry.reference.startswith("B")
-        assert 168 <= int(entry.reference[1:]) <= 233, entry.id
+        assert 168 <= entry.page <= 233, entry.id
         assert set(entry.required_conditions) <= CONDITIONS
         for identifier in entry.capabilities:
             assert identifier in CAPABILITIES
+        if entry.dispatchable:
+            assert entry.definition().hooks == ("character.gurps-skill", DISPATCH)
+        else:
+            assert "runtime-procedure" in entry.blockers and entry.owners
+            with pytest.raises(ValidationError, match="has no bound dispatch"):
+                entry.definition()
     with pytest.raises(ValidationError, match="Basic Set profile"):
         supported("gurps-lite-4e-2004")
     with pytest.raises(ValidationError, match="Unknown social skill procedure"):
         procedure("skill:swimming")
-    with pytest.raises(ValidationError, match="Basic Set profile"):
+    with pytest.raises(ValidationError, match="exact Basic Set profile"):
         require_procedure("gurps-lite-4e-2004", "skill:diplomacy")
+    with pytest.raises(ValidationError, match="procedure is unsupported"):
+        require_procedure(PROFILE, "skill:savoir-faire")
 
 
 def test_declared_table_matches_the_independent_fixture() -> None:
@@ -136,7 +167,12 @@ def test_declared_table_matches_the_independent_fixture() -> None:
         assert list(entry.required_conditions) == names(row["required_conditions"])
         assert [m.condition for m in entry.modifiers] == names(row["modifiers"])
         assert sorted({s.owner_issue for s in entry.unsupported}) == row["unsupported"]
-        assert entry.complete == (not row["unsupported"])
+        assert entry.dispatchable == row["dispatched"]
+        assert entry.complete == (row["dispatched"] and not row["unsupported"])
+        assert {b: list(o) for b, o in entry.transferred.items()} == row["transferred"]
+        recorded = row["defaults"]
+        assert isinstance(recorded, list)
+        assert [[d.target, d.modifier] for d in entry.defaults] == recorded
 
 
 @pytest.mark.parametrize("case", cases(), ids=lambda case: str(case["name"]))
@@ -160,9 +196,9 @@ def test_expected_results_match_the_pinned_fixture(case: dict[str, object]) -> N
         assert len(trace.rounds.rounds) == expected["rounds"]
 
 
-def test_the_fixture_covers_every_row_and_every_resolution_shape() -> None:
+def test_the_fixture_covers_every_bound_row_and_every_resolution_shape() -> None:
     covered = {str(case["procedure"]) for case in cases()}
-    assert covered == {f"skill:{name}" for name in SCOPE}
+    assert covered == {f"skill:{name}" for name in BOUND}
     shapes = {procedure(str(case["procedure"])).resolution for case in cases()}
     assert shapes == set(Resolution)
     verdicts = {str(expectation(case)["verdict"]) for case in cases()}
@@ -228,7 +264,7 @@ def test_reaction_modifiers_reach_influence_procedures_only() -> None:
         rng=RecordedDice([4, 4, 4, 5, 5, 5]),
     )
     # B359: a reaction bonus also improves the influence roll it accompanies.
-    assert trace.influence is not None
+    assert trace.influence is not None and trace.influence.contest is not None
     assert trace.influence.contest.first.effective_target == 13
     assert trace.verdict is Verdict.SUCCESS
 
@@ -269,46 +305,70 @@ def test_voice_is_a_declared_rule_not_a_supplied_number() -> None:
 def test_unsupported_scope_is_published_with_an_owner() -> None:
     """Transferred scope is visible to a validator, never silently missing."""
     scope = dict(unsupported_scope())
+    # A bound row can still leave part of its entry elsewhere; a transferred row
+    # keeps a blocker instead, so it never appears here.
     assert set(scope) == {
         "skill:carousing",
-        "skill:fortune-telling",
         "skill:interrogation",
         "skill:leadership",
         "skill:panhandling",
         "skill:performance",
-        "skill:propaganda",
         "skill:public-speaking",
-        "skill:savoir-faire",
         "skill:teaching",
     }
     assert all(entry.owner_issue > 0 and entry.detail for entry in scope.values())
-    assert {entry.owner_issue for entry in scope.values()} == {366, 367, 368, 369, 370}
+    assert {entry.owner_issue for entry in scope.values()} == {368, 369, 370}
+    assert all(procedure(identifier).dispatchable for identifier in scope)
+    transferred = {
+        identifier
+        for identifier, entry in PROCEDURES.items()
+        if "runtime-procedure" in entry.blockers
+    }
+    assert transferred == {"skill:fortune-telling", "skill:propaganda", "skill:savoir-faire"}
 
 
 def test_inventory_rows_agree_with_the_procedure_registry() -> None:
-    """A cleared blocker needs a whole entry; a transferred part keeps it blocked."""
+    """The audit reconciles this registry: a resolved blocker needs a real dispatch."""
+    rows = {entry.id: entry for entry in inventory()}
+    for identifier, entry in PROCEDURES.items():
+        row = rows[identifier]
+        assert row.procedure_owner == 345
+        recorded = set(row.blockers) - {"first-printing-delta-audit"}
+        assert set(entry.blockers) == recorded
+        assert set(entry.owners) <= set(row.followup_issues), identifier
+        assert row.bound is entry.dispatchable
+        assert row.implementation == ("implemented" if entry.dispatchable else "unsupported")
+        assert row.dispatch == (DISPATCH if entry.dispatchable else None)
+        assert not row.available
+    # A transferred row keeps its blocker and every blocker still names an owner.
+    assert "runtime-procedure" in rows["skill:savoir-faire"].blockers
+    assert rows["skill:savoir-faire"].blocker_owners["runtime-procedure"] == (345, 366)
+    assert "runtime-procedure" not in rows["skill:teaching"].blockers
+    assert 369 in rows["skill:teaching"].followup_issues
+
+
+def test_a_binding_cannot_disagree_with_the_recorded_inventory() -> None:
+    """A procedure may not resolve a blocker the row never recorded, or restate its numbers."""
     from dataclasses import replace
 
-    rows = {entry.id: entry for entry in inventory()}
-    registry = procedure_registry()
-    validate_procedures(tuple(rows.values()))
-    assert rows["skill:acting"].implementation == "implemented"
-    assert "runtime-procedure" not in rows["skill:acting"].blockers
-    assert rows["skill:teaching"].implementation == "partial"
-    assert "runtime-procedure" in rows["skill:teaching"].blockers
-    assert 369 in rows["skill:teaching"].followup_issues
-    assert not rows["skill:acting"].available
-    assert all(345 in rows[identifier].followup_issues for identifier in registry)
-    entries = tuple(rows.values())
-    cleared = replace(rows["skill:teaching"], blockers=("first-printing-delta-audit",))
-    with pytest.raises(ValidationError, match="completeness and blocker disagree"):
-        validate_procedures((cleared, *(e for e in entries if e.id != "skill:teaching")))
-    orphan = replace(rows["skill:teaching"], followup_issues=(112, 345))
-    with pytest.raises(ValidationError, match="scope is unowned"):
-        validate_procedures((orphan, *(e for e in entries if e.id != "skill:teaching")))
-    bare = replace(rows["skill:karate"], blockers=("first-printing-delta-audit",))
-    with pytest.raises(ValidationError, match="neither blocker nor procedure"):
-        validate_procedures((bare, *(e for e in entries if e.id != "skill:karate")))
+    import wayfarer.rules.mundane_skills as module
+    from wayfarer.rules.skill_types import SkillDefault
+
+    entry = procedure("skill:acting")
+    for broken, message in (
+        (replace(entry, resolved=("runtime-procedure", "metadata-audit")), "disagrees"),
+        (replace(entry, defaults=(SkillDefault("attribute:iq", -4),)), "changes recorded"),
+        (
+            replace(
+                procedure("skill:fast-talk"), transferred={"conditional-or-skill-defaults": ()}
+            ),
+            "names no owner",
+        ),
+    ):
+        registry = dict(PROCEDURES) | {broken.id: broken}
+        with monkeypatched(module, registry):
+            with pytest.raises(ValidationError, match=message):
+                inventory()
 
 
 def test_authored_triggers_cannot_invent_a_procedure_or_a_circumstance() -> None:
@@ -535,9 +595,9 @@ def test_an_approved_voice_purchase_asserts_the_condition_and_nothing_else() -> 
     ("changes", "message"),
     [
         ({"id": "acting"}, "identity and reference"),
-        ({"reference": ""}, "identity and reference"),
+        ({"page": 167}, "identity and reference"),
         ({"effects": ()}, "reachable verdict"),
-        ({"influence_skill": "diplomacy"}, "need an influence skill"),
+        ({"transferred": {"runtime-procedure": (366,)}}, "either bound or transferred"),
         ({"paired": True}, "unopposed procedure can be paired"),
         ({"required_conditions": ("bribed-the-doorman",)}, "Undeclared social condition"),
         (
@@ -665,3 +725,15 @@ async def test_an_authored_trigger_needs_an_approved_level_to_roll(
     )
     with pytest.raises(ValidationError, match=message):
         social_occurrence(play, state, actor_id, trigger, "parley")
+
+
+def test_an_authored_skill_trigger_cannot_supply_a_roll_modifier() -> None:
+    """Authoring selects circumstances; the procedure owns what each is worth."""
+    with pytest.raises(ValueError, match="conditions, not a modifier"):
+        NPCSocialTrigger(
+            kind="skill",
+            subject_id="npc",
+            skill_id="skill:leadership",
+            modifier=-2,
+            conditions=("followers-present", "audience-audible"),
+        )

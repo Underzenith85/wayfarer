@@ -185,6 +185,18 @@ def test_inventory_package_and_audit_reconcile() -> None:
         "trait:appearance-handsome",
         "trait:reputation-bravery",
         "trait:reputation-cruelty",
+        "trait:ambidexterity",
+        "trait:combat-reflexes",
+        "trait:fit",
+        "trait:very-fit",
+        "trait:high-pain-threshold",
+        "trait:night-vision",
+        "trait:rapid-healing",
+        "trait:very-rapid-healing",
+        "trait:acute-hearing",
+        "trait:acute-taste-smell",
+        "trait:acute-touch",
+        "trait:acute-vision",
         "trait:bad-temper",
         "trait:charisma",
         "trait:curious",
@@ -228,6 +240,10 @@ def test_unbound_effects_never_activate_and_bound_ones_need_their_campaign_hooks
         )
         assert "trait.runtime_unavailable" in {d.code for d in unavailable.diagnostics}
         result = engine.compile(draft)
+        if entry.id == "trait:very-rapid-healing":
+            assert result.build is None
+            assert "trait.prerequisite_ht" in {d.code for d in result.diagnostics}
+            continue
         assert (result.build is not None) is entry.implemented
         if not entry.implemented:
             assert "definition.not_implemented" in {d.code for d in result.diagnostics}

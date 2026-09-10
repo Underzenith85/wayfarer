@@ -1,36 +1,42 @@
-"""Whole-entry procedures for the Basic Set social skills (#345).
+"""Executable social skill procedures (#345); unbound rows stay blocked.
 
-Intended sources: Characters, Fourth Edition B174, B183, B187, B195-196, B198,
-B202, B204-205, B212, B215-216, B218-219, B223-224 with the B301-304 index, the
-Voice advantage on B97, and Campaigns B359 influence rolls. Reconstructed from
-model knowledge under the owner's provisional-implementation policy. Every number
-declared here is pinned in ``tests/fixtures/gurps/social_skills.json``, so frozen
-source verification (#336) and the printing delta audit (#191) are a data change
-rather than a rewrite. No rulebook prose is bundled.
+Numeric constructions: Basic Set Characters, Fourth Edition, third printing,
+B174, B183, B187, B195-196, B198, B202, B204-205, B212, B215-216, B218-219,
+B223-224 with the B301-304 index, the Voice advantage on B97, and Campaigns B359
+influence rolls. The frozen first-printing/2007-01-26 errata delta stays #191's
+blocker on every row, so a bound procedure is reported as implemented and is
+still not certified. Every number declared here is pinned in
+`tests/fixtures/gurps/social_skills.json`. No rulebook prose is bundled.
 
-This module holds procedures, not a second mechanics engine: every roll is scored
-by :mod:`wayfarer.rules.gurps_checks` and every influence attempt by the existing
-:func:`wayfarer.rules.gurps_social.influence_roll`. A procedure derives its own
-modifiers from trusted named conditions, never from a supplied integer; it fails
-closed when a contextual prerequisite is absent; and its recorded outcome states
-what happened without selecting a player's action or revealing a private motive.
+Recording a skill never makes it playable. A row is implemented only when this
+module binds it to a service that already resolves it: `rules.gurps_checks` for
+success rolls and contests, and `rules.gurps_social.influence_roll` for the six
+B359 influence skills. There is no second engine here. Every other listed row
+keeps its recorded blockers and names the concrete open child issue that owns
+them: #366 social specialties, #367 the Propaganda technology level, #353
+conditional and alternative defaults.
 
-Scope this module deliberately does not implement is declared, not omitted:
-:attr:`Procedure.unsupported` names each transferred part and the open issue that
-owns it, and :func:`unsupported_scope` publishes the whole set to the scenario,
-character and LLM validators.
+A procedure declares the shape that decides it, the contextual conditions it
+cannot proceed without, the modifiers it derives itself, and a named effect for
+each verdict that shape can reach. Conditions are facts about the situation; the
+integer each is worth belongs to the rule, so no resolver supplies mechanics. A
+recorded outcome states what happened without selecting a player's action or
+revealing a private motive. Scope a bound procedure still does not carry is
+declared in :attr:`SocialProcedure.unsupported` with the issue that owns it and
+published by :func:`unsupported_scope`, never silently omitted.
 """
 
-from __future__ import annotations
-
-from dataclasses import dataclass
+from collections.abc import Mapping
+from dataclasses import dataclass, field
 from enum import StrEnum
 from types import MappingProxyType
-from typing import Final, Literal
+from typing import Final
 
 from wayfarer.errors import ValidationError
+from wayfarer.rules.catalog import DefinitionKind, ImplementationStatus, RuleDefinition
 from wayfarer.rules.checks import CheckTrace, Modifier, ModifierKind, Outcome, RandomSource
-from wayfarer.rules.conformance import BASELINE_ID, capability, profile
+from wayfarer.rules.conformance import BASELINE_ID, CoverageStatus, capability, profile
+from wayfarer.rules.gurps_characters import source
 from wayfarer.rules.gurps_checks import (
     Contestant,
     QuickContestTrace,
@@ -40,25 +46,36 @@ from wayfarer.rules.gurps_checks import (
     success_roll,
 )
 from wayfarer.rules.gurps_social import (
-    InfluenceSkill,
+    DEFAULT_INFLUENCE_CONDITIONS,
+    InfluenceConditions,
     InfluenceTrace,
     Reaction,
     ReactionModifier,
+    influence_procedure,
     influence_roll,
 )
 from wayfarer.rules.skill_types import ControllingAttribute as A
 from wayfarer.rules.skill_types import Difficulty as D
+from wayfarer.rules.skill_types import SkillDefault, SkillSpec
 
 PROFILE: Final = "gurps-basic-set-4e-2004"
-REACTION_CAPABILITY: Final = "gurps.social.reaction"
+OWNER: Final = 345
+CAPABILITIES: Final = ("gurps.social.reaction", "gurps.social.skill_procedures")
 INFLUENCE_CAPABILITY: Final = "gurps.social.influence"
+DISPATCH: Final = "social.skill-procedure"
 
-# Owning issues for the parts of an entry these procedures do not implement.
+RUNTIME_PROCEDURE: Final = "runtime-procedure"
+SPECIALTY_EXPANSION: Final = "specialty-expansion"
+CONDITIONAL_DEFAULTS: Final = "conditional-or-skill-defaults"
+TECHNOLOGY_LEVEL: Final = "technology-level-context"
+
+# Owning issues for the parts of an entry these procedures do not carry.
 SPECIALTIES_ISSUE: Final = 366
 TECHNOLOGY_LEVEL_ISSUE: Final = 367
 COERCION_ISSUE: Final = 368
 ACTIVITY_ISSUE: Final = 369
 AUDIENCE_ISSUE: Final = 370
+DEFAULTS_ISSUE: Final = 353
 
 
 class Resolution(StrEnum):
@@ -130,7 +147,7 @@ class Effect:
 
 @dataclass(frozen=True, slots=True)
 class UnsupportedScope:
-    """A named part of an entry these procedures do not implement, with its owner."""
+    """A named part of a bound entry this module does not carry, with its owner."""
 
     id: str
     detail: str
@@ -138,34 +155,81 @@ class UnsupportedScope:
 
 
 @dataclass(frozen=True, slots=True)
-class Procedure:
-    """One whole-entry social skill procedure."""
+class SocialProcedure:
+    """One accounted-for social row and the dispatch it does or does not have."""
 
     id: str
     name: str
-    reference: str
+    page: int
     attribute: A
     difficulty: D
     resolution: Resolution
-    effects: tuple[tuple[Verdict, Effect], ...]
+    effects: tuple[tuple[Verdict, Effect], ...] = ()
+    defaults: tuple[SkillDefault, ...] = ()
     required_conditions: tuple[str, ...] = ()
     modifiers: tuple[ConditionalModifier, ...] = ()
-    influence_skill: InfluenceSkill | None = None
     paired: bool = False
     """Both parties must know the skill; the lower effective level decides (B198)."""
+    resolved: tuple[str, ...] = ()
+    # Blockers this issue does not close, each mapped to the concrete open child
+    # that owns it. A transferred blocker without an owner is a coverage failure.
+    transferred: Mapping[str, tuple[int, ...]] = field(default_factory=dict)
+    # Scope a *bound* row still does not carry. Unlike a transferred blocker this
+    # does not stop the procedure running; it names what its outcome leaves out.
     unsupported: tuple[UnsupportedScope, ...] = ()
+
+    @property
+    def blockers(self) -> tuple[str, ...]:
+        return tuple(self.transferred)
+
+    @property
+    def owners(self) -> tuple[int, ...]:
+        transferred = tuple(i for owners in self.transferred.values() for i in owners)
+        return tuple(dict.fromkeys(transferred + tuple(s.owner_issue for s in self.unsupported)))
+
+    @property
+    def implemented(self) -> bool:
+        """A bound dispatch executes; recording a procedure never implements it."""
+        return RUNTIME_PROCEDURE in self.resolved
+
+    @property
+    def dispatchable(self) -> bool:
+        return self.implemented
+
+    @property
+    def complete(self) -> bool:
+        """Whether the whole entry is carried, not merely its roll."""
+        return self.implemented and not self.unsupported
+
+    @property
+    def influence(self) -> bool:
+        return self.resolution is Resolution.INFLUENCE
 
     @property
     def capabilities(self) -> tuple[str, ...]:
         """Declared coverage this procedure consumes, so an unknown one fails closed."""
-        if self.resolution is Resolution.INFLUENCE:
-            return (REACTION_CAPABILITY, INFLUENCE_CAPABILITY)
-        return (REACTION_CAPABILITY,)
+        return CAPABILITIES + ((INFLUENCE_CAPABILITY,) if self.influence else ())
 
     @property
-    def complete(self) -> bool:
-        """Whether the whole entry is implemented, not merely its roll."""
-        return not self.unsupported
+    def reference(self) -> str:
+        return f"B{self.page}"
+
+    def spec(self) -> SkillSpec:
+        return SkillSpec(self.attribute, self.difficulty, self.reference, self.defaults)
+
+    def definition(self) -> RuleDefinition:
+        if not self.dispatchable:
+            raise ValidationError(f"Social skill has no bound dispatch: {self.id}")
+        return RuleDefinition(
+            self.id,
+            DefinitionKind.SKILL,
+            self.name,
+            source(PROFILE).id,
+            None,
+            ImplementationStatus.IMPLEMENTED,
+            hooks=("character.gurps-skill", DISPATCH),
+            skill=self.spec(),
+        )
 
     def effect(self, verdict: Verdict) -> Effect:
         for declared, effect in self.effects:
@@ -192,7 +256,8 @@ VERDICTS: Final[MappingProxyType[Resolution, tuple[Verdict, ...]]] = MappingProx
         # A regular contest runs until exactly one side succeeds in a round, so
         # neither a tie nor a critical is reachable as its result.
         Resolution.REGULAR_CONTEST: (Verdict.SUCCESS, Verdict.FAILURE),
-        # An influence roll is decided by its quick contest's winner alone (B359).
+        # An influence roll is decided by its quick contest's winner, or by a
+        # B359 trait that settles it without one.
         Resolution.INFLUENCE: (Verdict.SUCCESS, Verdict.TIE, Verdict.FAILURE),
     }
 )
@@ -208,16 +273,10 @@ def _plain(prefix: str, *pairs: tuple[Verdict, str]) -> tuple[tuple[Verdict, Eff
 
 
 def _contested(
-    prefix: str,
-    *,
-    won: str,
-    tied: str,
-    lost: str,
-    exposed: str,
-    aftermath: int = 0,
+    prefix: str, *, won: str, tied: str, lost: str, exposed: str
 ) -> tuple[tuple[Verdict, Effect], ...]:
     """The five verdicts a quick contest can reach, in the actor's frame."""
-    success = Effect(f"{prefix}-{won}", aftermath_reaction=aftermath)
+    success = Effect(f"{prefix}-{won}")
     return (
         (Verdict.CRITICAL_SUCCESS, success),
         (Verdict.SUCCESS, success),
@@ -227,25 +286,44 @@ def _contested(
     )
 
 
-_PROCEDURES: Final = (
-    Procedure(
+def _unopposed(
+    prefix: str, *, won: str, lost: str, botched: str
+) -> tuple[tuple[Verdict, Effect], ...]:
+    success = Effect(f"{prefix}-{won}")
+    return (
+        (Verdict.CRITICAL_SUCCESS, success),
+        (Verdict.SUCCESS, success),
+        (Verdict.FAILURE, Effect(f"{prefix}-{lost}")),
+        (Verdict.CRITICAL_FAILURE, Effect(f"{prefix}-{botched}", requires_adjudication=True)),
+    )
+
+
+_ROWS: Final = (
+    SocialProcedure(
         "skill:acting",
         "Acting",
-        "B174",
+        174,
         A.IQ,
         D.AVERAGE,
         Resolution.QUICK_CONTEST,
         _contested("acting", won="believed", tied="uncertain", lost="doubted", exposed="exposed"),
+        (
+            SkillDefault(A.IQ, -5),
+            SkillDefault("skill:performance", -2),
+            SkillDefault("skill:public-speaking", -5),
+        ),
         required_conditions=("audience-perceptible",),
+        resolved=(RUNTIME_PROCEDURE,),
     ),
-    Procedure(
+    SocialProcedure(
         "skill:carousing",
         "Carousing",
-        "B183",
+        183,
         A.HT,
         D.EASY,
         Resolution.SUCCESS_ROLL,
         (
+            # B183: an evening spent well is worth +2 on later reactions.
             (Verdict.CRITICAL_SUCCESS, Effect("carousing-goodwill", reaction_modifier=2)),
             (Verdict.SUCCESS, Effect("carousing-goodwill", reaction_modifier=2)),
             (Verdict.FAILURE, Effect("carousing-uneventful")),
@@ -259,7 +337,9 @@ _PROCEDURES: Final = (
                 ),
             ),
         ),
+        (SkillDefault(A.HT, -4),),
         required_conditions=("social-gathering", "audience-perceptible"),
+        resolved=(RUNTIME_PROCEDURE,),
         unsupported=(
             UnsupportedScope(
                 "carousing-outlay",
@@ -268,10 +348,10 @@ _PROCEDURES: Final = (
             ),
         ),
     ),
-    Procedure(
+    SocialProcedure(
         "skill:diplomacy",
         "Diplomacy",
-        "B187",
+        187,
         A.IQ,
         D.HARD,
         Resolution.INFLUENCE,
@@ -281,14 +361,15 @@ _PROCEDURES: Final = (
             (Verdict.TIE, "unmoved"),
             (Verdict.FAILURE, "rebuffed"),
         ),
+        (SkillDefault(A.IQ, -6), SkillDefault("skill:politics", -6)),
         required_conditions=("audience-audible", "shared-language"),
         modifiers=(VOICE,),
-        influence_skill="diplomacy",
+        resolved=(RUNTIME_PROCEDURE,),
     ),
-    Procedure(
+    SocialProcedure(
         "skill:fast-talk",
         "Fast-Talk",
-        "B195",
+        195,
         A.IQ,
         D.AVERAGE,
         Resolution.INFLUENCE,
@@ -298,58 +379,51 @@ _PROCEDURES: Final = (
             (Verdict.TIE, Effect("fast-talk-unconvinced")),
             (Verdict.FAILURE, Effect("fast-talk-caught", requires_adjudication=True)),
         ),
+        (SkillDefault(A.IQ, -5),),
         required_conditions=("audience-audible", "shared-language"),
         modifiers=(VOICE,),
-        influence_skill="fast-talk",
+        resolved=(RUNTIME_PROCEDURE,),
+        transferred={CONDITIONAL_DEFAULTS: (DEFAULTS_ISSUE,)},
     ),
-    Procedure(
+    SocialProcedure(
         "skill:fortune-telling",
         "Fortune-Telling",
-        "B196",
+        196,
         A.IQ,
         D.AVERAGE,
         Resolution.QUICK_CONTEST,
-        _contested(
-            "fortune-telling",
-            won="believed",
-            tied="uncertain",
-            lost="doubted",
-            exposed="unmasked",
-        ),
-        required_conditions=("audience-perceptible", "shared-language"),
-        unsupported=(
-            UnsupportedScope(
-                "fortune-telling-tradition",
-                "The required divinatory tradition specialties are not expanded",
-                SPECIALTIES_ISSUE,
-            ),
-        ),
+        defaults=(SkillDefault(A.IQ, -5),),
+        transferred={
+            RUNTIME_PROCEDURE: (SPECIALTIES_ISSUE,),
+            SPECIALTY_EXPANSION: (SPECIALTIES_ISSUE,),
+            CONDITIONAL_DEFAULTS: (DEFAULTS_ISSUE,),
+        },
     ),
-    Procedure(
+    SocialProcedure(
         "skill:gesture",
         "Gesture",
-        "B198",
+        198,
         A.IQ,
         D.EASY,
         Resolution.SUCCESS_ROLL,
-        (
-            (Verdict.CRITICAL_SUCCESS, Effect("gesture-understood")),
-            (Verdict.SUCCESS, Effect("gesture-understood")),
-            (Verdict.FAILURE, Effect("gesture-unclear")),
-            (Verdict.CRITICAL_FAILURE, Effect("gesture-misread", requires_adjudication=True)),
-        ),
+        _unopposed("gesture", won="understood", lost="unclear", botched="misread"),
+        (SkillDefault(A.IQ, -4),),
         required_conditions=("audience-visible",),
         paired=True,
+        resolved=(RUNTIME_PROCEDURE,),
     ),
-    Procedure(
+    SocialProcedure(
         "skill:interrogation",
         "Interrogation",
-        "B202",
+        202,
         A.IQ,
         D.AVERAGE,
         Resolution.REGULAR_CONTEST,
         _plain("interrogation", (Verdict.SUCCESS, "answered"), (Verdict.FAILURE, "withstood")),
+        (SkillDefault(A.IQ, -5),),
         required_conditions=("subject-restrained", "shared-language"),
+        resolved=(RUNTIME_PROCEDURE,),
+        transferred={CONDITIONAL_DEFAULTS: (DEFAULTS_ISSUE,)},
         unsupported=(
             UnsupportedScope(
                 "interrogation-coercion",
@@ -358,10 +432,10 @@ _PROCEDURES: Final = (
             ),
         ),
     ),
-    Procedure(
+    SocialProcedure(
         "skill:intimidation",
         "Intimidation",
-        "B202",
+        202,
         A.WILL,
         D.AVERAGE,
         Resolution.INFLUENCE,
@@ -370,24 +444,23 @@ _PROCEDURES: Final = (
             (Verdict.TIE, Effect("intimidation-standoff")),
             (Verdict.FAILURE, Effect("intimidation-defied", requires_adjudication=True)),
         ),
+        (SkillDefault(A.WILL, -5),),
         required_conditions=("audience-perceptible", "credible-threat"),
-        influence_skill="intimidation",
+        resolved=(RUNTIME_PROCEDURE,),
+        transferred={CONDITIONAL_DEFAULTS: (DEFAULTS_ISSUE,)},
     ),
-    Procedure(
+    SocialProcedure(
         "skill:leadership",
         "Leadership",
-        "B204",
+        204,
         A.IQ,
         D.AVERAGE,
         Resolution.SUCCESS_ROLL,
-        (
-            (Verdict.CRITICAL_SUCCESS, Effect("leadership-followed")),
-            (Verdict.SUCCESS, Effect("leadership-followed")),
-            (Verdict.FAILURE, Effect("leadership-hesitant")),
-            (Verdict.CRITICAL_FAILURE, Effect("leadership-refused", requires_adjudication=True)),
-        ),
+        _unopposed("leadership", won="followed", lost="hesitant", botched="refused"),
+        (SkillDefault(A.IQ, -5),),
         required_conditions=("followers-present", "audience-audible"),
         modifiers=(VOICE,),
+        resolved=(RUNTIME_PROCEDURE,),
         unsupported=(
             UnsupportedScope(
                 "leadership-group-activity",
@@ -396,38 +469,30 @@ _PROCEDURES: Final = (
             ),
         ),
     ),
-    Procedure(
+    SocialProcedure(
         "skill:lip-reading",
         "Lip Reading",
-        "B205",
+        205,
         A.PER,
         D.AVERAGE,
         Resolution.SUCCESS_ROLL,
-        (
-            (Verdict.CRITICAL_SUCCESS, Effect("lip-reading-understood")),
-            (Verdict.SUCCESS, Effect("lip-reading-understood")),
-            (Verdict.FAILURE, Effect("lip-reading-missed")),
-            (
-                Verdict.CRITICAL_FAILURE,
-                Effect("lip-reading-misread", requires_adjudication=True),
-            ),
-        ),
+        _unopposed("lip-reading", won="understood", lost="missed", botched="misread"),
+        (SkillDefault(A.PER, -10),),
         required_conditions=("speaker-lips-visible", "shared-language"),
+        resolved=(RUNTIME_PROCEDURE,),
     ),
-    Procedure(
+    SocialProcedure(
         "skill:panhandling",
         "Panhandling",
-        "B212",
+        212,
         A.IQ,
         D.EASY,
         Resolution.SUCCESS_ROLL,
-        (
-            (Verdict.CRITICAL_SUCCESS, Effect("panhandling-given")),
-            (Verdict.SUCCESS, Effect("panhandling-given")),
-            (Verdict.FAILURE, Effect("panhandling-ignored")),
-            (Verdict.CRITICAL_FAILURE, Effect("panhandling-run-off", requires_adjudication=True)),
-        ),
+        _unopposed("panhandling", won="given", lost="ignored", botched="run-off"),
+        (SkillDefault(A.IQ, -4),),
         required_conditions=("public-place", "audience-perceptible"),
+        resolved=(RUNTIME_PROCEDURE,),
+        transferred={CONDITIONAL_DEFAULTS: (DEFAULTS_ISSUE,)},
         unsupported=(
             UnsupportedScope(
                 "panhandling-yield",
@@ -436,10 +501,10 @@ _PROCEDURES: Final = (
             ),
         ),
     ),
-    Procedure(
+    SocialProcedure(
         "skill:performance",
         "Performance",
-        "B212",
+        212,
         A.IQ,
         D.AVERAGE,
         Resolution.SUCCESS_ROLL,
@@ -449,8 +514,11 @@ _PROCEDURES: Final = (
             (Verdict.FAILURE, Effect("performance-flat")),
             (Verdict.CRITICAL_FAILURE, Effect("performance-jeered", requires_adjudication=True)),
         ),
+        (SkillDefault(A.IQ, -5),),
         required_conditions=("audience-perceptible",),
         modifiers=(VOICE,),
+        resolved=(RUNTIME_PROCEDURE,),
+        transferred={CONDITIONAL_DEFAULTS: (DEFAULTS_ISSUE,)},
         unsupported=(
             UnsupportedScope(
                 "performance-audience",
@@ -459,59 +527,53 @@ _PROCEDURES: Final = (
             ),
         ),
     ),
-    Procedure(
+    SocialProcedure(
         "skill:politics",
         "Politics",
-        "B215",
+        215,
         A.IQ,
         D.AVERAGE,
         Resolution.QUICK_CONTEST,
         _contested(
             "politics", won="favour", tied="deadlock", lost="refused", exposed="discredited"
         ),
+        (SkillDefault(A.IQ, -5),),
         required_conditions=("audience-audible", "shared-language"),
         modifiers=(VOICE,),
+        resolved=(RUNTIME_PROCEDURE,),
+        transferred={CONDITIONAL_DEFAULTS: (DEFAULTS_ISSUE,)},
     ),
-    Procedure(
+    SocialProcedure(
         "skill:propaganda",
         "Propaganda",
-        "B216",
+        216,
         A.IQ,
         D.AVERAGE,
         Resolution.SUCCESS_ROLL,
-        (
-            (Verdict.CRITICAL_SUCCESS, Effect("propaganda-persuasive")),
-            (Verdict.SUCCESS, Effect("propaganda-persuasive")),
-            (Verdict.FAILURE, Effect("propaganda-ignored")),
-            (Verdict.CRITICAL_FAILURE, Effect("propaganda-backfired", requires_adjudication=True)),
-        ),
-        required_conditions=("shared-language",),
-        unsupported=(
-            UnsupportedScope(
-                "propaganda-technology-level",
-                "The technology level decides the medium, reach and duration",
-                TECHNOLOGY_LEVEL_ISSUE,
-            ),
-        ),
+        defaults=(SkillDefault(A.IQ, -5),),
+        transferred={
+            RUNTIME_PROCEDURE: (TECHNOLOGY_LEVEL_ISSUE,),
+            TECHNOLOGY_LEVEL: (TECHNOLOGY_LEVEL_ISSUE,),
+            CONDITIONAL_DEFAULTS: (DEFAULTS_ISSUE,),
+        },
     ),
-    Procedure(
+    SocialProcedure(
         "skill:public-speaking",
         "Public Speaking",
-        "B216",
+        216,
         A.IQ,
         D.AVERAGE,
         Resolution.SUCCESS_ROLL,
+        _unopposed("public-speaking", won="swayed", lost="unmoved", botched="heckled"),
         (
-            (Verdict.CRITICAL_SUCCESS, Effect("public-speaking-swayed")),
-            (Verdict.SUCCESS, Effect("public-speaking-swayed")),
-            (Verdict.FAILURE, Effect("public-speaking-unmoved")),
-            (
-                Verdict.CRITICAL_FAILURE,
-                Effect("public-speaking-heckled", requires_adjudication=True),
-            ),
+            SkillDefault(A.IQ, -5),
+            SkillDefault("skill:acting", -5),
+            SkillDefault("skill:performance", -2),
+            SkillDefault("skill:politics", -5),
         ),
         required_conditions=("audience-audible", "shared-language"),
         modifiers=(VOICE,),
+        resolved=(RUNTIME_PROCEDURE,),
         unsupported=(
             UnsupportedScope(
                 "public-speaking-crowd",
@@ -520,33 +582,24 @@ _PROCEDURES: Final = (
             ),
         ),
     ),
-    Procedure(
+    SocialProcedure(
         "skill:savoir-faire",
         "Savoir-Faire",
-        "B218",
+        218,
         A.IQ,
         D.EASY,
         Resolution.INFLUENCE,
-        _plain(
-            "savoir-faire",
-            (Verdict.SUCCESS, "accepted"),
-            (Verdict.TIE, "tolerated"),
-            (Verdict.FAILURE, "snubbed"),
-        ),
-        required_conditions=("audience-perceptible", "matching-milieu"),
-        influence_skill="savoir-faire",
-        unsupported=(
-            UnsupportedScope(
-                "savoir-faire-milieu",
-                "The required social milieu specialties are not expanded",
-                SPECIALTIES_ISSUE,
-            ),
-        ),
+        defaults=(SkillDefault(A.IQ, -4),),
+        transferred={
+            RUNTIME_PROCEDURE: (SPECIALTIES_ISSUE,),
+            SPECIALTY_EXPANSION: (SPECIALTIES_ISSUE,),
+            CONDITIONAL_DEFAULTS: (DEFAULTS_ISSUE,),
+        },
     ),
-    Procedure(
+    SocialProcedure(
         "skill:sex-appeal",
         "Sex Appeal",
-        "B219",
+        219,
         A.HT,
         D.AVERAGE,
         Resolution.INFLUENCE,
@@ -556,14 +609,15 @@ _PROCEDURES: Final = (
             (Verdict.TIE, "unaffected"),
             (Verdict.FAILURE, "rebuffed"),
         ),
+        (SkillDefault(A.HT, -3),),
         required_conditions=("audience-perceptible", "subject-attracted"),
         modifiers=(VOICE,),
-        influence_skill="sex-appeal",
+        resolved=(RUNTIME_PROCEDURE,),
     ),
-    Procedure(
+    SocialProcedure(
         "skill:streetwise",
         "Streetwise",
-        "B223",
+        223,
         A.IQ,
         D.AVERAGE,
         Resolution.INFLUENCE,
@@ -573,23 +627,21 @@ _PROCEDURES: Final = (
             (Verdict.TIE, "watched"),
             (Verdict.FAILURE, "shut-out"),
         ),
+        (SkillDefault(A.IQ, -5),),
         required_conditions=("audience-perceptible", "criminal-milieu"),
-        influence_skill="streetwise",
+        resolved=(RUNTIME_PROCEDURE,),
     ),
-    Procedure(
+    SocialProcedure(
         "skill:teaching",
         "Teaching",
-        "B224",
+        224,
         A.IQ,
         D.AVERAGE,
         Resolution.SUCCESS_ROLL,
-        (
-            (Verdict.CRITICAL_SUCCESS, Effect("teaching-taught")),
-            (Verdict.SUCCESS, Effect("teaching-taught")),
-            (Verdict.FAILURE, Effect("teaching-unclear")),
-            (Verdict.CRITICAL_FAILURE, Effect("teaching-misled", requires_adjudication=True)),
-        ),
+        _unopposed("teaching", won="taught", lost="unclear", botched="misled"),
+        (SkillDefault(A.IQ, -5),),
         required_conditions=("student-attentive", "shared-language"),
+        resolved=(RUNTIME_PROCEDURE,),
         unsupported=(
             UnsupportedScope(
                 "teaching-advancement",
@@ -601,71 +653,102 @@ _PROCEDURES: Final = (
 )
 
 
-def _validate(procedures: tuple[Procedure, ...]) -> MappingProxyType[str, Procedure]:
-    registry: dict[str, Procedure] = {}
-    for entry in procedures:
+def _validate(rows: tuple[SocialProcedure, ...]) -> MappingProxyType[str, SocialProcedure]:
+    registry: dict[str, SocialProcedure] = {}
+    for entry in rows:
         if entry.id in registry:
             raise ValidationError(f"Duplicate social procedure: {entry.id}")
-        if not entry.id.startswith("skill:") or not entry.name or not entry.reference:
+        if not entry.id.startswith("skill:") or not entry.name or not 168 <= entry.page <= 233:
             raise ValidationError(f"Social procedure needs an identity and reference: {entry.id}")
         declared = tuple(verdict for verdict, _ in entry.effects)
-        if declared != VERDICTS[entry.resolution]:
+        if declared != (VERDICTS[entry.resolution] if entry.implemented else ()):
             raise ValidationError(f"Social procedure misses a reachable verdict: {entry.id}")
-        if (entry.influence_skill is not None) != (entry.resolution is Resolution.INFLUENCE):
-            raise ValidationError(f"Influence procedures need an influence skill: {entry.id}")
         if entry.paired and entry.resolution is not Resolution.SUCCESS_ROLL:
             raise ValidationError(f"Only an unopposed procedure can be paired: {entry.id}")
+        if entry.influence and entry.implemented:
+            influence_procedure(entry.id)
         conditions = entry.required_conditions + tuple(m.condition for m in entry.modifiers)
         if not set(conditions) <= CONDITIONS:
             raise ValidationError(f"Undeclared social condition: {entry.id}")
         if len(set(conditions)) != len(conditions):
             raise ValidationError(f"Duplicate social condition: {entry.id}")
+        if entry.implemented == (RUNTIME_PROCEDURE in entry.transferred):
+            raise ValidationError(f"A row is either bound or transferred: {entry.id}")
+        if not entry.implemented and (entry.required_conditions or entry.unsupported):
+            raise ValidationError(f"An unbound row declares no procedure detail: {entry.id}")
+        if any(not owners for owners in entry.transferred.values()):
+            raise ValidationError(f"Transferred blocker names no owner: {entry.id}")
         if any(scope.owner_issue < 1 or not scope.detail for scope in entry.unsupported):
             raise ValidationError(f"Unsupported scope needs an owner and detail: {entry.id}")
         registry[entry.id] = entry
     return MappingProxyType(registry)
 
 
-PROCEDURES: Final = _validate(_PROCEDURES)
+PROCEDURES: Final = _validate(_ROWS)
+"""Every listed social row, bound or transferred, keyed by its pinned skill ID."""
 
 
-def procedures() -> tuple[Procedure, ...]:
+def procedures() -> tuple[SocialProcedure, ...]:
     return tuple(PROCEDURES.values())
 
 
-def supported(profile_id: str) -> tuple[str, ...]:
-    """Identifiers a validator may accept, so an unknown one cannot be assumed.
+def definitions() -> tuple[RuleDefinition, ...]:
+    """Dispatchable social skills for a new package pin; unbound rows are absent."""
+    return tuple(entry.definition() for entry in _ROWS if entry.dispatchable)
 
-    Every identifier here has a runnable procedure. Whether the *whole* entry is
-    implemented is a separate question :func:`unsupported_scope` answers.
-    """
+
+def supported(profile_id: str) -> tuple[str, ...]:
+    """Identifiers a validator may accept, so an unknown one cannot be assumed."""
     if profile_id != PROFILE:
         raise ValidationError("Social skill procedures require the Basic Set profile")
     profile(profile_id)
-    return tuple(PROCEDURES)
+    return tuple(entry.id for entry in _ROWS if entry.dispatchable)
 
 
 def unsupported_scope() -> tuple[tuple[str, UnsupportedScope], ...]:
-    """Publish every transferred part of an entry with the issue that owns it."""
-    return tuple((entry.id, scope) for entry in PROCEDURES.values() for scope in entry.unsupported)
+    """Publish every part of a bound entry this module leaves to another issue."""
+    return tuple((entry.id, scope) for entry in _ROWS for scope in entry.unsupported)
 
 
-def procedure(identifier: str) -> Procedure:
+def procedure(identifier: str) -> SocialProcedure:
     entry = PROCEDURES.get(identifier)
     if entry is None:
         raise ValidationError(f"Unknown social skill procedure: {identifier}")
     return entry
 
 
-def require_procedure(profile_id: str, identifier: str) -> Procedure:
-    """Resolve a procedure inside an exact profile with its coverage declared."""
+def require_capability(profile_id: str, capability_id: str) -> None:
+    """Use the registry, never a typed context or a manual ruling, to claim support."""
+    declared = capability(capability_id)
+    if capability_id not in profile(profile_id).required_capabilities:
+        raise ValidationError(f"Rules capability outside profile: {capability_id}")
+    if declared.status is CoverageStatus.ABSENT:
+        raise ValidationError(f"Rules capability has no coverage: {capability_id}")
+
+
+def require_procedure(profile_id: str, identifier: str) -> SocialProcedure:
+    """Fail closed before dice when a caller claims an unbound social skill."""
     if profile_id != PROFILE:
-        raise ValidationError("Social skill procedures require the Basic Set profile")
-    profile(profile_id)
+        raise ValidationError(
+            f"Social skill procedure requires the exact Basic Set profile: {identifier}"
+        )
     entry = procedure(identifier)
+    if not entry.dispatchable:
+        raise ValidationError(
+            f"Social skill procedure is unsupported: {identifier}: "
+            + ", ".join(
+                f"{blocker} (" + ", ".join(f"#{issue}" for issue in owners) + ")"
+                for blocker, owners in entry.transferred.items()
+            )
+        )
     for capability_id in entry.capabilities:
-        capability(capability_id)
+        require_capability(profile_id, capability_id)
     return entry
+
+
+def effect_ids() -> frozenset[str]:
+    """Every outcome a procedure can record, so a validator cannot invent one."""
+    return frozenset(effect.id for entry in _ROWS for _, effect in entry.effects)
 
 
 @dataclass(frozen=True, slots=True)
@@ -685,6 +768,7 @@ class SocialSkillContext:
     actor_id: str = "actor"
     subject_id: str = "subject"
     reaction_modifiers: tuple[ReactionModifier, ...] = ()
+    influence_conditions: InfluenceConditions = DEFAULT_INFLUENCE_CONDITIONS
 
 
 @dataclass(frozen=True, slots=True)
@@ -717,7 +801,7 @@ class SocialSkillTrace:
         return self.influence.outcome if self.influence is not None else None
 
 
-def _validate_context(entry: Procedure, context: SocialSkillContext) -> None:
+def _validate_context(entry: SocialProcedure, context: SocialSkillContext) -> None:
     for value in (context.skill, context.resistance):
         if type(value) is not int or value < 1:
             raise ValidationError(f"Social skill levels must be positive integers: {entry.id}")
@@ -736,11 +820,13 @@ def _validate_context(entry: Procedure, context: SocialSkillContext) -> None:
         raise ValidationError(f"Paired procedures need the other party's level: {entry.id}")
     if not entry.paired and context.partner_skill is not None:
         raise ValidationError(f"This procedure has no second party: {entry.id}")
-    if context.reaction_modifiers and entry.resolution is not Resolution.INFLUENCE:
+    if not entry.influence and (
+        context.reaction_modifiers or context.influence_conditions != DEFAULT_INFLUENCE_CONDITIONS
+    ):
         raise ValidationError(f"Reaction modifiers reach influence rolls only: {entry.id}")
 
 
-def derived_modifiers(entry: Procedure, context: SocialSkillContext) -> tuple[Modifier, ...]:
+def derived_modifiers(entry: SocialProcedure, context: SocialSkillContext) -> tuple[Modifier, ...]:
     """Modifiers the rule itself contributes, in declared order and with provenance."""
     return tuple(
         Modifier(
@@ -775,6 +861,15 @@ _ROLL_VERDICTS: Final[MappingProxyType[Outcome, Verdict]] = MappingProxyType(
         Outcome.CRITICAL_FAILURE: Verdict.CRITICAL_FAILURE,
     }
 )
+
+
+def _influence_verdict(trace: InfluenceTrace, actor_id: str) -> Verdict:
+    """B359: a trait may settle the attempt with no contest to read a winner from."""
+    if trace.contest is None:
+        return Verdict.SUCCESS if trace.automatic == "slave-mentality" else Verdict.FAILURE
+    if trace.contest.winner == actor_id:
+        return Verdict.SUCCESS
+    return Verdict.TIE if trace.contest.winner is None else Verdict.FAILURE
 
 
 def resolve(
@@ -837,25 +932,18 @@ def resolve(
             entry.effect(verdict),
             rounds=rounds,
         )
-    assert entry.influence_skill is not None
     influence = influence_roll(
         profile_id,
-        entry.influence_skill,
+        influence_procedure(entry.id),
         context.actor_id,
         context.subject_id,
         base + sum(modifier.value for modifier in modifiers),
         context.resistance,
         context.reaction_modifiers,
         rng=rng,
+        conditions=context.influence_conditions,
     )
-    winner = influence.contest.winner
-    verdict = (
-        Verdict.SUCCESS
-        if winner == context.actor_id
-        else Verdict.TIE
-        if winner is None
-        else Verdict.FAILURE
-    )
+    verdict = _influence_verdict(influence, context.actor_id)
     return SocialSkillTrace(
         entry.id,
         entry.reference,
@@ -866,32 +954,3 @@ def resolve(
         entry.effect(verdict),
         influence=influence,
     )
-
-
-ProcedureId = Literal[
-    "skill:acting",
-    "skill:carousing",
-    "skill:diplomacy",
-    "skill:fast-talk",
-    "skill:fortune-telling",
-    "skill:gesture",
-    "skill:interrogation",
-    "skill:intimidation",
-    "skill:leadership",
-    "skill:lip-reading",
-    "skill:panhandling",
-    "skill:performance",
-    "skill:politics",
-    "skill:propaganda",
-    "skill:public-speaking",
-    "skill:savoir-faire",
-    "skill:sex-appeal",
-    "skill:streetwise",
-    "skill:teaching",
-]
-"""The exact inventory scope of #345, repeated as a type so a schema can pin it."""
-
-
-def effect_ids() -> frozenset[str]:
-    """Every outcome a procedure can record, so a validator cannot invent one."""
-    return frozenset(effect.id for entry in PROCEDURES.values() for _, effect in entry.effects)

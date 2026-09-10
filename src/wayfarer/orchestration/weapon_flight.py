@@ -3,13 +3,14 @@
 import hashlib
 from typing import Literal
 
-from wayfarer.errors import ValidationError
+from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.checks import CheckTrace
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.rules.object_types import GroundPosition
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import Combatant, Encounter
+from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.critical import Die, TableRoll
 from wayfarer.simulation.gurps_equipment import MeleeMode
 from wayfarer.simulation.hex_geometry import DIRECTIONS, Hex
@@ -76,6 +77,9 @@ def resolve_flight(
     event_id = "critical-flight:" + hashlib.sha256(pending.id.encode()).hexdigest()
     previous = next((e for e in state.resources.events if e.id == event_id), None)
     if previous:
+        saved = FlightResult.model_validate_json(previous.kind)
+        if saved.table != table or previous.target_id != pending.weapon_id:
+            raise ConflictError("Recorded weapon flight cannot be replaced")
         return state, synchronize(state, encounter), ()
     subject = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     weapon = mode(play, state, subject.actor_id, pending.weapon_id, pending.mode_id)
@@ -104,7 +108,12 @@ def resolve_flight(
             continue
         target_build = build(play, state, target.actor_id)
         assert target_build.statistics is not None
-        check = success_roll(catalog(play).profile_id, target_build.statistics.dx, rng=play.rng)
+        check = success_roll(
+            catalog(play).profile_id,
+            target_build.statistics.dx,
+            check_modifiers(state.resources, target.actor_id, "dx"),
+            rng=play.rng,
+        )
         effect_dice += check.dice
         dice: tuple[int, ...] = ()
         injury = 0

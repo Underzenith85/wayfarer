@@ -191,8 +191,9 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.check.regular_contest` | no | yes | verified | #99 |
 | `gurps.check.resistance` | yes | yes | verified | #99 |
 | `gurps.social.reaction` | yes | yes | partial | #111 ([standing hooks and golden cases](#provisional-social-procedures-111)); catalog content #113 |
-| `gurps.social.influence` | yes | yes | partial | #111; authored influence is Diplomacy-only, remaining skills #113/#137 |
+| `gurps.social.influence` | yes | yes | partial | #111; all six authored procedures and B359 exceptions; catalog/trait binding #112/#113 |
 | `gurps.social.fright` | no | yes | partial | #111; lasting consequences #299 |
+| `gurps.social.skill_procedures` | no | yes | partial | #345; [bound social skill procedures and their transferred rows](gurps-mundane-skills.md); remaining #353, #366, #367, #368, #369, #370 |
 | `gurps.equipment.weapon_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; source audit pending) |
 | `gurps.equipment.armor_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; source audit pending) |
 | `gurps.equipment.catalog` | yes | yes | partial | #114 |
@@ -203,14 +204,15 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.injury.hit_locations` | no | yes | partial | #107; [living-human dispatch and blockers](gurps-hit-locations.md) |
 | `gurps.injury.armor_divisors` | no | yes | partial | #107; [numeric armor integration](gurps-hit-locations.md) |
 | `gurps.injury.lasting_wounds` | no | yes | partial | #107; [durable impairments and remaining effects](gurps-hit-locations.md) |
-| `gurps.combat.melee_attack` | yes | yes | partial | #103 |
-| `gurps.combat.active_defense` | yes | yes | partial | #103 |
+| `gurps.combat.melee_attack` | yes | yes | partial | #103; declared critical-Parry damage modes and restart evidence in [melee integration](gurps-melee.md) |
+| `gurps.combat.active_defense` | yes | yes | partial | #103; B376 heavy-weapon quality, BL limits and durable breakage in [melee integration](gurps-melee.md) |
 | `gurps.combat.maneuvers` | yes | yes | partial | #104 and #152 bounded transitions implemented; [executable behavior and certification boundary](gurps-maneuvers.md) |
 | `gurps.combat.turn_timing` | yes | yes | partial | #104 and #152; durable Wait zones, stop thrust, and attack-then-step implemented; #191 source reconciliation remains |
-| `gurps.combat.ranged_attack` | yes | yes | partial | #106; [ranged dispatch and evidence](gurps-ranged.md); #173 adds persisted critical misses, typed breakage, per-projectile locations, armed thrown Parry consequences and burst critical hits; [remaining protocols](gurps-ranged.md) stay #173 |
+| `gurps.combat.ranged_attack` | yes | yes | partial | #106; [ranged dispatch, rated bow/crossbow ST and evidence](gurps-ranged.md); #173 adds persisted critical misses, typed breakage, per-projectile locations, armed thrown Parry consequences, burst critical hits and [opt-in firearm malfunctions](gurps-firearms.md); [remaining protocols](gurps-ranged.md) stay #173 |
 | `gurps.combat.aim` | yes | yes | partial | #104/#152; target-bound accumulation, disruption, bracing and typed fixed/variable scopes; broader ranged resolution #106/#173 |
-| `gurps.combat.ammunition` | yes | yes | partial | #106; [reservations and reload timing](gurps-ranged.md); #173 adds opt-in per-round loading and magazine unloading; remaining #173 |
+| `gurps.combat.ammunition` | yes | yes | partial | #106; [reservations, rated crossbow timing and reload conservation](gurps-ranged.md); #173 adds opt-in per-round loading and magazine unloading; remaining #173 |
 | `gurps.combat.rapid_fire` | no | yes | partial | #106; [burst, Dodge and burst-critical resolution](gurps-ranged.md); remaining #173 |
+| `gurps.combat.ranged_weapon_skills` | no | yes | partial | #344; [bound ranged combat skill procedures and their transferred rows](gurps-mundane-skills.md); remaining #354, #355, #357, #359, #360, #361, #362 |
 | `gurps.combat.unarmed` | yes | yes | partial | #108, #176; [unarmed critical effects, defenses, declared Wait reactions and remaining integrations](gurps-unarmed.md) |
 | `gurps.combat.grappling` | yes | yes | partial | #108, #176; [durable grips, Wait while engaged and remaining integrations](gurps-unarmed.md) |
 | `gurps.tactical.hex_movement` | no | yes | partial | #105 |
@@ -375,36 +377,47 @@ Will-based targets, optional/required specialties, techniques, reference integri
 and unavailable/unknown IDs. Full specialty expansion and runtime availability
 remain visible item-level blockers under #112 and the indicated mechanics owners.
 
-The candidate `0.2.0` audit validates its inventory and exclusions with strict
-typed records. Defaults, prerequisites and specialty parents must reference
-accounted-for entries; required-specialty and TL flags survive into the report.
-The inventory now contains 257 records, including six Mathematics specialties,
-with 238 structured definitions and 28 exclusions. Twelve entries have complete
-unconditional default lists; conditional defaults remain explicitly blocked.
-Representative fallback definitions are normalized to unsupported just like newly
-indexed entries. These checks improve data integrity without making blocked
-skills playable or changing existing rule-package pins.
+The candidate `0.3.0` audit reconciles an independent B301–B304 source index:
+275 skill listings, 27 named techniques and 18 explicit expansions map to 293
+mundane records plus 28 transferred exclusions. The combined Combat Art or Sport
+listing maps to two records. Missing entries, unindexed additions, invalid parents,
+page drift and transfer drift fail validation. Required contextual specialties
+remain explicitly blocked; these counts do not certify every possible specialty.
 
-Each row is classified by the structure it records, and the audit rejects an
-inventory that leaves any structural class unsampled or any row unclassified.
-Rows without recorded mechanics are reported as `listing-only` rather than as
-partial definitions, and each row's own blockers and certification state reach
-`source_audit` instead of one family status for the chapter. 210 rows still name
-no mechanics owner beyond this audit; the report publishes that count as
-`runtime_owner_unassigned`, a visible #122 blocker; it fell from 223 once the
-#345 social rows named their procedure owner and their transferred children.
-Excluded cinematic and supernatural skills are validated against the #119
-catalog that owns them, so a transfer cannot silently drop a Basic Set skill. The accounting matrix is
-[the mundane skill inventory](gurps-mundane-skills.md).
+There are 233 structured unsupported definitions, 12 implemented ranged combat
+procedures (#344), 16 implemented social procedures (#345) and 32 listing-only
+records (27 technique templates and five variable families). Previously empty suit,
+crewman and weapon definitions now carry source-indexed metadata, and candidate
+techniques no longer inherit definitions from live packages. Source/printing,
+context and runtime limitations are visible per row. Independent fixtures sample
+all 12 structural classes, numeric defaults, technique caps and reference failures.
+
+Every remaining blocker has a named owner: #336 owns source/context reconciliation,
+and #338–#346 own specific procedure inventories. `runtime_owner_unassigned` is
+zero. #344 binds twelve ranged combat rows to a runtime procedure in a new pin
+and transfers the rest of that group to #354, #355, #357, #359, #360, #361 and
+#362, so a blocker a procedure owner splits keeps naming the child that owns it.
+#345 binds sixteen social rows the same way in a further pin, transfers
+Fortune-Telling and Savoir-Faire to #366, Propaganda to #367 and the conditional
+defaults to #353, and declares the part of a *bound* entry it still does not
+carry — coercion (#368), advancement and group activity (#369), audience
+reactions and income (#370) — as `transferred_procedure_scope` in the report.
+A bound row reports as `implemented` and stays blocked by the printing delta. Item-level owners and unsupported/listing-only states reach `source_audit`.
+All candidates remain unavailable; no saved profile/package pin changes. See
+[the mundane skill inventory](gurps-mundane-skills.md) for the coverage matrix.
 
 ## Provisional social procedures (#111)
 
 `rules.gurps_social` implements reaction bands and typed status/reputation/
 appearance modifiers, influence contests with Diplomacy fallback and Sex Appeal
 outcomes, self-control from catalog-validated TraitOptions, and Basic-only fright
-checks with the Rule of 14. References are reconstructed from model knowledge
-under the owner's explicit authorization: Lite 3-4/10/24, B120-121, B359-362,
-B494-495, using the frozen 2004/2007-errata baseline; source audit is pending.
+checks with the Rule of 14. Independent cases in `tests/test_social_completion.py`
+reference Characters Fourth Edition, third printing, B121 and Campaigns Fourth
+Edition, fourth printing, B359-361/B428. They cover all six procedures, automatic
+Indomitable/Unfazeable/Slave Mentality outcomes, the appropriate Empathy exception,
+specious intimidation, self-control modifiers, social/fright aftermath penalties
+and retching recovery. The registry's distinct frozen 2004/2007-errata baseline
+and Lite evidence remain pending certification.
 
 `rules.social_hooks` owns the two reaction sources no build binding covers, so a
 scenario, a character sheet or a generated proposal selects a declared standing
@@ -419,7 +432,13 @@ initiator's build (#113), so declaring them twice cannot double-count. Selected
 Appearance and Reputation entries also bind through approved purchases (#113);
 authored values for a purchased source reject. See the
 [selected inventory](gurps-mundane-traits.md) for costs, runtime boundaries and
-concrete coverage blockers #332–#335.
+concrete coverage blockers #333–#335.
+
+Issue #332 binds the selected physical traits to combat, sense checks, surprise,
+fatigue and natural recovery. Approved package pins determine the immutable
+projection; private receipts and replay retain the existing transaction boundary.
+See the [physical coverage matrix](gurps-mundane-traits.md#physical-trait-execution-332)
+for numeric expectations, timing behavior and source-certification limits.
 
 Standing the observer cannot perceive contributes nothing, a reputation whose
 class is absent is never rolled for, and every unrecognized value fails closed.
@@ -444,16 +463,27 @@ modified by a social outcome. Explicit server-authored NPC disclosures can teach
 the initiating actor configured facts already known to the NPC; ordinary rolls
 do not reveal other facts or change NPC beliefs.
 
-The nineteen B168–B233 social skills carry whole-entry procedures in
-`rules.mundane_skills.social` (#345): a declared resolution shape, contextual
-prerequisites that reject before dice, rule-owned modifiers including the B97
-Voice bonus, and a named effect per verdict, committed through the same receipt
-ledger as the `skill` command kind. Influence-shaped procedures reuse
-`influence_roll` rather than restating B359. Ten of those rows keep a blocker
-because a named part of the entry is owned by #366–#370, and `unsupported_scope`
-publishes that to validators. Expected results are pinned independently in
-`tests/fixtures/gurps/social_skills.json` and run by `tests/test_social_skills.py`;
-the accounting is [the mundane skill inventory](gurps-mundane-skills.md).
+### Whole-entry social skill procedures (#345)
+
+`rules.mundane_skills.social` carries one procedure per B168–B233 social skill.
+Each declares the shape that decides it — an unopposed success roll, a Quick
+Contest, a Regular Contest, or a B359 Influence roll — the contextual conditions
+it cannot proceed without, the modifiers it derives itself, and a named effect for
+every verdict that shape can reach. Sixteen rows are bound and reach a new package
+pin; Fortune-Telling and Savoir-Faire cannot be learned without their specialties
+(#366) and Propaganda cannot resolve without a technology level (#367), so those
+three keep `runtime-procedure` and are absent from the pin.
+
+Nothing here is a second engine: rolls are scored by `rules.gurps_checks` and
+influence procedures call the existing `influence_roll`, so the Diplomacy
+fallback, the Sex Appeal outcome and the B359 trait exceptions keep their #111
+behaviour. Conditions are named facts about the situation, never numbers; a
+missing required condition rejects before dice. The B97 Voice skill bonus reaches
+the seven skills it improves through `character.social_traits.skill_conditions`,
+which reads approved purchases only. The `skill` command kind commits through the
+same receipt ledger and publishes only the effect identifier.
+`tests/fixtures/gurps/social_skills.json` pins the declared table and every
+expected result by hand; `tests/test_social_skills.py` runs them.
 
 Reaction/influence/fright coverage remains **partial**, and runtime self-control
 is partial: these are server-only procedures, with full NPC play dispatch and
@@ -468,25 +498,34 @@ due check once; time advancement cannot skip an unresolved deadline. Modified
 Will recovery retains the original trigger target, without the Fright Check's
 Rule-of-14 cap. Build HT/Will and explicit profile pools are validated before dice.
 
-Choice-bearing results expose typed requirement labels and do not edit approved
-builds. Authoritative clock adapters now automatically settle successive fright
-deadlines, including failed recovery checks, within their existing transaction.
-Catatonia applies daily escalating unattended injury, respects an explicit
-director care decision, and records aftermath based on total elapsed duration.
-Permanent losses and aftermath penalties still conservatively block actions;
-they are not implemented stat changes or check penalties.
+Choice-bearing results expose owner-scoped proposals and director approvals.
+#299 applies the exact lasting trait/self-control/HT/IQ change through the pinned
+compiler and power reviewer, recalculates dependent values, preserves resource
+deficits and grants no spendable refund. Unapproved permanent losses remain
+blockers. Authoritative clock adapters automatically settle successive fright
+deadlines, including failed checks. Catatonia applies escalating unattended
+injury, respects director care, and records aftermath for the elapsed episode.
 
-The opt-in `SocialActionRules`/`NPCSocialRules` v2 policy routes bounded NPC
-occurrences through the same social reducer, with approved trait options and
-occurrence-derived identities. It has a separate checked-in social v2 schema;
-frozen v1 scenario/authoring contracts do not change. Panic response adjudication
-records a director-confirmed response and resolves subsequent Will/severity rolls
-without forcing player actions. Combat supports Do Nothing, no defense, and
-stunned active defenses at -4, while other fright conditions reject active
-defense. Full condition-specific retching/panic behavior and lasting trait/stat
-adjudication remain in #299, along with aftermath penalty integration and v2
-scenario authoring/transport adoption. #137 remains incomplete; coverage stays
-partial and these blockers remain visible for #122.
+Aftermath penalties now reach skill/attribute checks across the executable action,
+combat, medical, hazard, fatigue, spell, ability and transport adapters, with
+per-episode expiration. Raw statistics, durations, reaction totals, self-control
+ratings and active defenses are unchanged. Retching permits penalized action,
+blocks concentration and charges its terminal 1 FP once. Stun permits Do Nothing
+and defenses at -4; panic permits player-selected movement or Do Nothing.
+Unconsciousness, catatonia and seizures prohibit active defense. Row-33 responses
+remain explicitly adjudicated with the player before director-recorded Will and
+severity rolls, rather than forcing arbitrary player actions.
+
+The opt-in social v2 policy routes NPC occurrences through the same reducer,
+with approved skills/trait options and stable occurrence IDs. Explicit v2
+portable documents retain that policy through import, publication, activation
+and restart; frozen v1 schemas remain unchanged. All six influence procedures
+use compiled skills, and self-control uses its rating plus situation modifiers.
+Campaign commands expose care/panic decisions and owner-proposed, GM-approved
+lasting changes. See [runtime details](gurps-social-runtime.md) and the
+`test_fright_builds`, `test_fright_conditions`, and `test_social_scenario_v2`
+suites for executable #299 evidence. Coverage remains partial for the separate
+source/errata and catalog certification gates; these are not waived by this PR.
 `tests/test_fright_runtime.py` checks independent B360-361 examples (Campaigns,
 Fourth Edition, fourth printing) for FP loss, internal injury, automatic stun,
 coma deadlines, recovery retries, privacy and unchanged approved builds.
@@ -498,8 +537,8 @@ profile, and rejects reaction/influence dispatch against player-controlled
 subjects. Persisted retries do not re-run the resolver or recheck changed world
 knowledge. Colon-bearing trigger identities cannot alias, and legacy receipts
 remain readable. Player projections and event streams omit private traces.
-Fright dispatch now applies the timed runtime adapter; unsupported lasting
-consequences remain explicit adjudication requirements tracked in #299. Independent
+Fright dispatch applies the timed runtime adapter and the approval-aware lasting
+consequence workflow from #299. Independent
 SQLite restart, stale command, failed disclosure, authority, and projection tests
 cover this boundary. The profile registry remains gated pending certification.
 
