@@ -200,6 +200,7 @@ def require_skill_procedure(profile_id: str, mode: MeleeMode | RangedMode) -> No
         tight_beam=mode.damage.tight_beam,
         rated_kind=rated.kind if rated is not None else None,
         entangling=isinstance(mode, RangedMode) and mode.entangle is not None,
+        conventional_firearm=isinstance(mode, RangedMode) and mode.firearm is not None,
     )
 
 

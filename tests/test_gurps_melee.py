@@ -87,6 +87,7 @@ async def setup(
     darkness_penalty: int = 0,
     extra_definitions: tuple[RuleDefinition, ...] = (),
     extra_purchases: tuple[Purchase, ...] = (),
+    campaign_technology_level: int | None = None,
 ) -> tuple[str, PlayService]:
     equipment = EquipmentCatalog(
         profile_id=profile,
@@ -412,6 +413,7 @@ async def setup(
         permitted_sources=frozenset(s.id for s in package.sources),
         allowed_equipment=frozenset(e.definition_id for e in equipment.entries),
         allow_supernatural=ability_defense,
+        technology_level=campaign_technology_level,
     )
     rules = CampaignRules(
         edition=package.edition,

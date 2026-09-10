@@ -52,9 +52,10 @@ equipment catalog is built and again before dice. See
 Bolas and Net are bound too: a landed, undefended throw leaves a pinned binding
 on the target that penalises its attacks and active defenses, can reduce Move to
 zero, and is shed only by winning a Ready-maneuver contest against the binding's
-ST. Firearms, beams, crew-served weapons, liquid projectors and
-launcher-assisted throws remain unsupported; this change does not widen the
-permitted fire modes. A B270 rated weapon ST belongs to the launcher its own
+ST. The TL-indexed Guns and Beam Weapons specialties dispatch a weapon of the
+campaign's own era and refuse one from another era. Crew-served weapons, liquid
+projectors and launcher-assisted throws remain unsupported; this change does not
+widen the permitted fire modes. A B270 rated weapon ST belongs to the launcher its own
 skill governs: a rated bow cannot be fired under Crossbow, and a rated
 crossbow cannot be fired under Bow.
 

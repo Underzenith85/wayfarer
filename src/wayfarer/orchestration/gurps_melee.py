@@ -17,6 +17,7 @@ from wayfarer.rules.checks import Outcome
 from wayfarer.rules.effects import DerivedValue
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.rules.location_types import HitLocation, HumanLocation
+from wayfarer.rules.mundane_skills.ranged import require_technology
 from wayfarer.rules.recovery_types import interrupt_tasks
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import Combatant, Defense, Encounter, InjuryTrace
@@ -231,6 +232,11 @@ def mode(
     if selected.hands + held_others > 2:
         raise ValidationError("Selected grip exceeds available hands")
     require_skill_procedure(catalog(play).profile_id, selected)
+    require_technology(
+        selected.skill_id,
+        play.engine.reviewer.compiler.policy.technology_level,
+        entry.technology_level,
+    )
     level(build(play, state, actor_id), selected.skill_id)
     return selected
 
