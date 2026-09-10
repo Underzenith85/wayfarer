@@ -623,6 +623,23 @@ def choices(
                         },
                     )
                 )
+            opportunity = actor.unarmed_lock_opportunity
+            if opportunity is not None and opportunity[0] == target_id:
+                for arm in ("left-arm", "right-arm"):
+                    candidates.append(
+                        (
+                            f"Arm lock after parry — {target_name}, {arm.replace('-', ' ')}",
+                            {
+                                "kind": "take_unarmed_turn",
+                                "target_id": target_id,
+                                "action": "arm_lock",
+                                "hands": ("left-hand", "right-hand"),
+                                "location": arm,
+                                "skill": opportunity[1],
+                                "enter_close_combat": actor.position != target.position,
+                            },
+                        )
+                    )
             for grip in encounter.grips:
                 for action in (
                     "break_free",
