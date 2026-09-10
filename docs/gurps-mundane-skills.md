@@ -11,6 +11,7 @@ separate, immutable and hookless. See
 [Ranged combat procedures](#ranged-combat-procedures-344) and
 [Social procedures](#social-procedures-345) and
 [Technology, science and vehicle procedures](#technology-science-and-vehicle-procedures-346)
+and [Discipline-keyed specialties](#discipline-keyed-specialties-356)
 for the groups bound this way.
 
 ## Source boundary and completeness
@@ -26,15 +27,16 @@ audit machinery. No rulebook prose is bundled.
 | --- | ---: |
 | Indexed skill listings, B301–B304 | 275 |
 | Named technique listings, B304 | 27 |
-| Explicit chapter examples and parent-specific expansions | 57 |
-| **Source index total** | **359** |
+| Explicit chapter examples and parent-specific expansions | 143 |
+| **Source index total** | **445** |
 
 The combined Combat Art or Sport listing maps to two candidate records. Thus
-359 source entries map to **360 records: 332 mundane and 28 transferred** to
+445 source entries map to **446 records: 418 mundane and 28 transferred** to
 #119's inventory. The expansions include the seven concrete Thrown Weapon
-specialties #344 expands from the B226 family, and the 39 concrete Boating,
-Driving, Piloting, Shiphandling, Submarine and Explosives specialties #346
-expands from theirs. Specialty families remain explicitly blocked where context
+specialties #344 expands from the B226 family, the 39 concrete Boating, Driving,
+Piloting, Shiphandling, Submarine and Explosives specialties #346 expands from
+theirs, and the 75 concrete science, electronics, engineering and Mechanic
+specialties #356 expands from the discipline-keyed families. Specialty families remain explicitly blocked where context
 or expansion is incomplete. These counts do not claim enumeration of every
 possible player-defined specialty.
 
@@ -49,11 +51,11 @@ also verifies names, pages and owners against the supernatural catalog.
 
 | Accounting group | Rows | Decision |
 | --- | ---: | --- |
-| Structured candidate definitions | 193 | Unsupported; source/runtime blockers remain. |
-| Bound runtime procedures | 111 | Implemented and dispatched by #344 (12), #345 (16) and #346 (83); still blocked by the printing delta, so still unavailable here. |
+| Structured candidate definitions | 181 | Unsupported; source/runtime blockers remain. |
+| Bound runtime procedures | 209 | Implemented and dispatched by #344 (12), #345 (16), #346 (83) and #356 (83); still blocked by the printing delta, so still unavailable here. |
 | Contextual records | 28 | 23 B230-233 technique templates and five open families (#336). Not rollable skills, so they record a shape rather than a definition. No row is left recording nothing at all. |
 | Transferred cinematic/supernatural skills | 28 | Owned by #242/#243 and source audit #191. |
-| **Total accounted records** | **360** | **Zero available mundane candidates.** |
+| **Total accounted records** | **446** | **Zero available mundane candidates.** |
 
 This revision fills the previously empty Aerobatics, Aquabatics, crewman, suit
 and weapon entries; records Weather Sense as a TL-dependent Meteorology alias;
@@ -69,25 +71,27 @@ is not converted into an ordinary DX skill.
 
 | Structural class | Rows |
 | --- | ---: |
-| `attribute-default` | 234 |
+| `attribute-default` | 304 |
 | `skill-default` | 44 |
-| `no-default` | 46 |
-| `technology-level` | 126 |
-| `required-specialty` | 61 |
+| `no-default` | 62 |
+| `technology-level` | 212 |
+| `required-specialty` | 147 |
 | `unexpanded-specialty` | 59 |
 | `listing-only` | 28 |
 | `technique-template` | 24 |
-| `variable-family` | 5 |
+| `variable-family` | 9 |
 | `alternative-prerequisite` | 1 |
 | `technique` | 6 |
-| `prerequisite` | 3 |
+| `prerequisite` | 4 |
 | `optional-specialty` | 1 |
 | `alias` | 1 |
 
 Classes overlap, and a class describes what a row records structurally while
 `implementation` describes its certification state: the 28 `listing-only` rows
 record no rollable definition, and 28 of them are `contextual` because they do
-record a technique template or an open family. `no-default` means no default is
+record a technique template or an open family. Four of the nine `variable-family`
+rows do carry a definition: B180 Biology is IQ/VH whichever planet type it
+covers, so those rows record the numbers and leave only the subject open. `no-default` means no default is
 recorded, not a claim that conditional defaults have been exhaustively verified. Fixtures sample every
 class with independently stated source expectations.
 
@@ -120,7 +124,8 @@ retained where previously recorded, but they do not replace the active owners.
 | #345 | Social skill procedures; see below for what it bound and what it transferred. |
 | #346 | Technology, science and vehicle procedures; see below for what it bound and what it transferred. |
 | #353 | Conditional and alternative mundane skill defaults and prerequisites. |
-| #356 | Science, electronics and engineering specialty expansion. |
+| #356 | Complete. The discipline-keyed families are expanded and bound; the four whose axis is a world, a planet type or a species name #390 below. |
+| #390 | Procedures for the open-subject families, once a campaign names a subject. |
 | #358 | Vehicle movement and combat capability verification for the bound vehicle rows. |
 | #366 | Fortune-Telling and Savoir-Faire specialties. |
 | #367 | The Propaganda technology-level media context. |
@@ -295,7 +300,7 @@ this group are all refused before dice by `technology.require_task`.
 | `skill:electrician` | B189, IQ/A, IQ-5 | Implemented. Repair progress scales with the margin. |
 | `skill:no-landing-extraction` | B233 | Implemented. Bought against the concrete Piloting specialty flown, so it carries that control dispatch. |
 | `skill:motion-picture-camera` | B233 | Transferred to #338; its parent Photography belongs to that group, and a parent with no dispatch cannot lend one. |
-| `skill:bioengineering` `skill:biology` `skill:current-affairs` `skill:disguise` `skill:electronics-operation` `skill:electronics-repair` `skill:engineer` `skill:geography` `skill:geology` `skill:hazardous-materials` `skill:mechanic` `skill:paleontology` | B180–B212 | Transferred to #356; their specialty axis is a discipline, not a vehicle class, so expanding them here would be a guess. B207 keys a Mechanic specialty to a machine type, so its expansion is derived from the vehicle specialties above rather than authored twice. |
+| `skill:bioengineering` `skill:biology` `skill:current-affairs` `skill:disguise` `skill:electronics-operation` `skill:electronics-repair` `skill:engineer` `skill:geography` `skill:geology` `skill:hazardous-materials` `skill:mechanic` `skill:paleontology` | B180–B212 | Transferred to #356; their specialty axis is a discipline, not a vehicle class, so expanding them here would be a guess. See below for what #356 then bound. |
 
 Two modifiers belong to the procedure: the B168 technology-level difference (one
 point of effective skill per level, either direction) and the B169 familiarity
@@ -316,6 +321,34 @@ recorded Diving Suit default reaches `skill:scuba`, which another group owns, so
 these definitions do not resolve as a standalone catalog. Evidence for the
 bindings themselves is in `tests/test_technology_skills.py` and
 `tests/fixtures/gurps/technology_skills.json`.
+
+## Discipline-keyed specialties (#356)
+
+The twelve rows #346 transferred are keyed to a science discipline, an
+electronics family, an engineering discipline, a machine type, a subject area or
+a species. They are expanded and bound in the same
+`rules/mundane_skills/technology.py` module and through the same four dispatches;
+no second engine exists, and a family row is still refused before dice.
+
+| Row | Reference | State |
+| --- | --- | --- |
+| `skill:bioengineering` `skill:engineer` | B180, B190 | Families expanded into 3 and 10 concrete disciplines. Implemented as design tasks: the margin buys further design steps. |
+| `skill:current-affairs` | B186 | Family expanded into eight topics. A recall roll is capped: a margin of four still yields the three items the topic holds. |
+| `skill:electronics-operation` `skill:electronics-repair` | B189, B190 | Both keyed to the same nine equipment families. Only the repair row adds Computers, because B184 Computer Operation is the skill that uses one. Operation produces a reading; repair produces restored HP. |
+| `skill:hazardous-materials` | B199 | Family expanded into Biological, Chemical and Nuclear/Radiological. Containment is held rather than learned, so failure is hazardous and reaches the exposure service. |
+| `skill:paleontology` | B212 | Family expanded into three concrete disciplines; the margin decides how much is found. |
+| `skill:mechanic` | B207 | Family expanded into 29 machine types **derived** from the vehicle specialties #346 recorded, never authored a second time. Shiphandling is a command skill and contributes none; an unpowered hull carries no machinery. Repairing a machine needs no vehicle-movement capability of its own. |
+| `skill:biology` `skill:disguise` `skill:geography` `skill:geology` | B180, B187, B198 | Open families. Their axis is a planet type, a species or a region, so the row records the axis the player names instead of an invented list, and keeps its own fixed numbers. Transferred to #390, which must instantiate a named subject before anything dispatches. |
+
+The mechanics of a specialty are its family's: same attribute, same difficulty,
+same recorded defaults, same page. A specialty that rolled against different
+numbers would be a different skill. Cross-specialty defaults are not implemented
+and keep naming #383, and the Engineer prerequisite — a related science or shop
+skill, which one depending on the specialty — stays with it too.
+
+Evidence is in `tests/test_technology_specialties.py`, with every effective
+target, margin, outcome and unit count pinned by hand in
+`tests/fixtures/gurps/technology_specialties.json`.
 
 ## Contextual catalog metadata (#336)
 

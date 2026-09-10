@@ -59,6 +59,9 @@ CONTEXT_OWNER: Final = 336
 # defaults and alternative prerequisites are owned by #383.
 CONDITIONAL_OWNER: Final = 383
 CAPABILITY_OWNER: Final = 358
+# A family whose specialty is a campaign subject rather than a listed one is
+# expanded here but dispatched by #390.
+OPEN_SUBJECT_OWNER: Final = 390
 
 RUNTIME_PROCEDURE: Final = "runtime-procedure"
 SPECIALTY_EXPANSION: Final = "specialty-expansion"
@@ -188,6 +191,11 @@ def _study(unit: str = "finding", cap: int = 0) -> TaskClass:
     )
 
 
+# A bounded research finding: the shape every science row that simply learns
+# something shares. Naming it once keeps those rows from drifting apart.
+ANALYSIS: Final = _study()
+
+
 @dataclass(frozen=True, slots=True)
 class TechnologyProcedure:
     """One accounted-for technology row and the dispatch it does or does not have."""
@@ -205,6 +213,10 @@ class TechnologyProcedure:
     # A family row is never dispatched; it is completed by its concrete specialties.
     specialties: tuple[str, ...] = ()
     resolved: tuple[str, ...] = ()
+    # B180-B198 key a few families to a world, a planet type, a species or a
+    # region. That subject is campaign data, so the row records the axis in
+    # place of a specialty list and never dispatches on its own.
+    open_subject: str | None = None
     # Blockers this issue does not close, each mapped to the concrete open child
     # that owns it. A transferred blocker without an owner is a coverage failure.
     transferred: Mapping[str, tuple[int, ...]] = field(default_factory=dict)
@@ -224,7 +236,12 @@ class TechnologyProcedure:
 
     @property
     def dispatchable(self) -> bool:
-        return self.implemented and self.task is not None and not self.specialties
+        return (
+            self.implemented
+            and self.task is not None
+            and not self.specialties
+            and self.open_subject is None
+        )
 
     @property
     def reference(self) -> str:
@@ -497,27 +514,259 @@ def _task(
     )
 
 
-def _transferred(
-    name: str,
+# --- Discipline-keyed families (#356) -----------------------------------------
+
+# B199 Hazardous Materials keeps a dangerous substance contained rather than
+# learning anything, so it resolves through the exposure service the suits use.
+CONTAINMENT: Final = TaskClass(
+    Dispatch.HAZARD_EXPOSURE,
+    Effect.SEAL,
+    RepeatedAttemptPolicy.HAZARDOUS_FAILURE,
+    "containment-held",
+)
+# A recall roll answers "what do you already know"; the margin adds detail, but
+# a topic only holds so much, so the yield is capped rather than unbounded.
+BRIEFING: Final = _study("news-item", cap=3)
+DESIGN: Final = _study("design-step")
+READOUT: Final = _study("reading")
+
+# B189 and B190 key both electronics rows to the same equipment families. Only
+# the repair row adds Computers: B184 Computer Operation is the skill that uses a
+# computer, so operating one is never an Electronics Operation specialty.
+ELECTRONICS_SPECIALTIES: Final = (
+    ("communications", "Communications"),
+    ("electronic-warfare", "Electronic Warfare"),
+    ("media", "Media"),
+    ("medical", "Medical"),
+    ("scientific", "Scientific"),
+    ("security", "Security"),
+    ("sensors", "Sensors"),
+    ("sonar", "Sonar"),
+    ("surveillance", "Surveillance"),
+)
+REPAIRABLE_ELECTRONICS: Final = tuple(
+    sorted((*ELECTRONICS_SPECIALTIES, ("computers", "Computers")))
+)
+
+# Families the source enumerates: family -> (title, page, difficulty, defaults,
+# task, specialties, contextual blockers this issue does not close). Every
+# specialty shares the family's attribute, difficulty and defaults; a specialty
+# that rolled against different numbers would be a different skill.
+SCIENCE_FAMILIES: Final = {
+    "bioengineering": (
+        "Bioengineering",
+        180,
+        D.HARD,
+        (),
+        DESIGN,
+        (
+            ("cloning", "Cloning"),
+            ("genetic-engineering", "Genetic Engineering"),
+            ("tissue-engineering", "Tissue Engineering"),
+        ),
+        {CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)},
+    ),
+    "current-affairs": (
+        "Current Affairs",
+        186,
+        D.EASY,
+        _attribute(A.IQ, -4),
+        BRIEFING,
+        (
+            ("business", "Business"),
+            ("headline-news", "Headline News"),
+            ("high-culture", "High Culture"),
+            ("people", "People"),
+            ("politics", "Politics"),
+            ("popular-culture", "Popular Culture"),
+            ("science-and-technology", "Science and Technology"),
+            ("sports", "Sports"),
+        ),
+        {CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)},
+    ),
+    "electronics-operation": (
+        "Electronics Operation",
+        189,
+        D.AVERAGE,
+        _attribute(A.IQ, -5),
+        READOUT,
+        ELECTRONICS_SPECIALTIES,
+        {CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)},
+    ),
+    "electronics-repair": (
+        "Electronics Repair",
+        190,
+        D.AVERAGE,
+        _attribute(A.IQ, -5),
+        REPAIR,
+        REPAIRABLE_ELECTRONICS,
+        {CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)},
+    ),
+    "engineer": (
+        "Engineer",
+        190,
+        D.HARD,
+        (),
+        DESIGN,
+        (
+            ("artillery", "Artillery"),
+            ("civil", "Civil"),
+            ("clockwork", "Clockwork"),
+            ("combat", "Combat"),
+            ("electrical", "Electrical"),
+            ("electronics", "Electronics"),
+            ("materials", "Materials"),
+            ("mining", "Mining"),
+            ("robotics", "Robotics"),
+            ("small-arms", "Small Arms"),
+        ),
+        # B190 requires a related science or shop skill, and which one depends on
+        # the specialty; the alternative-prerequisite procedure owns that shape.
+        {CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,), PREREQUISITE_PROCEDURE: (CONDITIONAL_OWNER,)},
+    ),
+    "hazardous-materials": (
+        "Hazardous Materials",
+        199,
+        D.AVERAGE,
+        _attribute(A.IQ, -5),
+        CONTAINMENT,
+        (
+            ("biological", "Biological"),
+            ("chemical", "Chemical"),
+            ("nuclear-radiological", "Nuclear/Radiological"),
+        ),
+        {},
+    ),
+    "paleontology": (
+        "Paleontology",
+        212,
+        D.HARD,
+        (),
+        ANALYSIS,
+        (
+            ("paleoanthropology", "Paleoanthropology"),
+            ("paleobotany", "Paleobotany"),
+            ("paleozoology", "Paleozoology"),
+        ),
+        {CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)},
+    ),
+}
+# B207 keys a Mechanic specialty to a machine type, and a machine type normally
+# corresponds to a vehicle-operation specialty, so the expansion is generated
+# from the specialties this module already records rather than authored a second
+# time. Shiphandling is a command skill rather than vehicle operation, so it
+# contributes no machine type of its own.
+MECHANIC_FAMILIES: Final = ("boating", "driving", "piloting", "submarine")
+# A muscle-powered hull carries no machinery for a Mechanic to work on.
+MECHANIC_EXCLUDED: Final = frozenset({"boating-unpowered"})
+# Families whose specialty axis is a world, a planet type, a species or a region.
+# That axis is campaign data rather than a Basic Set listing, so the row records
+# the axis and #390 owns the procedure that instantiates a named subject.
+OPEN_FAMILIES: Final = {
+    "biology": ("Biology", 180, D.VERY_HARD, _attribute(A.IQ, -6), "one planet type"),
+    "disguise": ("Disguise", 187, D.AVERAGE, _attribute(A.IQ, -5), "one species or culture"),
+    "geography": ("Geography", 198, D.HARD, _attribute(A.IQ, -6), "one world or region"),
+    "geology": ("Geology", 198, D.HARD, _attribute(A.IQ, -6), "one planet type"),
+}
+
+
+def _slug(label: str) -> str:
+    """The identifier a machine-type label expands to, mirroring its own name."""
+    return label.casefold().replace(" ", "-").replace("/", "-")
+
+
+def _mechanic_specialties() -> tuple[tuple[str, str], ...]:
+    """Every powered vehicle specialty, as the machine types B207 keys Mechanic to."""
+    derived = [
+        (_slug(label), label)
+        for family in MECHANIC_FAMILIES
+        for name, label in VEHICLE_FAMILIES[family][5]
+        if f"{family}-{name}" not in MECHANIC_EXCLUDED
+    ]
+    if len({name for name, _ in derived}) != len(derived):
+        raise ValidationError("Two vehicle specialties derive the same Mechanic specialty")
+    return tuple(derived)
+
+
+def _family(
+    family: str,
     title: str,
     page: int,
-    attribute: A,
     difficulty: D,
     defaults: tuple[SkillDefault, ...],
-    owners: Mapping[str, tuple[int, ...]],
-) -> TechnologyProcedure:
-    """A listed row this issue does not implement; every blocker names its owner."""
-    return TechnologyProcedure(
-        f"skill:{name}", title, page, attribute, difficulty, defaults, transferred=dict(owners)
+    task: TaskClass,
+    members: tuple[tuple[str, str], ...],
+    context: Mapping[str, tuple[int, ...]],
+) -> tuple[TechnologyProcedure, ...]:
+    """One family row and the concrete specialties that complete it."""
+    return (
+        TechnologyProcedure(
+            f"skill:{family}",
+            title,
+            page,
+            A.IQ,
+            difficulty,
+            defaults,
+            specialties=tuple(f"skill:{family}-{name}" for name, _ in members),
+            resolved=(RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL),
+            transferred=dict(context),
+        ),
+        *(
+            TechnologyProcedure(
+                f"skill:{family}-{name}",
+                f"{title} ({label})",
+                page,
+                A.IQ,
+                difficulty,
+                defaults,
+                specialty=Specialty(family, name),
+                task=task,
+                resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
+                transferred=dict(context),
+            )
+            for name, label in members
+        ),
     )
 
 
-_SPECIALTY_TRANSFER: Final = {
-    RUNTIME_PROCEDURE: (SPECIALTY_OWNER,),
-    SPECIALTY_EXPANSION: (SPECIALTY_OWNER,),
-    TECHNOLOGY_LEVEL: (SPECIALTY_OWNER,),
-    CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,),
-}
+def _science_rows() -> tuple[TechnologyProcedure, ...]:
+    """The enumerated families, the derived Mechanic rows, and the open families."""
+    rows: list[TechnologyProcedure] = []
+    for family, entry in SCIENCE_FAMILIES.items():
+        rows.extend(_family(family, *entry))
+    rows.extend(
+        _family(
+            "mechanic",
+            "Mechanic",
+            207,
+            D.AVERAGE,
+            _attribute(A.IQ, -5),
+            REPAIR,
+            _mechanic_specialties(),
+            {CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)},
+        )
+    )
+    # An open family is expanded in the only way its axis allows: by recording
+    # what the player names. Nothing dispatches until #390 instantiates it.
+    rows.extend(
+        TechnologyProcedure(
+            f"skill:{family}",
+            title,
+            page,
+            A.IQ,
+            difficulty,
+            defaults,
+            resolved=(SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL),
+            transferred={
+                RUNTIME_PROCEDURE: (OPEN_SUBJECT_OWNER,),
+                CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,),
+            },
+            open_subject=subject,
+        )
+        for family, (title, page, difficulty, defaults, subject) in OPEN_FAMILIES.items()
+    )
+    return tuple(rows)
+
 
 _ROWS: Final = (
     *_vehicle_rows(),
@@ -905,73 +1154,12 @@ _ROWS: Final = (
             RUNTIME_PROCEDURE: (ARTS_OWNER,),
         },
     ),
-    # Transferred rows: their specialty axis is a discipline, not a vehicle class.
-    _transferred("bioengineering", "Bioengineering", 180, A.IQ, D.HARD, (), _SPECIALTY_TRANSFER),
-    _transferred(
-        "biology", "Biology", 180, A.IQ, D.VERY_HARD, _attribute(A.IQ, -6), _SPECIALTY_TRANSFER
-    ),
-    _transferred(
-        "current-affairs",
-        "Current Affairs",
-        186,
-        A.IQ,
-        D.EASY,
-        _attribute(A.IQ, -4),
-        _SPECIALTY_TRANSFER,
-    ),
-    _transferred(
-        "disguise", "Disguise", 187, A.IQ, D.AVERAGE, _attribute(A.IQ, -5), _SPECIALTY_TRANSFER
-    ),
-    _transferred(
-        "electronics-operation",
-        "Electronics Operation",
-        189,
-        A.IQ,
-        D.AVERAGE,
-        _attribute(A.IQ, -5),
-        _SPECIALTY_TRANSFER,
-    ),
-    _transferred(
-        "electronics-repair",
-        "Electronics Repair",
-        190,
-        A.IQ,
-        D.AVERAGE,
-        _attribute(A.IQ, -5),
-        _SPECIALTY_TRANSFER,
-    ),
-    _transferred(
-        "engineer",
-        "Engineer",
-        190,
-        A.IQ,
-        D.HARD,
-        (),
-        _SPECIALTY_TRANSFER | {PREREQUISITE_PROCEDURE: (CONDITIONAL_OWNER,)},
-    ),
-    _transferred(
-        "geography", "Geography", 198, A.IQ, D.HARD, _attribute(A.IQ, -6), _SPECIALTY_TRANSFER
-    ),
-    _transferred(
-        "geology", "Geology", 198, A.IQ, D.HARD, _attribute(A.IQ, -6), _SPECIALTY_TRANSFER
-    ),
-    _transferred(
-        "hazardous-materials",
-        "Hazardous Materials",
-        199,
-        A.IQ,
-        D.AVERAGE,
-        _attribute(A.IQ, -5),
-        {
-            RUNTIME_PROCEDURE: (SPECIALTY_OWNER,),
-            SPECIALTY_EXPANSION: (SPECIALTY_OWNER,),
-            TECHNOLOGY_LEVEL: (SPECIALTY_OWNER,),
-        },
-    ),
-    _transferred(
-        "mechanic", "Mechanic", 207, A.IQ, D.AVERAGE, _attribute(A.IQ, -5), _SPECIALTY_TRANSFER
-    ),
-    _transferred("paleontology", "Paleontology", 212, A.IQ, D.HARD, (), _SPECIALTY_TRANSFER),
+    # --- Discipline-keyed families (#356) ------------------------------------
+    # B180-B212 key these to a discipline, an electronics family or a machine
+    # type rather than to a vehicle class. Where the source enumerates that axis
+    # the family is expanded; where the axis is a world, a species or a region it
+    # is recorded as an open family, because a list would be an invention.
+    *_science_rows(),
 )
 # Every listed technology row, plus the concrete specialties this issue expands.
 PROCEDURES: Final = MappingProxyType({entry.id: entry for entry in _ROWS})
