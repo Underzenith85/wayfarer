@@ -166,9 +166,10 @@ orchestrator is the only layer that knows more than one campaign exists.
   and revision. Rebuilding state ignores it; players keep the text they read.
 
 Snapshots of `PlayState` per revision remain, as a cache:
-`state(n) = fold(snapshot(k), events[k+1:n])`. Character state is a projection
-of the campaign stream, not a second aggregate; the workshop draft is the one
-separate aggregate, because it exists before a character enters a campaign.
+`state(n) = fold(snapshot(k), events[k+1:n])`. Character state, workshop
+drafts and director turns are projections of the campaign stream, not second
+aggregates; `PlayState.drafts` already lives inside it. The one separate
+aggregate is the scenario catalog, which exists before any campaign does.
 
 ## Where randomness, judgement and narration enter
 
@@ -250,18 +251,48 @@ in one place.
 
 ## Consequences
 
-Replay by re-execution makes the engine's dice consumption order part of its
-contract. A refactor that reorders two checks changes the traces for the same
-seed, so such a change is a rules migration event, exactly like a rulebook
-change. If that proves too strict, record the dice tape instead of the seed.
+**Two replay guarantees, not one.** Events are facts, so folding the event
+stream reproduces state under any engine version; that is the production
+invariant for stored campaigns, and a bug fix never strands a saved game.
+Re-executing the command log through the engine is only claimed to reproduce
+those facts when the recorded engine version equals the running one. It is the
+fixture gate, never a claim about old streams.
 
-Only the command log is authoritative. `PlayService.commit` is the single
+**Engine version.** `wayfarer.simulation.ENGINE_VERSION` is a constant bumped
+by policy whenever `resolve(state, command, seed)` can produce a different
+outcome for any input: a rule fix, a reordered check, a new dice draw. Every
+command record carries the version at commit time. Re-execution of a stream
+recorded under another version is not attempted. The fixture gate is a
+tripwire in both directions: if re-execution diverges and the version did not
+change, CI fails; if the version changed, the fixtures are regenerated in the
+same change. `MigrationEntry` keeps its existing meaning, a rules-data change
+that alters `configuration_digest`, and does not acquire a code-version one.
+
+**Events declare their audience.** Knowledge isolation is a release invariant
+(#1, #45): reunion does not share secrets and captives learn nothing of their
+rescuers. Every event carries an audience, the whole campaign, a set of actor
+ids, or the GM, set by the reducer that produced it, because only the reducer
+knows who witnessed what. The outbox filters on it before anything reaches a
+live stream, and projections keep their per-principal scoping on top.
+
+**Only the command log is authoritative.** `PlayService.commit` is the single
 writer of play state today, and the event store gets the same single-writer
-test.
+test. Command record, event append and snapshot commit in one transaction.
+System-issued commands such as clock advances carry a system principal.
 
-Replay is valid only under the pinned rules digest. `configuration_digest`
-and `MigrationEntry` already exist; the gate is that a stream's digest must
-match the engine that replays it.
+**One engine.** The wave-1 prototype (`models.Campaign` as a mutable dict,
+`simulation/resolution.py`, `GameService.turn`) is a second resolver and is
+fenced behind the existing typed-campaign guard until it is retired.
+
+**The orchestrator is real work.** A session registry holds one session per
+active campaign, with the engine compiled for its digest, a per-campaign lock
+ahead of compare-and-set and idle eviction; `PlayService.bind` becomes a
+lookup. Narration and NPC proposals run as jobs behind the outbox, so a slow
+provider never holds a committed turn's projection.
+
+**Event schemas evolve by upcasting.** An upcaster registry keyed by event
+kind and schema version runs on read before the fold; a version is retained
+until every stored campaign has been snapshotted past it.
 
 ## Migration order
 
@@ -278,3 +309,7 @@ match the engine that replays it.
    `CombatRules.battlefields`, a template reference plus spatial-context
    instance on the encounter, and a migration for snapshots that embed a hex
    map (with #323).
+8. Stand up the session registry and move narration and NPC proposals behind
+   the outbox as jobs.
+9. Fence, then retire, the wave-1 prototype resolver.
+10. Add the event upcaster registry before snapshots become a cache.
