@@ -28,6 +28,9 @@ from wayfarer.rules.catalog import (
 )
 from wayfarer.rules.conformance import CoverageStatus, capability, profile
 from wayfarer.rules.gurps_characters import source
+
+# The same shape #345 publishes, so one report field carries both groups.
+from wayfarer.rules.mundane_skills.social import UnsupportedScope
 from wayfarer.rules.skill_types import ControllingAttribute as A
 from wayfarer.rules.skill_types import Difficulty as D
 from wayfarer.rules.skill_types import SkillDefault, SkillSpec, Specialty
@@ -72,6 +75,9 @@ class WeaponClass:
     # Whether the mode must carry pinned mount facts. A crew-served or
     # vehicle-mounted skill needs them; a held weapon's skill must not have them.
     mounted: bool = False
+    # Whether the mode must carry pinned stream facts. Only the liquid projector
+    # rows hold a stream open; every other ranged skill fires and is done.
+    spraying: bool = False
     # The only B270 rated weapon ST (#348) this skill may carry, if any.
     rated_kind: Literal["bow", "crossbow"] | None = None
 
@@ -105,6 +111,14 @@ MOUNTED: Final = WeaponClass(
     tight_beam=True,
     mounted=True,
 )
+# Liquid projectors (#359): a held stream, never a thrown or rapid-fire shot.
+SPRAYER: Final = WeaponClass(
+    thrown=False,
+    ammunition=True,
+    technology_level_indexed=True,
+    tight_beam=False,
+    spraying=True,
+)
 BEAM: Final = WeaponClass(
     thrown=False,
     ammunition=True,
@@ -113,6 +127,23 @@ BEAM: Final = WeaponClass(
     technology_level_indexed=True,
     tight_beam=True,
     conventional_firearm=False,
+)
+
+
+# B205 streams: what #359 binds, and what it leaves to #398.
+STREAM_RESIDUALS: Final = (
+    UnsupportedScope(
+        "lingering-fire",
+        "A stream that sets a target alight keeps burning after the stream ends;"
+        " scheduling that hazard needs authoritative scenario context.",
+        398,
+    ),
+    UnsupportedScope(
+        "simultaneous-area-coverage",
+        "One second of stream covering several combatants needs an attack that"
+        " resolves against more than one defender; a stream is walked instead.",
+        398,
+    ),
 )
 
 
@@ -134,6 +165,10 @@ class RangedProcedure:
     # Blockers this issue does not close, each mapped to the concrete open child
     # that owns it. A transferred blocker without an owner is a coverage failure.
     transferred: Mapping[str, tuple[int, ...]] = field(default_factory=dict)
+    # Named parts of a bound entry this module does not carry. A bound row can
+    # still leave scope to another issue; publishing it keeps the gap visible
+    # instead of folding it back into a blocker.
+    unsupported: tuple[UnsupportedScope, ...] = ()
 
     @property
     def blockers(self) -> tuple[str, ...]:
@@ -624,6 +659,7 @@ _ROWS: Final = (
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
         transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
+    # B205: a family of held streams, expanded into concrete specialties (#359).
     RangedProcedure(
         "skill:liquid-projector",
         "Liquid Projector",
@@ -631,9 +667,64 @@ _ROWS: Final = (
         A.DX,
         D.EASY,
         (SkillDefault(A.DX, -4),),
-        transferred=dict.fromkeys(
-            (RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL), (359,)
+        specialties=tuple(
+            f"skill:liquid-projector-{key}"
+            for key in ("flamethrower", "sprayer", "squirt-gun", "water-cannon")
         ),
+        resolved=(RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL),
+        unsupported=STREAM_RESIDUALS,
+    ),
+    RangedProcedure(
+        "skill:liquid-projector-flamethrower",
+        "Liquid Projector (Flamethrower)",
+        205,
+        A.DX,
+        D.EASY,
+        (SkillDefault(A.DX, -4),),
+        SPRAYER,
+        Specialty("liquid-projector", "flamethrower"),
+        resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
+        unsupported=STREAM_RESIDUALS,
+    ),
+    RangedProcedure(
+        "skill:liquid-projector-sprayer",
+        "Liquid Projector (Sprayer)",
+        205,
+        A.DX,
+        D.EASY,
+        (SkillDefault(A.DX, -4),),
+        SPRAYER,
+        Specialty("liquid-projector", "sprayer"),
+        resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
+        unsupported=STREAM_RESIDUALS,
+    ),
+    RangedProcedure(
+        "skill:liquid-projector-squirt-gun",
+        "Liquid Projector (Squirt Gun)",
+        205,
+        A.DX,
+        D.EASY,
+        (SkillDefault(A.DX, -4),),
+        SPRAYER,
+        Specialty("liquid-projector", "squirt-gun"),
+        resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
+        unsupported=STREAM_RESIDUALS,
+    ),
+    RangedProcedure(
+        "skill:liquid-projector-water-cannon",
+        "Liquid Projector (Water Cannon)",
+        205,
+        A.DX,
+        D.EASY,
+        (SkillDefault(A.DX, -4),),
+        SPRAYER,
+        Specialty("liquid-projector", "water-cannon"),
+        resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
+        unsupported=STREAM_RESIDUALS,
     ),
     RangedProcedure(
         "skill:innate-attack",
@@ -647,6 +738,13 @@ _ROWS: Final = (
 )
 # Every listed ranged combat row, plus the concrete specialties this issue expands.
 PROCEDURES: Final = MappingProxyType({entry.id: entry for entry in _ROWS})
+
+
+def ranged_scope() -> tuple[tuple[str, UnsupportedScope], ...]:
+    """Named scope a bound ranged row leaves to another issue, for the report."""
+    return tuple(
+        (entry.id, scope) for entry in _ROWS for scope in entry.unsupported if entry.implemented
+    )
 
 
 def definitions() -> tuple[RuleDefinition, ...]:
@@ -696,6 +794,7 @@ def require_mode(
     entangling: bool = False,
     conventional_firearm: bool = False,
     mounted: bool = False,
+    spraying: bool = False,
 ) -> RangedProcedure | None:
     """Fail closed before dice when a weapon claims an unbound ranged skill.
 
@@ -737,6 +836,8 @@ def require_mode(
         raise ValidationError(f"Entangling facts are outside the skill's class: {skill_id}")
     if mounted != weapon.mounted:
         raise ValidationError(f"Mount facts are outside the skill's class: {skill_id}")
+    if spraying != weapon.spraying:
+        raise ValidationError(f"Stream facts are outside the skill's class: {skill_id}")
     if (
         weapon.conventional_firearm is not None
         and conventional_firearm != weapon.conventional_firearm

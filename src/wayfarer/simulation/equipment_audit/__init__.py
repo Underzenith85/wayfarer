@@ -29,6 +29,7 @@ from wayfarer.rules.profiles import (
     GURPS_CHARACTERS_PACKAGE,
     GURPS_LITE_PACKAGE,
 )
+from wayfarer.rules.spray_types import SprayerSpec
 from wayfarer.simulation.basic_equipment import BASIC_EQUIPMENT, ULTRATECH_INDEX
 from wayfarer.simulation.gurps_equipment import (
     LITE_EQUIPMENT,
@@ -62,6 +63,7 @@ AUDITED_MODELS = (
     FirearmSpec,
     EntangleSpec,
     MountSpec,
+    SprayerSpec,
     Armor,
     Shield,
     EquipmentProfile,

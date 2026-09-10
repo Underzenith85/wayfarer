@@ -5584,10 +5584,145 @@
       112,
       336,
       344,
-      359,
       382,
       384,
       385
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "liquid-projector-flamethrower",
+    "name": "Liquid Projector (Flamethrower)",
+    "page": 205,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "liquid-projector",
+      "name": "flamethrower"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362,
+      382,
+      383,
+      384
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "liquid-projector-sprayer",
+    "name": "Liquid Projector (Sprayer)",
+    "page": 205,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "liquid-projector",
+      "name": "sprayer"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362,
+      382,
+      383,
+      384
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "liquid-projector-squirt-gun",
+    "name": "Liquid Projector (Squirt Gun)",
+    "page": 205,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "liquid-projector",
+      "name": "squirt-gun"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362,
+      382,
+      383,
+      384
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "liquid-projector-water-cannon",
+    "name": "Liquid Projector (Water Cannon)",
+    "page": 205,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "liquid-projector",
+      "name": "water-cannon"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 344
   },

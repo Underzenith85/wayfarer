@@ -1802,6 +1802,58 @@
       "gap": null
     },
     {
+      "id": "RangedMode.sprayer",
+      "unit": "optional held stream protocol",
+      "reference": "Characters third printing B205; frozen first-printing/errata reconciliation pending #191",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_liquid_projector_streams.py::test_every_specialty_opens_a_stream"
+      ],
+      "gap": null
+    },
+    {
+      "id": "SprayerSpec.sustained_seconds",
+      "unit": "seconds of sustained stream",
+      "reference": "Characters third printing B205; frozen first-printing/errata reconciliation pending #191",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_liquid_projector_streams.py::test_a_stream_stops_at_its_ceiling"
+      ],
+      "gap": null
+    },
+    {
+      "id": "SprayerSpec.rounds_per_second",
+      "unit": "rounds per second of stream",
+      "reference": "Characters third printing B205; frozen first-printing/errata reconciliation pending #191",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_liquid_projector_streams.py::test_a_held_stream_is_paid_for_every_second_and_can_be_walked"
+      ],
+      "gap": null
+    },
+    {
+      "id": "SprayerSpec.ignites",
+      "unit": "ignition flag",
+      "reference": "Characters third printing B205; frozen first-printing/errata reconciliation pending #191",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_liquid_projector_streams.py::test_every_specialty_opens_a_stream"
+      ],
+      "gap": null
+    },
+    {
       "id": "FirearmSpec.technology_level",
       "unit": "technology level",
       "reference": "Campaigns fourth printing B382/B407; baseline reconciliation remains #191",

@@ -112,7 +112,6 @@ retained where previously recorded, but they do not replace the active owners.
 | #342 | Medicine and mental procedures. |
 | #343 | Physical, outdoor and animal procedures. |
 | #344 | Ranged combat skill procedures; see below for what it bound and what it transferred. |
-| #359 | Liquid Projector streams and sprays. |
 | #360 | The Spear Thrower launcher procedure. |
 | #361 | Innate Attack specialties beyond Projectile. |
 | #362 | Cross-specialty and conditional defaults for ranged combat skills. |
@@ -159,7 +158,8 @@ equipment catalog is built and again when a mode is selected in play.
 | `skill:artillery` | B178, IQ/A, IQ-5 | Family expanded into six concrete specialties (Beams, Bombs, Cannon, Catapult, Guided Missile, Torpedoes); never dispatched itself. |
 | `skill:gunner` | B198, DX/E, DX-4 | Family expanded into five concrete specialties (Beams, Cannon, Machine Gun, Rockets, Torpedoes); never dispatched itself. |
 | `skill:artillery-*`, `skill:gunner-*` | B178, B198 | Implemented. Fired from a served mount rather than a grip. Cross-specialty defaults remain with #362. |
-| `skill:liquid-projector` | B205, DX/E, DX-4 | Transferred to #359; needs stream and spray state the dispatch does not have. |
+| `skill:liquid-projector` | B205, DX/E, DX-4 | Family expanded into four concrete specialties (Flamethrower, Sprayer, Squirt Gun, Water Cannon); never dispatched itself. |
+| `skill:liquid-projector-*` | B205, DX/E, DX-4 | Implemented. Holds a stream second by second. Lingering fire and simultaneous area coverage are published scope owned by #398. |
 | `skill:innate-attack` | B201, DX/E, DX-4 | Transferred to #361. The Projectile specialty is already dispatched by the opt-in spell adapter under its own pin; reconciling it here is an explicit migration. |
 
 ### Bindings (#354)
@@ -209,6 +209,25 @@ weapon, the grip and hand-binding rules and the minimum-ST penalty do not apply
 to it. A shot laid indirectly arrives without warning: the target gets no
 active defense against it. Evidence is in
 `tests/test_mounted_ranged_skills.py`.
+
+### Streams (#359)
+
+A liquid projector mode carries pinned `SprayerSpec` facts: how long a single
+stream can run, the rounds every second of it costs, and whether it ignites its
+target. Streams are Basic-only, and a stream is never thrown, entangling or
+rapid-fired.
+
+Attacking with a projector opens a stream on the target and records it on the
+combatant. Every further second is a separate attack that pays its rounds again
+and rolls again, and the stream may be walked to a new target without reopening
+it. It ends when its holder does anything other than keep pouring the same
+weapon, and it cannot run past its own sustained-seconds ceiling.
+
+Two named parts of the entry are not carried here and are published as
+transferred procedure scope under #398 rather than folded into a blocker:
+lingering fire after the stream stops, and one second of stream covering
+several combatants at once. Evidence is in
+`tests/test_liquid_projector_streams.py`.
 
 A binding may only resolve or keep the blockers the inventory recorded, and its
 numbers must be the recorded ones: `inventory()` raises on either drift, and on

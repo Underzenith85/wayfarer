@@ -24,6 +24,7 @@ from wayfarer.rules.catalog import (
 )
 from wayfarer.rules.gurps_characters import source
 from wayfarer.rules.mundane_skills.ranged import PROCEDURES as RANGED_PROCEDURES
+from wayfarer.rules.mundane_skills.ranged import ranged_scope
 from wayfarer.rules.mundane_skills.schema import Exclusion, Exclusions, InventoryRow, SourceIndex
 from wayfarer.rules.mundane_skills.social import PROCEDURES as SOCIAL_PROCEDURES
 from wayfarer.rules.mundane_skills.social import unsupported_scope as social_scope
@@ -634,7 +635,8 @@ def audit_report() -> dict[str, object]:
         # A bound row can still leave part of its entry to another issue. That is
         # not a blocker, and publishing it keeps the gap visible to #122.
         "transferred_procedure_scope": [
-            {"skill": identifier} | asdict(scope) for identifier, scope in social_scope()
+            {"skill": identifier} | asdict(scope)
+            for identifier, scope in (*social_scope(), *ranged_scope())
         ],
         "structured": sum(e.definition is not None for e in entries),
         "required_specialties": sum(e.specialty_required for e in entries),

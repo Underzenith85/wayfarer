@@ -4817,6 +4817,17 @@
           ],
           "default": null
         },
+        "sprayer": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SprayerSpec"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "firearm": {
           "anyOf": [
             {
@@ -6163,6 +6174,35 @@
         "channels"
       ],
       "title": "SpellRules",
+      "type": "object"
+    },
+    "SprayerSpec": {
+      "additionalProperties": false,
+      "description": "Explicit stream facts for one liquid projector mode.",
+      "properties": {
+        "sustained_seconds": {
+          "maximum": 60,
+          "minimum": 1,
+          "title": "Sustained Seconds",
+          "type": "integer"
+        },
+        "rounds_per_second": {
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Rounds Per Second",
+          "type": "integer"
+        },
+        "ignites": {
+          "default": false,
+          "title": "Ignites",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "sustained_seconds",
+        "rounds_per_second"
+      ],
+      "title": "SprayerSpec",
       "type": "object"
     },
     "SurpriseState": {

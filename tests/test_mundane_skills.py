@@ -300,7 +300,7 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     }
     assert entries["skill:guns"].owners == (344,)
     assert entries["skill:artillery"].owners == (344,)
-    assert entries["skill:liquid-projector"].owners == (344, 359)
+    assert entries["skill:spear-thrower"].owners == (344, 360, 362)
     assert coverage_blockers(PROFILE) == (
         103,
         109,
@@ -319,7 +319,6 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         346,
         356,
         358,
-        359,
         360,
         361,
         362,
@@ -354,7 +353,6 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         346,
         356,
         358,
-        359,
         360,
         361,
         362,
@@ -370,11 +368,11 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     ]
     assert report["runtime_owner_unassigned"] == 0
     assert report["implementation_counts"] == {
-        # 40 ranged (#344, #354, #355, #357), 16 social (#345) and 83
+        # 45 ranged (#344, #354, #355, #357, #359), 16 social (#345) and 83
         # technology (#346) rows dispatch a real procedure.
         "contextual": 28,
-        "implemented": 139,
-        "unsupported": 187,
+        "implemented": 144,
+        "unsupported": 186,
     }
     # A bound row can still leave part of its entry to another issue; that gap is
     # published rather than folded into the blocker list.
@@ -388,8 +386,15 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         "skill:performance",
         "skill:public-speaking",
         "skill:teaching",
+        # #359 binds the liquid projector rows and publishes the two named parts
+        # of the entry it leaves to #398.
+        "skill:liquid-projector",
+        "skill:liquid-projector-flamethrower",
+        "skill:liquid-projector-sprayer",
+        "skill:liquid-projector-squirt-gun",
+        "skill:liquid-projector-water-cannon",
     }
-    assert all(row["owner_issue"] in (368, 369, 370) and row["detail"] for row in scope)
+    assert all(row["owner_issue"] in (368, 369, 370, 398) and row["detail"] for row in scope)
     counts = report["structural_class_counts"]
     assert isinstance(counts, dict) and counts["listing-only"] == 28
 
@@ -437,7 +442,7 @@ def test_independent_source_index_accounts_for_every_listing() -> None:
     assert len([e for e in index.entries if e.kind == "skill"]) == 275
     assert len([e for e in index.entries if e.kind == "technique"]) == 27
     # #344 expands Thrown Weapon and #355 the two TL-indexed weapon families.
-    assert len([e for e in index.entries if e.kind == "expansion"]) == 79
+    assert len([e for e in index.entries if e.kind == "expansion"]) == 83
     assert indexed_expansions(index, "thrown-weapon") == 7
     indexed = {e.id: e for e in index.entries}
     assert indexed["brain-hacking"].page == 182
