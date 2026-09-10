@@ -6278,9 +6278,136 @@
       112,
       336,
       344,
-      361,
       382,
       385
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "innate-attack-beam",
+    "name": "Innate Attack (Beam)",
+    "page": 201,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "specialty": {
+      "family": "innate-attack",
+      "name": "beam"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362,
+      382,
+      383
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "innate-attack-breath",
+    "name": "Innate Attack (Breath)",
+    "page": 201,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "specialty": {
+      "family": "innate-attack",
+      "name": "breath"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362,
+      382,
+      383
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "innate-attack-gaze",
+    "name": "Innate Attack (Gaze)",
+    "page": 201,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "specialty": {
+      "family": "innate-attack",
+      "name": "gaze"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362,
+      382,
+      383
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "innate-attack-projectile",
+    "name": "Innate Attack (Projectile)",
+    "page": 201,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "specialty": {
+      "family": "innate-attack",
+      "name": "projectile"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362,
+      382,
+      383
     ],
     "procedure_owner": 344
   },

@@ -142,7 +142,8 @@ def test_listed_scope_is_completely_accounted_for() -> None:
         for identifier in LISTED
         if not PROCEDURES[identifier].implemented
     }
-    assert transferred == {"skill:innate-attack": (361,)}
+    # Every listed row now has a bound procedure; nothing is left transferred.
+    assert transferred == {}
 
 
 def test_thrown_weapon_family_is_expanded_into_concrete_specialties() -> None:
@@ -244,9 +245,7 @@ async def test_thrown_specialties_dispatch_and_expend_the_item(
 
 @pytest.mark.parametrize(
     ("identifier", "expected"),
-    [
-        ("skill:innate-attack", "#361"),
-    ],
+    [],
 )
 def test_transferred_rows_fail_closed_naming_their_owner(identifier: str, expected: str) -> None:
     with pytest.raises(ValidationError, match="unsupported") as error:
@@ -362,8 +361,6 @@ def test_authored_catalogs_fail_closed_before_a_campaign_exists() -> None:
         )
 
     assert catalog("skill:crossbow") is not None
-    with pytest.raises(ValidationError, match="#361"):
-        catalog("skill:innate-attack")
     for family in ("skill:thrown-weapon", "skill:guns", "skill:liquid-projector"):
         with pytest.raises(ValidationError, match="concrete specialty"):
             catalog(family)
