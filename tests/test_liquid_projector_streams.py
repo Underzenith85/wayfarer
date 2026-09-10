@@ -110,9 +110,11 @@ def test_the_family_expands_and_publishes_what_it_does_not_carry() -> None:
         ]
     # A bound row can still leave named scope to another issue; it is published,
     # not folded back into a blocker.
+    report = audit_report()["transferred_procedure_scope"]
+    assert isinstance(report, list)
     published = {
         (row["skill"], row["id"], row["owner_issue"])
-        for row in audit_report()["transferred_procedure_scope"]  # type: ignore[union-attr]
+        for row in report
         if str(row["skill"]).startswith("skill:liquid-projector")
     }
     assert ("skill:liquid-projector", "lingering-fire", 398) in published
