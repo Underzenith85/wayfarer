@@ -120,6 +120,8 @@ describe("Tactical panel", () => {
         id: "sword",
         name: "Sword",
         condition: null,
+        readiness: null,
+        loaded_rounds: null,
         ground: { encounter_id: "fight", geometry: "hex", x: -6, y: 0 },
         work: null,
         due_in: null,

@@ -30,6 +30,7 @@ from wayfarer.rules.profiles import (
     GURPS_CHARACTERS_PACKAGE,
     GURPS_LITE_PACKAGE,
 )
+from wayfarer.rules.readiness_types import ProjectileReadiness
 from wayfarer.rules.spray_types import SprayerSpec
 from wayfarer.simulation.basic_equipment import BASIC_EQUIPMENT, ULTRATECH_INDEX
 from wayfarer.simulation.gurps_equipment import (
@@ -62,6 +63,7 @@ AUDITED_MODELS = (
     RangedMode,
     RatedStrength,
     FirearmSpec,
+    ProjectileReadiness,
     EntangleSpec,
     MountSpec,
     SprayerSpec,

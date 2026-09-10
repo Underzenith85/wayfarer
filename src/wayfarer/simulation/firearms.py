@@ -6,6 +6,7 @@ from typing import Literal
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.rules.checks import CheckTrace
 from wayfarer.rules.firearm_types import FirearmFailure
+from wayfarer.rules.readiness_types import ProjectileProgress
 from wayfarer.simulation.combat import Combatant, InjuryTrace, RangedSituation
 from wayfarer.simulation.gurps_equipment import EquipmentCatalog, RangedMode
 from wayfarer.simulation.resources import (
@@ -66,7 +67,13 @@ def spend_rounds(state: ResourceState, weapon_id: str, count: int) -> ResourceSt
     if load is None or load.rounds < count:
         raise ValidationError("Insufficient loaded ammunition")
     loads = tuple(
-        v.model_copy(update={"rounds": v.rounds - count, "reload_progress": 0})
+        v.model_copy(
+            update={
+                "rounds": v.rounds - count,
+                "reload_progress": 0,
+                "readiness": ProjectileProgress(stage="loaded") if v.readiness else None,
+            }
+        )
         if v.weapon_id == weapon_id
         else v
         for v in state.ammunition_loads

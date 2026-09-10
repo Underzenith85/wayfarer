@@ -63,6 +63,9 @@ class TakeCombatTurn(CombatCommand):
     shots: int = Field(default=1, ge=1, le=100)
     reload_ammunition_id: str | None = None
     unload_ammunition: bool = Field(default=False, exclude_if=lambda v: not v)
+    fast_draw: bool = Field(default=False, exclude_if=lambda v: not v)
+    cocking_aid_id: str | None = Field(default=None, exclude_if=lambda v: v is None)
+    let_down_bow: bool = Field(default=False, exclude_if=lambda v: not v)
     escape_entanglement: bool = Field(default=False, exclude_if=lambda v: not v)
     mount_crew: tuple[Id, ...] = Field(default=(), exclude_if=lambda v: not v)
     firearm_service: Literal["diagnose", "clear", "repair"] | None = Field(
@@ -288,6 +291,9 @@ class CombatService:
                             "shots": 1,
                             "reload_ammunition_id": None,
                             "unload_ammunition": False,
+                            "fast_draw": False,
+                            "cocking_aid_id": None,
+                            "let_down_bow": False,
                             "firearm_service": None,
                             "firearm_service_skill": "weapon",
                             "destination": None,
@@ -1018,6 +1024,9 @@ class CombatService:
                                     "shots": 1,
                                     "reload_ammunition_id": None,
                                     "unload_ammunition": False,
+                                    "fast_draw": False,
+                                    "cocking_aid_id": None,
+                                    "let_down_bow": False,
                                     "firearm_service": None,
                                     "firearm_service_skill": "weapon",
                                     "item_id": None,
@@ -1112,6 +1121,24 @@ class CombatService:
                                 self.play,
                                 state.model_copy(update={"resources": resources}),
                                 command_for_turn,
+                            )
+                        if command_for_turn.let_down_bow:
+                            from wayfarer.orchestration.gurps_melee import mode
+                            from wayfarer.orchestration.projectile_readiness import let_down
+                            from wayfarer.simulation.gurps_equipment import RangedMode
+
+                            selected = mode(
+                                self.play,
+                                state,
+                                command.actor_id,
+                                command.item_id or "",
+                                command.mode_id,
+                            )
+                            assert isinstance(selected, RangedMode)
+                            resources = let_down(
+                                state.model_copy(update={"resources": resources}),
+                                command_for_turn,
+                                selected,
                             )
                         if command_for_turn.mount_crew:
                             from wayfarer.orchestration.mounts import assign_crew
@@ -1545,6 +1572,11 @@ class CombatService:
                         system=True,
                         rng=self.play.rng,
                     )
+            from wayfarer.orchestration.projectile_readiness import interrupted_draws
+
+            resources = interrupted_draws(
+                self.play, initial_state, resources, encounter.id, encounter
+            )
             revision = state.revision + 1
             if encounter.hex_battlefield is not None:
                 from wayfarer.simulation.tactical import TacticalTrace
