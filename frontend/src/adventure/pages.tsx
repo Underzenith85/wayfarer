@@ -6,6 +6,7 @@ import type { Scope } from "../multiplayer/model";
 import { Button } from "../components/ui/button";
 import { ScopedLink } from "../scoped-link";
 import { EmptyRegion } from "../components/region-state";
+import { Fleuron } from "../components/ornaments";
 
 function Boundary({
   children,
@@ -185,6 +186,9 @@ function ClosureContents({
         </p>
       </section>
       <section className="scene-card closure-section">
+        <div className="scene-break" aria-hidden="true">
+          <Fleuron />
+        </div>
         <h2>Downtime and advancement</h2>
         {view.advancement.map((item) => (
           <fieldset

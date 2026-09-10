@@ -47,61 +47,54 @@ test("two identities activate a saved party and review speech through the live d
       localStorage.setItem("wayfarer-voice-notice", "seen");
     });
     const lobby = await login(a, "alice");
-    const title = `Courier ${crypto.randomUUID().slice(0, 8)}`;
+    const existing = await a.request.get("/setups", {
+      headers: { Authorization: "Bearer alice-token" },
+    });
+    const existingIds = new Set(
+      ((await existing.json()) as { id: string }[]).map((value) => value.id),
+    );
+    // Starting a game chooses its reusable adventure once. Story authoring and
+    // premise editing belong to the separate Create scenario surface.
     await lobby
-      .getByRole("textbox", { name: "Premise", exact: true })
-      .fill(title);
-    // Review is reachable as soon as the concept validates; it creates.
-    await lobby.getByRole("button", { name: "Next: Adventure" }).click();
+      .getByLabel("Adventure and starting party")
+      .selectOption("adventure");
     await lobby.getByRole("button", { name: "Next: Rules" }).click();
     await lobby.getByRole("button", { name: "Next: Ready" }).click();
     await lobby.getByRole("button", { name: "Create game draft" }).click();
     await expect(
       lobby.getByRole("button", { name: "Save setup draft" }),
     ).toBeVisible();
-    await lobby.getByRole("button", { name: "Adventure", exact: true }).click();
-    await lobby
-      .getByLabel("Adventure and starting party")
-      .selectOption("adventure");
-    await lobby.getByRole("button", { name: "Concept", exact: true }).click();
-    await lobby
-      .getByRole("textbox", { name: "Premise", exact: true })
-      .fill(title);
-    await lobby.getByRole("button", { name: "Save setup draft" }).click();
-    await lobby.getByRole("button", { name: "Party", exact: true }).click();
     await lobby.getByLabel("Invite player ID").fill("bob");
     await lobby
       .getByRole("button", { name: "Invite player", exact: true })
       .click();
-    await expect(lobby.getByRole("status")).toContainText("revision 2");
+    await expect(lobby.getByRole("status")).toContainText("revision 1");
     const blobby = await login(b, "bob");
     // Locate the exact shared campaign through its authenticated listing.
     const values = await a.request.get("/setups", {
       headers: { Authorization: "Bearer alice-token" },
     });
-    const list = (await values.json()) as {
-      id: string;
-      brief: { premise: string };
-    }[];
-    const cid = list.find((v) => v.brief.premise === title)!.id;
+    const list = (await values.json()) as { id: string }[];
+    const cid = list.find((value) => !existingIds.has(value.id))!.id;
+    await b.getByRole("tab", { name: "Join game", exact: true }).click();
     await blobby.locator(`[data-campaign-id="${cid}"]`).click();
     await blobby.getByRole("button", { name: "Accept invitation" }).click();
-    await expect(blobby.getByRole("status")).toContainText("revision 3");
+    await expect(blobby.getByRole("status")).toContainText("revision 2");
     await lobby.getByRole("button", { name: "Refresh this list" }).click();
     await lobby.getByLabel("Assign character to alice").selectOption("a");
-    await expect(lobby.getByRole("status")).toContainText("revision 4");
+    await expect(lobby.getByRole("status")).toContainText("revision 3");
     await lobby.getByLabel("Assign character to bob").selectOption("b");
-    await expect(lobby.getByRole("status")).toContainText("revision 5");
+    await expect(lobby.getByRole("status")).toContainText("revision 4");
     await lobby.getByRole("button", { name: "Ready", exact: true }).click();
     await lobby
       .getByRole("button", { name: "Validate and mark ready" })
       .click();
-    await expect(lobby.getByRole("status")).toContainText("revision 6");
+    await expect(lobby.getByRole("status")).toContainText("revision 5");
     await blobby.getByRole("button", { name: "Refresh this list" }).click();
     await blobby
       .getByRole("button", { name: "Validate and mark ready" })
       .click();
-    await expect(blobby.getByRole("status")).toContainText("revision 7");
+    await expect(blobby.getByRole("status")).toContainText("revision 6");
     await lobby.getByRole("button", { name: "Refresh this list" }).click();
     await lobby
       .getByRole("button", { name: "Start game", exact: true })

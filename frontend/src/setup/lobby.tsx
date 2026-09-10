@@ -11,13 +11,11 @@ import type { Campaign } from "../play/transport";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "../components/ui/button";
 import { ConfirmDialog } from "../components/ui/confirm";
-import { ProviderBanner } from "../components/availability";
 import { providerReason } from "../presentation/availability";
 import { TechnicalDetails } from "../components/technical-details";
 import { NetworkPlayTransport } from "../api/play-transport";
 import {
   campaignPhaseLabel,
-  difficulties,
   difficultyLabel,
   humanize,
   lifecycleOperationLabel,
@@ -39,18 +37,8 @@ const blank: Brief = {
   difficulty: "standard",
   restrictions: [],
 };
-const sameBrief = (left: Brief, right: Brief) =>
-  left.premise === right.premise &&
-  left.genre === right.genre &&
-  left.tone === right.tone &&
-  left.duration_minutes === right.duration_minutes &&
-  left.difficulty === right.difficulty &&
-  left.restrictions.length === right.restrictions.length &&
-  left.restrictions.every(
-    (value, index) => value === right.restrictions[index],
-  );
 /** The lobby surfaces, one per tab of the shell above it. */
-export type SetupMode = "new" | "continue" | "join" | "scenarios";
+export type SetupMode = "new" | "join" | "scenarios";
 /**
  * The authenticated setup session. The caller keeps it so the setup shell can
  * unmount while a campaign is being played without asking for the token again.
@@ -61,15 +49,24 @@ export interface SetupSession {
   generationAvailable: boolean;
   legacyAvailable: boolean;
 }
+type PublishedScenario = {
+  id: string;
+  revision: number;
+  title: string;
+  summary: string;
+  status: string;
+  published: boolean;
+  archived: boolean;
+};
 /**
  * One step of setup is shown at a time; a draft is never a stack of forms.
  *
- * The numbered steps are the four that author a setup, in the order the flow
+ * The numbered steps are the three that instantiate a game, in the order the flow
  * actually walks them. Party assignment happens after the draft exists, so it
  * is the screen that follows creation rather than a step of the wizard nobody
  * could reach going forward (#259, #260).
  */
-const steps = ["Concept", "Adventure", "Rules", "Ready"] as const;
+const steps = ["Adventure", "Rules", "Ready"] as const;
 type Step = (typeof steps)[number];
 type Screen = Step | "Party";
 /**
@@ -116,17 +113,17 @@ export function SetupLobby({
     [lobby, setLobby] = useState<Lobby>();
   const [templates, setTemplates] = useState<Graph[]>([]),
     [graph, setGraph] = useState<Graph | null>(null);
+  const [publishedScenarios, setPublishedScenarios] = useState<
+      PublishedScenario[]
+    >([]),
+    [selectedScenario, setSelectedScenario] = useState<PublishedScenario>();
   const [profiles, setProfiles] = useState<RulesProfile[]>([]),
     [profile, setProfile] = useState("");
   const [brief, setBrief] = useState(blank),
     [invite, setInvite] = useState("");
-  // Once a concept came from a person (or was explicitly accepted from an
-  // adventure), selecting another adventure must not silently replace it.
-  const [conceptProtected, setConceptProtected] = useState(false),
-    [conceptBackup, setConceptBackup] = useState<Brief | null>(null);
   const [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
-  const [step, setStep] = useState<Screen>("Concept");
+  const [step, setStep] = useState<Screen>("Adventure");
   /** The irreversible lifecycle operation waiting on its confirmation, if any. */
   const [confirming, setConfirming] = useState<string>();
   /** Set by a pause this session, so its undo is offered where it was taken. */
@@ -169,37 +166,15 @@ export function SetupLobby({
     setLobby(value);
     setBrief(value.brief);
     setGraph(value.graph);
-    setConceptProtected(true);
-    setConceptBackup(null);
+    setSelectedScenario(undefined);
   };
   const restart = () => {
     setLobby(undefined);
     setGraph(null);
+    setSelectedScenario(undefined);
     setBrief(blank);
-    setConceptProtected(false);
-    setConceptBackup(null);
-    setStep("Concept");
+    setStep("Adventure");
   };
-  const editBrief = (value: Brief) => {
-    setBrief(value);
-    setConceptProtected(true);
-  };
-  const restoreConcept = conceptBackup && (
-    <div>
-      <p role="status">The adventure concept is in use.</p>
-      <Button
-        type="button"
-        variant="outline"
-        onClick={() => {
-          setBrief(conceptBackup);
-          setConceptBackup(null);
-          setConceptProtected(true);
-        }}
-      >
-        Restore previous concept
-      </Button>
-    </div>
-  );
   const run = async (work: () => Promise<void>) => {
     if (busy) return;
     setBusy(true);
@@ -212,6 +187,21 @@ export function SetupLobby({
       setBusy(false);
     }
   };
+  const loadPublishedScenarios = useCallback(async () => {
+    if (!session) return [];
+    const response = await fetch("/authoring/v1/scenarios", {
+      headers: { Authorization: `Bearer ${session.token}` },
+    });
+    if (!response.ok)
+      throw new Error("Published scenarios are unavailable on this server.");
+    const values = (await response.json()) as PublishedScenario[];
+    if (!Array.isArray(values))
+      throw new Error("The published scenario catalog is incompatible.");
+    return values.filter(
+      (value) =>
+        value.published && !value.archived && value.status === "playable",
+    );
+  }, [session]);
   const command = async (
     operation: string,
     extra: object = {},
@@ -232,7 +222,9 @@ export function SetupLobby({
     if (enter && (operation === "activate" || operation === "resume"))
       open(result);
   };
-  // A restored session reloads its own games, drafts and catalogs.
+  // A restored session reloads the games it can continue or join. Creation
+  // catalogs belong to the New game surface below; keeping them out of this
+  // request means an unavailable authoring service cannot hide playable games.
   useEffect(() => {
     if (!client || !session) return;
     let cancelled = false;
@@ -246,13 +238,9 @@ export function SetupLobby({
           principalId: session.principal,
         }).listCampaigns(new AbortController().signal);
         const values = await client.request<Lobby[]>("");
-        const available = await client.request<Graph[]>("/templates");
-        const registered = await client.request<RulesProfile[]>("/profiles");
         if (cancelled) return;
         setGames(saved);
         setLobbies(values);
-        setTemplates(available);
-        setProfiles(registered);
         // Returning from play reopens the campaign that was being played.
         if (values.some((value) => value.id === initialCampaignId)) {
           const current = await client.request<Lobby>(`/${initialCampaignId}`);
@@ -260,10 +248,13 @@ export function SetupLobby({
           setLobby(current);
           setBrief(current.brief);
           setGraph(current.graph);
-          setConceptProtected(true);
-          setConceptBackup(null);
           setStep(landing(current, session.principal));
         }
+        // Adventure templates are also used when a finished game continues,
+        // but they are not allowed to hold the join list hostage.
+        const available = await client.request<Graph[]>("/templates");
+        if (cancelled) return;
+        setTemplates(available);
       } catch (e) {
         if (!cancelled)
           setError(e instanceof Error ? e.message : "Request failed");
@@ -275,6 +266,31 @@ export function SetupLobby({
       cancelled = true;
     };
   }, [client, session, initialCampaignId]);
+  // Scenario authoring and game creation are separate surfaces. Returning to
+  // Start game refreshes the published catalog so a scenario completed in the
+  // neighboring tab is immediately available to instantiate.
+  useEffect(() => {
+    if (!client || mode !== "new") return;
+    let cancelled = false;
+    void Promise.all([
+      client.request<Graph[]>("/templates"),
+      client.request<RulesProfile[]>("/profiles"),
+      loadPublishedScenarios(),
+    ])
+      .then(([available, registered, authored]) => {
+        if (cancelled) return;
+        setTemplates(available);
+        setProfiles(registered);
+        setPublishedScenarios(authored);
+      })
+      .catch((e: unknown) => {
+        if (!cancelled)
+          setError(e instanceof Error ? e.message : "Unable to load scenarios");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [client, mode, loadPublishedScenarios]);
   const host = !!session && lobby?.host_id === session.principal;
   const editable = !lobby || lobby.phase === "draft" || lobby.phase === "ready";
   const canEdit = editable && (!lobby || host) && !lobby?.scenario_pinned;
@@ -284,7 +300,11 @@ export function SetupLobby({
    * into the flow unlocks its review step.
    */
   const complete =
-    !!brief.premise.trim() && !!brief.genre.trim() && !!brief.tone.trim();
+    !!selectedScenario ||
+    (!!graph &&
+      !!brief.premise.trim() &&
+      !!brief.genre.trim() &&
+      !!brief.tone.trim());
   /**
    * What each step needs before it has anything to show. Today only the last
    * one asks for something: review has a draft to review, or a brief complete
@@ -311,20 +331,44 @@ export function SetupLobby({
     if (!client) return;
     // A draft is created from the review step alone, never by a stray submit
     // of a step that is still collecting the brief.
-    if (!lobby && step !== "Ready") return;
+    if (!lobby && (step !== "Ready" || !complete)) return;
     void run(async () => {
       if (!lobby) {
-        const selected = profiles.find(
-          (p) => `${p.id}@${p.version}` === profile,
-        );
-        const result = await client.write("", {
-          id: crypto.randomUUID(),
-          brief,
-          graph: graph ? { ...graph, brief } : null,
-          ...(selected
-            ? { rules_profile: { id: selected.id, version: selected.version } }
-            : {}),
-        });
+        let result: Lobby;
+        if (selectedScenario) {
+          const response = await fetch(
+            `/authoring/v1/scenarios/${encodeURIComponent(selectedScenario.id)}/instantiate`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${session!.token}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                id: crypto.randomUUID(),
+                revision: selectedScenario.revision,
+              }),
+            },
+          );
+          const value = (await response.json()) as Lobby & { error?: string };
+          if (!response.ok)
+            throw new Error(value.error ?? "Could not create this game.");
+          result = value;
+        } else {
+          const selected = profiles.find(
+            (p) => `${p.id}@${p.version}` === profile,
+          );
+          result = await client.write("", {
+            id: crypto.randomUUID(),
+            brief,
+            graph: graph ? { ...graph, brief } : null,
+            ...(selected
+              ? {
+                  rules_profile: { id: selected.id, version: selected.version },
+                }
+              : {}),
+          });
+        }
         choose(result);
         setLobbies([...lobbies, result]);
         // Creating the draft unlocks the party, which is the work left to do.
@@ -402,7 +446,7 @@ export function SetupLobby({
   const account =
     session && client ? (
       <p className="lobby-account">
-        Signed in as {session.principal}
+        <span>Signed in as {session.principal}</span>
         <Button
           type="button"
           variant="outline"
@@ -430,6 +474,7 @@ export function SetupLobby({
             setSecret("");
             setGames([]);
             setTemplates([]);
+            setPublishedScenarios([]);
             setProfiles([]);
             setLobbies([]);
             restart();
@@ -468,12 +513,13 @@ export function SetupLobby({
     </nav>
   );
   return (
-    <section className="scene-card setup-lobby" aria-label="New game and lobby">
+    <section className="setup-lobby" aria-label="New game and lobby">
       {/* The mode tab above names this panel; repeating it as a heading made
           selecting a mode look as though nothing had happened (#200). */}
       <h2 className="visually-hidden">Game setup</h2>
       {!session || !client ? (
         <form
+          className="setup-signin"
           onSubmit={(e) => {
             e.preventDefault();
             void run(async () => {
@@ -491,821 +537,784 @@ export function SetupLobby({
             });
           }}
         >
-          <p>Sign in with your own access token. No campaign ID is needed.</p>
-          <label>
-            Access token
-            <input
-              required
-              type="password"
-              autoComplete="off"
-              value={secret}
-              onChange={(e) => setSecret(e.target.value)}
-            />
-          </label>
-          <Button disabled={busy}>Sign in</Button>
+          <div className="setup-signin-copy">
+            <span className="eyebrow">Your table key</span>
+            <h3>Open your field journal</h3>
+            <p>Sign in with your own access token. No campaign ID is needed.</p>
+            <p className="hand">
+              Your key stays with this browser tab while you play.
+            </p>
+          </div>
+          <div className="setup-signin-fields">
+            <label>
+              Access token
+              <input
+                required
+                type="password"
+                autoComplete="off"
+                value={secret}
+                onChange={(e) => setSecret(e.target.value)}
+              />
+            </label>
+            <Button disabled={busy}>Sign in</Button>
+          </div>
         </form>
       ) : mode === "scenarios" ? (
         /* Scenario authoring is a library, not a step of setting up a game: it
            keeps its own surface, where a document format and a publish history
            are the subject rather than an aside (#261). */
         <>
-          <h3 className="lobby-heading">Scenario library</h3>
-          <p>
-            Write, import and publish scenarios here. A published scenario
-            becomes an adventure you can choose under <strong>New game</strong>.
-          </p>
-          {account}
-          {!session.generationAvailable && <ProviderBanner />}
           <ScenarioCatalog
             token={session.token}
             principal={session.principal}
             generationAvailable={session.generationAvailable}
-            concept={brief}
-            onCreate={(value) => {
-              choose(value);
-              setLobbies([...lobbies, value]);
-              setStep("Party");
-              onMode?.("new");
-            }}
           />
+          <div className="setup-account-footer">{account}</div>
         </>
       ) : (
         <>
-          {/* The list this page exists to show comes first; keeping the shell's
-              own upkeep above it put maintenance ahead of content (#204). */}
-          <h3 className="lobby-heading">
-            {mode === "join"
-              ? "Invitations and games"
-              : "Your saved games and unfinished drafts"}
-          </h3>
-          {mode === "join" && (
-            <p>
-              Ask the host to invite your player name, then refresh this list to
-              accept your invitation.
-            </p>
-          )}
-          {!lobbies.length && !games.length && !busy && (
-            <p>
-              No saved games yet. Start one below, and it appears here for every
-              later visit.
-            </p>
-          )}
-          <ul>
-            {lobbies.map((value) => (
-              <li key={value.id}>
-                <Button
-                  data-campaign-id={value.id}
-                  variant="outline"
-                  disabled={busy || client.hasPending}
-                  onClick={() =>
-                    void run(async () => {
-                      const saved = await client.request<Lobby>(`/${value.id}`);
-                      choose(saved);
-                      setStep(landing(saved, session.principal));
-                      if (saved.phase === "active") open(saved);
-                    })
-                  }
-                >
-                  {value.title} · {campaignPhaseLabel(value.phase)}
-                </Button>
-              </li>
-            ))}
-          </ul>
-          <ul>
-            {games
-              .filter((game) => !lobbies.some((value) => value.id === game.id))
-              .map((game) => (
-                <li key={game.id}>
-                  <Button
-                    data-resume-id={game.id}
-                    onClick={() =>
-                      onOpen(
-                        session.legacyAvailable
-                          ? new LiveTransport(
-                              session.principal,
-                              game.id,
-                              session.token,
-                            )
-                          : new NetworkPlayTransport({
-                              origin: location.origin,
-                              credential: session.token,
-                              principalId: session.principal,
-                              initialCampaignId: game.id,
-                            }),
-                      )
-                    }
-                  >
-                    Continue {game.name}
-                  </Button>
-                  {session.legacyAvailable && game.membership.role === "gm" && (
-                    <WorkshopReviewQueue
-                      key={`${session.principal}:${game.id}`}
-                      campaignId={game.id}
-                      principal={session.principal}
-                      token={session.token}
-                    />
-                  )}
-                </li>
-              ))}
-          </ul>
-          {/* Keeping the list current and leaving setup are upkeep, so they
-              read as upkeep: secondary, in user words, below the list (#204). */}
-          {account}
-          {!session.generationAvailable && <ProviderBanner />}
-          <div className="context-actions">
-            <Button
-              type="button"
-              disabled={busy || client.hasPending}
-              onClick={restart}
-            >
-              Start a new game
-            </Button>
-          </div>
-          {lobby ? (
-            <p role="status">
-              {lobby.title} · {campaignPhaseLabel(lobby.phase)} · revision{" "}
-              {lobby.revision}
-            </p>
-          ) : (
-            <p>Create a game, or open an invitation above.</p>
-          )}
-          {/* The line names the step; the chips below it are the same four
-              numbered steps, shown as numbered dots where a labelled row
-              cannot fit on one line (#206). Every chip keeps its step name as
-              its accessible label at every width. */}
-          <nav className="setup-steps" aria-label="Setup steps">
-            <p className="eyebrow">
-              {step === "Party"
-                ? "Party · after the draft is created"
-                : `Step ${steps.indexOf(step) + 1} of ${steps.length}: ${step}`}
-            </p>
-            <ol>
-              {steps.map((value, index) => (
-                <li key={value}>
-                  <Button
-                    type="button"
-                    variant={value === step ? "default" : "outline"}
-                    aria-current={value === step ? "step" : undefined}
-                    disabled={!reachable(value)}
-                    onClick={() => setStep(value)}
-                  >
-                    <span className="step-index" aria-hidden="true">
-                      {index + 1}
-                    </span>
-                    <span className="step-name">{value}</span>
-                  </Button>
-                </li>
-              ))}
-            </ol>
-            {/* Not a numbered step: the party exists only once the service
-                holds a draft, so it is the screen that follows the wizard
-                rather than a chip nobody could walk forward into (#259). */}
-            {lobby && (
-              <p className="setup-next-screen">
-                <Button
-                  type="button"
-                  variant={step === "Party" ? "default" : "outline"}
-                  aria-current={step === "Party" ? "page" : undefined}
-                  onClick={() => setStep("Party")}
-                >
-                  Party
-                </Button>
-              </p>
-            )}
-          </nav>
-          {step === "Concept" &&
-            (canEdit ? (
-              <form onSubmit={save}>
-                <label>
-                  Premise
-                  <textarea
-                    required
-                    value={brief.premise}
-                    maxLength={4000}
-                    onChange={(e) =>
-                      editBrief({ ...brief, premise: e.target.value })
-                    }
-                  />
-                </label>
-                <label>
-                  Genre
-                  <input
-                    required
-                    value={brief.genre}
-                    onChange={(e) =>
-                      editBrief({ ...brief, genre: e.target.value })
-                    }
-                  />
-                </label>
-                <label>
-                  Tone
-                  <input
-                    required
-                    value={brief.tone}
-                    onChange={(e) =>
-                      editBrief({ ...brief, tone: e.target.value })
-                    }
-                  />
-                </label>
-                <label>
-                  Duration (minutes)
-                  <input
-                    type="number"
-                    min={10}
-                    max={10000}
-                    value={brief.duration_minutes}
-                    onChange={(e) =>
-                      editBrief({
-                        ...brief,
-                        duration_minutes: Number(e.target.value),
-                      })
-                    }
-                  />
-                </label>
-                <label>
-                  Difficulty
-                  <select
-                    value={brief.difficulty}
-                    onChange={(e) =>
-                      editBrief({
-                        ...brief,
-                        difficulty: e.target.value as Brief["difficulty"],
-                      })
-                    }
-                  >
-                    {difficulties.map((d) => (
-                      <option key={d} value={d}>
-                        {difficultyLabel(d)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Boundaries and restrictions
-                  <textarea
-                    value={brief.restrictions.join("\n")}
-                    onChange={(e) =>
-                      editBrief({
-                        ...brief,
-                        restrictions: e.target.value.split("\n"),
-                      })
-                    }
-                  />
-                </label>
-                {restoreConcept}
-                {submit}
-                {lobby && session.generationAvailable && (
-                  <Button
-                    type="button"
-                    disabled={busy || client.hasPending}
-                    onClick={() =>
-                      void run(() => command("edit", {}, "/generate"))
-                    }
-                  >
-                    Generate from saved brief
-                  </Button>
-                )}
-              </form>
-            ) : (
+          {!lobby && mode === "new" ? (
+            <header className="setup-focus-heading">
+              <span className="eyebrow">A fresh page</span>
+              <h3 className="lobby-heading">Choose the adventure</h3>
               <p>
-                This game’s premise is fixed. Only its host can edit a draft,
-                and a started or pinned game keeps the concept it was created
-                with.
+                Start from a published scenario, then confirm the table rules
+                before inviting players.
               </p>
-            ))}
-          {/* The step asks one question and answers it: which adventure. Writing
-              scenarios, importing documents and publishing revisions are a
-              library, and the library is its own surface (#261). */}
-          {step === "Adventure" && (
+            </header>
+          ) : lobby ? (
+            <header className="setup-focus-heading">
+              <span className="eyebrow">Unfinished game</span>
+              <h3 className="lobby-heading">Finish {lobby.title}</h3>
+              <p>Continue from the last completed setup page.</p>
+            </header>
+          ) : (
             <>
-              {canEdit ? (
-                <form onSubmit={save}>
-                  <label>
-                    Adventure and starting party
-                    <select
-                      value={graph?.id ?? ""}
-                      onChange={(e) => {
-                        const selected =
-                          templates.find((t) => t.id === e.target.value) ??
-                          null;
-                        setGraph(selected);
-                        // A pristine setup may be seeded from its first
-                        // adventure. Once anything has supplied a concept,
-                        // changing adventures preserves it until the user
-                        // explicitly chooses the replacement below.
-                        if (selected && !conceptProtected) {
-                          setBrief(selected.brief);
-                          setConceptProtected(true);
-                        }
-                      }}
-                    >
-                      <option value="">Choose an adventure</option>
-                      {templates.map((t) => (
-                        <option key={t.id} value={t.id}>
-                          {t.title}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  {graph && !sameBrief(brief, graph.brief) && (
-                    <div>
-                      <p role="status">
-                        Your Concept answers were kept. This adventure has a
-                        different suggested concept.
-                      </p>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          setConceptBackup((value) => value ?? brief);
-                          setBrief(graph.brief);
-                          setConceptProtected(true);
-                        }}
-                      >
-                        Use adventure concept
-                      </Button>
-                    </div>
-                  )}
-                  {restoreConcept}
-                  {!templates.length && (
-                    <p>
-                      No authored adventures are installed. Save your premise,
-                      then generate an adventure if a provider is configured.
-                    </p>
-                  )}
-                  {submit}
-                </form>
-              ) : (
+              {/* Continue and Join are libraries. Selecting one item replaces
+                  the library with that item's next task instead of stacking a
+                  second workflow beneath the list. */}
+              <h3 className="lobby-heading">
+                {mode === "join"
+                  ? "Invitations and games"
+                  : "Your saved games and unfinished drafts"}
+              </h3>
+              {mode === "join" && (
                 <p>
-                  This game’s adventure is fixed. Its host chose the scenario
-                  and starting party when the draft was created.
+                  Ask the host to invite your player name, then refresh this
+                  list to accept your invitation.
                 </p>
               )}
-              {!lobby && onMode && (
-                <p className="setup-secondary">
-                  Writing one of your own, starting from a template or importing
-                  a scenario document happens in the scenario library.
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => onMode("scenarios")}
-                  >
-                    Open the scenario library
-                  </Button>
-                </p>
+              {!lobbies.length && !games.length && !busy && (
+                <p>No saved games yet.</p>
               )}
-            </>
-          )}
-          {step === "Rules" && (
-            <>
-              {canEdit && (
-                <form onSubmit={save}>
-                  {!lobby && profiles.length > 0 ? (
-                    <>
-                      <label>
-                        Rules profile
-                        <select
-                          value={profile}
-                          onChange={(e) => setProfile(e.target.value)}
-                        >
-                          <option value="">This game’s default rules</option>
-                          {profiles.map((p) => (
-                            <option
-                              key={`${p.id}@${p.version}`}
-                              value={`${p.id}@${p.version}`}
-                              disabled={!p.supported}
-                            >
-                              {p.title} (v{p.version})
-                              {p.supported ? "" : " · Not yet supported"}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      {profiles.some((p) => !p.supported) && (
-                        <>
-                          <p>
-                            Rule sets marked “Not yet supported” cannot be
-                            chosen yet. Every other choice plays in full.
-                          </p>
-                          {/* Which capabilities are missing is maintainers' business, not a player's (#162). */}
-                          <TechnicalDetails
-                            entries={profiles
-                              .filter((p) => !p.supported)
-                              .map((p) => ({
-                                label: `${p.title} (v${p.version}) unverified capabilities:`,
-                                value:
-                                  p.unverified_capabilities.join(", ") ||
-                                  "none listed",
-                              }))}
-                          />
-                        </>
-                      )}
-                    </>
-                  ) : (
-                    <p>
-                      {lobby
-                        ? "This game keeps the rules pinned when its draft was created."
-                        : "This game uses its default rules. There is nothing to choose here."}
-                    </p>
-                  )}
-                  {submit}
-                </form>
-              )}
-              {lobby && (
-                <details>
-                  <summary>
-                    Campaign rules
-                    {lobby.rules_profile
-                      ? `: ${lobby.rules_profile.title} (v${lobby.rules_profile.version})`
-                      : ""}
-                  </summary>
-                  <p>
-                    Saved games keep their exact rules pins. Changing profiles
-                    is an explicit host migration of a paused game.
-                  </p>
-                  <pre>{JSON.stringify(lobby.rules, null, 2)}</pre>
-                </details>
-              )}
-            </>
-          )}
-          {step === "Party" && (
-            <>
-              {canEdit && (
-                <form onSubmit={save}>
-                  {/* Two full character sheets on one page is four screens of
-                      form; each opens on its own, and the first is the one
-                      already open (#270). */}
-                  {graph?.actors
-                    .filter((a) => !graph.npc_actor_ids.includes(a.actor_id))
-                    .map((actor, index) => (
-                      <details
-                        key={actor.actor_id}
-                        className="party-character"
-                        open={index === 0}
-                      >
-                        <summary>
-                          Character {characterName(actor.actor_id)}
-                        </summary>
-                        <CharacterDraftEditor
-                          proposal={actor.proposal}
-                          preview={previewPartyCharacter}
-                          disabled={busy || !!client?.hasPending}
-                          templates={templates.flatMap((template) =>
-                            template.actors
-                              .filter(
-                                (a) =>
-                                  !template.npc_actor_ids.includes(a.actor_id),
-                              )
-                              .map((a) => ({
-                                title: `${a.proposal.draft.name} · ${template.title}`,
-                                proposal: a.proposal,
-                              })),
-                          )}
-                          onChange={(change: ProposalChange) =>
-                            setGraph((current) => {
-                              if (!current) return current;
-                              return {
-                                ...current,
-                                actors: current.actors.map((currentActor) => {
-                                  if (currentActor.actor_id !== actor.actor_id)
-                                    return currentActor;
-                                  const proposal =
-                                    typeof change === "function"
-                                      ? change(currentActor.proposal)
-                                      : change;
-                                  return { ...currentActor, proposal };
-                                }),
-                              };
-                            })
-                          }
-                        />
-                      </details>
-                    ))}
-                  <p>
-                    Characters and equipment are checked against the server’s
-                    pinned rules before readiness. Saving edits clears
-                    assignments and readiness.
-                  </p>
-                  {submit}
-                </form>
-              )}
-              {players(true)}
-              {lobby && editable && host && (
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    void run(() => command("invite", { principal_id: invite }));
-                  }}
-                >
-                  <label>
-                    Invite player ID
-                    <input
-                      required
-                      value={invite}
-                      onChange={(e) => setInvite(e.target.value)}
-                    />
-                  </label>
-                  <Button disabled={busy || client.hasPending}>
-                    Invite player
-                  </Button>
-                </form>
-              )}
-            </>
-          )}
-          {step === "Ready" && lobby && (
-            <>
-              {players(false)}
-              {lobby.adventures?.map((ending) => (
-                <article
-                  key={ending.adventure_id}
-                  aria-label="Adventure conclusion"
-                >
-                  <h3>
-                    {ending.title} · {ending.outcome}
-                  </h3>
-                  <p>
-                    Adventure ended at shared time {ending.at}. The campaign can
-                    continue after any outcome.
-                  </p>
-                  <ul>
-                    {ending.evidence.map((e) => (
-                      <li key={e.id}>
-                        {e.title}: {e.satisfied ? "Achieved" : "Unfulfilled"}
-                      </li>
-                    ))}
-                  </ul>
-                  <h4>Discoveries</h4>
-                  <ul>
-                    {ending.discoveries.map((f) => (
-                      <li key={f.id}>
-                        {f.predicate}: {f.value}
-                      </li>
-                    ))}
-                  </ul>
-                  <h4>Lasting commitments</h4>
-                  <ul>
-                    {ending.commitments.map((c) => (
-                      <li key={c.id}>
-                        {c.description} · {c.status}
-                      </li>
-                    ))}
-                  </ul>
-                  <p>
-                    Recorded casualties:{" "}
-                    {ending.casualties.map(characterName).join(", ") ||
-                      "None visible"}
-                  </p>
-                  <h4>Settled rewards and advancement</h4>
-                  <ul>
-                    {ending.rewards.map((r) => (
-                      <li key={r.id}>
-                        {r.points} points{r.item_id ? ` · ${r.item_id}` : ""}
-                      </li>
-                    ))}
-                  </ul>
-                  <ul>
-                    {ending.advancement.map((e) => (
-                      <li key={e.id}>
-                        {e.kind}: {e.points} · {e.reason}
-                      </li>
-                    ))}
-                  </ul>
-                  <h4>Recovery status</h4>
-                  <ul>
-                    {ending.pools.map((p) => (
-                      <li key={p.id}>
-                        {poolLabel(p.id, characterName)} {p.current}/{p.maximum}
-                      </li>
-                    ))}
-                  </ul>
-                  <p>
-                    Continuing preserves injuries and equipment. Use authored
-                    downtime and advancement actions in play.
-                  </p>
-                </article>
-              ))}
-              {lobby.phase === "completed" && host && (
-                <div>
-                  <h3>Next adventure</h3>
-                  <label>
-                    Authored next adventure
-                    <select
-                      value={graph?.id ?? ""}
-                      onChange={(e) =>
-                        setGraph(
-                          templates.find((t) => t.id === e.target.value) ??
-                            null,
-                        )
+              <ul className="setup-game-list">
+                {lobbies.map((value) => (
+                  <li key={value.id}>
+                    <Button
+                      data-campaign-id={value.id}
+                      variant="outline"
+                      disabled={busy || client.hasPending}
+                      onClick={() =>
+                        void run(async () => {
+                          const saved = await client.request<Lobby>(
+                            `/${value.id}`,
+                          );
+                          choose(saved);
+                          setStep(landing(saved, session.principal));
+                          if (saved.phase === "active") open(saved);
+                        })
                       }
                     >
-                      <option value="">Choose a successor</option>
-                      {templates
-                        .filter(
-                          (t) =>
-                            !lobby.adventures?.some(
-                              (a) => a.adventure_id === t.id,
-                            ),
-                        )
-                        .map((t) => (
-                          <option key={t.id} value={t.id}>
-                            {t.title}
-                          </option>
-                        ))}
-                    </select>
-                  </label>
-                  <Button
-                    disabled={!graph || busy || client.hasPending}
-                    onClick={() =>
-                      void run(() => command("preview", { graph }))
-                    }
-                  >
-                    Save next-adventure preview
-                  </Button>
-                  <p>
-                    Generate a successor from the saved party and lasting world
-                    state. The saved preview survives reloads.
-                  </p>
-                  <Button
-                    disabled={
-                      !session.generationAvailable || busy || client.hasPending
-                    }
-                    title={
-                      session.generationAvailable
-                        ? undefined
-                        : providerReason.creation
-                    }
-                    onClick={() =>
-                      void run(() => command("preview", {}, "/generate"))
-                    }
-                  >
-                    Generate next-adventure preview
-                  </Button>
-                  {!session.generationAvailable && (
-                    <p>{providerReason.creation}</p>
-                  )}
-                </div>
-              )}
-              {lobby.next_adventure && (
-                <article aria-label="Next adventure preview">
-                  <h3>{lobby.next_adventure.title}</h3>
-                  <p>{lobby.next_adventure.opening_action}</p>
-                </article>
-              )}
-              {lobby.phase === "archived" && (
-                <p>
-                  Archived games are read-only. Unarchive returns to the
-                  conclusion, where you can continue.
-                </p>
-              )}
-              {editable && (
-                <div className="context-actions">
-                  <Button
-                    disabled={busy || client.hasPending}
-                    onClick={() => void run(() => command("join"))}
-                  >
-                    Accept invitation
-                  </Button>
-                  <Button
-                    disabled={busy || client.hasPending}
-                    onClick={() => void run(() => command("ready"))}
-                  >
-                    Validate and mark ready
-                  </Button>
-                </div>
-              )}
-              {host && lifecycleActions[lobby.phase].length > 0 && (
-                <section
-                  className="lifecycle-actions"
-                  aria-label="Campaign lifecycle"
-                >
-                  <div className="context-actions">
-                    {[
-                      ...lifecycleActions[lobby.phase],
-                      ...(lobby.phase === "completed" && lobby.next_adventure
-                        ? ["continue"]
-                        : []),
-                    ].map((operation) => (
+                      {value.title} · {campaignPhaseLabel(value.phase)}
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+              <ul className="setup-game-list">
+                {games
+                  .filter(
+                    (game) => !lobbies.some((value) => value.id === game.id),
+                  )
+                  .map((game) => (
+                    <li key={game.id}>
                       <Button
-                        key={operation}
-                        variant={
-                          irreversible.has(operation) ? "danger" : "default"
-                        }
-                        disabled={busy || client.hasPending}
-                        onClick={() => {
-                          if (irreversible.has(operation)) {
-                            setConfirming(operation);
-                            return;
-                          }
-                          void run(async () => {
-                            await command(operation);
-                            if (operation === "pause") setUndoPause(true);
-                          });
-                        }}
-                      >
-                        {lifecycleOperationLabel(operation)}
-                      </Button>
-                    ))}
-                  </div>
-                  {undoPause && lobby.phase === "paused" && (
-                    <div className="lifecycle-undo" role="status">
-                      <p>
-                        Paused “{lobby.title}”. Nobody can act in this campaign
-                        until it resumes.
-                      </p>
-                      <Button
-                        variant="outline"
-                        disabled={busy || client.hasPending}
+                        data-resume-id={game.id}
                         onClick={() =>
-                          void run(() =>
-                            command("resume", {}, "", { enter: false }),
+                          onOpen(
+                            session.legacyAvailable
+                              ? new LiveTransport(
+                                  session.principal,
+                                  game.id,
+                                  session.token,
+                                )
+                              : new NetworkPlayTransport({
+                                  origin: location.origin,
+                                  credential: session.token,
+                                  principalId: session.principal,
+                                  initialCampaignId: game.id,
+                                }),
                           )
                         }
                       >
-                        Undo pause
+                        Continue {game.name}
+                      </Button>
+                      {session.legacyAvailable &&
+                        game.membership.role === "gm" && (
+                          <WorkshopReviewQueue
+                            key={`${session.principal}:${game.id}`}
+                            campaignId={game.id}
+                            principal={session.principal}
+                            token={session.token}
+                          />
+                        )}
+                    </li>
+                  ))}
+              </ul>
+              {account}
+            </>
+          )}
+          {lobby && (
+            <div className="setup-current-game">
+              <p role="status">
+                {lobby.title} · {campaignPhaseLabel(lobby.phase)} · revision{" "}
+                {lobby.revision}
+              </p>
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={busy || client.hasPending}
+                onClick={restart}
+              >
+                {mode === "new" ? "Start over" : "Back to the list"}
+              </Button>
+            </div>
+          )}
+          {(mode === "new" || !!lobby) && (
+            <>
+              {/* The line names the step; the chips below it are the same three
+              numbered steps, shown as numbered dots where a labelled row
+              cannot fit on one line (#206). Every chip keeps its step name as
+              its accessible label at every width. */}
+              <nav className="setup-steps" aria-label="Setup steps">
+                <p className="eyebrow">
+                  {step === "Party"
+                    ? "Party · after the draft is created"
+                    : `Step ${steps.indexOf(step) + 1} of ${steps.length}: ${step}`}
+                </p>
+                <ol>
+                  {steps.map((value, index) => (
+                    <li key={value}>
+                      <Button
+                        type="button"
+                        variant={value === step ? "default" : "outline"}
+                        aria-current={value === step ? "step" : undefined}
+                        disabled={!reachable(value)}
+                        onClick={() => setStep(value)}
+                      >
+                        <span className="step-index" aria-hidden="true">
+                          {index + 1}
+                        </span>
+                        <span className="step-name">{value}</span>
+                      </Button>
+                    </li>
+                  ))}
+                </ol>
+                {/* Not a numbered step: the party exists only once the service
+                holds a draft, so it is the screen that follows the wizard
+                rather than a chip nobody could walk forward into (#259). */}
+                {lobby && (
+                  <p className="setup-next-screen">
+                    <Button
+                      type="button"
+                      variant={step === "Party" ? "default" : "outline"}
+                      aria-current={step === "Party" ? "page" : undefined}
+                      onClick={() => setStep("Party")}
+                    >
+                      Party
+                    </Button>
+                  </p>
+                )}
+              </nav>
+              {/* Starting a game selects a reusable scenario. Story authoring lives
+              only in Create scenario, so this flow never asks for the same
+              premise twice. */}
+              {step === "Adventure" && (
+                <>
+                  {canEdit ? (
+                    <form onSubmit={save}>
+                      <label>
+                        Adventure and starting party
+                        <select
+                          value={
+                            selectedScenario
+                              ? `scenario:${selectedScenario.id}`
+                              : graph
+                                ? graph.id
+                                : ""
+                          }
+                          onChange={(e) => {
+                            const authored =
+                              e.target.value.startsWith("scenario:");
+                            const id = authored
+                              ? e.target.value.slice("scenario:".length)
+                              : e.target.value;
+                            const selectedTemplate = !authored
+                              ? (templates.find((t) => t.id === id) ?? null)
+                              : null;
+                            const selectedAuthored = authored
+                              ? publishedScenarios.find((s) => s.id === id)
+                              : undefined;
+                            setGraph(selectedTemplate);
+                            setSelectedScenario(selectedAuthored);
+                            setBrief(selectedTemplate?.brief ?? blank);
+                            if (selectedAuthored) setProfile("");
+                          }}
+                        >
+                          <option value="">Choose an adventure</option>
+                          {publishedScenarios.length > 0 && (
+                            <optgroup label="Your published scenarios">
+                              {publishedScenarios.map((scenario) => (
+                                <option
+                                  key={scenario.id}
+                                  value={`scenario:${scenario.id}`}
+                                >
+                                  {scenario.title}
+                                </option>
+                              ))}
+                            </optgroup>
+                          )}
+                          {templates.length > 0 && (
+                            <optgroup label="Wayfarer adventures">
+                              {templates.map((t) => (
+                                <option key={t.id} value={t.id}>
+                                  {t.title}
+                                </option>
+                              ))}
+                            </optgroup>
+                          )}
+                        </select>
+                      </label>
+                      {!templates.length &&
+                        !publishedScenarios.length &&
+                        !busy && (
+                          <p>
+                            No published scenarios are available yet. Create and
+                            publish one before starting a game.
+                          </p>
+                        )}
+                      {submit}
+                    </form>
+                  ) : (
+                    <p>
+                      This game’s adventure is fixed. Its host chose the
+                      scenario and starting party when the draft was created.
+                    </p>
+                  )}
+                  {!lobby && onMode && (
+                    <p className="setup-secondary">
+                      Writing one of your own, starting from a template or
+                      importing a scenario document happens under Create
+                      scenario.
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => onMode("scenarios")}
+                      >
+                        Create a scenario
+                      </Button>
+                    </p>
+                  )}
+                </>
+              )}
+              {step === "Rules" && (
+                <>
+                  {canEdit && (
+                    <form onSubmit={save}>
+                      {!lobby && selectedScenario ? (
+                        <p>
+                          This published scenario keeps the exact rules it was
+                          validated with.
+                        </p>
+                      ) : !lobby && profiles.length > 0 ? (
+                        <>
+                          <label>
+                            Rules profile
+                            <select
+                              value={profile}
+                              onChange={(e) => setProfile(e.target.value)}
+                            >
+                              <option value="">
+                                This game’s default rules
+                              </option>
+                              {profiles.map((p) => (
+                                <option
+                                  key={`${p.id}@${p.version}`}
+                                  value={`${p.id}@${p.version}`}
+                                  disabled={!p.supported}
+                                >
+                                  {p.title} (v{p.version})
+                                  {p.supported ? "" : " · Not yet supported"}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                          {profiles.some((p) => !p.supported) && (
+                            <>
+                              <p>
+                                Rule sets marked “Not yet supported” cannot be
+                                chosen yet. Every other choice plays in full.
+                              </p>
+                              {/* Which capabilities are missing is maintainers' business, not a player's (#162). */}
+                              <TechnicalDetails
+                                entries={profiles
+                                  .filter((p) => !p.supported)
+                                  .map((p) => ({
+                                    label: `${p.title} (v${p.version}) unverified capabilities:`,
+                                    value:
+                                      p.unverified_capabilities.join(", ") ||
+                                      "none listed",
+                                  }))}
+                              />
+                            </>
+                          )}
+                        </>
+                      ) : (
+                        <p>
+                          {lobby
+                            ? "This game keeps the rules pinned when its draft was created."
+                            : "This game uses its default rules. There is nothing to choose here."}
+                        </p>
+                      )}
+                      {submit}
+                    </form>
+                  )}
+                  {lobby && (
+                    <details>
+                      <summary>
+                        Campaign rules
+                        {lobby.rules_profile
+                          ? `: ${lobby.rules_profile.title} (v${lobby.rules_profile.version})`
+                          : ""}
+                      </summary>
+                      <p>
+                        Saved games keep their exact rules pins. Changing
+                        profiles is an explicit host migration of a paused game.
+                      </p>
+                      <pre>{JSON.stringify(lobby.rules, null, 2)}</pre>
+                    </details>
+                  )}
+                </>
+              )}
+              {step === "Party" && (
+                <>
+                  {canEdit && (
+                    <form onSubmit={save}>
+                      {/* Two full character sheets on one page is four screens of
+                      form; each opens on its own, and the first is the one
+                      already open (#270). */}
+                      {graph?.actors
+                        .filter(
+                          (a) => !graph.npc_actor_ids.includes(a.actor_id),
+                        )
+                        .map((actor, index) => (
+                          <details
+                            key={actor.actor_id}
+                            className="party-character"
+                            open={index === 0}
+                          >
+                            <summary>
+                              Character {characterName(actor.actor_id)}
+                            </summary>
+                            <CharacterDraftEditor
+                              proposal={actor.proposal}
+                              preview={previewPartyCharacter}
+                              disabled={busy || !!client?.hasPending}
+                              templates={templates.flatMap((template) =>
+                                template.actors
+                                  .filter(
+                                    (a) =>
+                                      !template.npc_actor_ids.includes(
+                                        a.actor_id,
+                                      ),
+                                  )
+                                  .map((a) => ({
+                                    title: `${a.proposal.draft.name} · ${template.title}`,
+                                    proposal: a.proposal,
+                                  })),
+                              )}
+                              onChange={(change: ProposalChange) =>
+                                setGraph((current) => {
+                                  if (!current) return current;
+                                  return {
+                                    ...current,
+                                    actors: current.actors.map(
+                                      (currentActor) => {
+                                        if (
+                                          currentActor.actor_id !==
+                                          actor.actor_id
+                                        )
+                                          return currentActor;
+                                        const proposal =
+                                          typeof change === "function"
+                                            ? change(currentActor.proposal)
+                                            : change;
+                                        return { ...currentActor, proposal };
+                                      },
+                                    ),
+                                  };
+                                })
+                              }
+                            />
+                          </details>
+                        ))}
+                      <p>
+                        Characters and equipment are checked against the
+                        server’s pinned rules before readiness. Saving edits
+                        clears assignments and readiness.
+                      </p>
+                      {submit}
+                    </form>
+                  )}
+                  {players(true)}
+                  {lobby && editable && host && (
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        void run(() =>
+                          command("invite", { principal_id: invite }),
+                        );
+                      }}
+                    >
+                      <label>
+                        Invite player ID
+                        <input
+                          required
+                          value={invite}
+                          onChange={(e) => setInvite(e.target.value)}
+                        />
+                      </label>
+                      <Button disabled={busy || client.hasPending}>
+                        Invite player
+                      </Button>
+                    </form>
+                  )}
+                </>
+              )}
+              {step === "Ready" && lobby && (
+                <>
+                  {players(false)}
+                  {lobby.adventures?.map((ending) => (
+                    <article
+                      key={ending.adventure_id}
+                      aria-label="Adventure conclusion"
+                    >
+                      <h3>
+                        {ending.title} · {ending.outcome}
+                      </h3>
+                      <p>
+                        Adventure ended at shared time {ending.at}. The campaign
+                        can continue after any outcome.
+                      </p>
+                      <ul>
+                        {ending.evidence.map((e) => (
+                          <li key={e.id}>
+                            {e.title}:{" "}
+                            {e.satisfied ? "Achieved" : "Unfulfilled"}
+                          </li>
+                        ))}
+                      </ul>
+                      <h4>Discoveries</h4>
+                      <ul>
+                        {ending.discoveries.map((f) => (
+                          <li key={f.id}>
+                            {f.predicate}: {f.value}
+                          </li>
+                        ))}
+                      </ul>
+                      <h4>Lasting commitments</h4>
+                      <ul>
+                        {ending.commitments.map((c) => (
+                          <li key={c.id}>
+                            {c.description} · {c.status}
+                          </li>
+                        ))}
+                      </ul>
+                      <p>
+                        Recorded casualties:{" "}
+                        {ending.casualties.map(characterName).join(", ") ||
+                          "None visible"}
+                      </p>
+                      <h4>Settled rewards and advancement</h4>
+                      <ul>
+                        {ending.rewards.map((r) => (
+                          <li key={r.id}>
+                            {r.points} points
+                            {r.item_id ? ` · ${r.item_id}` : ""}
+                          </li>
+                        ))}
+                      </ul>
+                      <ul>
+                        {ending.advancement.map((e) => (
+                          <li key={e.id}>
+                            {e.kind}: {e.points} · {e.reason}
+                          </li>
+                        ))}
+                      </ul>
+                      <h4>Recovery status</h4>
+                      <ul>
+                        {ending.pools.map((p) => (
+                          <li key={p.id}>
+                            {poolLabel(p.id, characterName)} {p.current}/
+                            {p.maximum}
+                          </li>
+                        ))}
+                      </ul>
+                      <p>
+                        Continuing preserves injuries and equipment. Use
+                        authored downtime and advancement actions in play.
+                      </p>
+                    </article>
+                  ))}
+                  {lobby.phase === "completed" && host && (
+                    <div>
+                      <h3>Next adventure</h3>
+                      <label>
+                        Authored next adventure
+                        <select
+                          value={graph?.id ?? ""}
+                          onChange={(e) =>
+                            setGraph(
+                              templates.find((t) => t.id === e.target.value) ??
+                                null,
+                            )
+                          }
+                        >
+                          <option value="">Choose a successor</option>
+                          {templates
+                            .filter(
+                              (t) =>
+                                !lobby.adventures?.some(
+                                  (a) => a.adventure_id === t.id,
+                                ),
+                            )
+                            .map((t) => (
+                              <option key={t.id} value={t.id}>
+                                {t.title}
+                              </option>
+                            ))}
+                        </select>
+                      </label>
+                      <Button
+                        disabled={!graph || busy || client.hasPending}
+                        onClick={() =>
+                          void run(() => command("preview", { graph }))
+                        }
+                      >
+                        Save next-adventure preview
+                      </Button>
+                      <p>
+                        Generate a successor from the saved party and lasting
+                        world state. The saved preview survives reloads.
+                      </p>
+                      <Button
+                        disabled={
+                          !session.generationAvailable ||
+                          busy ||
+                          client.hasPending
+                        }
+                        title={
+                          session.generationAvailable
+                            ? undefined
+                            : providerReason.creation
+                        }
+                        onClick={() =>
+                          void run(() => command("preview", {}, "/generate"))
+                        }
+                      >
+                        Generate next-adventure preview
+                      </Button>
+                      {!session.generationAvailable && (
+                        <p>{providerReason.creation}</p>
+                      )}
+                    </div>
+                  )}
+                  {lobby.next_adventure && (
+                    <article aria-label="Next adventure preview">
+                      <h3>{lobby.next_adventure.title}</h3>
+                      <p>{lobby.next_adventure.opening_action}</p>
+                    </article>
+                  )}
+                  {lobby.phase === "archived" && (
+                    <p>
+                      Archived games are read-only. Unarchive returns to the
+                      conclusion, where you can continue.
+                    </p>
+                  )}
+                  {editable && (
+                    <div className="context-actions">
+                      <Button
+                        disabled={busy || client.hasPending}
+                        onClick={() => void run(() => command("join"))}
+                      >
+                        Accept invitation
+                      </Button>
+                      <Button
+                        disabled={busy || client.hasPending}
+                        onClick={() => void run(() => command("ready"))}
+                      >
+                        Validate and mark ready
                       </Button>
                     </div>
                   )}
-                </section>
+                  {host && lifecycleActions[lobby.phase].length > 0 && (
+                    <section
+                      className="lifecycle-actions"
+                      aria-label="Campaign lifecycle"
+                    >
+                      <div className="context-actions">
+                        {[
+                          ...lifecycleActions[lobby.phase],
+                          ...(lobby.phase === "completed" &&
+                          lobby.next_adventure
+                            ? ["continue"]
+                            : []),
+                        ].map((operation) => (
+                          <Button
+                            key={operation}
+                            variant={
+                              irreversible.has(operation) ? "danger" : "default"
+                            }
+                            disabled={busy || client.hasPending}
+                            onClick={() => {
+                              if (irreversible.has(operation)) {
+                                setConfirming(operation);
+                                return;
+                              }
+                              void run(async () => {
+                                await command(operation);
+                                if (operation === "pause") setUndoPause(true);
+                              });
+                            }}
+                          >
+                            {lifecycleOperationLabel(operation)}
+                          </Button>
+                        ))}
+                      </div>
+                      {undoPause && lobby.phase === "paused" && (
+                        <div className="lifecycle-undo" role="status">
+                          <p>
+                            Paused “{lobby.title}”. Nobody can act in this
+                            campaign until it resumes.
+                          </p>
+                          <Button
+                            variant="outline"
+                            disabled={busy || client.hasPending}
+                            onClick={() =>
+                              void run(() =>
+                                command("resume", {}, "", { enter: false }),
+                              )
+                            }
+                          >
+                            Undo pause
+                          </Button>
+                        </div>
+                      )}
+                    </section>
+                  )}
+                  <div className="context-actions">
+                    {lobby.phase === "active" && (
+                      <Button disabled={busy} onClick={() => open(lobby)}>
+                        Open playing scene
+                      </Button>
+                    )}
+                    <Button variant="outline" disabled={busy} onClick={restart}>
+                      Create another game
+                    </Button>
+                  </div>
+                  <ConfirmDialog
+                    open={!!confirming}
+                    title={`End “${lobby.title}”?`}
+                    description="Ending this campaign finishes it for every player at the scene they are in. It cannot be returned to play: a finished campaign can only be archived, or continued as a new adventure. Pause the session instead if the table is stopping for now."
+                    confirmLabel="End this campaign"
+                    cancelLabel="Keep playing"
+                    busy={busy || client.hasPending}
+                    onConfirm={() => {
+                      const operation = confirming;
+                      setConfirming(undefined);
+                      if (operation) void run(() => command(operation));
+                    }}
+                    onCancel={() => setConfirming(undefined)}
+                  />
+                </>
               )}
-              <div className="context-actions">
-                {lobby.phase === "active" && (
-                  <Button disabled={busy} onClick={() => open(lobby)}>
-                    Open playing scene
+              {step === "Ready" && !lobby && (
+                <form onSubmit={save} aria-label="Review and create">
+                  <h3>Review this setup</h3>
+                  <dl className="setup-review">
+                    <div>
+                      <dt>Scenario premise</dt>
+                      <dd>
+                        {selectedScenario?.summary ||
+                          brief.premise ||
+                          "No premise written yet"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Style</dt>
+                      <dd>
+                        {selectedScenario
+                          ? "Uses the scenario’s published style"
+                          : `${brief.genre} · ${brief.tone} · ${brief.duration_minutes} minutes · ${difficultyLabel(brief.difficulty)}`}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Adventure</dt>
+                      <dd>
+                        {selectedScenario?.title ??
+                          graph?.title ??
+                          "Choose a published scenario first"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Rules</dt>
+                      <dd>
+                        {selectedScenario
+                          ? "Pinned by the published scenario"
+                          : (profiles.find(
+                              (p) => `${p.id}@${p.version}` === profile,
+                            )?.title ?? "This game’s default rules")}
+                      </dd>
+                    </div>
+                  </dl>
+                  <Button disabled={busy || !complete || client.hasPending}>
+                    Create game draft
                   </Button>
-                )}
-                <Button variant="outline" disabled={busy} onClick={restart}>
-                  Create another game
+                  <p>
+                    Creating the draft opens its party, where characters are
+                    assigned and players invited. Nothing is published or
+                    started.
+                  </p>
+                </form>
+              )}
+              {walk}
+              {client.hasPending && (
+                <Button
+                  disabled={busy}
+                  onClick={() =>
+                    void run(async () => {
+                      const recovered = await client.retry();
+                      choose(recovered);
+                      if (recovered.phase === "active") open(recovered);
+                    })
+                  }
+                >
+                  Retry original setup request
                 </Button>
-              </div>
-              <ConfirmDialog
-                open={!!confirming}
-                title={`End “${lobby.title}”?`}
-                description="Ending this campaign finishes it for every player at the scene they are in. It cannot be returned to play: a finished campaign can only be archived, or continued as a new adventure. Pause the session instead if the table is stopping for now."
-                confirmLabel="End this campaign"
-                cancelLabel="Keep playing"
-                busy={busy || client.hasPending}
-                onConfirm={() => {
-                  const operation = confirming;
-                  setConfirming(undefined);
-                  if (operation) void run(() => command(operation));
-                }}
-                onCancel={() => setConfirming(undefined)}
-              />
+              )}
             </>
           )}
-          {step === "Ready" && !lobby && (
-            <form onSubmit={save} aria-label="Review and create">
-              <h3>Review this setup</h3>
-              <dl className="setup-review">
-                <div>
-                  <dt>Concept</dt>
-                  <dd>{brief.premise || "No premise written yet"}</dd>
-                </div>
-                <div>
-                  <dt>Style</dt>
-                  <dd>
-                    {brief.genre} · {brief.tone} · {brief.duration_minutes}{" "}
-                    minutes · {difficultyLabel(brief.difficulty)}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Adventure</dt>
-                  <dd>
-                    {graph?.title ??
-                      "No authored adventure; the premise alone starts the draft"}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Rules</dt>
-                  <dd>
-                    {profiles.find((p) => `${p.id}@${p.version}` === profile)
-                      ?.title ?? "This game’s default rules"}
-                  </dd>
-                </div>
-              </dl>
-              <Button disabled={busy || !complete || client.hasPending}>
-                Create game draft
-              </Button>
-              <p>
-                Creating the draft opens its party, where characters are
-                assigned and players invited. Nothing is published or started.
-              </p>
-            </form>
-          )}
-          {walk}
-          {client.hasPending && (
-            <Button
-              disabled={busy}
-              onClick={() =>
-                void run(async () => {
-                  const recovered = await client.retry();
-                  choose(recovered);
-                  if (recovered.phase === "active") open(recovered);
-                })
-              }
-            >
-              Retry original setup request
-            </Button>
+          {(mode === "new" || !!lobby) && (
+            <div className="setup-account-footer">{account}</div>
           )}
         </>
       )}

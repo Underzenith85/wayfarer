@@ -369,17 +369,37 @@ export function CharacterDraftEditor({
       >
         {current ? (
           <>
-            <strong>
+            <strong className="n">
               {current.spent} / {current.spent + current.remaining} points
             </strong>
-            <span>
+            <span className="hnd">
               {current.remaining < 0
                 ? `${-current.remaining} points over budget`
                 : `${current.remaining} points remaining`}
             </span>
+            <span
+              className="track"
+              role="meter"
+              aria-label="Points spent"
+              aria-valuemin={0}
+              aria-valuemax={Math.max(0, current.spent + current.remaining)}
+              aria-valuenow={current.spent}
+            >
+              <i
+                className={current.remaining < 0 ? "is-iron" : "is-moss"}
+                style={{
+                  width: `${Math.min(
+                    100,
+                    (current.spent /
+                      Math.max(1, current.spent + current.remaining)) *
+                      100,
+                  )}%`,
+                }}
+              />
+            </span>
           </>
         ) : (
-          <strong>
+          <strong className="n">
             {error?.key === key
               ? "Point preview unavailable"
               : "Calculating points…"}

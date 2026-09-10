@@ -142,18 +142,35 @@ function ResourcePool({
   label: string;
   pool: Character["hp"];
 }) {
+  const hurt = pool.current <= Math.max(1, Math.floor(pool.maximum / 3));
+  const percent = Math.max(
+    0,
+    Math.min(100, (pool.current / Math.max(1, pool.maximum)) * 100),
+  );
   return (
-    <div className="resource-pool">
-      <span>{label}</span>
-      <strong>
+    <div className={`resource-pool${hurt ? " resource-pool--hurt" : ""}`}>
+      <span className="k">{label}</span>
+      <strong className="v">
         {pool.current} <small>/ {pool.maximum}</small>
       </strong>
-      <meter
+      <div
+        className="track"
+        role="meter"
         aria-label={label}
-        min={Math.min(0, pool.current)}
-        max={pool.maximum}
-        value={Math.min(pool.current, pool.maximum)}
-      />
+        aria-valuemin={Math.min(0, pool.current)}
+        aria-valuemax={pool.maximum}
+        aria-valuenow={pool.current}
+      >
+        <i
+          className={hurt ? "is-iron" : undefined}
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+      {hurt && (
+        <span className="n">
+          Reeling below {Math.max(1, Math.ceil(pool.maximum / 3))}
+        </span>
+      )}
     </div>
   );
 }

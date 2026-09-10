@@ -22,7 +22,7 @@ async def provider_runtime(
             CodexSettings(
                 model=settings.codex_model,
                 effort=settings.codex_effort,
-                timeout=min(settings.model_timeout_seconds, 120.0),
+                timeout=min(settings.model_timeout_seconds, 300.0),
                 home=settings.codex_home,
                 sessions=settings.codex_sessions,
             ),

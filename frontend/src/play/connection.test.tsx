@@ -131,16 +131,16 @@ it("replaces the setup shell with the game shell and keeps the session on return
   await user.click(screen.getByRole("button", { name: "Sign in" }));
   await user.click(screen.getByRole("button", { name: "Open campaign" }));
   // Play is its own shell: no launcher and no setup panel above it.
-  expect(screen.queryByRole("tab", { name: "Continue game" })).toBeNull();
+  expect(screen.queryByRole("tab", { name: "Join game" })).toBeNull();
   expect(screen.queryByRole("button", { name: "Open campaign" })).toBeNull();
   await user.click(screen.getByRole("button", { name: "Switch campaign" }));
   expect(screen.getByText("Signed in as alice")).toBeInTheDocument();
-  expect(selected()).toBe("Continue game");
+  expect(selected()).toBe("Join game");
   await user.click(screen.getByRole("button", { name: "Open campaign" }));
   await user.click(screen.getByRole("button", { name: "Revoke access" }));
   await user.click(screen.getByRole("button", { name: "New game" }));
   expect(screen.getByText("Signed in as nobody")).toBeInTheDocument();
-  expect(selected()).toBe("New game");
+  expect(selected()).toBe("Start game");
 });
 
 it("gives setup the same landmarks the play shell has (#257)", async () => {
@@ -165,23 +165,25 @@ it("selects a lobby mode from the tab itself, by pointer and by arrow key", asyn
   render(<ConnectedApp />);
   // The mode is readable from the control, and the panel it reveals is named
   // by that tab instead of repeating its label as a heading (#200).
-  expect(selected()).toBe("New game");
+  expect(selected()).toBe("Start game");
   const panel = screen.getByRole("tabpanel");
-  expect(panel).toHaveAccessibleName("New game");
-  expect(within(panel).queryByRole("heading", { name: "New game" })).toBeNull();
+  expect(panel).toHaveAccessibleName("Start game");
+  expect(
+    within(panel).queryByRole("heading", { name: "Start game" }),
+  ).toBeNull();
   await user.click(screen.getByRole("tab", { name: "Join game" }));
   expect(selected()).toBe("Join game");
   expect(screen.getByRole("tabpanel")).toHaveAccessibleName("Join game");
   // A tab bar is walked with the arrow keys; only the selected tab is a stop.
   screen.getByRole("tab", { name: "Join game" }).focus();
   await user.keyboard("{ArrowRight}");
-  expect(selected()).toBe("Scenarios");
-  expect(screen.getByRole("tab", { name: "Scenarios" })).toHaveFocus();
+  expect(selected()).toBe("Create scenario");
+  expect(screen.getByRole("tab", { name: "Create scenario" })).toHaveFocus();
   await user.keyboard("{ArrowRight}");
-  expect(selected()).toBe("New game");
+  expect(selected()).toBe("Start game");
   await user.keyboard("{End}");
-  expect(selected()).toBe("Scenarios");
-  expect(screen.getByRole("tab", { name: "Continue game" })).toHaveAttribute(
+  expect(selected()).toBe("Create scenario");
+  expect(screen.getByRole("tab", { name: "Join game" })).toHaveAttribute(
     "tabindex",
     "-1",
   );

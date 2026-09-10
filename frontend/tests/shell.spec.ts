@@ -102,7 +102,7 @@ test("the header styles nothing as a control that is not one (#255)", async ({
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/");
   const header = page.locator("header.topbar");
-  const tagline = header.getByText("Campaign companion", { exact: true });
+  const tagline = header.locator(".brand-tagline");
   await expect(tagline).toBeVisible();
   // It describes the shell beside the logotype: prose, not a control, and
   // outside the cluster the theme toggle and Session share.

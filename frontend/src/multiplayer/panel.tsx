@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "../components/ui/button";
 import { usePlay } from "../play/use-play";
 import type { GroupKind } from "./model";
+import { Lamp } from "../components/ornaments";
 
 export function ConnectionStatus() {
   const { state, store } = usePlay();
@@ -82,14 +83,34 @@ export function MultiplayerPanel() {
         make their own decisions.
       </p>
       <ul className="presence-list">
-        {view.presence.map((p) => (
-          <li key={p.id}>
-            <strong>{p.name}</strong>
-            <span>
-              {p.status} · {p.ready ? "Ready" : "Not ready"}
-            </span>
-          </li>
-        ))}
+        {view.presence.map((p) => {
+          const seat =
+            p.status === "away"
+              ? { label: "Away", stamp: "stamp--quiet" }
+              : p.ready
+                ? { label: "Ready", stamp: "stamp--moss" }
+                : { label: "Waiting", stamp: "stamp--quiet" };
+          return (
+            <li className="seat-row" key={p.id}>
+              <span className="seat-lamp">
+                <Lamp />
+              </span>
+              <span className="seat-name">
+                <b>{p.name}</b>
+                <span className="seat-status--hand">
+                  {p.status === "away"
+                    ? "away from the table"
+                    : p.ready
+                      ? "ready for the next turn"
+                      : "considering their move"}
+                </span>
+              </span>
+              <span className={`stamp stamp--sm ${seat.stamp}`}>
+                {seat.label}
+              </span>
+            </li>
+          );
+        })}
       </ul>
       <Button
         variant="outline"

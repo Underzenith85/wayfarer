@@ -1,0 +1,189 @@
+/* =============================================================================
+   Wayfarer — Field Journal
+   tokens.css — the whole palette, both themes. Nothing else in the system
+   defines a colour; every value below is referenced by name.
+
+   Day is the default. Night is opt-in via :root[data-theme="dark"], which is
+   the mechanism the app already uses.
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* --- ground -------------------------------------------------------------
+     paper is the page itself and carries the fibre texture.
+     page is one step toward the light: cards, panels, the topbar.
+     well is one step away: inputs, tracks, the draft box.                    */
+  --paper: #f4eee2;
+  --page: #fbf8f1;
+  --well: #e9e0cd;
+
+  /* --- ink ----------------------------------------------------------------
+     ink-faint is the floor. It clears 4.5:1 on paper, page AND well — do not
+     lighten it without re-checking all three.                                */
+  --ink: #201c17;
+  --ink-soft: #5a5346;
+  --ink-faint: #6a6252;
+
+  /* --- rules --------------------------------------------------------------
+     rule-faint exists only for the horizontal ruling behind narration.       */
+  --rule-faint: #e4dac4;
+  --rule: #d8cdb5;
+  --rule-strong: #b9a985;
+
+  /* --- pigments -----------------------------------------------------------
+     Four, and they are rationed. See docs/01-color.md for what each may mark. */
+  --wax: #8f4a24; /* brand accent */
+  --wax-soft: #f2e4d8;
+  --moss: #4a6b33; /* success */
+  --moss-soft: #e6ecdc;
+  --amber: #8a6414; /* partial, waiting, in progress */
+  --amber-soft: #f6ecd4;
+  --iron: #7b2028; /* failure, danger, destructive */
+  --iron-soft: #f6e2df;
+
+  /* --- the one hue that is not a pigment --------------------------------- */
+  --focus: #2c4a7a;
+
+  /* --- paper texture ------------------------------------------------------
+     Foxing (two soft stains) plus fibre (two hairline grids). Nothing here is
+     an "ambient glow"; if it stops reading as paper, remove it.              */
+  --stain-a: rgba(143, 74, 36, 0.045);
+  --stain-b: rgba(120, 96, 52, 0.05);
+  --fiber: rgba(32, 28, 23, 0.018);
+  --fiber-cross: rgba(32, 28, 23, 0.013);
+
+  /* --- gummed tape, for tipped-in sheets --------------------------------- */
+  --tape: rgba(196, 174, 128, 0.34);
+  --tape-edge: rgba(150, 128, 88, 0.32);
+  --overlay: rgba(22, 18, 14, 0.62);
+
+  /* --- elevation ----------------------------------------------------------
+     shadow: a sheet lying on the desk.  lift: a sheet laid on top of another. */
+  --shadow:
+    0 1px 0 rgba(32, 28, 23, 0.05), 0 8px 22px -14px rgba(32, 28, 23, 0.5);
+  --lift:
+    0 1px 1px rgba(32, 28, 23, 0.07), 0 10px 20px -16px rgba(32, 28, 23, 0.8);
+
+  /* --- type ---------------------------------------------------------------
+     Four voices. Which one is allowed where is a hard rule: docs/02-typography.md */
+  --serif: Spectral, Georgia, "Iowan Old Style", serif; /* the world   */
+  --sans: Archivo, "Segoe UI", system-ui, sans-serif; /* the machine */
+  --mono:
+    "IBM Plex Mono", "Cascadia Mono", Consolas, monospace; /* the numbers */
+  --hand: Caveat, "Segoe Script", "Bradley Hand", cursive; /* the people  */
+
+  /* --- space — 4px base -------------------------------------------------- */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 22px;
+  --s-6: 34px;
+  --s-7: 48px;
+  --s-8: 64px;
+
+  /* --- rhythm -------------------------------------------------------------
+     narration-leading is set in px, not unitless, so narration lands exactly
+     on the ruling. Change one and you must change the other.                 */
+  --narration-leading: 34px;
+  --ruling-pitch: 34px;
+  --margin-rule-x: 64px; /* distance from the leaf edge to the wax rule */
+
+  /* --- measure ----------------------------------------------------------- */
+  --measure-narration: 60ch;
+  --measure-voice: 54ch;
+  --measure-panel: 56ch;
+
+  /* --- shell ------------------------------------------------------------- */
+  --shell-width: 1440px;
+  --rail-width: 220px;
+  --party-width: 328px;
+  --topbar-height: 74px;
+
+  /* --- edge -------------------------------------------------------------- */
+  --radius: 2px; /* everything. paper does not have rounded corners */
+  --radius-pill: 999px; /* the lamp glow only; never a control */
+  --reach: 44px; /* actions and navigation */
+  --reach-dense: 36px; /* floor inside dense panels */
+
+  /* --- tilt ---------------------------------------------------------------
+     Past these the page stops reading as a hand and starts reading as a filter. */
+  --tilt-slip: 0.4deg;
+  --tilt-hand: 1.6deg;
+  --tilt-stamp: 4.5deg;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --paper: #16120e;
+  --page: #1e1913;
+  --well: #110e0b;
+
+  --ink: #ede3d0;
+  --ink-soft: #b5aa94;
+  --ink-faint: #948a79; /* lifted to clear 4.5:1 on --page */
+
+  --rule-faint: #2a231a;
+  --rule: #362e23;
+  --rule-strong: #524736;
+
+  --wax: #d98a5f;
+  --wax-soft: #33241a;
+  --moss: #93b76d;
+  --moss-soft: #212b1b;
+  --amber: #d6ac55;
+  --amber-soft: #302716;
+  --iron: #e28a80;
+  --iron-soft: #33201e;
+
+  --focus: #8fbbee;
+
+  --stain-a: rgba(217, 138, 95, 0.05);
+  --stain-b: rgba(255, 240, 214, 0.028);
+  --fiber: rgba(255, 244, 224, 0.022);
+  --fiber-cross: rgba(255, 244, 224, 0.014);
+
+  --tape: rgba(120, 102, 72, 0.3);
+  --tape-edge: rgba(160, 138, 98, 0.26);
+  --overlay: rgba(0, 0, 0, 0.7);
+
+  --shadow: 0 1px 0 rgba(0, 0, 0, 0.4), 0 10px 26px -14px rgba(0, 0, 0, 0.9);
+  --lift: 0 1px 1px rgba(0, 0, 0, 0.5), 0 12px 22px -16px rgba(0, 0, 0, 1);
+}
+
+/* Respect a viewer who has never touched the toggle. Remove this block if the
+   app should always open in day until the user chooses. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #16120e;
+    --page: #1e1913;
+    --well: #110e0b;
+    --ink: #ede3d0;
+    --ink-soft: #b5aa94;
+    --ink-faint: #948a79;
+    --rule-faint: #2a231a;
+    --rule: #362e23;
+    --rule-strong: #524736;
+    --wax: #d98a5f;
+    --wax-soft: #33241a;
+    --moss: #93b76d;
+    --moss-soft: #212b1b;
+    --amber: #d6ac55;
+    --amber-soft: #302716;
+    --iron: #e28a80;
+    --iron-soft: #33201e;
+    --focus: #8fbbee;
+    --stain-a: rgba(217, 138, 95, 0.05);
+    --stain-b: rgba(255, 240, 214, 0.028);
+    --fiber: rgba(255, 244, 224, 0.022);
+    --fiber-cross: rgba(255, 244, 224, 0.014);
+    --tape: rgba(120, 102, 72, 0.3);
+    --tape-edge: rgba(160, 138, 98, 0.26);
+    --overlay: rgba(0, 0, 0, 0.7);
+    --shadow: 0 1px 0 rgba(0, 0, 0, 0.4), 0 10px 26px -14px rgba(0, 0, 0, 0.9);
+    --lift: 0 1px 1px rgba(0, 0, 0, 0.5), 0 12px 22px -16px rgba(0, 0, 0, 1);
+  }
+}

@@ -74,7 +74,7 @@ cutoff. Per-request timeouts, bounded retries and provider-side limits still app
 
 Settings: `WAYFARER_CODEX_MODEL` (default `gpt-5.6-terra`),
 `WAYFARER_CODEX_EFFORT` (`low`, `medium`, `high`),
-`WAYFARER_MODEL_TIMEOUT_SECONDS` (provider maximum 120 seconds),
+`WAYFARER_MODEL_TIMEOUT_SECONDS` (default and provider maximum 300 seconds),
 `WAYFARER_CODEX_HOME`, and `WAYFARER_CODEX_SESSIONS` (opaque session/thread mapping
 only). A generation change creates a new scoped session; a restart resumes the
 same thread. Thread history is never authoritative game state.

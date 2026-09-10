@@ -33,7 +33,10 @@ class Settings(BaseSettings):
     codex_effort: Literal["low", "medium", "high"] = "low"
     codex_home: Path = Path("data/codex")
     codex_sessions: Path = Path("data/codex-sessions.sqlite3")
-    model_timeout_seconds: float = Field(default=45.0, gt=0, le=300)
+    # Full scenario drafts have a large structured output and routinely need more
+    # than the old interactive-action budget. Five minutes remains bounded while
+    # allowing the provider to finish the complete structured document.
+    model_timeout_seconds: float = Field(default=300.0, gt=0, le=300)
     db_timeout_seconds: float = Field(default=10.0, gt=0, le=60)
 
     @model_validator(mode="after")

@@ -16,13 +16,9 @@ import {
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { ScopedLink } from "../scoped-link";
-import {
-  ArrowUp,
-  ChevronRight,
-  MessageCircle,
-  Sparkles,
-  Trash2,
-} from "lucide-react";
+import { ChevronRight, MessageCircle, Trash2 } from "lucide-react";
+import { Dice, Nib, Ring } from "../components/ornaments";
+import type { components } from "../api/contracts.generated";
 import { Button } from "../components/ui/button";
 import { usePlay } from "./use-play";
 import type { Entry, PlayState, PlayStore } from "./store";
@@ -287,8 +283,12 @@ export function Transcript({ entries }: { entries: Entry[] }) {
         </Button>
       </div>
       <ol className="transcript" start={start + 1}>
-        {entries.slice(start, end).map((entry) => (
-          <ActionEntry key={entry.id} entry={entry} />
+        {entries.slice(start, end).map((entry, index) => (
+          <ActionEntry
+            key={entry.id}
+            entry={entry}
+            continuation={start + index > 0}
+          />
         ))}
       </ol>
     </>
@@ -305,7 +305,54 @@ export function Transcript({ entries }: { entries: Entry[] }) {
  * — says so rather than borrowing a placeholder that makes every entry read
  * alike.
  */
-function ActionEntry({ entry }: { entry: Entry }) {
+type Check = components["schemas"]["Check"];
+
+const checkPresentation: Record<
+  Check["outcome"],
+  { label: string; stamp: string; slip: string }
+> = {
+  success: { label: "Made it", stamp: "stamp--moss", slip: "" },
+  failure: { label: "Missed", stamp: "stamp--iron", slip: "slip--fail" },
+  critical_success: {
+    label: "Critical",
+    stamp: "stamp--wax",
+    slip: "slip--crit",
+  },
+  critical_failure: {
+    label: "Critical miss",
+    stamp: "stamp--iron",
+    slip: "slip--fail",
+  },
+};
+
+function RollSlip({ check }: { check: Check }) {
+  const presentation = checkPresentation[check.outcome];
+  return (
+    <div className={`slip ${presentation.slip}`.trim()}>
+      <Dice faces={check.dice} />
+      <div className="slip-what">
+        <b>{check.label}</b>
+        <span>
+          {check.label}: {check.dice.join(" + ")} against {check.target}
+        </span>
+      </div>
+      <div className="slip-verdict">
+        <span className={`stamp ${presentation.stamp}`}>
+          {presentation.label}
+        </span>
+        <span>by {Math.abs(check.margin)}</span>
+      </div>
+    </div>
+  );
+}
+
+function ActionEntry({
+  entry,
+  continuation,
+}: {
+  entry: Entry;
+  continuation: boolean;
+}) {
   const a = entry.action;
   const label = {
     action: "Your action",
@@ -334,7 +381,11 @@ function ActionEntry({ entry }: { entry: Entry }) {
         )}
       </div>
       {entry.narration ? (
-        <div className="gm-message">
+        <div
+          className={`gm-message${continuation ? " is-continuation" : ""}${
+            entry.narration.status === "provisional" ? " is-provisional" : ""
+          }`}
+        >
           <span className="eyebrow">
             Game master
             {entry.narration.status === "provisional"
@@ -350,7 +401,10 @@ function ActionEntry({ entry }: { entry: Entry }) {
         </div>
       ) : (
         committed && (
-          <div className="gm-message" role="status">
+          <div
+            className={`gm-message${continuation ? " is-continuation" : ""} is-provisional`}
+            role="status"
+          >
             <span className="eyebrow">Game master</span>
             <p className="entry-unrecorded">The game master is writing…</p>
           </div>
@@ -380,18 +434,14 @@ function ActionEntry({ entry }: { entry: Entry }) {
         <section className="committed-result">
           <h3>Authoritative result</h3>
           <p>{a.resolution.summary}</p>
+          {a.resolution.checks.map((check, index) => (
+            <RollSlip key={`${check.label}-${index}`} check={check} />
+          ))}
           <details>
             <summary>Rolls and consequences</summary>
             {a.resolution.checks.length === 0 ? (
               <p>No roll was required.</p>
-            ) : (
-              a.resolution.checks.map((check, i) => (
-                <p key={i}>
-                  {check.label}: {check.dice.join(" + ")} against {check.target}{" "}
-                  · {check.outcome.replaceAll("_", " ")} · margin {check.margin}
-                </p>
-              ))
-            )}
+            ) : null}
             {/* What changed, named for a reader. The identifiers and content
                 digests that name the same things to the service are engine
                 bookkeeping and sit behind the usual disclosure (#296). */}
@@ -591,6 +641,44 @@ function Composer({ voice }: { voice: VoiceController }) {
   return (
     <form className="composer" onSubmit={(e) => void send(e)}>
       <SceneSuggestions blocked={blocked} />
+      <div className="composer-top">
+        <fieldset
+          className="channel-switch"
+          disabled={state.busy || !!state.retry || capturing}
+        >
+          <legend className="visually-hidden">Message channel</legend>
+          {(["action", "dialogue", "ooc"] as const)
+            .filter((value) => !store.transport.multiplayer || value !== "ooc")
+            .map((value) => (
+              <label key={value}>
+                <input
+                  type="radio"
+                  name="channel"
+                  value={value}
+                  checked={channel === value}
+                  onChange={() => setChannel(value)}
+                />
+                {value === "action"
+                  ? "Action"
+                  : value === "dialogue"
+                    ? "Dialogue"
+                    : "OOC"}
+              </label>
+            ))}
+        </fieldset>
+        {!blocked && (
+          <>
+            <span className="turn-mark">
+              your turn
+              <Ring width={92} height={34} />
+            </span>
+            <span className="visually-hidden" role="status">
+              It is your turn.
+            </span>
+          </>
+        )}
+        <ActingAs />
+      </div>
       <label htmlFor="play-draft">
         {channel === "action"
           ? "What do you do?"
@@ -639,33 +727,9 @@ function Composer({ voice }: { voice: VoiceController }) {
         </p>
       )}
       <div className="composer-bottom">
-        <fieldset
-          className="channel-switch"
-          disabled={state.busy || !!state.retry || capturing}
-        >
-          <legend className="visually-hidden">Message channel</legend>
-          {(["action", "dialogue", "ooc"] as const)
-            .filter((value) => !store.transport.multiplayer || value !== "ooc")
-            .map((value) => (
-              <label key={value}>
-                <input
-                  type="radio"
-                  name="channel"
-                  value={value}
-                  checked={channel === value}
-                  onChange={() => setChannel(value)}
-                />
-                {value === "action"
-                  ? "Action"
-                  : value === "dialogue"
-                    ? "Dialogue"
-                    : "OOC"}
-              </label>
-            ))}
-        </fieldset>
         <VoiceMic voice={voice} state={speech} />
         <Button disabled={!sendable}>
-          <ArrowUp size={18} aria-hidden="true" />
+          <Nib size={18} />
           Send {reviewing ? `reviewed ${name}` : name}
         </Button>
       </div>
@@ -900,7 +964,6 @@ export function PlayWorkspace() {
   if (!s)
     return (
       <section className="scene-card empty-state">
-        <Sparkles size={28} aria-hidden="true" />
         <span className="eyebrow">Your next chapter</span>
         <h2>No campaign selected</h2>
         <p>
@@ -993,7 +1056,6 @@ export function PlayWorkspace() {
       ) : (
         <>
           <FailedAttempts />
-          <ActingAs />
           <Composer
             voice={voice}
             key={`${s.campaign.id}:${s.scene.id}:${state.actorId}:${s.campaign.membership.version}`}

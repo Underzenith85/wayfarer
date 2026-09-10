@@ -7,10 +7,15 @@ const variants = cva("button", {
     variant: {
       default: "button-primary",
       outline: "button-outline",
+      ghost: "button-ghost",
       danger: "button-danger",
     },
+    size: {
+      default: "",
+      sm: "button-sm",
+    },
   },
-  defaultVariants: { variant: "default" },
+  defaultVariants: { variant: "default", size: "default" },
 });
 export function Button({
   asChild = false,

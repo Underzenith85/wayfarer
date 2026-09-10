@@ -52,11 +52,17 @@ async function login(page: Page, principal: string, id: string) {
       .getByRole("dialog", { name: "Session" })
       .getByRole("button", { name: "Switch campaign", exact: true })
       .click();
+    // Switching back to setup restores the current campaign directly. It is
+    // already selected, so re-enter play from its single contextual action.
+    await lobby
+      .getByRole("button", { name: "Open playing scene", exact: true })
+      .click();
   } else {
     await lobby.getByLabel("Access token").fill(`${principal}-token`);
     await lobby.getByRole("button", { name: "Sign in" }).click();
+    await page.getByRole("tab", { name: "Join game", exact: true }).click();
+    await lobby.locator(`[data-campaign-id="${id}"]`).click();
   }
-  await lobby.locator(`[data-campaign-id="${id}"]`).click();
   // Joining loads the snapshot and its scene in separate requests. Do not let
   // another player mutate the campaign until this player's join has completed.
   await expect(

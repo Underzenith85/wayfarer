@@ -1,0 +1,247 @@
+/* =============================================================================
+   base.css — the paper, the four voices, and the reach/focus rules.
+   Assumes tokens.css is loaded first.
+   ========================================================================== */
+
+/* Self-host these four in production. The fallbacks are metric-close on
+   Windows and macOS, which matters because PDF export never embeds webfonts. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  tab-size: 4;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+
+  /* The paper. Two stains (foxing) over two hairline grids (fibre).
+     This is the ONLY place in the system that uses a gradient. */
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(
+      ellipse 40% 30% at 14% 18%,
+      var(--stain-a),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 35% 28% at 86% 82%,
+      var(--stain-b),
+      transparent 70%
+    ),
+    repeating-linear-gradient(0deg, var(--fiber) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(
+      90deg,
+      var(--fiber-cross) 0 1px,
+      transparent 1px 4px
+    );
+  background-attachment: fixed;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+ul,
+ol,
+dl,
+dd,
+figure {
+  margin: 0;
+}
+ul,
+ol {
+  padding: 0;
+  list-style: none;
+}
+
+h1,
+h2,
+h3,
+p {
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--wax);
+  text-decoration: none;
+  border-bottom: 1px solid var(--rule-strong);
+}
+a:hover {
+  color: var(--ink);
+  border-bottom-color: var(--wax);
+}
+
+button {
+  font: inherit;
+  background: none;
+  border: 0;
+  color: inherit;
+}
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+img,
+svg,
+video,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+svg[data-lucide] {
+  stroke-width: 1.25;
+}
+
+/* ---- the four voices -----------------------------------------------------
+   Which voice is allowed where is a hard rule. Short version:
+     serif — the world (narration, scene titles, declared actions, dialogue)
+     sans  — the machine (labels, buttons, nav, table heads, form copy)
+     mono  — the numbers (anything that gets compared to another number)
+     hand  — the people (margin glosses, asides, captions, dates)
+   Full rule with the "never" list: docs/02-typography.md                   */
+
+.serif {
+  font-family: var(--serif);
+}
+.mono {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+.hand {
+  font-family: var(--hand);
+  font-size: 19px;
+  line-height: 1.35;
+  color: var(--wax);
+}
+
+/* ---- the three label roles. There are three. Do not add a fourth. -------- */
+.eyebrow {
+  /* section and panel headings */
+  font-family: var(--sans);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.19em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.eyebrow-wax {
+  color: var(--wax);
+}
+
+.label {
+  /* field and stat labels */
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.tag {
+  /* stamps and segmented switches */
+  font-family: var(--sans);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.meta {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-faint);
+}
+
+/* ---- headings ------------------------------------------------------------ */
+.display {
+  font-family: var(--serif);
+  font-size: 52px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.055em;
+}
+.scene-title {
+  font-family: var(--serif);
+  font-size: 31px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+.scene-title--lg {
+  font-size: 33px;
+  line-height: 1.15;
+}
+
+/* ---- utilities ----------------------------------------------------------- */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.skip-link {
+  position: fixed;
+  top: -100px;
+  left: 16px;
+  z-index: 30;
+  background: var(--page);
+  padding: 16px;
+}
+.skip-link:focus {
+  top: 16px;
+}
+
+/* Motion. Everything in this system is static except the voice waveform and
+   the mic pulse; both must stop here. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  /* Tilt is decoration, not motion — but a viewer who asks for calm gets a
+     flat page too. Remove this rule if you disagree; it is a judgement call. */
+  .slip,
+  .player-message,
+  .stamp,
+  .outcome,
+  .hand,
+  .gloss,
+  .brand-tagline,
+  .acting-as,
+  .pinned-caption,
+  .availability-banner,
+  .offline-banner,
+  .request-error {
+    transform: none !important;
+  }
+}

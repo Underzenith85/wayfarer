@@ -201,7 +201,7 @@ class Orchestrator:
         timeout: float = 20,
         attempts: int = 2,
     ) -> None:
-        if not 0 < timeout <= 120 or not 1 <= attempts <= 3:
+        if not 0 < timeout <= 300 or not 1 <= attempts <= 3:
             raise ValueError("Invalid provider bounds")
         self.access, self.provider = access, provider
         self.timeout, self.attempts = timeout, attempts

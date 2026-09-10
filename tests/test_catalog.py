@@ -14,6 +14,7 @@ from pydantic import SecretStr
 from test_runtime import settings
 
 from wayfarer.config import Settings
+from wayfarer.orchestration.catalog import GeneratedScenarioGraph
 from wayfarer.orchestration.providers import Orchestrator, ProviderReply, ProviderRequest, Usage
 from wayfarer.runtime import create_runtime_app, starting_scenario
 from wayfarer.transport.campaign_api import ACCESS_KEY, ORCHESTRATOR_KEY
@@ -21,6 +22,16 @@ from wayfarer.transport.setup_api import SETUP_KEY
 
 PREFIX = "/authoring/v1/scenarios"
 HEADERS = {"Authorization": "Bearer alice-token"}
+
+
+def test_generation_schema_requires_fresh_portable_state() -> None:
+    graph = starting_scenario()
+    GeneratedScenarioGraph.model_validate_json(graph.model_dump_json())
+    stale = graph.model_copy(
+        update={"resources": graph.resources.model_copy(update={"revision": 1})}
+    )
+    with pytest.raises(ValueError, match="Input should be 0"):
+        GeneratedScenarioGraph.model_validate_json(stale.model_dump_json())
 
 
 async def test_generation_publishes_safe_provider_diagnostic(tmp_path: Path) -> None:
@@ -309,6 +320,43 @@ async def test_guided_generation_is_recoverable_and_never_overwrites_edits(
             },
         )
         assert saved["revision"] == 1
+
+
+async def test_guided_generation_keeps_an_earlier_portable_candidate(config: Settings) -> None:
+    graph = starting_scenario()
+    first = graph.model_copy(update={"opening_scene_id": "missing-scene"})
+    regressed = graph.model_copy(update={"npc_actor_ids": ("missing-actor",)})
+
+    class Provider:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        async def complete(self, request: ProviderRequest) -> object:
+            self.calls += 1
+            proposal = first if self.calls == 1 else regressed
+            return ProviderReply(payload_json=proposal.model_dump_json(), usage=Usage())
+
+    provider = Provider()
+    app = create_runtime_app(config, config.frontend_dir)
+    app[ORCHESTRATOR_KEY] = Orchestrator(app[ACCESS_KEY], provider)
+    async with TestClient(TestServer(app)) as client:
+        response = await client.post(
+            PREFIX + "/generation-jobs",
+            headers=HEADERS,
+            json={"id": str(uuid4()), "brief": graph.brief.model_dump(mode="json")},
+        )
+        assert response.status == 202, await response.text()
+        job = await response.json()
+        for _ in range(20):
+            response = await client.get(PREFIX + f"/generation-jobs/{job['id']}", headers=HEADERS)
+            job = await response.json()
+            if job["status"] not in ("queued", "running"):
+                break
+            await asyncio.sleep(0)
+        assert provider.calls == 2
+        assert job["status"] == "needs_review"
+        assert job["proposal_json"]
+        assert job["report"]["status"] == "invalid"
 
 
 async def test_guided_generation_cancel_and_restart_recovery(config: Settings) -> None:

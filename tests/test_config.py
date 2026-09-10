@@ -12,6 +12,7 @@ def test_configuration_requires_complete_provider_pair() -> None:
 
 
 def test_configuration_rejects_bad_bounds() -> None:
+    assert Settings().model_timeout_seconds == 300
     with pytest.raises(ValidationError):
         Settings(port=70000)
     with pytest.raises(ValidationError):

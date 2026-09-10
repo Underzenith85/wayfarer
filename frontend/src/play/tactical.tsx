@@ -44,16 +44,23 @@ function HexMap({ encounter }: { encounter: Encounter }) {
               points={points}
               fill={
                 cell.blocked
-                  ? "#374151"
+                  ? "var(--ink-faint)"
                   : actors.some((a) => a.controlled)
-                    ? "#14532d"
+                    ? "var(--moss)"
                     : actors.length
-                      ? "#7c2d12"
-                      : "#182333"
+                      ? "var(--iron)"
+                      : "var(--ink)"
               }
-              stroke="#8796aa"
+              stroke="var(--rule-strong)"
+              strokeWidth="1.15"
             />
-            <text x={x} y={y + 4} fill="white" textAnchor="middle" fontSize="9">
+            <text
+              x={x}
+              y={y + 4}
+              fill="var(--page)"
+              textAnchor="middle"
+              fontSize="9"
+            >
               {actors.length
                 ? actors.map((a) => a.name.slice(0, 2)).join("/")
                 : `${cell.position.q},${cell.position.r}`}

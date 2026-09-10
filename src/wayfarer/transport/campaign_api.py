@@ -553,7 +553,7 @@ def create_campaign_app(
                 settings, status=application[PROVIDER_STATUS_KEY].append
             ) as provider:
                 application[ORCHESTRATOR_KEY] = Orchestrator(
-                    play, provider, timeout=min(settings.model_timeout_seconds, 120.0), attempts=1
+                    play, provider, timeout=min(settings.model_timeout_seconds, 300.0), attempts=1
                 )
                 from wayfarer.transport.v1.provider import bind_provider
 
