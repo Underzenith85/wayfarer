@@ -412,8 +412,193 @@
     "issues": [
       112,
       336,
+      344
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "artillery-beams",
+    "name": "Artillery (Beams)",
+    "page": 178,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "artillery",
+      "name": "beams"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
       344,
-      357
+      362
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "artillery-bombs",
+    "name": "Artillery (Bombs)",
+    "page": 178,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "artillery",
+      "name": "bombs"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "artillery-cannon",
+    "name": "Artillery (Cannon)",
+    "page": 178,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "artillery",
+      "name": "cannon"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "artillery-catapult",
+    "name": "Artillery (Catapult)",
+    "page": 178,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "artillery",
+      "name": "catapult"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "artillery-guided-missile",
+    "name": "Artillery (Guided Missile)",
+    "page": 178,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "artillery",
+      "name": "guided-missile"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "artillery-torpedoes",
+    "name": "Artillery (Torpedoes)",
+    "page": 178,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "artillery",
+      "name": "torpedoes"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362
     ],
     "procedure_owner": 344
   },
@@ -3495,8 +3680,162 @@
     "issues": [
       112,
       336,
+      344
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "gunner-beams",
+    "name": "Gunner (Beams)",
+    "page": 198,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "gunner",
+      "name": "beams"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
       344,
-      357
+      362
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "gunner-cannon",
+    "name": "Gunner (Cannon)",
+    "page": 198,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "gunner",
+      "name": "cannon"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "gunner-machine-gun",
+    "name": "Gunner (Machine Gun)",
+    "page": 198,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "gunner",
+      "name": "machine-gun"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "gunner-rockets",
+    "name": "Gunner (Rockets)",
+    "page": 198,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "gunner",
+      "name": "rockets"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "gunner-torpedoes",
+    "name": "Gunner (Torpedoes)",
+    "page": 198,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "gunner",
+      "name": "torpedoes"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362
     ],
     "procedure_owner": 344
   },

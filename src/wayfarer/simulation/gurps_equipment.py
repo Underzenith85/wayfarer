@@ -22,6 +22,7 @@ from wayfarer.rules.conformance import require_capabilities
 from wayfarer.rules.entangle_types import EntangleSpec
 from wayfarer.rules.firearm_types import FirearmSpec
 from wayfarer.rules.location_types import HumanLocation
+from wayfarer.rules.mount_types import MountSpec
 from wayfarer.rules.object_types import ObjectProfile
 from wayfarer.simulation.resources import EquipmentSpec, Id, Record, ResourceEngine, ResourceState
 
@@ -119,6 +120,7 @@ class RangedMode(Record):
         default=None, exclude_if=lambda value: value is None
     )
     entangle: EntangleSpec | None = Field(default=None, exclude_if=lambda value: value is None)
+    mount: MountSpec | None = Field(default=None, exclude_if=lambda value: value is None)
     firearm: FirearmSpec | None = Field(default=None, exclude_if=lambda v: v is None)
 
     @model_validator(mode="after")
@@ -163,6 +165,9 @@ class RangedMode(Record):
             raise ValueError("Rated bows require their ordinary two- or four-second reload timing")
         # A binding is thrown once and holds the target; it is not a rapid-fire
         # projectile, and it cannot also be a rated launcher or a firearm.
+        # A mounted weapon is served, not thrown or bound by hand.
+        if self.mount is not None and (self.thrown or self.entangle is not None):
+            raise ValueError("Mounted weapons are neither thrown nor entangling")
         if self.entangle is not None and (
             not self.thrown
             or self.rate_of_fire != 1
@@ -201,6 +206,7 @@ def require_skill_procedure(profile_id: str, mode: MeleeMode | RangedMode) -> No
         rated_kind=rated.kind if rated is not None else None,
         entangling=isinstance(mode, RangedMode) and mode.entangle is not None,
         conventional_firearm=isinstance(mode, RangedMode) and mode.firearm is not None,
+        mounted=isinstance(mode, RangedMode) and mode.mount is not None,
     )
 
 
@@ -307,6 +313,9 @@ class EquipmentCatalog(Record):
                 if isinstance(mode, RangedMode) and mode.entangle is not None:
                     if self.profile_id != "gurps-basic-set-4e-2004":
                         raise ValueError("Entangling weapons require the exact Basic Set profile")
+                if isinstance(mode, RangedMode) and mode.mount is not None:
+                    if self.profile_id != "gurps-basic-set-4e-2004":
+                        raise ValueError("Mounted weapons require the exact Basic Set profile")
                 if isinstance(mode, RangedMode) and mode.firearm is not None:
                     if self.profile_id != "gurps-basic-set-4e-2004":
                         raise ValueError("Firearm malfunctions require the exact Basic Set profile")

@@ -64,6 +64,7 @@ class TakeCombatTurn(CombatCommand):
     reload_ammunition_id: str | None = None
     unload_ammunition: bool = Field(default=False, exclude_if=lambda v: not v)
     escape_entanglement: bool = Field(default=False, exclude_if=lambda v: not v)
+    mount_crew: tuple[Id, ...] = Field(default=(), exclude_if=lambda v: not v)
     firearm_service: Literal["diagnose", "clear", "repair"] | None = Field(
         default=None, exclude_if=lambda v: v is None
     )
@@ -1107,6 +1108,15 @@ class CombatService:
                             resources = unload_weapon(
                                 self.play,
                                 state.model_copy(update={"resources": resources}),
+                                command_for_turn,
+                            )
+                        if command_for_turn.mount_crew:
+                            from wayfarer.orchestration.mounts import assign_crew
+
+                            resources = assign_crew(
+                                self.play,
+                                state.model_copy(update={"resources": resources}),
+                                encounter,
                                 command_for_turn,
                             )
                         if command_for_turn.escape_entanglement:

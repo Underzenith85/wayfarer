@@ -404,7 +404,10 @@ def prepare(
         ):
             raise ValidationError("Weapon is unloaded or reload is incomplete")
     allowed: list[Defense] = ["none"]
-    for candidate in ("dodge", "block", "parry"):
+    # B178: a shot laid indirectly arrives without warning, so the target has no
+    # active defense against it. A directly laid mount is defended normally.
+    indirect = weapon.mount is not None and weapon.mount.indirect
+    for candidate in () if indirect else ("dodge", "block", "parry"):
         from wayfarer.orchestration.object_combat import weapon_target
 
         if (
@@ -566,7 +569,8 @@ def resolve(
         + scene.size_modifier
         + range_penalty(scene.distance_yards + scene.speed_yards_per_second)
         + rapid_fire_bonus(pending.shots)
-        - max(0, weapon.minimum_st - st)
+        # A mount bears the weapon, so the firer's own ST is not what limits it.
+        - (0 if weapon.mount is not None else max(0, weapon.minimum_st - st))
     )
     if pending.target_item_id:
         from wayfarer.orchestration.object_combat import target_modifier

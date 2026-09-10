@@ -346,8 +346,8 @@ def test_the_capability_registry_gates_activation_not_the_procedure() -> None:
 def test_implemented_rows_reach_the_audit_report() -> None:
     report = audit_report()
     counts = cast(dict[str, int], report["implementation_counts"])
-    # 83 technology rows here, plus 27 ranged (#344, #354, #355) and 16 social (#345).
-    assert counts["implemented"] == 126
+    # 83 technology rows here, plus 40 ranged (#344, #354, #355, #357) and 16 social.
+    assert counts["implemented"] == 139
     rows = {entry.id: entry for entry in inventory()}
     assert rows["skill:vacc-suit"].dispatch == "hazard.exposure"
     assert rows["skill:driving-automobile"].dispatch == "transport.vehicle-control"
