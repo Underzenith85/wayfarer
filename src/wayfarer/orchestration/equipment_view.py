@@ -3,7 +3,7 @@
 import hashlib
 
 from wayfarer.errors import WayfarerError
-from wayfarer.orchestration.combat import RepairEquipment, RetrieveEquipment
+from wayfarer.orchestration.combat import RepairEquipment, RetrieveEquipment, TakeCombatTurn
 from wayfarer.orchestration.equipment_retrieval import RetrievalTask
 from wayfarer.orchestration.equipment_retrieval import tasks as retrievals
 from wayfarer.orchestration.play import PlayService
@@ -18,7 +18,7 @@ from wayfarer.simulation.resources import Record
 
 class EquipmentChoice(Record):
     label: str
-    command: RepairEquipment | RetrieveEquipment
+    command: RepairEquipment | RetrieveEquipment | TakeCombatTurn
 
 
 class EquipmentView(Record):
@@ -135,4 +135,50 @@ def equipment_view(play: PlayService, state: PlayState, actor_id: str) -> tuple[
                 loaded_rounds=load.rounds if load else None,
             )
         )
+    if encounter is not None:
+        from wayfarer.orchestration.thrown_items import record, recover
+        from wayfarer.orchestration.unarmed import free_hands
+
+        for item in state.resources.expended_items:
+            landing = record(state.resources, item.id)
+            if (
+                landing is None
+                or landing.encounter_id != encounter.id
+                or actor_id not in landing.observed_by
+            ):
+                continue
+            options: list[EquipmentChoice] = []
+            if encounter.current_actor_id == actor_id and encounter.status == "active":
+                for hand in free_hands(state, encounter, actor_id):
+                    command_id = (
+                        "recover:"
+                        + hashlib.sha256(
+                            f"{state.campaign_id}:{state.revision}:{item.id}:{actor_id}:{hand}".encode()
+                        ).hexdigest()
+                    )
+                    recovery = TakeCombatTurn(
+                        id=command_id,
+                        actor_id=actor_id,
+                        expected_revision=state.revision,
+                        encounter_id=encounter.id,
+                        maneuver="ready",
+                        item_id=item.id,
+                        ready_hand=hand,
+                        recover_thrown_item=True,
+                    )
+                    try:
+                        recover(play, state, encounter, recovery)
+                    except WayfarerError, ValueError:
+                        continue
+                    options.append(EquipmentChoice(label=f"Recover with {hand}", command=recovery))
+            result.append(
+                EquipmentView(
+                    id=item.id,
+                    name=item.definition_id,
+                    condition=item.condition if item.owner_id == actor_id else None,
+                    ground=landing.landing,
+                    work="Thrown item" if landing.landing else "Landing unresolved",
+                    choices=tuple(options),
+                )
+            )
     return tuple(result)

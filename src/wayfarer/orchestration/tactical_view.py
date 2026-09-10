@@ -152,6 +152,10 @@ def preview(
         return
     guard_control(encounter, command, state)
     if isinstance(command, ChooseDefense):
+        if command.catch_thrown:
+            from wayfarer.orchestration.thrown_items import validate_catch
+
+            validate_catch(play, state, encounter, command)
         prepared = prepare_defense(play, state, encounter, command)
         if prepared.pending_unarmed is not None:
             unarmed_defense(
@@ -313,6 +317,30 @@ def choices(
         if defender_id != actor_id:
             return ()
         allowed = pending.allowed if pending else unarmed.allowed if unarmed else ()
+        if pending:
+            from wayfarer.orchestration.gurps_melee import mode as weapon_mode
+            from wayfarer.orchestration.unarmed import free_hands
+
+            incoming = (
+                weapon_mode(play, state, pending.attacker_id, pending.weapon_id, pending.mode_id)
+                if pending.spell_cast_id is None
+                else None
+            )
+            if isinstance(incoming, RangedMode) and incoming.catchable:
+                for hand in free_hands(state, encounter, actor_id):
+                    for catch in (False, True):
+                        candidates.append(
+                            (
+                                f"Barehanded Parry with {hand}"
+                                + ("; catch on critical success" if catch else ""),
+                                {
+                                    "kind": "choose_defense",
+                                    "defense": "parry",
+                                    "item_id": hand,
+                                    "catch_thrown": catch,
+                                },
+                            )
+                        )
         for defense in allowed:
             candidates.append(
                 (f"{defense.title()} defense", {"kind": "choose_defense", "defense": defense})
@@ -779,7 +807,13 @@ def project(
                     c
                     for c in choices(play, state, encounter, actor_id, visible)
                     if include_object_choices
-                    or not (isinstance(c.command, TakeCombatTurn) and c.command.target_item_id)
+                    or not (
+                        isinstance(c.command, TakeCombatTurn)
+                        and c.command.target_item_id
+                        or isinstance(c.command, ChooseDefense)
+                        and c.command.item_id in ("left-hand", "right-hand")
+                        and encounter.pending_defense is not None
+                    )
                 )
                 if state.lifecycle == "active"
                 else (),
