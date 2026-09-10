@@ -227,6 +227,7 @@ def heavy_parry_weight(
     state: PlayState,
     participant: Combatant,
     incoming_item_id: str | None = None,
+    incoming_mode_id: str | None = None,
 ) -> int | None:
     """B376 incoming weight when the heavy-weapon parry limit applies, else None.
 
@@ -238,7 +239,7 @@ def heavy_parry_weight(
     equipment = catalog(play)
     if equipment.profile_id != "gurps-basic-set-4e-2004":
         return None
-    mode_id: str | None = None
+    mode_id = incoming_mode_id
     if incoming_item_id is None:
         encounter = next(
             (
@@ -278,6 +279,7 @@ def defense_value(
     *,
     parry_mode_id: str | None = None,
     incoming_item_id: str | None = None,
+    incoming_mode_id: str | None = None,
 ) -> tuple[DerivedValue | None, str | None]:
     if selected == "none":
         return None, None
@@ -403,7 +405,7 @@ def defense_value(
         ), None
     candidates: list[tuple[int, str, str]] = []
     incoming_weight = (
-        heavy_parry_weight(play, state, participant, incoming_item_id)
+        heavy_parry_weight(play, state, participant, incoming_item_id, incoming_mode_id)
         if selected == "parry"
         else None
     )
@@ -428,10 +430,6 @@ def defense_value(
                 (int(value.value) // 2 + 3 + height_bonus(), item.id, entry.shield.skill_id)
             )
         if selected == "parry":
-            # B376: a weapon cannot parry one weighing three or more times as
-            # much; an item with no recorded weight states no ratio.
-            if incoming_weight is not None and 0 < 3 * entry.weight_millipounds <= incoming_weight:
-                continue
             for weapon_mode in entry.modes:
                 if parry_mode_id is not None and weapon_mode.id != parry_mode_id:
                     continue
@@ -441,6 +439,20 @@ def defense_value(
                     mode(play, state, participant.actor_id, item.id, weapon_mode.id)
                 except ValidationError:
                     continue
+                if incoming_weight is not None:
+                    # B376: the hard limit is BL (twice BL for a two-handed mode).
+                    # Three times weapon weight introduces breakage, not a ban.
+                    if incoming_weight > compiled.statistics.basic_lift * 1000 * weapon_mode.hands:
+                        continue
+                    if 0 < 3 * entry.weight_millipounds <= incoming_weight:
+                        from wayfarer.orchestration.heavy_parry import require_breakage
+
+                        try:
+                            require_breakage(entry, item)
+                        except ValidationError:
+                            if item_id is not None:
+                                raise
+                            continue
                 parry = weapon_mode.parry
                 if (
                     parry.unbalanced
@@ -539,7 +551,14 @@ def prepare_attack(
     for candidate in ("dodge", "parry", "block"):
         try:
             defense_adjustment(encounter, attacker, defender)
-            defense_value(play, state, defender, candidate, incoming_item_id=pending.weapon_id)
+            defense_value(
+                play,
+                state,
+                defender,
+                candidate,
+                incoming_item_id=pending.weapon_id,
+                incoming_mode_id=selected.id,
+            )
         except ValidationError:
             continue
         allowed.append(candidate)
@@ -565,6 +584,9 @@ def validate_defense_choices(
     item_id: str | None,
     second_defense: Defense | None,
     second_item_id: str | None,
+    *,
+    parry_mode_id: str | None = None,
+    second_parry_mode_id: str | None = None,
 ) -> None:
     pending = encounter.pending_defense
     if pending is None:
@@ -574,7 +596,13 @@ def validate_defense_choices(
     ):
         raise ValidationError("Defense is not available against this attack")
     defender = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
-    _, first_item = defense_value(play, state, defender, selected, item_id)
+    if (parry_mode_id is not None and selected != "parry") or (
+        second_parry_mode_id is not None and second_defense != "parry"
+    ):
+        raise ValidationError("Parry damage mode requires the corresponding Parry defense")
+    _, first_item = defense_value(
+        play, state, defender, selected, item_id, parry_mode_id=parry_mode_id
+    )
     if second_defense is None:
         if second_item_id is not None:
             raise ValidationError("Second defense equipment requires a second defense")
@@ -585,7 +613,9 @@ def validate_defense_choices(
         or defender.maneuver_state.enhanced_defense != "double"
     ):
         raise ValidationError("Second defense requires All-Out Defense (Double)")
-    _, second_item = defense_value(play, state, defender, second_defense, second_item_id)
+    _, second_item = defense_value(
+        play, state, defender, second_defense, second_item_id, parry_mode_id=second_parry_mode_id
+    )
     if selected == second_defense and not (selected == "parry" and first_item != second_item):
         raise ValidationError(
             "Double defense requires different defenses or different parrying hands"
@@ -601,6 +631,8 @@ def resolve_melee(
     *,
     second_defense: Defense | None = None,
     second_item_id: str | None = None,
+    parry_mode_id: str | None = None,
+    second_parry_mode_id: str | None = None,
 ) -> tuple[PlayState, Encounter, InjuryTrace]:
     pending = encounter.pending_defense
     assert pending is not None
@@ -637,8 +669,16 @@ def resolve_melee(
     if hp.injury is None or attacker_hp.injury is None:
         raise ValidationError("GURPS injury pool requires explicit migration")
     defense_derived, defense_item = defense_value(
-        play, state, defender, selected, item_id, incoming_item_id=pending.weapon_id
+        play,
+        state,
+        defender,
+        selected,
+        item_id,
+        incoming_item_id=pending.weapon_id,
+        incoming_mode_id=pending.mode_id,
+        parry_mode_id=parry_mode_id,
     )
+    critical_parry_mode = parry_mode_id
     second_derived = None
     second_item = None
     if second_defense is not None:
@@ -655,6 +695,8 @@ def resolve_melee(
             second_defense,
             second_item_id,
             incoming_item_id=pending.weapon_id,
+            incoming_mode_id=pending.mode_id,
+            parry_mode_id=second_parry_mode_id,
         )
         if second_defense == selected and not (selected == "parry" and second_item != defense_item):
             raise ValidationError(
@@ -734,6 +776,8 @@ def resolve_melee(
     ):
         critical_dice = tuple(play.rng.randbelow(6) + 1 for _ in range(3))
         blocked = f"basic-critical-miss:{sum(critical_dice)}"
+    from wayfarer.orchestration.object_combat import intercepting_shield
+
     if hit and attack.outcome is not Outcome.CRITICAL_SUCCESS and defense_derived is not None:
         defense = success_roll(equipment.profile_id, int(defense_derived.value), rng=play.rng)
         hit = not defense.outcome.succeeded
@@ -741,8 +785,23 @@ def resolve_melee(
             defender = defender.model_copy(update={"parries": defender.parries + (defense_item,)})
         if selected == "block":
             defender = defender.model_copy(update={"block_used": True})
+        if (
+            defense.outcome.succeeded
+            and selected == "parry"
+            and intercepting_shield(play, state, encounter, defense, require_durable=False) is None
+        ):
+            from wayfarer.orchestration.heavy_parry import resolve_heavy_parry
+
+            assert defense_item is not None
+            state, defender, parry_dice, stopped = resolve_heavy_parry(
+                play, state, encounter, defender, defense_item
+            )
+            effect_dice += parry_dice
+            if not stopped:
+                hit = True
+                blocked = None
         if equipment.profile_id == "gurps-basic-set-4e-2004" and (
-            defense.outcome is Outcome.CRITICAL_SUCCESS
+            (defense.outcome is Outcome.CRITICAL_SUCCESS and not hit)
             or (selected == "parry" and defense.outcome is Outcome.CRITICAL_FAILURE)
         ):
             critical_dice = tuple(play.rng.randbelow(6) + 1 for _ in range(3))
@@ -789,13 +848,7 @@ def resolve_melee(
     ):
         critical_dice = tuple(play.rng.randbelow(6) + 1 for _ in range(3))
         critical = sum(critical_dice)
-    if (
-        hit
-        and defense is not None
-        and not defense.outcome.succeeded
-        and second_derived is not None
-        and blocked is None
-    ):
+    if hit and defense is not None and second_derived is not None and blocked is None:
         second_target = int(second_derived.value) - (
             attacker.maneuver_state.feint_penalty
             if attacker.maneuver_state.feint_target_id == defender.actor_id
@@ -807,6 +860,22 @@ def resolve_melee(
             defender = defender.model_copy(update={"parries": defender.parries + (second_item,)})
         if second_defense == "block":
             defender = defender.model_copy(update={"block_used": True})
+        if (
+            second_trace.outcome.succeeded
+            and second_defense == "parry"
+            and intercepting_shield(play, state, encounter, second_trace, require_durable=False)
+            is None
+        ):
+            from wayfarer.orchestration.heavy_parry import resolve_heavy_parry
+
+            assert second_item is not None
+            state, defender, parry_dice, stopped = resolve_heavy_parry(
+                play, state, encounter, defender, second_item
+            )
+            effect_dice += parry_dice
+            if not stopped:
+                hit = True
+                blocked = None
         if second_trace.outcome is Outcome.CRITICAL_FAILURE:
             if second_defense == "dodge":
                 defender = defender.model_copy(update={"posture": "prone"})
@@ -814,6 +883,7 @@ def resolve_melee(
                 critical_dice = tuple(play.rng.randbelow(6) + 1 for _ in range(3))
                 blocked = f"basic-critical-miss:{sum(critical_dice)}:defender"
                 defense_item = second_item
+                critical_parry_mode = second_parry_mode_id
                 hit = sum(critical_dice) in (7, 8, 9, 10, 11, 12, 13, 14, 16)
             elif second_item:
                 state = state.model_copy(
@@ -839,6 +909,7 @@ def resolve_melee(
                 )
         elif (
             second_trace.outcome is Outcome.CRITICAL_SUCCESS
+            and not hit
             and equipment.profile_id == "gurps-basic-set-4e-2004"
         ):
             critical_dice = tuple(play.rng.randbelow(6) + 1 for _ in range(3))
@@ -862,6 +933,7 @@ def resolve_melee(
             table=critical_dice,
             defender_item=defense_item,
             blocker=blocked,
+            defender_mode_id=critical_parry_mode,
         )
         critical_tables = limb.table_rolls
         critical_dice = critical_tables[-1]
@@ -935,7 +1007,7 @@ def resolve_melee(
     adds += attacker.maneuver_state.stop_thrust_damage_bonus
     if attacker.maneuver_state.strong:
         adds += max(2, dice_count)
-    from wayfarer.orchestration.object_combat import intercepting_shield, shield_damage
+    from wayfarer.orchestration.object_combat import shield_damage
 
     shield_hit = intercepting_shield(play, state, encounter, second_trace or defense)
     maximum = critical in ((3, 15) if head else (6, 15)) or (
@@ -1249,6 +1321,7 @@ def resolve_melee(
             tables=critical_tables or (critical_dice,),
             defender_item=defense_item,
             incoming=incoming,
+            defender_mode_id=critical_parry_mode,
         )
     trace = InjuryTrace(
         attack=attack,

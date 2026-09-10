@@ -81,6 +81,8 @@ async def setup(
     object_hp: int | None = None,
     critical_breakage: Literal["ordinary", "cheap", "resistant"] | None = None,
     attacker_weight: int | None = None,
+    melee_modes: tuple[MeleeMode, ...] | None = None,
+    parry_quality: Literal["cheap", "good", "fine", "very-fine"] | None = None,
     extra_definitions: tuple[RuleDefinition, ...] = (),
     extra_purchases: tuple[Purchase, ...] = (),
 ) -> tuple[str, PlayService]:
@@ -99,6 +101,17 @@ async def setup(
             ),
         ),
     )
+    if melee_modes is not None:
+        equipment = equipment.model_copy(
+            update={
+                "entries": tuple(
+                    e.model_copy(update={"modes": melee_modes})
+                    if e.definition_id == "equipment:broadsword"
+                    else e
+                    for e in equipment.entries
+                )
+            }
+        )
     if attacker_weight is not None:
         equipment = equipment.model_copy(
             update={
@@ -215,6 +228,7 @@ async def setup(
                     e.model_copy(
                         update={
                             "durability": durability,
+                            "parry_quality": parry_quality if e.modes else None,
                             "critical_breakage": (critical_breakage or "ordinary")
                             if e.modes
                             else None,
@@ -711,13 +725,8 @@ async def test_dodge_parry_block_and_repeats(
         assert value is not None and value.value == 6
 
 
-async def test_heavy_weapon_parry_limit(tmp_path: Path) -> None:
-    """B376: a weapon cannot parry one weighing three or more times as much.
-
-    The Lite fixture broadsword weighs 3 lbs, so a 9 lb attacking weapon reaches
-    the limit exactly and an 8.999 lb one does not. Dodge and shield Block are
-    unaffected, and the Lite profile keeps its own defenses.
-    """
+async def test_heavy_weapon_requires_explicit_breakage_metadata(tmp_path: Path) -> None:
+    """B376: a 3:1 parry needs quality/durability; smaller ratios need neither."""
     basic: Literal["gurps-basic-set-4e-2004"] = "gurps-basic-set-4e-2004"
     cid, play = await setup(tmp_path, basic, attacker_weight=9000)
     result = await CombatService(play).execute(

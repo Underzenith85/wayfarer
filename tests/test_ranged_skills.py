@@ -290,6 +290,7 @@ def test_family_and_out_of_class_weapons_are_refused_before_dice() -> None:
             "recoil": 1,
             "hands": 2,
             "tight_beam": False,
+            "rated_kind": None,
         }
         with pytest.raises(ValidationError) as error:
             require_mode(BASIC, identifier, **(fields | changes))  # type: ignore[arg-type]
@@ -306,6 +307,22 @@ def test_family_and_out_of_class_weapons_are_refused_before_dice() -> None:
     assert "cannot resolve this weapon mode" in check("skill:crossbow", hands=1, ranged=False)
     # B226 specialties throw the item itself and never reserve ammunition.
     assert "outside the skill's class" in check("skill:thrown-weapon-knife", hands=1, thrown=True)
+    # B270 rated weapon ST (#348) belongs to the launcher its own skill governs.
+    assert "Rated weapon ST" in check("skill:bow", rated_kind="crossbow")
+    assert "Rated weapon ST" in check("skill:crossbow", hands=2, rated_kind="bow")
+    assert "Rated weapon ST" in check("skill:sling", hands=1, rated_kind="bow")
+    require_mode(
+        BASIC,
+        "skill:bow",
+        ranged=True,
+        thrown=False,
+        ammunition=True,
+        rate_of_fire=1,
+        recoil=1,
+        hands=2,
+        tight_beam=False,
+        rated_kind="bow",
+    )
     # These rows are pinned in the Basic Set package only.
     with pytest.raises(ValidationError, match="exact Basic Set profile"):
         require_mode(

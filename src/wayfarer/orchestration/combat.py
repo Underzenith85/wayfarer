@@ -465,9 +465,28 @@ class CombatService:
                         command.parry_mode_id is not None
                         or command.second_parry_mode_id is not None
                     ):
-                        raise ValidationError(
-                            "Explicit parry damage modes are only supported against unarmed attacks"
-                        )
+                        from wayfarer.orchestration.gurps_melee import mode
+                        from wayfarer.simulation.gurps_equipment import MeleeMode
+
+                        pending = encounter.pending_defense
+                        if (
+                            engine.rules.gurps_equipment is None
+                            or pending is None
+                            or pending.spell_cast_id is not None
+                            or not isinstance(
+                                mode(
+                                    self.play,
+                                    state,
+                                    pending.attacker_id,
+                                    pending.weapon_id,
+                                    pending.mode_id,
+                                ),
+                                MeleeMode,
+                            )
+                        ):
+                            raise ValidationError(
+                                "Explicit parry damage modes require a melee or unarmed attack"
+                            )
                     encounter = prepare_defense(self.play, state, encounter, command)
                 if isinstance(command, MigrateEncounterHex):
                     from wayfarer.orchestration.tactical import migrate
@@ -1110,6 +1129,8 @@ class CombatService:
                             command.item_id,
                             command.second_defense,
                             command.second_item_id,
+                            parry_mode_id=command.parry_mode_id,
+                            second_parry_mode_id=command.second_parry_mode_id,
                         )
                         if selected_defense != "none":
                             state, allowed = exertion(
@@ -1125,7 +1146,12 @@ class CombatService:
                                 p for p in encounter.participants if p.actor_id == command.actor_id
                             )
                             _, used = defense_value(
-                                self.play, state, participant, selected_defense, command.item_id
+                                self.play,
+                                state,
+                                participant,
+                                selected_defense,
+                                command.item_id,
+                                parry_mode_id=command.parry_mode_id,
                             )
                             if used:
                                 state, encounter = stress(
@@ -1148,6 +1174,12 @@ class CombatService:
                             if selected_defense != "none"
                             else None,
                             second_item_id=command.second_item_id
+                            if selected_defense != "none"
+                            else None,
+                            parry_mode_id=command.parry_mode_id
+                            if selected_defense != "none"
+                            else None,
+                            second_parry_mode_id=command.second_parry_mode_id
                             if selected_defense != "none"
                             else None,
                         )

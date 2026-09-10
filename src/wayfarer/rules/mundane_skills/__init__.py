@@ -8,7 +8,7 @@ No existing package pin is changed and unimplemented runtime skills fail closed.
 from __future__ import annotations
 
 from collections import Counter
-from dataclasses import asdict, dataclass, replace
+from dataclasses import asdict, dataclass
 from enum import StrEnum
 from pathlib import Path
 
@@ -22,16 +22,21 @@ from wayfarer.rules.catalog import (
     RulesPackage,
 )
 from wayfarer.rules.gurps_characters import source
-from wayfarer.rules.gurps_skills import definitions as representative_definitions
-from wayfarer.rules.mundane_skills.ranged import OWNER as RANGED_OWNER
 from wayfarer.rules.mundane_skills.ranged import PROCEDURES as RANGED_PROCEDURES
-from wayfarer.rules.mundane_skills.schema import Exclusion, Exclusions, InventoryRow
+from wayfarer.rules.mundane_skills.schema import Exclusion, Exclusions, InventoryRow, SourceIndex
 from wayfarer.rules.skill_types import ControllingAttribute as A
-from wayfarer.rules.skill_types import SkillDefault, SkillPrerequisite, SkillSpec, Specialty
+from wayfarer.rules.skill_types import (
+    SkillDefault,
+    SkillPrerequisite,
+    SkillSpec,
+    Specialty,
+    Technique,
+)
 
 PROFILE = "gurps-basic-set-4e-2004"
 SOURCE = source(PROFILE)
 OWNER = 112
+CONTEXT_OWNER = 336
 
 
 class StructuralClass(StrEnum):
@@ -47,6 +52,8 @@ class StructuralClass(StrEnum):
     UNEXPANDED_SPECIALTY = "unexpanded-specialty"
     TECHNIQUE = "technique"
     TECHNOLOGY_LEVEL = "technology-level"
+    ALIAS = "alias"
+    TECHNIQUE_TEMPLATE = "technique-template"
 
 
 @dataclass(frozen=True)
@@ -59,11 +66,16 @@ class SkillAudit:
     followup_issues: tuple[int, ...]
     specialty_required: bool = False
     tl_required: bool = False
-    # True only when a runtime module binds this row to a dispatch that already
-    # resolves it. Recording mechanics never sets it. A family row is bound by
-    # its concrete specialties and still has no dispatch of its own.
+    alias_of: str | None = None
+    procedure_owner: int = 0
+    # A row is bound only when a runtime module executes it through a service
+    # that already resolves it; recording mechanics never sets this. A family
+    # row is bound by its concrete specialties and has no dispatch of its own.
     bound: bool = False
     dispatch: str | None = None
+    # Blockers this row's procedure owner transferred, each naming the concrete
+    # open child that must resolve it.
+    transferred: tuple[tuple[str, tuple[int, ...]], ...] = ()
     provenance: str = (
         "Characters Fourth Edition, third printing; first-printing delta audit pending"
     )
@@ -86,7 +98,33 @@ class SkillAudit:
     @property
     def owners(self) -> tuple[int, ...]:
         """Named mechanics issues other than this inventory's own accounting."""
-        return tuple(issue for issue in self.followup_issues if issue != OWNER)
+        transferred = tuple(i for _, owners in self.transferred for i in owners)
+        return tuple(
+            dict.fromkeys(((self.procedure_owner,) if self.procedure_owner else ()) + transferred)
+        )
+
+    @property
+    def blocker_owners(self) -> dict[str, tuple[int, ...]]:
+        """Every blocker has an explicit live follow-up, including source review.
+
+        A procedure owner that split a blocker into a bounded child adds that
+        child here, so a transfer stays visible instead of resolving into
+        silence under the owner that handed it on.
+        """
+        transferred = dict(self.transferred)
+        return {
+            blocker: tuple(
+                dict.fromkeys(
+                    (
+                        (self.procedure_owner,)
+                        if blocker in ("runtime-procedure", "combat-procedure")
+                        else (CONTEXT_OWNER,)
+                    )
+                    + transferred.get(blocker, ())
+                )
+            )
+            for blocker in self.blockers
+        }
 
     @property
     def structural_classes(self) -> tuple[StructuralClass, ...]:
@@ -116,6 +154,10 @@ class SkillAudit:
             found.add(StructuralClass.UNEXPANDED_SPECIALTY)
         if self.tl_required:
             found.add(StructuralClass.TECHNOLOGY_LEVEL)
+        if self.alias_of:
+            found.add(StructuralClass.ALIAS)
+        if "technique-expansion" in self.blockers:
+            found.add(StructuralClass.TECHNIQUE_TEMPLATE)
         return tuple(sorted(found))
 
 
@@ -123,6 +165,38 @@ def source_inventory() -> tuple[InventoryRow, ...]:
     return TypeAdapter(tuple[InventoryRow, ...]).validate_json(
         Path(__file__).with_name("inventory.json").read_text()
     )
+
+
+def source_index() -> SourceIndex:
+    """Independent B301-B304 index plus explicitly identified chapter expansions."""
+    return SourceIndex.model_validate_json(
+        Path(__file__).with_name("source_index.json").read_text()
+    )
+
+
+def validate_source_index(entries: tuple[SkillAudit, ...], excluded: tuple[Exclusion, ...]) -> None:
+    index = source_index()
+    identifiers = {row.id for row in index.entries}
+    if len(identifiers) != len(index.entries):
+        raise ValidationError("Duplicate source index entry")
+    included = {entry.id.removeprefix("skill:") for entry in entries}
+    transferred = {entry.id for entry in excluded}
+    if included & transferred:
+        raise ValidationError("Source entry is both included and transferred")
+    accounted = included | transferred
+    indexed = {target for row in index.entries for target in row.targets}
+    if accounted != indexed:
+        raise ValidationError(
+            f"Source index accounting mismatch: missing={sorted(indexed - accounted)}, "
+            f"unindexed={sorted(accounted - indexed)}"
+        )
+    references = {entry.id.removeprefix("skill:"): entry.reference for entry in entries}
+    references.update({entry.id: f"B{entry.page}" for entry in excluded})
+    for row in index.entries:
+        if row.parent and (row.parent not in identifiers or row.parent == row.id):
+            raise ValidationError(f"Invalid source expansion parent: {row.id}")
+        if any(references[target] != f"B{row.page}" for target in row.targets):
+            raise ValidationError(f"Source index page mismatch: {row.id}")
 
 
 def exclusions() -> tuple[Exclusion, ...]:
@@ -166,11 +240,10 @@ def coverage_blockers(profile_id: str) -> tuple[int, ...]:
 
 def inventory() -> tuple[SkillAudit, ...]:
     rows = source_inventory()
-    existing = {d.id: d for d in representative_definitions(PROFILE)}
     result = []
     for row in rows:
         identifier = "skill:" + row.id
-        definition = existing.get(identifier)
+        definition = None
         attributes = {
             "IQ": A.IQ,
             "DX": A.DX,
@@ -200,6 +273,13 @@ def inventory() -> tuple[SkillAudit, ...]:
                 )
                 if row.specialty
                 else None,
+                Technique(
+                    f"skill:{row.technique.parent}",
+                    row.technique.default_modifier,
+                    row.technique.maximum_modifier,
+                )
+                if row.technique
+                else None,
             )
             if row.attribute is not None and row.difficulty is not None
             else None
@@ -214,25 +294,24 @@ def inventory() -> tuple[SkillAudit, ...]:
                 ImplementationStatus.UNSUPPORTED,
                 skill=spec,
             )
-        if definition is not None:
-            definition = replace(definition, status=ImplementationStatus.UNSUPPORTED, hooks=())
         blockers = ["first-printing-delta-audit", *row.blockers]
         if definition is None:
             blockers.append("metadata-audit")
-        issues = row.issues
         dispatch: str | None = None
         procedure = RANGED_PROCEDURES.get(identifier)
+        transferred: tuple[tuple[str, tuple[int, ...]], ...] = ()
         if procedure is not None:
-            # The binding may only resolve or keep the blockers this inventory
-            # recorded, and its numbers must be the recorded ones.
+            # A binding may only resolve or keep the blockers this inventory
+            # recorded, its numbers must be the recorded ones, and every blocker
+            # it keeps must name a child that the row already owns.
             if set(procedure.resolved) | set(procedure.blockers) != set(row.blockers):
                 raise ValidationError(f"Runtime binding disagrees with the inventory: {identifier}")
             if procedure.spec() != spec:
                 raise ValidationError(f"Runtime binding changes recorded mechanics: {identifier}")
-            if procedure.blockers and not procedure.owners:
-                raise ValidationError(f"Transferred row names no owner: {identifier}")
+            if any(not owners for owners in procedure.transferred.values()):
+                raise ValidationError(f"Transferred blocker names no owner: {identifier}")
             blockers = [b for b in blockers if b not in procedure.resolved]
-            issues = tuple(dict.fromkeys(issues + (RANGED_OWNER,) + procedure.owners))
+            transferred = tuple(procedure.transferred.items())
             if procedure.dispatchable:
                 definition = procedure.definition()
                 dispatch = "combat.ranged-attack"
@@ -243,14 +322,20 @@ def inventory() -> tuple[SkillAudit, ...]:
                 definition.skill.reference if definition and definition.skill else f"B{row.page}",
                 definition,
                 tuple(blockers),
-                issues,
+                row.issues,
                 row.specialty_required,
                 row.tl_required,
+                f"skill:{row.alias_of}" if row.alias_of else None,
+                row.procedure_owner,
                 bound=procedure is not None and procedure.implemented,
                 dispatch=dispatch,
+                transferred=transferred,
             )
         )
-    return tuple(result)
+    entries = tuple(result)
+    validate_inventory(entries)
+    validate_source_index(entries, exclusions())
+    return entries
 
 
 def candidate_package() -> RulesPackage:
@@ -314,6 +399,56 @@ def validate_inventory(entries: tuple[SkillAudit, ...]) -> None:
             raise ValidationError(f"Unclassified inventory row: {entry.id}")
         if OWNER not in entry.followup_issues:
             raise ValidationError(f"Inventory row leaves this audit unowned: {entry.id}")
+        if entry.procedure_owner in (0, OWNER, CONTEXT_OWNER):
+            raise ValidationError(f"Missing procedure owner: {entry.id}")
+        if any(
+            not set(owners) <= set(entry.followup_issues)
+            for owners in entry.blocker_owners.values()
+        ):
+            raise ValidationError(f"Unowned blocker: {entry.id}")
+        if entry.alias_of and (entry.alias_of not in identifiers or entry.alias_of == entry.id):
+            raise ValidationError(f"Invalid alias reference: {entry.id}")
+    by_id = {entry.id: entry for entry in entries}
+    dependencies: dict[str, tuple[str, ...]] = {}
+    for entry in entries:
+        dependency_spec = entry.definition.skill if entry.definition else None
+        parents = tuple(p.target for p in dependency_spec.prerequisites) if dependency_spec else ()
+        if dependency_spec and dependency_spec.technique:
+            parents += (dependency_spec.technique.parent,)
+        if (
+            dependency_spec
+            and dependency_spec.specialty
+            and dependency_spec.specialty.optional_parent
+        ):
+            parents += (dependency_spec.specialty.optional_parent,)
+        dependencies[entry.id] = parents
+
+    visited: set[str] = set()
+    active: set[str] = set()
+
+    def visit(identifier: str) -> None:
+        if identifier in active:
+            raise ValidationError(f"Cyclic prerequisite or technique reference: {identifier}")
+        if identifier in visited:
+            return
+        active.add(identifier)
+        for parent in dependencies[identifier]:
+            visit(parent)
+        active.remove(identifier)
+        visited.add(identifier)
+
+    # Mutual defaults (e.g. Broadsword/Shortsword) are legitimate source data.
+    # Acquisition prerequisites and parent-relative techniques are not cycles.
+    for identifier in dependencies:
+        visit(identifier)
+    for entry in entries:
+        seen = {entry.id}
+        target = entry.alias_of
+        while target:
+            if target in seen:
+                raise ValidationError(f"Cyclic alias reference: {entry.id}")
+            seen.add(target)
+            target = by_id[target].alias_of
     sampled = {structural for entry in entries for structural in entry.structural_classes}
     missing = sorted(set(StructuralClass) - sampled)
     if missing:
@@ -333,17 +468,20 @@ def audit_report() -> dict[str, object]:
     entries = inventory()
     validate_inventory(entries)
     excluded = transferred_exclusions()
+    validate_source_index(entries, excluded)
     return {
         "profile": PROFILE,
         "source_id": SOURCE.id,
         "baseline": "2004 first printing; errata 2007-01-26; verification pending",
-        "inventory_completeness": "indexed-skill-families; specialty expansions explicitly blocked",
+        "inventory_completeness": "B301-B304 reconciled; contextual expansions explicitly blocked",
+        "source_index": source_index().model_dump(mode="json"),
         "skills": [
             asdict(entry)
             | {
                 "implementation": entry.implementation,
                 "structural_classes": [c.value for c in entry.structural_classes],
                 "owners": list(entry.owners),
+                "blocker_owners": entry.blocker_owners,
             }
             for entry in entries
         ],

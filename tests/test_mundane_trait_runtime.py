@@ -13,7 +13,7 @@ import pytest
 from test_actions import campaign
 from test_mundane_traits import combined_package, runtime_compiler
 from test_social_dispatch import command, world
-from test_statistics import gurps_draft
+from test_statistics import gurps_draft, profile_compiler
 
 from wayfarer.character.compiler import CharacterCompiler, CharacterDraft, Purchase, ValidatedBuild
 from wayfarer.character.power import CharacterProposal, PowerPolicy, PowerReviewer
@@ -22,7 +22,7 @@ from wayfarer.errors import ValidationError
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.social import ResolvedInteraction, SocialService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.catalog import ImplementationStatus, RulesCatalog
+from wayfarer.rules.catalog import ImplementationStatus, RuleDefinition, RulesCatalog
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.rules.gurps_social import ReactionModifier
 from wayfarer.rules.mundane_traits import PROFILE
@@ -158,16 +158,19 @@ def test_approved_self_control_disadvantage_uses_the_existing_roll() -> None:
     assert triggered.outcome == "triggered"
 
 
-async def prepare(path: Path, *purchases: Purchase) -> tuple[str, PlayService]:
+async def prepare(
+    path: Path, *purchases: Purchase, extra_definitions: tuple[RuleDefinition, ...] = ()
+) -> tuple[str, PlayService]:
     path.mkdir(parents=True, exist_ok=True)
     package = combined_package()
-    base = runtime_compiler()
+    package = replace(package, definitions=package.definitions + extra_definitions)
+    base = profile_compiler(PROFILE, package=package)
     compiler = CharacterCompiler(
         RulesCatalog((package,)),
         base.rules,
         base.policy,
         statistics_profile=PROFILE,
-        trait_runtime_hooks=base.trait_runtime_hooks,
+        trait_runtime_hooks=runtime_compiler().trait_runtime_hooks,
     )
     reviewer = PowerReviewer(compiler, PowerPolicy(id="trait-social", version=1), frozenset({"gm"}))
     engine = ActionEngine(

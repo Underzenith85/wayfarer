@@ -17,7 +17,9 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
+      112,
+      336,
+      341
     ],
     "skill_defaults": [
       {
@@ -32,7 +34,8 @@
         "target": "merchant",
         "modifier": -5
       }
-    ]
+    ],
+    "procedure_owner": 341
   },
   {
     "id": "acrobatics",
@@ -52,8 +55,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "acting",
@@ -73,7 +79,9 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
+      112,
+      336,
+      345
     ],
     "skill_defaults": [
       {
@@ -84,7 +92,8 @@
         "target": "public-speaking",
         "modifier": -5
       }
-    ]
+    ],
+    "procedure_owner": 345
   },
   {
     "id": "administration",
@@ -104,36 +113,68 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
+      112,
+      336,
+      341
     ],
     "skill_defaults": [
       {
         "target": "merchant",
         "modifier": -3
       }
-    ]
+    ],
+    "procedure_owner": 341
   },
   {
     "id": "aerobatics",
     "name": "Aerobatics",
     "page": 174,
     "blockers": [
-      "family-specialty-expansion"
+      "runtime-procedure",
+      "prerequisite-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "attribute": "DX",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -6
+      }
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "airshipman",
     "name": "Airshipman",
-    "page": 174,
+    "page": 185,
     "blockers": [
-      "family-specialty-expansion"
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
+    ],
+    "tl_required": true,
+    "specialty": {
+      "family": "crewman",
+      "name": "airshipman"
+    },
+    "procedure_owner": 346
   },
   {
     "id": "animal-handling",
@@ -154,8 +195,11 @@
       "specialty-expansion"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "anthropology",
@@ -177,19 +221,34 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      341
+    ],
+    "procedure_owner": 341
   },
   {
     "id": "aquabatics",
     "name": "Aquabatics",
-    "page": 176,
+    "page": 174,
     "blockers": [
-      "family-specialty-expansion"
+      "runtime-procedure",
+      "prerequisite-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "attribute": "DX",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -6
+      }
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "archaeology",
@@ -209,8 +268,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      341
+    ],
+    "procedure_owner": 341
   },
   {
     "id": "architecture",
@@ -232,8 +294,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "area-knowledge",
@@ -255,8 +320,26 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      341
+    ],
+    "procedure_owner": 341
+  },
+  {
+    "id": "arm-lock",
+    "name": "Arm Lock",
+    "page": 230,
+    "blockers": [
+      "technique-expansion",
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      340
+    ],
+    "procedure_owner": 340
   },
   {
     "id": "arm-lock-judo",
@@ -265,9 +348,19 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
+      112,
+      336,
+      340
     ],
-    "page": 230
+    "page": 230,
+    "attribute": "DX",
+    "difficulty": "average",
+    "technique": {
+      "parent": "judo",
+      "default_modifier": 0,
+      "maximum_modifier": 4
+    },
+    "procedure_owner": 340
   },
   {
     "id": "armoury",
@@ -290,8 +383,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "artillery",
@@ -313,8 +409,12 @@
       "technology-level-context"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      344,
+      357
+    ],
+    "procedure_owner": 344
   },
   {
     "id": "artist",
@@ -335,8 +435,11 @@
       "specialty-expansion"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "astronomy",
@@ -357,11 +460,14 @@
       "technology-level-context"
     ],
     "issues": [
-      112
+      112,
+      336,
+      346
     ],
     "prerequisites": [
       "mathematics-applied"
-    ]
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "autohypnosis",
@@ -377,8 +483,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      342
+    ],
+    "procedure_owner": 342
   },
   {
     "id": "axe-mace",
@@ -388,13 +497,40 @@
     "difficulty": "average",
     "attribute_defaults": [],
     "blockers": [
-      "weapon-default-audit",
       "combat-procedure"
     ],
     "issues": [
       103,
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "skill_defaults": [
+      {
+        "target": "flail",
+        "modifier": -4
+      },
+      {
+        "target": "two-handed-axe-mace",
+        "modifier": -3
+      }
+    ],
+    "procedure_owner": 339
+  },
+  {
+    "id": "back-kick",
+    "name": "Back Kick",
+    "page": 230,
+    "blockers": [
+      "technique-expansion",
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      340
+    ],
+    "procedure_owner": 340
   },
   {
     "id": "bartender",
@@ -415,19 +551,53 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "battlesuit",
     "name": "Battlesuit",
-    "page": 179,
+    "page": 192,
     "blockers": [
-      "family-specialty-expansion"
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      }
+    ],
+    "skill_defaults": [
+      {
+        "target": "diving-suit",
+        "modifier": -4
+      },
+      {
+        "target": "nbc-suit",
+        "modifier": -2
+      },
+      {
+        "target": "vacc-suit",
+        "modifier": -2
+      }
+    ],
+    "tl_required": true,
+    "specialty": {
+      "family": "environment-suit",
+      "name": "battlesuit"
+    },
+    "procedure_owner": 346
   },
   {
     "id": "beam-weapons",
@@ -449,8 +619,12 @@
       "technology-level-context"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      344,
+      355
+    ],
+    "procedure_owner": 344
   },
   {
     "id": "bicycling",
@@ -471,8 +645,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "bioengineering",
@@ -490,8 +667,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "biology",
@@ -514,8 +694,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "blowpipe",
@@ -535,8 +718,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      344
+    ],
+    "procedure_owner": 344
   },
   {
     "id": "boating",
@@ -563,8 +749,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "body-language",
@@ -579,7 +768,9 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
+      112,
+      336,
+      341
     ],
     "skill_defaults": [
       {
@@ -590,7 +781,8 @@
         "target": "psychology",
         "modifier": -4
       }
-    ]
+    ],
+    "procedure_owner": 341
   },
   {
     "id": "body-sense",
@@ -611,8 +803,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "bolas",
@@ -627,8 +822,12 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      344,
+      354
+    ],
+    "procedure_owner": 344
   },
   {
     "id": "bow",
@@ -648,8 +847,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      344
+    ],
+    "procedure_owner": 344
   },
   {
     "id": "boxing",
@@ -664,8 +866,31 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339
+  },
+  {
+    "id": "brain-hacking",
+    "name": "Brain Hacking",
+    "page": 182,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "conditional-or-skill-defaults",
+      "prerequisite-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      342
+    ],
+    "procedure_owner": 342
   },
   {
     "id": "brainwashing",
@@ -682,11 +907,14 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      336,
+      342
     ],
     "prerequisites": [
       "psychology"
-    ]
+    ],
+    "procedure_owner": 342
   },
   {
     "id": "brawling",
@@ -701,8 +929,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "breath-control",
@@ -717,8 +948,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "broadsword",
@@ -728,13 +962,37 @@
     "difficulty": "average",
     "attribute_defaults": [],
     "blockers": [
-      "weapon-default-audit",
       "combat-procedure"
     ],
     "issues": [
       103,
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "skill_defaults": [
+      {
+        "target": "force-sword",
+        "modifier": -4
+      },
+      {
+        "target": "rapier",
+        "modifier": -4
+      },
+      {
+        "target": "saber",
+        "modifier": -4
+      },
+      {
+        "target": "shortsword",
+        "modifier": -2
+      },
+      {
+        "target": "two-handed-sword",
+        "modifier": -4
+      }
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "camouflage",
@@ -755,8 +1013,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "carousing",
@@ -776,8 +1037,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      345
+    ],
+    "procedure_owner": 345
   },
   {
     "id": "carpentry",
@@ -797,8 +1061,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "cartography",
@@ -820,8 +1087,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "chemistry",
@@ -843,8 +1113,26 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "choke-hold",
+    "name": "Choke Hold",
+    "page": 230,
+    "blockers": [
+      "technique-expansion",
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      340
+    ],
+    "procedure_owner": 340
   },
   {
     "id": "climbing",
@@ -865,8 +1153,11 @@
     ],
     "issues": [
       110,
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "cloak",
@@ -887,8 +1178,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "combat-art",
@@ -898,8 +1192,11 @@
       "variable-family-metadata"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "combat-sport",
@@ -909,8 +1206,11 @@
       "variable-family-metadata"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "computer-operation",
@@ -931,8 +1231,11 @@
       "technology-level-context"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "computer-programming",
@@ -948,8 +1251,11 @@
       "technology-level-context"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "connoisseur",
@@ -971,8 +1277,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "cooking",
@@ -992,14 +1301,17 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
+      112,
+      336,
+      338
     ],
     "skill_defaults": [
       {
         "target": "housekeeping",
         "modifier": -5
       }
-    ]
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "counterfeiting",
@@ -1021,8 +1333,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "crewman",
@@ -1036,15 +1351,19 @@
         "modifier": -4
       }
     ],
-    "specialty_required": false,
+    "specialty_required": true,
     "tl_required": true,
     "blockers": [
       "runtime-procedure",
-      "technology-level-context"
+      "technology-level-context",
+      "specialty-expansion"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "criminology",
@@ -1066,8 +1385,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "crossbow",
@@ -1087,8 +1409,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      344
+    ],
+    "procedure_owner": 344
   },
   {
     "id": "cryptography",
@@ -1105,8 +1430,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "current-affairs",
@@ -1129,8 +1457,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "dancing",
@@ -1150,8 +1481,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "detect-lies",
@@ -1172,8 +1506,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      341
+    ],
+    "procedure_owner": 341
   },
   {
     "id": "diagnosis",
@@ -1195,7 +1532,9 @@
     ],
     "issues": [
       109,
-      112
+      112,
+      336,
+      342
     ],
     "skill_defaults": [
       {
@@ -1210,7 +1549,8 @@
         "target": "veterinary",
         "modifier": -5
       }
-    ]
+    ],
+    "procedure_owner": 342
   },
   {
     "id": "diplomacy",
@@ -1231,14 +1571,32 @@
     ],
     "issues": [
       111,
-      112
+      112,
+      336,
+      345
     ],
     "skill_defaults": [
       {
         "target": "politics",
         "modifier": -6
       }
-    ]
+    ],
+    "procedure_owner": 345
+  },
+  {
+    "id": "disarming",
+    "name": "Disarming",
+    "page": 230,
+    "blockers": [
+      "technique-expansion",
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      340
+    ],
+    "procedure_owner": 340
   },
   {
     "id": "disguise",
@@ -1261,19 +1619,57 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "diving-suit",
     "name": "Diving Suit",
-    "page": 187,
+    "page": 192,
     "blockers": [
-      "family-specialty-expansion"
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      }
+    ],
+    "skill_defaults": [
+      {
+        "target": "battlesuit",
+        "modifier": -4
+      },
+      {
+        "target": "nbc-suit",
+        "modifier": -4
+      },
+      {
+        "target": "vacc-suit",
+        "modifier": -4
+      },
+      {
+        "target": "scuba",
+        "modifier": -2
+      }
+    ],
+    "tl_required": true,
+    "specialty": {
+      "family": "environment-suit",
+      "name": "diving-suit"
+    },
+    "procedure_owner": 346
   },
   {
     "id": "dreaming",
@@ -1293,8 +1689,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      342
+    ],
+    "procedure_owner": 342
   },
   {
     "id": "driving",
@@ -1321,8 +1720,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "dropping",
@@ -1343,8 +1745,27 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
+  },
+  {
+    "id": "dual-weapon-attack",
+    "name": "Dual-Weapon Attack",
+    "page": 230,
+    "blockers": [
+      "technique-expansion",
+      "runtime-procedure",
+      "optional-rule-selection"
+    ],
+    "issues": [
+      112,
+      336,
+      340
+    ],
+    "procedure_owner": 340
   },
   {
     "id": "economics",
@@ -1365,8 +1786,26 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      341
+    ],
+    "procedure_owner": 341
+  },
+  {
+    "id": "elbow-strike",
+    "name": "Elbow Strike",
+    "page": 230,
+    "blockers": [
+      "technique-expansion",
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      340
+    ],
+    "procedure_owner": 340
   },
   {
     "id": "electrician",
@@ -1388,8 +1827,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "electronics-operation",
@@ -1412,8 +1854,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "electronics-repair",
@@ -1436,8 +1881,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "engineer",
@@ -1456,8 +1904,11 @@
       "prerequisite-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "environment-suit",
@@ -1471,16 +1922,20 @@
         "modifier": -5
       }
     ],
-    "specialty_required": false,
+    "specialty_required": true,
     "tl_required": true,
     "blockers": [
       "runtime-procedure",
       "technology-level-context",
-      "conditional-or-skill-defaults"
+      "conditional-or-skill-defaults",
+      "specialty-expansion"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "erotic-art",
@@ -1501,8 +1956,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      342
+    ],
+    "procedure_owner": 342
   },
   {
     "id": "escape",
@@ -1522,8 +1980,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "esoteric-medicine",
@@ -1543,8 +2004,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      342
+    ],
+    "procedure_owner": 342
   },
   {
     "id": "exorcism",
@@ -1565,8 +2029,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      342
+    ],
+    "procedure_owner": 342
   },
   {
     "id": "expert-skill",
@@ -1582,8 +2049,11 @@
       "specialty-expansion"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      341
+    ],
+    "procedure_owner": 341
   },
   {
     "id": "explosives",
@@ -1606,8 +2076,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "falconry",
@@ -1628,8 +2101,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "farming",
@@ -1651,8 +2127,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "fast-draw",
@@ -1668,8 +2147,11 @@
       "specialty-expansion"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "fast-talk",
@@ -1691,8 +2173,26 @@
     ],
     "issues": [
       111,
-      112
-    ]
+      112,
+      336,
+      345
+    ],
+    "procedure_owner": 345
+  },
+  {
+    "id": "feint",
+    "name": "Feint",
+    "page": 231,
+    "blockers": [
+      "technique-expansion",
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      340
+    ],
+    "procedure_owner": 340
   },
   {
     "id": "filch",
@@ -1713,8 +2213,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "finance",
@@ -1730,8 +2233,26 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      341
+    ],
+    "procedure_owner": 341
+  },
+  {
+    "id": "finger-lock",
+    "name": "Finger Lock",
+    "page": 231,
+    "blockers": [
+      "technique-expansion",
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      340
+    ],
+    "procedure_owner": 340
   },
   {
     "id": "fire-eating",
@@ -1746,8 +2267,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "first-aid",
@@ -1769,7 +2293,9 @@
     ],
     "issues": [
       109,
-      112
+      112,
+      336,
+      342
     ],
     "skill_defaults": [
       {
@@ -1784,7 +2310,8 @@
         "target": "veterinary",
         "modifier": -4
       }
-    ]
+    ],
+    "procedure_owner": 342
   },
   {
     "id": "fishing",
@@ -1804,8 +2331,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "flail",
@@ -1815,13 +2345,25 @@
     "difficulty": "hard",
     "attribute_defaults": [],
     "blockers": [
-      "weapon-default-audit",
       "combat-procedure"
     ],
     "issues": [
       103,
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "skill_defaults": [
+      {
+        "target": "axe-mace",
+        "modifier": -4
+      },
+      {
+        "target": "two-handed-flail",
+        "modifier": -3
+      }
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "flight",
@@ -1842,30 +2384,82 @@
       "prerequisite-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "force-sword",
     "name": "Force Sword",
-    "page": 196,
+    "page": 208,
     "blockers": [
-      "family-specialty-expansion"
+      "combat-procedure",
+      "weapon-default-audit"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "skill_defaults": [
+      {
+        "target": "broadsword",
+        "modifier": -3
+      },
+      {
+        "target": "jitte-sai",
+        "modifier": -3
+      },
+      {
+        "target": "knife",
+        "modifier": -3
+      },
+      {
+        "target": "shortsword",
+        "modifier": -3
+      },
+      {
+        "target": "two-handed-sword",
+        "modifier": -3
+      }
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "force-whip",
     "name": "Force Whip",
-    "page": 196,
+    "page": 209,
     "blockers": [
-      "family-specialty-expansion"
+      "combat-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "skill_defaults": [
+      {
+        "target": "kusari",
+        "modifier": -3
+      },
+      {
+        "target": "monowire-whip",
+        "modifier": -3
+      },
+      {
+        "target": "whip",
+        "modifier": -3
+      }
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "forced-entry",
@@ -1880,8 +2474,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "forensics",
@@ -1903,8 +2500,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "forgery",
@@ -1926,8 +2526,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "fortune-telling",
@@ -1949,8 +2552,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      345
+    ],
+    "procedure_owner": 345
   },
   {
     "id": "forward-observer",
@@ -1972,8 +2578,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "free-fall",
@@ -1998,8 +2607,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "freight-handling",
@@ -2020,8 +2632,11 @@
       "technology-level-context"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "gambling",
@@ -2042,8 +2657,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      341
+    ],
+    "procedure_owner": 341
   },
   {
     "id": "games",
@@ -2064,8 +2682,11 @@
       "specialty-expansion"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "gardening",
@@ -2086,8 +2707,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "garrote",
@@ -2107,8 +2731,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "geography",
@@ -2131,8 +2758,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "geology",
@@ -2155,8 +2785,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "gesture",
@@ -2176,8 +2809,26 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      345
+    ],
+    "procedure_owner": 345
+  },
+  {
+    "id": "ground-fighting",
+    "name": "Ground Fighting",
+    "page": 231,
+    "blockers": [
+      "technique-expansion",
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      340
+    ],
+    "procedure_owner": 340
   },
   {
     "id": "group-performance",
@@ -2199,8 +2850,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "gunner",
@@ -2222,8 +2876,12 @@
       "technology-level-context"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      344,
+      357
+    ],
+    "procedure_owner": 344
   },
   {
     "id": "guns",
@@ -2245,8 +2903,12 @@
       "technology-level-context"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      344,
+      355
+    ],
+    "procedure_owner": 344
   },
   {
     "id": "hazardous-materials",
@@ -2268,8 +2930,11 @@
       "technology-level-context"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "heraldry",
@@ -2290,8 +2955,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "hidden-lore",
@@ -2307,8 +2975,11 @@
       "specialty-expansion"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      341
+    ],
+    "procedure_owner": 341
   },
   {
     "id": "hiking",
@@ -2329,8 +3000,11 @@
     ],
     "issues": [
       110,
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "history",
@@ -2351,8 +3025,11 @@
       "specialty-expansion"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      341
+    ],
+    "procedure_owner": 341
   },
   {
     "id": "hobby-skill",
@@ -2362,8 +3039,11 @@
       "variable-family-metadata"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "holdout",
@@ -2384,8 +3064,26 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
+  },
+  {
+    "id": "horse-archery",
+    "name": "Horse Archery",
+    "page": 231,
+    "blockers": [
+      "technique-expansion",
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      340
+    ],
+    "procedure_owner": 340
   },
   {
     "id": "housekeeping",
@@ -2405,8 +3103,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "hypnotism",
@@ -2421,8 +3122,26 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      342
+    ],
+    "procedure_owner": 342
+  },
+  {
+    "id": "impersonate",
+    "name": "Impersonate",
+    "page": 233,
+    "blockers": [
+      "technique-expansion",
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "innate-attack",
@@ -2443,8 +3162,12 @@
       "specialty-expansion"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      344,
+      361
+    ],
+    "procedure_owner": 344
   },
   {
     "id": "intelligence-analysis",
@@ -2466,8 +3189,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "interrogation",
@@ -2488,8 +3214,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      345
+    ],
+    "procedure_owner": 345
   },
   {
     "id": "intimidation",
@@ -2511,8 +3240,11 @@
     ],
     "issues": [
       111,
-      112
-    ]
+      112,
+      336,
+      345
+    ],
+    "procedure_owner": 345
   },
   {
     "id": "jeweler",
@@ -2534,19 +3266,42 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "jitte-sai",
     "name": "Jitte/Sai",
-    "page": 203,
+    "page": 208,
     "blockers": [
-      "family-specialty-expansion"
+      "combat-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [],
+    "skill_defaults": [
+      {
+        "target": "force-sword",
+        "modifier": -4
+      },
+      {
+        "target": "main-gauche",
+        "modifier": -4
+      },
+      {
+        "target": "shortsword",
+        "modifier": -3
+      }
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "judo",
@@ -2561,8 +3316,26 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339
+  },
+  {
+    "id": "jump-kick",
+    "name": "Jump Kick",
+    "page": 231,
+    "blockers": [
+      "technique-expansion",
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      340
+    ],
+    "procedure_owner": 340
   },
   {
     "id": "jumping",
@@ -2578,8 +3351,11 @@
     ],
     "issues": [
       110,
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "karate",
@@ -2594,8 +3370,26 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339
+  },
+  {
+    "id": "kicking",
+    "name": "Kicking",
+    "page": 231,
+    "blockers": [
+      "technique-expansion",
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      340
+    ],
+    "procedure_owner": 340
   },
   {
     "id": "kicking-karate",
@@ -2604,9 +3398,34 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
+      112,
+      336,
+      340
     ],
-    "page": 232
+    "page": 231,
+    "attribute": "DX",
+    "difficulty": "hard",
+    "technique": {
+      "parent": "karate",
+      "default_modifier": -2,
+      "maximum_modifier": 0
+    },
+    "procedure_owner": 340
+  },
+  {
+    "id": "knee-strike",
+    "name": "Knee Strike",
+    "page": 232,
+    "blockers": [
+      "technique-expansion",
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      340
+    ],
+    "procedure_owner": 340
   },
   {
     "id": "knife",
@@ -2616,13 +3435,29 @@
     "difficulty": "easy",
     "attribute_defaults": [],
     "blockers": [
-      "weapon-default-audit",
       "combat-procedure"
     ],
     "issues": [
       103,
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "skill_defaults": [
+      {
+        "target": "force-sword",
+        "modifier": -3
+      },
+      {
+        "target": "main-gauche",
+        "modifier": -3
+      },
+      {
+        "target": "shortsword",
+        "modifier": -3
+      }
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "knot-tying",
@@ -2643,19 +3478,46 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "kusari",
     "name": "Kusari",
-    "page": 204,
+    "page": 209,
     "blockers": [
-      "family-specialty-expansion"
+      "combat-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "attribute": "DX",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "skill_defaults": [
+      {
+        "target": "force-whip",
+        "modifier": -3
+      },
+      {
+        "target": "monowire-whip",
+        "modifier": -3
+      },
+      {
+        "target": "two-handed-flail",
+        "modifier": -4
+      },
+      {
+        "target": "whip",
+        "modifier": -3
+      }
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "lance",
@@ -2677,8 +3539,11 @@
       "prerequisite-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "lasso",
@@ -2693,8 +3558,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "law",
@@ -2715,8 +3583,11 @@
       "specialty-expansion"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      341
+    ],
+    "procedure_owner": 341
   },
   {
     "id": "leadership",
@@ -2736,8 +3607,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      345
+    ],
+    "procedure_owner": 345
   },
   {
     "id": "leatherworking",
@@ -2757,8 +3631,26 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
+  },
+  {
+    "id": "lifesaving",
+    "name": "Lifesaving",
+    "page": 233,
+    "blockers": [
+      "technique-expansion",
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "lifting",
@@ -2773,8 +3665,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "linguistics",
@@ -2789,8 +3684,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      341
+    ],
+    "procedure_owner": 341
   },
   {
     "id": "lip-reading",
@@ -2810,8 +3708,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      345
+    ],
+    "procedure_owner": 345
   },
   {
     "id": "liquid-projector",
@@ -2833,8 +3734,12 @@
       "technology-level-context"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      344,
+      359
+    ],
+    "procedure_owner": 344
   },
   {
     "id": "literature",
@@ -2854,8 +3759,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      341
+    ],
+    "procedure_owner": 341
   },
   {
     "id": "lockpicking",
@@ -2876,8 +3784,11 @@
       "technology-level-context"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "machinist",
@@ -2899,8 +3810,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "main-gauche",
@@ -2910,13 +3824,37 @@
     "difficulty": "average",
     "attribute_defaults": [],
     "blockers": [
-      "weapon-default-audit",
       "combat-procedure"
     ],
     "issues": [
       103,
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "skill_defaults": [
+      {
+        "target": "jitte-sai",
+        "modifier": -4
+      },
+      {
+        "target": "knife",
+        "modifier": -4
+      },
+      {
+        "target": "rapier",
+        "modifier": -3
+      },
+      {
+        "target": "saber",
+        "modifier": -3
+      },
+      {
+        "target": "smallsword",
+        "modifier": -3
+      }
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "makeup",
@@ -2938,8 +3876,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "market-analysis",
@@ -2960,8 +3901,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      341
+    ],
+    "procedure_owner": 341
   },
   {
     "id": "masonry",
@@ -2981,8 +3925,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "mathematics",
@@ -3005,8 +3952,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "mathematics-applied",
@@ -3058,8 +4008,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "mathematics-computer-science",
@@ -3110,8 +4063,11 @@
       "technology-level-context"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "mathematics-cryptology",
@@ -3162,8 +4118,11 @@
       "technology-level-context"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "mathematics-pure",
@@ -3210,8 +4169,11 @@
       "technology-level-context"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "mathematics-statistics",
@@ -3258,8 +4220,11 @@
       "technology-level-context"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "mathematics-surveying",
@@ -3311,8 +4276,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "mechanic",
@@ -3335,8 +4303,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "meditation",
@@ -3357,8 +4328,27 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      342
+    ],
+    "procedure_owner": 342
+  },
+  {
+    "id": "melee-weapon",
+    "name": "Melee Weapon",
+    "page": 208,
+    "blockers": [
+      "variable-family-metadata",
+      "combat-procedure"
+    ],
+    "issues": [
+      103,
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "merchant",
@@ -3379,8 +4369,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "metallurgy",
@@ -3397,8 +4390,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "meteorology",
@@ -3420,8 +4416,11 @@
       "technology-level-context"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "mimicry",
@@ -3443,8 +4442,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "mind-block",
@@ -3465,8 +4467,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      342
+    ],
+    "procedure_owner": 342
   },
   {
     "id": "monowire-whip",
@@ -3476,13 +4481,44 @@
     "difficulty": "hard",
     "attribute_defaults": [],
     "blockers": [
-      "weapon-default-audit",
       "combat-procedure"
     ],
     "issues": [
       103,
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "skill_defaults": [
+      {
+        "target": "force-whip",
+        "modifier": -3
+      },
+      {
+        "target": "kusari",
+        "modifier": -3
+      },
+      {
+        "target": "whip",
+        "modifier": -3
+      }
+    ],
+    "procedure_owner": 339
+  },
+  {
+    "id": "motion-picture-camera",
+    "name": "Motion-Picture Camera",
+    "page": 233,
+    "blockers": [
+      "technique-expansion",
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "mount",
@@ -3502,8 +4538,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "musical-composition",
@@ -3519,8 +4558,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "musical-instrument",
@@ -3537,8 +4579,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "naturalist",
@@ -3560,8 +4605,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "navigation",
@@ -3579,19 +4627,68 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "nbc-suit",
     "name": "NBC Suit",
-    "page": 211,
+    "page": 192,
     "blockers": [
-      "family-specialty-expansion"
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      }
+    ],
+    "skill_defaults": [
+      {
+        "target": "battlesuit",
+        "modifier": -2
+      },
+      {
+        "target": "diving-suit",
+        "modifier": -4
+      },
+      {
+        "target": "vacc-suit",
+        "modifier": -2
+      }
+    ],
+    "tl_required": true,
+    "specialty": {
+      "family": "environment-suit",
+      "name": "nbc-suit"
+    },
+    "procedure_owner": 346
+  },
+  {
+    "id": "neck-snap",
+    "name": "Neck Snap",
+    "page": 232,
+    "blockers": [
+      "technique-expansion",
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      340
+    ],
+    "procedure_owner": 340
   },
   {
     "id": "net",
@@ -3607,8 +4704,28 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      344,
+      354,
+      362
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "no-landing-extraction",
+    "name": "No-Landing Extraction",
+    "page": 233,
+    "blockers": [
+      "technique-expansion",
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "observation",
@@ -3629,8 +4746,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      341
+    ],
+    "procedure_owner": 341
   },
   {
     "id": "occultism",
@@ -3650,8 +4770,26 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      341
+    ],
+    "procedure_owner": 341
+  },
+  {
+    "id": "off-hand-weapon-training",
+    "name": "Off-Hand Weapon Training",
+    "page": 232,
+    "blockers": [
+      "technique-expansion",
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      340
+    ],
+    "procedure_owner": 340
   },
   {
     "id": "packing",
@@ -3672,8 +4810,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "paleontology",
@@ -3691,8 +4832,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "panhandling",
@@ -3713,8 +4857,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      345
+    ],
+    "procedure_owner": 345
   },
   {
     "id": "parachuting",
@@ -3735,8 +4882,11 @@
       "technology-level-context"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "parry-missile-weapons",
@@ -3751,8 +4901,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "performance",
@@ -3773,8 +4926,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      345
+    ],
+    "procedure_owner": 345
   },
   {
     "id": "pharmacy",
@@ -3798,8 +4954,11 @@
     ],
     "issues": [
       109,
-      112
-    ]
+      112,
+      336,
+      342
+    ],
+    "procedure_owner": 342
   },
   {
     "id": "philosophy",
@@ -3820,8 +4979,11 @@
       "specialty-expansion"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      341
+    ],
+    "procedure_owner": 341
   },
   {
     "id": "photography",
@@ -3843,8 +5005,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "physician",
@@ -3866,7 +5031,9 @@
     ],
     "issues": [
       109,
-      112
+      112,
+      336,
+      342
     ],
     "skill_defaults": [
       {
@@ -3877,7 +5044,8 @@
         "target": "veterinary",
         "modifier": -5
       }
-    ]
+    ],
+    "procedure_owner": 342
   },
   {
     "id": "physics",
@@ -3899,19 +5067,35 @@
       "prerequisite-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "physics-acoustics",
     "name": "Physics (Acoustics)",
     "blockers": [
-      "runtime-procedure"
+      "runtime-procedure",
+      "technology-level-context",
+      "prerequisite-procedure"
     ],
     "issues": [
-      112
+      112,
+      336,
+      346
     ],
-    "page": 213
+    "page": 213,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "specialty": {
+      "family": "physics",
+      "name": "acoustics",
+      "optional_parent": "physics"
+    },
+    "tl_required": true,
+    "procedure_owner": 346
   },
   {
     "id": "physiology",
@@ -3934,8 +5118,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      342
+    ],
+    "procedure_owner": 342
   },
   {
     "id": "pickpocket",
@@ -3956,8 +5143,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "piloting",
@@ -3979,8 +5169,11 @@
       "technology-level-context"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "poetry",
@@ -4000,14 +5193,17 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
+      112,
+      336,
+      338
     ],
     "skill_defaults": [
       {
         "target": "writing",
         "modifier": -5
       }
-    ]
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "poisons",
@@ -4029,8 +5225,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      342
+    ],
+    "procedure_owner": 342
   },
   {
     "id": "polearm",
@@ -4040,13 +5239,29 @@
     "difficulty": "average",
     "attribute_defaults": [],
     "blockers": [
-      "weapon-default-audit",
       "combat-procedure"
     ],
     "issues": [
       103,
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "skill_defaults": [
+      {
+        "target": "spear",
+        "modifier": -4
+      },
+      {
+        "target": "staff",
+        "modifier": -4
+      },
+      {
+        "target": "two-handed-axe-mace",
+        "modifier": -4
+      }
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "politics",
@@ -4067,8 +5282,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      345
+    ],
+    "procedure_owner": 345
   },
   {
     "id": "professional-skill",
@@ -4078,8 +5296,11 @@
       "variable-family-metadata"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "propaganda",
@@ -4101,8 +5322,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      345
+    ],
+    "procedure_owner": 345
   },
   {
     "id": "prospecting",
@@ -4124,8 +5348,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "psychology",
@@ -4146,8 +5373,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      342
+    ],
+    "procedure_owner": 342
   },
   {
     "id": "public-speaking",
@@ -4167,7 +5397,9 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
+      112,
+      336,
+      345
     ],
     "skill_defaults": [
       {
@@ -4182,7 +5414,8 @@
         "target": "politics",
         "modifier": -5
       }
-    ]
+    ],
+    "procedure_owner": 345
   },
   {
     "id": "rapier",
@@ -4192,13 +5425,33 @@
     "difficulty": "average",
     "attribute_defaults": [],
     "blockers": [
-      "weapon-default-audit",
       "combat-procedure"
     ],
     "issues": [
       103,
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "skill_defaults": [
+      {
+        "target": "broadsword",
+        "modifier": -4
+      },
+      {
+        "target": "main-gauche",
+        "modifier": -3
+      },
+      {
+        "target": "saber",
+        "modifier": -3
+      },
+      {
+        "target": "smallsword",
+        "modifier": -3
+      }
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "religious-ritual",
@@ -4215,8 +5468,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      341
+    ],
+    "procedure_owner": 341
   },
   {
     "id": "research",
@@ -4239,8 +5495,26 @@
       "prerequisite-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
+  },
+  {
+    "id": "retain-weapon",
+    "name": "Retain Weapon",
+    "page": 232,
+    "blockers": [
+      "technique-expansion",
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      340
+    ],
+    "procedure_owner": 340
   },
   {
     "id": "riding",
@@ -4262,8 +5536,26 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
+  },
+  {
+    "id": "rope-up",
+    "name": "Rope Up",
+    "page": 233,
+    "blockers": [
+      "technique-expansion",
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "running",
@@ -4284,8 +5576,11 @@
     ],
     "issues": [
       110,
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "saber",
@@ -4295,13 +5590,37 @@
     "difficulty": "average",
     "attribute_defaults": [],
     "blockers": [
-      "weapon-default-audit",
       "combat-procedure"
     ],
     "issues": [
       103,
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "skill_defaults": [
+      {
+        "target": "broadsword",
+        "modifier": -4
+      },
+      {
+        "target": "main-gauche",
+        "modifier": -3
+      },
+      {
+        "target": "rapier",
+        "modifier": -3
+      },
+      {
+        "target": "shortsword",
+        "modifier": -4
+      },
+      {
+        "target": "smallsword",
+        "modifier": -3
+      }
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "savoir-faire",
@@ -4324,8 +5643,26 @@
     ],
     "issues": [
       111,
-      112
-    ]
+      112,
+      336,
+      345
+    ],
+    "procedure_owner": 345
+  },
+  {
+    "id": "scaling",
+    "name": "Scaling",
+    "page": 233,
+    "blockers": [
+      "technique-expansion",
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "scrounging",
@@ -4345,8 +5682,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "scuba",
@@ -4368,22 +5708,42 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      336,
+      342
     ],
     "prerequisites": [
       "swimming"
-    ]
+    ],
+    "procedure_owner": 342
   },
   {
     "id": "seamanship",
     "name": "Seamanship",
-    "page": 219,
+    "page": 185,
     "blockers": [
-      "family-specialty-expansion"
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
+    ],
+    "tl_required": true,
+    "specialty": {
+      "family": "crewman",
+      "name": "seamanship"
+    },
+    "procedure_owner": 346
   },
   {
     "id": "search",
@@ -4404,8 +5764,26 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      341
+    ],
+    "procedure_owner": 341
+  },
+  {
+    "id": "set-trap",
+    "name": "Set Trap",
+    "page": 233,
+    "blockers": [
+      "technique-expansion",
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "sewing",
@@ -4426,8 +5804,11 @@
       "technology-level-context"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "sex-appeal",
@@ -4448,8 +5829,11 @@
     ],
     "issues": [
       111,
-      112
-    ]
+      112,
+      336,
+      345
+    ],
+    "procedure_owner": 345
   },
   {
     "id": "shadowing",
@@ -4470,8 +5854,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      341
+    ],
+    "procedure_owner": 341
   },
   {
     "id": "shield",
@@ -4492,8 +5879,11 @@
       "specialty-expansion"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "shiphandling",
@@ -4517,8 +5907,11 @@
       "prerequisite-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "shortsword",
@@ -4528,13 +5921,45 @@
     "difficulty": "average",
     "attribute_defaults": [],
     "blockers": [
-      "weapon-default-audit",
       "combat-procedure"
     ],
     "issues": [
       103,
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "skill_defaults": [
+      {
+        "target": "broadsword",
+        "modifier": -2
+      },
+      {
+        "target": "force-sword",
+        "modifier": -4
+      },
+      {
+        "target": "jitte-sai",
+        "modifier": -3
+      },
+      {
+        "target": "knife",
+        "modifier": -4
+      },
+      {
+        "target": "saber",
+        "modifier": -4
+      },
+      {
+        "target": "smallsword",
+        "modifier": -4
+      },
+      {
+        "target": "tonfa",
+        "modifier": -3
+      }
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "singing",
@@ -4554,8 +5979,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "skating",
@@ -4575,8 +6003,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "skiing",
@@ -4596,8 +6027,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "sleight-of-hand",
@@ -4613,8 +6047,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "sling",
@@ -4634,24 +6071,62 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      344
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "slip-handcuffs",
+    "name": "Slip Handcuffs",
+    "page": 233,
+    "blockers": [
+      "technique-expansion",
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "smallsword",
     "name": "Smallsword",
-    "page": 209,
+    "page": 208,
     "attribute": "DX",
     "difficulty": "average",
     "attribute_defaults": [],
     "blockers": [
-      "weapon-default-audit",
       "combat-procedure"
     ],
     "issues": [
       103,
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "skill_defaults": [
+      {
+        "target": "main-gauche",
+        "modifier": -3
+      },
+      {
+        "target": "rapier",
+        "modifier": -3
+      },
+      {
+        "target": "saber",
+        "modifier": -3
+      },
+      {
+        "target": "shortsword",
+        "modifier": -4
+      }
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "smith",
@@ -4674,8 +6149,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "smuggling",
@@ -4695,8 +6173,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "sociology",
@@ -4717,8 +6198,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      341
+    ],
+    "procedure_owner": 341
   },
   {
     "id": "soldier",
@@ -4739,19 +6223,39 @@
       "technology-level-context"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "spacer",
     "name": "Spacer",
-    "page": 222,
+    "page": 185,
     "blockers": [
-      "family-specialty-expansion"
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
+    ],
+    "tl_required": true,
+    "specialty": {
+      "family": "crewman",
+      "name": "spacer"
+    },
+    "procedure_owner": 346
   },
   {
     "id": "spear",
@@ -4761,13 +6265,25 @@
     "difficulty": "average",
     "attribute_defaults": [],
     "blockers": [
-      "weapon-default-audit",
       "combat-procedure"
     ],
     "issues": [
       103,
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "skill_defaults": [
+      {
+        "target": "polearm",
+        "modifier": -4
+      },
+      {
+        "target": "staff",
+        "modifier": -2
+      }
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "spear-thrower",
@@ -4788,8 +6304,13 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      344,
+      360,
+      362
+    ],
+    "procedure_owner": 344
   },
   {
     "id": "speed-reading",
@@ -4804,8 +6325,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      341
+    ],
+    "procedure_owner": 341
   },
   {
     "id": "sports",
@@ -4826,8 +6350,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "staff",
@@ -4837,13 +6364,25 @@
     "difficulty": "average",
     "attribute_defaults": [],
     "blockers": [
-      "weapon-default-audit",
       "combat-procedure"
     ],
     "issues": [
       103,
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "skill_defaults": [
+      {
+        "target": "polearm",
+        "modifier": -4
+      },
+      {
+        "target": "spear",
+        "modifier": -2
+      }
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "stage-combat",
@@ -4859,8 +6398,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "stealth",
@@ -4885,8 +6427,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      341
+    ],
+    "procedure_owner": 341
   },
   {
     "id": "strategy",
@@ -4908,8 +6453,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "streetwise",
@@ -4930,8 +6478,11 @@
     ],
     "issues": [
       111,
-      112
-    ]
+      112,
+      336,
+      345
+    ],
+    "procedure_owner": 345
   },
   {
     "id": "submarine",
@@ -4953,19 +6504,39 @@
       "technology-level-context"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "submariner",
     "name": "Submariner",
-    "page": 223,
+    "page": 185,
     "blockers": [
-      "family-specialty-expansion"
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
+    ],
+    "tl_required": true,
+    "specialty": {
+      "family": "crewman",
+      "name": "submariner"
+    },
+    "procedure_owner": 346
   },
   {
     "id": "sumo-wrestling",
@@ -4980,8 +6551,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "surgery",
@@ -4998,7 +6572,9 @@
       "prerequisite-procedure"
     ],
     "issues": [
-      112
+      112,
+      336,
+      342
     ],
     "skill_defaults": [
       {
@@ -5017,7 +6593,8 @@
         "target": "veterinary",
         "modifier": -5
       }
-    ]
+    ],
+    "procedure_owner": 342
   },
   {
     "id": "survival",
@@ -5039,19 +6616,53 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "survival-woodlands",
     "name": "Survival (Woodlands)",
     "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112,
+      336,
+      343
+    ],
+    "page": 223,
+    "attribute": "Per",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "Per",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "survival",
+      "name": "woodlands"
+    },
+    "procedure_owner": 343
+  },
+  {
+    "id": "sweep",
+    "name": "Sweep",
+    "page": 232,
+    "blockers": [
+      "technique-expansion",
       "runtime-procedure"
     ],
     "issues": [
-      112
+      112,
+      336,
+      340
     ],
-    "page": 223
+    "procedure_owner": 340
   },
   {
     "id": "swimming",
@@ -5072,8 +6683,11 @@
     ],
     "issues": [
       110,
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "tactics",
@@ -5094,8 +6708,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "teaching",
@@ -5115,8 +6732,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      345
+    ],
+    "procedure_owner": 345
   },
   {
     "id": "teamster",
@@ -5138,8 +6758,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "theology",
@@ -5161,8 +6784,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      341
+    ],
+    "procedure_owner": 341
   },
   {
     "id": "throwing",
@@ -5183,8 +6809,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "thrown-weapon",
@@ -5206,8 +6835,12 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      344,
+      362
+    ],
+    "procedure_owner": 344
   },
   {
     "id": "thrown-weapon-axe-mace",
@@ -5232,8 +6865,12 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      344,
+      362
+    ],
+    "procedure_owner": 344
   },
   {
     "id": "thrown-weapon-dart",
@@ -5258,8 +6895,12 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      344,
+      362
+    ],
+    "procedure_owner": 344
   },
   {
     "id": "thrown-weapon-harpoon",
@@ -5284,8 +6925,12 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      344,
+      362
+    ],
+    "procedure_owner": 344
   },
   {
     "id": "thrown-weapon-knife",
@@ -5310,8 +6955,12 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      344,
+      362
+    ],
+    "procedure_owner": 344
   },
   {
     "id": "thrown-weapon-shuriken",
@@ -5336,8 +6985,12 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      344,
+      362
+    ],
+    "procedure_owner": 344
   },
   {
     "id": "thrown-weapon-spear",
@@ -5362,8 +7015,12 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      344,
+      362
+    ],
+    "procedure_owner": 344
   },
   {
     "id": "thrown-weapon-stick",
@@ -5388,8 +7045,12 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      344,
+      362
+    ],
+    "procedure_owner": 344
   },
   {
     "id": "tonfa",
@@ -5399,13 +7060,21 @@
     "difficulty": "average",
     "attribute_defaults": [],
     "blockers": [
-      "weapon-default-audit",
       "combat-procedure"
     ],
     "issues": [
       103,
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "skill_defaults": [
+      {
+        "target": "shortsword",
+        "modifier": -3
+      }
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "tracking",
@@ -5426,8 +7095,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "traps",
@@ -5449,8 +7121,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "two-handed-axe-mace",
@@ -5460,13 +7135,29 @@
     "difficulty": "average",
     "attribute_defaults": [],
     "blockers": [
-      "weapon-default-audit",
       "combat-procedure"
     ],
     "issues": [
       103,
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "skill_defaults": [
+      {
+        "target": "axe-mace",
+        "modifier": -3
+      },
+      {
+        "target": "polearm",
+        "modifier": -4
+      },
+      {
+        "target": "two-handed-flail",
+        "modifier": -4
+      }
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "two-handed-flail",
@@ -5476,13 +7167,29 @@
     "difficulty": "hard",
     "attribute_defaults": [],
     "blockers": [
-      "weapon-default-audit",
       "combat-procedure"
     ],
     "issues": [
       103,
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "skill_defaults": [
+      {
+        "target": "flail",
+        "modifier": -3
+      },
+      {
+        "target": "kusari",
+        "modifier": -4
+      },
+      {
+        "target": "two-handed-axe-mace",
+        "modifier": -4
+      }
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "two-handed-sword",
@@ -5492,13 +7199,25 @@
     "difficulty": "average",
     "attribute_defaults": [],
     "blockers": [
-      "weapon-default-audit",
       "combat-procedure"
     ],
     "issues": [
       103,
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "skill_defaults": [
+      {
+        "target": "broadsword",
+        "modifier": -4
+      },
+      {
+        "target": "force-sword",
+        "modifier": -4
+      }
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "typing",
@@ -5519,8 +7238,11 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "urban-survival",
@@ -5540,19 +7262,53 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "procedure_owner": 343
   },
   {
     "id": "vacc-suit",
     "name": "Vacc Suit",
-    "page": 228,
+    "page": 192,
     "blockers": [
-      "family-specialty-expansion"
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      346
+    ],
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      }
+    ],
+    "skill_defaults": [
+      {
+        "target": "battlesuit",
+        "modifier": -2
+      },
+      {
+        "target": "diving-suit",
+        "modifier": -4
+      },
+      {
+        "target": "nbc-suit",
+        "modifier": -2
+      }
+    ],
+    "tl_required": true,
+    "specialty": {
+      "family": "environment-suit",
+      "name": "vacc-suit"
+    },
+    "procedure_owner": 346
   },
   {
     "id": "ventriloquism",
@@ -5567,8 +7323,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   },
   {
     "id": "veterinary",
@@ -5586,19 +7345,36 @@
     ],
     "issues": [
       109,
-      112
-    ]
+      112,
+      336,
+      342
+    ],
+    "procedure_owner": 342
   },
   {
     "id": "weather-sense",
     "name": "Weather Sense",
-    "page": 228,
+    "page": 209,
     "blockers": [
-      "family-specialty-expansion"
+      "runtime-procedure",
+      "technology-level-context"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      343
+    ],
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "alias_of": "meteorology",
+    "tl_required": true,
+    "procedure_owner": 343
   },
   {
     "id": "whip",
@@ -5608,13 +7384,60 @@
     "difficulty": "average",
     "attribute_defaults": [],
     "blockers": [
-      "weapon-default-audit",
       "combat-procedure"
     ],
     "issues": [
       103,
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "skill_defaults": [
+      {
+        "target": "force-whip",
+        "modifier": -3
+      },
+      {
+        "target": "kusari",
+        "modifier": -3
+      },
+      {
+        "target": "monowire-whip",
+        "modifier": -3
+      }
+    ],
+    "procedure_owner": 339
+  },
+  {
+    "id": "whirlwind-attack",
+    "name": "Whirlwind Attack",
+    "page": 232,
+    "blockers": [
+      "technique-expansion",
+      "runtime-procedure",
+      "optional-rule-selection"
+    ],
+    "issues": [
+      112,
+      336,
+      340
+    ],
+    "procedure_owner": 340
+  },
+  {
+    "id": "work-by-touch",
+    "name": "Work by Touch",
+    "page": 233,
+    "blockers": [
+      "technique-expansion",
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      336,
+      346
+    ],
+    "procedure_owner": 346
   },
   {
     "id": "wrestling",
@@ -5629,8 +7452,11 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      339
+    ],
+    "procedure_owner": 339
   },
   {
     "id": "writing",
@@ -5651,7 +7477,10 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
-    ]
+      112,
+      336,
+      338
+    ],
+    "procedure_owner": 338
   }
 ]

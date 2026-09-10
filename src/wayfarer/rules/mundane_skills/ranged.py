@@ -16,7 +16,8 @@ launcher, #361 Innate Attack specialties, #362 cross-specialty and conditional
 defaults.
 """
 
-from dataclasses import dataclass
+from collections.abc import Mapping
+from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import Final, Literal
 
@@ -58,10 +59,13 @@ class WeaponClass:
     maximum_rate_of_fire: int = 1
     maximum_recoil: int = 1
     hands: tuple[Hands, ...] = (1, 2)
+    # The only B270 rated weapon ST (#348) this skill may carry, if any.
+    rated_kind: Literal["bow", "crossbow"] | None = None
 
 
 LAUNCHER: Final = WeaponClass(thrown=False, ammunition=True)
-BOW: Final = WeaponClass(thrown=False, ammunition=True, hands=(2,))
+BOW: Final = WeaponClass(thrown=False, ammunition=True, hands=(2,), rated_kind="bow")
+CROSSBOW: Final = WeaponClass(thrown=False, ammunition=True, rated_kind="crossbow")
 THROWN: Final = WeaponClass(thrown=True, ammunition=False, hands=(1,))
 
 
@@ -80,8 +84,17 @@ class RangedProcedure:
     # A family row is never dispatched; it is completed by its concrete specialties.
     specialties: tuple[str, ...] = ()
     resolved: tuple[str, ...] = ()
-    blockers: tuple[str, ...] = ()
-    owners: tuple[int, ...] = ()
+    # Blockers this issue does not close, each mapped to the concrete open child
+    # that owns it. A transferred blocker without an owner is a coverage failure.
+    transferred: Mapping[str, tuple[int, ...]] = field(default_factory=dict)
+
+    @property
+    def blockers(self) -> tuple[str, ...]:
+        return tuple(self.transferred)
+
+    @property
+    def owners(self) -> tuple[int, ...]:
+        return tuple(dict.fromkeys(i for owners in self.transferred.values() for i in owners))
 
     @property
     def implemented(self) -> bool:
@@ -134,8 +147,7 @@ def _thrown(name: str, title: str) -> RangedProcedure:
         resolved=(RUNTIME_PROCEDURE,),
         # B226 also records a default from the matching melee weapon skill. That
         # value is not in the frozen inventory and is not reconstructed here.
-        blockers=(CONDITIONAL_DEFAULTS,),
-        owners=(362,),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
     )
 
 
@@ -168,7 +180,7 @@ _ROWS: Final = (
         A.DX,
         D.EASY,
         (SkillDefault(A.DX, -4),),
-        LAUNCHER,
+        CROSSBOW,
         resolved=(RUNTIME_PROCEDURE,),
     ),
     RangedProcedure(
@@ -201,8 +213,7 @@ _ROWS: Final = (
         (SkillDefault(A.DX, -4),),
         specialties=tuple(entry.id for entry in THROWN_SPECIALTIES),
         resolved=(RUNTIME_PROCEDURE, SPECIALTY_EXPANSION),
-        blockers=(CONDITIONAL_DEFAULTS,),
-        owners=(362,),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     *THROWN_SPECIALTIES,
     # Transferred rows. Each keeps its recorded blockers and names its owner.
@@ -212,8 +223,7 @@ _ROWS: Final = (
         181,
         A.DX,
         D.AVERAGE,
-        blockers=(RUNTIME_PROCEDURE,),
-        owners=(354,),
+        transferred={RUNTIME_PROCEDURE: (354,)},
     ),
     RangedProcedure(
         "skill:net",
@@ -221,8 +231,7 @@ _ROWS: Final = (
         211,
         A.DX,
         D.HARD,
-        blockers=(RUNTIME_PROCEDURE, CONDITIONAL_DEFAULTS),
-        owners=(354, 362),
+        transferred={RUNTIME_PROCEDURE: (354,), CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:spear-thrower",
@@ -231,8 +240,7 @@ _ROWS: Final = (
         A.DX,
         D.AVERAGE,
         (SkillDefault(A.DX, -5),),
-        blockers=(RUNTIME_PROCEDURE, CONDITIONAL_DEFAULTS),
-        owners=(360, 362),
+        transferred={RUNTIME_PROCEDURE: (360,), CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:guns",
@@ -241,8 +249,9 @@ _ROWS: Final = (
         A.DX,
         D.EASY,
         (SkillDefault(A.DX, -4),),
-        blockers=(RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL),
-        owners=(355,),
+        transferred=dict.fromkeys(
+            (RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL), (355,)
+        ),
     ),
     RangedProcedure(
         "skill:beam-weapons",
@@ -251,8 +260,9 @@ _ROWS: Final = (
         A.DX,
         D.EASY,
         (SkillDefault(A.DX, -4),),
-        blockers=(RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL),
-        owners=(355,),
+        transferred=dict.fromkeys(
+            (RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL), (355,)
+        ),
     ),
     RangedProcedure(
         "skill:artillery",
@@ -261,8 +271,9 @@ _ROWS: Final = (
         A.IQ,
         D.AVERAGE,
         (SkillDefault(A.IQ, -5),),
-        blockers=(RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL),
-        owners=(357,),
+        transferred=dict.fromkeys(
+            (RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL), (357,)
+        ),
     ),
     RangedProcedure(
         "skill:gunner",
@@ -271,8 +282,9 @@ _ROWS: Final = (
         A.DX,
         D.EASY,
         (SkillDefault(A.DX, -4),),
-        blockers=(RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL),
-        owners=(357,),
+        transferred=dict.fromkeys(
+            (RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL), (357,)
+        ),
     ),
     RangedProcedure(
         "skill:liquid-projector",
@@ -281,8 +293,9 @@ _ROWS: Final = (
         A.DX,
         D.EASY,
         (SkillDefault(A.DX, -4),),
-        blockers=(RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL),
-        owners=(359,),
+        transferred=dict.fromkeys(
+            (RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL), (359,)
+        ),
     ),
     RangedProcedure(
         "skill:innate-attack",
@@ -291,8 +304,7 @@ _ROWS: Final = (
         A.DX,
         D.EASY,
         (SkillDefault(A.DX, -4),),
-        blockers=(RUNTIME_PROCEDURE, SPECIALTY_EXPANSION),
-        owners=(361,),
+        transferred={RUNTIME_PROCEDURE: (361,), SPECIALTY_EXPANSION: (361,)},
     ),
 )
 # Every listed ranged combat row, plus the concrete specialties this issue expands.
@@ -324,6 +336,7 @@ def require_mode(
     recoil: int,
     hands: int,
     tight_beam: bool,
+    rated_kind: str | None = None,
 ) -> RangedProcedure | None:
     """Fail closed before dice when a weapon claims an unbound ranged skill.
 
@@ -344,10 +357,10 @@ def require_mode(
     if not entry.dispatchable:
         raise ValidationError(
             f"Ranged skill procedure is unsupported: {skill_id}: "
-            + ", ".join(entry.blockers)
-            + " ("
-            + ", ".join(f"#{issue}" for issue in entry.owners)
-            + ")"
+            + ", ".join(
+                f"{blocker} (" + ", ".join(f"#{issue}" for issue in owners) + ")"
+                for blocker, owners in entry.transferred.items()
+            )
         )
     for capability_id in CAPABILITIES:
         require_capability(profile_id, capability_id)
@@ -361,4 +374,7 @@ def require_mode(
         raise ValidationError(f"Rapid fire and recoil are outside the skill's class: {skill_id}")
     if hands not in weapon.hands:
         raise ValidationError(f"Weapon grip is outside the skill's class: {skill_id}")
+    # B270 rated weapon ST (#348) belongs to the launcher its own skill governs.
+    if rated_kind != weapon.rated_kind and not (rated_kind is None and weapon.rated_kind):
+        raise ValidationError(f"Rated weapon ST is outside the skill's class: {skill_id}")
     return entry

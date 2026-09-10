@@ -8,14 +8,17 @@ from dataclasses import asdict, dataclass
 from typing import Literal
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.rules.checks import RandomSource
+from wayfarer.rules.checks import Modifier, RandomSource
 from wayfarer.rules.gurps_social import (
+    DEFAULT_INFLUENCE_CONDITIONS,
+    InfluenceConditions,
     InfluenceSkill,
     ReactionModifier,
     fright_roll,
     influence_roll,
     reaction_roll,
     self_control_roll,
+    validate_influence,
 )
 from wayfarer.rules.mundane_traits.runtime import DEFAULT_AUDIENCE, Audience
 from wayfarer.rules.social_hooks import Standing, StandingTrace, standing_modifiers
@@ -58,6 +61,8 @@ class SocialContext:
         trait_rules: TraitRules | None = None,
         standing: Standing | None = None,
         audience: Audience = DEFAULT_AUDIENCE,
+        self_control_modifier: int = 0,
+        influence_conditions: InfluenceConditions = DEFAULT_INFLUENCE_CONDITIONS,
     ) -> None:
         self.profile_id, self.target, self.will = profile_id, target, will
         self.ht = ht
@@ -65,6 +70,8 @@ class SocialContext:
         self.trait_base, self.trait_levels = trait_base, trait_levels
         self.trait_options, self.trait_rules = trait_options, trait_rules
         self.standing, self.audience = standing, audience
+        self.self_control_modifier = self_control_modifier
+        self.influence_conditions = influence_conditions
 
     def bind_trait_modifiers(self, modifiers: tuple[ReactionModifier, ...]) -> None:
         """Attach server-derived trait modifiers; a resolver never supplies them."""
@@ -121,10 +128,25 @@ def apply_social(
         for e in state.events
     ):
         raise ConflictError("Social trigger already resolved")
+    from wayfarer.simulation.fright import blocked, requires_adjudication
+
+    if command.kind != "fright-recovery" and any(
+        requires_adjudication(state, actor_id, handles_aftermath=True)
+        for actor_id in (command.actor_id, command.subject_id)
+    ):
+        raise ValidationError("Resolve permanent fright losses before further social checks")
+    if command.kind in ("reaction", "influence") and any(
+        blocked(state, actor_id) for actor_id in (command.actor_id, command.subject_id)
+    ):
+        raise ValidationError("Incapacitated actors cannot participate in a social interaction")
     # Derived standing is rolled and applied before the check that uses it, so a
     # replayed receipt consumes the same dice in the same order.
     standing = StandingTrace(())
     modifiers = context.modifiers
+    if command.kind == "influence":
+        validate_influence(context.profile_id, context.skill, context.influence_conditions)
+        if command.actor_id == command.subject_id:
+            raise ValidationError("Influence requires distinct actor and subject IDs")
     if command.kind in ("reaction", "influence") and context.standing is not None:
         standing = standing_modifiers(
             context.profile_id, context.standing, context.audience, rng=rng
@@ -135,6 +157,7 @@ def apply_social(
     if command.kind == "fright-recovery":
         from wayfarer.simulation.fright import recover
 
+        revision = state.revision
         state, passed = recover(
             state,
             actor_id=command.subject_id,
@@ -142,6 +165,7 @@ def apply_social(
             command_id=command.id,
             rng=rng,
         )
+        state = state.model_copy(update={"revision": revision})
         outcome = SocialOutcome(kind=command.kind, outcome="recovered" if passed else "recovering")
         details = {}
     elif command.kind == "reaction":
@@ -149,20 +173,31 @@ def apply_social(
         outcome = SocialOutcome(kind=command.kind, outcome=trace.outcome)
         details = asdict(trace) | recognition
     elif command.kind == "influence":
+        from wayfarer.simulation.fright import aftermath_penalty
+
         influence = influence_roll(
             context.profile_id,
             context.skill,
             command.actor_id,
             command.subject_id,
-            context.target,
-            context.will,
+            context.target + aftermath_penalty(state, command.actor_id),
+            context.will + aftermath_penalty(state, command.subject_id),
             modifiers,
             rng=rng,
+            conditions=context.influence_conditions,
         )
         outcome = SocialOutcome(kind=command.kind, outcome=influence.outcome)
         details = asdict(influence) | recognition
     elif command.kind == "fright":
-        fright = fright_roll(context.profile_id, context.target, rng=rng, ht=context.ht)
+        from wayfarer.simulation.fright import aftermath_modifiers
+
+        fright = fright_roll(
+            context.profile_id,
+            context.target,
+            rng=rng,
+            ht=context.ht,
+            check_modifiers=aftermath_modifiers(state, command.subject_id),
+        )
         outcome = SocialOutcome(
             kind=command.kind,
             outcome="passed" if fright.check.outcome.succeeded else "failed",
@@ -206,6 +241,16 @@ def apply_social(
             context.trait_options,
             context.trait_rules,
             rng=rng,
+            modifiers=(
+                Modifier(
+                    context.self_control_modifier,
+                    "Self-control situation",
+                    command.trigger_id,
+                    "Basic Set Characters 4e B121",
+                ),
+            )
+            if context.self_control_modifier
+            else (),
         )
         outcome = SocialOutcome(
             kind=command.kind, outcome="resisted" if control.outcome.succeeded else "triggered"

@@ -3128,6 +3128,24 @@
             "default": null,
             "title": "Critical Breakage"
           },
+          "parry_quality": {
+            "anyOf": [
+              {
+                "enum": [
+                  "cheap",
+                  "good",
+                  "fine",
+                  "very-fine"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Parry Quality"
+          },
           "container_capacity_millipounds": {
             "anyOf": [
               {
@@ -5695,6 +5713,17 @@
             "default": false,
             "title": "Fixed Power Scope",
             "type": "boolean"
+          },
+          "rated_strength": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/RatedStrength"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           }
         },
         "required": [
@@ -5710,6 +5739,31 @@
           "bulk"
         ],
         "title": "RangedMode",
+        "type": "object"
+      },
+      "RatedStrength": {
+        "additionalProperties": false,
+        "description": "Explicit B270 weapon ST; never inferred from a skill or ammunition name.",
+        "properties": {
+          "kind": {
+            "enum": [
+              "bow",
+              "crossbow"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "st": {
+            "minimum": 1,
+            "title": "St",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "st"
+        ],
+        "title": "RatedStrength",
         "type": "object"
       },
       "RecoveryOption": {
