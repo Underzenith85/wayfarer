@@ -11,7 +11,7 @@ implicit checkout imports, or global pip dependencies are required.
 
 | Package | Owns | Permitted internal dependencies |
 | --- | --- | --- |
-| `models`, `validation` | Shared typed contracts and runtime structural schemas | Models |
+| `models`, `validation` | The `Record` entity contract, shared typed contracts and runtime structural schemas | Models |
 | `rules` | Closed demo catalog and checks | Models, validation, rules |
 | `character` | Character draft validation, preset, and profile-selected attribute/secondary statistics | Models, validation, rules, character |
 | `simulation` | Scenario validation and state transitions | Models, validation, rules, character, simulation |
@@ -31,6 +31,32 @@ Domain boundary tests inspect imports and verify that importing the resolver doe
 not load HTTP, storage or provider adapters. New dependencies must follow the
 same direction. Persistence contains all SQL; orchestration coordinates it rather
 than issuing SQL itself.
+
+## Entities and verbs
+
+Nouns and verbs are kept apart at three levels.
+
+- **One entity contract.** Every domain record subclasses `wayfarer.models.Record`:
+  frozen, strict, closed to unknown fields and revalidated when nested. No other
+  module subclasses `BaseModel` directly or restates that configuration. A state
+  transition returns a new record; entities never mutate themselves.
+- **Aggregate modules hold entities and their invariants.** `simulation/scenes.py`,
+  `party.py`, `noncombat.py`, `access.py`, `advancement.py`, `spell_bindings.py`,
+  `ability_types.py` and `combat.py` each declare their records and a
+  `validate_*` function that checks a checkpoint against those records. Pure
+  rule tables that need no state (range penalties, rapid-fire bonuses) live in
+  `rules/`.
+- **Verbs live in engines and services.** `simulation/actions.py` declares the
+  typed commands, action rules, results and `PlayState`; the resolver that
+  assesses and applies them is `simulation/action_engine.py`, whose `validate`
+  is the ordered sequence of aggregate invariants. `CombatEngine` and
+  `ResourceEngine` follow the same shape. Orchestration services coordinate
+  transactions and end every one with `PlayService.commit`, the only verb that
+  writes a play checkpoint onto a campaign row (setup transitions, which write
+  several campaign fields at once, are the documented exception).
+
+Architecture tests enforce the single entity base, that importing the action
+entities never loads the engine, and that no other module assigns `play_json`.
 
 ## Package and dependency workflow
 

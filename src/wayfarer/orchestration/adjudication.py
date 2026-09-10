@@ -264,11 +264,7 @@ class AdjudicationService:
                 ruling_id = command.id if isinstance(command, RequestRuling) else command.ruling_id
                 result = next(r for r in updated.rulings if r.id == ruling_id)
             updated = self.play.checkpoint(updated, before=state)
-            self.play.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = (
-                updated.revision,
-                updated.model_dump_json(),
-            )
+            self.play.commit(campaign, updated)
             return Event(
                 input=payload, action=command.kind, outcome=result.model_dump_json(), roll=roll
             )

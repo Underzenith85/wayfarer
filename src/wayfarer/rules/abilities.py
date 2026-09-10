@@ -92,18 +92,3 @@ def validate_purchase(entry: RuleDefinition, level: int, options: TraitOptions) 
     if entry.trait_rules != metadata(selected):
         raise ValidationError("Ability construction metadata differs from runtime")
     validate_binding(selected, level, options)
-
-
-def range_penalty(yards: int) -> int:
-    """B550 progression, integer yard distances, no client-supplied modifier."""
-    if yards <= 2:
-        return 0
-    bounds = (3, 5, 7, 10, 15, 20)
-    decade = 1
-    penalty = 1
-    while True:
-        for bound in bounds:
-            if yards <= bound * decade:
-                return -penalty
-            penalty += 1
-        decade *= 10

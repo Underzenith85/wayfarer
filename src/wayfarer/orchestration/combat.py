@@ -29,7 +29,7 @@ from wayfarer.simulation.combat import (
     Posture,
     RangedSituation,
 )
-from wayfarer.simulation.hex_geometry import Hex, HexBattlefield, Pose
+from wayfarer.simulation.hex_geometry import Hex, HexBattlefield, HexFacing, Pose
 from wayfarer.simulation.maneuvers import ATTACK_MANEUVERS, AttackOption, DefenseOption, WaitTrigger
 from wayfarer.simulation.resources import Advance
 from wayfarer.simulation.unarmed import GrappleLocation, UnarmedAction, UnarmedSkill
@@ -83,7 +83,7 @@ class TakeCombatTurn(CombatCommand):
     second_mode_id: str | None = None
     braced: bool = Field(default=False, exclude_if=lambda value: not value)
     hex_path: tuple[Hex, ...] = Field(default=(), max_length=100)
-    hex_facing: Literal[0, 1, 2, 3, 4, 5] | None = None
+    hex_facing: HexFacing | None = None
 
 
 class TakeUnarmedTurn(CombatCommand):
@@ -1615,8 +1615,7 @@ class CombatService:
                     command.id,
                 )
             updated = self.play.checkpoint(updated, before=initial_state)
-            self.play.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = revision, updated.model_dump_json()
+            self.play.commit(campaign, updated)
             return Event(
                 input=payload, action="combat", outcome=result.model_dump_json(), roll=None
             )

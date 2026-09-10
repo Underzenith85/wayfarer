@@ -14,6 +14,7 @@ from wayfarer.rules.checks import Outcome
 from wayfarer.rules.effects import DerivedValue
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.rules.location_types import HitLocation, HumanLocation
+from wayfarer.rules.ranged_tables import range_penalty, rapid_fire_bonus
 from wayfarer.rules.spray_types import Stream
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import (
@@ -41,29 +42,6 @@ from wayfarer.simulation.resources import AmmunitionLoad, ResourceState
 if TYPE_CHECKING:
     from wayfarer.orchestration.combat import TakeCombatTurn
     from wayfarer.orchestration.play import PlayService
-
-
-def range_penalty(yards: float) -> int:
-    """B550 size/speed/range progression, rounded up to the next entry."""
-    if yards <= 2:
-        return 0
-    scale = 1
-    penalty = 0
-    while True:
-        for entry in (3, 5, 7, 10, 15, 20):
-            penalty += 1
-            if yards <= entry * scale:
-                return -penalty
-        scale *= 10
-
-
-def rapid_fire_bonus(shots: int) -> int:
-    # B373, deliberately bounded to the supported non-shotgun RoF <= 100.
-    return next(
-        b
-        for limit, b in ((4, 0), (8, 1), (12, 2), (16, 3), (24, 4), (49, 5), (99, 6), (100, 7))
-        if shots <= limit
-    )
 
 
 def declare(

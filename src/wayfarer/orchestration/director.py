@@ -51,8 +51,7 @@ class DirectorService:
                     "director": tuple(t for t in state.director if t.id != turn.id) + (turn,),
                 }
             )
-            self.play.engine.validate(state)
-            campaign["revision"], campaign["play_json"] = state.revision, state.model_dump_json()
+            self.play.commit(campaign, state)
             return Event(input=payload, action="director", outcome=turn.phase, roll=None)
 
         await self.play.store.commit_turn(

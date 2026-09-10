@@ -274,8 +274,7 @@ class WorkshopService:
                     "drafts": tuple(d for d in current.drafts if d.id != draft.id) + (draft,),
                 }
             )
-            self.play.engine.validate(current)
-            campaign["revision"], campaign["play_json"] = revision, current.model_dump_json()
+            self.play.commit(campaign, current)
             return Event(input=payload, action="workshop", outcome=command.operation, roll=None)
 
         await self.play.store.commit_turn(

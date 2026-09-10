@@ -561,14 +561,10 @@ class SpellService:
                     }
                 )
             updated = play.checkpoint(updated, before=before)
-            play.engine.validate(updated)
+            play.commit(campaign, updated)
             result = SpellEvent.model_validate_json(
                 next(e.kind for e in updated.resources.events if e.id == event_id(command.id))
             ).result
-            campaign["revision"], campaign["play_json"] = (
-                updated.revision,
-                updated.model_dump_json(),
-            )
             # Roll targets, opposed traces, and bindings stay in the private ledger.
             return Event(
                 input=payload,

@@ -76,11 +76,7 @@ class SceneService:
 
                 synchronous(state, command.actor_id)
             updated = self.play.checkpoint(self.reduce(state, command), before=state)
-            self.play.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = (
-                updated.revision,
-                updated.model_dump_json(),
-            )
+            self.play.commit(campaign, updated)
             result = self._result(updated, command.id)
             return Event(input=payload, action="scene", outcome=result.model_dump_json(), roll=None)
 

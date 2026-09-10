@@ -9,8 +9,8 @@ from wayfarer.models import Record
 from wayfarer.rules.location_types import HitLocation
 from wayfarer.simulation.combat_height import HeightEffect, melee_height
 from wayfarer.simulation.hex_geometry import (
-    Facing,
     Hex,
+    HexFacing,
     Occupant,
     Pose,
     SightPoint,
@@ -131,7 +131,7 @@ def move_hex(
     actor: Combatant,
     maneuver: Maneuver,
     path: tuple[Hex, ...],
-    facing: Facing | None,
+    facing: HexFacing | None,
     defense_option: DefenseOption | None,
 ) -> Combatant:
     board = encounter.hex_battlefield

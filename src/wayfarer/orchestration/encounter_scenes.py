@@ -69,8 +69,7 @@ class EncounterSceneService:
                 }
             )
             # Structural only: no checkpoint, clocks, dice, discovery or effects.
-            self.play.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = revision, updated.model_dump_json()
+            self.play.commit(campaign, updated)
             return Event(
                 input=payload,
                 action="encounter-scenes",

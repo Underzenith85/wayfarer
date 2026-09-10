@@ -54,6 +54,31 @@ def _value(build: ValidatedBuild, key: str) -> int:
     return int(value)
 
 
+def care_skill(actor: ValidatedBuild, kind: str, env: CareEnvironment) -> tuple[int | None, int]:
+    """Select the caregiver's effective skill and treatment modifier for one procedure.
+
+    B424: resuscitation accepts First Aid at -4 or Physician; stabilising requires
+    Surgery backed by Physician and suffers -2 without anesthetic on top of the
+    surgical environment. Kinds without a roll return no skill.
+    """
+    if kind in ("first-aid", "physician"):
+        return _value(actor, "skill:first-aid" if kind == "first-aid" else "skill:physician"), 0
+    if kind == "resuscitate":
+        candidates = [
+            int(v.value) - (4 if v.target == "skill:first-aid" else 0)
+            for v in actor.sheet.values
+            if v.target in ("skill:first-aid", "skill:physician") and v.value == int(v.value)
+        ]
+        if not candidates:
+            raise ValidationError("Resuscitation requires approved First Aid or Physician")
+        return max(candidates), 0
+    if kind == "stabilize":
+        skill = _value(actor, "skill:surgery")
+        _value(actor, "skill:physician")
+        return skill, env.surgical_modifier - (0 if env.anesthetic else 2)
+    return None, 0
+
+
 class MedicalService:
     """Internal API; the environment resolver is bound by the scenario, not input.
 
@@ -117,11 +142,7 @@ class MedicalService:
                     update={"revision": resources.revision, "resources": resources}
                 )
                 updated = play.checkpoint(updated, before=before)
-                play.engine.validate(updated)
-                campaign["revision"], campaign["play_json"] = (
-                    updated.revision,
-                    updated.model_dump_json(),
-                )
+                play.commit(campaign, updated)
                 return Event(
                     input=payload,
                     action="recovery",
@@ -157,26 +178,7 @@ class MedicalService:
                 if task is not None
                 else self.environment(play, before, target_id)
             )
-            skill = (
-                _value(actor, "skill:first-aid" if kind == "first-aid" else "skill:physician")
-                if kind in ("first-aid", "physician")
-                else None
-            )
-            treatment_modifier = 0
-            if kind == "resuscitate":
-                candidates = [
-                    int(v.value) - (4 if v.target == "skill:first-aid" else 0)
-                    for v in actor.sheet.values
-                    if v.target in ("skill:first-aid", "skill:physician")
-                    and v.value == int(v.value)
-                ]
-                if not candidates:
-                    raise ValidationError("Resuscitation requires approved First Aid or Physician")
-                skill = max(candidates)
-            if kind == "stabilize":
-                skill = _value(actor, "skill:surgery")
-                _value(actor, "skill:physician")
-                treatment_modifier = env.surgical_modifier - (0 if env.anesthetic else 2)
+            skill, treatment_modifier = care_skill(actor, kind, env)
             physician = (
                 _value(_build(play, before, env.physician_id), "skill:physician")
                 if env.physician_id
@@ -228,11 +230,7 @@ class MedicalService:
                 update={"revision": resources.revision, "resources": resources}
             )
             updated = play.checkpoint(updated, before=before)
-            play.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = (
-                updated.revision,
-                updated.model_dump_json(),
-            )
+            play.commit(campaign, updated)
             return Event(
                 input=payload,
                 action="recovery",

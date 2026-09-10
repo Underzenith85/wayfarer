@@ -484,8 +484,7 @@ class PartyService:
 
         def resolve(campaign: Campaign) -> Event:
             state = self.reduce(self.play._load(campaign), command)
-            self.play.engine.validate(state)
-            campaign["revision"], campaign["play_json"] = state.revision, state.model_dump_json()
+            self.play.commit(campaign, state)
             return Event(input=payload, action="party", outcome=command.kind, roll=None)
 
         committed = await self.play.store.commit_turn(

@@ -183,11 +183,7 @@ class AdvancementService:
             )
             updated = self._revision(state, advancement=state.advancement + (entry,))
             updated = self.play.checkpoint(updated)
-            self.play.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = (
-                updated.revision,
-                updated.model_dump_json(),
-            )
+            self.play.commit(campaign, updated)
             return Event(
                 input=payload, action="advancement", outcome=entry.model_dump_json(), roll=None
             )
@@ -298,11 +294,7 @@ class AdvancementService:
             updated = self.reduce_purchase(state, command, revision=state.revision + 1)
             entry = updated.advancement[-1]
             updated = self.play.checkpoint(updated)
-            self.play.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = (
-                updated.revision,
-                updated.model_dump_json(),
-            )
+            self.play.commit(campaign, updated)
             return Event(
                 input=payload, action="advancement", outcome=entry.model_dump_json(), roll=None
             )
@@ -491,11 +483,7 @@ class MigrationService:
 
                 updated = migrate(updated)
             campaign["rules_ref"] = reference(self.target.engine.resources.rules)
-            campaign["revision"], campaign["play_json"] = (
-                updated.revision,
-                updated.model_dump_json(),
-            )
-            self.target.engine.validate(updated)
+            self.target.commit(campaign, updated)
             return Event(
                 input=payload, action="rules-migration", outcome=entry.model_dump_json(), roll=None
             )

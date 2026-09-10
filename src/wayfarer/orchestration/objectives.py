@@ -124,8 +124,7 @@ class ObjectiveService:
                 }
             )
             state = checkpoint(self.play, state, abandon=command.kind == "abandon_scenario")
-            self.play.engine.validate(state)
-            campaign["revision"], campaign["play_json"] = revision, state.model_dump_json()
+            self.play.commit(campaign, state)
             return Event(
                 input=payload,
                 action="objectives",

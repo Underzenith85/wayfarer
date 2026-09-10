@@ -5,14 +5,14 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.rules.vehicle_types import PassengerProtection
-from wayfarer.simulation.hex_geometry import Facing
+from wayfarer.simulation.hex_geometry import HexFacing
 from wayfarer.simulation.resources import Command
 
 
 class VehicleManeuver(Command):
     kind: Literal["vehicle-maneuver"] = "vehicle-maneuver"
     transport_id: str
-    course: tuple[Facing, ...] = Field(max_length=100)
+    course: tuple[HexFacing, ...] = Field(max_length=100)
     end_speed: int = Field(ge=0, le=100)
     waterline: int | None = None
     control_skill: int | None = Field(default=None, ge=1, le=50)

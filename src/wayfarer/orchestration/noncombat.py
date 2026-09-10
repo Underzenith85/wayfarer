@@ -234,9 +234,8 @@ class NoncombatService:
                     }
                 )
             state = self.play.checkpoint(state, before=current)
-            self.play.engine.validate(state)
+            self.play.commit(campaign, state)
             result = next(e for e in state.noncombat if e.id == command.encounter_id)
-            campaign["revision"], campaign["play_json"] = state.revision, state.model_dump_json()
             return Event(
                 input=payload, action="noncombat", outcome=result.model_dump_json(), roll=None
             )

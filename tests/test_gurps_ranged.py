@@ -11,10 +11,10 @@ from test_gurps_melee import setup
 
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import CombatService, TakeCombatTurn
-from wayfarer.orchestration.gurps_ranged import range_penalty
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.rules.checks import RecordedDice
+from wayfarer.rules.ranged_tables import range_penalty
 from wayfarer.simulation.combat import RangedSituation
 from wayfarer.simulation.gurps_equipment import Damage, RangedMode
 from wayfarer.simulation.resources import Consume, Transfer

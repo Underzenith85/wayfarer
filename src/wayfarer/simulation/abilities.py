@@ -4,9 +4,10 @@ import hashlib
 from dataclasses import dataclass
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.rules.abilities import PROFILE, fatigue_cost, range_penalty, validate_binding
+from wayfarer.rules.abilities import PROFILE, fatigue_cost, validate_binding
 from wayfarer.rules.checks import CheckTrace, Modifier, Outcome, RandomSource
 from wayfarer.rules.gurps_checks import Contestant, resistance_roll, success_roll
+from wayfarer.rules.ranged_tables import range_penalty
 from wayfarer.rules.traits import TraitOptions
 from wayfarer.simulation.ability_types import (
     AbilityChannel,

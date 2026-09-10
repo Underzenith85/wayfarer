@@ -21,6 +21,7 @@ from wayfarer.orchestration.medical import (
     MedicalService,
     _build,
     _value,
+    care_skill,
 )
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.recovery_types import ProfileId
@@ -108,24 +109,7 @@ def _context(
         ):
             raise ValidationError("Physician must be present and capable of providing care")
 
-    skill: int | None = None
-    modifier = 0
-    if kind in ("first-aid", "physician"):
-        skill = _value(actor, "skill:first-aid" if kind == "first-aid" else "skill:physician")
-    elif kind == "resuscitate":
-        candidates = [
-            int(value.value) - (4 if value.target == "skill:first-aid" else 0)
-            for value in actor.sheet.values
-            if value.target in ("skill:first-aid", "skill:physician")
-            and value.value == int(value.value)
-        ]
-        if not candidates:
-            raise ValidationError("Resuscitation requires approved First Aid or Physician")
-        skill = max(candidates)
-    elif kind == "stabilize":
-        skill = _value(actor, "skill:surgery")
-        _value(actor, "skill:physician")
-        modifier = env.surgical_modifier - (0 if env.anesthetic else 2)
+    skill, modifier = care_skill(actor, kind, env)
     physician = (
         _value(_build(play, state, env.physician_id), "skill:physician")
         if env.physician_id

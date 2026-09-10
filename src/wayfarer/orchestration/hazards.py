@@ -133,11 +133,7 @@ class HazardService:
                 update={"revision": resources.revision, "resources": resources}
             )
             updated = play.checkpoint(updated, before=before)
-            play.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = (
-                updated.revision,
-                updated.model_dump_json(),
-            )
+            play.commit(campaign, updated)
             return Event(
                 input=payload, action="noncombat", outcome=result.model_dump_json(), roll=None
             )

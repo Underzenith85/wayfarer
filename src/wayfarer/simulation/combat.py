@@ -20,7 +20,7 @@ from wayfarer.rules.entangle_types import Entanglement
 from wayfarer.rules.location_types import HitLocation, HumanLocation
 from wayfarer.rules.spray_types import Stream
 from wayfarer.simulation.gurps_equipment import EquipmentCatalog
-from wayfarer.simulation.hex_geometry import Hex, HexBattlefield
+from wayfarer.simulation.hex_geometry import Hex, HexBattlefield, HexFacing
 from wayfarer.simulation.maneuvers import (
     ATTACK_MANEUVERS,
     AttackOption,
@@ -181,7 +181,7 @@ class Combatant(Record):
     initiative: int = Field(ge=0, le=100)
     position: GridPoint | Hex
     facing: Facing
-    hex_facing: Literal[0, 1, 2, 3, 4, 5] | None = None
+    hex_facing: HexFacing | None = None
     retreat_used: bool = False
     retreat_attacker_id: str | None = None
     tactical_defense_bonus: int = 0
@@ -221,7 +221,7 @@ class PendingDefense(Record):
     post_attack_destination: GridPoint | None = None
     post_attack_square_facing: Facing | None = None
     post_attack_hex_path: tuple[Hex, ...] = ()
-    post_attack_facing: Literal[0, 1, 2, 3, 4, 5] | None = None
+    post_attack_facing: HexFacing | None = None
     post_attack_posture: Posture | None = None
 
 
@@ -639,7 +639,7 @@ class CombatEngine:
         second_mode_id: str | None = None,
         command_json: str = "",
         hex_path: tuple[Hex, ...] = (),
-        hex_facing: Literal[0, 1, 2, 3, 4, 5] | None = None,
+        hex_facing: HexFacing | None = None,
     ) -> tuple[Encounter, ResourceState, CombatResult]:
         original, original_resources = encounter, resources
         interrupt = encounter.wait_interrupt
@@ -833,7 +833,7 @@ class CombatEngine:
         second_target_id: str | None = None,
         second_mode_id: str | None = None,
         hex_path: tuple[Hex, ...] = (),
-        hex_facing: Literal[0, 1, 2, 3, 4, 5] | None = None,
+        hex_facing: HexFacing | None = None,
     ) -> tuple[Encounter, ResourceState, CombatResult]:
         if self.rules.gurps_equipment is not None:
             command_id = "combat:" + hashlib.sha256(command_id.encode()).hexdigest()

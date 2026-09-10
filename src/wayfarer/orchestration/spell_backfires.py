@@ -62,11 +62,7 @@ class SpellBackfireService:
             before = play._load(campaign)
             updated, item = resolve(play, before, command)
             updated = play.checkpoint(updated, before=before)
-            play.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = (
-                updated.revision,
-                updated.model_dump_json(),
-            )
+            play.commit(campaign, updated)
             return Event(
                 input=payload, action="resource", outcome="spell:backfire-resolved", roll=None
             )
