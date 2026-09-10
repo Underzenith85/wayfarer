@@ -127,7 +127,7 @@ def injury_turn(
             do_nothing=do_nothing,
         ),
         ht=compiled.statistics.ht,
-        stun_iq=compiled.statistics.iq if was_mental else None,
+        stun_iq=compiled.statistics.iq if was_mental or hp.injury.surprise is not None else None,
         rng=play.rng,
         system=True,
     )
@@ -347,6 +347,7 @@ def defense_value(
 
     penalty = (
         participant.defense_penalty
+        + int(hp.injury.physical_traits.combat_reflexes)
         + participant.tactical_defense_bonus
         - 4 * int(participant.arm_locked)
         + (-1 if selected == "dodge" else -2) * int(participant.grappled)
@@ -704,6 +705,7 @@ def resolve_melee(
         raise ValidationError("Second defense equipment requires a second defense")
     attack_target = (
         int(attack_value.value)
+        + attacker_hp.injury.physical_traits.darkness(encounter.darkness_penalty)
         - attacker_hp.injury.shock
         - max(0, weapon.minimum_st - fatigue_value(attacker_fp, attack_build.statistics.st))
     )
