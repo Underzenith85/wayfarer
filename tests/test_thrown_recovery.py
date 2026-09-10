@@ -11,10 +11,10 @@ from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import CombatService, DeclareThrownLanding, TakeCombatTurn
 from wayfarer.orchestration.equipment_view import equipment_view
 from wayfarer.orchestration.play import PlayService
-from wayfarer.orchestration.thrown_items import record
-from wayfarer.orchestration.weapon_flight import position
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.rules.checks import RecordedDice
+from wayfarer.simulation.mechanics.thrown_items import record
+from wayfarer.simulation.mechanics.weapon_flight import position
 
 
 @pytest.mark.parametrize("roll,caught", [([3, 3, 3, 1, 1, 1], True), ([3, 3, 3, 2, 2, 2], False)])
@@ -185,8 +185,8 @@ async def test_barehand_critical_failure_uses_unarmed_table(tmp_path: Path) -> N
 
 
 async def test_recovery_rejects_broken_items_and_hidden_observers(tmp_path: Path) -> None:
-    from wayfarer.orchestration.thrown_items import recover
     from wayfarer.rules.object_types import ObjectCondition
+    from wayfarer.simulation.mechanics.thrown_items import recover
 
     cid, play = await setup(
         tmp_path,
@@ -239,5 +239,5 @@ async def test_recovery_rejects_broken_items_and_hidden_observers(tmp_path: Path
         ready_hand="right-hand",
     )
     with pytest.raises(ValidationError, match="broken"):
-        recover(play, state, encounter, command)
+        recover(play.rules_context, state, encounter, command)
     assert not equipment_view(play, state, "unrelated-observer")

@@ -49,9 +49,9 @@ def bind_trait_modifiers(
     if actor is None or actor.approval is None:
         context.bind_trait_modifiers(())
         return
-    from wayfarer.orchestration.gurps_melee import build
+    from wayfarer.simulation.mechanics.gurps_melee import build
 
-    approved = build(play, state, command.actor_id)
+    approved = build(play.rules_context, state, command.actor_id)
     definitions = play.engine.reviewer.compiler.definitions
     context.standing = bind_standing(approved, definitions, context.standing, context.modifiers)
     context.bind_trait_modifiers(
@@ -83,9 +83,9 @@ def bind_skill_conditions(
         context.bind_trait_modifiers(())
         return
     from wayfarer.character.social_traits import skill_conditions
-    from wayfarer.orchestration.gurps_melee import build
+    from wayfarer.simulation.mechanics.gurps_melee import build
 
-    approved = build(play, state, command.actor_id)
+    approved = build(play.rules_context, state, command.actor_id)
     definitions = play.engine.reviewer.compiler.definitions
     context.conditions = context.conditions | skill_conditions(
         approved, definitions, procedure.id, context.audience
@@ -112,11 +112,11 @@ def dispatch(
         from wayfarer.simulation.fright import validate_subject
 
         validate_subject(before.resources, command.subject_id, profile_id)
-        from wayfarer.orchestration.gurps_melee import build
+        from wayfarer.simulation.mechanics.gurps_melee import build
 
         if not any(a.actor_id == command.subject_id for a in before.actors):
             raise ValidationError("Fright requires an approved character")
-        statistics = build(play, before, command.subject_id).statistics
+        statistics = build(play.rules_context, before, command.subject_id).statistics
         assert statistics is not None
         if interaction.context.ht != statistics.ht or interaction.context.will != statistics.will:
             raise ValidationError("Fright context must match approved HT and Will")

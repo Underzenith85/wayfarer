@@ -439,7 +439,7 @@ async def test_facing_blocks_rear_attack_before_dice(tmp_path: Path) -> None:
 
 
 async def test_hex_ranged_distance_is_current_not_the_declared_nine_yards(tmp_path: Path) -> None:
-    from wayfarer.orchestration.gurps_ranged import situation
+    from wayfarer.simulation.mechanics.gurps_ranged import situation
 
     cid, play = await setup(tmp_path)
     encounter = play._load(await play.store.read(cid)).encounters[0]
@@ -476,7 +476,7 @@ async def test_hex_ranged_distance_is_current_not_the_declared_nine_yards(tmp_pa
 
 
 async def test_nonstanding_melee_and_unarmed_defense_use_level_difference(tmp_path: Path) -> None:
-    from wayfarer.orchestration.unarmed import unarmed_defense
+    from wayfarer.simulation.mechanics.unarmed import unarmed_defense
     from wayfarer.simulation.tactical import height_effect
 
     cid, play = await setup(tmp_path, unarmed=True)
@@ -507,15 +507,17 @@ async def test_nonstanding_melee_and_unarmed_defense_use_level_difference(tmp_pa
 
     effect = height_effect(raised_encounter, actor, target, reach=1, location="torso")
     assert effect.attack_modifier == 0 and effect.defender_modifier == 1
-    flat_defense, _ = unarmed_defense(play, state, encounter, "b", "dodge", None, attacker_id="a")
+    flat_defense, _ = unarmed_defense(
+        play.rules_context, state, encounter, "b", "dodge", None, attacker_id="a"
+    )
     raised_defense, _ = unarmed_defense(
-        play, state, raised_encounter, "b", "dodge", None, attacker_id="a"
+        play.rules_context, state, raised_encounter, "b", "dodge", None, attacker_id="a"
     )
     assert flat_defense is not None and raised_defense == flat_defense + 1
 
 
 async def test_hex_ranged_distance_accounts_for_elevation(tmp_path: Path) -> None:
-    from wayfarer.orchestration.gurps_ranged import situation
+    from wayfarer.simulation.mechanics.gurps_ranged import situation
 
     cid, play = await setup(tmp_path)
     state = play._load(await play.store.read(cid))

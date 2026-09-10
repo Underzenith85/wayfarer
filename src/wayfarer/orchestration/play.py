@@ -33,6 +33,7 @@ from wayfarer.simulation.actions import (
 )
 from wayfarer.simulation.adjudication import expire_rulings
 from wayfarer.simulation.resources import Pool, ResourceState
+from wayfarer.simulation.rules_context import RulesContext
 from wayfarer.simulation.scenes import ActorScene, JournalEntry, SceneEvent
 from wayfarer.world import World
 
@@ -49,6 +50,16 @@ class ApproveCharacter(Record):
 
 
 class PlayService:
+    @property
+    def rules_context(self) -> RulesContext:
+        return RulesContext(
+            rng=self.rng,
+            resources=self.engine.resources,
+            reviewer=self.engine.reviewer,
+            rules=self.engine.rules,
+            combat=self.engine.combat,
+        )
+
     def __init__(
         self,
         store: AsyncSQLiteStore | AsyncPostgresStore,
@@ -310,26 +321,26 @@ class PlayService:
     ) -> PlayState:
         from wayfarer.orchestration.npcs import checkpoint as npc_checkpoint
         from wayfarer.orchestration.objectives import checkpoint
-        from wayfarer.orchestration.spell_backfires import perceive, recover_stuns
-        from wayfarer.orchestration.spell_effects import checkpoint as spell_checkpoint
+        from wayfarer.simulation.mechanics.spell_backfires import perceive, recover_stuns
+        from wayfarer.simulation.mechanics.spell_effects import checkpoint as spell_checkpoint
         from wayfarer.simulation.spell_backfires import refund_due
 
         resources = state.resources
         for actor in state.actors:
             resources = refund_due(resources, actor.actor_id)
         state = state.model_copy(update={"resources": resources})
-        from wayfarer.orchestration.held_missiles import checkpoint as held_checkpoint
-        from wayfarer.orchestration.held_missiles import concentration_checkpoint
+        from wayfarer.simulation.mechanics.held_missiles import checkpoint as held_checkpoint
+        from wayfarer.simulation.mechanics.held_missiles import concentration_checkpoint
 
         if before is not None:
-            state = concentration_checkpoint(self, state, before)
-            state = held_checkpoint(self, state, before)
+            state = concentration_checkpoint(self.rules_context, state, before)
+            state = held_checkpoint(self.rules_context, state, before)
         before_fire = state
-        state = spell_checkpoint(self, state)
+        state = spell_checkpoint(self.rules_context, state)
         state = perceive(state)
-        state = recover_stuns(self, state)
-        state = concentration_checkpoint(self, state, before_fire)
-        state = held_checkpoint(self, state, before_fire)
+        state = recover_stuns(self.rules_context, state)
+        state = concentration_checkpoint(self.rules_context, state, before_fire)
+        state = held_checkpoint(self.rules_context, state, before_fire)
         if run_npcs:
             state = npc_checkpoint(self, state)
         return checkpoint(self, state, before=before)

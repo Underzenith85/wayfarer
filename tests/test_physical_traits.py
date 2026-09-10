@@ -254,8 +254,8 @@ async def test_approved_sense_check_is_private_authorized_and_retry_safe(tmp_pat
 async def test_combat_reflexes_boosts_every_active_defense(tmp_path: Path) -> None:
     from test_gurps_melee import setup
 
-    from wayfarer.orchestration.gurps_melee import defense_value
-    from wayfarer.orchestration.unarmed import unarmed_defense
+    from wayfarer.simulation.mechanics.gurps_melee import defense_value
+    from wayfarer.simulation.mechanics.unarmed import unarmed_defense
 
     plain_id, plain = await setup(tmp_path / "plain", PROFILE, unarmed_fixture=True)
     trait_id, enhanced = await setup(
@@ -269,8 +269,8 @@ async def test_combat_reflexes_boosts_every_active_defense(tmp_path: Path) -> No
     base_actor = next(p for p in baseline.encounters[0].participants if p.actor_id == "b")
     actor = next(p for p in updated.encounters[0].participants if p.actor_id == "b")
     for defense in ("dodge", "parry", "block"):
-        a, _ = defense_value(plain, baseline, base_actor, defense)
-        b, _ = defense_value(enhanced, updated, actor, defense)
+        a, _ = defense_value(plain.rules_context, baseline, base_actor, defense)
+        b, _ = defense_value(enhanced.rules_context, updated, actor, defense)
         assert a is not None and b is not None and b.value == a.value + 1
     # Drop the sword to free the hand for a separately resolved unarmed parry.
     baseline = baseline.model_copy(
@@ -302,10 +302,10 @@ async def test_combat_reflexes_boosts_every_active_defense(tmp_path: Path) -> No
         }
     )
     base_parry, _ = unarmed_defense(
-        plain, baseline, baseline.encounters[0], "b", "parry", "right-hand"
+        plain.rules_context, baseline, baseline.encounters[0], "b", "parry", "right-hand"
     )
     boosted_parry, _ = unarmed_defense(
-        enhanced, updated, updated.encounters[0], "b", "parry", "right-hand"
+        enhanced.rules_context, updated, updated.encounters[0], "b", "parry", "right-hand"
     )
     assert base_parry is not None and boosted_parry == base_parry + 1
 

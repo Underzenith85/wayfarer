@@ -36,12 +36,12 @@ def test_explicit_v2_contract_is_pinned() -> None:
 async def test_fright_stun_defense_and_unconscious_no_defense(tmp_path: Path) -> None:
     from test_gurps_melee import setup
 
-    from wayfarer.orchestration.gurps_melee import defense_value
+    from wayfarer.simulation.mechanics.gurps_melee import defense_value
 
     cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004")
     state = play._load(await play.store.read(cid))
     defender = state.encounters[0].participants[1]
-    ordinary, _ = defense_value(play, state, defender, "dodge")
+    ordinary, _ = defense_value(play.rules_context, state, defender, "dodge")
     assert ordinary is not None and ordinary.value == 9
     resources = apply_effect(
         state.resources,
@@ -61,7 +61,7 @@ async def test_fright_stun_defense_and_unconscious_no_defense(tmp_path: Path) ->
         rng=RecordedDice([]),
     )
     stunned = state.model_copy(update={"resources": resources})
-    value, _ = defense_value(play, stunned, defender, "dodge")
+    value, _ = defense_value(play.rules_context, stunned, defender, "dodge")
     assert value is not None and value.value == 5  # Fixture Dodge 9 - B420 stun 4.
     resources = apply_effect(
         resources,
@@ -82,8 +82,8 @@ async def test_fright_stun_defense_and_unconscious_no_defense(tmp_path: Path) ->
     )
     fainted = state.model_copy(update={"resources": resources})
     with pytest.raises(ValidationError, match="Fright condition"):
-        defense_value(play, fainted, defender, "dodge")
-    assert defense_value(play, fainted, defender, "none") == (None, None)
+        defense_value(play.rules_context, fainted, defender, "dodge")
+    assert defense_value(play.rules_context, fainted, defender, "none") == (None, None)
 
 
 async def test_panic_response_records_choice_without_forcing_player_behavior(

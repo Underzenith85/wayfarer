@@ -10,7 +10,6 @@ from test_gurps_ranged import load, scene
 
 from wayfarer.errors import ConflictError
 from wayfarer.orchestration.combat import CombatService, ResolveWeaponExplosion
-from wayfarer.orchestration.firearms import roll_malfunction
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.rules.checks import RecordedDice
@@ -19,6 +18,7 @@ from wayfarer.rules.firearm_types import FirearmSpec
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.simulation.explosions import blasts
 from wayfarer.simulation.gurps_equipment import Damage
+from wayfarer.simulation.mechanics.firearms import roll_malfunction
 
 
 @pytest.mark.parametrize(
@@ -66,7 +66,7 @@ async def test_exotic_table_branches(
     play.rng = RecordedDice(dice)
     attack = success_roll("gurps-basic-set-4e-2004", 15, rng=RecordedDice([4, 4, 4]))
     _, shots, rolled, failure = roll_malfunction(
-        play, mode, attack, cause_id="cause", shots=3, rapid_bonus=0
+        play.rules_context, mode, attack, cause_id="cause", shots=3, rapid_bonus=0
     )
     assert failure is not None and failure.kind == kind and shots == fired and sum(rolled) == table
     if action == "beam":
@@ -168,7 +168,7 @@ async def test_grenade_dud_and_delayed_fuse(
     from test_gurps_ranged import weapon
 
     from wayfarer.orchestration.combat import DeclareThrownLanding
-    from wayfarer.orchestration.weapon_flight import position
+    from wayfarer.simulation.mechanics.weapon_flight import position
 
     mode = weapon(thrown=True).model_copy(
         update={

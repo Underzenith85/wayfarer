@@ -10,7 +10,6 @@ from wayfarer.character.compiler import Purchase
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, Event
 from wayfarer.orchestration.access import CampaignAccess
-from wayfarer.orchestration.gurps_melee import build
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.rules.checks import RecordedDice
@@ -19,6 +18,7 @@ from wayfarer.rules.traits import TraitOptions
 from wayfarer.simulation.access import CampaignMember
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.fright import TimedFright, effects, public_id, save
+from wayfarer.simulation.mechanics.gurps_melee import build
 
 
 async def install(cid: str, play: PlayService, effect: FrightEffect) -> TimedFright:
@@ -59,7 +59,7 @@ def proposal(
         "actor_id": "a",
         "kind": "propose_fright_build",
         "expected_revision": state.revision,
-        "expected_build_revision": build(play, state, "a").revision,
+        "expected_build_revision": build(play.rules_context, state, "a").revision,
         "fright_id": public_id(item),
         "draft": state.actors[0]
         .proposal.draft.model_copy(update={"purchases": purchases})
@@ -83,7 +83,7 @@ async def test_permanent_loss_approval_is_exact_owner_scoped_and_restart_safe(
         ),
     )
     initial = play._load(await play.store.read(cid))
-    old = build(play, initial, "a")
+    old = build(play.rules_context, initial, "a")
     purchases = tuple(
         p.model_copy(update={"amount": 9}) if p.definition_id == "attribute:" + attribute else p
         for p in initial.actors[0].proposal.draft.purchases
@@ -92,7 +92,7 @@ async def test_permanent_loss_approval_is_exact_owner_scoped_and_restart_safe(
     access = CampaignAccess(play)
     result = await access.execute(cid, command, principal_id="alice")
     assert isinstance(result["fright"], tuple)
-    assert build(play, play._load(await play.store.read(cid)), "a") == old
+    assert build(play.rules_context, play._load(await play.store.read(cid)), "a") == old
     assert "secret-monster" not in str(result) and "private-occurrence" not in str(result)
     assert isinstance(result["fright"], tuple)
     projected = result["fright"][0]
@@ -125,7 +125,7 @@ async def test_permanent_loss_approval_is_exact_owner_scoped_and_restart_safe(
     access = CampaignAccess(restarted)
     result = await access.execute(cid, approval, principal_id="gm")
     final = restarted._load(await restarted.store.read(cid))
-    new = build(restarted, final, "a")
+    new = build(restarted.rules_context, final, "a")
     assert new.statistics is not None and getattr(new.statistics, attribute) == 9
     assert new.spent == old.spent - (10 if attribute == "ht" else 20)
     assert final.advancement == initial.advancement  # No spendable refund.
@@ -196,7 +196,8 @@ async def test_self_control_worsens_one_step_and_rejects_unrelated_purchases(
     ).trait
     assert trait is not None and trait.self_control == 12
     assert (
-        effects(final.resources)[0].adjudicated_build_revision == build(play, final, "a").revision
+        effects(final.resources)[0].adjudicated_build_revision
+        == build(play.rules_context, final, "a").revision
     )
 
 
@@ -244,6 +245,6 @@ async def test_new_trait_requires_exact_cost_then_approved_catalog_purchase(
     final = play._load(await play.store.read(cid))
     assert any(
         p.definition_id == definition.id and p.cost == points
-        for p in build(play, final, "a").purchases
+        for p in build(play.rules_context, final, "a").purchases
     )
     assert final.advancement == state.advancement

@@ -78,9 +78,30 @@ The `reduce_*` entry points return new state and a result without committing.
 Setup returns a separate campaign value because activation changes several
 campaign fields, including the nested scenario. Existing service entry points,
 receipts, checkpoint ordering, dice consumption and transport contracts stay the
-same. Contexts still use the existing `PlayService` rule adapters; replacing
-those handles with narrower rules dependencies belongs to #415. Seed recording
-and typed event streams remain the separate ADR 002 migration steps.
+same. Physical, spell and backfire contexts now contain `RulesContext`, whose
+explicit dependencies are RNG, resource engine, rule definitions, approved-build
+reviewer and combat engine. It has no transaction or storage handle. Seed
+recording and typed event streams remain the separate ADR 002 migration steps.
+
+### Basic Set mechanic boundary (#415)
+
+`simulation/mechanics/` owns the state-aware melee, ranged, unarmed, object,
+physical and spell adapters and their follow-up transitions. `rules/combat_tables.py`
+and `rules/unarmed_tables.py` own the shared numeric formulas, skill permissions
+and critical-miss rows. These modules import independently of orchestration and
+persistence; services supply a campaign-specific `RulesContext` at the boundary.
+
+Dice use `rules.checks.draw_dice`, with an explicit count for damage and a default
+of three for checks. Non-dice random selection uses `draw_index`; both preserve
+existing draw order and bounds. The architecture gate rejects `randbelow` calls
+under orchestration. Independent Basic Set fixtures cover the extracted tables,
+while existing mechanic fixtures retain their expected outcomes.
+
+Armor selection remains separate from effective injury DR: the former selects
+covering equipment (and the caller adds ability DR); the latter applies skull
+bone DR and the attack's divisor. Combining these stages would apply injury
+adjustments twice. Context-dependent critical misses retain their existing
+adjudication pauses; this refactor adds no new combat outcomes.
 
 ### Direction set by the open issues
 
@@ -103,9 +124,9 @@ should land on these seams rather than invent new ones.
   resolver for the same rules is a defect.
 - **Rule math belongs below orchestration (#94 catalog lane, #173, #176).**
   Tables and formulas with no state dependency go in `rules/`; transitions on
-  `PlayState` go in `simulation/`. `orchestration/gurps_melee.py`,
-  `gurps_ranged.py` and `unarmed.py` still carry Basic Set tables and raw dice;
-  move each with the issue that owns that mechanic, never as a drive-by.
+  `PlayState` go in `simulation/`. The shared combat adapters now live in
+  `simulation/mechanics/` and receive explicit domain dependencies. Extend the
+  existing mechanic reducers rather than adding rule math to a service.
 
 ## Package and dependency workflow
 

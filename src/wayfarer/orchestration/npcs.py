@@ -271,13 +271,13 @@ def social_occurrence(
     trigger: NPCSocialTrigger,
     occurrence_id: str,
 ) -> PlayState:
-    from wayfarer.orchestration.gurps_melee import build
     from wayfarer.orchestration.social import ResolvedInteraction, dispatch
     from wayfarer.rules.gurps_social import (
         InfluenceConditions,
         ReactionModifier,
         influence_procedure,
     )
+    from wayfarer.simulation.mechanics.gurps_melee import build
     from wayfarer.simulation.social import SocialCommand, SocialContext, SocialDisclosure
 
     profile_id = play.engine.reviewer.compiler.statistics_profile
@@ -288,7 +288,7 @@ def social_occurrence(
     if trigger.kind in ("fright", "self-control"):
         if not any(a.actor_id == trigger.subject_id for a in state.actors):
             raise ValidationError("Social trigger subject requires an approved build")
-        compiled = build(play, state, trigger.subject_id)
+        compiled = build(play.rules_context, state, trigger.subject_id)
         assert compiled.statistics is not None
         will, ht = compiled.statistics.will, compiled.statistics.ht
         target = will + trigger.modifier
@@ -314,7 +314,7 @@ def social_occurrence(
     elif trigger.kind == "influence":
         if not any(a.actor_id == actor_id for a in state.actors):
             raise ValidationError("Influence initiator requires an approved build")
-        compiled = build(play, state, actor_id)
+        compiled = build(play.rules_context, state, actor_id)
         value = next((v for v in compiled.sheet.values if v.target == trigger.skill_id), None)
         if value is None:
             raise ValidationError("Influence skill has no approved level")
@@ -325,7 +325,7 @@ def social_occurrence(
         )
         # A built subject's Will is authoritative; npc_will is only for unbuilt NPCs.
         if any(a.actor_id == trigger.subject_id for a in state.actors):
-            subject = build(play, state, trigger.subject_id)
+            subject = build(play.rules_context, state, trigger.subject_id)
             assert subject.statistics is not None
             will = subject.statistics.will
     elif trigger.kind == "skill":
@@ -336,7 +336,7 @@ def social_occurrence(
         procedure = require_procedure(profile_id, trigger.skill_id)
         if not any(a.actor_id == actor_id for a in state.actors):
             raise ValidationError("Social skill initiator requires an approved build")
-        compiled = build(play, state, actor_id)
+        compiled = build(play.rules_context, state, actor_id)
         value = next((v for v in compiled.sheet.values if v.target == procedure.id), None)
         if value is None:
             raise ValidationError("Social skill has no approved level")
@@ -352,7 +352,7 @@ def social_occurrence(
             # B198: the less fluent party decides, so the subject needs the skill too.
             if not any(a.actor_id == trigger.subject_id for a in state.actors):
                 raise ValidationError("A paired social skill needs both approved builds")
-            other = build(play, state, trigger.subject_id)
+            other = build(play.rules_context, state, trigger.subject_id)
             partner = next((v for v in other.sheet.values if v.target == procedure.id), None)
             if partner is None:
                 raise ValidationError("The other party has no approved level for this skill")
@@ -361,7 +361,7 @@ def social_occurrence(
         # NPCs. The trigger carries no modifier: the procedure derives its own.
         will = trigger.npc_will
         if any(a.actor_id == trigger.subject_id for a in state.actors):
-            resisting = build(play, state, trigger.subject_id)
+            resisting = build(play.rules_context, state, trigger.subject_id)
             assert resisting.statistics is not None
             will = resisting.statistics.will
     context.target, context.will, context.ht = target, will, ht

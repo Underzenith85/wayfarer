@@ -248,7 +248,7 @@ async def test_grappled_ready_free_hand_dx_and_replay(
 async def test_partial_release_frees_only_selected_hand(tmp_path: Path) -> None:
     from test_unarmed import wait
 
-    from wayfarer.orchestration.unarmed import free_hands
+    from wayfarer.simulation.mechanics.unarmed import free_hands
 
     cid, play = await setup(tmp_path)
     await action(cid, play, "a", "grapple", hands=("left-hand", "right-hand"), enter=True)

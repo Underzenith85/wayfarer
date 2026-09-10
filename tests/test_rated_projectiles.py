@@ -15,11 +15,11 @@ from test_gurps_ranged import load, scene, weapon
 
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import CombatService, TakeCombatTurn
-from wayfarer.orchestration.critical_limbs import CriticalLimbResult
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.simulation.gurps_equipment import Damage, EquipmentCatalog, RangedMode, RatedStrength
+from wayfarer.simulation.mechanics.critical_limbs import CriticalLimbResult
 
 
 def rated(kind: Literal["bow", "crossbow"] = "bow", st: int = 8) -> RangedMode:

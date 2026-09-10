@@ -9,13 +9,13 @@ from test_unarmed_integrations import arm_defender, checkpoint
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import ChooseDefense, CombatService, TakeUnarmedTurn
 from wayfarer.orchestration.play import PlayService
-from wayfarer.orchestration.unarmed import fighter, guard_control
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import CombatEngine
 from wayfarer.simulation.gurps_equipment import Damage, MeleeMode, Parry
 from wayfarer.simulation.maneuvers import ManeuverState
+from wayfarer.simulation.mechanics.unarmed import fighter, guard_control
 
 
 async def resolve(

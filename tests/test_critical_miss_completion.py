@@ -8,12 +8,12 @@ from test_gurps_melee import attack, choice, setup
 
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat import ChooseDefense, CombatService
-from wayfarer.orchestration.critical_limbs import CriticalLimbResult
 from wayfarer.orchestration.play import PlayService
-from wayfarer.orchestration.weapon_flight import FlightResult, resolve_flight
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.simulation.critical import CriticalMiss
+from wayfarer.simulation.mechanics.critical_limbs import CriticalLimbResult
+from wayfarer.simulation.mechanics.weapon_flight import FlightResult, resolve_flight
 
 
 async def restart(play: PlayService) -> PlayService:
@@ -149,6 +149,6 @@ async def test_flight_geometry_collision_and_restart(
     reloaded = restarted._load(await restarted.store.read(cid))
     assert reloaded.resources == state.resources
     # Direct consequence retry must not change an already recorded table.
-    assert resolve_flight(restarted, reloaded, pending, (4, 5, 5))[0] == reloaded
+    assert resolve_flight(restarted.rules_context, reloaded, pending, (4, 5, 5))[0] == reloaded
     with pytest.raises(ConflictError, match="cannot be replaced"):
-        resolve_flight(restarted, reloaded, pending, (5, 4, 5))
+        resolve_flight(restarted.rules_context, reloaded, pending, (5, 4, 5))

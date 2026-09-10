@@ -4,13 +4,14 @@ Basic Set B378-379, B398-400, B420-422, B552. Optional cumulative wounds,
 Injury Tolerance and nonhuman anatomy are intentionally not inferred.
 """
 
+from collections.abc import Iterable
 from decimal import Decimal
 
 from wayfarer.errors import ValidationError
 from wayfarer.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.rules.injury_types import InjuryStatus
 from wayfarer.rules.location_types import HitLocation, HumanLocation, InjuryTolerance
-from wayfarer.simulation.gurps_equipment import DamageType
+from wayfarer.simulation.gurps_equipment import Armor, DamageType
 
 FACTORS = {
     "cr": (1, 1),
@@ -209,3 +210,18 @@ def knockdown_penalty(location: HumanLocation, *, major: bool, male_groin: bool)
     if location in ("face", "vitals") or location == "groin" and male_groin:
         return -5
     return 0
+
+
+def armor_resistance(
+    armors: Iterable[Armor], location: HumanLocation, *, rigid_only: bool = False
+) -> int:
+    """B282/B400: select covering armor before injury applies bone DR and divisors."""
+    return max(
+        (
+            armor.dr
+            for armor in armors
+            if (location in armor.locations or part(location) + "s" in armor.locations)
+            and not (rigid_only and armor.flexible)
+        ),
+        default=0,
+    )

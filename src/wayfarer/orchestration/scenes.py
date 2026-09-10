@@ -111,7 +111,7 @@ class SceneService:
         destination = scene
         event_kind: Literal["entered", "exited", "discovered", "observed"] = "observed"
         if isinstance(command, TravelScene):
-            from wayfarer.orchestration.location_combat import disabled
+            from wayfarer.simulation.mechanics.location_combat import disabled
 
             if disabled(state, command.actor_id) & {
                 "left-leg",
