@@ -327,7 +327,11 @@ and keep naming #336.
 
 Every bound vehicle row also records `gurps.vehicles.movement`, which is still
 `partial`; #358 must verify it before live play may offer those rows. The
-capability registry, not a typed task, is what says so.
+capability registry, not a typed task, is what says so, and
+`technology.unsupported_scope` publishes the gap to the scenario, character and
+LLM validators as `unverified_activation_scope` rather than leaving live play to
+discover it. #358's per-mode audit says exactly what each mode still owes and to
+which of #392-#397; see [the vehicle operation audit](gurps-vehicles.md).
 
 These definitions are **not** yet carried by a package pin. Two things must be
 settled first, and `tests/test_technology_skills.py` pins both so neither is

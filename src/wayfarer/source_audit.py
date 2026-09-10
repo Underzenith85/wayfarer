@@ -21,6 +21,7 @@ from wayfarer.rules.profiles import (
     GURPS_MAGIC_PACKAGE,
 )
 from wayfarer.rules.supernatural import inventory as supernatural_inventory
+from wayfarer.rules.vehicle_coverage import validate_coverage
 from wayfarer.simulation.basic_equipment import BASIC_EQUIPMENT, ULTRATECH_INDEX, VEHICLE_INDEX
 from wayfarer.simulation.equipment_audit import rows as equipment_audit_rows
 
@@ -280,6 +281,9 @@ def validate(root: Path, manifest: Manifest) -> None:
     }
     if documented != expected:
         raise ValidationError("Documentation capability coverage drift")
+    # The two vehicle rows are derived from a per-mode audit rather than set by
+    # hand, so the release pipeline checks that derivation here (#358).
+    validate_coverage()
 
 
 def blockers(manifest: Manifest) -> tuple[str, ...]:

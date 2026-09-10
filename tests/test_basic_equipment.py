@@ -85,7 +85,7 @@ def test_container_units_and_unsupported_activation() -> None:
             entry.inventory_spec()
     assert [(v.hp, v.dr, v.price) for v in VEHICLE_INDEX] == [(35, 2, 680), (57, 5, 30000)]
     for vehicle in VEHICLE_INDEX:
-        with pytest.raises(ValidationError, match="#120"):
+        with pytest.raises(ValidationError, match="#358"):
             vehicle.require_operation()
 
 
