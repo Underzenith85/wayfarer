@@ -9,7 +9,13 @@ class WayfarerError(Exception):
 
 
 class ValidationError(WayfarerError):
+    """A rule was not satisfied; ``reference`` names the offending node when one is known."""
+
     code = "validation_error"
+
+    def __init__(self, message: str = "", *, reference: str | None = None) -> None:
+        super().__init__(message)
+        self.reference = reference
 
 
 class NotFoundError(WayfarerError):

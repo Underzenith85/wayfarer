@@ -264,6 +264,60 @@ def test_questions_hypotheticals_clarifications_and_abandoned_preview_spend_noth
     assert planned.status == "feasible" and state.resources.game_time == 0 and dice.calls == 0
 
 
+def test_check_rule_failures_name_the_offending_check() -> None:
+    """Engine invariants localise the fault so authors need not read the engine (#365)."""
+    base = engine()
+    package_id, package_version = base.reviewer.compiler.definition_packages["skill:observation"]
+
+    def check(check_id: str, target: str, definition_id: str) -> CheckRule:
+        return CheckRule(
+            id=check_id,
+            action="inspect",
+            target_id=target,
+            definition_id=definition_id,
+            package_id=package_id,
+            package_version=package_version,
+            reveal_fact_ids=("clue",),
+        )
+
+    with pytest.raises(ValidationError, match="check-vault requires an implemented catalog") as e:
+        ActionEngine(
+            base.reviewer,
+            base.resources,
+            ActionRules(id="a", version=1, checks=(check("check-vault", "chest", "attribute:dx"),)),
+        )
+    assert e.value.reference == "check-vault"
+    assert "attribute:dx is attribute, not a skill" in str(e.value)
+    with pytest.raises(ValidationError, match="check-a and check-b both inspect chest") as e:
+        ActionEngine(
+            base.reviewer,
+            base.resources,
+            ActionRules(
+                id="a",
+                version=1,
+                checks=(
+                    check("check-a", "chest", "skill:observation"),
+                    check("check-b", "chest", "skill:observation"),
+                ),
+            ),
+        )
+    assert e.value.reference == "check-b"
+    with pytest.raises(ValidationError, match="check-a is declared twice") as e:
+        ActionEngine(
+            base.reviewer,
+            base.resources,
+            ActionRules(
+                id="a",
+                version=1,
+                checks=(
+                    check("check-a", "chest", "skill:observation"),
+                    check("check-a", "b", "skill:observation"),
+                ),
+            ),
+        )
+    assert e.value.reference == "check-a"
+
+
 def test_movement_range_awareness_and_unsupported_combat() -> None:
     reducer, dice = engine(), Dice()
     state = seed(reducer)

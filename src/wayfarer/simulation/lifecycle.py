@@ -19,7 +19,15 @@ def validate_lifecycle(state: PlayState, rules: ActionRules) -> None:
     scenes = {s.id for s in rules.scenes.scenes} if rules.scenes else set()
     owners = {o.actor_id for o in state.resources.owners}
     if (rules.npcs or rules.recovery) and (not rules.party or not rules.scenes):
-        raise ValidationError("Lifecycle rules require shared-time party and scene rules")
+        configured = "npcs" if rules.npcs else "recovery"
+        missing = " and ".join(
+            name for name, value in (("party", rules.party), ("scenes", rules.scenes)) if not value
+        )
+        raise ValidationError(
+            f"Lifecycle rules require shared-time party and scene rules; {configured} rules are "
+            f"configured but {missing} rules are missing",
+            reference=configured,
+        )
     if rules.npcs:
         plans = {p.id: p for p in rules.npcs.plans}
         if len(plans) != len(rules.npcs.plans):

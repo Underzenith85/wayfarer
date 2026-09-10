@@ -99,37 +99,89 @@ def _validate_ability_rules(reviewer: PowerReviewer, abilities: AbilityRules) ->
         validate_binding(ability, 1, TraitOptions(modifiers=ability.modifiers))
 
 
+def _index_checks(checks: tuple[CheckRule, ...]) -> dict[tuple[str, str], CheckRule]:
+    """Each check id is unique and each (action, target) pair has exactly one check."""
+    by_key: dict[tuple[str, str], CheckRule] = {}
+    ids: set[str] = set()
+    for rule in checks:
+        if rule.id in ids:
+            raise ValidationError(
+                f"Ambiguous action check rules: {rule.id} is declared twice", reference=rule.id
+            )
+        key = (rule.action, rule.target_id)
+        if key in by_key:
+            raise ValidationError(
+                f"Ambiguous action check rules: {by_key[key].id} and {rule.id} both "
+                f"{rule.action} {rule.target_id}; one check per action and target",
+                reference=rule.id,
+            )
+        by_key[key] = rule
+        ids.add(rule.id)
+    return by_key
+
+
 def _validate_check_rules(
     reviewer: PowerReviewer, resources: ResourceEngine, rules: ActionRules
 ) -> None:
-    """Checks, consumables and ruling alternatives resolve to implemented, pinned rows."""
+    """Checks, consumables and ruling alternatives resolve to implemented, pinned rows.
+
+    Every failure names the offending check or alternative so authors and the
+    scenario studio can localise it without reading the engine (#365).
+    """
     definitions = reviewer.compiler.definitions
     for rule in rules.checks:
         definition = definitions.get(rule.definition_id)
-        if (
-            definition is None
-            or definition.kind is not DefinitionKind.SKILL
-            or definition.status is not ImplementationStatus.IMPLEMENTED
-        ):
-            raise ValidationError("Action check requires an implemented catalog skill")
+        if definition is None:
+            reason = f"{rule.definition_id} is not in the pinned catalog"
+        elif definition.kind is not DefinitionKind.SKILL:
+            reason = f"{rule.definition_id} is {definition.kind.value}, not a skill"
+        elif definition.status is not ImplementationStatus.IMPLEMENTED:
+            reason = f"{rule.definition_id} is {definition.status.value}"
+        else:
+            reason = None
+        if reason is not None:
+            raise ValidationError(
+                f"Action check {rule.id} requires an implemented catalog skill; {reason}",
+                reference=rule.id,
+            )
         if (rule.package_id, rule.package_version) != reviewer.compiler.definition_packages[
             rule.definition_id
         ]:
-            raise ValidationError("Check provenance is not pinned")
+            raise ValidationError(
+                f"Check provenance is not pinned for {rule.id}: {rule.definition_id} comes from "
+                f"{reviewer.compiler.definition_packages[rule.definition_id]}",
+                reference=rule.id,
+            )
         if rule.action == "social" and rule.definition_id != "skill:diplomacy":
-            raise ValidationError("Only diplomacy social checks are implemented")
+            raise ValidationError(
+                f"Only diplomacy social checks are implemented; {rule.id} uses "
+                f"{rule.definition_id}",
+                reference=rule.id,
+            )
         if rule.required_equipment is not None and rule.required_equipment not in resources.specs:
-            raise ValidationError("Unknown required equipment")
-    if any(key not in resources.specs for key in rules.consumables):
-        raise ValidationError("Unknown consumable definition")
+            raise ValidationError(
+                f"Unknown required equipment {rule.required_equipment} on check {rule.id}",
+                reference=rule.id,
+            )
+    for key in rules.consumables:
+        if key not in resources.specs:
+            raise ValidationError(f"Unknown consumable definition {key}", reference=key)
     if rules.adjudication is not None:
         by_id = {r.id: r for r in rules.checks}
         for alternative in rules.adjudication.alternatives:
             check = by_id.get(alternative.check_rule_id)
             if check is None or check.action != "social":
-                raise ValidationError("Ruling requires an existing social check")
+                raise ValidationError(
+                    f"Ruling requires an existing social check; alternative {alternative.id} "
+                    f"names {alternative.check_rule_id}",
+                    reference=alternative.id,
+                )
             if not -20 <= check.modifier + alternative.modifier <= 20:
-                raise ValidationError("Combined ruling modifier exceeds engine bounds")
+                raise ValidationError(
+                    f"Combined ruling modifier exceeds engine bounds for alternative "
+                    f"{alternative.id} on check {check.id}",
+                    reference=alternative.id,
+                )
 
 
 def _validate_gurps_equipment(
@@ -226,10 +278,24 @@ def _validate_world_references(rules: ActionRules, state: PlayState) -> None:
             raise ValidationError("Entity location must reference a location")
     facts = {f.id for f in state.world.facts}
     for rule in rules.checks:
-        if rule.target_id not in entities or not set(rule.reveal_fact_ids) <= facts:
-            raise ValidationError("Invalid scenario check references")
+        if rule.target_id not in entities:
+            raise ValidationError(
+                f"Invalid scenario check references: {rule.id} targets unknown entity "
+                f"{rule.target_id}",
+                reference=rule.id,
+            )
+        unknown = sorted(set(rule.reveal_fact_ids) - facts)
+        if unknown:
+            raise ValidationError(
+                f"Invalid scenario check references: {rule.id} reveals unknown facts "
+                f"{', '.join(unknown)}",
+                reference=rule.id,
+            )
         if rule.action == "social" and entities[rule.target_id].kind is not EntityKind.ACTOR:
-            raise ValidationError("Social target must be an actor")
+            raise ValidationError(
+                f"Social target must be an actor; {rule.id} targets {rule.target_id}",
+                reference=rule.id,
+            )
 
 
 class ActionEngine:
@@ -241,11 +307,7 @@ class ActionEngine:
         if reviewer.compiler.rules != resources.rules:
             raise ValidationError("Character and resource rules differ")
         self.reviewer, self.resources, self.rules = reviewer, resources, rules
-        self.checks = {(r.action, r.target_id): r for r in rules.checks}
-        if len(self.checks) != len(rules.checks) or len({r.id for r in rules.checks}) != len(
-            rules.checks
-        ):
-            raise ValidationError("Ambiguous action check rules")
+        self.checks = _index_checks(rules.checks)
         if rules.spells is not None:
             _validate_spell_rules(reviewer, rules.spells)
         if rules.abilities is not None:

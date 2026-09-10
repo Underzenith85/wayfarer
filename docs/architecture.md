@@ -58,6 +58,31 @@ Nouns and verbs are kept apart at three levels.
 Architecture tests enforce the single entity base, that importing the action
 entities never loads the engine, and that no other module assigns `play_json`.
 
+### Direction set by the open issues
+
+The open engine issues fix the next moves in the same direction, so refactors
+should land on these seams rather than invent new ones.
+
+- **Invariants name their node (#363, #365).** `ValidationError` carries a
+  `reference` to the offending check, alternative or rule family, and the
+  scenario studio reports that locus instead of the scenario id. New
+  `validate_*` functions must raise with a reference whenever one exists.
+- **One owner per spatial fact (#323, #324, #326, #329).** Combat state is
+  moving to a discriminated basic, square and hex spatial context. Until it
+  lands, keep square and hex vocabularies distinct (`Facing` versus
+  `HexFacing`), keep `RangedSituation` the only distance store, and do not add
+  battlefield or placement requirements to shared schemas.
+- **One engine, one transaction (#181, #290, #397).** Vehicle, object and
+  ranged follow-ups reuse `simulation.transport`, `simulation.combat` and the
+  injury and object reducers, and every commit still passes through
+  `PlayService.commit` under the existing campaign transaction. A second
+  resolver for the same rules is a defect.
+- **Rule math belongs below orchestration (#94 catalog lane, #173, #176).**
+  Tables and formulas with no state dependency go in `rules/`; transitions on
+  `PlayState` go in `simulation/`. `orchestration/gurps_melee.py`,
+  `gurps_ranged.py` and `unarmed.py` still carry Basic Set tables and raw dice;
+  move each with the issue that owns that mechanic, never as a drive-by.
+
 ## Package and dependency workflow
 
 `pyproject.toml` is authoritative; `uv.lock` is committed. Runtime dependencies remain empty. The development group contains locked mypy,
