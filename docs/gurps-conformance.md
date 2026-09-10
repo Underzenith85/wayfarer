@@ -473,7 +473,9 @@ without forcing player actions. Combat supports Do Nothing, no defense, and
 stunned active defenses at -4, while other fright conditions reject active
 defense. Full condition-specific retching/panic behavior and lasting trait/stat
 adjudication remain in #299, along with aftermath penalty integration and v2
-scenario authoring/transport adoption. #137 remains incomplete; coverage stays
+scenario authoring adoption. Campaign reads and event streams now present
+owner-scoped lasting choice requirements, and campaign dispatch accepts authorized
+care/panic decisions. Full #137 completion still depends on #299; coverage stays
 partial and these blockers remain visible for #122.
 `tests/test_fright_runtime.py` checks independent B360-361 examples (Campaigns,
 Fourth Edition, fourth printing) for FP loss, internal injury, automatic stun,
