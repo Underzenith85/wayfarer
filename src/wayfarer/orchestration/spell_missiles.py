@@ -54,10 +54,18 @@ def resolve(
     second, second_item = defense_value(
         play, state, defender, second_defense or "none", second_item_id
     )
+    from wayfarer.orchestration.object_combat import target_modifier
+
+    object_penalty = (
+        target_modifier(play, state, defender.actor_id, pending.target_item_id)
+        if pending.target_item_id
+        else 0
+    )
     attack = success_roll(
         PROFILE,
         int(value.value)
         + range_penalty(distance)
+        + object_penalty
         - (actor_hp.injury.shock if actor_hp.injury else 0),
         check_modifiers(state.resources, attacker.actor_id, "dx"),
         rng=play.rng,
@@ -101,10 +109,13 @@ def resolve(
         attacker = attacker.model_copy(update={"defense_penalty": -2})
         encounter = CombatEngine._replace(encounter, attacker)
         blocked = False
+    from wayfarer.orchestration.object_combat import intercepting_shield
+
+    shield_hit = intercepting_shield(play, state, encounter, second_roll or defended)
     maximum = row in (6, 15)
     dice = (
         tuple(play.rng.randbelow(6) + 1 for _ in range(effect.energy))
-        if hit and not blocked and not maximum
+        if (hit or shield_hit) and not blocked and not maximum
         else ()
     )
     damage = 6 * effect.energy if maximum else sum(dice)
@@ -112,6 +123,32 @@ def resolve(
     damage //= 2 if distance > 25 else 1
     dr = armor(play, state, defender.actor_id)
     lost = 0
+    if damage and (shield_hit or pending.target_item_id):
+        from wayfarer.orchestration.object_combat import damage_target, shield_damage
+        from wayfarer.simulation.gurps_equipment import Damage
+
+        missile = Damage(basis="fixed", dice=effect.energy, damage_type="burn")
+        if pending.target_item_id:
+            state, encounter, _ = damage_target(
+                play,
+                state,
+                encounter,
+                pending.target_item_id,
+                damage,
+                missile,
+                impact=0,
+            )
+            damage = 0
+        elif shield_hit:
+            state, encounter, damage = shield_damage(
+                play,
+                state,
+                encounter,
+                shield_hit,
+                damage,
+                missile,
+            )
+        resources = state.resources
     if damage:
         held = tuple(
             i.id

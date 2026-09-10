@@ -6,11 +6,12 @@ from typing import Literal
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.checks import CheckTrace, Outcome
-from wayfarer.rules.object_types import residual_definition
+from wayfarer.rules.object_types import ObjectResult, residual_definition
 from wayfarer.simulation.actions import PlayState
-from wayfarer.simulation.combat import Encounter
+from wayfarer.simulation.combat import Encounter, GridPoint
 from wayfarer.simulation.critical import Die, TableRoll
-from wayfarer.simulation.gurps_equipment import EquipmentProfile, MeleeMode
+from wayfarer.simulation.gurps_equipment import Damage, EquipmentProfile, MeleeMode, RangedMode
+from wayfarer.simulation.hex_geometry import Hex
 from wayfarer.simulation.objects import StressObject, apply_object
 from wayfarer.simulation.resources import Item, Record, ResourceEvent
 
@@ -218,6 +219,7 @@ def intercepting_shield(
     defense: CheckTrace | None,
     *,
     require_durable: bool = True,
+    rapid_fire: bool = False,
 ) -> str | None:
     """B484: the DB must change an ordinary failed defense into success."""
     from wayfarer.orchestration.gurps_melee import catalog
@@ -227,6 +229,8 @@ def intercepting_shield(
         return None
     pending = encounter.pending_defense
     assert pending is not None
+    if pending.target_item_id:
+        return None
     entries = {e.definition_id: e for e in catalog(play).entries}
     unavailable = disabled(state, pending.defender_id)
     shields = []
@@ -255,7 +259,8 @@ def intercepting_shield(
     bonus, item_id, durable = max(shields)
     return (
         item_id
-        if (durable or not require_durable) and defense.total > defense.effective_target - bonus
+        if (durable or not require_durable)
+        and (rapid_fire or defense.total > defense.effective_target - bonus)
         else None
     )
 
@@ -266,7 +271,9 @@ def shield_damage(
     encounter: Encounter,
     item_id: str,
     basic: int,
-    weapon: MeleeMode,
+    weapon: MeleeMode | RangedMode | Damage,
+    *,
+    impact: int = 0,
 ) -> tuple[PlayState, Encounter, int]:
     """Cover DR is computed from the pinned maximum HP before the blow, B408/B484."""
     from decimal import Decimal
@@ -278,25 +285,27 @@ def shield_damage(
     item = next(i for i in state.resources.items if i.id == item_id)
     profile = play.engine.resources.specs[item.definition_id].durability
     assert profile is not None
+    damage = weapon if isinstance(weapon, Damage) else weapon.damage
     resources, _ = apply_object(
         play.engine.resources,
         state.resources,
         DamageObject.model_validate(
             {
-                "id": "shield-hit:" + hashlib.sha256(pending.id.encode()).hexdigest(),
+                "id": "shield-hit:" + hashlib.sha256(f"{pending.id}:{impact}".encode()).hexdigest(),
                 "actor_id": pending.attacker_id,
                 "expected_revision": state.resources.revision,
                 "item_id": item_id,
                 "basic_damage": basic,
-                "damage_type": weapon.damage.damage_type,
-                "armor_divisor": weapon.damage.armor_divisor,
+                "damage_type": damage.damage_type,
+                "armor_divisor": damage.armor_divisor,
             }
         ),
         system=True,
+        shield=True,
         rng=play.rng,
     )
     state = state.model_copy(update={"resources": resources})
-    cover = int((Decimal(profile.dr) + Decimal(profile.hp) / 4) / weapon.damage.armor_divisor)
+    cover = int((Decimal(profile.dr) + Decimal(profile.hp) / 4) / damage.armor_divisor)
     return state, synchronize(state, encounter), max(0, basic - cover)
 
 
@@ -305,8 +314,8 @@ def target_modifier(play: PlayService, state: PlayState, actor_id: str, item_id:
     from wayfarer.orchestration.gurps_melee import catalog
 
     item = next((i for i in state.resources.items if i.id == item_id), None)
-    if item is None or item.owner_id != actor_id or not item.equipped or item.ground:
-        raise ValidationError("Object target must be carried and equipped by the defender")
+    if item is None or item.owner_id != actor_id or (not item.equipped and not item.ground):
+        raise ValidationError("Object target must be equipped or at a recorded ground position")
     entry = next(e for e in catalog(play).entries if e.definition_id == item.definition_id)
     if entry.durability is None or item.condition is None or item.condition.destroyed:
         raise ValidationError(
@@ -319,3 +328,211 @@ def target_modifier(play: PlayService, state: PlayState, actor_id: str, item_id:
     if entry.durability.size_modifier is None:
         raise ValidationError("Object target requires a pinned size modifier")
     return entry.durability.size_modifier
+
+
+def damage_target(
+    play: PlayService,
+    state: PlayState,
+    encounter: Encounter,
+    item_id: str,
+    basic: int,
+    damage: Damage,
+    *,
+    impact: int,
+) -> tuple[PlayState, Encounter, ObjectResult | None]:
+    """One authoritative object receipt per projectile; destroyed targets absorb no more rolls."""
+    from wayfarer.simulation.objects import DamageObject
+
+    pending = encounter.pending_defense
+    assert pending is not None
+    item = next(i for i in state.resources.items if i.id == item_id)
+    if item.condition and item.condition.destroyed:
+        return state, encounter, None
+    resources, result = apply_object(
+        play.engine.resources,
+        state.resources,
+        DamageObject.model_validate(
+            {
+                "id": "target-object:"
+                + hashlib.sha256(f"{pending.id}:{impact}".encode()).hexdigest(),
+                "actor_id": pending.attacker_id,
+                "expected_revision": state.resources.revision,
+                "item_id": item_id,
+                "basic_damage": basic,
+                "damage_type": damage.damage_type,
+                "armor_divisor": damage.armor_divisor,
+            }
+        ),
+        system=True,
+        rng=play.rng,
+    )
+    state = state.model_copy(update={"resources": resources})
+    return state, synchronize(state, encounter), result
+
+
+def weapon_target(play: PlayService, state: PlayState, item_id: str | None) -> bool:
+    """B401 restricts defenses for weapon targets, including ranged weapons."""
+    if item_id is None:
+        return False
+    from wayfarer.orchestration.gurps_melee import catalog
+
+    item = next(i for i in state.resources.items if i.id == item_id)
+    return any(e.definition_id == item.definition_id and e.modes for e in catalog(play).entries)
+
+
+def defense_stress(
+    play: PlayService,
+    state: PlayState,
+    encounter: Encounter,
+    actor_id: str,
+    command_id: str,
+    item_id: str | None,
+) -> tuple[PlayState, Encounter]:
+    """Stress the selected implement and shields that contribute defense bonus."""
+    from wayfarer.orchestration.gurps_melee import catalog
+
+    entries = {e.definition_id: e for e in catalog(play).entries}
+    pending = encounter.pending_defense
+    targeted_weapon = weapon_target(play, state, pending.target_item_id if pending else None)
+    items = tuple(
+        i.id
+        for i in state.resources.items
+        if i.owner_id == actor_id
+        and i.equipped
+        and i.ready
+        and (i.id == item_id or (not targeted_weapon and entries[i.definition_id].shield))
+    )
+    return stress(play, state, encounter, actor_id, command_id, items)
+
+
+def intercepted_projectiles(
+    play: PlayService,
+    state: PlayState,
+    encounter: Encounter,
+    defense: CheckTrace | None,
+    selected: str | None,
+    hits: int,
+) -> tuple[str | None, int]:
+    """B373/B484: only projectiles avoided because of DB strike the shield."""
+    shield = intercepting_shield(play, state, encounter, defense, rapid_fire=selected == "dodge")
+    if shield is None or defense is None:
+        return None, 0
+    if selected != "dodge":
+        return shield, 1
+    from wayfarer.orchestration.gurps_melee import defense_value
+
+    pending = encounter.pending_defense
+    assert pending is not None
+    defender = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
+    without = state.model_copy(
+        update={
+            "resources": state.resources.model_copy(
+                update={
+                    "items": tuple(
+                        i.model_copy(update={"ready": False}) if i.id == shield else i
+                        for i in state.resources.items
+                    )
+                }
+            )
+        }
+    )
+    value, _ = defense_value(play, without, defender, "dodge")
+    assert value is not None
+    avoided = min(hits, max(0, 1 + defense.effective_target - defense.total))
+    without_avoided = min(hits, max(0, 1 + int(value.value) - defense.total))
+    count = avoided - without_avoided
+    return (shield if count else None), count
+
+
+def target_positions(
+    play: PlayService,
+    state: PlayState,
+    encounter: Encounter,
+    item_id: str,
+) -> tuple[GridPoint | Hex, ...]:
+    """B400–401: held weapon length occupies forward hexes; ground items keep their landing."""
+    from wayfarer.simulation.combat import GridPoint
+    from wayfarer.simulation.hex_geometry import DIRECTIONS, Hex
+
+    item = next(i for i in state.resources.items if i.id == item_id)
+    owner = next(p for p in encounter.participants if p.actor_id == item.owner_id)
+    if item.ground:
+        if item.ground.encounter_id != encounter.id:
+            raise ValidationError("Ground target belongs to another encounter")
+        try:
+            return (
+                Hex(q=item.ground.x, r=item.ground.y)
+                if item.ground.geometry == "hex"
+                else GridPoint(x=item.ground.x, y=item.ground.y),
+            )
+        except ValueError as exc:
+            raise ValidationError("Ground target is outside the combat board") from exc
+    entry = effective_entry(play, item) if item.ready else None
+    reach = (
+        max((max(m.reach) for m in entry.modes if isinstance(m, MeleeMode)), default=0)
+        if entry
+        else 0
+    )
+    if not isinstance(owner.position, Hex) or reach == 0:
+        return (owner.position,)
+    assert owner.hex_facing is not None
+    dq, dr = DIRECTIONS[owner.hex_facing]
+    lengths = (0, 1) if reach == 1 else tuple(range(1, reach + 1))
+    return tuple(Hex(q=owner.position.q + dq * n, r=owner.position.r + dr * n) for n in lengths)
+
+
+def target_geometry(
+    play: PlayService,
+    state: PlayState,
+    encounter: Encounter,
+    item_id: str,
+    reach: frozenset[int] | None = None,
+) -> Encounter:
+    """Use a reachable visible part of the item for geometry, never move its owner."""
+    from wayfarer.simulation.combat import CombatEngine, GridPoint
+    from wayfarer.simulation.hex_geometry import Hex
+    from wayfarer.simulation.tactical import attack_geometry
+
+    pending = encounter.pending_defense
+    assert pending is not None
+    actor = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
+    owner = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
+    for position in sorted(
+        target_positions(play, state, encounter, item_id),
+        key=lambda point: CombatEngine.distance(actor.position, point),
+    ):
+        assert isinstance(position, (GridPoint, Hex))
+        target = owner.model_copy(update={"position": position})
+        try:
+            attack_geometry(encounter, actor, target, reach)
+            if reach is not None and CombatEngine.distance(actor.position, position) not in reach:
+                continue
+            return CombatEngine._replace(encounter, target)
+        except ValidationError, ValueError:
+            continue
+    raise ValidationError("Object target has no reachable visible occupied position")
+
+
+def worn_stress(
+    play: PlayService,
+    state: PlayState,
+    encounter: Encounter,
+    actor_id: str,
+    command_id: str,
+) -> tuple[PlayState, Encounter]:
+    """Worn protection is in use even while its wearer does not attack."""
+    from wayfarer.orchestration.gurps_melee import catalog
+
+    armor = {e.definition_id for e in catalog(play).entries if e.armor is not None}
+    return stress(
+        play,
+        state,
+        encounter,
+        actor_id,
+        command_id,
+        tuple(
+            i.id
+            for i in state.resources.items
+            if i.owner_id == actor_id and i.equipped and i.definition_id in armor
+        ),
+    )

@@ -21,7 +21,7 @@ async function join(page: Page, cid: string, principal: string) {
   ).toBeVisible();
 }
 async function npcWait(request: APIRequestContext, cid: string) {
-  const url = `/api/tactical/v1/campaigns/${cid}`;
+  const url = `/api/tactical/v2/campaigns/${cid}`;
   const headers = { Authorization: "Bearer charlie-token" };
   await expect
     .poll(async () => {
@@ -96,7 +96,7 @@ test("real API: melee, retreat, ranged attack, movement and lost-response recove
     await npcWait(request, cid);
     let dropped = false;
     await alice.route(
-      "**/api/tactical/v1/campaigns/*/commands",
+      "**/api/tactical/v2/campaigns/*/commands",
       async (route) => {
         if (!dropped) {
           dropped = true;

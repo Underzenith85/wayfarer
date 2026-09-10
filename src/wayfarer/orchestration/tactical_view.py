@@ -385,11 +385,18 @@ def choices(
         rules = engine.rules.gurps_equipment
         assert rules is not None
         entries = {e.definition_id: e for e in rules.entries}
+        from wayfarer.orchestration.object_combat import effective_entry
+        from wayfarer.rules.object_types import residual_definition
+
         weapons = [
             (item, mode)
             for item in state.resources.items
             if item.owner_id == actor_id
-            for mode in entries[item.definition_id].modes
+            if item.firearm_failure is None or item.firearm_failure.kind != "destroyed"
+            if item.condition is None
+            or not item.condition.disabled
+            or residual_definition(entries[item.definition_id].durability, item.condition)
+            for mode in effective_entry(play, item).modes
         ]
         for item, mode in weapons:
             item_name = play.engine.reviewer.compiler.definitions[item.definition_id].name
@@ -459,23 +466,23 @@ def choices(
                             },
                         )
                     )
-                if isinstance(mode, MeleeMode):
-                    for target_item in state.resources.items:
-                        if (
-                            target_item.owner_id == target_id
-                            and target_item.equipped
-                            and target_item.condition
-                        ):
-                            candidates.append(
-                                (
-                                    f"Strike {target_name}'s {target_item.definition_id}",
-                                    {
-                                        **attack_fields,
-                                        "maneuver": "attack",
-                                        "target_item_id": target_item.id,
-                                    },
-                                )
+                for target_item in state.resources.items:
+                    if (
+                        target_item.owner_id == target_id
+                        and (target_item.equipped or target_item.ground)
+                        and target_item.condition
+                    ):
+                        candidates.append(
+                            (
+                                f"Strike {target_name}'s {target_item.definition_id}",
+                                {
+                                    **attack_fields,
+                                    "maneuver": "attack",
+                                    "target_item_id": target_item.id,
+                                },
                             )
+                        )
+                if isinstance(mode, MeleeMode):
                     candidates.append(
                         (
                             f"Wait for {target_name} to attack — {mode.id}",
@@ -691,7 +698,12 @@ def adjacent(position: Hex) -> tuple[tuple[int, Hex], ...]:
 
 
 def project(
-    play: PlayService, state: PlayState, member: CampaignMember, actor_id: str
+    play: PlayService,
+    state: PlayState,
+    member: CampaignMember,
+    actor_id: str,
+    *,
+    include_object_choices: bool = False,
 ) -> TacticalSnapshot:
     views: list[TacticalEncounter] = []
     entities = {e.id: e for e in state.world.entities}
@@ -746,7 +758,12 @@ def project(
                     for g in encounter.grips
                     if g.holder_id in visible and g.target_id in visible
                 ),
-                choices=choices(play, state, encounter, actor_id, visible)
+                choices=tuple(
+                    c
+                    for c in choices(play, state, encounter, actor_id, visible)
+                    if include_object_choices
+                    or not (isinstance(c.command, TakeCombatTurn) and c.command.target_item_id)
+                )
                 if state.lifecycle == "active"
                 else (),
                 notice="This encounter requires resolution of an unsupported rule."
