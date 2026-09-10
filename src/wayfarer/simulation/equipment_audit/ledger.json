@@ -625,13 +625,15 @@
     },
     {
       "id": "malfunction",
-      "reference": "B264-289",
-      "anchor": "range-only",
-      "behaviour": "A firearm malfunction number turns a high attack roll into a weapon failure.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "reference": "Campaigns fourth printing B382/B407",
+      "anchor": "inspected",
+      "behaviour": "Opt-in conventional TL5+ repeating firearms and revolvers: malfunction precedence, misfire/stoppage/mechanical state, diagnosis, clearing and repair. Low-TL explosions, beam weapons, grenades and explosive ammunition remain outside this protocol.",
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.ranged_attack",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_firearm_malfunctions.py::test_malfunction_precedes_critical_miss_and_retries_once"
+      ],
       "evidence_gap": null
     },
     {
@@ -1627,6 +1629,84 @@
       "evidence": null,
       "tests": [
         "tests/test_rated_projectiles.py::test_bow_uses_weapon_st_for_damage_and_range"
+      ],
+      "gap": null
+    },
+    {
+      "id": "RangedMode.firearm",
+      "unit": "optional conventional firearm protocol",
+      "reference": "Campaigns fourth printing B382/B407; baseline reconciliation remains #191",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_firearm_malfunctions.py::test_firearm_metadata_is_opt_in_and_bounded"
+      ],
+      "gap": null
+    },
+    {
+      "id": "FirearmSpec.technology_level",
+      "unit": "technology level",
+      "reference": "Campaigns fourth printing B382/B407; baseline reconciliation remains #191",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_firearm_malfunctions.py::test_source_malfunction_numbers"
+      ],
+      "gap": null
+    },
+    {
+      "id": "FirearmSpec.action",
+      "unit": "repeating or revolver mechanism",
+      "reference": "Campaigns fourth printing B382/B407; baseline reconciliation remains #191",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_firearm_malfunctions.py::test_revolver_advances_past_misfire_on_next_attack"
+      ],
+      "gap": null
+    },
+    {
+      "id": "FirearmSpec.quality",
+      "unit": "weapon quality category",
+      "reference": "Campaigns fourth printing B382/B407; baseline reconciliation remains #191",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_firearm_malfunctions.py::test_source_malfunction_numbers"
+      ],
+      "gap": null
+    },
+    {
+      "id": "FirearmSpec.malfunction_override",
+      "unit": "optional unmodified 3d threshold",
+      "reference": "Campaigns fourth printing B382/B407; baseline reconciliation remains #191",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_firearm_malfunctions.py::test_stoppage_fires_only_one_without_rapid_fire_bonus"
+      ],
+      "gap": null
+    },
+    {
+      "id": "FirearmSpec.armoury_skill_id",
+      "unit": "pinned Armoury skill identifier",
+      "reference": "Campaigns fourth printing B382/B407; baseline reconciliation remains #191",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_firearm_malfunctions.py::test_hourly_repair_success_failure_and_destruction"
       ],
       "gap": null
     }

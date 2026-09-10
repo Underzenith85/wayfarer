@@ -354,6 +354,11 @@ class ActionEngine:
             raise ValidationError("Play configuration changed; explicit migration required")
         if state.revision != state.resources.revision:
             raise ValidationError("Play and resource revisions diverged")
+        from wayfarer.simulation.firearms import validate_failures
+
+        validate_failures(
+            state.resources, self.rules.combat.gurps_equipment if self.rules.combat else None
+        )
         if self.rules.spells:
             entities = {e.id: e for e in state.world.entities}
             spell_actor_ids = {a.actor_id for a in state.actors}
