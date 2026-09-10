@@ -237,18 +237,32 @@ def apply_recovery(
         context.profile_id != "gurps-basic-set-4e-2004" or not hp.injury.mortal_wound
     ):
         raise ValidationError("This procedure requires a Basic Set mortal wound")
+    drowning = next(
+        (
+            h
+            for h in state.hazards
+            if h.actor_id == target
+            and h.active
+            and h.spec.kind == "drowning"
+            and h.stage == "rescued"
+        ),
+        None,
+    )
     if kind == "resuscitate":
         if (
             context.profile_id != "gurps-basic-set-4e-2004"
             or fp is None
             or fp.fatigue is None
-            or not fp.fatigue.heart_attack
-            or fp.fatigue.heart_attack_deadline is None
-            or state.game_time >= fp.fatigue.heart_attack_deadline
-        ):
-            raise ValidationError(
-                "Resuscitation requires a living heart-attack patient before deadline"
+            or (
+                drowning is None
+                and (
+                    not fp.fatigue.heart_attack
+                    or fp.fatigue.heart_attack_deadline is None
+                    or state.game_time >= fp.fatigue.heart_attack_deadline
+                )
             )
+        ):
+            raise ValidationError("Resuscitation requires a living rescued or heart-attack patient")
     elif (
         fp is not None
         and fp.fatigue is not None
@@ -317,12 +331,16 @@ def apply_recovery(
         bandaged = 0
         modifier = context.treatment_modifier
         if command.kind == "resuscitate":
-            if context.technology_level < 7 or command.actor_id == target:
+            if (context.technology_level < 7 and drowning is None) or command.actor_id == target:
                 raise ValidationError("Heart-attack resuscitation requires another TL7+ caregiver")
             assert fp is not None and fp.fatigue is not None
-            assert fp.fatigue.heart_attack_deadline is not None
+            deadline = (
+                drowning.no_air_since + 240
+                if drowning is not None and drowning.no_air_since is not None
+                else fp.fatigue.heart_attack_deadline
+            )
             duration = 60
-            if state.game_time + duration >= fp.fatigue.heart_attack_deadline:
+            if deadline is not None and state.game_time + duration >= deadline:
                 raise ValidationError("Resuscitation cannot finish before the fatal deadline")
         elif command.kind == "stabilize":
             if (
@@ -539,7 +557,17 @@ def apply_recovery(
                     }
                 )
                 resuscitated = True
-                hp = hp.model_copy(update={"current": min(0, hp.current)})
+                if drowning is None:
+                    hp = hp.model_copy(update={"current": min(0, hp.current)})
+                else:
+                    state = state.model_copy(
+                        update={
+                            "hazards": tuple(
+                                h.model_copy(update={"active": False}) if h.id == drowning.id else h
+                                for h in state.hazards
+                            )
+                        }
+                    )
         elif task.kind == "stabilize":
             assert hp.injury is not None
             if hp.injury.mortal_wound_due is None or state.game_time >= hp.injury.mortal_wound_due:

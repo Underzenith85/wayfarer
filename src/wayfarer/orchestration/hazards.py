@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from decimal import Decimal
 
 from wayfarer.character.statistics import encumbrance
@@ -23,6 +23,13 @@ class HazardContext:
     spec: HazardSpec
     resistance: int = 0
     safe: bool = False
+    temperature_f: int | None = None
+    comfort_center_f: int = 62
+    cold_extension_f: int = 0
+    wind_mph: int = 0
+    clothing: str = "winter"
+    wet: bool = False
+    contacts: tuple[str, ...] = ()
 
 
 HazardResolver = Callable[[PlayService, PlayState, str, str], HazardContext]
@@ -76,6 +83,71 @@ class HazardService:
                     build = _build(play, before, command.actor_id)
                     ht = _value(build, "attribute:ht")
                     swimming = ht
+                    survival = None
+                    bonus = 0
+                    if context.contacts:
+                        from wayfarer.rules.physical import contagion_modifier
+
+                        if context.spec.kind != "disease":
+                            raise ValidationError("Contact modifiers require a disease")
+                        bonus = contagion_modifier(context.contacts)
+                    if context.temperature_f is not None:
+                        from wayfarer.character.physical_traits import physical_traits
+                        from wayfarer.rules.environment import ambient_spec
+
+                        levels = physical_traits(
+                            build, play.engine.reviewer.compiler.definitions
+                        ).temperature_tolerance
+                        context = replace(
+                            context,
+                            spec=ambient_spec(
+                                context.spec,
+                                temperature=context.temperature_f,
+                                ht=ht,
+                                tolerance=levels,
+                                cold_extension=context.cold_extension_f,
+                                center=context.comfort_center_f,
+                                wind=context.wind_mph,
+                                clothing=context.clothing,
+                                wet=context.wet,
+                            ),
+                        )
+                        assert build.statistics is not None
+                        key = "skill:survival-" + (
+                            "arctic" if context.spec.kind == "cold" else "desert"
+                        )
+                        land = {
+                            "arctic",
+                            "desert",
+                            "island-beach",
+                            "jungle",
+                            "mountain",
+                            "plains",
+                            "swampland",
+                            "woodlands",
+                        }
+                        candidates = [
+                            int(v.value) - (0 if v.target == key else 3)
+                            for v in build.sheet.values
+                            if v.target.removeprefix("skill:survival-") in land
+                            and v.target.startswith("skill:survival-")
+                        ]
+                        if candidates:
+                            survival = max(1, max(candidates) - build.statistics.per + ht)
+                        if context.spec.kind == "heat":
+                            load = encumbrance(
+                                context.spec.profile_id,
+                                build.statistics.basic_lift,
+                                Decimal(
+                                    play.engine.resources.carried_weight(
+                                        before.resources, command.actor_id
+                                    )
+                                )
+                                / 1000,
+                            )
+                            if load is None:
+                                raise ValidationError("Unsupported heat encumbrance")
+                            bonus -= int(load)
                     if context.spec.kind == "drowning":
                         assert build.statistics is not None
                         if before.resources.items and (
@@ -114,16 +186,31 @@ class HazardService:
                         actor_id=command.actor_id,
                         spec=context.spec,
                         started=before.resources.game_time,
-                        due=before.resources.game_time + context.spec.delay,
+                        due=before.resources.game_time
+                        + (86400 if context.contacts else context.spec.delay),
                         remaining=context.spec.cycles,
                         ht=ht,
                         will=_value(build, "secondary:will"),
                         swimming=swimming,
                         resistance=context.resistance,
+                        resistance_bonus=bonus,
+                        survival=survival,
+                        full_hp=build.statistics.hp if build.statistics else ht,
+                        stage="exposure"
+                        if context.spec.kind == "disease" and context.contacts
+                        else "cycles",
                         no_air_since=before.resources.game_time
                         if context.spec.kind == "suffocation"
                         else None,
                     )
+            if command.kind == "enter" and schedule is not None and schedule.spec.kind == "disease":
+                if schedule.spec.variant is not None and any(
+                    h.immune
+                    and h.actor_id == command.actor_id
+                    and h.spec.variant == schedule.spec.variant
+                    for h in before.resources.hazards
+                ):
+                    schedule = schedule.model_copy(update={"active": False, "immune": True})
             if schedule is None:
                 raise ValidationError("Unknown exposure")
             resources, result = apply_hazard(

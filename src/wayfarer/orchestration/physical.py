@@ -23,10 +23,10 @@ from wayfarer.rules.location_types import disabled_locations
 from wayfarer.rules.physical import (
     climbing,
     falling_damage,
+    falling_injury,
     hiking_miles,
     jump_distance,
     lift_limit,
-    swimming_yards,
 )
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.condition_checks import check_modifiers
@@ -61,6 +61,16 @@ class PhysicalRoute:
     terrain: str = "average"
     bad_weather: bool = False
     hard: bool = True
+    exit_id: str | None = None
+    gravity: Decimal = Decimal(1)
+    pressure: Decimal = Decimal(1)
+    terminal_velocity: int = 60
+    controlled: bool = False
+    slow_swimming: bool = False
+    intentional: bool = True
+    rope_length: Decimal | None = None
+    hiking_day_seconds: int = 28800
+    group_hike: bool = False
 
 
 class PhysicalResult(Record):
@@ -70,6 +80,11 @@ class PhysicalResult(Record):
     checks: tuple[CheckTrace, ...] = ()
     injury: int = 0
     fp_lost: int = 0
+    progress: str = "0"
+    completed: bool = False
+    elapsed: int = 0
+    route_id: str = ""
+    route_binding: str = ""
 
 
 RouteResolver = Callable[[PlayService, PlayState, str, str], PhysicalRoute]
@@ -94,8 +109,13 @@ class PhysicalService:
         )
 
         def resolve(campaign: Campaign) -> Event:
-            before = play._load(campaign)
+            from wayfarer.simulation.party import migrate
+
+            before = migrate(play._load(campaign))
             synchronous(before, command.actor_id)
+            from wayfarer.orchestration.recovery import guard
+
+            guard(before, command.actor_id, command.kind)
             actor = next(a for a in before.actors if a.actor_id == command.actor_id)
             if actor.available_at > before.resources.game_time or any(
                 e.status == "active" and actor.actor_id in e.turn_order for e in before.encounters
@@ -113,9 +133,20 @@ class PhysicalService:
             ):
                 raise ValidationError("Physical route is not at the actor's location")
             if route.destination_id is not None:
-                raise ValidationError(
-                    "Cross-scene physical routes require the scene travel integration"
-                )
+                rules = play.engine.rules.scenes
+                if (
+                    rules is None
+                    or route.exit_id is None
+                    or not any(
+                        scene.location_id == route.scene_id
+                        and any(
+                            e.id == route.exit_id and e.destination_id == route.destination_id
+                            for e in scene.exits
+                        )
+                        for scene in rules.scenes
+                    )
+                ):
+                    raise ValidationError("Travel requires a bound authored scene exit")
             if (
                 not route.distance.is_finite()
                 or route.distance < 0
@@ -135,17 +166,29 @@ class PhysicalService:
             equipment = (
                 play.engine.rules.combat.gurps_equipment if play.engine.rules.combat else None
             )
-            worn_armor = equipment is not None and any(
-                item.owner_id == actor.actor_id
-                and item.equipped
-                and any(
-                    entry.definition_id == item.definition_id and entry.armor is not None
-                    for entry in equipment.entries
-                )
-                for item in before.resources.items
+            armor_dr = max(
+                (
+                    entry.armor.dr
+                    for item in before.resources.items
+                    if item.owner_id == actor.actor_id
+                    and item.equipped
+                    and (item.condition is None or not item.condition.disabled)
+                    for entry in (equipment.entries if equipment else ())
+                    if entry.definition_id == item.definition_id
+                    and entry.armor is not None
+                    and "torso" in entry.armor.locations
+                ),
+                default=0,
             )
-            if worn_armor and command.kind in ("climb", "fall"):
-                raise ValidationError("Armored falls require the blunt-trauma integration")
+            from wayfarer.simulation.abilities import damage_resistance
+
+            innate_dr = (
+                damage_resistance(
+                    before.resources, actor.actor_id, build_revision=compiled.revision
+                )
+                if play.engine.rules.abilities is not None
+                else 0
+            )
             load = encumbrance(
                 stats.profile_id,
                 stats.basic_lift,
@@ -211,6 +254,34 @@ class PhysicalService:
                 checks.append(check)
                 return check.outcome.succeeded
 
+            from dataclasses import asdict
+
+            binding = json.dumps(asdict(route), sort_keys=True, default=str)
+            previous = next(
+                (
+                    PhysicalResult.model_validate_json(e.kind)
+                    for e in reversed(state.resources.events)
+                    if e.id.startswith("feat:")
+                    and e.target_id == actor.actor_id
+                    and json.loads(e.kind).get("route_id") == route.id
+                ),
+                None,
+            )
+            if previous is not None and previous.route_binding != binding:
+                raise ValidationError("In-progress route geometry changed")
+            if previous is not None and previous.completed:
+                raise ValidationError("Route already completed; author a new journey ID")
+            progress = Decimal(previous.progress) if previous else Decimal(0)
+            elapsed = previous.elapsed if previous else 0
+            if route.rope_length is not None and (
+                not route.rope_length.is_finite() or route.rope_length < 0
+            ):
+                raise ValidationError("Invalid safety rope")
+            if not 3600 <= route.hiking_day_seconds <= 86400:
+                raise ValidationError("Invalid authored hiking day")
+            group_costs: tuple[tuple[str, int, int], ...] = ()
+            if route.group_hike and command.kind != "hike":
+                raise ValidationError("Group pacing is only supported for hiking")
             if allowed:
                 move = fatigue_value(
                     fp,
@@ -219,13 +290,10 @@ class PhysicalService:
                     ),
                 )
                 if command.kind == "climb":
-                    if route.distance != int(route.distance) or not 0 < route.distance <= 300:
-                        raise ValidationError(
-                            "Climbs require whole feet and at most five minutes between rolls"
-                        )
-                    modifier, seconds = climbing(route.surface, int(route.distance))
-                    if seconds > 300:
-                        raise ValidationError("Split long climbs at five-minute checks")
+                    if route.distance != int(route.distance) or route.distance <= 0:
+                        raise ValidationError("Climbs require positive whole feet")
+                    modifier, total_seconds = climbing(route.surface, int(route.distance))
+                    seconds = min(300, total_seconds - elapsed)
                     succeeded = roll(
                         skill("climbing", stats.dx - 5)
                         + modifier
@@ -233,9 +301,28 @@ class PhysicalService:
                         - (hp.injury.shock if hp.injury else 0)
                     )
                     capacity = route.distance
-                    if not succeeded:
-                        dice, adds = falling_damage(stats.hp, route.distance / 3)
+                    if succeeded:
+                        progress = min(
+                            route.distance, route.distance * (elapsed + seconds) / total_seconds
+                        )
+                    else:
+                        # The check occurs before this interval, at the reached height.
+                        fall_feet = progress
+                        if route.rope_length is not None and checks[-1].outcome.succeeded is False:
+                            from wayfarer.rules.checks import Outcome
+
+                            if checks[-1].outcome is not Outcome.CRITICAL_FAILURE:
+                                fall_feet = min(fall_feet, route.rope_length)
+                        dice, adds = falling_damage(
+                            stats.hp,
+                            fall_feet / 3,
+                            gravity=route.gravity,
+                            pressure=route.pressure,
+                            terminal_velocity=route.terminal_velocity,
+                        )
                         damage = max(0, sum(play.rng.randbelow(6) + 1 for _ in range(dice)) + adds)
+                        seconds = 1
+                        progress, elapsed = Decimal(0), 0
                 elif command.kind == "jump":
                     capacity = jump_distance(
                         stats.basic_move,
@@ -259,38 +346,123 @@ class PhysicalService:
                     )
                     succeeded = route.pounds <= capacity
                 elif command.kind == "hike":
-                    if route.seconds != 3600:
-                        raise ValidationError("Hiking resolves hourly fatigue intervals")
-                    succeeded = roll(skill("hiking", stats.ht - 5))
+                    if route.seconds not in (3600, 86400):
+                        raise ValidationError(
+                            "Hiking resolves hourly exertion or a full travel day"
+                        )
+                    day = state.resources.game_time // 86400
+                    daily_id = f"hiking-day:{actor.actor_id}:{day}"
+                    daily = next((e for e in state.resources.events if e.id == daily_id), None)
+                    if route.group_hike:
+                        succeeded = False
+                    elif daily is None:
+                        succeeded = roll(skill("hiking", stats.ht - 5))
+                        state = state.model_copy(
+                            update={
+                                "resources": state.resources.model_copy(
+                                    update={
+                                        "events": state.resources.events
+                                        + (
+                                            ResourceEvent(
+                                                id=daily_id,
+                                                at=state.resources.game_time,
+                                                target_id=actor.actor_id,
+                                                kind=json.dumps({"succeeded": succeeded}),
+                                            ),
+                                        )
+                                    }
+                                )
+                            }
+                        )
+                    else:
+                        succeeded = bool(json.loads(daily.kind)["succeeded"])
                     capacity = hiking_miles(
                         move,
                         success=succeeded,
                         terrain=route.terrain,
                         bad_weather=route.bad_weather,
                     )
-                    seconds = route.seconds
-                    cost = exertion_cost("hiking", seconds=seconds, encumbrance=int(load))
-                elif command.kind == "swim":
-                    if route.seconds > 60:
-                        raise ValidationError(
-                            "Swimming procedures are limited to one-minute fatigue checks"
+                    if route.group_hike:
+                        from wayfarer.orchestration.hiking import group_hiking
+
+                        state, capacity, group_checks, group_costs = group_hiking(
+                            play,
+                            state,
+                            actor.actor_id,
+                            terrain=route.terrain,
+                            bad_weather=route.bad_weather,
                         )
+                        checks.extend(group_checks)
                     seconds = route.seconds
-                    succeeded = roll(skill("swimming", stats.ht - 4) + 3 - 2 * int(load))
+                    progress = min(
+                        route.distance,
+                        progress
+                        + capacity
+                        * (
+                            Decimal(1)
+                            if seconds == 86400
+                            else Decimal(seconds) / route.hiking_day_seconds
+                        ),
+                    )
+                    # The skill roll controls the bonus, not whether travel happens.
+                    succeeded = True
+                    cost = (
+                        exertion_cost("hiking", seconds=seconds, encumbrance=int(load))
+                        if seconds == 3600
+                        else 0
+                    )
+                elif command.kind == "swim":
+                    if not 1 <= route.seconds <= 60:
+                        raise ValidationError("Swimming advances at most one fatigue minute")
+                    swimming_hazards = tuple(
+                        h
+                        for h in state.resources.hazards
+                        if h.active and h.actor_id == actor.actor_id and h.spec.kind == "drowning"
+                    )
+                    if any(h.stage not in ("recovering", "swimming") for h in swimming_hazards):
+                        raise ValidationError("Resolve swimming distress before route progress")
+                    seconds = min(route.seconds, 60 - elapsed % 60)
+                    succeeded = True
+                    if elapsed % 300 == 0 and not swimming_hazards:
+                        succeeded = roll(
+                            skill("swimming", stats.ht - 4)
+                            + (3 if route.intentional and elapsed == 0 else 0)
+                            - 2 * int(load)
+                        )
+                    water_move = fatigue_value(
+                        fp, impaired_movement(hp, max(1, stats.basic_move // 5))
+                    )
                     capacity = (
-                        swimming_yards(stats.basic_move, seconds, int(load))
+                        Decimal(water_move * seconds * (5 - int(load))) / 5
                         if succeeded
                         else Decimal(0)
                     )
+                    if route.slow_swimming:
+                        capacity /= 2
+                    progress = min(route.distance, progress + capacity)
                     cost = 0 if succeeded else 1
                     if not succeeded:
                         seconds = 1
-                    if seconds == 60 and not roll(
-                        stats.ht + physical_traits(state.resources, command.actor_id).fitness
-                    ):
-                        cost += 1
+                    elif (elapsed + seconds) % (1800 if route.slow_swimming else 60) == 0:
+                        if not roll(
+                            max(
+                                stats.ht
+                                + physical_traits(state.resources, command.actor_id).fitness,
+                                skill("swimming", stats.ht - 4),
+                            )
+                        ):
+                            cost += 1
                 else:
-                    dice, adds = falling_damage(stats.hp, route.distance, hard=route.hard)
+                    controlled = route.controlled and roll(skill("acrobatics", stats.dx - 6))
+                    dice, adds = falling_damage(
+                        stats.hp,
+                        route.distance,
+                        hard=route.hard,
+                        controlled=controlled,
+                        gravity=route.gravity,
+                        pressure=route.pressure,
+                        terminal_velocity=route.terminal_velocity,
+                    )
                     damage = max(0, sum(play.rng.randbelow(6) + 1 for _ in range(dice)) + adds)
                     capacity, seconds, succeeded = (
                         route.distance,
@@ -299,6 +471,8 @@ class PhysicalService:
                     )
             resources = state.resources
             internal = hashlib.sha256(command.id.encode()).hexdigest()
+            if command.kind in ("climb", "fall"):
+                damage = falling_injury(damage, armor_dr, innate_dr)
             if damage:
                 resources, injury = apply_injury(
                     resources,
@@ -330,6 +504,31 @@ class PhysicalService:
                     system=True,
                 )
                 cost = fatigue.fp_lost
+            for member, member_ht, member_load in group_costs:
+                if member != actor.actor_id and seconds == 3600:
+                    resources, _ = apply_fatigue(
+                        resources,
+                        FatigueCost(
+                            id="group-hike-fp:" + internal + ":" + member,
+                            actor_id=member,
+                            expected_revision=resources.revision,
+                            amount=exertion_cost(
+                                "hiking", seconds=seconds, encumbrance=member_load
+                            ),
+                        ),
+                        ht=member_ht,
+                        rng=play.rng,
+                        system=True,
+                    )
+            state = injury_turn(
+                play,
+                state.model_copy(update={"resources": resources}),
+                actor.actor_id,
+                command.id,
+                start=False,
+                do_nothing=False,
+            )
+            resources = state.resources
             resources = play.engine.resources.apply(
                 resources,
                 Advance(
@@ -369,6 +568,9 @@ class PhysicalService:
                 resources = resources.model_copy(
                     update={"hazards": resources.hazards + (drowning,)}
                 )
+            if command.kind in ("jump", "fall", "lift") and succeeded:
+                progress = route.distance
+            completed = succeeded and progress >= route.distance
             result = PhysicalResult(
                 succeeded=succeeded,
                 seconds=seconds,
@@ -376,6 +578,11 @@ class PhysicalService:
                 checks=tuple(checks),
                 injury=damage,
                 fp_lost=cost,
+                progress=str(progress),
+                completed=completed,
+                elapsed=0 if command.kind == "climb" and not succeeded else elapsed + seconds,
+                route_id=route.id,
+                route_binding=binding,
             )
             resources = resources.model_copy(
                 update={
@@ -394,6 +601,37 @@ class PhysicalService:
             updated = state.model_copy(
                 update={"revision": resources.revision, "resources": resources}
             )
+            if completed and route.destination_id is not None:
+                from wayfarer.orchestration.scenes import SceneService, TravelScene
+
+                assert route.exit_id is not None
+                travelers = tuple(m for m, _, _ in group_costs) or (actor.actor_id,)
+                for traveler in travelers:
+                    updated = SceneService(play).reduce(
+                        updated,
+                        TravelScene(
+                            id="feat-travel:" + internal + ":" + traveler,
+                            actor_id=traveler,
+                            expected_revision=updated.revision,
+                            exit_id=route.exit_id,
+                        ),
+                        advance_time=False,
+                        group_travel=bool(group_costs),
+                        commit_revision=resources.revision,
+                    )
+            if updated.party.groups:
+                updated = updated.model_copy(
+                    update={
+                        "party": updated.party.model_copy(
+                            update={
+                                "groups": tuple(
+                                    g.model_copy(update={"ready_through": resources.game_time})
+                                    for g in updated.party.groups
+                                )
+                            }
+                        )
+                    }
+                )
             updated = play.checkpoint(updated, before=before)
             play.engine.validate(updated)
             campaign["revision"], campaign["play_json"] = (

@@ -26,6 +26,7 @@ class PhysicalTraits(BaseModel):
     acute_touch: int = Field(default=0, ge=0, le=10)
     acute_vision: int = Field(default=0, ge=0, le=10)
     healing: int = Field(default=0, ge=0, le=2)
+    temperature_tolerance: int = Field(default=0, ge=0, le=100)
 
     def darkness(self, penalty: int) -> int:
         if type(penalty) is not int or not -10 <= penalty <= 0:
@@ -51,6 +52,7 @@ class PhysicalTraits(BaseModel):
 
 NO_PHYSICAL_TRAITS = PhysicalTraits()
 PHYSICAL_BINDINGS: dict[str, tuple[str, str, int | bool]] = {
+    "trait:temperature-tolerance": ("trait.temperature", "temperature_tolerance", 1),
     "trait:ambidexterity": ("trait.off_hand", "ambidexterity", True),
     "trait:combat-reflexes": ("trait.combat_reflexes", "combat_reflexes", True),
     "trait:fit": ("trait.fitness", "fitness", 1),

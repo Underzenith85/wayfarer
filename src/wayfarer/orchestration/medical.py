@@ -164,8 +164,16 @@ class MedicalService:
             )
             treatment_modifier = 0
             if kind == "resuscitate":
+                rescued = any(
+                    h.active
+                    and h.actor_id == target_id
+                    and h.spec.kind == "drowning"
+                    and h.stage == "rescued"
+                    for h in before.resources.hazards
+                )
+                first_aid_penalty = 2 if rescued and env.technology_level >= 7 else 4
                 candidates = [
-                    int(v.value) - (4 if v.target == "skill:first-aid" else 0)
+                    int(v.value) - (first_aid_penalty if v.target == "skill:first-aid" else 0)
                     for v in actor.sheet.values
                     if v.target in ("skill:first-aid", "skill:physician")
                     and v.value == int(v.value)

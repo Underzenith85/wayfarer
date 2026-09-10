@@ -61,6 +61,14 @@ class HazardSpec(HazardRecord):
     damage_add: int = Field(default=1, ge=-10, le=1000)
     resistible: bool = True
     reference: str = Field(min_length=1)
+    variant: str | None = None
+    affliction: Literal["none", "coughing", "blindness", "paralysis", "retching", "seizure"] = (
+        "none"
+    )
+    affliction_seconds: int = Field(default=0, ge=0)
+    duration_per_margin: int = Field(default=0, ge=0)
+    bacterial: bool = False
+    drug_resistant: bool = False
     recovery_successes: int = Field(default=1, ge=1, le=100)
 
     @model_validator(mode="after")
@@ -95,10 +103,20 @@ class HazardSchedule(HazardRecord):
     will: int = Field(ge=1)
     swimming: int = Field(ge=1)
     resistance: int = Field(default=0, ge=0)
+    resistance_bonus: int = 0
+    survival: int | None = Field(default=None, ge=1)
+    treatment_bonus: int = Field(default=0, ge=0)
+    symptoms: int = Field(default=0, ge=0)
+    full_hp: int = Field(default=10, ge=1)
+    affliction_until: int = Field(default=0, ge=0)
+    immune: bool = False
+    diagnosed_by: tuple[str, ...] = ()
     active: bool = True
     cycle: int = Field(default=0, ge=0)
     successes: int = Field(default=0, ge=0)
-    stage: Literal["exposure", "cycles", "struggling", "recovering", "swimming"] = "cycles"
+    stage: Literal["exposure", "cycles", "struggling", "recovering", "swimming", "rescued"] = (
+        "cycles"
+    )
     no_air_since: int | None = Field(default=None, ge=0)
     next_check_at: int | None = Field(default=None, ge=0)
 

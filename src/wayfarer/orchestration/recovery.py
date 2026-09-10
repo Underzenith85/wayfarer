@@ -50,6 +50,9 @@ def captive(state: PlayState, actor_id: str) -> Captivity | None:
 
 
 def guard(state: PlayState, actor_id: str, kind: str, *, allow_fright: bool = False) -> None:
+    from wayfarer.simulation.condition_checks import require_hazard_capacity
+
+    require_hazard_capacity(state.resources, actor_id, kind)
     from wayfarer.orchestration.equipment_retrieval import tasks as retrievals
     from wayfarer.simulation.object_repairs import tasks
 

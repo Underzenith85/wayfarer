@@ -1,7 +1,7 @@
 """Basic Set physical calculations; Campaigns fourth printing B349-354/B431.
 
-Earth gravity, mundane humanoids, ordinary surfaces. Optional jumping modifiers,
-nonhuman movement and armor blunt trauma require separately selected variants.
+Ordinary surfaces and jumping, with explicit gravity, atmospheric pressure,
+body terminal velocity and worn/innate falling protection (B431).
 """
 
 from decimal import ROUND_HALF_UP, Decimal
@@ -91,17 +91,61 @@ def swimming_yards(basic_move: int, seconds: int, encumbrance: int) -> Decimal:
 
 
 def falling_damage(
-    hp: int, yards: Decimal, *, hard: bool = True, controlled: bool = False
+    hp: int,
+    yards: Decimal,
+    *,
+    hard: bool = True,
+    controlled: bool = False,
+    gravity: Decimal = Decimal(1),
+    pressure: Decimal = Decimal(1),
+    terminal_velocity: int = 60,
 ) -> tuple[int, int]:
-    if hp < 1 or not yards.is_finite() or yards < 0:
+    if (
+        hp < 1
+        or not yards.is_finite()
+        or yards < 0
+        or not gravity.is_finite()
+        or gravity <= 0
+        or not pressure.is_finite()
+        or pressure < 0
+        or terminal_velocity < 1
+    ):
         raise ValidationError("Invalid falling context")
     distance = max(Decimal(0), yards - (5 if controlled else 0))
-    velocity = min(
-        60, int((Decimal("21.4") * distance).sqrt().to_integral_value(rounding=ROUND_HALF_UP))
-    )
+    velocity = (Decimal("21.4") * gravity * distance).sqrt()
+    if pressure:
+        velocity = min(velocity, terminal_velocity * (gravity / pressure).sqrt())
+    velocity = velocity.to_integral_value(rounding=ROUND_HALF_UP)
     dice = Decimal(hp * velocity * (2 if hard else 1)) / 100
     if dice == 0:
         return 0, 0
     if dice < 1:
         return 1, -3 if dice <= Decimal("0.25") else -2 if dice <= Decimal("0.5") else -1
     return int(dice.to_integral_value(rounding=ROUND_HALF_UP)), 0
+
+
+def falling_injury(basic: int, armor_dr: int, innate_dr: int = 0) -> int:
+    """B431: worn armor is flexible for falls; innate DR causes no blunt trauma."""
+    if min(basic, armor_dr, innate_dr) < 0:
+        raise ValidationError("Invalid falling protection")
+    damage = max(0, basic - innate_dr)
+    penetration = max(0, damage - armor_dr)
+    return penetration if penetration else damage // 5
+
+
+def contagion_modifier(contacts: tuple[str, ...]) -> int:
+    """B443 uses the least advantageous applicable contact, never their sum."""
+    modifiers = {
+        "avoided": 4,
+        "dwelling": 3,
+        "conversation": 2,
+        "touch": 1,
+        "belongings": 0,
+        "cooked-flesh": 0,
+        "raw-flesh": -1,
+        "prolonged": -2,
+        "intimate": -3,
+    }
+    if not contacts or any(c not in modifiers for c in contacts):
+        raise ValidationError("Unknown disease contact")
+    return min(modifiers[c] for c in contacts)

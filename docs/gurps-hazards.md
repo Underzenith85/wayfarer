@@ -1,55 +1,94 @@
-# Physical feats and environmental hazards (#110)
+# Physical travel and environmental hazards (#110, #154)
 
-Coverage remains **partial**, selected only for the exact Basic Set profile.
-The campaign selector, saved package pins and frozen player API are unchanged.
-Numeric fixtures use Campaigns fourth printing B349-354 and B430-439; they do
-not certify the separately declared first-printing/errata baseline.
+These services select the exact Basic Set profile. Numeric evidence uses the
+supplied Campaigns fourth printing B349-355/B430-443 and Characters third
+printing B93/B223-224. First-printing/errata certification remains separate;
+this change does not enable the frozen player/LLM rules package.
 
-`PhysicalService` binds an authored route to its scene and procedure. It derives
-attributes and load from the approved character and authoritative inventory,
-checks injury and fatigue eligibility, and commits checks, elapsed time, FP and
-injury together through the existing play store. Reconnects return the original
-result. The supported procedures are short ordinary climbs, prepared/unprepared
-jumps, ordinary lifts, hourly hiking exertion, short intentional swimming and
-unarmored Earth-gravity falls. Results record physical capacity and elapsed time;
-cross-scene destination mutation is explicitly rejected. A failed swimming entry
-creates a durable drowning schedule instead of forgetting the inhaled water.
+## Travel
 
-`HazardService` accepts exposure IDs, never player-authored damage or timing.
-Its trusted resolver binds ambient conditions and protection. Each exposure
-persists its profile, actor, HT, Will, schedule and remaining cycles in the
-existing resource checkpoint. The global resource clock may reach a deadline
-but cannot pass it until the exposure is settled, including advances requested
-by another subgroup. Ordinary actions and new medical tasks also reject an
-unresolved due exposure. CAS and command receipts prevent repeat damage or rolls.
+`PhysicalService` resolves trusted `PhysicalRoute` IDs against the actor's current
+location, approved build and inventory. Its durable results retain route geometry,
+progress and elapsed time. Changing geometry during a journey is rejected; new
+journeys need new authored IDs. Command retries return the original result.
 
-Implemented hazard variants:
+- Long climbs check at entry and at each five-minute boundary. A failed check
+  falls from the reached height, with an authored safety-rope limit except on
+  critical failure. Failed climbs restart at zero progress.
+- Hiking rolls once per actor/day, shared across route IDs. An hourly segment
+  charges exertion and uses the route's authored walking-day allocation for
+  progress; 86,400-second segments use B351's full-day mileage with built-in
+  preparation/rest. Full-day travel is not a separate healing award.
+- Group hiking derives every member's load, injury/fatigue Move and skill.
+  Leadership 12+ permits a roll against average Hiking; otherwise members roll
+  separately. Existing daily rolls are retained on regrouping. The slowest pace
+  governs the group. Exhausted/incapacitated members must be stabilized first.
+- Swimming preserves elapsed activity across short commands: ordinary swimming
+  checks recur at five minutes; top-speed fatigue checks recur each minute,
+  using the better of HT or Swimming. Slow swimming checks fatigue each half
+  hour. Injury and fatigue reduce water Move. Failed entry records a drowning
+  schedule, whose recovery checks must be settled before further travel.
+- Falls use HP, gravity, air pressure and the body's authored terminal velocity.
+  Acrobatics can reduce a controlled fall by five yards. Worn torso armor counts
+  as flexible for blunt trauma; innate DR does not. These are general-impact
+  falls, not the optional random hit-location variant.
 
-| Variant | Procedure |
-| --- | --- |
-| Ambient cold | Authored 10/15/30-minute HT checks and one FP on failure |
-| Ambient heat | Half-hour HT checks; failure costs one FP, critical failure 1d FP |
-| Fire | Authored burning dice and scenario-bound DR |
-| No air | One FP per second, Will at nonpositive FP, four-minute death deadline |
-| Drowning | Five-second struggle checks, then one-minute/five-minute recovery checks |
-| Simple poison/disease | Authored incubation/intervals, HT resistance, toxic injury and recovery-success count |
+A route can bind `destination_id` and `exit_id` to an authored scene exit.
+Completion uses `SceneService` for exits, entry discoveries, scene cursors and
+journals without charging travel time twice. Groups arrive together. Incomplete
+travel leaves actors in the origin scene. Shared-clock hazard and recovery
+barriers still reject advances beyond unresolved deadlines. Split-party activity
+must still use the existing scheduler; immediate physical commands cannot bypass
+that barrier.
 
-Heat/cold and disease damage retains per-condition HP/FP recovery debt.
-Ordinary rest cannot restore restricted FP, and the selected natural/physician
-healing procedures cannot restore blocked HP. A trusted safe environment ends
-ambient restrictions; configured successful illness recovery clears its debt.
-No arbitrary player-authored cure command exists.
+## Exposure and treatment
 
-Remaining blockers are tracked in [#154](https://github.com/Underzenith85/wayfarer/issues/154): complete scene travel/progress integration; long climb and
-daily/group hiking planning; full swimming fatigue and rescue treatment;
-armor/blunt trauma and nonhuman falling; temperature-tolerance and Survival
-variants; affliction-specific toxins, transmission, diagnosis and drug catalogs.
-Disabled limbs and blindness from #107 explicitly reject feats that require
-unsupported adaptations. Advanced treatment is coordinated with #148.
-These are not claimed as verified rules, and generic authored hazard values do
-not constitute an exhaustive poison/disease catalog. LLM and player-facing
-dispatch remains gated by #122.
+`HazardService` binds exposure and protection from trusted scenario context.
+Optional measured-temperature context derives intervals/modifiers from wind,
+clothing and wetness, approved Temperature Tolerance, and HT-based Survival.
+The temperature extension allocation and racial comfort-zone center are trusted
+character/environment bindings, not player-supplied bonuses. Land Survival
+specialties can default to Arctic/Desert at -3 (B224).
 
-`tests/test_gurps_hazards.py` contains independent numeric fixtures, all six
-physical service procedures, environmental damage, drowning transitions,
-suffocation death, subgroup clock barriers, SQLite concurrent retries and replay.
+`poison_spec` provides literal B439 profiles for arsenic, cobra venom, cyanide,
+mustard gas, nerve gas with paralysis, smoke and both tear-gas delivery effects.
+Cobra venom records cumulative injury for its DX thresholds. Coughing modifies
+checks and prevents Stealth; paralysis prevents voluntary physical actions;
+toxin blindness prevents vision checks. Retching/seizure configurations use the
+existing timed-condition runtime. Nerve-agent affliction duration must be
+explicitly authored because B439 does not supply one. Gas exposure duration is
+part of the trusted delivery binding; the catalog does not establish exposure or
+penetration by itself.
+
+Disease contact context resolves a transmission roll before incubation and
+symptomatic damage cycles. It uses the least favorable B443 contact modifier,
+not their sum. Initial rolls of 3-4 retain natural immunity for the same named
+variant. Contact modifiers do not leak into recovery rolls. Illness recovery
+restrictions retain injury debt until recovery or the final cycle.
+
+`HazardCareService` supplies scenario-bound, authenticated care:
+
+- Lifesaving uses Swimming-5 plus the rescuer/victim ST difference. Failure costs
+  1 FP and enforces a minute before retry; critical failure costs 6 FP and records
+  that this rescuer must abandon the attempt. Success requires a safe landing
+  and retains the condition for resuscitation.
+- `MedicalService` performs one-minute resuscitation tasks for rescued drowning
+  victims, respecting fatal deadlines. Learned First Aid at TL7+ uses -2 for
+  drowning. Success ends the drowning schedule without erasing prior wounds.
+- Diagnosis requires symptoms and preserves the check/identified condition.
+  Reissuing an examination cannot reroll the same cycle's symptoms.
+- Antibiotics require a diagnosis, TL6+ and an owned scenario-bound dose. One
+  dose is consumed atomically. Most bacterial diseases receive +3 to cyclic
+  recovery; viral and drug-resistant conditions do not. Bonuses do not stack.
+
+The arbitrary pharmacology/addiction rules and optional falling hit locations
+are not certified by these variants. Nor do the services silently author
+racial adaptations, safety equipment, exposure vectors or remedies. Such context
+must be bound by the scenario. Heat/cold/disease debts and existing suffocation,
+fire, mortality and subgroup deadlines continue to use the shared resource
+checkpoint and receipt ledger.
+
+`tests/test_hazard_variants.py` includes independent numeric expectations,
+compiled trait/Survival use, real SQLite travel/group/rescue/diagnosis/antibiotic
+transactions, inventory consumption and replay. `tests/test_gurps_hazards.py`
+retains the original hazard barriers and concurrent retry evidence.

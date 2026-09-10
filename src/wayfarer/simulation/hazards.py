@@ -50,6 +50,8 @@ def apply_hazard(
         return state, HazardResult.model_validate_json(event.kind)
     if state.revision != command.expected_revision:
         raise ConflictError("Resource revision changed")
+    if schedule.actor_id != command.actor_id or schedule.spec.id != command.hazard_id:
+        raise ValidationError("Hazard command does not match the bound exposure")
     hp = next(p for p in state.pools if p.id == "hp:" + command.actor_id)
     fp = next(p for p in state.pools if p.id == "fp:" + command.actor_id)
     if (
@@ -97,6 +99,7 @@ def apply_hazard(
             if (
                 checking
                 and spec.resistible
+                and schedule.stage != "rescued"
                 and not (spec.kind == "drowning" and fp.fatigue.unconscious)
             ):
                 check = (
@@ -113,9 +116,17 @@ def apply_hazard(
                         spec.profile_id,
                         max(
                             1,
-                            schedule.ht
-                            + physical_traits(state, schedule.actor_id).fitness
-                            + spec.resistance_modifier,
+                            max(
+                                schedule.ht + physical_traits(state, schedule.actor_id).fitness,
+                                schedule.survival or 0,
+                            )
+                            + spec.resistance_modifier
+                            + schedule.treatment_bonus
+                            + (
+                                schedule.resistance_bonus
+                                if schedule.stage == "exposure" or spec.kind in ("heat", "cold")
+                                else 0
+                            ),
                         ),
                         check_modifiers(state, schedule.actor_id, "ht"),
                         rng=rng,
@@ -132,6 +143,9 @@ def apply_hazard(
                     and check.outcome is Outcome.CRITICAL_FAILURE
                 ):
                     damage = rng.randbelow(6) + 1
+            initial_disease = spec.kind == "disease" and schedule.stage == "exposure"
+            if initial_disease or schedule.stage == "rescued":
+                damage = 0
             internal = hashlib.sha256(command.id.encode()).hexdigest()
             if damage and spec.kind in ("cold", "heat", "suffocation", "drowning"):
                 state, fatigue = apply_fatigue(
@@ -180,11 +194,42 @@ def apply_hazard(
                         + (restriction,)
                     }
                 )
-            remaining = schedule.remaining - 1
+            if checking and not initial_disease and (check is None or not check.outcome.succeeded):
+                duration = spec.affliction_seconds + spec.duration_per_margin * (
+                    max(1, -check.margin) if check else 1
+                )
+                schedule = schedule.model_copy(
+                    update={
+                        "symptoms": schedule.symptoms + hp_lost,
+                        "affliction_until": max(
+                            schedule.affliction_until, state.game_time + duration
+                        )
+                        if spec.affliction != "none"
+                        else schedule.affliction_until,
+                    }
+                )
+                if spec.affliction in ("retching", "seizure") and duration:
+                    from wayfarer.rules.fright import FrightEffect
+                    from wayfarer.simulation.fright import apply_effect
+
+                    state = apply_effect(
+                        state,
+                        FrightEffect(
+                            table_total=4, condition=spec.affliction, duration_seconds=duration
+                        ),
+                        actor_id=schedule.actor_id,
+                        trigger_id=schedule.id,
+                        command_id="toxin:" + internal,
+                        ht=schedule.ht,
+                        will=schedule.will,
+                        modified_will=schedule.will,
+                        rng=rng,
+                    )
+            remaining = schedule.remaining - (0 if initial_disease else 1)
             successes = schedule.successes
             if spec.kind in ("poison", "disease") and check is not None and check.outcome.succeeded:
                 successes += 1
-                if successes >= spec.recovery_successes:
+                if initial_disease or successes >= spec.recovery_successes:
                     remaining = 0
                     state = state.model_copy(
                         update={
@@ -196,7 +241,11 @@ def apply_hazard(
                     )
             if spec.kind in ("suffocation", "drowning"):
                 latest_fp = next(p for p in state.pools if p.id == fp.id)
-                if latest_fp.current <= 0 and latest_fp.fatigue is not None:
+                if (
+                    latest_fp.current <= 0
+                    and latest_fp.fatigue is not None
+                    and schedule.stage != "rescued"
+                ):
                     consciousness = success_roll(
                         spec.profile_id,
                         schedule.will,
@@ -237,8 +286,19 @@ def apply_hazard(
                         }
                     )
                     remaining = 0
-            interval = spec.interval
-            stage = schedule.stage
+            interval = max(1, spec.delay) if initial_disease else spec.interval
+            stage = "cycles" if initial_disease else schedule.stage
+            if remaining == 0 and spec.kind == "disease":
+                state = state.model_copy(
+                    update={
+                        "illnesses": tuple(
+                            i.model_copy(update={"active": False}) if i.id == schedule.id else i
+                            for i in state.illnesses
+                        )
+                    }
+                )
+            if initial_disease and check is not None and sum(check.dice) <= 4:
+                schedule = schedule.model_copy(update={"immune": True})
             latest_fp = next(p for p in state.pools if p.id == fp.id)
             if (
                 spec.kind == "drowning"
@@ -262,7 +322,7 @@ def apply_hazard(
                 else:
                     stage, interval = "struggling", 5
             next_check_at = schedule.due + interval if checking else schedule.next_check_at
-            if spec.kind == "drowning" and latest_fp.current <= 0:
+            if spec.kind == "drowning" and (latest_fp.current <= 0 or stage == "rescued"):
                 interval = 1
             elif not checking and next_check_at is not None:
                 interval = next_check_at - state.game_time
