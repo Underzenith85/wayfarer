@@ -51,6 +51,60 @@ def effects(state: ResourceState) -> tuple[TimedFright, ...]:
     return tuple(latest.values())
 
 
+def public_id(item: TimedFright) -> str:
+    """An opaque reference that cannot disclose an authored NPC occurrence ID."""
+    return hashlib.sha256(item.id.encode()).hexdigest()
+
+
+def projection(
+    state: ResourceState, actor_ids: tuple[str, ...], *, director: bool = False
+) -> tuple[dict[str, object], ...]:
+    """Expose consequences and required decisions, never their hidden cause or rolls."""
+    result: list[dict[str, object]] = []
+    for item in effects(state):
+        if not director and item.actor_id not in actor_ids:
+            continue
+        effect = item.effect
+        choices: list[dict[str, object]] = []
+        if effect.trait_choice != "none":
+            choices.append({"kind": effect.trait_choice, "points": effect.trait_points})
+        for attribute, loss in (("ht", effect.permanent_ht_loss), ("iq", effect.permanent_iq_loss)):
+            if loss:
+                choices.append(
+                    {"kind": "permanent-attribute-loss", "attribute": attribute, "loss": loss}
+                )
+        aftermath = item.aftermath_until is not None and state.game_time < item.aftermath_until
+        if not (item.active or choices or aftermath):
+            continue
+        value: dict[str, object] = {
+            "id": public_id(item),
+            "actor_id": item.actor_id,
+            "condition": effect.condition if item.active else "none",
+            "active": item.active,
+            "choices": tuple(choices),
+            "build_approval_required": bool(choices),
+            "aftermath_until": item.aftermath_until if aftermath else None,
+            "aftermath_penalty": effect.aftermath_penalty if aftermath else 0,
+            "panic_response_required": item.active and effect.condition == "panic",
+            "care_required": item.active and effect.neglect_progression,
+        }
+        if director:
+            value.update(
+                {
+                    "care": item.care,
+                    "panic_severity": effect.panic_severity,
+                    "panic_responses": item.panic_responses,
+                    "decision_kinds": ("care",)
+                    if item.active and effect.neglect_progression
+                    else ("panic-response",)
+                    if item.active and effect.table_total == 33
+                    else (),
+                }
+            )
+        result.append(value)
+    return tuple(result)
+
+
 def save(state: ResourceState, item: TimedFright, command_id: str) -> ResourceState:
     return state.model_copy(
         update={

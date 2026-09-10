@@ -1590,6 +1590,45 @@
         "tests/test_heavy_parry.py::test_heavy_parry_breakage_and_incoming_damage"
       ],
       "gap": null
+    },
+    {
+      "id": "RangedMode.rated_strength",
+      "unit": "optional weapon strength protocol",
+      "reference": "Characters third printing B16/B270; frozen first-printing/errata reconciliation pending #191",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_rated_projectiles.py::test_rating_is_opt_in_and_validated"
+      ],
+      "gap": null
+    },
+    {
+      "id": "RatedStrength.kind",
+      "unit": "bow or crossbow selector",
+      "reference": "Characters third printing B16/B270; frozen first-printing/errata reconciliation pending #191",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_rated_projectiles.py::test_crossbow_reload_timing_interruptions_and_restart"
+      ],
+      "gap": null
+    },
+    {
+      "id": "RatedStrength.st",
+      "unit": "weapon ST level",
+      "reference": "Characters third printing B16/B270; frozen first-printing/errata reconciliation pending #191",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_rated_projectiles.py::test_bow_uses_weapon_st_for_damage_and_range"
+      ],
+      "gap": null
     }
   ],
   "bindings": [

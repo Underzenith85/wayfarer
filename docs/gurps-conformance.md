@@ -207,9 +207,9 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.combat.active_defense` | yes | yes | partial | #103; B376 heavy-weapon quality, BL limits and durable breakage in [melee integration](gurps-melee.md) |
 | `gurps.combat.maneuvers` | yes | yes | partial | #104 and #152 bounded transitions implemented; [executable behavior and certification boundary](gurps-maneuvers.md) |
 | `gurps.combat.turn_timing` | yes | yes | partial | #104 and #152; durable Wait zones, stop thrust, and attack-then-step implemented; #191 source reconciliation remains |
-| `gurps.combat.ranged_attack` | yes | yes | partial | #106; [ranged dispatch and evidence](gurps-ranged.md); #173 adds persisted critical misses, typed breakage, per-projectile locations, armed thrown Parry consequences and burst critical hits; [remaining protocols](gurps-ranged.md) stay #173 |
+| `gurps.combat.ranged_attack` | yes | yes | partial | #106; [ranged dispatch, rated bow/crossbow ST and evidence](gurps-ranged.md); #173 adds persisted critical misses, typed breakage, per-projectile locations, armed thrown Parry consequences and burst critical hits; [remaining protocols](gurps-ranged.md) stay #173 |
 | `gurps.combat.aim` | yes | yes | partial | #104/#152; target-bound accumulation, disruption, bracing and typed fixed/variable scopes; broader ranged resolution #106/#173 |
-| `gurps.combat.ammunition` | yes | yes | partial | #106; [reservations and reload timing](gurps-ranged.md); #173 adds opt-in per-round loading and magazine unloading; remaining #173 |
+| `gurps.combat.ammunition` | yes | yes | partial | #106; [reservations, rated crossbow timing and reload conservation](gurps-ranged.md); #173 adds opt-in per-round loading and magazine unloading; remaining #173 |
 | `gurps.combat.rapid_fire` | no | yes | partial | #106; [burst, Dodge and burst-critical resolution](gurps-ranged.md); remaining #173 |
 | `gurps.combat.unarmed` | yes | yes | partial | #108, #176; [unarmed critical effects, defenses, declared Wait reactions and remaining integrations](gurps-unarmed.md) |
 | `gurps.combat.grappling` | yes | yes | partial | #108, #176; [durable grips, Wait while engaged and remaining integrations](gurps-unarmed.md) |
@@ -473,7 +473,9 @@ without forcing player actions. Combat supports Do Nothing, no defense, and
 stunned active defenses at -4, while other fright conditions reject active
 defense. Full condition-specific retching/panic behavior and lasting trait/stat
 adjudication remain in #299, along with aftermath penalty integration and v2
-scenario authoring/transport adoption. #137 remains incomplete; coverage stays
+scenario authoring adoption. Campaign reads and event streams now present
+owner-scoped lasting choice requirements, and campaign dispatch accepts authorized
+care/panic decisions. Full #137 completion still depends on #299; coverage stays
 partial and these blockers remain visible for #122.
 `tests/test_fright_runtime.py` checks independent B360-361 examples (Campaigns,
 Fourth Edition, fourth printing) for FP loss, internal injury, automatic stun,
