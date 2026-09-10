@@ -24,16 +24,20 @@ from wayfarer.rules.checks import RecordedDice
 from wayfarer.rules.gurps_checks import replay_success
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import Encounter
+from wayfarer.simulation.gurps_equipment import MeleeMode
 from wayfarer.simulation.unarmed import Grip, contest, striking_bonus, wrestling_bonus
 
 
-async def setup(tmp_path: Path, *, third_actor: bool = False) -> tuple[str, PlayService]:
+async def setup(
+    tmp_path: Path, *, third_actor: bool = False, melee_modes: tuple[MeleeMode, ...] | None = None
+) -> tuple[str, PlayService]:
     cid, play = await melee_setup(
         tmp_path,
         "gurps-basic-set-4e-2004",
         human=True,
         unarmed_fixture=True,
         third_actor=third_actor,
+        melee_modes=melee_modes,
     )
 
     def disarm(campaign: Campaign) -> Event:

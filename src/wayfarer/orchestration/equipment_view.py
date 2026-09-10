@@ -9,6 +9,7 @@ from wayfarer.orchestration.equipment_retrieval import tasks as retrievals
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.tactical_view import TacticalSnapshot
 from wayfarer.rules.object_types import GroundPosition, ObjectCondition
+from wayfarer.rules.readiness_types import ProjectileProgress
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.object_repairs import RepairTask
 from wayfarer.simulation.object_repairs import tasks as repairs
@@ -28,6 +29,8 @@ class EquipmentView(Record):
     work: str | None = None
     due_in: int | None = None
     choices: tuple[EquipmentChoice, ...] = ()
+    readiness: ProjectileProgress | None = None
+    loaded_rounds: int | None = None
 
 
 class TacticalSnapshotV2(TacticalSnapshot):
@@ -43,7 +46,11 @@ def equipment_view(play: PlayService, state: PlayState, actor_id: str) -> tuple[
         *retrievals(state.resources),
     )
     for item in state.resources.items:
-        if item.owner_id != actor_id or (item.condition is None and item.ground is None):
+        load = next((v for v in state.resources.ammunition_loads if v.weapon_id == item.id), None)
+        progress = load.readiness if load else None
+        if item.owner_id != actor_id or (
+            item.condition is None and item.ground is None and progress is None
+        ):
             continue
         work = next(
             (
@@ -124,6 +131,8 @@ def equipment_view(play: PlayService, state: PlayState, actor_id: str) -> tuple[
                 work=("Retrieval" if item.ground else "Repair") if work else None,
                 due_in=max(0, work.due - state.resources.game_time) if work else None,
                 choices=tuple(choices),
+                readiness=progress,
+                loaded_rounds=load.rounds if load else None,
             )
         )
     return tuple(result)

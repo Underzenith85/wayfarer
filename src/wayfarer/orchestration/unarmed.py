@@ -125,6 +125,8 @@ def guard_control(encounter: Encounter, command: TypedCombatCommand, state: Play
             raise ConflictError("Only the target may resolve the pending unarmed defense")
         return
     if isinstance(command, TakeUnarmedTurn):
+        if fighter(encounter, command.actor_id).unarmed_balance_lost:
+            raise ValidationError("Lost balance prevents even free actions until the next turn")
         if encounter.status != "active" or encounter.pending_defense or encounter.blocked_reason:
             raise ConflictError("Encounter cannot accept unarmed action now")
         interrupt = encounter.wait_interrupt
@@ -136,6 +138,8 @@ def guard_control(encounter: Encounter, command: TypedCombatCommand, state: Play
             raise ConflictError("Unarmed action is out of turn")
     if isinstance(command, TakeCombatTurn):
         actor = fighter(encounter, command.actor_id)
+        if actor.unarmed_balance_lost and command.maneuver != "do_nothing":
+            raise ValidationError("Lost balance prevents actions until the next turn")
         if actor.pinned and command.maneuver != "do_nothing":
             raise ValidationError("Pinned actor must attempt a legal escape")
         engaged = any(command.actor_id in (g.holder_id, g.target_id) for g in encounter.grips)
@@ -355,7 +359,7 @@ def validate_action(
         raise ValidationError("Pinned actor may only attempt escape")
     if command.enter_close_combat:
         if (
-            command.action not in ("punch", "grapple")
+            command.action not in ("punch", "grapple", "arm_lock")
             or actor.grappled
             or any(g.holder_id == actor.actor_id for g in encounter.grips)
         ):
@@ -435,6 +439,21 @@ def validate_action(
                 raise ValidationError("Kick requires two usable legs and standing posture")
         elif command.action == "arm_lock":
             grip = next((g for g in encounter.grips if g.id == command.grip_id), None)
+            parry_route = command.grip_id is None
+            if parry_route:
+                if (
+                    actor.unarmed_lock_opportunity
+                    != (target.actor_id, command.skill, encounter.round)
+                    or len(command.hands) != 2
+                    or len(set(command.hands)) != 2
+                    or not set(command.hands) <= set(free_hands(state, encounter, actor.actor_id))
+                    or command.location not in ("left-arm", "right-arm")
+                    or encounter.wait_interrupt is not None
+                ):
+                    raise ValidationError(
+                        "Defensive arm lock requires two free hands and the first turn after a skilled parry"
+                    )
+                return
             if (
                 grip is None
                 or grip.holder_id != actor.actor_id
@@ -881,7 +900,37 @@ def unarmed_defense(
     hp = next(p for p in state.resources.pools if p.id == f"hp:{actor_id}")
     if hp.injury is None or hp.injury.incapacitated or not fatigue_ready(state, actor_id):
         raise ValidationError("Incapacitated actor cannot parry")
-    targets = [compiled.statistics.dx // 2 + 3]
+    targets = parry_candidates(play, state, encounter, actor_id)
+    from wayfarer.simulation.fright import stunned as fright_stunned
+
+    penalty = (
+        (-4 if hp.injury.stunned or fright_stunned(state.resources, actor_id) else 0)
+        + (-3 if actor.posture == "prone" else -2 if actor.posture == "kneeling" else 0)
+        + (-2 if actor.grappled else 0)
+    )
+    penalty += (
+        actor.defense_penalty
+        + actor.tactical_defense_bonus
+        - 4 * int(actor.arm_locked)
+        + (2 if actor.maneuver_state.enhanced_defense == "parry" else 0)
+    )
+    return max(targets)[0] + int(
+        hp.injury.physical_traits.combat_reflexes
+    ) + penalty + height_bonus - 4 * actor.parries.count(hand), hand
+
+
+def parry_candidates(
+    play: PlayService, state: PlayState, encounter: Encounter, actor_id: str
+) -> list[tuple[int, str]]:
+    """Keep the actual automatically selected skill with its defense value.
+
+    Equal-value choices are deterministic. In particular Judo beats an untrained
+    DX parry on a tie, permitting its B403 follow-up without inventing a success.
+    """
+    compiled = build(play, state, actor_id)
+    assert compiled.statistics is not None
+    actor = fighter(encounter, actor_id)
+    targets = [(compiled.statistics.dx // 2 + 3, "attribute:dx")]
     incoming_kick = (
         encounter.pending_unarmed is not None and encounter.pending_unarmed.action == "kick"
     )
@@ -899,23 +948,8 @@ def unarmed_defense(
                     score -= encumbrance_level(play, state, actor_id)
                 except ValidationError:
                     continue
-            targets.append(score)
-    from wayfarer.simulation.fright import stunned as fright_stunned
-
-    penalty = (
-        (-4 if hp.injury.stunned or fright_stunned(state.resources, actor_id) else 0)
-        + (-3 if actor.posture == "prone" else -2 if actor.posture == "kneeling" else 0)
-        + (-2 if actor.grappled else 0)
-    )
-    penalty += (
-        actor.defense_penalty
-        + actor.tactical_defense_bonus
-        - 4 * int(actor.arm_locked)
-        + (2 if actor.maneuver_state.enhanced_defense == "parry" else 0)
-    )
-    return max(targets) + int(
-        hp.injury.physical_traits.combat_reflexes
-    ) + penalty + height_bonus - 4 * actor.parries.count(hand), hand
+            targets.append((score, v.target))
+    return targets
 
 
 def encumbrance_level(play: PlayService, state: PlayState, actor_id: str) -> int:
@@ -1011,7 +1045,12 @@ def defend(
 
     if actor.maneuver_state.feint_target_id == target.actor_id:
         defenses = [
-            (v - actor.maneuver_state.feint_penalty if v is not None else None, h)
+            (
+                v - actor.maneuver_state.feint_penalty * (2 if target.unarmed_guard_dropped else 1)
+                if v is not None
+                else None,
+                h,
+            )
             for v, h in defenses
         ]
     if encounter.hex_battlefield is not None:
@@ -1020,6 +1059,8 @@ def defend(
         value += height_effect(
             encounter, actor, target, reach=1, location=pending.location
         ).attack_modifier
+    if target.unarmed_guard_dropped and actor.maneuver_state.evaluate_target_id == target.actor_id:
+        value += actor.maneuver_state.evaluate_bonus
     value = attack_modifier(
         actor.maneuver_state,
         target.actor_id,
@@ -1066,6 +1107,25 @@ def defend(
                     target = target.model_copy(
                         update={"parries": target.parries + (parrying_hand,)}
                     )
+                if (
+                    defense.outcome.succeeded
+                    and parrying_hand in ("left-hand", "right-hand")
+                    and len(free_hands(state, encounter, target.actor_id)) == 2
+                ):
+                    _, parry_skill = max(parry_candidates(play, state, encounter, target.actor_id))
+                    if parry_skill == "skill:judo":
+                        next_round = encounter.round + int(
+                            encounter.turn_order.index(target.actor_id) <= encounter.turn_index
+                        )
+                        target = target.model_copy(
+                            update={
+                                "unarmed_lock_opportunity": (
+                                    actor.actor_id,
+                                    parry_skill,
+                                    next_round,
+                                )
+                            }
+                        )
                 if defense.outcome is Outcome.CRITICAL_FAILURE and parrying_hand is None:
                     # B382: a critical Dodge falls, without a critical-miss table roll.
                     target = target.model_copy(update={"posture": "prone"})
@@ -1081,6 +1141,7 @@ def defend(
                         subject,
                         table,
                         None if defense.outcome.succeeded else parrying_hand,
+                        command.parry_mode_id if index == 0 else command.second_parry_mode_id,
                     )
                     actor, target = (
                         fighter(encounter, actor.actor_id),
@@ -1366,6 +1427,7 @@ def critical_miss(
     actor_id: str,
     table: tuple[int, ...],
     hand: str | None,
+    parry_mode_id: str | None = None,
 ) -> tuple[PlayState, Encounter, tuple[CheckTrace, ...], tuple[int, ...], bool]:
     """B557 consequences that fit the current injury and tactical contracts.
 
@@ -1373,7 +1435,40 @@ def critical_miss(
     continuation; a bare limb never selects the armed weapon-break/drop table.
     """
     if hand not in (None, "left-hand", "right-hand"):
-        return state, encounter, (), (), False
+        from wayfarer.orchestration.ranged_misses import resolve_miss
+        from wayfarer.simulation.combat import PendingDefense
+
+        # The shared weapon reducer needs the pending transaction identity, not
+        # an invented weapon for the bare-limbed attack. This adapter is local;
+        # the durable pause remains PendingUnarmed throughout the transaction.
+        context = PendingDefense(
+            id=pending.id,
+            attacker_id=pending.actor_id,
+            defender_id=pending.target_id,
+            weapon_id=hand,
+            allowed=("parry",),
+            opened_round=encounter.round,
+            opened_turn=encounter.turn_index,
+        )
+        original = encounter.pending_defense
+        state, encounter, result, blocker = resolve_miss(
+            play,
+            state,
+            encounter.model_copy(update={"pending_defense": context}),
+            table,
+            parry_item=hand,
+            parry_mode_id=parry_mode_id,
+        )
+        encounter = encounter.model_copy(update={"pending_defense": original})
+        return (
+            state,
+            encounter,
+            (),
+            tuple(d for roll in result.table_rolls[1:] for d in roll)
+            + result.location_dice
+            + result.damage_dice,
+            blocker is None,
+        )
     actor = fighter(encounter, actor_id)
     number = sum(table)
     checks: tuple[CheckTrace, ...] = ()
@@ -1384,16 +1479,51 @@ def critical_miss(
 
         if number in (5, 6, 16) and actor_id == pending.actor_id:
             opponent = fighter(encounter, pending.target_id)
-            if any(
-                m.damage.damage_type == "imp"
+            impaling_modes = tuple(
+                m
                 for i in state.resources.items
                 if i.id in opponent.ready_item_ids
+                and i.ready
+                and i.equipped
+                and (i.condition is None or not i.condition.disabled)
                 for e in catalog(play).entries
                 if e.definition_id == i.definition_id
                 for m in e.modes
-                if isinstance(m, MeleeMode)
-            ):
+                if isinstance(m, MeleeMode) and m.damage.damage_type == "imp"
+            )
+            if len(impaling_modes) > 1:
                 return state, encounter, (), (), False
+            if impaling_modes:
+                weapon = impaling_modes[0]
+                compiled = build(play, state, actor_id)
+                assert compiled.statistics is not None
+                expression = (
+                    compiled.statistics.swing
+                    if weapon.damage.basis == "swing"
+                    else compiled.statistics.thrust
+                )
+                dice = tuple(
+                    play.rng.randbelow(6) + 1 for _ in range(weapon.damage.dice or expression.dice)
+                )
+                damage = max(
+                    1,
+                    sum(dice)
+                    + weapon.damage.adds
+                    + (0 if weapon.damage.basis == "fixed" else expression.add),
+                )
+                state, encounter, _ = hurt(
+                    play,
+                    state,
+                    encounter,
+                    actor_id,
+                    pending.id + ":impaling-fall",
+                    damage // 2 if number == 6 else damage,
+                    damage_type="imp",
+                    armor_divisor=weapon.damage.armor_divisor,
+                    tight_beam=weapon.damage.tight_beam,
+                )
+                actor = fighter(encounter, actor_id).model_copy(update={"posture": "prone"})
+                return state, CombatEngine._replace(encounter, actor), (), dice, True
 
         kicking = actor_id == pending.actor_id and pending.action == "kick"
         selected_hand = hand
@@ -1465,7 +1595,13 @@ def critical_miss(
         checks = (check,)
         fall = not check.outcome.succeeded
     elif number in (9, 10, 11):
-        actor = actor.model_copy(update={"defense_penalty": actor.defense_penalty - 2})
+        actor = actor.model_copy(
+            update={"defense_penalty": actor.defense_penalty - 2, "unarmed_balance_lost": True}
+        )
+    elif number == 13:
+        actor = actor.model_copy(
+            update={"defense_penalty": actor.defense_penalty - 2, "unarmed_guard_dropped": True}
+        )
     elif not fall:
         return state, encounter, (), (), False
     if fall:

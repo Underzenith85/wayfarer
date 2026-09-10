@@ -503,6 +503,29 @@
             },
             "title": "Choices",
             "type": "array"
+          },
+          "readiness": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProjectileProgress"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "loaded_rounds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Loaded Rounds"
           }
         },
         "required": [
@@ -664,6 +687,55 @@
           "hp"
         ],
         "title": "ObjectCondition",
+        "type": "object"
+      },
+      "ProjectileProgress": {
+        "additionalProperties": false,
+        "properties": {
+          "stage": {
+            "default": "prepare",
+            "enum": [
+              "prepare",
+              "draw",
+              "cock",
+              "load",
+              "loaded",
+              "unload"
+            ],
+            "title": "Stage",
+            "type": "string"
+          },
+          "elapsed": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Elapsed",
+            "type": "integer"
+          },
+          "required": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Required",
+            "type": "integer"
+          },
+          "fast_draw_used": {
+            "default": false,
+            "title": "Fast Draw Used",
+            "type": "boolean"
+          },
+          "cocking_aid_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Cocking Aid Id"
+          }
+        },
+        "title": "ProjectileProgress",
         "type": "object"
       },
       "RepairEquipment": {
@@ -1274,6 +1346,28 @@
           "unload_ammunition": {
             "default": false,
             "title": "Unload Ammunition",
+            "type": "boolean"
+          },
+          "fast_draw": {
+            "default": false,
+            "title": "Fast Draw",
+            "type": "boolean"
+          },
+          "cocking_aid_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Cocking Aid Id"
+          },
+          "let_down_bow": {
+            "default": false,
+            "title": "Let Down Bow",
             "type": "boolean"
           },
           "escape_entanglement": {

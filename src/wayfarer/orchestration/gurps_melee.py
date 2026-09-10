@@ -871,6 +871,11 @@ def resolve_melee(
         )
         attack_target += attack_penalty(pending.hit_location, shield_side=shield_side)
     attack_target += entangle_attack_penalty(attacker)
+    if (
+        defender.unarmed_guard_dropped
+        and attacker.maneuver_state.evaluate_target_id == defender.actor_id
+    ):
+        attack_target += attacker.maneuver_state.evaluate_bonus
     attack_target = attack_modifier(
         attacker.maneuver_state,
         defender.actor_id,
@@ -882,7 +887,8 @@ def resolve_melee(
     if defense_derived is not None and attacker.maneuver_state.feint_target_id == defender.actor_id:
         defense_derived = DerivedValue(
             defense_derived.target,
-            defense_derived.value - attacker.maneuver_state.feint_penalty,
+            defense_derived.value
+            - attacker.maneuver_state.feint_penalty * (2 if defender.unarmed_guard_dropped else 1),
             defense_derived.explanations,
         )
     attack = success_roll(
@@ -1021,7 +1027,7 @@ def resolve_melee(
             second_derived = None
     if hit and defense is not None and second_derived is not None and blocked is None:
         second_target = int(second_derived.value) - (
-            attacker.maneuver_state.feint_penalty
+            attacker.maneuver_state.feint_penalty * (2 if defender.unarmed_guard_dropped else 1)
             if attacker.maneuver_state.feint_target_id == defender.actor_id
             else 0
         )

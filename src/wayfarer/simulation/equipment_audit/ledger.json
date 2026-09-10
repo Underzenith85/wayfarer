@@ -1969,6 +1969,97 @@
         "tests/test_firearm_malfunctions.py::test_hourly_repair_success_failure_and_destruction"
       ],
       "gap": null
+    },
+    {
+      "id": "RangedMode.readiness",
+      "unit": "optional readiness protocol",
+      "reference": "Characters third printing B195/B270; Campaigns fourth printing B382; authored unload timing and no additional hold FP approved by user; #191 remains open",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_projectile_readiness.py::test_bow_prepare_draw_let_down_without_extra_fatigue"
+      ],
+      "gap": null
+    },
+    {
+      "id": "ProjectileReadiness.kind",
+      "unit": "protocol selector",
+      "reference": "Characters third printing B195/B270; Campaigns fourth printing B382; authored unload timing and no additional hold FP approved by user; #191 remains open",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_projectile_readiness.py::test_crossbow_cocking_protocol"
+      ],
+      "gap": null
+    },
+    {
+      "id": "ProjectileReadiness.fast_draw_skill_id",
+      "unit": "exact trained skill reference",
+      "reference": "Characters third printing B195/B270; Campaigns fourth printing B382; authored unload timing and no additional hold FP approved by user; #191 remains open",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_projectile_readiness.py::test_fast_draw_preserves_ammunition_and_receipts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "ProjectileReadiness.fast_draw_specialty",
+      "unit": "Arrow or Ammo specialty",
+      "reference": "Characters third printing B195/B270; Campaigns fourth printing B382; authored unload timing and no additional hold FP approved by user; #191 remains open",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_projectile_readiness.py::test_fast_draw_untrained_rejects_without_mutation"
+      ],
+      "gap": null
+    },
+    {
+      "id": "ProjectileReadiness.fast_draw_seconds",
+      "unit": "Ready maneuvers saved",
+      "reference": "Characters third printing B195/B270; Campaigns fourth printing B382; authored unload timing and no additional hold FP approved by user; #191 remains open",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_projectile_readiness.py::test_fast_draw_preserves_ammunition_and_receipts"
+      ],
+      "gap": null
+    },
+    {
+      "id": "ProjectileReadiness.cocking_aid_definition_id",
+      "unit": "owned equipment reference",
+      "reference": "Characters third printing B195/B270; Campaigns fourth printing B382; authored unload timing and no additional hold FP approved by user; #191 remains open",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_projectile_readiness.py::test_crossbow_missing_aid_rejects_before_dice"
+      ],
+      "gap": null
+    },
+    {
+      "id": "ProjectileReadiness.unload_seconds_per_round",
+      "unit": "authored Ready maneuvers per round; uncertified",
+      "reference": "Characters third printing B195/B270; Campaigns fourth printing B382; authored unload timing and no additional hold FP approved by user; #191 remains open",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_projectile_readiness.py::test_authored_round_unloading_survives_interruption"
+      ],
+      "gap": null
     }
   ],
   "bindings": [
