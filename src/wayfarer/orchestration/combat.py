@@ -497,26 +497,29 @@ class CombatService:
                         or command.second_parry_mode_id is not None
                     ):
                         from wayfarer.orchestration.gurps_melee import mode
-                        from wayfarer.simulation.gurps_equipment import MeleeMode
+                        from wayfarer.simulation.gurps_equipment import MeleeMode, RangedMode
 
                         pending = encounter.pending_defense
                         if (
                             engine.rules.gurps_equipment is None
                             or pending is None
                             or pending.spell_cast_id is not None
-                            or not isinstance(
-                                mode(
-                                    self.play,
-                                    state,
-                                    pending.attacker_id,
-                                    pending.weapon_id,
-                                    pending.mode_id,
-                                ),
-                                MeleeMode,
-                            )
                         ):
                             raise ValidationError(
-                                "Explicit parry damage modes require a melee or unarmed attack"
+                                "Explicit parry damage modes require a weapon or unarmed attack"
+                            )
+                        incoming = mode(
+                            self.play,
+                            state,
+                            pending.attacker_id,
+                            pending.weapon_id,
+                            pending.mode_id,
+                        )
+                        if not isinstance(incoming, MeleeMode) and not (
+                            isinstance(incoming, RangedMode) and incoming.thrown
+                        ):
+                            raise ValidationError(
+                                "Explicit parry damage modes require a parryable attack"
                             )
                     encounter = prepare_defense(self.play, state, encounter, command)
                 if isinstance(command, MigrateEncounterHex):

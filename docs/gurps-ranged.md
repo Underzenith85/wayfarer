@@ -76,6 +76,24 @@ Readied, and broken thrown items retain their condition in `expended_items`.
 Legacy weapon definitions have no breakage certification; their existing
 ordinary drop semantics are retained, while break results remain paused.
 
+The existing tactical-v2 `parry_mode_id` and `second_parry_mode_id` choices also
+select the defending weapon's melee mode against thrown projectiles. The selected
+mode determines both its Parry value and critical self-wound damage, including
+the second defense in All-Out Defense (Double). `ranged-critical-v1` records now
+retain an optional `affected_mode_id`; old records remain readable without
+inferring a missing mode. Missing anatomy still pauses the consequence with the
+declared mode and table intact. Numeric and restart/retry evidence is in
+`tests/test_ranged_critical_parry_context.py` (Campaigns fourth printing B376,
+B556-557); this does not certify the first-printing/errata profile.
+
+Critical-miss weapon drops and critical-hit forced drops now record the holding
+combatant's ground position in the same transaction. Existing local Ready
+retrieval checks that position and ownership; movement cannot carry the dropped
+weapon along or retrieve it remotely. Magazine reservations and item identities
+survive dropping and retrieving the weapon. Breakage keeps its disabled state.
+This does not expose recovery of normally expended thrown items, which remains
+with #287.
+
 Burst critical hits are implemented here, with independent evidence in
 `tests/test_ranged_critical_bursts.py` (Campaigns fourth printing B373, B399,
 B556). #173 now supplies [opt-in conventional firearm malfunctions](gurps-firearms.md):
