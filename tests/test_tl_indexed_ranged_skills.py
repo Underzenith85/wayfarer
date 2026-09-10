@@ -102,7 +102,7 @@ def test_both_families_expand_into_their_indexed_specialties() -> None:
         assert [(d.target, d.modifier) for d in entry.definition.skill.defaults] == [
             ("attribute:dx", -4)
         ]
-        assert entry.blocker_owners["conditional-or-skill-defaults"] == (336, 362)
+        assert entry.blocker_owners["conditional-or-skill-defaults"] == (383, 362)
 
 
 @pytest.mark.parametrize("identifier", [*GUNS, *BEAMS])

@@ -249,5 +249,6 @@ def test_bolas_and_net_are_dispatched_with_their_recorded_mechanics() -> None:
         assert entry.definition.skill.defaults == ()
     # #354 is discharged; only the defaults blocker still names a child.
     assert entries["skill:bolas"].owners == (344,)
-    assert entries["skill:net"].blocker_owners["conditional-or-skill-defaults"] == (336, 362)
+    # #336 split conditional defaults into #383, which now owns the base.
+    assert entries["skill:net"].blocker_owners["conditional-or-skill-defaults"] == (383, 362)
     assert 354 not in {i for e in entries.values() for i in e.followup_issues}

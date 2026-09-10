@@ -24,7 +24,8 @@
       "B301-304 skill index",
       "Campaigns B359 Influence Rolls"
     ],
-    "provenance": "Hand-entered from model knowledge under the provisional implementation policy; artifact verification pending (#336, #191). Expected results are transcribed by hand and never generated from the implementation under test."
+    "owner_note": "Conditional defaults moved from #353 to #383 when #336 split its contextual work; #353 was closed as superseded before this fixture landed.",
+  "provenance": "Hand-entered from model knowledge under the provisional implementation policy; artifact verification pending (#336, #191). Expected results are transcribed by hand and never generated from the implementation under test."
   },
   "procedures": [
     {
@@ -122,7 +123,7 @@
       "dispatched": true,
       "transferred": {
         "conditional-or-skill-defaults": [
-          353
+          383
         ]
       },
       "defaults": [
@@ -150,7 +151,7 @@
           366
         ],
         "conditional-or-skill-defaults": [
-          353
+          383
         ]
       },
       "defaults": [
@@ -197,7 +198,7 @@
       "dispatched": true,
       "transferred": {
         "conditional-or-skill-defaults": [
-          353
+          383
         ]
       },
       "defaults": [
@@ -222,7 +223,7 @@
       "dispatched": true,
       "transferred": {
         "conditional-or-skill-defaults": [
-          353
+          383
         ]
       },
       "defaults": [
@@ -295,7 +296,7 @@
       "dispatched": true,
       "transferred": {
         "conditional-or-skill-defaults": [
-          353
+          383
         ]
       },
       "defaults": [
@@ -323,7 +324,7 @@
       "dispatched": true,
       "transferred": {
         "conditional-or-skill-defaults": [
-          353
+          383
         ]
       },
       "defaults": [
@@ -350,7 +351,7 @@
       "dispatched": true,
       "transferred": {
         "conditional-or-skill-defaults": [
-          353
+          383
         ]
       },
       "defaults": [
@@ -378,7 +379,7 @@
           367
         ],
         "conditional-or-skill-defaults": [
-          353
+          383
         ]
       },
       "defaults": [
@@ -443,7 +444,7 @@
           366
         ],
         "conditional-or-skill-defaults": [
-          353
+          383
         ]
       },
       "defaults": [

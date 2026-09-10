@@ -55,6 +55,9 @@ OWNER: Final = 346
 SPECIALTY_OWNER: Final = 356
 ARTS_OWNER: Final = 338
 CONTEXT_OWNER: Final = 336
+# #336 split its remaining contextual work into concrete children; conditional
+# defaults and alternative prerequisites are owned by #383.
+CONDITIONAL_OWNER: Final = 383
 CAPABILITY_OWNER: Final = 358
 
 RUNTIME_PROCEDURE: Final = "runtime-procedure"
@@ -79,8 +82,8 @@ VEHICLE_ACTIVATION: Final = ("gurps.vehicles.movement",)
 # Contextual blockers this issue does not close; the source review owns them.
 CONTEXT: Final = MappingProxyType(
     {
-        CONDITIONAL_DEFAULTS: (CONTEXT_OWNER,),
-        PREREQUISITE_PROCEDURE: (CONTEXT_OWNER,),
+        CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,),
+        PREREQUISITE_PROCEDURE: (CONDITIONAL_OWNER,),
     }
 )
 
@@ -292,7 +295,7 @@ VEHICLE_FAMILIES: Final = {
             ("sailboat", "Sailboat"),
             ("unpowered", "Unpowered"),
         ),
-        {CONDITIONAL_DEFAULTS: (CONTEXT_OWNER,)},
+        {CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)},
     ),
     "driving": (
         "Driving",
@@ -311,7 +314,7 @@ VEHICLE_FAMILIES: Final = {
             ("motorcycle", "Motorcycle"),
             ("tracked", "Tracked"),
         ),
-        {CONDITIONAL_DEFAULTS: (CONTEXT_OWNER,)},
+        {CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)},
     ),
     "piloting": (
         "Piloting",
@@ -349,7 +352,7 @@ VEHICLE_FAMILIES: Final = {
             ("starship", "Starship"),
             ("submarine", "Submarine"),
         ),
-        {CONDITIONAL_DEFAULTS: (CONTEXT_OWNER,), PREREQUISITE_PROCEDURE: (CONTEXT_OWNER,)},
+        {CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,), PREREQUISITE_PROCEDURE: (CONDITIONAL_OWNER,)},
     ),
     "submarine": (
         "Submarine",
@@ -450,7 +453,9 @@ def _suit(name: str, title: str, defaults: tuple[SkillDefault, ...]) -> Technolo
 
 def _maths(name: str, title: str, *pairs: tuple[str, int]) -> TechnologyProcedure:
     """One concrete Mathematics specialty (B207) with its recorded cross-defaults."""
-    context = {CONDITIONAL_DEFAULTS: (CONTEXT_OWNER,)} if name in ("applied", "surveying") else {}
+    context = (
+        {CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)} if name in ("applied", "surveying") else {}
+    )
     return TechnologyProcedure(
         f"skill:mathematics-{name}",
         f"Mathematics ({title})",
@@ -511,7 +516,7 @@ _SPECIALTY_TRANSFER: Final = {
     RUNTIME_PROCEDURE: (SPECIALTY_OWNER,),
     SPECIALTY_EXPANSION: (SPECIALTY_OWNER,),
     TECHNOLOGY_LEVEL: (SPECIALTY_OWNER,),
-    CONDITIONAL_DEFAULTS: (CONTEXT_OWNER,),
+    CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,),
 }
 
 _ROWS: Final = (
@@ -546,7 +551,7 @@ _ROWS: Final = (
             "skill:vacc-suit",
         ),
         resolved=(RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL),
-        transferred={CONDITIONAL_DEFAULTS: (CONTEXT_OWNER,)},
+        transferred={CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)},
     ),
     _suit(
         "battlesuit",
@@ -574,7 +579,7 @@ _ROWS: Final = (
         _attribute(A.IQ, -5),
         specialties=tuple(f"skill:explosives-{name}" for name, _, _ in EXPLOSIVES_SPECIALTIES),
         resolved=(RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL),
-        transferred={CONDITIONAL_DEFAULTS: (CONTEXT_OWNER,)},
+        transferred={CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)},
     ),
     *(
         TechnologyProcedure(
@@ -587,7 +592,7 @@ _ROWS: Final = (
             specialty=Specialty("explosives", name),
             task=_ordnance(unit),
             resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
-            transferred={CONDITIONAL_DEFAULTS: (CONTEXT_OWNER,)},
+            transferred={CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)},
         )
         for name, label, unit in EXPLOSIVES_SPECIALTIES
     ),
@@ -608,7 +613,7 @@ _ROWS: Final = (
             "skill:mathematics-surveying",
         ),
         resolved=(RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL),
-        transferred={CONDITIONAL_DEFAULTS: (CONTEXT_OWNER,)},
+        transferred={CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)},
     ),
     _maths(
         "applied",
@@ -677,7 +682,7 @@ _ROWS: Final = (
         D.AVERAGE,
         _attribute(A.IQ, -5),
         REPAIR,
-        context={CONDITIONAL_DEFAULTS: (CONTEXT_OWNER,)},
+        context={CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)},
     ),
     # Emplacement.
     _task(
@@ -688,7 +693,7 @@ _ROWS: Final = (
         D.AVERAGE,
         _attribute(A.IQ, -5),
         _ordnance("trap-placed"),
-        context={CONDITIONAL_DEFAULTS: (CONTEXT_OWNER,)},
+        context={CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)},
     ),
     # Information tasks.
     _task(
@@ -699,7 +704,7 @@ _ROWS: Final = (
         D.AVERAGE,
         _attribute(A.IQ, -5),
         _study(),
-        context={CONDITIONAL_DEFAULTS: (CONTEXT_OWNER,)},
+        context={CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)},
     ),
     _task(
         "astronomy",
@@ -719,7 +724,7 @@ _ROWS: Final = (
         D.AVERAGE,
         _attribute(A.IQ, -5),
         _study("mapped-detail"),
-        context={CONDITIONAL_DEFAULTS: (CONTEXT_OWNER,)},
+        context={CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)},
     ),
     _task(
         "chemistry",
@@ -729,7 +734,7 @@ _ROWS: Final = (
         D.HARD,
         _attribute(A.IQ, -6),
         _study(),
-        context={CONDITIONAL_DEFAULTS: (CONTEXT_OWNER,)},
+        context={CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)},
     ),
     _task(
         "computer-operation",
@@ -757,7 +762,7 @@ _ROWS: Final = (
         D.AVERAGE,
         _attribute(A.IQ, -5),
         _study("clue"),
-        context={CONDITIONAL_DEFAULTS: (CONTEXT_OWNER,)},
+        context={CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)},
     ),
     _task(
         "cryptography",
@@ -767,7 +772,7 @@ _ROWS: Final = (
         D.HARD,
         (),
         _study("message-recovered", 1),
-        context={CONDITIONAL_DEFAULTS: (CONTEXT_OWNER,)},
+        context={CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)},
     ),
     _task(
         "forensics",
@@ -777,7 +782,7 @@ _ROWS: Final = (
         D.HARD,
         _attribute(A.IQ, -6),
         _study("clue"),
-        context={CONDITIONAL_DEFAULTS: (CONTEXT_OWNER,)},
+        context={CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)},
     ),
     _task(
         "forward-observer",
@@ -787,7 +792,7 @@ _ROWS: Final = (
         D.AVERAGE,
         _attribute(A.IQ, -5),
         _study("target-designation", 1),
-        context={CONDITIONAL_DEFAULTS: (CONTEXT_OWNER,)},
+        context={CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)},
     ),
     _task(
         "freight-handling",
@@ -806,7 +811,7 @@ _ROWS: Final = (
         D.HARD,
         _attribute(A.IQ, -6),
         _study(),
-        context={CONDITIONAL_DEFAULTS: (CONTEXT_OWNER,)},
+        context={CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)},
     ),
     _task(
         "metallurgy",
@@ -816,7 +821,7 @@ _ROWS: Final = (
         D.HARD,
         (),
         _study(),
-        context={CONDITIONAL_DEFAULTS: (CONTEXT_OWNER,)},
+        context={CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)},
     ),
     _task(
         "physics",
@@ -826,7 +831,7 @@ _ROWS: Final = (
         D.VERY_HARD,
         _attribute(A.IQ, -6),
         _study(),
-        context={PREREQUISITE_PROCEDURE: (CONTEXT_OWNER,)},
+        context={PREREQUISITE_PROCEDURE: (CONDITIONAL_OWNER,)},
     ),
     _task(
         "research",
@@ -837,8 +842,8 @@ _ROWS: Final = (
         _attribute(A.IQ, -5),
         _study(),
         context={
-            CONDITIONAL_DEFAULTS: (CONTEXT_OWNER,),
-            PREREQUISITE_PROCEDURE: (CONTEXT_OWNER,),
+            CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,),
+            PREREQUISITE_PROCEDURE: (CONDITIONAL_OWNER,),
         },
     ),
     # B169/B213 optional Physics specialty, bound through its own dispatch.
@@ -851,7 +856,7 @@ _ROWS: Final = (
         specialty=Specialty("physics", "acoustics", "skill:physics"),
         task=_study(),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
-        transferred={PREREQUISITE_PROCEDURE: (CONTEXT_OWNER,)},
+        transferred={PREREQUISITE_PROCEDURE: (CONDITIONAL_OWNER,)},
     ),
     # B233 techniques: each bounded by its own parent, never by a generic rule.
     # Bought against the concrete Piloting specialty the character flies, so it
@@ -942,7 +947,7 @@ _ROWS: Final = (
         A.IQ,
         D.HARD,
         (),
-        _SPECIALTY_TRANSFER | {PREREQUISITE_PROCEDURE: (CONTEXT_OWNER,)},
+        _SPECIALTY_TRANSFER | {PREREQUISITE_PROCEDURE: (CONDITIONAL_OWNER,)},
     ),
     _transferred(
         "geography", "Geography", 198, A.IQ, D.HARD, _attribute(A.IQ, -6), _SPECIALTY_TRANSFER

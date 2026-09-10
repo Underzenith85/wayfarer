@@ -246,7 +246,7 @@ def test_a_technique_without_its_parent_level_cannot_be_rolled() -> None:
     [
         ("skill:mechanic", "specialty-expansion (#356)"),
         ("skill:motion-picture-camera", "runtime-procedure (#338)"),
-        ("skill:engineer", "prerequisite-procedure (#336)"),
+        ("skill:engineer", "prerequisite-procedure (#383)"),
     ],
 )
 def test_transferred_rows_fail_closed_naming_their_owner(identifier: str, expected: str) -> None:

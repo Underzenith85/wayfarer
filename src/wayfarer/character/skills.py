@@ -14,7 +14,12 @@ from graphlib import CycleError, TopologicalSorter
 from wayfarer.errors import ValidationError
 from wayfarer.rules.catalog import DefinitionKind, ImplementationStatus, RuleDefinition
 from wayfarer.rules.conformance import profile, require_capabilities
-from wayfarer.rules.skill_types import ControllingAttribute, Difficulty, SkillSpec
+from wayfarer.rules.skill_types import (
+    ControllingAttribute,
+    Difficulty,
+    SkillPrerequisite,
+    SkillSpec,
+)
 
 BASIC = "gurps-basic-set-4e-2004"
 LITE = "gurps-lite-4e-2004"
@@ -102,10 +107,19 @@ class SkillCompiler:
         for key, spec in self.specs.items():
             refs = {d.target for d in spec.defaults if d.target not in ControllingAttribute}
             refs.update(p.target for p in spec.prerequisites)
+            refs.update(p.target for group in spec.prerequisite_groups for p in group.alternatives)
             if any(type(d.modifier) is not int or d.modifier > 0 for d in spec.defaults):
                 raise SkillError("skill.definition", "Defaults need integer nonpositive modifiers")
-            if any(type(p.minimum) is not int or p.minimum < 1 for p in spec.prerequisites):
+            alternatives = tuple(p for g in spec.prerequisite_groups for p in g.alternatives)
+            if any(
+                type(p.minimum) is not int or p.minimum < 1
+                for p in tuple(spec.prerequisites) + alternatives
+            ):
                 raise SkillError("skill.definition", "Prerequisites need positive integer levels")
+            if any(len(group.alternatives) < 2 for group in spec.prerequisite_groups):
+                raise SkillError(
+                    "skill.definition", "An alternative set needs at least two alternatives"
+                )
             if len({d.target for d in spec.defaults}) != len(spec.defaults):
                 raise SkillError("skill.definition", "Duplicate skill defaults")
             if spec.specialty is not None:
@@ -192,9 +206,18 @@ class SkillCompiler:
                 continue
             spec = self.specs[key]
             paid = points.get(key, 0)
-            prerequisites = all(
-                p.target in points and p.target in levels and levels[p.target].level >= p.minimum
-                for p in spec.prerequisites
+
+            def satisfied(requirement: SkillPrerequisite) -> bool:
+                target = requirement.target
+                return (
+                    target in points
+                    and target in levels
+                    and levels[target].level >= requirement.minimum
+                )
+
+            # B168: every firm prerequisite, and one alternative from each set.
+            prerequisites = all(satisfied(p) for p in spec.prerequisites) and all(
+                any(satisfied(p) for p in group.alternatives) for group in spec.prerequisite_groups
             )
             if not prerequisites:
                 if paid:

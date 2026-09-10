@@ -55,6 +55,63 @@ class TechniqueRecord(Record):
         return self
 
 
+class PrerequisiteGroupRecord(Record):
+    """An alternative set; satisfying any one member satisfies the requirement."""
+
+    alternatives: Annotated[tuple[Identifier, ...], Field(min_length=2)]
+
+    @model_validator(mode="after")
+    def distinct(self) -> Self:
+        if len(set(self.alternatives)) != len(self.alternatives):
+            raise ValueError("Duplicate prerequisite alternative")
+        return self
+
+
+class TechniqueTemplateRecord(Record):
+    """A B230-233 technique listing before a concrete parent is chosen.
+
+    A template is not a rollable skill, so it records no controlling attribute of
+    its own unless the source overrides the parent's, as ST-based Neck Snap does.
+    """
+
+    difficulty: Difficulty
+    default_modifier: int
+    maximum_modifier: int = 0
+    parents: tuple[Identifier, ...] = ()
+    parent_family: Identifier | None = None
+    attribute: AttributeName | None = None
+
+    @model_validator(mode="after")
+    def coherent(self) -> Self:
+        if self.maximum_modifier < self.default_modifier:
+            raise ValueError("Technique maximum is below its default")
+        if not self.parents and self.parent_family is None:
+            raise ValueError("A technique template needs permitted parents")
+        if len(set(self.parents)) != len(self.parents):
+            raise ValueError("Duplicate permitted parent")
+        return self
+
+
+class VariableFamilyRecord(Record):
+    """A family whose specialties the player defines; no list can enumerate them."""
+
+    subject: Annotated[str, Field(min_length=1)]
+    determination: Literal["mirrors-parent", "chosen-with-subject"]
+    mirrors: Identifier | None = None
+    attribute: AttributeName | None = None
+    difficulty: Difficulty | None = None
+
+    @model_validator(mode="after")
+    def coherent(self) -> Self:
+        if (self.determination == "mirrors-parent") != (self.mirrors is not None):
+            raise ValueError("Only a mirroring family names the family it mirrors")
+        # An open family may fix its difficulty while leaving the controlling
+        # attribute to the subject the player names, but not the reverse.
+        if self.attribute is not None and self.difficulty is None:
+            raise ValueError("A recorded attribute needs its difficulty")
+        return self
+
+
 class InventoryRow(Record):
     id: Identifier
     name: Annotated[str, Field(min_length=1)]
@@ -66,10 +123,16 @@ class InventoryRow(Record):
     prerequisites: tuple[Identifier, ...] = ()
     specialty: SpecialtyRecord | None = None
     technique: TechniqueRecord | None = None
+    template: TechniqueTemplateRecord | None = None
+    variable: VariableFamilyRecord | None = None
+    prerequisite_groups: tuple[PrerequisiteGroupRecord, ...] = ()
     alias_of: Identifier | None = None
     specialty_required: bool = False
     tl_required: bool = False
-    blockers: Annotated[tuple[Blocker, ...], Field(min_length=1)]
+    # A row whose contextual blockers are all resolved keeps the standing
+    # source-delta blocker that `inventory()` adds, so an empty list is not
+    # a claim that the row is clean.
+    blockers: tuple[Blocker, ...] = ()
     issues: Annotated[tuple[Annotated[int, Field(gt=0)], ...], Field(min_length=1)]
     procedure_owner: Annotated[int, Field(gt=0)]
 
@@ -92,6 +155,17 @@ class InventoryRow(Record):
             or self.difficulty not in (Difficulty.AVERAGE, Difficulty.HARD)
         ):
             raise ValueError("Technique mechanics must be parent-relative")
+        if sum(x is not None for x in (self.technique, self.template, self.variable)) > 1:
+            raise ValueError("A row is a technique, a template or a variable family")
+        if (self.template is not None or self.variable is not None) and (
+            self.attribute is not None or self.specialty is not None
+        ):
+            raise ValueError("A template or variable family records no concrete mechanics")
+        if self.prerequisite_groups and self.attribute is None:
+            raise ValueError("Structured mechanics require attribute and difficulty")
+        for group in self.prerequisite_groups:
+            if self.id in group.alternatives or set(group.alternatives) & set(self.prerequisites):
+                raise ValueError("An alternative cannot repeat the row or a firm prerequisite")
         if self.procedure_owner not in self.issues or self.procedure_owner in (112, 191, 336):
             raise ValueError("Every row needs a named procedure owner beyond the audit")
         if 336 not in self.issues:
