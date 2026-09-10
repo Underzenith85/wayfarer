@@ -375,26 +375,25 @@ Will-based targets, optional/required specialties, techniques, reference integri
 and unavailable/unknown IDs. Full specialty expansion and runtime availability
 remain visible item-level blockers under #112 and the indicated mechanics owners.
 
-The candidate `0.2.0` audit validates its inventory and exclusions with strict
-typed records. Defaults, prerequisites and specialty parents must reference
-accounted-for entries; required-specialty and TL flags survive into the report.
-The inventory now contains 257 records, including six Mathematics specialties,
-with 238 structured definitions and 28 exclusions. Twelve entries have complete
-unconditional default lists; conditional defaults remain explicitly blocked.
-Representative fallback definitions are normalized to unsupported just like newly
-indexed entries. These checks improve data integrity without making blocked
-skills playable or changing existing rule-package pins.
+The candidate `0.3.0` audit reconciles an independent B301–B304 source index:
+275 skill listings, 27 named techniques and 11 explicit expansions map to 286
+mundane records plus 28 transferred exclusions. The combined Combat Art or Sport
+listing maps to two records. Missing entries, unindexed additions, invalid parents,
+page drift and transfer drift fail validation. Required contextual specialties
+remain explicitly blocked; these counts do not certify every possible specialty.
 
-Each row is classified by the structure it records, and the audit rejects an
-inventory that leaves any structural class unsampled or any row unclassified.
-Rows without recorded mechanics are reported as `listing-only` rather than as
-partial definitions, and each row's own blockers and certification state reach
-`source_audit` instead of one family status for the chapter. 223 rows still name
-no mechanics owner beyond this audit; the report publishes that count as
-`runtime_owner_unassigned`, a visible #122 blocker. Excluded cinematic and
-supernatural skills are validated against the #119 catalog that owns them, so a
-transfer cannot silently drop a Basic Set skill. The accounting matrix is
-[the mundane skill inventory](gurps-mundane-skills.md).
+There are 254 structured unsupported definitions and 32 listing-only records
+(27 technique templates and five variable families). Previously empty suit,
+crewman and weapon definitions now carry source-indexed metadata, and candidate
+techniques no longer inherit definitions from live packages. Source/printing,
+context and runtime limitations are visible per row. Independent fixtures sample
+all 12 structural classes, numeric defaults, technique caps and reference failures.
+
+Every remaining blocker has a named owner: #336 owns source/context reconciliation,
+and #338–#346 own specific procedure inventories. `runtime_owner_unassigned` is
+zero. Item-level owners and unsupported/listing-only states reach `source_audit`.
+All candidates remain unavailable; no saved profile/package pin changes. See
+[the mundane skill inventory](gurps-mundane-skills.md) for the coverage matrix.
 
 ## Provisional social procedures (#111)
 

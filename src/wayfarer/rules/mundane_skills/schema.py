@@ -18,6 +18,8 @@ Blocker = Literal[
     "technology-level-context",
     "variable-family-metadata",
     "weapon-default-audit",
+    "technique-expansion",
+    "optional-rule-selection",
 ]
 
 
@@ -41,6 +43,18 @@ class SpecialtyRecord(Record):
     optional_parent: Identifier | None = None
 
 
+class TechniqueRecord(Record):
+    parent: Identifier
+    default_modifier: int
+    maximum_modifier: int = 0
+
+    @model_validator(mode="after")
+    def coherent(self) -> Self:
+        if self.maximum_modifier < self.default_modifier:
+            raise ValueError("Technique maximum is below its default")
+        return self
+
+
 class InventoryRow(Record):
     id: Identifier
     name: Annotated[str, Field(min_length=1)]
@@ -51,19 +65,37 @@ class InventoryRow(Record):
     skill_defaults: tuple[SkillDefaultRecord, ...] = ()
     prerequisites: tuple[Identifier, ...] = ()
     specialty: SpecialtyRecord | None = None
+    technique: TechniqueRecord | None = None
+    alias_of: Identifier | None = None
     specialty_required: bool = False
     tl_required: bool = False
     blockers: Annotated[tuple[Blocker, ...], Field(min_length=1)]
     issues: Annotated[tuple[Annotated[int, Field(gt=0)], ...], Field(min_length=1)]
+    procedure_owner: Annotated[int, Field(gt=0)]
 
     @model_validator(mode="after")
     def coherent(self) -> Self:
         if (self.attribute is None) != (self.difficulty is None):
             raise ValueError("Attribute and difficulty must be recorded together")
         if self.attribute is None and (
-            self.attribute_defaults or self.skill_defaults or self.prerequisites or self.specialty
+            self.attribute_defaults
+            or self.skill_defaults
+            or self.prerequisites
+            or self.specialty
+            or self.technique
         ):
             raise ValueError("Structured mechanics require attribute and difficulty")
+        if self.technique and (
+            self.attribute_defaults
+            or self.skill_defaults
+            or self.specialty
+            or self.difficulty not in (Difficulty.AVERAGE, Difficulty.HARD)
+        ):
+            raise ValueError("Technique mechanics must be parent-relative")
+        if self.procedure_owner not in self.issues or self.procedure_owner in (112, 191, 336):
+            raise ValueError("Every row needs a named procedure owner beyond the audit")
+        if 336 not in self.issues:
+            raise ValueError("Provisional metadata must retain its source/context owner")
         if (
             self.specialty_required
             and not self.specialty
@@ -103,3 +135,28 @@ class Exclusion(Record):
 class Exclusions(Record):
     scope: Annotated[str, Field(min_length=1)]
     excluded: tuple[Exclusion, ...]
+
+
+class SourceIndexEntry(Record):
+    id: Identifier
+    name: Annotated[str, Field(min_length=1)]
+    page: Annotated[int, Field(ge=168, le=233)]
+    kind: Literal["skill", "technique", "expansion"]
+    targets: Annotated[tuple[Identifier, ...], Field(min_length=1)]
+    parent: Identifier | None = None
+
+    @model_validator(mode="after")
+    def coherent(self) -> Self:
+        if (self.kind == "expansion") != (self.parent is not None):
+            raise ValueError("Only an expansion must identify its source parent")
+        if len(set(self.targets)) != len(self.targets):
+            raise ValueError("Duplicate source index targets")
+        return self
+
+
+class SourceIndex(Record):
+    observed_source: Annotated[str, Field(min_length=1)]
+    sha256: Annotated[str, Field(pattern=r"^[a-f0-9]{64}$")]
+    index_reference: Annotated[str, Field(min_length=1)]
+    baseline_reconciled: Literal[False]
+    entries: tuple[SourceIndexEntry, ...]

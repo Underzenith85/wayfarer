@@ -1,0 +1,2837 @@
+{
+  "observed_source": "GURPS Basic Set: Characters, Fourth Edition, third printing (2008), ISBN 978-1-55634-729-0",
+  "sha256": "872b5fece8f4013bf46825b397ef52b52c865fa2879f4544f055d9b6caecf47e",
+  "index_reference": "B301-B304; chapter examples B168-B233",
+  "baseline_reconciled": false,
+  "entries": [
+    {
+      "id": "accounting",
+      "name": "Accounting",
+      "page": 174,
+      "kind": "skill",
+      "targets": [
+        "accounting"
+      ]
+    },
+    {
+      "id": "acrobatics",
+      "name": "Acrobatics",
+      "page": 174,
+      "kind": "skill",
+      "targets": [
+        "acrobatics"
+      ]
+    },
+    {
+      "id": "acting",
+      "name": "Acting",
+      "page": 174,
+      "kind": "skill",
+      "targets": [
+        "acting"
+      ]
+    },
+    {
+      "id": "administration",
+      "name": "Administration",
+      "page": 174,
+      "kind": "skill",
+      "targets": [
+        "administration"
+      ]
+    },
+    {
+      "id": "aerobatics",
+      "name": "Aerobatics",
+      "page": 174,
+      "kind": "skill",
+      "targets": [
+        "aerobatics"
+      ]
+    },
+    {
+      "id": "airshipman",
+      "name": "Airshipman",
+      "page": 185,
+      "kind": "skill",
+      "targets": [
+        "airshipman"
+      ]
+    },
+    {
+      "id": "alchemy",
+      "name": "Alchemy",
+      "page": 174,
+      "kind": "skill",
+      "targets": [
+        "alchemy"
+      ]
+    },
+    {
+      "id": "animal-handling",
+      "name": "Animal Handling",
+      "page": 175,
+      "kind": "skill",
+      "targets": [
+        "animal-handling"
+      ]
+    },
+    {
+      "id": "anthropology",
+      "name": "Anthropology",
+      "page": 175,
+      "kind": "skill",
+      "targets": [
+        "anthropology"
+      ]
+    },
+    {
+      "id": "aquabatics",
+      "name": "Aquabatics",
+      "page": 174,
+      "kind": "skill",
+      "targets": [
+        "aquabatics"
+      ]
+    },
+    {
+      "id": "archaeology",
+      "name": "Archaeology",
+      "page": 176,
+      "kind": "skill",
+      "targets": [
+        "archaeology"
+      ]
+    },
+    {
+      "id": "architecture",
+      "name": "Architecture",
+      "page": 176,
+      "kind": "skill",
+      "targets": [
+        "architecture"
+      ]
+    },
+    {
+      "id": "area-knowledge",
+      "name": "Area Knowledge",
+      "page": 176,
+      "kind": "skill",
+      "targets": [
+        "area-knowledge"
+      ]
+    },
+    {
+      "id": "arm-lock",
+      "name": "Arm Lock",
+      "page": 230,
+      "kind": "technique",
+      "targets": [
+        "arm-lock"
+      ]
+    },
+    {
+      "id": "arm-lock-judo",
+      "name": "Arm Lock (Judo)",
+      "page": 230,
+      "kind": "expansion",
+      "targets": [
+        "arm-lock-judo"
+      ],
+      "parent": "arm-lock"
+    },
+    {
+      "id": "armoury",
+      "name": "Armoury",
+      "page": 178,
+      "kind": "skill",
+      "targets": [
+        "armoury"
+      ]
+    },
+    {
+      "id": "artillery",
+      "name": "Artillery",
+      "page": 178,
+      "kind": "skill",
+      "targets": [
+        "artillery"
+      ]
+    },
+    {
+      "id": "artist",
+      "name": "Artist",
+      "page": 179,
+      "kind": "skill",
+      "targets": [
+        "artist"
+      ]
+    },
+    {
+      "id": "astronomy",
+      "name": "Astronomy",
+      "page": 179,
+      "kind": "skill",
+      "targets": [
+        "astronomy"
+      ]
+    },
+    {
+      "id": "autohypnosis",
+      "name": "Autohypnosis",
+      "page": 179,
+      "kind": "skill",
+      "targets": [
+        "autohypnosis"
+      ]
+    },
+    {
+      "id": "axe-mace",
+      "name": "Axe/Mace",
+      "page": 208,
+      "kind": "skill",
+      "targets": [
+        "axe-mace"
+      ]
+    },
+    {
+      "id": "back-kick",
+      "name": "Back Kick",
+      "page": 230,
+      "kind": "technique",
+      "targets": [
+        "back-kick"
+      ]
+    },
+    {
+      "id": "bartender",
+      "name": "Bartender",
+      "page": 216,
+      "kind": "expansion",
+      "targets": [
+        "bartender"
+      ],
+      "parent": "professional-skill"
+    },
+    {
+      "id": "battlesuit",
+      "name": "Battlesuit",
+      "page": 192,
+      "kind": "skill",
+      "targets": [
+        "battlesuit"
+      ]
+    },
+    {
+      "id": "beam-weapons",
+      "name": "Beam Weapons",
+      "page": 179,
+      "kind": "skill",
+      "targets": [
+        "beam-weapons"
+      ]
+    },
+    {
+      "id": "bicycling",
+      "name": "Bicycling",
+      "page": 180,
+      "kind": "skill",
+      "targets": [
+        "bicycling"
+      ]
+    },
+    {
+      "id": "bioengineering",
+      "name": "Bioengineering",
+      "page": 180,
+      "kind": "skill",
+      "targets": [
+        "bioengineering"
+      ]
+    },
+    {
+      "id": "biology",
+      "name": "Biology",
+      "page": 180,
+      "kind": "skill",
+      "targets": [
+        "biology"
+      ]
+    },
+    {
+      "id": "blind-fighting",
+      "name": "Blind Fighting",
+      "page": 180,
+      "kind": "skill",
+      "targets": [
+        "blind-fighting"
+      ]
+    },
+    {
+      "id": "blowpipe",
+      "name": "Blowpipe",
+      "page": 180,
+      "kind": "skill",
+      "targets": [
+        "blowpipe"
+      ]
+    },
+    {
+      "id": "boating",
+      "name": "Boating",
+      "page": 180,
+      "kind": "skill",
+      "targets": [
+        "boating"
+      ]
+    },
+    {
+      "id": "body-control",
+      "name": "Body Control",
+      "page": 181,
+      "kind": "skill",
+      "targets": [
+        "body-control"
+      ]
+    },
+    {
+      "id": "body-language",
+      "name": "Body Language",
+      "page": 181,
+      "kind": "skill",
+      "targets": [
+        "body-language"
+      ]
+    },
+    {
+      "id": "body-sense",
+      "name": "Body Sense",
+      "page": 181,
+      "kind": "skill",
+      "targets": [
+        "body-sense"
+      ]
+    },
+    {
+      "id": "bolas",
+      "name": "Bolas",
+      "page": 181,
+      "kind": "skill",
+      "targets": [
+        "bolas"
+      ]
+    },
+    {
+      "id": "bow",
+      "name": "Bow",
+      "page": 182,
+      "kind": "skill",
+      "targets": [
+        "bow"
+      ]
+    },
+    {
+      "id": "boxing",
+      "name": "Boxing",
+      "page": 182,
+      "kind": "skill",
+      "targets": [
+        "boxing"
+      ]
+    },
+    {
+      "id": "brain-hacking",
+      "name": "Brain Hacking",
+      "page": 182,
+      "kind": "skill",
+      "targets": [
+        "brain-hacking"
+      ]
+    },
+    {
+      "id": "brainwashing",
+      "name": "Brainwashing",
+      "page": 182,
+      "kind": "skill",
+      "targets": [
+        "brainwashing"
+      ]
+    },
+    {
+      "id": "brawling",
+      "name": "Brawling",
+      "page": 182,
+      "kind": "skill",
+      "targets": [
+        "brawling"
+      ]
+    },
+    {
+      "id": "breaking-blow",
+      "name": "Breaking Blow",
+      "page": 182,
+      "kind": "skill",
+      "targets": [
+        "breaking-blow"
+      ]
+    },
+    {
+      "id": "breath-control",
+      "name": "Breath Control",
+      "page": 182,
+      "kind": "skill",
+      "targets": [
+        "breath-control"
+      ]
+    },
+    {
+      "id": "broadsword",
+      "name": "Broadsword",
+      "page": 208,
+      "kind": "skill",
+      "targets": [
+        "broadsword"
+      ]
+    },
+    {
+      "id": "camouflage",
+      "name": "Camouflage",
+      "page": 183,
+      "kind": "skill",
+      "targets": [
+        "camouflage"
+      ]
+    },
+    {
+      "id": "captivate",
+      "name": "Captivate",
+      "page": 191,
+      "kind": "skill",
+      "targets": [
+        "captivate"
+      ]
+    },
+    {
+      "id": "carousing",
+      "name": "Carousing",
+      "page": 183,
+      "kind": "skill",
+      "targets": [
+        "carousing"
+      ]
+    },
+    {
+      "id": "carpentry",
+      "name": "Carpentry",
+      "page": 183,
+      "kind": "skill",
+      "targets": [
+        "carpentry"
+      ]
+    },
+    {
+      "id": "cartography",
+      "name": "Cartography",
+      "page": 183,
+      "kind": "skill",
+      "targets": [
+        "cartography"
+      ]
+    },
+    {
+      "id": "chemistry",
+      "name": "Chemistry",
+      "page": 183,
+      "kind": "skill",
+      "targets": [
+        "chemistry"
+      ]
+    },
+    {
+      "id": "choke-hold",
+      "name": "Choke Hold",
+      "page": 230,
+      "kind": "technique",
+      "targets": [
+        "choke-hold"
+      ]
+    },
+    {
+      "id": "climbing",
+      "name": "Climbing",
+      "page": 183,
+      "kind": "skill",
+      "targets": [
+        "climbing"
+      ]
+    },
+    {
+      "id": "cloak",
+      "name": "Cloak",
+      "page": 184,
+      "kind": "skill",
+      "targets": [
+        "cloak"
+      ]
+    },
+    {
+      "id": "combat-art-or-sport",
+      "name": "Combat Art or Sport",
+      "page": 184,
+      "kind": "skill",
+      "targets": [
+        "combat-art",
+        "combat-sport"
+      ]
+    },
+    {
+      "id": "computer-hacking",
+      "name": "Computer Hacking",
+      "page": 184,
+      "kind": "skill",
+      "targets": [
+        "computer-hacking"
+      ]
+    },
+    {
+      "id": "computer-operation",
+      "name": "Computer Operation",
+      "page": 184,
+      "kind": "skill",
+      "targets": [
+        "computer-operation"
+      ]
+    },
+    {
+      "id": "computer-programming",
+      "name": "Computer Programming",
+      "page": 184,
+      "kind": "skill",
+      "targets": [
+        "computer-programming"
+      ]
+    },
+    {
+      "id": "connoisseur",
+      "name": "Connoisseur",
+      "page": 185,
+      "kind": "skill",
+      "targets": [
+        "connoisseur"
+      ]
+    },
+    {
+      "id": "cooking",
+      "name": "Cooking",
+      "page": 185,
+      "kind": "skill",
+      "targets": [
+        "cooking"
+      ]
+    },
+    {
+      "id": "counterfeiting",
+      "name": "Counterfeiting",
+      "page": 185,
+      "kind": "skill",
+      "targets": [
+        "counterfeiting"
+      ]
+    },
+    {
+      "id": "crewman",
+      "name": "Crewman",
+      "page": 185,
+      "kind": "skill",
+      "targets": [
+        "crewman"
+      ]
+    },
+    {
+      "id": "criminology",
+      "name": "Criminology",
+      "page": 186,
+      "kind": "skill",
+      "targets": [
+        "criminology"
+      ]
+    },
+    {
+      "id": "crossbow",
+      "name": "Crossbow",
+      "page": 186,
+      "kind": "skill",
+      "targets": [
+        "crossbow"
+      ]
+    },
+    {
+      "id": "cryptography",
+      "name": "Cryptography",
+      "page": 186,
+      "kind": "skill",
+      "targets": [
+        "cryptography"
+      ]
+    },
+    {
+      "id": "current-affairs",
+      "name": "Current Affairs",
+      "page": 186,
+      "kind": "skill",
+      "targets": [
+        "current-affairs"
+      ]
+    },
+    {
+      "id": "dancing",
+      "name": "Dancing",
+      "page": 187,
+      "kind": "skill",
+      "targets": [
+        "dancing"
+      ]
+    },
+    {
+      "id": "detect-lies",
+      "name": "Detect Lies",
+      "page": 187,
+      "kind": "skill",
+      "targets": [
+        "detect-lies"
+      ]
+    },
+    {
+      "id": "diagnosis",
+      "name": "Diagnosis",
+      "page": 187,
+      "kind": "skill",
+      "targets": [
+        "diagnosis"
+      ]
+    },
+    {
+      "id": "diplomacy",
+      "name": "Diplomacy",
+      "page": 187,
+      "kind": "skill",
+      "targets": [
+        "diplomacy"
+      ]
+    },
+    {
+      "id": "disarming",
+      "name": "Disarming",
+      "page": 230,
+      "kind": "technique",
+      "targets": [
+        "disarming"
+      ]
+    },
+    {
+      "id": "disguise",
+      "name": "Disguise",
+      "page": 187,
+      "kind": "skill",
+      "targets": [
+        "disguise"
+      ]
+    },
+    {
+      "id": "diving-suit",
+      "name": "Diving Suit",
+      "page": 192,
+      "kind": "skill",
+      "targets": [
+        "diving-suit"
+      ]
+    },
+    {
+      "id": "dreaming",
+      "name": "Dreaming",
+      "page": 188,
+      "kind": "skill",
+      "targets": [
+        "dreaming"
+      ]
+    },
+    {
+      "id": "driving",
+      "name": "Driving",
+      "page": 188,
+      "kind": "skill",
+      "targets": [
+        "driving"
+      ]
+    },
+    {
+      "id": "dropping",
+      "name": "Dropping",
+      "page": 189,
+      "kind": "skill",
+      "targets": [
+        "dropping"
+      ]
+    },
+    {
+      "id": "dual-weapon-attack",
+      "name": "Dual-Weapon Attack",
+      "page": 230,
+      "kind": "technique",
+      "targets": [
+        "dual-weapon-attack"
+      ]
+    },
+    {
+      "id": "economics",
+      "name": "Economics",
+      "page": 189,
+      "kind": "skill",
+      "targets": [
+        "economics"
+      ]
+    },
+    {
+      "id": "elbow-strike",
+      "name": "Elbow Strike",
+      "page": 230,
+      "kind": "technique",
+      "targets": [
+        "elbow-strike"
+      ]
+    },
+    {
+      "id": "electrician",
+      "name": "Electrician",
+      "page": 189,
+      "kind": "skill",
+      "targets": [
+        "electrician"
+      ]
+    },
+    {
+      "id": "electronics-operation",
+      "name": "Electronics Operation",
+      "page": 189,
+      "kind": "skill",
+      "targets": [
+        "electronics-operation"
+      ]
+    },
+    {
+      "id": "electronics-repair",
+      "name": "Electronics Repair",
+      "page": 190,
+      "kind": "skill",
+      "targets": [
+        "electronics-repair"
+      ]
+    },
+    {
+      "id": "engineer",
+      "name": "Engineer",
+      "page": 190,
+      "kind": "skill",
+      "targets": [
+        "engineer"
+      ]
+    },
+    {
+      "id": "enthrallment",
+      "name": "Enthrallment",
+      "page": 191,
+      "kind": "skill",
+      "targets": [
+        "enthrallment"
+      ]
+    },
+    {
+      "id": "environment-suit",
+      "name": "Environment Suit",
+      "page": 192,
+      "kind": "skill",
+      "targets": [
+        "environment-suit"
+      ]
+    },
+    {
+      "id": "erotic-art",
+      "name": "Erotic Art",
+      "page": 192,
+      "kind": "skill",
+      "targets": [
+        "erotic-art"
+      ]
+    },
+    {
+      "id": "escape",
+      "name": "Escape",
+      "page": 192,
+      "kind": "skill",
+      "targets": [
+        "escape"
+      ]
+    },
+    {
+      "id": "esoteric-medicine",
+      "name": "Esoteric Medicine",
+      "page": 192,
+      "kind": "skill",
+      "targets": [
+        "esoteric-medicine"
+      ]
+    },
+    {
+      "id": "exorcism",
+      "name": "Exorcism",
+      "page": 193,
+      "kind": "skill",
+      "targets": [
+        "exorcism"
+      ]
+    },
+    {
+      "id": "expert-skill",
+      "name": "Expert Skill",
+      "page": 193,
+      "kind": "skill",
+      "targets": [
+        "expert-skill"
+      ]
+    },
+    {
+      "id": "explosives",
+      "name": "Explosives",
+      "page": 194,
+      "kind": "skill",
+      "targets": [
+        "explosives"
+      ]
+    },
+    {
+      "id": "falconry",
+      "name": "Falconry",
+      "page": 194,
+      "kind": "skill",
+      "targets": [
+        "falconry"
+      ]
+    },
+    {
+      "id": "farming",
+      "name": "Farming",
+      "page": 194,
+      "kind": "skill",
+      "targets": [
+        "farming"
+      ]
+    },
+    {
+      "id": "fast-draw",
+      "name": "Fast-Draw",
+      "page": 194,
+      "kind": "skill",
+      "targets": [
+        "fast-draw"
+      ]
+    },
+    {
+      "id": "fast-talk",
+      "name": "Fast-Talk",
+      "page": 195,
+      "kind": "skill",
+      "targets": [
+        "fast-talk"
+      ]
+    },
+    {
+      "id": "feint",
+      "name": "Feint",
+      "page": 231,
+      "kind": "technique",
+      "targets": [
+        "feint"
+      ]
+    },
+    {
+      "id": "filch",
+      "name": "Filch",
+      "page": 195,
+      "kind": "skill",
+      "targets": [
+        "filch"
+      ]
+    },
+    {
+      "id": "finance",
+      "name": "Finance",
+      "page": 195,
+      "kind": "skill",
+      "targets": [
+        "finance"
+      ]
+    },
+    {
+      "id": "finger-lock",
+      "name": "Finger Lock",
+      "page": 231,
+      "kind": "technique",
+      "targets": [
+        "finger-lock"
+      ]
+    },
+    {
+      "id": "fire-eating",
+      "name": "Fire Eating",
+      "page": 195,
+      "kind": "skill",
+      "targets": [
+        "fire-eating"
+      ]
+    },
+    {
+      "id": "first-aid",
+      "name": "First Aid",
+      "page": 195,
+      "kind": "skill",
+      "targets": [
+        "first-aid"
+      ]
+    },
+    {
+      "id": "fishing",
+      "name": "Fishing",
+      "page": 195,
+      "kind": "skill",
+      "targets": [
+        "fishing"
+      ]
+    },
+    {
+      "id": "flail",
+      "name": "Flail",
+      "page": 208,
+      "kind": "skill",
+      "targets": [
+        "flail"
+      ]
+    },
+    {
+      "id": "flight",
+      "name": "Flight",
+      "page": 195,
+      "kind": "skill",
+      "targets": [
+        "flight"
+      ]
+    },
+    {
+      "id": "flying-leap",
+      "name": "Flying Leap",
+      "page": 196,
+      "kind": "skill",
+      "targets": [
+        "flying-leap"
+      ]
+    },
+    {
+      "id": "force-sword",
+      "name": "Force Sword",
+      "page": 208,
+      "kind": "skill",
+      "targets": [
+        "force-sword"
+      ]
+    },
+    {
+      "id": "force-whip",
+      "name": "Force Whip",
+      "page": 209,
+      "kind": "skill",
+      "targets": [
+        "force-whip"
+      ]
+    },
+    {
+      "id": "forced-entry",
+      "name": "Forced Entry",
+      "page": 196,
+      "kind": "skill",
+      "targets": [
+        "forced-entry"
+      ]
+    },
+    {
+      "id": "forensics",
+      "name": "Forensics",
+      "page": 196,
+      "kind": "skill",
+      "targets": [
+        "forensics"
+      ]
+    },
+    {
+      "id": "forgery",
+      "name": "Forgery",
+      "page": 196,
+      "kind": "skill",
+      "targets": [
+        "forgery"
+      ]
+    },
+    {
+      "id": "fortune-telling",
+      "name": "Fortune-Telling",
+      "page": 196,
+      "kind": "skill",
+      "targets": [
+        "fortune-telling"
+      ]
+    },
+    {
+      "id": "forward-observer",
+      "name": "Forward Observer",
+      "page": 196,
+      "kind": "skill",
+      "targets": [
+        "forward-observer"
+      ]
+    },
+    {
+      "id": "free-fall",
+      "name": "Free Fall",
+      "page": 197,
+      "kind": "skill",
+      "targets": [
+        "free-fall"
+      ]
+    },
+    {
+      "id": "freight-handling",
+      "name": "Freight Handling",
+      "page": 197,
+      "kind": "skill",
+      "targets": [
+        "freight-handling"
+      ]
+    },
+    {
+      "id": "gambling",
+      "name": "Gambling",
+      "page": 197,
+      "kind": "skill",
+      "targets": [
+        "gambling"
+      ]
+    },
+    {
+      "id": "games",
+      "name": "Games",
+      "page": 197,
+      "kind": "skill",
+      "targets": [
+        "games"
+      ]
+    },
+    {
+      "id": "gardening",
+      "name": "Gardening",
+      "page": 197,
+      "kind": "skill",
+      "targets": [
+        "gardening"
+      ]
+    },
+    {
+      "id": "garrote",
+      "name": "Garrote",
+      "page": 197,
+      "kind": "skill",
+      "targets": [
+        "garrote"
+      ]
+    },
+    {
+      "id": "geography",
+      "name": "Geography",
+      "page": 198,
+      "kind": "skill",
+      "targets": [
+        "geography"
+      ]
+    },
+    {
+      "id": "geology",
+      "name": "Geology",
+      "page": 198,
+      "kind": "skill",
+      "targets": [
+        "geology"
+      ]
+    },
+    {
+      "id": "gesture",
+      "name": "Gesture",
+      "page": 198,
+      "kind": "skill",
+      "targets": [
+        "gesture"
+      ]
+    },
+    {
+      "id": "ground-fighting",
+      "name": "Ground Fighting",
+      "page": 231,
+      "kind": "technique",
+      "targets": [
+        "ground-fighting"
+      ]
+    },
+    {
+      "id": "group-performance",
+      "name": "Group Performance",
+      "page": 198,
+      "kind": "skill",
+      "targets": [
+        "group-performance"
+      ]
+    },
+    {
+      "id": "gunner",
+      "name": "Gunner",
+      "page": 198,
+      "kind": "skill",
+      "targets": [
+        "gunner"
+      ]
+    },
+    {
+      "id": "guns",
+      "name": "Guns",
+      "page": 198,
+      "kind": "skill",
+      "targets": [
+        "guns"
+      ]
+    },
+    {
+      "id": "hazardous-materials",
+      "name": "Hazardous Materials",
+      "page": 199,
+      "kind": "skill",
+      "targets": [
+        "hazardous-materials"
+      ]
+    },
+    {
+      "id": "heraldry",
+      "name": "Heraldry",
+      "page": 199,
+      "kind": "skill",
+      "targets": [
+        "heraldry"
+      ]
+    },
+    {
+      "id": "herb-lore",
+      "name": "Herb Lore",
+      "page": 199,
+      "kind": "skill",
+      "targets": [
+        "herb-lore"
+      ]
+    },
+    {
+      "id": "hidden-lore",
+      "name": "Hidden Lore",
+      "page": 199,
+      "kind": "skill",
+      "targets": [
+        "hidden-lore"
+      ]
+    },
+    {
+      "id": "hiking",
+      "name": "Hiking",
+      "page": 200,
+      "kind": "skill",
+      "targets": [
+        "hiking"
+      ]
+    },
+    {
+      "id": "history",
+      "name": "History",
+      "page": 200,
+      "kind": "skill",
+      "targets": [
+        "history"
+      ]
+    },
+    {
+      "id": "hobby-skill",
+      "name": "Hobby Skill",
+      "page": 200,
+      "kind": "skill",
+      "targets": [
+        "hobby-skill"
+      ]
+    },
+    {
+      "id": "holdout",
+      "name": "Holdout",
+      "page": 200,
+      "kind": "skill",
+      "targets": [
+        "holdout"
+      ]
+    },
+    {
+      "id": "horse-archery",
+      "name": "Horse Archery",
+      "page": 231,
+      "kind": "technique",
+      "targets": [
+        "horse-archery"
+      ]
+    },
+    {
+      "id": "housekeeping",
+      "name": "Housekeeping",
+      "page": 200,
+      "kind": "skill",
+      "targets": [
+        "housekeeping"
+      ]
+    },
+    {
+      "id": "hypnotism",
+      "name": "Hypnotism",
+      "page": 201,
+      "kind": "skill",
+      "targets": [
+        "hypnotism"
+      ]
+    },
+    {
+      "id": "immovable-stance",
+      "name": "Immovable Stance",
+      "page": 201,
+      "kind": "skill",
+      "targets": [
+        "immovable-stance"
+      ]
+    },
+    {
+      "id": "impersonate",
+      "name": "Impersonate",
+      "page": 233,
+      "kind": "technique",
+      "targets": [
+        "impersonate"
+      ]
+    },
+    {
+      "id": "innate-attack",
+      "name": "Innate Attack",
+      "page": 201,
+      "kind": "skill",
+      "targets": [
+        "innate-attack"
+      ]
+    },
+    {
+      "id": "intelligence-analysis",
+      "name": "Intelligence Analysis",
+      "page": 201,
+      "kind": "skill",
+      "targets": [
+        "intelligence-analysis"
+      ]
+    },
+    {
+      "id": "interrogation",
+      "name": "Interrogation",
+      "page": 202,
+      "kind": "skill",
+      "targets": [
+        "interrogation"
+      ]
+    },
+    {
+      "id": "intimidation",
+      "name": "Intimidation",
+      "page": 202,
+      "kind": "skill",
+      "targets": [
+        "intimidation"
+      ]
+    },
+    {
+      "id": "invisibility-art",
+      "name": "Invisibility Art",
+      "page": 202,
+      "kind": "skill",
+      "targets": [
+        "invisibility-art"
+      ]
+    },
+    {
+      "id": "jeweler",
+      "name": "Jeweler",
+      "page": 203,
+      "kind": "skill",
+      "targets": [
+        "jeweler"
+      ]
+    },
+    {
+      "id": "jitte-sai",
+      "name": "Jitte/Sai",
+      "page": 208,
+      "kind": "skill",
+      "targets": [
+        "jitte-sai"
+      ]
+    },
+    {
+      "id": "judo",
+      "name": "Judo",
+      "page": 203,
+      "kind": "skill",
+      "targets": [
+        "judo"
+      ]
+    },
+    {
+      "id": "jump-kick",
+      "name": "Jump Kick",
+      "page": 231,
+      "kind": "technique",
+      "targets": [
+        "jump-kick"
+      ]
+    },
+    {
+      "id": "jumping",
+      "name": "Jumping",
+      "page": 203,
+      "kind": "skill",
+      "targets": [
+        "jumping"
+      ]
+    },
+    {
+      "id": "karate",
+      "name": "Karate",
+      "page": 203,
+      "kind": "skill",
+      "targets": [
+        "karate"
+      ]
+    },
+    {
+      "id": "kiai",
+      "name": "Kiai",
+      "page": 203,
+      "kind": "skill",
+      "targets": [
+        "kiai"
+      ]
+    },
+    {
+      "id": "kicking",
+      "name": "Kicking",
+      "page": 231,
+      "kind": "technique",
+      "targets": [
+        "kicking"
+      ]
+    },
+    {
+      "id": "kicking-karate",
+      "name": "Kicking (Karate)",
+      "page": 231,
+      "kind": "expansion",
+      "targets": [
+        "kicking-karate"
+      ],
+      "parent": "kicking"
+    },
+    {
+      "id": "knee-strike",
+      "name": "Knee Strike",
+      "page": 232,
+      "kind": "technique",
+      "targets": [
+        "knee-strike"
+      ]
+    },
+    {
+      "id": "knife",
+      "name": "Knife",
+      "page": 208,
+      "kind": "skill",
+      "targets": [
+        "knife"
+      ]
+    },
+    {
+      "id": "knot-tying",
+      "name": "Knot-Tying",
+      "page": 203,
+      "kind": "skill",
+      "targets": [
+        "knot-tying"
+      ]
+    },
+    {
+      "id": "kusari",
+      "name": "Kusari",
+      "page": 209,
+      "kind": "skill",
+      "targets": [
+        "kusari"
+      ]
+    },
+    {
+      "id": "lance",
+      "name": "Lance",
+      "page": 204,
+      "kind": "skill",
+      "targets": [
+        "lance"
+      ]
+    },
+    {
+      "id": "lasso",
+      "name": "Lasso",
+      "page": 204,
+      "kind": "skill",
+      "targets": [
+        "lasso"
+      ]
+    },
+    {
+      "id": "law",
+      "name": "Law",
+      "page": 204,
+      "kind": "skill",
+      "targets": [
+        "law"
+      ]
+    },
+    {
+      "id": "leadership",
+      "name": "Leadership",
+      "page": 204,
+      "kind": "skill",
+      "targets": [
+        "leadership"
+      ]
+    },
+    {
+      "id": "leatherworking",
+      "name": "Leatherworking",
+      "page": 205,
+      "kind": "skill",
+      "targets": [
+        "leatherworking"
+      ]
+    },
+    {
+      "id": "lifesaving",
+      "name": "Lifesaving",
+      "page": 233,
+      "kind": "technique",
+      "targets": [
+        "lifesaving"
+      ]
+    },
+    {
+      "id": "lifting",
+      "name": "Lifting",
+      "page": 205,
+      "kind": "skill",
+      "targets": [
+        "lifting"
+      ]
+    },
+    {
+      "id": "light-walk",
+      "name": "Light Walk",
+      "page": 205,
+      "kind": "skill",
+      "targets": [
+        "light-walk"
+      ]
+    },
+    {
+      "id": "linguistics",
+      "name": "Linguistics",
+      "page": 205,
+      "kind": "skill",
+      "targets": [
+        "linguistics"
+      ]
+    },
+    {
+      "id": "lip-reading",
+      "name": "Lip Reading",
+      "page": 205,
+      "kind": "skill",
+      "targets": [
+        "lip-reading"
+      ]
+    },
+    {
+      "id": "liquid-projector",
+      "name": "Liquid Projector",
+      "page": 205,
+      "kind": "skill",
+      "targets": [
+        "liquid-projector"
+      ]
+    },
+    {
+      "id": "literature",
+      "name": "Literature",
+      "page": 205,
+      "kind": "skill",
+      "targets": [
+        "literature"
+      ]
+    },
+    {
+      "id": "lockpicking",
+      "name": "Lockpicking",
+      "page": 206,
+      "kind": "skill",
+      "targets": [
+        "lockpicking"
+      ]
+    },
+    {
+      "id": "machinist",
+      "name": "Machinist",
+      "page": 206,
+      "kind": "skill",
+      "targets": [
+        "machinist"
+      ]
+    },
+    {
+      "id": "main-gauche",
+      "name": "Main-Gauche",
+      "page": 208,
+      "kind": "skill",
+      "targets": [
+        "main-gauche"
+      ]
+    },
+    {
+      "id": "makeup",
+      "name": "Makeup",
+      "page": 206,
+      "kind": "skill",
+      "targets": [
+        "makeup"
+      ]
+    },
+    {
+      "id": "market-analysis",
+      "name": "Market Analysis",
+      "page": 207,
+      "kind": "skill",
+      "targets": [
+        "market-analysis"
+      ]
+    },
+    {
+      "id": "masonry",
+      "name": "Masonry",
+      "page": 207,
+      "kind": "skill",
+      "targets": [
+        "masonry"
+      ]
+    },
+    {
+      "id": "mathematics",
+      "name": "Mathematics",
+      "page": 207,
+      "kind": "skill",
+      "targets": [
+        "mathematics"
+      ]
+    },
+    {
+      "id": "mathematics-applied",
+      "name": "Mathematics (Applied)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mathematics-applied"
+      ],
+      "parent": "mathematics"
+    },
+    {
+      "id": "mathematics-computer-science",
+      "name": "Mathematics (Computer Science)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mathematics-computer-science"
+      ],
+      "parent": "mathematics"
+    },
+    {
+      "id": "mathematics-cryptology",
+      "name": "Mathematics (Cryptology)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mathematics-cryptology"
+      ],
+      "parent": "mathematics"
+    },
+    {
+      "id": "mathematics-pure",
+      "name": "Mathematics (Pure)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mathematics-pure"
+      ],
+      "parent": "mathematics"
+    },
+    {
+      "id": "mathematics-statistics",
+      "name": "Mathematics (Statistics)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mathematics-statistics"
+      ],
+      "parent": "mathematics"
+    },
+    {
+      "id": "mathematics-surveying",
+      "name": "Mathematics (Surveying)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mathematics-surveying"
+      ],
+      "parent": "mathematics"
+    },
+    {
+      "id": "mechanic",
+      "name": "Mechanic",
+      "page": 207,
+      "kind": "skill",
+      "targets": [
+        "mechanic"
+      ]
+    },
+    {
+      "id": "meditation",
+      "name": "Meditation",
+      "page": 207,
+      "kind": "skill",
+      "targets": [
+        "meditation"
+      ]
+    },
+    {
+      "id": "melee-weapon",
+      "name": "Melee Weapon",
+      "page": 208,
+      "kind": "skill",
+      "targets": [
+        "melee-weapon"
+      ]
+    },
+    {
+      "id": "mental-strength",
+      "name": "Mental Strength",
+      "page": 209,
+      "kind": "skill",
+      "targets": [
+        "mental-strength"
+      ]
+    },
+    {
+      "id": "merchant",
+      "name": "Merchant",
+      "page": 209,
+      "kind": "skill",
+      "targets": [
+        "merchant"
+      ]
+    },
+    {
+      "id": "metallurgy",
+      "name": "Metallurgy",
+      "page": 209,
+      "kind": "skill",
+      "targets": [
+        "metallurgy"
+      ]
+    },
+    {
+      "id": "meteorology",
+      "name": "Meteorology",
+      "page": 209,
+      "kind": "skill",
+      "targets": [
+        "meteorology"
+      ]
+    },
+    {
+      "id": "mimicry",
+      "name": "Mimicry",
+      "page": 210,
+      "kind": "skill",
+      "targets": [
+        "mimicry"
+      ]
+    },
+    {
+      "id": "mind-block",
+      "name": "Mind Block",
+      "page": 210,
+      "kind": "skill",
+      "targets": [
+        "mind-block"
+      ]
+    },
+    {
+      "id": "monowire-whip",
+      "name": "Monowire Whip",
+      "page": 209,
+      "kind": "skill",
+      "targets": [
+        "monowire-whip"
+      ]
+    },
+    {
+      "id": "motion-picture-camera",
+      "name": "Motion-Picture Camera",
+      "page": 233,
+      "kind": "technique",
+      "targets": [
+        "motion-picture-camera"
+      ]
+    },
+    {
+      "id": "mount",
+      "name": "Mount",
+      "page": 210,
+      "kind": "skill",
+      "targets": [
+        "mount"
+      ]
+    },
+    {
+      "id": "musical-composition",
+      "name": "Musical Composition",
+      "page": 210,
+      "kind": "skill",
+      "targets": [
+        "musical-composition"
+      ]
+    },
+    {
+      "id": "musical-influence",
+      "name": "Musical Influence",
+      "page": 210,
+      "kind": "skill",
+      "targets": [
+        "musical-influence"
+      ]
+    },
+    {
+      "id": "musical-instrument",
+      "name": "Musical Instrument",
+      "page": 211,
+      "kind": "skill",
+      "targets": [
+        "musical-instrument"
+      ]
+    },
+    {
+      "id": "naturalist",
+      "name": "Naturalist",
+      "page": 211,
+      "kind": "skill",
+      "targets": [
+        "naturalist"
+      ]
+    },
+    {
+      "id": "navigation",
+      "name": "Navigation",
+      "page": 211,
+      "kind": "skill",
+      "targets": [
+        "navigation"
+      ]
+    },
+    {
+      "id": "nbc-suit",
+      "name": "NBC Suit",
+      "page": 192,
+      "kind": "skill",
+      "targets": [
+        "nbc-suit"
+      ]
+    },
+    {
+      "id": "neck-snap",
+      "name": "Neck Snap",
+      "page": 232,
+      "kind": "technique",
+      "targets": [
+        "neck-snap"
+      ]
+    },
+    {
+      "id": "net",
+      "name": "Net",
+      "page": 211,
+      "kind": "skill",
+      "targets": [
+        "net"
+      ]
+    },
+    {
+      "id": "no-landing-extraction",
+      "name": "No-Landing Extraction",
+      "page": 233,
+      "kind": "technique",
+      "targets": [
+        "no-landing-extraction"
+      ]
+    },
+    {
+      "id": "observation",
+      "name": "Observation",
+      "page": 211,
+      "kind": "skill",
+      "targets": [
+        "observation"
+      ]
+    },
+    {
+      "id": "occultism",
+      "name": "Occultism",
+      "page": 212,
+      "kind": "skill",
+      "targets": [
+        "occultism"
+      ]
+    },
+    {
+      "id": "off-hand-weapon-training",
+      "name": "Off-Hand Weapon Training",
+      "page": 232,
+      "kind": "technique",
+      "targets": [
+        "off-hand-weapon-training"
+      ]
+    },
+    {
+      "id": "packing",
+      "name": "Packing",
+      "page": 212,
+      "kind": "skill",
+      "targets": [
+        "packing"
+      ]
+    },
+    {
+      "id": "paleontology",
+      "name": "Paleontology",
+      "page": 212,
+      "kind": "skill",
+      "targets": [
+        "paleontology"
+      ]
+    },
+    {
+      "id": "panhandling",
+      "name": "Panhandling",
+      "page": 212,
+      "kind": "skill",
+      "targets": [
+        "panhandling"
+      ]
+    },
+    {
+      "id": "parachuting",
+      "name": "Parachuting",
+      "page": 212,
+      "kind": "skill",
+      "targets": [
+        "parachuting"
+      ]
+    },
+    {
+      "id": "parry-missile-weapons",
+      "name": "Parry Missile Weapons",
+      "page": 212,
+      "kind": "skill",
+      "targets": [
+        "parry-missile-weapons"
+      ]
+    },
+    {
+      "id": "performance",
+      "name": "Performance",
+      "page": 212,
+      "kind": "skill",
+      "targets": [
+        "performance"
+      ]
+    },
+    {
+      "id": "persuade",
+      "name": "Persuade",
+      "page": 191,
+      "kind": "skill",
+      "targets": [
+        "persuade"
+      ]
+    },
+    {
+      "id": "pharmacy",
+      "name": "Pharmacy",
+      "page": 213,
+      "kind": "skill",
+      "targets": [
+        "pharmacy"
+      ]
+    },
+    {
+      "id": "philosophy",
+      "name": "Philosophy",
+      "page": 213,
+      "kind": "skill",
+      "targets": [
+        "philosophy"
+      ]
+    },
+    {
+      "id": "photography",
+      "name": "Photography",
+      "page": 213,
+      "kind": "skill",
+      "targets": [
+        "photography"
+      ]
+    },
+    {
+      "id": "physician",
+      "name": "Physician",
+      "page": 213,
+      "kind": "skill",
+      "targets": [
+        "physician"
+      ]
+    },
+    {
+      "id": "physics",
+      "name": "Physics",
+      "page": 213,
+      "kind": "skill",
+      "targets": [
+        "physics"
+      ]
+    },
+    {
+      "id": "physics-acoustics",
+      "name": "Physics (Acoustics)",
+      "page": 213,
+      "kind": "expansion",
+      "targets": [
+        "physics-acoustics"
+      ],
+      "parent": "physics"
+    },
+    {
+      "id": "physiology",
+      "name": "Physiology",
+      "page": 213,
+      "kind": "skill",
+      "targets": [
+        "physiology"
+      ]
+    },
+    {
+      "id": "pickpocket",
+      "name": "Pickpocket",
+      "page": 213,
+      "kind": "skill",
+      "targets": [
+        "pickpocket"
+      ]
+    },
+    {
+      "id": "piloting",
+      "name": "Piloting",
+      "page": 214,
+      "kind": "skill",
+      "targets": [
+        "piloting"
+      ]
+    },
+    {
+      "id": "poetry",
+      "name": "Poetry",
+      "page": 214,
+      "kind": "skill",
+      "targets": [
+        "poetry"
+      ]
+    },
+    {
+      "id": "poisons",
+      "name": "Poisons",
+      "page": 214,
+      "kind": "skill",
+      "targets": [
+        "poisons"
+      ]
+    },
+    {
+      "id": "polearm",
+      "name": "Polearm",
+      "page": 208,
+      "kind": "skill",
+      "targets": [
+        "polearm"
+      ]
+    },
+    {
+      "id": "politics",
+      "name": "Politics",
+      "page": 215,
+      "kind": "skill",
+      "targets": [
+        "politics"
+      ]
+    },
+    {
+      "id": "power-blow",
+      "name": "Power Blow",
+      "page": 215,
+      "kind": "skill",
+      "targets": [
+        "power-blow"
+      ]
+    },
+    {
+      "id": "pressure-points",
+      "name": "Pressure Points",
+      "page": 215,
+      "kind": "skill",
+      "targets": [
+        "pressure-points"
+      ]
+    },
+    {
+      "id": "pressure-secrets",
+      "name": "Pressure Secrets",
+      "page": 215,
+      "kind": "skill",
+      "targets": [
+        "pressure-secrets"
+      ]
+    },
+    {
+      "id": "professional-skill",
+      "name": "Professional Skill",
+      "page": 215,
+      "kind": "skill",
+      "targets": [
+        "professional-skill"
+      ]
+    },
+    {
+      "id": "propaganda",
+      "name": "Propaganda",
+      "page": 216,
+      "kind": "skill",
+      "targets": [
+        "propaganda"
+      ]
+    },
+    {
+      "id": "prospecting",
+      "name": "Prospecting",
+      "page": 216,
+      "kind": "skill",
+      "targets": [
+        "prospecting"
+      ]
+    },
+    {
+      "id": "psychology",
+      "name": "Psychology",
+      "page": 216,
+      "kind": "skill",
+      "targets": [
+        "psychology"
+      ]
+    },
+    {
+      "id": "public-speaking",
+      "name": "Public Speaking",
+      "page": 216,
+      "kind": "skill",
+      "targets": [
+        "public-speaking"
+      ]
+    },
+    {
+      "id": "push",
+      "name": "Push",
+      "page": 216,
+      "kind": "skill",
+      "targets": [
+        "push"
+      ]
+    },
+    {
+      "id": "rapier",
+      "name": "Rapier",
+      "page": 208,
+      "kind": "skill",
+      "targets": [
+        "rapier"
+      ]
+    },
+    {
+      "id": "religious-ritual",
+      "name": "Religious Ritual",
+      "page": 217,
+      "kind": "skill",
+      "targets": [
+        "religious-ritual"
+      ]
+    },
+    {
+      "id": "research",
+      "name": "Research",
+      "page": 217,
+      "kind": "skill",
+      "targets": [
+        "research"
+      ]
+    },
+    {
+      "id": "retain-weapon",
+      "name": "Retain Weapon",
+      "page": 232,
+      "kind": "technique",
+      "targets": [
+        "retain-weapon"
+      ]
+    },
+    {
+      "id": "riding",
+      "name": "Riding",
+      "page": 217,
+      "kind": "skill",
+      "targets": [
+        "riding"
+      ]
+    },
+    {
+      "id": "ritual-magic",
+      "name": "Ritual Magic",
+      "page": 218,
+      "kind": "skill",
+      "targets": [
+        "ritual-magic"
+      ]
+    },
+    {
+      "id": "rope-up",
+      "name": "Rope Up",
+      "page": 233,
+      "kind": "technique",
+      "targets": [
+        "rope-up"
+      ]
+    },
+    {
+      "id": "running",
+      "name": "Running",
+      "page": 218,
+      "kind": "skill",
+      "targets": [
+        "running"
+      ]
+    },
+    {
+      "id": "saber",
+      "name": "Saber",
+      "page": 208,
+      "kind": "skill",
+      "targets": [
+        "saber"
+      ]
+    },
+    {
+      "id": "savoir-faire",
+      "name": "Savoir-Faire",
+      "page": 218,
+      "kind": "skill",
+      "targets": [
+        "savoir-faire"
+      ]
+    },
+    {
+      "id": "scaling",
+      "name": "Scaling",
+      "page": 233,
+      "kind": "technique",
+      "targets": [
+        "scaling"
+      ]
+    },
+    {
+      "id": "scrounging",
+      "name": "Scrounging",
+      "page": 218,
+      "kind": "skill",
+      "targets": [
+        "scrounging"
+      ]
+    },
+    {
+      "id": "scuba",
+      "name": "Scuba",
+      "page": 219,
+      "kind": "skill",
+      "targets": [
+        "scuba"
+      ]
+    },
+    {
+      "id": "seamanship",
+      "name": "Seamanship",
+      "page": 185,
+      "kind": "skill",
+      "targets": [
+        "seamanship"
+      ]
+    },
+    {
+      "id": "search",
+      "name": "Search",
+      "page": 219,
+      "kind": "skill",
+      "targets": [
+        "search"
+      ]
+    },
+    {
+      "id": "set-trap",
+      "name": "Set Trap",
+      "page": 233,
+      "kind": "technique",
+      "targets": [
+        "set-trap"
+      ]
+    },
+    {
+      "id": "sewing",
+      "name": "Sewing",
+      "page": 219,
+      "kind": "skill",
+      "targets": [
+        "sewing"
+      ]
+    },
+    {
+      "id": "sex-appeal",
+      "name": "Sex Appeal",
+      "page": 219,
+      "kind": "skill",
+      "targets": [
+        "sex-appeal"
+      ]
+    },
+    {
+      "id": "shadowing",
+      "name": "Shadowing",
+      "page": 219,
+      "kind": "skill",
+      "targets": [
+        "shadowing"
+      ]
+    },
+    {
+      "id": "shield",
+      "name": "Shield",
+      "page": 220,
+      "kind": "skill",
+      "targets": [
+        "shield"
+      ]
+    },
+    {
+      "id": "shiphandling",
+      "name": "Shiphandling",
+      "page": 220,
+      "kind": "skill",
+      "targets": [
+        "shiphandling"
+      ]
+    },
+    {
+      "id": "shortsword",
+      "name": "Shortsword",
+      "page": 209,
+      "kind": "skill",
+      "targets": [
+        "shortsword"
+      ]
+    },
+    {
+      "id": "singing",
+      "name": "Singing",
+      "page": 220,
+      "kind": "skill",
+      "targets": [
+        "singing"
+      ]
+    },
+    {
+      "id": "skating",
+      "name": "Skating",
+      "page": 220,
+      "kind": "skill",
+      "targets": [
+        "skating"
+      ]
+    },
+    {
+      "id": "skiing",
+      "name": "Skiing",
+      "page": 221,
+      "kind": "skill",
+      "targets": [
+        "skiing"
+      ]
+    },
+    {
+      "id": "sleight-of-hand",
+      "name": "Sleight of Hand",
+      "page": 221,
+      "kind": "skill",
+      "targets": [
+        "sleight-of-hand"
+      ]
+    },
+    {
+      "id": "sling",
+      "name": "Sling",
+      "page": 221,
+      "kind": "skill",
+      "targets": [
+        "sling"
+      ]
+    },
+    {
+      "id": "slip-handcuffs",
+      "name": "Slip Handcuffs",
+      "page": 233,
+      "kind": "technique",
+      "targets": [
+        "slip-handcuffs"
+      ]
+    },
+    {
+      "id": "smallsword",
+      "name": "Smallsword",
+      "page": 208,
+      "kind": "skill",
+      "targets": [
+        "smallsword"
+      ]
+    },
+    {
+      "id": "smith",
+      "name": "Smith",
+      "page": 221,
+      "kind": "skill",
+      "targets": [
+        "smith"
+      ]
+    },
+    {
+      "id": "smuggling",
+      "name": "Smuggling",
+      "page": 221,
+      "kind": "skill",
+      "targets": [
+        "smuggling"
+      ]
+    },
+    {
+      "id": "sociology",
+      "name": "Sociology",
+      "page": 221,
+      "kind": "skill",
+      "targets": [
+        "sociology"
+      ]
+    },
+    {
+      "id": "soldier",
+      "name": "Soldier",
+      "page": 221,
+      "kind": "skill",
+      "targets": [
+        "soldier"
+      ]
+    },
+    {
+      "id": "spacer",
+      "name": "Spacer",
+      "page": 185,
+      "kind": "skill",
+      "targets": [
+        "spacer"
+      ]
+    },
+    {
+      "id": "spear",
+      "name": "Spear",
+      "page": 208,
+      "kind": "skill",
+      "targets": [
+        "spear"
+      ]
+    },
+    {
+      "id": "spear-thrower",
+      "name": "Spear Thrower",
+      "page": 222,
+      "kind": "skill",
+      "targets": [
+        "spear-thrower"
+      ]
+    },
+    {
+      "id": "speed-reading",
+      "name": "Speed-Reading",
+      "page": 222,
+      "kind": "skill",
+      "targets": [
+        "speed-reading"
+      ]
+    },
+    {
+      "id": "sports",
+      "name": "Sports",
+      "page": 222,
+      "kind": "skill",
+      "targets": [
+        "sports"
+      ]
+    },
+    {
+      "id": "staff",
+      "name": "Staff",
+      "page": 208,
+      "kind": "skill",
+      "targets": [
+        "staff"
+      ]
+    },
+    {
+      "id": "stage-combat",
+      "name": "Stage Combat",
+      "page": 222,
+      "kind": "skill",
+      "targets": [
+        "stage-combat"
+      ]
+    },
+    {
+      "id": "stealth",
+      "name": "Stealth",
+      "page": 222,
+      "kind": "skill",
+      "targets": [
+        "stealth"
+      ]
+    },
+    {
+      "id": "strategy",
+      "name": "Strategy",
+      "page": 222,
+      "kind": "skill",
+      "targets": [
+        "strategy"
+      ]
+    },
+    {
+      "id": "streetwise",
+      "name": "Streetwise",
+      "page": 223,
+      "kind": "skill",
+      "targets": [
+        "streetwise"
+      ]
+    },
+    {
+      "id": "submarine",
+      "name": "Submarine",
+      "page": 223,
+      "kind": "skill",
+      "targets": [
+        "submarine"
+      ]
+    },
+    {
+      "id": "submariner",
+      "name": "Submariner",
+      "page": 185,
+      "kind": "skill",
+      "targets": [
+        "submariner"
+      ]
+    },
+    {
+      "id": "suggest",
+      "name": "Suggest",
+      "page": 191,
+      "kind": "skill",
+      "targets": [
+        "suggest"
+      ]
+    },
+    {
+      "id": "sumo-wrestling",
+      "name": "Sumo Wrestling",
+      "page": 223,
+      "kind": "skill",
+      "targets": [
+        "sumo-wrestling"
+      ]
+    },
+    {
+      "id": "surgery",
+      "name": "Surgery",
+      "page": 223,
+      "kind": "skill",
+      "targets": [
+        "surgery"
+      ]
+    },
+    {
+      "id": "survival",
+      "name": "Survival",
+      "page": 223,
+      "kind": "skill",
+      "targets": [
+        "survival"
+      ]
+    },
+    {
+      "id": "survival-woodlands",
+      "name": "Survival (Woodlands)",
+      "page": 223,
+      "kind": "expansion",
+      "targets": [
+        "survival-woodlands"
+      ],
+      "parent": "survival"
+    },
+    {
+      "id": "sway-emotions",
+      "name": "Sway Emotions",
+      "page": 192,
+      "kind": "skill",
+      "targets": [
+        "sway-emotions"
+      ]
+    },
+    {
+      "id": "sweep",
+      "name": "Sweep",
+      "page": 232,
+      "kind": "technique",
+      "targets": [
+        "sweep"
+      ]
+    },
+    {
+      "id": "swimming",
+      "name": "Swimming",
+      "page": 224,
+      "kind": "skill",
+      "targets": [
+        "swimming"
+      ]
+    },
+    {
+      "id": "symbol-drawing",
+      "name": "Symbol Drawing",
+      "page": 224,
+      "kind": "skill",
+      "targets": [
+        "symbol-drawing"
+      ]
+    },
+    {
+      "id": "tactics",
+      "name": "Tactics",
+      "page": 224,
+      "kind": "skill",
+      "targets": [
+        "tactics"
+      ]
+    },
+    {
+      "id": "teaching",
+      "name": "Teaching",
+      "page": 224,
+      "kind": "skill",
+      "targets": [
+        "teaching"
+      ]
+    },
+    {
+      "id": "teamster",
+      "name": "Teamster",
+      "page": 225,
+      "kind": "skill",
+      "targets": [
+        "teamster"
+      ]
+    },
+    {
+      "id": "thaumatology",
+      "name": "Thaumatology",
+      "page": 225,
+      "kind": "skill",
+      "targets": [
+        "thaumatology"
+      ]
+    },
+    {
+      "id": "theology",
+      "name": "Theology",
+      "page": 226,
+      "kind": "skill",
+      "targets": [
+        "theology"
+      ]
+    },
+    {
+      "id": "throwing",
+      "name": "Throwing",
+      "page": 226,
+      "kind": "skill",
+      "targets": [
+        "throwing"
+      ]
+    },
+    {
+      "id": "throwing-art",
+      "name": "Throwing Art",
+      "page": 226,
+      "kind": "skill",
+      "targets": [
+        "throwing-art"
+      ]
+    },
+    {
+      "id": "thrown-weapon",
+      "name": "Thrown Weapon",
+      "page": 226,
+      "kind": "skill",
+      "targets": [
+        "thrown-weapon"
+      ]
+    },
+    {
+      "id": "tonfa",
+      "name": "Tonfa",
+      "page": 209,
+      "kind": "skill",
+      "targets": [
+        "tonfa"
+      ]
+    },
+    {
+      "id": "tracking",
+      "name": "Tracking",
+      "page": 226,
+      "kind": "skill",
+      "targets": [
+        "tracking"
+      ]
+    },
+    {
+      "id": "traps",
+      "name": "Traps",
+      "page": 226,
+      "kind": "skill",
+      "targets": [
+        "traps"
+      ]
+    },
+    {
+      "id": "two-handed-axe-mace",
+      "name": "Two-Handed Axe/Mace",
+      "page": 208,
+      "kind": "skill",
+      "targets": [
+        "two-handed-axe-mace"
+      ]
+    },
+    {
+      "id": "two-handed-flail",
+      "name": "Two-Handed Flail",
+      "page": 208,
+      "kind": "skill",
+      "targets": [
+        "two-handed-flail"
+      ]
+    },
+    {
+      "id": "two-handed-sword",
+      "name": "Two-Handed Sword",
+      "page": 209,
+      "kind": "skill",
+      "targets": [
+        "two-handed-sword"
+      ]
+    },
+    {
+      "id": "typing",
+      "name": "Typing",
+      "page": 228,
+      "kind": "skill",
+      "targets": [
+        "typing"
+      ]
+    },
+    {
+      "id": "urban-survival",
+      "name": "Urban Survival",
+      "page": 228,
+      "kind": "skill",
+      "targets": [
+        "urban-survival"
+      ]
+    },
+    {
+      "id": "vacc-suit",
+      "name": "Vacc Suit",
+      "page": 192,
+      "kind": "skill",
+      "targets": [
+        "vacc-suit"
+      ]
+    },
+    {
+      "id": "ventriloquism",
+      "name": "Ventriloquism",
+      "page": 228,
+      "kind": "skill",
+      "targets": [
+        "ventriloquism"
+      ]
+    },
+    {
+      "id": "veterinary",
+      "name": "Veterinary",
+      "page": 228,
+      "kind": "skill",
+      "targets": [
+        "veterinary"
+      ]
+    },
+    {
+      "id": "weather-sense",
+      "name": "Weather Sense",
+      "page": 209,
+      "kind": "skill",
+      "targets": [
+        "weather-sense"
+      ]
+    },
+    {
+      "id": "weird-science",
+      "name": "Weird Science",
+      "page": 228,
+      "kind": "skill",
+      "targets": [
+        "weird-science"
+      ]
+    },
+    {
+      "id": "whip",
+      "name": "Whip",
+      "page": 209,
+      "kind": "skill",
+      "targets": [
+        "whip"
+      ]
+    },
+    {
+      "id": "whirlwind-attack",
+      "name": "Whirlwind Attack",
+      "page": 232,
+      "kind": "technique",
+      "targets": [
+        "whirlwind-attack"
+      ]
+    },
+    {
+      "id": "work-by-touch",
+      "name": "Work by Touch",
+      "page": 233,
+      "kind": "technique",
+      "targets": [
+        "work-by-touch"
+      ]
+    },
+    {
+      "id": "wrestling",
+      "name": "Wrestling",
+      "page": 228,
+      "kind": "skill",
+      "targets": [
+        "wrestling"
+      ]
+    },
+    {
+      "id": "writing",
+      "name": "Writing",
+      "page": 228,
+      "kind": "skill",
+      "targets": [
+        "writing"
+      ]
+    },
+    {
+      "id": "zen-archery",
+      "name": "Zen Archery",
+      "page": 228,
+      "kind": "skill",
+      "targets": [
+        "zen-archery"
+      ]
+    }
+  ]
+}
