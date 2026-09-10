@@ -159,6 +159,66 @@
       ]
     },
     {
+      "id": "artillery-beams",
+      "name": "Artillery (Beams)",
+      "page": 178,
+      "kind": "expansion",
+      "targets": [
+        "artillery-beams"
+      ],
+      "parent": "artillery"
+    },
+    {
+      "id": "artillery-bombs",
+      "name": "Artillery (Bombs)",
+      "page": 178,
+      "kind": "expansion",
+      "targets": [
+        "artillery-bombs"
+      ],
+      "parent": "artillery"
+    },
+    {
+      "id": "artillery-cannon",
+      "name": "Artillery (Cannon)",
+      "page": 178,
+      "kind": "expansion",
+      "targets": [
+        "artillery-cannon"
+      ],
+      "parent": "artillery"
+    },
+    {
+      "id": "artillery-catapult",
+      "name": "Artillery (Catapult)",
+      "page": 178,
+      "kind": "expansion",
+      "targets": [
+        "artillery-catapult"
+      ],
+      "parent": "artillery"
+    },
+    {
+      "id": "artillery-guided-missile",
+      "name": "Artillery (Guided Missile)",
+      "page": 178,
+      "kind": "expansion",
+      "targets": [
+        "artillery-guided-missile"
+      ],
+      "parent": "artillery"
+    },
+    {
+      "id": "artillery-torpedoes",
+      "name": "Artillery (Torpedoes)",
+      "page": 178,
+      "kind": "expansion",
+      "targets": [
+        "artillery-torpedoes"
+      ],
+      "parent": "artillery"
+    },
+    {
       "id": "artist",
       "name": "Artist",
       "page": 179,
@@ -1714,6 +1774,56 @@
       "targets": [
         "gunner"
       ]
+    },
+    {
+      "id": "gunner-beams",
+      "name": "Gunner (Beams)",
+      "page": 198,
+      "kind": "expansion",
+      "targets": [
+        "gunner-beams"
+      ],
+      "parent": "gunner"
+    },
+    {
+      "id": "gunner-cannon",
+      "name": "Gunner (Cannon)",
+      "page": 198,
+      "kind": "expansion",
+      "targets": [
+        "gunner-cannon"
+      ],
+      "parent": "gunner"
+    },
+    {
+      "id": "gunner-machine-gun",
+      "name": "Gunner (Machine Gun)",
+      "page": 198,
+      "kind": "expansion",
+      "targets": [
+        "gunner-machine-gun"
+      ],
+      "parent": "gunner"
+    },
+    {
+      "id": "gunner-rockets",
+      "name": "Gunner (Rockets)",
+      "page": 198,
+      "kind": "expansion",
+      "targets": [
+        "gunner-rockets"
+      ],
+      "parent": "gunner"
+    },
+    {
+      "id": "gunner-torpedoes",
+      "name": "Gunner (Torpedoes)",
+      "page": 198,
+      "kind": "expansion",
+      "targets": [
+        "gunner-torpedoes"
+      ],
+      "parent": "gunner"
     },
     {
       "id": "guns",

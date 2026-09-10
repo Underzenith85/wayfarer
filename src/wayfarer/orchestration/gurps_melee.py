@@ -209,10 +209,25 @@ def mode(
     )
     hands = item_hands(state, actor_id, item_id)
     hp = next(p for p in state.resources.pools if p.id == f"hp:{actor_id}")
-    if hp.injury and hp.injury.anatomy == "human" and len(hands) != selected.hands:
+    mount = selected.mount if isinstance(selected, RangedMode) else None
+    if mount is not None:
+        # The mount bears the weapon: the crew, not a grip, is what validates
+        # the shot, and everyone it needs must still be serving it (#357).
+        crew = item.mount_crew
+        if actor_id not in crew:
+            raise ValidationError("A mounted weapon is fired by its own crew")
+        if len(crew) != mount.crew:
+            raise ValidationError("A mounted weapon needs its full crew")
+        for member in crew:
+            pool = next((p for p in state.resources.pools if p.id == f"hp:{member}"), None)
+            if pool is None or pool.injury is None or pool.injury.incapacitated:
+                raise ValidationError("A mounted weapon needs every crew member serving it")
+    elif hp.injury and hp.injury.anatomy == "human" and len(hands) != selected.hands:
         raise ValidationError("Human weapon mode requires explicit matching hand bindings")
-    if unavailable and (
-        len(hands) != selected.hands or any(unavailable_hand(unavailable, h) for h in hands)
+    if (
+        mount is None
+        and unavailable
+        and (len(hands) != selected.hands or any(unavailable_hand(unavailable, h) for h in hands))
     ):
         raise ValidationError(
             "Selected grip uses a crippled hand or requires explicit hand bindings"
@@ -229,7 +244,7 @@ def mode(
             for e in catalog(play).entries
         )
     )
-    if selected.hands + held_others > 2:
+    if mount is None and selected.hands + held_others > 2:
         raise ValidationError("Selected grip exceeds available hands")
     require_skill_procedure(catalog(play).profile_id, selected)
     require_technology(

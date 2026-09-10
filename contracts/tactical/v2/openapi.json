@@ -1281,6 +1281,16 @@
             "title": "Escape Entanglement",
             "type": "boolean"
           },
+          "mount_crew": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Mount Crew",
+            "type": "array"
+          },
           "firearm_service": {
             "anyOf": [
               {

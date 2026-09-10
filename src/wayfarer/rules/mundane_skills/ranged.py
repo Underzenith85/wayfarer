@@ -69,6 +69,9 @@ class WeaponClass:
     tight_beam: bool = False
     # Conventional firearm metadata (#372) belongs to conventional firearms.
     conventional_firearm: bool | None = None
+    # Whether the mode must carry pinned mount facts. A crew-served or
+    # vehicle-mounted skill needs them; a held weapon's skill must not have them.
+    mounted: bool = False
     # The only B270 rated weapon ST (#348) this skill may carry, if any.
     rated_kind: Literal["bow", "crossbow"] | None = None
 
@@ -90,6 +93,17 @@ GUN: Final = WeaponClass(
     maximum_recoil=20,
     technology_level_indexed=True,
     conventional_firearm=None,
+)
+# Crew-served and vehicle-mounted weapons (#357). The mount bears the weapon,
+# so the firer's own grip and ST are not what validate the shot.
+MOUNTED: Final = WeaponClass(
+    thrown=False,
+    ammunition=True,
+    maximum_rate_of_fire=100,
+    maximum_recoil=20,
+    technology_level_indexed=True,
+    tight_beam=True,
+    mounted=True,
 )
 BEAM: Final = WeaponClass(
     thrown=False,
@@ -450,6 +464,8 @@ _ROWS: Final = (
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
         transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
+    # B178/B198: crew-served and vehicle-mounted families, expanded into
+    # concrete specialties that each fire from a mount rather than a grip (#357).
     RangedProcedure(
         "skill:artillery",
         "Artillery",
@@ -457,9 +473,83 @@ _ROWS: Final = (
         A.IQ,
         D.AVERAGE,
         (SkillDefault(A.IQ, -5),),
-        transferred=dict.fromkeys(
-            (RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL), (357,)
+        specialties=tuple(
+            f"skill:artillery-{key}"
+            for key in ("beams", "bombs", "cannon", "catapult", "guided-missile", "torpedoes")
         ),
+        resolved=(RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL),
+    ),
+    RangedProcedure(
+        "skill:artillery-beams",
+        "Artillery (Beams)",
+        178,
+        A.IQ,
+        D.AVERAGE,
+        (SkillDefault(A.IQ, -5),),
+        MOUNTED,
+        Specialty("artillery", "beams"),
+        resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
+    ),
+    RangedProcedure(
+        "skill:artillery-bombs",
+        "Artillery (Bombs)",
+        178,
+        A.IQ,
+        D.AVERAGE,
+        (SkillDefault(A.IQ, -5),),
+        MOUNTED,
+        Specialty("artillery", "bombs"),
+        resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
+    ),
+    RangedProcedure(
+        "skill:artillery-cannon",
+        "Artillery (Cannon)",
+        178,
+        A.IQ,
+        D.AVERAGE,
+        (SkillDefault(A.IQ, -5),),
+        MOUNTED,
+        Specialty("artillery", "cannon"),
+        resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
+    ),
+    RangedProcedure(
+        "skill:artillery-catapult",
+        "Artillery (Catapult)",
+        178,
+        A.IQ,
+        D.AVERAGE,
+        (SkillDefault(A.IQ, -5),),
+        MOUNTED,
+        Specialty("artillery", "catapult"),
+        resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
+    ),
+    RangedProcedure(
+        "skill:artillery-guided-missile",
+        "Artillery (Guided Missile)",
+        178,
+        A.IQ,
+        D.AVERAGE,
+        (SkillDefault(A.IQ, -5),),
+        MOUNTED,
+        Specialty("artillery", "guided-missile"),
+        resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
+    ),
+    RangedProcedure(
+        "skill:artillery-torpedoes",
+        "Artillery (Torpedoes)",
+        178,
+        A.IQ,
+        D.AVERAGE,
+        (SkillDefault(A.IQ, -5),),
+        MOUNTED,
+        Specialty("artillery", "torpedoes"),
+        resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:gunner",
@@ -468,9 +558,71 @@ _ROWS: Final = (
         A.DX,
         D.EASY,
         (SkillDefault(A.DX, -4),),
-        transferred=dict.fromkeys(
-            (RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL), (357,)
+        specialties=tuple(
+            f"skill:gunner-{key}"
+            for key in ("beams", "cannon", "machine-gun", "rockets", "torpedoes")
         ),
+        resolved=(RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL),
+    ),
+    RangedProcedure(
+        "skill:gunner-beams",
+        "Gunner (Beams)",
+        198,
+        A.DX,
+        D.EASY,
+        (SkillDefault(A.DX, -4),),
+        MOUNTED,
+        Specialty("gunner", "beams"),
+        resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
+    ),
+    RangedProcedure(
+        "skill:gunner-cannon",
+        "Gunner (Cannon)",
+        198,
+        A.DX,
+        D.EASY,
+        (SkillDefault(A.DX, -4),),
+        MOUNTED,
+        Specialty("gunner", "cannon"),
+        resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
+    ),
+    RangedProcedure(
+        "skill:gunner-machine-gun",
+        "Gunner (Machine Gun)",
+        198,
+        A.DX,
+        D.EASY,
+        (SkillDefault(A.DX, -4),),
+        MOUNTED,
+        Specialty("gunner", "machine-gun"),
+        resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
+    ),
+    RangedProcedure(
+        "skill:gunner-rockets",
+        "Gunner (Rockets)",
+        198,
+        A.DX,
+        D.EASY,
+        (SkillDefault(A.DX, -4),),
+        MOUNTED,
+        Specialty("gunner", "rockets"),
+        resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
+    ),
+    RangedProcedure(
+        "skill:gunner-torpedoes",
+        "Gunner (Torpedoes)",
+        198,
+        A.DX,
+        D.EASY,
+        (SkillDefault(A.DX, -4),),
+        MOUNTED,
+        Specialty("gunner", "torpedoes"),
+        resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:liquid-projector",
@@ -543,6 +695,7 @@ def require_mode(
     rated_kind: str | None = None,
     entangling: bool = False,
     conventional_firearm: bool = False,
+    mounted: bool = False,
 ) -> RangedProcedure | None:
     """Fail closed before dice when a weapon claims an unbound ranged skill.
 
@@ -582,6 +735,8 @@ def require_mode(
         raise ValidationError(f"Weapon grip is outside the skill's class: {skill_id}")
     if entangling != weapon.entangling:
         raise ValidationError(f"Entangling facts are outside the skill's class: {skill_id}")
+    if mounted != weapon.mounted:
+        raise ValidationError(f"Mount facts are outside the skill's class: {skill_id}")
     if (
         weapon.conventional_firearm is not None
         and conventional_firearm != weapon.conventional_firearm

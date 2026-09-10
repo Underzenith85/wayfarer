@@ -67,6 +67,8 @@ class Item(Record):
     condition: ObjectCondition | None = Field(default=None, exclude_if=lambda v: v is None)
     ground: GroundPosition | None = Field(default=None, exclude_if=lambda v: v is None)
     firearm_failure: FirearmFailure | None = Field(default=None, exclude_if=lambda v: v is None)
+    # Everyone currently serving a mounted weapon, the gunner included (#357).
+    mount_crew: tuple[Id, ...] = Field(default=(), exclude_if=lambda v: not v)
 
 
 class Owner(Record):

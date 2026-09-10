@@ -479,6 +479,11 @@ export interface components {
        */
       escape_entanglement: boolean;
       /**
+       * Mount Crew
+       * @default []
+       */
+      mount_crew: string[];
+      /**
        * Firearm Service
        * @default null
        */

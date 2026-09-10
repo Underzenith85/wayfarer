@@ -27,18 +27,18 @@ audit machinery. No rulebook prose is bundled.
 | --- | ---: |
 | Indexed skill listings, B301–B304 | 275 |
 | Named technique listings, B304 | 27 |
-| Explicit chapter examples and parent-specific expansions | 143 |
-| **Source index total** | **445** |
+| Explicit chapter examples and parent-specific expansions | 154 |
+| **Source index total** | **456** |
 
 The combined Combat Art or Sport listing maps to two candidate records. Thus
-445 source entries map to **446 records: 418 mundane and 28 transferred** to
+456 source entries map to **457 records: 429 mundane and 28 transferred** to
 #119's inventory. The expansions include the seven concrete Thrown Weapon
 specialties #344 expands from the B226 family, the 39 concrete Boating, Driving,
 Piloting, Shiphandling, Submarine and Explosives specialties #346 expands from
 theirs, and the 75 concrete science, electronics, engineering and Mechanic
-specialties #356 expands from the discipline-keyed families. Specialty families remain explicitly blocked where context
-or expansion is incomplete. These counts do not claim enumeration of every
-possible player-defined specialty.
+specialties #356 expands from the discipline-keyed families. Specialty families
+remain explicitly blocked where context or expansion is incomplete. These counts
+do not claim enumeration of every possible player-defined specialty.
 
 Index reconciliation rejects missing records, unindexed additions, overlapping
 transfers, invalid expansion parents and page drift. It runs when consumers load
@@ -51,11 +51,11 @@ also verifies names, pages and owners against the supernatural catalog.
 
 | Accounting group | Rows | Decision |
 | --- | ---: | --- |
-| Structured candidate definitions | 181 | Unsupported; source/runtime blockers remain. |
-| Bound runtime procedures | 209 | Implemented and dispatched by #344 (12), #345 (16), #346 (83) and #356 (83); still blocked by the printing delta, so still unavailable here. |
+| Structured candidate definitions | 179 | Unsupported; source/runtime blockers remain. |
+| Bound runtime procedures | 222 | Implemented and dispatched by #344 (12), #345 (16), #346 (83), #356 (83) and the TL-indexed and crew-served ranged rows (#354, #355, #357); still blocked by the printing delta, so still unavailable here. |
 | Contextual records | 28 | 23 B230-233 technique templates and five open families (#336). Not rollable skills, so they record a shape rather than a definition. No row is left recording nothing at all. |
 | Transferred cinematic/supernatural skills | 28 | Owned by #242/#243 and source audit #191. |
-| **Total accounted records** | **446** | **Zero available mundane candidates.** |
+| **Total accounted records** | **457** | **Zero available mundane candidates.** |
 
 This revision fills the previously empty Aerobatics, Aquabatics, crewman, suit
 and weapon entries; records Weather Sense as a TL-dependent Meteorology alias;
@@ -71,11 +71,11 @@ is not converted into an ordinary DX skill.
 
 | Structural class | Rows |
 | --- | ---: |
-| `attribute-default` | 304 |
+| `attribute-default` | 315 |
 | `skill-default` | 44 |
 | `no-default` | 62 |
-| `technology-level` | 212 |
-| `required-specialty` | 147 |
+| `technology-level` | 223 |
+| `required-specialty` | 158 |
 | `unexpanded-specialty` | 59 |
 | `listing-only` | 28 |
 | `technique-template` | 24 |
@@ -116,7 +116,6 @@ retained where previously recorded, but they do not replace the active owners.
 | #342 | Medicine and mental procedures. |
 | #343 | Physical, outdoor and animal procedures. |
 | #344 | Ranged combat skill procedures; see below for what it bound and what it transferred. |
-| #357 | Crew-served and vehicle-mounted ranged weapons. |
 | #359 | Liquid Projector streams and sprays. |
 | #360 | The Spear Thrower launcher procedure. |
 | #361 | Innate Attack specialties beyond Projectile. |
@@ -162,8 +161,9 @@ equipment catalog is built and again when a mode is selected in play.
 | `skill:guns` | B198, DX/E, DX-4 | Family expanded into eight concrete specialties (Pistol, Rifle, Shotgun, Submachine Gun, Light Machine Gun, Musket, Grenade Launcher, Light Anti-Armor Weapon); never dispatched itself. |
 | `skill:beam-weapons` | B179, DX/E, DX-4 | Family expanded into three concrete specialties (Pistol, Rifle, Projector); never dispatched itself. |
 | `skill:guns-*`, `skill:beam-weapons-*` | B198, B179, DX/E, DX-4 | Implemented. TL-indexed: each dispatches a weapon of the campaign's own era. Cross-specialty defaults remain with #362. |
-| `skill:artillery` | B178, IQ/A, IQ-5 | Transferred to #357; mounted or crew-served, and IQ-based. |
-| `skill:gunner` | B198, DX/E, DX-4 | Transferred to #357. |
+| `skill:artillery` | B178, IQ/A, IQ-5 | Family expanded into six concrete specialties (Beams, Bombs, Cannon, Catapult, Guided Missile, Torpedoes); never dispatched itself. |
+| `skill:gunner` | B198, DX/E, DX-4 | Family expanded into five concrete specialties (Beams, Cannon, Machine Gun, Rockets, Torpedoes); never dispatched itself. |
+| `skill:artillery-*`, `skill:gunner-*` | B178, B198 | Implemented. Fired from a served mount rather than a grip. Cross-specialty defaults remain with #362. |
 | `skill:liquid-projector` | B205, DX/E, DX-4 | Transferred to #359; needs stream and spray state the dispatch does not have. |
 | `skill:innate-attack` | B201, DX/E, DX-4 | Transferred to #361. The Projectile specialty is already dispatched by the opt-in spell adapter under its own pin; reconciling it here is an explicit migration. |
 
@@ -197,6 +197,23 @@ with an invented familiarity penalty, and an unpinned campaign era refuses the
 skill outright. Tight-beam damage is resolvable only by the beam rows, and the
 conventional firearm metadata #372 pinned is refused on a beam weapon.
 Evidence is in `tests/test_tl_indexed_ranged_skills.py`.
+
+### Mounts and crews (#357)
+
+A mounted weapon mode carries pinned `MountSpec` facts: the crew it needs, the
+seconds of laying an indirect shot takes, whether it is laid indirectly, and
+whether it travels with a vehicle. Mounts are Basic-only, and a mount is never
+thrown or entangling.
+
+Serving a mount is a Ready maneuver by the gunner (`mount_crew`), and the
+assignment is durable inventory state, so a restart finds the same crew. Firing
+requires the gunner to be in the crew, the crew to be at full complement, and
+every member still to be serving it — an unserved mount is refused, and the
+mount is not a weapon the gunner simply holds. Because the mount bears the
+weapon, the grip and hand-binding rules and the minimum-ST penalty do not apply
+to it. A shot laid indirectly arrives without warning: the target gets no
+active defense against it. Evidence is in
+`tests/test_mounted_ranged_skills.py`.
 
 A binding may only resolve or keep the blockers the inventory recorded, and its
 numbers must be the recorded ones: `inventory()` raises on either drift, and on

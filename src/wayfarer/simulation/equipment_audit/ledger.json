@@ -1737,6 +1737,71 @@
       "gap": null
     },
     {
+      "id": "RangedMode.mount",
+      "unit": "optional crew-served mount protocol",
+      "reference": "Characters third printing B178/B198; frozen first-printing/errata reconciliation pending #191",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_mounted_ranged_skills.py::test_every_mounted_specialty_fires_from_its_crew"
+      ],
+      "gap": null
+    },
+    {
+      "id": "MountSpec.crew",
+      "unit": "crew complement",
+      "reference": "Characters third printing B178/B198; frozen first-printing/errata reconciliation pending #191",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_mounted_ranged_skills.py::test_crew_assignment_is_validated_and_durable"
+      ],
+      "gap": null
+    },
+    {
+      "id": "MountSpec.laying_seconds",
+      "unit": "seconds of laying",
+      "reference": "Characters third printing B178/B198; frozen first-printing/errata reconciliation pending #191",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_mounted_ranged_skills.py::test_a_mount_is_never_thrown_or_entangling"
+      ],
+      "gap": null
+    },
+    {
+      "id": "MountSpec.indirect",
+      "unit": "indirect fire flag",
+      "reference": "Characters third printing B178/B198; frozen first-printing/errata reconciliation pending #191",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_mounted_ranged_skills.py::test_an_indirect_mount_leaves_the_target_no_active_defense"
+      ],
+      "gap": null
+    },
+    {
+      "id": "MountSpec.vehicle_mounted",
+      "unit": "vehicle mount flag",
+      "reference": "Characters third printing B178/B198; frozen first-printing/errata reconciliation pending #191",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_mounted_ranged_skills.py::test_every_mounted_specialty_fires_from_its_crew"
+      ],
+      "gap": null
+    },
+    {
       "id": "FirearmSpec.technology_level",
       "unit": "technology level",
       "reference": "Campaigns fourth printing B382/B407; baseline reconciliation remains #191",

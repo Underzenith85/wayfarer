@@ -143,8 +143,6 @@ def test_listed_scope_is_completely_accounted_for() -> None:
         if not PROCEDURES[identifier].implemented
     }
     assert transferred == {
-        "skill:artillery": (357,),
-        "skill:gunner": (357,),
         "skill:innate-attack": (361,),
         "skill:liquid-projector": (359,),
         "skill:spear-thrower": (360, 362),
@@ -251,8 +249,6 @@ async def test_thrown_specialties_dispatch_and_expend_the_item(
 @pytest.mark.parametrize(
     ("identifier", "expected"),
     [
-        ("skill:artillery", "#357"),
-        ("skill:gunner", "#357"),
         ("skill:liquid-projector", "#359"),
         ("skill:spear-thrower", "#360"),
         ("skill:innate-attack", "#361"),
@@ -372,9 +368,9 @@ def test_authored_catalogs_fail_closed_before_a_campaign_exists() -> None:
         )
 
     assert catalog("skill:crossbow") is not None
-    with pytest.raises(ValidationError, match="#357"):
-        catalog("skill:artillery")
-    for family in ("skill:thrown-weapon", "skill:guns", "skill:beam-weapons"):
+    with pytest.raises(ValidationError, match="#359"):
+        catalog("skill:liquid-projector")
+    for family in ("skill:thrown-weapon", "skill:guns", "skill:artillery"):
         with pytest.raises(ValidationError, match="concrete specialty"):
             catalog(family)
     with pytest.raises(ValidationError, match="outside the skill's class"):
