@@ -51,7 +51,7 @@ that its command contract cannot accept. Damage amounts remain engine authority.
 
 #290 remains open for shield knockback and shield-arm hit redistribution, the
 B400 recent-attack reach exception, less restrictive targeting of visible ground
-items whose owner is hidden, broader explicit critical continuation adapters
+items whose owner is hidden, ground spell targeting, broader explicit critical continuation adapters
 (including flight/collision context), and complete browser acceptance of those
 paths. General special objects and broken-piece salvage remain under #289.
 

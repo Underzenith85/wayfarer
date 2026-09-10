@@ -515,6 +515,12 @@ class SpellService:
                     from wayfarer.orchestration.object_combat import target_modifier
 
                     target_modifier(play, before, target.actor_id, command.target_item_id)
+                    if next(
+                        i for i in before.resources.items if i.id == command.target_item_id
+                    ).ground:
+                        raise ValidationError(
+                            "Ground spell targets require a dedicated geometry adapter"
+                        )
                 allowed: list[Defense] = ["none"]
                 for defense in ("dodge", "block"):
                     try:
