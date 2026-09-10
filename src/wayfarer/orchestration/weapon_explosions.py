@@ -154,9 +154,9 @@ def resolve_blast(
     environment: str,
 ) -> tuple[PlayState, Encounter, int]:
     from wayfarer.orchestration.gurps_melee import catalog, defense_value, movement
-    from wayfarer.orchestration.gurps_ranged import range_penalty
     from wayfarer.orchestration.unarmed import hurt
     from wayfarer.orchestration.weapon_flight import position
+    from wayfarer.rules.ranged_tables import range_penalty
     from wayfarer.simulation.hit_locations import select_location
     from wayfarer.simulation.objects import DamageObject, apply_object
 

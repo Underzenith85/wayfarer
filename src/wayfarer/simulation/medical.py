@@ -13,6 +13,7 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Record
 from wayfarer.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.rules.hazard_types import blocked_fp, blocked_hp, require_hazards_settled
@@ -25,7 +26,7 @@ from wayfarer.rules.recovery_types import (
 )
 from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.injury import InjuryResult, Wound, apply_injury
-from wayfarer.simulation.resources import Command, Receipt, Record, ResourceEvent, ResourceState
+from wayfarer.simulation.resources import Command, Receipt, ResourceEvent, ResourceState
 
 
 class BeginRecovery(Command):

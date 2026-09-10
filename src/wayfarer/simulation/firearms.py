@@ -4,19 +4,13 @@ import hashlib
 from typing import Literal
 
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Record
 from wayfarer.rules.checks import CheckTrace
 from wayfarer.rules.firearm_types import FirearmFailure
 from wayfarer.rules.readiness_types import ProjectileProgress
 from wayfarer.simulation.combat import Combatant, InjuryTrace, RangedSituation
 from wayfarer.simulation.gurps_equipment import EquipmentCatalog, RangedMode
-from wayfarer.simulation.resources import (
-    AmmunitionLoad,
-    Item,
-    Pool,
-    Record,
-    ResourceEvent,
-    ResourceState,
-)
+from wayfarer.simulation.resources import AmmunitionLoad, Item, Pool, ResourceEvent, ResourceState
 
 
 class MalfunctionRecord(Record):

@@ -305,11 +305,7 @@ class AbilityService:
             current = play._load(campaign)
             updated = service.reduce(current, command)
             updated = play.checkpoint(updated, before=current)
-            play.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = (
-                updated.revision,
-                updated.model_dump_json(),
-            )
+            play.commit(campaign, updated)
             return Event(input=payload, action="resource", outcome="ability", roll=None)
 
         committed = await play.store.commit_turn(

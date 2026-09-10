@@ -21,10 +21,10 @@ from wayfarer.errors import (
     ProviderTimeoutError,
     ValidationError,
 )
+from wayfarer.models import Record
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.llm import LLMClient
 from wayfarer.simulation.actions import ACTION_ADAPTER
-from wayfarer.simulation.resources import Record
 
 
 class Usage(Record):

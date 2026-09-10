@@ -27,7 +27,8 @@ from wayfarer.rules.catalog import RulesCatalog
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.rules.gurps_magic import definitions
 from wayfarer.rules.spell_catalog import projectile_definition
-from wayfarer.simulation.actions import ActionEngine, ActionRules, ActorSetup, Wait
+from wayfarer.simulation.action_engine import ActionEngine
+from wayfarer.simulation.actions import ActionRules, ActorSetup, Wait
 from wayfarer.simulation.combat import Battlefield, CombatRules, GridPoint, Placement
 from wayfarer.simulation.gurps_equipment import EquipmentCatalog, EquipmentProfile
 from wayfarer.simulation.injury import Wound, apply_injury

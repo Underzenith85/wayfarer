@@ -6,13 +6,13 @@ import json
 from typing import Literal
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, Event, Id
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.checks import Modifier, Outcome, success_check
 from wayfarer.simulation.actions import ActionCommand, PlayState
 from wayfarer.simulation.condition_checks import definition_modifiers
 from wayfarer.simulation.noncombat import NoncombatEncounter
-from wayfarer.simulation.resources import Advance, Id
+from wayfarer.simulation.resources import Advance
 
 
 class NoncombatCommand(ActionCommand):
@@ -234,9 +234,8 @@ class NoncombatService:
                     }
                 )
             state = self.play.checkpoint(state, before=current)
-            self.play.engine.validate(state)
+            self.play.commit(campaign, state)
             result = next(e for e in state.noncombat if e.id == command.encounter_id)
-            campaign["revision"], campaign["play_json"] = state.revision, state.model_dump_json()
             return Event(
                 input=payload, action="noncombat", outcome=result.model_dump_json(), roll=None
             )

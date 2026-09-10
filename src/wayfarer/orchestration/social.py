@@ -199,11 +199,7 @@ class SocialService:
             before = play._load(campaign)
             updated, outcome = dispatch(play, before, command, self.resolve(play, before, command))
             updated = play.checkpoint(updated, before=before)
-            play.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = (
-                updated.revision,
-                updated.model_dump_json(),
-            )
+            play.commit(campaign, updated)
             # The event stream carries neither trusted modifiers nor fact IDs.
             return Event(input=payload, action="npc", outcome=outcome.model_dump_json(), roll=None)
 

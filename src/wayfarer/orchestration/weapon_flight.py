@@ -4,6 +4,7 @@ import hashlib
 from typing import Literal
 
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Record
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.checks import CheckTrace
 from wayfarer.rules.gurps_checks import success_roll
@@ -15,7 +16,7 @@ from wayfarer.simulation.critical import Die, TableRoll
 from wayfarer.simulation.gurps_equipment import MeleeMode
 from wayfarer.simulation.hex_geometry import DIRECTIONS, Hex
 from wayfarer.simulation.injury import Wound, apply_injury
-from wayfarer.simulation.resources import Record, ResourceEvent
+from wayfarer.simulation.resources import ResourceEvent
 
 
 def position(encounter: Encounter, subject: Combatant) -> GroundPosition:

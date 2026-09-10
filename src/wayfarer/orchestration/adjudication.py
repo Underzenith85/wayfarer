@@ -13,7 +13,7 @@ from pydantic import Field, TypeAdapter
 from pydantic import ValidationError as SchemaError
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event, Roll
+from wayfarer.models import Campaign, Event, Id, Roll
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.checks import Outcome
 from wayfarer.simulation.actions import (
@@ -24,7 +24,6 @@ from wayfarer.simulation.actions import (
     Social,
 )
 from wayfarer.simulation.adjudication import Ruling, expire_rulings
-from wayfarer.simulation.resources import Id
 
 
 class RequestRuling(ActionCommand):
@@ -265,11 +264,7 @@ class AdjudicationService:
                 ruling_id = command.id if isinstance(command, RequestRuling) else command.ruling_id
                 result = next(r for r in updated.rulings if r.id == ruling_id)
             updated = self.play.checkpoint(updated, before=state)
-            self.play.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = (
-                updated.revision,
-                updated.model_dump_json(),
-            )
+            self.play.commit(campaign, updated)
             return Event(
                 input=payload, action=command.kind, outcome=result.model_dump_json(), roll=roll
             )

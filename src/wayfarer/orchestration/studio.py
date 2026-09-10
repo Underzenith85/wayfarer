@@ -14,7 +14,8 @@ from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.providers import Orchestrator, ProviderRequest
 from wayfarer.rules.catalog import CampaignPolicy
 from wayfarer.simulation.access import CampaignMember
-from wayfarer.simulation.actions import ActionEngine, ActorSetup
+from wayfarer.simulation.action_engine import ActionEngine
+from wayfarer.simulation.actions import ActorSetup
 from wayfarer.simulation.studio import GenerationBrief, ScenarioGraph, StudioFinding, StudioReport
 
 
@@ -111,7 +112,10 @@ class ScenarioStudio:
                 seed, graph.world, graph.resources, graph.actors
             )
         except (ValidationError, ValueError, KeyError, StopIteration) as exc:
-            error("runtime.invalid", graph.id, str(exc) or "Invalid runtime references")
+            # Engine invariants name the offending node when they can (#365); fall
+            # back to the scenario only for failures with no better locus.
+            locus = exc.reference if isinstance(exc, ValidationError) else None
+            error("runtime.invalid", locus or graph.id, str(exc) or "Invalid runtime references")
         escrow = [r.item_id for r in graph.objectives.rewards if r.item_id is not None]
         if len(escrow) != len(set(escrow)):
             error("reward.duplicate", graph.id, "Escrow items cannot fund multiple rewards")

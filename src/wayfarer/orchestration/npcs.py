@@ -448,8 +448,7 @@ class NPCService:
                     ),
                 }
             )
-            self.play.engine.validate(state)
-            campaign["revision"], campaign["play_json"] = revision, state.model_dump_json()
+            self.play.commit(campaign, state)
             return Event(
                 input=json.dumps({"command": payload}), action="npc", outcome="proposed", roll=None
             )

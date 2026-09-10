@@ -5,10 +5,10 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.errors import ValidationError
+from wayfarer.models import Id, Record
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.gurps_magic import definitions, magery_level
 from wayfarer.simulation.actions import PlayState
-from wayfarer.simulation.resources import Id, Record
 from wayfarer.simulation.spells import PROFILE, SPELLS, SpellCommand, SpellContext
 
 

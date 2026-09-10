@@ -10,13 +10,14 @@ launcher never changes what a weapon does by being named.
 from decimal import Decimal
 from typing import Self
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import Field, model_validator
+
+from wayfarer.models import Record
 
 
-class LauncherSpec(BaseModel):
+class LauncherSpec(Record):
     """The launcher one thrown mode requires, and what it does for the throw."""
 
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
     # The pinned catalog entry the thrower must be holding. A throw without it
     # is a different mode, not this one at a penalty.
     launcher_definition_id: str = Field(min_length=1)

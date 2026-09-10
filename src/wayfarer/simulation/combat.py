@@ -8,18 +8,19 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import Field, model_validator
 
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Id, Record
 from wayfarer.rules.checks import CheckTrace
 from wayfarer.rules.effects import DerivedValue
 from wayfarer.rules.entangle_types import Entanglement
 from wayfarer.rules.location_types import HitLocation, HumanLocation
 from wayfarer.rules.spray_types import Stream
 from wayfarer.simulation.gurps_equipment import EquipmentCatalog
-from wayfarer.simulation.hex_geometry import Hex, HexBattlefield
+from wayfarer.simulation.hex_geometry import Hex, HexBattlefield, HexFacing
 from wayfarer.simulation.maneuvers import (
     ATTACK_MANEUVERS,
     AttackOption,
@@ -28,7 +29,7 @@ from wayfarer.simulation.maneuvers import (
     WaitInterrupt,
     WaitTrigger,
 )
-from wayfarer.simulation.resources import Equip, Id, Record, ResourceEngine, ResourceState
+from wayfarer.simulation.resources import Equip, ResourceEngine, ResourceState
 from wayfarer.simulation.tactical import TacticalTrace
 from wayfarer.simulation.unarmed import Grip, PendingUnarmed, UnarmedTrace
 from wayfarer.world import EntityKind, World
@@ -51,6 +52,9 @@ Maneuver = Literal[
     "move_and_attack",
 ]
 Defense = Literal["dodge", "parry", "block", "none"]
+
+if TYPE_CHECKING:
+    from wayfarer.simulation.actions import PlayState
 
 
 class GridPoint(Record):
@@ -177,7 +181,7 @@ class Combatant(Record):
     initiative: int = Field(ge=0, le=100)
     position: GridPoint | Hex
     facing: Facing
-    hex_facing: Literal[0, 1, 2, 3, 4, 5] | None = None
+    hex_facing: HexFacing | None = None
     retreat_used: bool = False
     retreat_attacker_id: str | None = None
     tactical_defense_bonus: int = 0
@@ -224,7 +228,7 @@ class PendingDefense(Record):
     post_attack_destination: GridPoint | None = None
     post_attack_square_facing: Facing | None = None
     post_attack_hex_path: tuple[Hex, ...] = ()
-    post_attack_facing: Literal[0, 1, 2, 3, 4, 5] | None = None
+    post_attack_facing: HexFacing | None = None
     post_attack_posture: Posture | None = None
 
 
@@ -644,7 +648,7 @@ class CombatEngine:
         second_mode_id: str | None = None,
         command_json: str = "",
         hex_path: tuple[Hex, ...] = (),
-        hex_facing: Literal[0, 1, 2, 3, 4, 5] | None = None,
+        hex_facing: HexFacing | None = None,
     ) -> tuple[Encounter, ResourceState, CombatResult]:
         original, original_resources = encounter, resources
         interrupt = encounter.wait_interrupt
@@ -838,7 +842,7 @@ class CombatEngine:
         second_target_id: str | None = None,
         second_mode_id: str | None = None,
         hex_path: tuple[Hex, ...] = (),
-        hex_facing: Literal[0, 1, 2, 3, 4, 5] | None = None,
+        hex_facing: HexFacing | None = None,
     ) -> tuple[Encounter, ResourceState, CombatResult]:
         if self.rules.gurps_equipment is not None:
             command_id = "combat:" + hashlib.sha256(command_id.encode()).hexdigest()
@@ -1482,3 +1486,20 @@ class CombatEngine:
                 available=self.available(encounter, encounter.current_actor_id),
             ),
         )
+
+
+def validate_consequences(rules: CombatRules, state: PlayState) -> None:
+    """Authored consequences must name known battlefields, approved actors and facts."""
+    actor_ids = {a.actor_id for a in state.actors}
+    facts = {f.id for f in state.world.facts}
+    fields = {b.id for b in rules.battlefields}
+    if len({c.id for c in rules.consequences}) != len(rules.consequences):
+        raise ValidationError("Duplicate combat consequence")
+    if any(
+        c.battlefield_id not in fields
+        or c.defeated_actor_id not in actor_ids
+        or not set(c.recipient_actor_ids) <= actor_ids
+        or not set(c.fact_ids) <= facts
+        for c in rules.consequences
+    ):
+        raise ValidationError("Invalid combat consequence references")

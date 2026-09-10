@@ -10,7 +10,7 @@ from decimal import Decimal
 from types import MappingProxyType
 from typing import Final
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import Field
 from pydantic import ValidationError as SchemaError
 
 from wayfarer.character import statistics
@@ -28,6 +28,7 @@ from wayfarer.character.statistics import (
     StatisticsError,
 )
 from wayfarer.errors import ValidationError
+from wayfarer.models import Record
 from wayfarer.rules.catalog import (
     SKILLS,
     CampaignPolicy,
@@ -42,19 +43,13 @@ from wayfarer.rules.traits import TraitOptions
 from wayfarer.rules.traits import cost as trait_cost
 
 
-class Purchase(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid", frozen=True, strict=True, revalidate_instances="always"
-    )
+class Purchase(Record):
     definition_id: str = Field(min_length=1, max_length=200)
     amount: int = Field(default=1, ge=1, le=10000)
     trait: TraitOptions | None = Field(default=None, exclude_if=lambda value: value is None)
 
 
-class CharacterDraft(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid", frozen=True, strict=True, revalidate_instances="always"
-    )
+class CharacterDraft(Record):
     name: str = Field(min_length=1, max_length=200)
     backstory: str = Field(default="", max_length=10000)
     purchases: tuple[Purchase, ...] = Field(default=(), strict=False, max_length=1000)

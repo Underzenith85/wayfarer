@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Record
 from wayfarer.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.rules.hazard_types import HazardSchedule, HazardSpec
@@ -19,14 +20,7 @@ from wayfarer.rules.recovery_types import ProfileId, RecoveryTask, require_settl
 from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.injury import Wound, apply_injury
 from wayfarer.simulation.physical_traits import physical_traits
-from wayfarer.simulation.resources import (
-    Command,
-    Pool,
-    Receipt,
-    Record,
-    ResourceEvent,
-    ResourceState,
-)
+from wayfarer.simulation.resources import Command, Pool, Receipt, ResourceEvent, ResourceState
 
 _TRAUMA_PREFIX = "variant:trauma:"
 _REPAIR_PREFIX = "variant:repair-lasting:"

@@ -16,9 +16,10 @@ from functools import cache
 from pathlib import Path
 from typing import Annotated, Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import Field, model_validator
 
 from wayfarer.errors import ValidationError
+from wayfarer.models import Record
 from wayfarer.rules.catalog import DefinitionKind, RulesPackage
 from wayfarer.rules.conformance import CAPABILITIES, PROFILES
 from wayfarer.rules.entangle_types import EntangleSpec
@@ -91,10 +92,6 @@ Text = Annotated[str, Field(min_length=1)]
 Issue = Annotated[int, Field(gt=0)]
 TestBinding = Annotated[str, Field(pattern=r"^tests/[A-Za-z0-9_/]+\.py::[A-Za-z0-9_]+$")]
 Anchor = Literal["inspected", "range-only"]
-
-
-class Record(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
 
 
 class Section(Record):

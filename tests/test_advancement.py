@@ -16,7 +16,7 @@ from wayfarer.orchestration.advancement import (
 )
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.simulation.actions import ActionEngine
+from wayfarer.simulation.action_engine import ActionEngine
 
 
 async def setup(tmp_path: Path) -> tuple[str, PlayService, AdvancementService]:

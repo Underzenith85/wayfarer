@@ -13,13 +13,13 @@ from typing import Annotated, Literal
 from pydantic import Field
 
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Id
 from wayfarer.rules.checks import RandomSource, draw_dice, evaluate_success
 from wayfarer.rules.hazard_types import require_hazards_settled
 from wayfarer.rules.object_types import ObjectCondition, ObjectProfile, ObjectResult
 from wayfarer.rules.recovery_types import require_settled
 from wayfarer.simulation.resources import (
     Command,
-    Id,
     Item,
     Receipt,
     ResourceEngine,

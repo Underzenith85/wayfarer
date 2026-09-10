@@ -5,11 +5,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wayfarer.errors import ValidationError
+from wayfarer.models import Record
 from wayfarer.rules.location_types import HitLocation
 from wayfarer.simulation.combat_height import HeightEffect, melee_height
 from wayfarer.simulation.hex_geometry import (
-    Facing,
     Hex,
+    HexFacing,
     Occupant,
     Pose,
     SightPoint,
@@ -18,7 +19,6 @@ from wayfarer.simulation.hex_geometry import (
     line_of_sight,
     movement,
 )
-from wayfarer.simulation.resources import Record
 
 if TYPE_CHECKING:
     from wayfarer.simulation.combat import Combatant, Encounter, Maneuver
@@ -131,7 +131,7 @@ def move_hex(
     actor: Combatant,
     maneuver: Maneuver,
     path: tuple[Hex, ...],
-    facing: Facing | None,
+    facing: HexFacing | None,
     defense_option: DefenseOption | None,
 ) -> Combatant:
     board = encounter.hex_battlefield

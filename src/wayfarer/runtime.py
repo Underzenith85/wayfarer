@@ -12,7 +12,8 @@ from wayfarer.orchestration.profiles import ProfileRuntime
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
 from wayfarer.rules.profiles import DEFAULT_REGISTRY, PROTOTYPE_PROFILE, RegisteredProfile
-from wayfarer.simulation.actions import ActionEngine, ActionRules, ActorSetup
+from wayfarer.simulation.action_engine import ActionEngine
+from wayfarer.simulation.actions import ActionRules, ActorSetup
 from wayfarer.simulation.objectives import Objective, ObjectiveRules, Predicate
 from wayfarer.simulation.party import PartyRules
 from wayfarer.simulation.resources import Owner, ResourceEngine, ResourceState

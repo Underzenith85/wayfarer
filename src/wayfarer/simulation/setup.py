@@ -4,9 +4,9 @@ from typing import Literal
 
 from pydantic import Field
 
+from wayfarer.models import Id, Record
 from wayfarer.simulation.continuation import AdventureSnapshot
 from wayfarer.simulation.profiles import ProfileSelection
-from wayfarer.simulation.resources import Id, Record
 from wayfarer.simulation.studio import GenerationBrief, ScenarioGraph
 
 Phase = Literal["draft", "ready", "active", "paused", "completed", "archived"]

@@ -2,7 +2,9 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import Field
+
+from wayfarer.models import Record
 
 Locomotion = Literal[
     "ground-wheeled",
@@ -18,8 +20,7 @@ Locomotion = Literal[
 ]
 
 
-class PassengerProtection(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+class PassengerProtection(Record):
     actor_id: str = Field(min_length=1)
     worn_dr: int = Field(default=0, ge=0)
     innate_dr: int = Field(default=0, ge=0)
@@ -28,8 +29,7 @@ class PassengerProtection(BaseModel):
     strength: int | None = Field(default=None, ge=3)
 
 
-class VehicleTrace(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+class VehicleTrace(Record):
     command_id: str
     reason: str
     actor_id: str

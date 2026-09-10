@@ -4,12 +4,12 @@ from dataclasses import replace
 
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.gurps_melee import build, defense_value, level
-from wayfarer.orchestration.gurps_ranged import range_penalty
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.spell_effects import armor
 from wayfarer.rules.checks import Outcome
 from wayfarer.rules.conformance import BASELINE_ID
 from wayfarer.rules.gurps_checks import success_roll
+from wayfarer.rules.ranged_tables import range_penalty
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import CombatEngine, Defense, Encounter, InjuryTrace
 from wayfarer.simulation.condition_checks import check_modifiers

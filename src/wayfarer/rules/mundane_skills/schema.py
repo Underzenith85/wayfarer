@@ -2,8 +2,9 @@
 
 from typing import Annotated, Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import Field, model_validator
 
+from wayfarer.models import Record
 from wayfarer.rules.skill_types import Difficulty
 
 AttributeName = Literal["IQ", "DX", "HT", "ST", "Will", "Per", "Perception"]
@@ -21,10 +22,6 @@ Blocker = Literal[
     "technique-expansion",
     "optional-rule-selection",
 ]
-
-
-class Record(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
 
 
 class AttributeDefault(Record):

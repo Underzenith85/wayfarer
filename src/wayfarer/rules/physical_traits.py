@@ -7,15 +7,15 @@ profiles and serialized state. Rules services consume this projection directly.
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import Field
 
 from wayfarer.errors import ValidationError
+from wayfarer.models import Record
 
 Sense = Literal["hearing", "taste-smell", "touch", "vision"]
 
 
-class PhysicalTraits(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+class PhysicalTraits(Record):
     ambidexterity: bool = False
     combat_reflexes: bool = False
     fitness: int = Field(default=0, ge=0, le=2)
@@ -67,8 +67,7 @@ PHYSICAL_BINDINGS: dict[str, tuple[str, str, int | bool]] = {
 PHYSICAL_HOOKS = frozenset(value[0] for value in PHYSICAL_BINDINGS.values())
 
 
-class SurpriseState(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+class SurpriseState(Record):
     partial: bool
     freeze_turns: int = Field(default=0, ge=0, le=6)
     attempts: int = Field(default=0, ge=0)

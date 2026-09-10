@@ -8,6 +8,7 @@ import time
 from datetime import UTC, datetime
 
 from wayfarer.models import Campaign, Event
+from wayfarer.orchestration.play import record_play_state
 from wayfarer.simulation.access import CampaignMember
 
 from .common import Fault, Obj, encoded, obj, uid
@@ -87,8 +88,7 @@ async def invitation(
                     ),
                 }
             )
-            campaign["play_json"] = state.model_dump_json()
-            campaign["revision"] = state.revision
+            record_play_state(campaign, state)
             return Event(
                 input=payload, action="v1-membership", outcome="Membership granted", roll=None
             )

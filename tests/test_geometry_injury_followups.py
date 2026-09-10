@@ -23,8 +23,8 @@ from wayfarer.simulation.combat_height import melee_height
 from wayfarer.simulation.gurps_equipment import DamageType
 from wayfarer.simulation.hex_geometry import (
     Cell,
-    Facing,
     HexBattlefield,
+    HexFacing,
     Pose,
     Stairway,
     in_reach,
@@ -89,7 +89,7 @@ def test_authored_stairs_cost_both_directions_and_persist() -> None:
     terrain = terrain.model_copy(update={"stairs": (Stairway(start=h(0, 0), end=h(1, 0)),)})
     terrain = HexBattlefield.model_validate_json(terrain.model_dump_json())
     assert terrain.cell(h(1, 0)).ground == Fraction(2, 3)
-    directions: tuple[Facing, ...] = (0, 3)
+    directions: tuple[HexFacing, ...] = (0, 3)
     for facing in directions:
         origin, target = (h(0, 0), h(1, 0)) if facing == 0 else (h(1, 0), h(0, 0))
         pose = Pose(position=origin, facing=facing)

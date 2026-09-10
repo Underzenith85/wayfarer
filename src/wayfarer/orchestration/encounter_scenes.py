@@ -8,11 +8,10 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, Event, Id, Record
 from wayfarer.orchestration.play import PlayService
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.encounter_context import EncounterSceneBinding, bind_scene
-from wayfarer.simulation.resources import Id, Record
 
 
 class MigrateEncounterScenes(Record):
@@ -70,8 +69,7 @@ class EncounterSceneService:
                 }
             )
             # Structural only: no checkpoint, clocks, dice, discovery or effects.
-            self.play.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = revision, updated.model_dump_json()
+            self.play.commit(campaign, updated)
             return Event(
                 input=payload,
                 action="encounter-scenes",

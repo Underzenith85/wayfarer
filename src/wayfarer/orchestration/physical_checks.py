@@ -140,11 +140,7 @@ class PhysicalCheckService:
                 state.model_copy(update={"revision": resources.revision, "resources": resources}),
                 before=state,
             )
-            play.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = (
-                updated.revision,
-                updated.model_dump_json(),
-            )
+            play.commit(campaign, updated)
             return Event(
                 input=payload,
                 action="noncombat",

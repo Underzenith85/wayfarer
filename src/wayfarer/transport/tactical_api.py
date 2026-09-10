@@ -6,6 +6,7 @@ from aiohttp import web
 from pydantic import Field
 
 from wayfarer.errors import ValidationError, WayfarerError
+from wayfarer.models import Record
 from wayfarer.orchestration.combat import (
     COMBAT_ADAPTER,
     ChooseDefense,
@@ -25,7 +26,6 @@ from wayfarer.orchestration.equipment_view import TacticalSnapshotV2, equipment_
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.tactical_view import TacticalSnapshot, project, snapshot, visible_actors
 from wayfarer.simulation.actions import PlayState
-from wayfarer.simulation.resources import Record
 from wayfarer.transport.campaign_api import ACCESS_KEY, _identity, _json
 from wayfarer.transport.tactical_v1_commands import ChooseDefense as ChooseDefenseV1
 from wayfarer.transport.tactical_v1_commands import TakeCombatTurn as TakeCombatTurnV1

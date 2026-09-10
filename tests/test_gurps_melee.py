@@ -39,7 +39,8 @@ from wayfarer.rules.location_types import HumanBody
 from wayfarer.rules.object_types import ObjectCondition, ObjectProfile
 from wayfarer.rules.recovery_types import RecoveryTask
 from wayfarer.rules.skill_types import ControllingAttribute, Difficulty, SkillDefault, SkillSpec
-from wayfarer.simulation.actions import ActionEngine, ActionRules, ActorSetup
+from wayfarer.simulation.action_engine import ActionEngine
+from wayfarer.simulation.actions import ActionRules, ActorSetup
 from wayfarer.simulation.combat import (
     Battlefield,
     CombatRules,

@@ -6,6 +6,7 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.errors import ConflictError
+from wayfarer.models import Record
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.location_types import HumanLocation
 from wayfarer.simulation.actions import PlayState
@@ -13,7 +14,7 @@ from wayfarer.simulation.combat import Encounter
 from wayfarer.simulation.critical import Die, TableRoll
 from wayfarer.simulation.gurps_equipment import MeleeMode, RangedMode, WeaponMode
 from wayfarer.simulation.injury import DisableLocation, Wound, apply_injury, apply_location_effect
-from wayfarer.simulation.resources import Record, ResourceEvent
+from wayfarer.simulation.resources import ResourceEvent
 
 
 class CriticalLimbResult(Record):

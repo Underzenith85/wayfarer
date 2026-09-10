@@ -4,10 +4,11 @@ import hashlib
 from typing import TYPE_CHECKING, Literal
 
 from wayfarer.errors import ValidationError
+from wayfarer.models import Record
 from wayfarer.rules.object_types import GroundPosition
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import CombatEngine, Encounter
-from wayfarer.simulation.resources import Item, Record, ResourceEvent, ResourceState
+from wayfarer.simulation.resources import Item, ResourceEvent, ResourceState
 
 if TYPE_CHECKING:
     from wayfarer.orchestration.combat import ChooseDefense, TakeCombatTurn

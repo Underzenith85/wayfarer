@@ -6,11 +6,11 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal
 
 from wayfarer.errors import ValidationError
+from wayfarer.models import Id, Record
 from wayfarer.simulation.combat import Battlefield, CombatRules, Encounter
 from wayfarer.simulation.hex_geometry import HexBattlefield
 from wayfarer.simulation.noncombat import NoncombatEncounter
 from wayfarer.simulation.party import QueuedActivity, Subgroup
-from wayfarer.simulation.resources import Id, Record
 from wayfarer.simulation.scenes import SceneRules
 
 if TYPE_CHECKING:

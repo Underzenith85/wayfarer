@@ -3,9 +3,10 @@
 import hashlib
 
 from wayfarer.errors import ConflictError
+from wayfarer.models import Record
 from wayfarer.rules.explosion_types import ExplosionSpec
 from wayfarer.rules.object_types import GroundPosition
-from wayfarer.simulation.resources import Record, ResourceEvent, ResourceState
+from wayfarer.simulation.resources import ResourceEvent, ResourceState
 
 
 class BlastRecord(Record):

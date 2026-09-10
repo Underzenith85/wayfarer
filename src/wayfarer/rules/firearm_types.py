@@ -2,11 +2,12 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import Field, model_validator
+
+from wayfarer.models import Record
 
 
-class FirearmSpec(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+class FirearmSpec(Record):
     technology_level: int = Field(ge=3, le=12)
     action: Literal[
         "repeating", "revolver", "muzzleloader", "breechloader", "beam", "single-use", "grenade"
@@ -41,8 +42,7 @@ class FirearmSpec(BaseModel):
         }[self.quality]
 
 
-class FirearmFailure(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+class FirearmFailure(Record):
     mode_id: str = Field(min_length=1)
     cause_id: str = Field(min_length=1)
     kind: Literal["misfire", "stoppage", "mechanical", "destroyed", "dud", "delayed", "explosion"]

@@ -5,10 +5,10 @@ from typing import Literal, Self
 from pydantic import Field, model_validator
 
 from wayfarer.errors import ValidationError
+from wayfarer.models import Id, Record
 from wayfarer.rules.gurps_social import influence_procedure
 from wayfarer.rules.mundane_skills.social import CONDITIONS, PROCEDURES
 from wayfarer.rules.social_hooks import Appearance, Recognition, ReputationScope
-from wayfarer.simulation.resources import Id, Record
 
 
 class NPCReputation(Record):

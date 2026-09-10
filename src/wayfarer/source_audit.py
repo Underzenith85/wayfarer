@@ -8,9 +8,10 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import ConfigDict, Field
 
 from wayfarer.errors import ValidationError
+from wayfarer.models import Record as Entity
 from wayfarer.rules.conformance import BASELINE_ID, CAPABILITIES, PROFILES
 from wayfarer.rules.mundane_skills import inventory as skills
 from wayfarer.rules.mundane_traits import inventory as traits
@@ -26,8 +27,10 @@ from wayfarer.simulation.basic_equipment import BASIC_EQUIPMENT, ULTRATECH_INDEX
 from wayfarer.simulation.equipment_audit import rows as equipment_audit_rows
 
 
-class Record(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True, str_min_length=1)
+class Record(Entity):
+    """Audit rows additionally reject empty strings."""
+
+    model_config = ConfigDict(str_min_length=1)
 
 
 class Source(Record):

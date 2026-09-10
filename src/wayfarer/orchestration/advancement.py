@@ -12,7 +12,7 @@ from wayfarer.character.physical_traits import physical_traits
 from wayfarer.character.power import CharacterProposal
 from wayfarer.character.statistics import RuntimePool, carry_over
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, Event, Id, Record
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.catalog import reference
 from wayfarer.rules.physical_traits import PhysicalTraits
@@ -26,7 +26,7 @@ from wayfarer.simulation.advancement import (
     MigrationPreview,
 )
 from wayfarer.simulation.encounter_context import EncounterSceneBinding, bind_scene, migrate_unique
-from wayfarer.simulation.resources import Id, Pool, Record
+from wayfarer.simulation.resources import Pool
 from wayfarer.simulation.scenes import ActorScene
 
 
@@ -183,11 +183,7 @@ class AdvancementService:
             )
             updated = self._revision(state, advancement=state.advancement + (entry,))
             updated = self.play.checkpoint(updated)
-            self.play.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = (
-                updated.revision,
-                updated.model_dump_json(),
-            )
+            self.play.commit(campaign, updated)
             return Event(
                 input=payload, action="advancement", outcome=entry.model_dump_json(), roll=None
             )
@@ -298,11 +294,7 @@ class AdvancementService:
             updated = self.reduce_purchase(state, command, revision=state.revision + 1)
             entry = updated.advancement[-1]
             updated = self.play.checkpoint(updated)
-            self.play.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = (
-                updated.revision,
-                updated.model_dump_json(),
-            )
+            self.play.commit(campaign, updated)
             return Event(
                 input=payload, action="advancement", outcome=entry.model_dump_json(), roll=None
             )
@@ -491,11 +483,7 @@ class MigrationService:
 
                 updated = migrate(updated)
             campaign["rules_ref"] = reference(self.target.engine.resources.rules)
-            campaign["revision"], campaign["play_json"] = (
-                updated.revision,
-                updated.model_dump_json(),
-            )
-            self.target.engine.validate(updated)
+            self.target.commit(campaign, updated)
             return Event(
                 input=payload, action="rules-migration", outcome=entry.model_dump_json(), roll=None
             )

@@ -8,18 +8,13 @@ import hashlib
 import json
 
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Record
 from wayfarer.rules.checks import CheckTrace, Modifier, RandomSource
 from wayfarer.rules.fright import FrightEffect
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.simulation.fatigue import FatigueCost, apply_fatigue
 from wayfarer.simulation.injury import Wound, apply_injury
-from wayfarer.simulation.resources import (
-    Advance,
-    Record,
-    ResourceEngine,
-    ResourceEvent,
-    ResourceState,
-)
+from wayfarer.simulation.resources import Advance, ResourceEngine, ResourceEvent, ResourceState
 
 PREFIX = "fright-runtime:"
 

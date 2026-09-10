@@ -6,18 +6,11 @@ from typing import Literal
 from pydantic import Field, model_validator
 
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Id, Record
 from wayfarer.simulation.combat import Combatant, InjuryTrace, RangedSituation
 from wayfarer.simulation.critical import TableRoll
 from wayfarer.simulation.gurps_equipment import EquipmentCatalog, RangedMode
-from wayfarer.simulation.resources import (
-    AmmunitionLoad,
-    Id,
-    Item,
-    Pool,
-    Record,
-    ResourceEvent,
-    ResourceState,
-)
+from wayfarer.simulation.resources import AmmunitionLoad, Item, Pool, ResourceEvent, ResourceState
 
 
 class RangedCritical(Record):

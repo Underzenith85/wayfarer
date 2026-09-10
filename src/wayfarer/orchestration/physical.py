@@ -12,7 +12,7 @@ from typing import Literal
 
 from wayfarer.character.statistics import encumbered_move, encumbrance
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, Event, Record
 from wayfarer.orchestration.gurps_melee import exertion, injury_turn
 from wayfarer.orchestration.medical import _build
 from wayfarer.orchestration.play import PlayService
@@ -34,7 +34,7 @@ from wayfarer.simulation.fatigue import FatigueCost, apply_fatigue, exertion_cos
 from wayfarer.simulation.injury import Wound, apply_injury, impaired_movement
 from wayfarer.simulation.party import synchronous
 from wayfarer.simulation.physical_traits import physical_traits
-from wayfarer.simulation.resources import Advance, Command, Record, ResourceEvent
+from wayfarer.simulation.resources import Advance, Command, ResourceEvent
 
 
 class PhysicalCommand(Command):
@@ -395,11 +395,7 @@ class PhysicalService:
                 update={"revision": resources.revision, "resources": resources}
             )
             updated = play.checkpoint(updated, before=before)
-            play.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = (
-                updated.revision,
-                updated.model_dump_json(),
-            )
+            play.commit(campaign, updated)
             return Event(
                 input=payload, action="noncombat", outcome=result.model_dump_json(), roll=None
             )

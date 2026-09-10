@@ -186,11 +186,7 @@ class SurpriseService:
                 ),
                 before=state,
             )
-            play.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = (
-                updated.revision,
-                updated.model_dump_json(),
-            )
+            play.commit(campaign, updated)
             return Event(input=payload, action="combat", outcome="resolved", roll=None)
 
         await play.store.commit_turn(

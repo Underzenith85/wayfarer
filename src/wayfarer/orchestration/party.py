@@ -8,7 +8,7 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, Event, Id
 from wayfarer.orchestration.noncombat import NoncombatCommand, NoncombatService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.scenes import SceneService, TravelScene
@@ -21,7 +21,7 @@ from wayfarer.simulation.party import (
     group_for,
     migrate,
 )
-from wayfarer.simulation.resources import Advance, Id, Transfer
+from wayfarer.simulation.resources import Advance, Transfer
 
 
 class PartyCommand(ActionCommand):
@@ -484,8 +484,7 @@ class PartyService:
 
         def resolve(campaign: Campaign) -> Event:
             state = self.reduce(self.play._load(campaign), command)
-            self.play.engine.validate(state)
-            campaign["revision"], campaign["play_json"] = state.revision, state.model_dump_json()
+            self.play.commit(campaign, state)
             return Event(input=payload, action="party", outcome=command.kind, roll=None)
 
         committed = await self.play.store.commit_turn(

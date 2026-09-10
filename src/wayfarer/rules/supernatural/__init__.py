@@ -9,17 +9,18 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import Field, model_validator
 
 from wayfarer.errors import ValidationError
+from wayfarer.models import Record
 from wayfarer.rules.catalog import DefinitionKind, ImplementationStatus, RuleDefinition
 from wayfarer.rules.conformance import BASELINE_ID, CoverageStatus, profile
 
 PROFILE = "gurps-basic-set-4e-2004"
 
 
-class AuditModel(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+class AuditModel(Record):
+    """Base for supernatural inventory audit rows."""
 
 
 class ObservedSource(AuditModel):

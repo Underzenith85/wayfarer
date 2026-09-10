@@ -8,16 +8,14 @@ from dataclasses import dataclass
 from decimal import ROUND_CEILING, Decimal
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import Field
 
 from wayfarer.errors import ValidationError
+from wayfarer.models import Record
 from wayfarer.rules.conformance import profile
 
 
-class TraitOptions(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid", frozen=True, strict=True, revalidate_instances="always"
-    )
+class TraitOptions(Record):
     parameters: tuple[Annotated[tuple[str, str | int | bool], Field(strict=False)], ...] = Field(
         default=(), strict=False
     )

@@ -3,6 +3,7 @@
 import hashlib
 
 from wayfarer.errors import WayfarerError
+from wayfarer.models import Record
 from wayfarer.orchestration.combat import RepairEquipment, RetrieveEquipment, TakeCombatTurn
 from wayfarer.orchestration.equipment_retrieval import RetrievalTask
 from wayfarer.orchestration.equipment_retrieval import tasks as retrievals
@@ -13,7 +14,6 @@ from wayfarer.rules.readiness_types import ProjectileProgress
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.object_repairs import RepairTask
 from wayfarer.simulation.object_repairs import tasks as repairs
-from wayfarer.simulation.resources import Record
 
 
 class EquipmentChoice(Record):

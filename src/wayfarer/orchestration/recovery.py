@@ -768,8 +768,7 @@ class RecoveryService:
             )
             state = PartyService(self.play).flush(state)
             state = self.play.checkpoint(state)
-            self.play.engine.validate(state)
-            campaign["revision"], campaign["play_json"] = revision, state.model_dump_json()
+            self.play.commit(campaign, state)
             return Event(input=payload, action="recovery", outcome=command.kind, roll=None)
 
         result = await self.play.store.commit_turn(

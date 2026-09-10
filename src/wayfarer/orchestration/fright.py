@@ -104,11 +104,7 @@ class FrightService:
             updated = before.model_copy(
                 update={"revision": before.revision + 1, "resources": resources}
             )
-            play.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = (
-                updated.revision,
-                updated.model_dump_json(),
-            )
+            play.commit(campaign, updated)
             return Event(input=payload, action="npc", outcome="fright decision recorded", roll=None)
 
         await play.store.commit_turn(

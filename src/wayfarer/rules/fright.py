@@ -6,15 +6,15 @@ invented by the model or treated as automatic character purchases.
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import Field
 
 from wayfarer.errors import ValidationError
+from wayfarer.models import Record
 from wayfarer.rules.checks import CheckTrace, Modifier, Outcome, RandomSource
 from wayfarer.rules.gurps_checks import success_roll
 
 
-class FrightEffect(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+class FrightEffect(Record):
     table_total: int = Field(ge=4)
     condition: Literal[
         "none", "stunned", "retching", "unconscious", "panic", "catatonia", "seizure"

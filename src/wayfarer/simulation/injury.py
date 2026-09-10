@@ -14,6 +14,7 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Record
 from wayfarer.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.rules.location_types import HitLocation, HumanLocation, LastingInjury
@@ -31,14 +32,7 @@ from wayfarer.simulation.hit_locations import (
     select_location,
     wound_factor,
 )
-from wayfarer.simulation.resources import (
-    Command,
-    Pool,
-    Receipt,
-    Record,
-    ResourceEvent,
-    ResourceState,
-)
+from wayfarer.simulation.resources import Command, Pool, Receipt, ResourceEvent, ResourceState
 
 
 class Wound(Command):

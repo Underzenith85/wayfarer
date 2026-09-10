@@ -2,15 +2,13 @@
 
 from typing import Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import Field, model_validator
 
+from wayfarer.models import Record
 from wayfarer.rules.vehicle_types import Locomotion, VehicleTrace
 
 
-class Transport(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid", frozen=True, strict=True, revalidate_instances="always"
-    )
+class Transport(Record):
     source_id: Literal["gurps-basic-set-campaigns-4e-fourth-printing"] = (
         "gurps-basic-set-campaigns-4e-fourth-printing"
     )

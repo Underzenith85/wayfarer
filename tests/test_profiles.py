@@ -40,7 +40,8 @@ from wayfarer.rules.profiles import (
     RegisteredProfile,
 )
 from wayfarer.runtime import starting_scenario
-from wayfarer.simulation.actions import ActionEngine, ActionRules, CheckRule, PlayState
+from wayfarer.simulation.action_engine import ActionEngine
+from wayfarer.simulation.actions import ActionRules, CheckRule, PlayState
 from wayfarer.simulation.profiles import MigrateProfile, ProfileSelection
 from wayfarer.simulation.resources import EquipmentSpec, Item, ResourceEngine
 from wayfarer.simulation.setup import CreateSetup, SetupCommand

@@ -17,6 +17,7 @@ from wayfarer.character.statistics import (
     encumbrance,
 )
 from wayfarer.errors import ValidationError
+from wayfarer.models import Id, Record
 from wayfarer.rules.catalog import DefinitionKind, RulesPackage
 from wayfarer.rules.conformance import require_capabilities
 from wayfarer.rules.entangle_types import EntangleSpec
@@ -28,7 +29,7 @@ from wayfarer.rules.mount_types import MountSpec
 from wayfarer.rules.object_types import ObjectProfile
 from wayfarer.rules.readiness_types import ProjectileReadiness
 from wayfarer.rules.spray_types import SprayerSpec
-from wayfarer.simulation.resources import EquipmentSpec, Id, Record, ResourceEngine, ResourceState
+from wayfarer.simulation.resources import EquipmentSpec, ResourceEngine, ResourceState
 
 Nonnegative = Annotated[int, Field(ge=0)]
 Positive = Annotated[int, Field(ge=1)]

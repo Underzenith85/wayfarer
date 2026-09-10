@@ -14,7 +14,7 @@ from wayfarer.character.compiler import pool_limits
 from wayfarer.character.physical_traits import physical_traits
 from wayfarer.character.power import Approval
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, Event, Roll
+from wayfarer.models import Campaign, Event, Record, Roll
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
 from wayfarer.rules.catalog import reference
@@ -22,9 +22,9 @@ from wayfarer.rules.checks import Outcome, RandomSource
 from wayfarer.rules.injury_types import InjuryStatus
 from wayfarer.rules.recovery_types import FatigueStatus
 from wayfarer.simulation.access import CampaignMember
+from wayfarer.simulation.action_engine import ActionEngine
 from wayfarer.simulation.actions import (
     ACTION_ADAPTER,
-    ActionEngine,
     ActionResult,
     ActorSetup,
     PlayActor,
@@ -32,7 +32,7 @@ from wayfarer.simulation.actions import (
     TypedAction,
 )
 from wayfarer.simulation.adjudication import expire_rulings
-from wayfarer.simulation.resources import Pool, Record, ResourceState
+from wayfarer.simulation.resources import Pool, ResourceState
 from wayfarer.simulation.scenes import ActorScene, JournalEntry, SceneEvent
 from wayfarer.world import World
 
@@ -296,6 +296,15 @@ class PlayService:
         self.engine.validate(state)
         return state
 
+    def commit(self, campaign: Campaign, state: PlayState) -> None:
+        """Validate a resolved play state and record it as the campaign's checkpoint.
+
+        This is the only verb that writes play state onto a campaign row; every
+        transaction ends here so the persisted revision and checkpoint agree.
+        """
+        self.engine.validate(state)
+        record_play_state(campaign, state)
+
     def checkpoint(
         self, state: PlayState, *, before: PlayState | None = None, run_npcs: bool = True
     ) -> PlayState:
@@ -384,9 +393,7 @@ class PlayService:
             if result.status != "committed":
                 raise ValidationError("Action is no longer feasible")
             state = self.checkpoint(state, before=current)
-            self.engine.validate(state)
-            campaign["play_json"] = state.model_dump_json()
-            campaign["revision"] = state.revision
+            self.commit(campaign, state)
             roll: Roll | None = None
             if result.check is not None:
                 check = result.check
@@ -460,11 +467,7 @@ class PlayService:
                     ),
                 }
             )
-            self.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = (
-                updated.revision,
-                updated.model_dump_json(),
-            )
+            self.commit(campaign, updated)
             return Event(
                 input=payload,
                 action="power-approval",
@@ -485,3 +488,9 @@ class PlayService:
         if approval is None:
             raise ValidationError("Missing committed approval")
         return approval
+
+
+def record_play_state(campaign: Campaign, state: PlayState) -> None:
+    """Write an already validated play checkpoint and its revision onto the campaign row."""
+    campaign["revision"] = state.revision
+    campaign["play_json"] = state.model_dump_json()

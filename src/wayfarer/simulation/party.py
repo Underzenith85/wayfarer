@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Literal
 from pydantic import Field
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.simulation.resources import Id, Record
+from wayfarer.models import Id, Record
 
 if TYPE_CHECKING:
     from wayfarer.simulation.actions import PlayState
@@ -142,3 +142,19 @@ def validate(state: PlayState) -> None:
             or activity.due < activity.start
         ):
             raise ValidationError("Invalid queued activity binding")
+
+
+def validate_effects(rules: PartyRules, state: PlayState, scene_ids: frozenset[str]) -> None:
+    """Cross-scene effects must name known scenes, facts and approved recipients."""
+    effects = rules.effects
+    if len({e.id for e in effects}) != len(effects):
+        raise ValidationError("Duplicate cross-scene effect")
+    actor_ids = {a.actor_id for a in state.actors}
+    facts = {f.id for f in state.world.facts}
+    if any(
+        e.source_scene_id not in scene_ids
+        or e.fact_id not in facts
+        or not set(e.recipient_actor_ids) <= actor_ids
+        for e in effects
+    ):
+        raise ValidationError("Invalid cross-scene effect references")

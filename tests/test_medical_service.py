@@ -15,7 +15,8 @@ from wayfarer.rules.catalog import RulesCatalog
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.rules.injury_types import InjuryStatus
 from wayfarer.rules.recovery_types import FatigueStatus
-from wayfarer.simulation.actions import ActionEngine, ActionRules, ActorSetup, Move, Wait
+from wayfarer.simulation.action_engine import ActionEngine
+from wayfarer.simulation.actions import ActionRules, ActorSetup, Move, Wait
 from wayfarer.simulation.medical import BeginRecovery, FinishRecovery
 from wayfarer.simulation.resources import Owner, ResourceEngine, ResourceState
 

@@ -271,8 +271,7 @@ class FrightBuildService:
                     "rulings": expire_rulings(state.rulings, revision, resources.game_time),
                 }
             )
-            play.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = revision, updated.model_dump_json()
+            play.commit(campaign, updated)
             return Event(
                 input=payload, action="npc", outcome="fright build decision recorded", roll=None
             )

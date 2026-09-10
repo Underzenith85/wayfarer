@@ -2,8 +2,8 @@
 
 from dataclasses import asdict
 
+from wayfarer.models import Record
 from wayfarer.simulation.actions import PlayState
-from wayfarer.simulation.resources import Record
 from wayfarer.simulation.studio import ScenarioGraph
 
 
