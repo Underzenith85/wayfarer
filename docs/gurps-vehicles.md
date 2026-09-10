@@ -1,9 +1,11 @@
-# Basic Set vehicle operation audit (#207)
+# Basic Set vehicle operation audit (#207, #358)
 
 This adapter extends the #208 transport foundation inside the existing resource
 transaction. It does not supply the live mounted/vehicle encounter integration
 originally assigned to #120. Full vehicle movement/combat capabilities remain
-**partial**, and #207 is not acceptance-complete.
+**partial**. #207 closed without completing them, so #358 owns the two
+capability rows and audits what each mode still owes; see
+[the residual blockers](#residual-coverage-blockers-358) below.
 
 ## Rules selection and authority
 
@@ -61,22 +63,53 @@ restart. PostgreSQL runs require `WAYFARER_TEST_DATABASE_URL`.
 | Occupants | Damage based on each vehicle's actual speed loss; per-occupant belts/airbags, worn armor blunt trauma and innate DR; existing injury/threshold reducer | B431-432 |
 | Open cabin | Unbelted passenger knockback distance uses pre-armor damage and explicitly compiled ST; persisted ejection-pending state blocks subsequent movement | B432 |
 
-## Residual coverage blockers
+## Residual coverage blockers (#358)
 
-These are remaining #207 work, not completed merely by having a pending state:
+#120 closed after landing a ground slice and #207 closed after expanding the
+modes, so neither is available to own what is still missing. #358 audits the
+residual per locomotion mode and splits it into live children;
+`rules/vehicle_coverage.py` carries that audit as typed data, and
+`vehicle_coverage.audit_report` publishes it. A pending state is not completion.
 
-| Missing consumer or variant | Current behavior / owner |
-| --- | --- |
-| Space thrust, navigation, fuel/delta-v and very large speed/damage scales | Navigation rejects; only control/stress and resolved collision exchange are provided. #207 |
-| Vertical flight, climbing/diving trajectories, continuing stalls/falls and terrain-relative air-crash consequences | Altitude/control facts persist, but full three-dimensional movement and ongoing descent are not implemented. #207 |
-| Sinking, capsizing recovery, underwater stress damage, leaks, decompression and open-deck overboard checks | Pending states block ordinary operation; open-deck control rejects before dice. Integrate with environmental consumers and #181. #207 |
-| Ejection destination, subsequent impacts, swimming/rescue and removed occupant manifests | Ejection distance is computed, but placement and follow-on hazards remain pending. #207/#120 |
-| Slopes, terrain-specific travel tables, airborne drift, water currents, fractional draft and unsafe terrain deceleration beyond the supported envelope | Reject; no inferred travel behavior. #207 |
-| Minor skid paths through difficult terrain or other actors; fractional endpoint reconciliation | Reject the ambiguous path; exact residual thirds are saved. #207/#105 |
-| Vehicle hit locations, operator incapacitation, ongoing stress below zero HP, disabled equipment effects, and actual leak/engine-failure consequences | Existing object damage is reused, but these live consumers remain under #181/#207. |
-| Ramming attack/defense, mounted weapons, cover, Aim and penalty consumption, and synchronized encounter poses | Live integration originally assigned to #120 remains missing despite that issue's closure. |
+| Missing consumer or variant | Current behavior | Owner |
+| --- | --- | ---: |
+| Slopes, terrain-specific travel tables and unsafe terrain deceleration beyond the supported envelope | Reject; no inferred travel behavior. | #392 |
+| Minor skid paths through difficult terrain or other actors; fractional endpoint reconciliation | Reject the ambiguous path; exact residual thirds are saved. | #392 |
+| Ejection destination, subsequent impacts, swimming/rescue and removed occupant manifests | Ejection distance is computed, but placement and follow-on hazards remain pending. | #392 |
+| Vertical flight, climbing/diving trajectories, continuing stalls/falls, airborne drift and terrain-relative air-crash consequences | Altitude/control facts persist, but full three-dimensional movement and ongoing descent are not implemented. | #393 |
+| Sinking, capsizing recovery, underwater stress damage, leaks, decompression, water currents, fractional draft and open-deck overboard checks | Pending states block ordinary operation; open-deck control rejects before dice. | #394 |
+| Space thrust, navigation, fuel/delta-v and very large speed/damage scales | Navigation rejects; only control/stress and the resolved collision exchange are provided. | #395 |
+| Mounted movement, Riding control against the mounted loss table and rider separation | `ground-mount` carries no version-two operation at all; every path rejects by name. | #396 |
+| Ramming attack/defense, mounted weapons, cover, Aim and penalty consumption, and synchronized encounter poses | Live integration originally assigned to #120 remains missing despite that issue's closure. | #397 |
+| Vehicle hit locations, operator incapacitation, ongoing stress below zero HP and disabled equipment effects | Existing object damage is reused; these live consumers are not distinguished. | #397 |
 
 No unsupported outcome is replaced with an LLM ruling, default damage, random
 invented malfunction or a full-coverage claim. #105/#107 and #181 remain dependency
-owners for geometry, injury and live durability integration. The bounded tests in
-this PR establish only the operations listed above.
+owners for geometry, injury and live durability integration. The bounded tests
+recorded here establish only the operations listed in the implemented table
+above, never the residuals.
+
+## Declared capability rows (#358)
+
+`gurps.vehicles.movement` and `gurps.vehicles.combat` are owned by #358 and their
+status is **derived** from the audit above rather than hand-set: a mode counts as
+verified only once it resolves control loss, collision, occupant injury and
+restart and owes no residual, and the movement row is verified only when every
+mode is. No mode qualifies yet, and the combat row has no implementation behind
+it at all, so both stay `partial`.
+
+`rules/vehicle_coverage.validate_coverage` rejects three drifts: an audit that
+declares different modes from `VEHICLE_OPERATIONS`, a mode that claims a concern
+it carries no operation for, and a residual whose owner is this audit itself or
+one of the closed issues it supersedes. It also rejects a declared capability
+status or owner that disagrees with the audit, so raising a mode is the only way
+to raise a row.
+
+Every bound #346 vehicle skill records `gurps.vehicles.movement` as an activation
+blocker, and `rules/mundane_skills/technology.unsupported_scope` publishes it with
+#358 as its owner, so the scenario, character and LLM validators see the gap
+rather than inferring support. Repairing a machine is not operating one, so the
+#356 Mechanic rows carry no activation blocker. Once the row reaches `verified`,
+those procedures drop the blocker with no change to the skill side.
+
+Evidence is in `tests/test_vehicle_coverage.py`.

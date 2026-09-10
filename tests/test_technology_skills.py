@@ -45,29 +45,31 @@ LISTED = (
     "seamanship set-trap shiphandling spacer submarine submariner traps vacc-suit work-by-touch"
 ).split()
 # Rows this issue does not implement, and the concrete open child that owns them.
+# #356 expanded the discipline-keyed families; the four whose specialty axis is a
+# world, a planet type or a species record that axis but wait on #390 to name one.
 TRANSFERRED = {
-    "skill:bioengineering": 356,
-    "skill:biology": 356,
-    "skill:current-affairs": 356,
-    "skill:disguise": 356,
-    "skill:electronics-operation": 356,
-    "skill:electronics-repair": 356,
-    "skill:engineer": 356,
-    "skill:geography": 356,
-    "skill:geology": 356,
-    "skill:hazardous-materials": 356,
-    "skill:mechanic": 356,
-    "skill:paleontology": 356,
+    "skill:biology": 390,
+    "skill:disguise": 390,
+    "skill:geography": 390,
+    "skill:geology": 390,
     "skill:motion-picture-camera": 338,
 }
 # Families completed by their concrete specialties instead of a dispatch.
 FAMILIES = {
+    "skill:bioengineering": 3,
     "skill:boating": 4,
     "skill:crewman": 4,
+    "skill:current-affairs": 8,
     "skill:driving": 9,
+    "skill:electronics-operation": 9,
+    "skill:electronics-repair": 10,
+    "skill:engineer": 10,
     "skill:environment-suit": 4,
     "skill:explosives": 5,
+    "skill:hazardous-materials": 3,
     "skill:mathematics": 6,
+    "skill:mechanic": 29,
+    "skill:paleontology": 3,
     "skill:piloting": 14,
     "skill:shiphandling": 4,
     "skill:submarine": 3,
@@ -244,9 +246,9 @@ def test_a_technique_without_its_parent_level_cannot_be_rolled() -> None:
 @pytest.mark.parametrize(
     ("identifier", "expected"),
     [
-        ("skill:mechanic", "specialty-expansion (#356)"),
+        ("skill:biology", "runtime-procedure (#390)"),
         ("skill:motion-picture-camera", "runtime-procedure (#338)"),
-        ("skill:engineer", "prerequisite-procedure (#383)"),
+        ("skill:geology", "runtime-procedure (#390)"),
     ],
 )
 def test_transferred_rows_fail_closed_naming_their_owner(identifier: str, expected: str) -> None:
@@ -328,7 +330,7 @@ def test_only_a_dispatched_row_carries_its_hook() -> None:
         assert entry.dispatch is not None
         assert definition.hooks == ("character.gurps-skill", entry.dispatch)
     with pytest.raises(ValidationError, match="no bound dispatch"):
-        PROCEDURES["skill:mechanic"].definition()
+        PROCEDURES["skill:biology"].definition()
     with pytest.raises(ValidationError, match="no bound dispatch"):
         PROCEDURES["skill:driving"].definition()
 
@@ -346,13 +348,15 @@ def test_the_capability_registry_gates_activation_not_the_procedure() -> None:
 def test_implemented_rows_reach_the_audit_report() -> None:
     report = audit_report()
     counts = cast(dict[str, int], report["implementation_counts"])
-    # 83 technology rows here, plus 45 ranged (#344 and its children) and 16 social.
-    assert counts["implemented"] == 144
+    # 83 technology rows from #346 and 83 more from #356, plus 45 ranged
+    # (#344, #354, #355, #357, #359) and 16 social (#345).
+    assert counts["implemented"] == 227
     rows = {entry.id: entry for entry in inventory()}
     assert rows["skill:vacc-suit"].dispatch == "hazard.exposure"
     assert rows["skill:driving-automobile"].dispatch == "transport.vehicle-control"
     assert rows["skill:driving"].dispatch is None
     assert rows["skill:mechanic"].dispatch is None
+    assert rows["skill:mechanic-automobile"].dispatch == "object.repair"
 
 
 def test_bound_definitions_are_not_yet_carried_by_a_package_pin() -> None:

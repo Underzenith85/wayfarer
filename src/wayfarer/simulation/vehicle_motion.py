@@ -47,7 +47,7 @@ def move_vehicle(
     if t.status != "controlled":
         raise ValidationError("Resolve vehicle control consequences before movement")
     if t.locomotion == "ground-mount":
-        raise ValidationError("Mounted maneuvers remain owned by #120")
+        raise ValidationError("Mounted maneuvers remain owned by #396")
     if board.profile_id != t.profile_id:
         raise ValidationError("Vehicle and map rules profiles differ")
     if command.end_speed > t.top_speed:

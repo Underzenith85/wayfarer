@@ -268,7 +268,10 @@ def test_no_row_is_left_recording_nothing_at_all() -> None:
     assert not [e for e in entries if e.implementation == "listing-only"]
     assert sum(e.implementation == "contextual" for e in entries) == 28
     assert sum(e.template is not None for e in entries) == 23
-    assert sum(e.variable is not None for e in entries) == 5
+    # Five open families here, plus the four #356 recorded for a world, a planet
+    # type or a species. Those four fix their own numbers, so they still carry a
+    # definition and are counted as unsupported rather than contextual.
+    assert sum(e.variable is not None for e in entries) == 9
 
 
 def test_every_remaining_contextual_blocker_names_a_concrete_child() -> None:

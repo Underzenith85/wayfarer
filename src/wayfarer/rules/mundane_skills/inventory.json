@@ -1046,7 +1046,88 @@
       384,
       385
     ],
-    "procedure_owner": 346
+    "procedure_owner": 356
+  },
+  {
+    "id": "bioengineering-cloning",
+    "name": "Bioengineering (Cloning)",
+    "page": 180,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty": {
+      "family": "bioengineering",
+      "name": "cloning"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "bioengineering-genetic-engineering",
+    "name": "Bioengineering (Genetic Engineering)",
+    "page": 180,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty": {
+      "family": "bioengineering",
+      "name": "genetic-engineering"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "bioengineering-tissue-engineering",
+    "name": "Bioengineering (Tissue Engineering)",
+    "page": 180,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty": {
+      "family": "bioengineering",
+      "name": "tissue-engineering"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
   },
   {
     "id": "biology",
@@ -1076,9 +1157,14 @@
       382,
       383,
       384,
-      385
+      385,
+      390
     ],
-    "procedure_owner": 346
+    "procedure_owner": 356,
+    "variable": {
+      "subject": "one planet type",
+      "determination": "chosen-with-subject"
+    }
   },
   {
     "id": "blowpipe",
@@ -2071,7 +2157,263 @@
       384,
       385
     ],
-    "procedure_owner": 346
+    "procedure_owner": 356
+  },
+  {
+    "id": "current-affairs-business",
+    "name": "Current Affairs (Business)",
+    "page": 186,
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
+    ],
+    "specialty": {
+      "family": "current-affairs",
+      "name": "business"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "current-affairs-headline-news",
+    "name": "Current Affairs (Headline News)",
+    "page": 186,
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
+    ],
+    "specialty": {
+      "family": "current-affairs",
+      "name": "headline-news"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "current-affairs-high-culture",
+    "name": "Current Affairs (High Culture)",
+    "page": 186,
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
+    ],
+    "specialty": {
+      "family": "current-affairs",
+      "name": "high-culture"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "current-affairs-people",
+    "name": "Current Affairs (People)",
+    "page": 186,
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
+    ],
+    "specialty": {
+      "family": "current-affairs",
+      "name": "people"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "current-affairs-politics",
+    "name": "Current Affairs (Politics)",
+    "page": 186,
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
+    ],
+    "specialty": {
+      "family": "current-affairs",
+      "name": "politics"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "current-affairs-popular-culture",
+    "name": "Current Affairs (Popular Culture)",
+    "page": 186,
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
+    ],
+    "specialty": {
+      "family": "current-affairs",
+      "name": "popular-culture"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "current-affairs-science-and-technology",
+    "name": "Current Affairs (Science and Technology)",
+    "page": 186,
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
+    ],
+    "specialty": {
+      "family": "current-affairs",
+      "name": "science-and-technology"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "current-affairs-sports",
+    "name": "Current Affairs (Sports)",
+    "page": 186,
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
+    ],
+    "specialty": {
+      "family": "current-affairs",
+      "name": "sports"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
   },
   {
     "id": "dancing",
@@ -2252,9 +2594,14 @@
       382,
       383,
       384,
-      385
+      385,
+      390
     ],
-    "procedure_owner": 346
+    "procedure_owner": 356,
+    "variable": {
+      "subject": "one species or culture",
+      "determination": "chosen-with-subject"
+    }
   },
   {
     "id": "diving-suit",
@@ -2870,7 +3217,295 @@
       384,
       385
     ],
-    "procedure_owner": 346
+    "procedure_owner": 356
+  },
+  {
+    "id": "electronics-operation-communications",
+    "name": "Electronics Operation (Communications)",
+    "page": 189,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "electronics-operation",
+      "name": "communications"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "electronics-operation-electronic-warfare",
+    "name": "Electronics Operation (Electronic Warfare)",
+    "page": 189,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "electronics-operation",
+      "name": "electronic-warfare"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "electronics-operation-media",
+    "name": "Electronics Operation (Media)",
+    "page": 189,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "electronics-operation",
+      "name": "media"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "electronics-operation-medical",
+    "name": "Electronics Operation (Medical)",
+    "page": 189,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "electronics-operation",
+      "name": "medical"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "electronics-operation-scientific",
+    "name": "Electronics Operation (Scientific)",
+    "page": 189,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "electronics-operation",
+      "name": "scientific"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "electronics-operation-security",
+    "name": "Electronics Operation (Security)",
+    "page": 189,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "electronics-operation",
+      "name": "security"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "electronics-operation-sensors",
+    "name": "Electronics Operation (Sensors)",
+    "page": 189,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "electronics-operation",
+      "name": "sensors"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "electronics-operation-sonar",
+    "name": "Electronics Operation (Sonar)",
+    "page": 189,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "electronics-operation",
+      "name": "sonar"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "electronics-operation-surveillance",
+    "name": "Electronics Operation (Surveillance)",
+    "page": 189,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "electronics-operation",
+      "name": "surveillance"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
   },
   {
     "id": "electronics-repair",
@@ -2902,7 +3537,327 @@
       384,
       385
     ],
-    "procedure_owner": 346
+    "procedure_owner": 356
+  },
+  {
+    "id": "electronics-repair-communications",
+    "name": "Electronics Repair (Communications)",
+    "page": 190,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "electronics-repair",
+      "name": "communications"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "electronics-repair-computers",
+    "name": "Electronics Repair (Computers)",
+    "page": 190,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "electronics-repair",
+      "name": "computers"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "electronics-repair-electronic-warfare",
+    "name": "Electronics Repair (Electronic Warfare)",
+    "page": 190,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "electronics-repair",
+      "name": "electronic-warfare"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "electronics-repair-media",
+    "name": "Electronics Repair (Media)",
+    "page": 190,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "electronics-repair",
+      "name": "media"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "electronics-repair-medical",
+    "name": "Electronics Repair (Medical)",
+    "page": 190,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "electronics-repair",
+      "name": "medical"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "electronics-repair-scientific",
+    "name": "Electronics Repair (Scientific)",
+    "page": 190,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "electronics-repair",
+      "name": "scientific"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "electronics-repair-security",
+    "name": "Electronics Repair (Security)",
+    "page": 190,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "electronics-repair",
+      "name": "security"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "electronics-repair-sensors",
+    "name": "Electronics Repair (Sensors)",
+    "page": 190,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "electronics-repair",
+      "name": "sensors"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "electronics-repair-sonar",
+    "name": "Electronics Repair (Sonar)",
+    "page": 190,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "electronics-repair",
+      "name": "sonar"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "electronics-repair-surveillance",
+    "name": "Electronics Repair (Surveillance)",
+    "page": 190,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "electronics-repair",
+      "name": "surveillance"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
   },
   {
     "id": "engineer",
@@ -2930,7 +3885,287 @@
       384,
       385
     ],
-    "procedure_owner": 346
+    "procedure_owner": 356
+  },
+  {
+    "id": "engineer-artillery",
+    "name": "Engineer (Artillery)",
+    "page": 190,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty": {
+      "family": "engineer",
+      "name": "artillery"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "prerequisite-procedure",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "engineer-civil",
+    "name": "Engineer (Civil)",
+    "page": 190,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty": {
+      "family": "engineer",
+      "name": "civil"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "prerequisite-procedure",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "engineer-clockwork",
+    "name": "Engineer (Clockwork)",
+    "page": 190,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty": {
+      "family": "engineer",
+      "name": "clockwork"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "prerequisite-procedure",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "engineer-combat",
+    "name": "Engineer (Combat)",
+    "page": 190,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty": {
+      "family": "engineer",
+      "name": "combat"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "prerequisite-procedure",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "engineer-electrical",
+    "name": "Engineer (Electrical)",
+    "page": 190,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty": {
+      "family": "engineer",
+      "name": "electrical"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "prerequisite-procedure",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "engineer-electronics",
+    "name": "Engineer (Electronics)",
+    "page": 190,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty": {
+      "family": "engineer",
+      "name": "electronics"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "prerequisite-procedure",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "engineer-materials",
+    "name": "Engineer (Materials)",
+    "page": 190,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty": {
+      "family": "engineer",
+      "name": "materials"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "prerequisite-procedure",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "engineer-mining",
+    "name": "Engineer (Mining)",
+    "page": 190,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty": {
+      "family": "engineer",
+      "name": "mining"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "prerequisite-procedure",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "engineer-robotics",
+    "name": "Engineer (Robotics)",
+    "page": 190,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty": {
+      "family": "engineer",
+      "name": "robotics"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "prerequisite-procedure",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "engineer-small-arms",
+    "name": "Engineer (Small Arms)",
+    "page": 190,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty": {
+      "family": "engineer",
+      "name": "small-arms"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "prerequisite-procedure",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
   },
   {
     "id": "environment-suit",
@@ -4035,9 +5270,14 @@
       382,
       383,
       384,
-      385
+      385,
+      390
     ],
-    "procedure_owner": 346
+    "procedure_owner": 356,
+    "variable": {
+      "subject": "one world or region",
+      "determination": "chosen-with-subject"
+    }
   },
   {
     "id": "geology",
@@ -4067,9 +5307,14 @@
       382,
       383,
       384,
-      385
+      385,
+      390
     ],
-    "procedure_owner": 346
+    "procedure_owner": 356,
+    "variable": {
+      "subject": "one planet type",
+      "determination": "chosen-with-subject"
+    }
   },
   {
     "id": "gesture",
@@ -4681,7 +5926,97 @@
       384,
       385
     ],
-    "procedure_owner": 346
+    "procedure_owner": 356
+  },
+  {
+    "id": "hazardous-materials-biological",
+    "name": "Hazardous Materials (Biological)",
+    "page": 199,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "hazardous-materials",
+      "name": "biological"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "hazardous-materials-chemical",
+    "name": "Hazardous Materials (Chemical)",
+    "page": 199,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "hazardous-materials",
+      "name": "chemical"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "hazardous-materials-nuclear-radiological",
+    "name": "Hazardous Materials (Nuclear/Radiological)",
+    "page": 199,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "hazardous-materials",
+      "name": "nuclear-radiological"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382
+    ],
+    "procedure_owner": 356
   },
   {
     "id": "heraldry",
@@ -6328,7 +7663,935 @@
       384,
       385
     ],
-    "procedure_owner": 346
+    "procedure_owner": 356
+  },
+  {
+    "id": "mechanic-aerospace",
+    "name": "Mechanic (Aerospace)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mechanic",
+      "name": "aerospace"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "mechanic-airship",
+    "name": "Mechanic (Airship)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mechanic",
+      "name": "airship"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "mechanic-autogyro",
+    "name": "Mechanic (Autogyro)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mechanic",
+      "name": "autogyro"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "mechanic-automobile",
+    "name": "Mechanic (Automobile)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mechanic",
+      "name": "automobile"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "mechanic-construction-equipment",
+    "name": "Mechanic (Construction Equipment)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mechanic",
+      "name": "construction-equipment"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "mechanic-contragravity",
+    "name": "Mechanic (Contragravity)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mechanic",
+      "name": "contragravity"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "mechanic-flight-pack",
+    "name": "Mechanic (Flight Pack)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mechanic",
+      "name": "flight-pack"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "mechanic-free-flooding-sub",
+    "name": "Mechanic (Free-Flooding Sub)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mechanic",
+      "name": "free-flooding-sub"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "mechanic-glider",
+    "name": "Mechanic (Glider)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mechanic",
+      "name": "glider"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "mechanic-halftrack",
+    "name": "Mechanic (Halftrack)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mechanic",
+      "name": "halftrack"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "mechanic-heavy-airplane",
+    "name": "Mechanic (Heavy Airplane)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mechanic",
+      "name": "heavy-airplane"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "mechanic-heavy-wheeled",
+    "name": "Mechanic (Heavy Wheeled)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mechanic",
+      "name": "heavy-wheeled"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "mechanic-high-performance-airplane",
+    "name": "Mechanic (High-Performance Airplane)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mechanic",
+      "name": "high-performance-airplane"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "mechanic-high-performance-spacecraft",
+    "name": "Mechanic (High-Performance Spacecraft)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mechanic",
+      "name": "high-performance-spacecraft"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "mechanic-hovercraft",
+    "name": "Mechanic (Hovercraft)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mechanic",
+      "name": "hovercraft"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "mechanic-large-powerboat",
+    "name": "Mechanic (Large Powerboat)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mechanic",
+      "name": "large-powerboat"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "mechanic-large-sub",
+    "name": "Mechanic (Large Sub)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mechanic",
+      "name": "large-sub"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "mechanic-light-airplane",
+    "name": "Mechanic (Light Airplane)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mechanic",
+      "name": "light-airplane"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "mechanic-lighter-than-air",
+    "name": "Mechanic (Lighter-Than-Air)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mechanic",
+      "name": "lighter-than-air"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "mechanic-locomotive",
+    "name": "Mechanic (Locomotive)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mechanic",
+      "name": "locomotive"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "mechanic-low-performance-spacecraft",
+    "name": "Mechanic (Low-Performance Spacecraft)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mechanic",
+      "name": "low-performance-spacecraft"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "mechanic-mecha",
+    "name": "Mechanic (Mecha)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mechanic",
+      "name": "mecha"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "mechanic-mini-sub",
+    "name": "Mechanic (Mini-Sub)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mechanic",
+      "name": "mini-sub"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "mechanic-motorboat",
+    "name": "Mechanic (Motorboat)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mechanic",
+      "name": "motorboat"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "mechanic-motorcycle",
+    "name": "Mechanic (Motorcycle)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mechanic",
+      "name": "motorcycle"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "mechanic-sailboat",
+    "name": "Mechanic (Sailboat)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mechanic",
+      "name": "sailboat"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "mechanic-tracked",
+    "name": "Mechanic (Tracked)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mechanic",
+      "name": "tracked"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "mechanic-ultralight",
+    "name": "Mechanic (Ultralight)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mechanic",
+      "name": "ultralight"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "mechanic-vertol",
+    "name": "Mechanic (Vertol)",
+    "page": 207,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "mechanic",
+      "name": "vertol"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
   },
   {
     "id": "meditation",
@@ -6940,7 +9203,88 @@
       384,
       385
     ],
-    "procedure_owner": 346
+    "procedure_owner": 356
+  },
+  {
+    "id": "paleontology-paleoanthropology",
+    "name": "Paleontology (Paleoanthropology)",
+    "page": 212,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty": {
+      "family": "paleontology",
+      "name": "paleoanthropology"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "paleontology-paleobotany",
+    "name": "Paleontology (Paleobotany)",
+    "page": 212,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty": {
+      "family": "paleontology",
+      "name": "paleobotany"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
+  },
+  {
+    "id": "paleontology-paleozoology",
+    "name": "Paleontology (Paleozoology)",
+    "page": 212,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [],
+    "specialty": {
+      "family": "paleontology",
+      "name": "paleozoology"
+    },
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "conditional-or-skill-defaults",
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      356,
+      382,
+      383
+    ],
+    "procedure_owner": 356
   },
   {
     "id": "panhandling",

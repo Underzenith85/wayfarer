@@ -302,22 +302,22 @@
       "parent": "beam-weapons"
     },
     {
-      "id": "beam-weapons-rifle",
-      "name": "Beam Weapons (Rifle)",
-      "page": 179,
-      "kind": "expansion",
-      "targets": [
-        "beam-weapons-rifle"
-      ],
-      "parent": "beam-weapons"
-    },
-    {
       "id": "beam-weapons-projector",
       "name": "Beam Weapons (Projector)",
       "page": 179,
       "kind": "expansion",
       "targets": [
         "beam-weapons-projector"
+      ],
+      "parent": "beam-weapons"
+    },
+    {
+      "id": "beam-weapons-rifle",
+      "name": "Beam Weapons (Rifle)",
+      "page": 179,
+      "kind": "expansion",
+      "targets": [
+        "beam-weapons-rifle"
       ],
       "parent": "beam-weapons"
     },
@@ -338,6 +338,36 @@
       "targets": [
         "bioengineering"
       ]
+    },
+    {
+      "id": "bioengineering-cloning",
+      "name": "Bioengineering (Cloning)",
+      "page": 180,
+      "kind": "expansion",
+      "targets": [
+        "bioengineering-cloning"
+      ],
+      "parent": "bioengineering"
+    },
+    {
+      "id": "bioengineering-genetic-engineering",
+      "name": "Bioengineering (Genetic Engineering)",
+      "page": 180,
+      "kind": "expansion",
+      "targets": [
+        "bioengineering-genetic-engineering"
+      ],
+      "parent": "bioengineering"
+    },
+    {
+      "id": "bioengineering-tissue-engineering",
+      "name": "Bioengineering (Tissue Engineering)",
+      "page": 180,
+      "kind": "expansion",
+      "targets": [
+        "bioengineering-tissue-engineering"
+      ],
+      "parent": "bioengineering"
     },
     {
       "id": "biology",
@@ -714,6 +744,86 @@
       ]
     },
     {
+      "id": "current-affairs-business",
+      "name": "Current Affairs (Business)",
+      "page": 186,
+      "kind": "expansion",
+      "targets": [
+        "current-affairs-business"
+      ],
+      "parent": "current-affairs"
+    },
+    {
+      "id": "current-affairs-headline-news",
+      "name": "Current Affairs (Headline News)",
+      "page": 186,
+      "kind": "expansion",
+      "targets": [
+        "current-affairs-headline-news"
+      ],
+      "parent": "current-affairs"
+    },
+    {
+      "id": "current-affairs-high-culture",
+      "name": "Current Affairs (High Culture)",
+      "page": 186,
+      "kind": "expansion",
+      "targets": [
+        "current-affairs-high-culture"
+      ],
+      "parent": "current-affairs"
+    },
+    {
+      "id": "current-affairs-people",
+      "name": "Current Affairs (People)",
+      "page": 186,
+      "kind": "expansion",
+      "targets": [
+        "current-affairs-people"
+      ],
+      "parent": "current-affairs"
+    },
+    {
+      "id": "current-affairs-politics",
+      "name": "Current Affairs (Politics)",
+      "page": 186,
+      "kind": "expansion",
+      "targets": [
+        "current-affairs-politics"
+      ],
+      "parent": "current-affairs"
+    },
+    {
+      "id": "current-affairs-popular-culture",
+      "name": "Current Affairs (Popular Culture)",
+      "page": 186,
+      "kind": "expansion",
+      "targets": [
+        "current-affairs-popular-culture"
+      ],
+      "parent": "current-affairs"
+    },
+    {
+      "id": "current-affairs-science-and-technology",
+      "name": "Current Affairs (Science and Technology)",
+      "page": 186,
+      "kind": "expansion",
+      "targets": [
+        "current-affairs-science-and-technology"
+      ],
+      "parent": "current-affairs"
+    },
+    {
+      "id": "current-affairs-sports",
+      "name": "Current Affairs (Sports)",
+      "page": 186,
+      "kind": "expansion",
+      "targets": [
+        "current-affairs-sports"
+      ],
+      "parent": "current-affairs"
+    },
+    {
       "id": "dancing",
       "name": "Dancing",
       "page": 187,
@@ -939,6 +1049,96 @@
       ]
     },
     {
+      "id": "electronics-operation-communications",
+      "name": "Electronics Operation (Communications)",
+      "page": 189,
+      "kind": "expansion",
+      "targets": [
+        "electronics-operation-communications"
+      ],
+      "parent": "electronics-operation"
+    },
+    {
+      "id": "electronics-operation-electronic-warfare",
+      "name": "Electronics Operation (Electronic Warfare)",
+      "page": 189,
+      "kind": "expansion",
+      "targets": [
+        "electronics-operation-electronic-warfare"
+      ],
+      "parent": "electronics-operation"
+    },
+    {
+      "id": "electronics-operation-media",
+      "name": "Electronics Operation (Media)",
+      "page": 189,
+      "kind": "expansion",
+      "targets": [
+        "electronics-operation-media"
+      ],
+      "parent": "electronics-operation"
+    },
+    {
+      "id": "electronics-operation-medical",
+      "name": "Electronics Operation (Medical)",
+      "page": 189,
+      "kind": "expansion",
+      "targets": [
+        "electronics-operation-medical"
+      ],
+      "parent": "electronics-operation"
+    },
+    {
+      "id": "electronics-operation-scientific",
+      "name": "Electronics Operation (Scientific)",
+      "page": 189,
+      "kind": "expansion",
+      "targets": [
+        "electronics-operation-scientific"
+      ],
+      "parent": "electronics-operation"
+    },
+    {
+      "id": "electronics-operation-security",
+      "name": "Electronics Operation (Security)",
+      "page": 189,
+      "kind": "expansion",
+      "targets": [
+        "electronics-operation-security"
+      ],
+      "parent": "electronics-operation"
+    },
+    {
+      "id": "electronics-operation-sensors",
+      "name": "Electronics Operation (Sensors)",
+      "page": 189,
+      "kind": "expansion",
+      "targets": [
+        "electronics-operation-sensors"
+      ],
+      "parent": "electronics-operation"
+    },
+    {
+      "id": "electronics-operation-sonar",
+      "name": "Electronics Operation (Sonar)",
+      "page": 189,
+      "kind": "expansion",
+      "targets": [
+        "electronics-operation-sonar"
+      ],
+      "parent": "electronics-operation"
+    },
+    {
+      "id": "electronics-operation-surveillance",
+      "name": "Electronics Operation (Surveillance)",
+      "page": 189,
+      "kind": "expansion",
+      "targets": [
+        "electronics-operation-surveillance"
+      ],
+      "parent": "electronics-operation"
+    },
+    {
       "id": "electronics-repair",
       "name": "Electronics Repair",
       "page": 190,
@@ -948,6 +1148,106 @@
       ]
     },
     {
+      "id": "electronics-repair-communications",
+      "name": "Electronics Repair (Communications)",
+      "page": 190,
+      "kind": "expansion",
+      "targets": [
+        "electronics-repair-communications"
+      ],
+      "parent": "electronics-repair"
+    },
+    {
+      "id": "electronics-repair-computers",
+      "name": "Electronics Repair (Computers)",
+      "page": 190,
+      "kind": "expansion",
+      "targets": [
+        "electronics-repair-computers"
+      ],
+      "parent": "electronics-repair"
+    },
+    {
+      "id": "electronics-repair-electronic-warfare",
+      "name": "Electronics Repair (Electronic Warfare)",
+      "page": 190,
+      "kind": "expansion",
+      "targets": [
+        "electronics-repair-electronic-warfare"
+      ],
+      "parent": "electronics-repair"
+    },
+    {
+      "id": "electronics-repair-media",
+      "name": "Electronics Repair (Media)",
+      "page": 190,
+      "kind": "expansion",
+      "targets": [
+        "electronics-repair-media"
+      ],
+      "parent": "electronics-repair"
+    },
+    {
+      "id": "electronics-repair-medical",
+      "name": "Electronics Repair (Medical)",
+      "page": 190,
+      "kind": "expansion",
+      "targets": [
+        "electronics-repair-medical"
+      ],
+      "parent": "electronics-repair"
+    },
+    {
+      "id": "electronics-repair-scientific",
+      "name": "Electronics Repair (Scientific)",
+      "page": 190,
+      "kind": "expansion",
+      "targets": [
+        "electronics-repair-scientific"
+      ],
+      "parent": "electronics-repair"
+    },
+    {
+      "id": "electronics-repair-security",
+      "name": "Electronics Repair (Security)",
+      "page": 190,
+      "kind": "expansion",
+      "targets": [
+        "electronics-repair-security"
+      ],
+      "parent": "electronics-repair"
+    },
+    {
+      "id": "electronics-repair-sensors",
+      "name": "Electronics Repair (Sensors)",
+      "page": 190,
+      "kind": "expansion",
+      "targets": [
+        "electronics-repair-sensors"
+      ],
+      "parent": "electronics-repair"
+    },
+    {
+      "id": "electronics-repair-sonar",
+      "name": "Electronics Repair (Sonar)",
+      "page": 190,
+      "kind": "expansion",
+      "targets": [
+        "electronics-repair-sonar"
+      ],
+      "parent": "electronics-repair"
+    },
+    {
+      "id": "electronics-repair-surveillance",
+      "name": "Electronics Repair (Surveillance)",
+      "page": 190,
+      "kind": "expansion",
+      "targets": [
+        "electronics-repair-surveillance"
+      ],
+      "parent": "electronics-repair"
+    },
+    {
       "id": "engineer",
       "name": "Engineer",
       "page": 190,
@@ -955,6 +1255,106 @@
       "targets": [
         "engineer"
       ]
+    },
+    {
+      "id": "engineer-artillery",
+      "name": "Engineer (Artillery)",
+      "page": 190,
+      "kind": "expansion",
+      "targets": [
+        "engineer-artillery"
+      ],
+      "parent": "engineer"
+    },
+    {
+      "id": "engineer-civil",
+      "name": "Engineer (Civil)",
+      "page": 190,
+      "kind": "expansion",
+      "targets": [
+        "engineer-civil"
+      ],
+      "parent": "engineer"
+    },
+    {
+      "id": "engineer-clockwork",
+      "name": "Engineer (Clockwork)",
+      "page": 190,
+      "kind": "expansion",
+      "targets": [
+        "engineer-clockwork"
+      ],
+      "parent": "engineer"
+    },
+    {
+      "id": "engineer-combat",
+      "name": "Engineer (Combat)",
+      "page": 190,
+      "kind": "expansion",
+      "targets": [
+        "engineer-combat"
+      ],
+      "parent": "engineer"
+    },
+    {
+      "id": "engineer-electrical",
+      "name": "Engineer (Electrical)",
+      "page": 190,
+      "kind": "expansion",
+      "targets": [
+        "engineer-electrical"
+      ],
+      "parent": "engineer"
+    },
+    {
+      "id": "engineer-electronics",
+      "name": "Engineer (Electronics)",
+      "page": 190,
+      "kind": "expansion",
+      "targets": [
+        "engineer-electronics"
+      ],
+      "parent": "engineer"
+    },
+    {
+      "id": "engineer-materials",
+      "name": "Engineer (Materials)",
+      "page": 190,
+      "kind": "expansion",
+      "targets": [
+        "engineer-materials"
+      ],
+      "parent": "engineer"
+    },
+    {
+      "id": "engineer-mining",
+      "name": "Engineer (Mining)",
+      "page": 190,
+      "kind": "expansion",
+      "targets": [
+        "engineer-mining"
+      ],
+      "parent": "engineer"
+    },
+    {
+      "id": "engineer-robotics",
+      "name": "Engineer (Robotics)",
+      "page": 190,
+      "kind": "expansion",
+      "targets": [
+        "engineer-robotics"
+      ],
+      "parent": "engineer"
+    },
+    {
+      "id": "engineer-small-arms",
+      "name": "Engineer (Small Arms)",
+      "page": 190,
+      "kind": "expansion",
+      "targets": [
+        "engineer-small-arms"
+      ],
+      "parent": "engineer"
     },
     {
       "id": "enthrallment",
@@ -1435,6 +1835,46 @@
       ]
     },
     {
+      "id": "guns-grenade-launcher",
+      "name": "Guns (Grenade Launcher)",
+      "page": 198,
+      "kind": "expansion",
+      "targets": [
+        "guns-grenade-launcher"
+      ],
+      "parent": "guns"
+    },
+    {
+      "id": "guns-light-anti-armor-weapon",
+      "name": "Guns (Light Anti-Armor Weapon)",
+      "page": 198,
+      "kind": "expansion",
+      "targets": [
+        "guns-light-anti-armor-weapon"
+      ],
+      "parent": "guns"
+    },
+    {
+      "id": "guns-light-machine-gun",
+      "name": "Guns (Light Machine Gun)",
+      "page": 198,
+      "kind": "expansion",
+      "targets": [
+        "guns-light-machine-gun"
+      ],
+      "parent": "guns"
+    },
+    {
+      "id": "guns-musket",
+      "name": "Guns (Musket)",
+      "page": 198,
+      "kind": "expansion",
+      "targets": [
+        "guns-musket"
+      ],
+      "parent": "guns"
+    },
+    {
       "id": "guns-pistol",
       "name": "Guns (Pistol)",
       "page": 198,
@@ -1475,46 +1915,6 @@
       "parent": "guns"
     },
     {
-      "id": "guns-light-machine-gun",
-      "name": "Guns (Light Machine Gun)",
-      "page": 198,
-      "kind": "expansion",
-      "targets": [
-        "guns-light-machine-gun"
-      ],
-      "parent": "guns"
-    },
-    {
-      "id": "guns-musket",
-      "name": "Guns (Musket)",
-      "page": 198,
-      "kind": "expansion",
-      "targets": [
-        "guns-musket"
-      ],
-      "parent": "guns"
-    },
-    {
-      "id": "guns-grenade-launcher",
-      "name": "Guns (Grenade Launcher)",
-      "page": 198,
-      "kind": "expansion",
-      "targets": [
-        "guns-grenade-launcher"
-      ],
-      "parent": "guns"
-    },
-    {
-      "id": "guns-light-anti-armor-weapon",
-      "name": "Guns (Light Anti-Armor Weapon)",
-      "page": 198,
-      "kind": "expansion",
-      "targets": [
-        "guns-light-anti-armor-weapon"
-      ],
-      "parent": "guns"
-    },
-    {
       "id": "hazardous-materials",
       "name": "Hazardous Materials",
       "page": 199,
@@ -1522,6 +1922,36 @@
       "targets": [
         "hazardous-materials"
       ]
+    },
+    {
+      "id": "hazardous-materials-biological",
+      "name": "Hazardous Materials (Biological)",
+      "page": 199,
+      "kind": "expansion",
+      "targets": [
+        "hazardous-materials-biological"
+      ],
+      "parent": "hazardous-materials"
+    },
+    {
+      "id": "hazardous-materials-chemical",
+      "name": "Hazardous Materials (Chemical)",
+      "page": 199,
+      "kind": "expansion",
+      "targets": [
+        "hazardous-materials-chemical"
+      ],
+      "parent": "hazardous-materials"
+    },
+    {
+      "id": "hazardous-materials-nuclear-radiological",
+      "name": "Hazardous Materials (Nuclear/Radiological)",
+      "page": 199,
+      "kind": "expansion",
+      "targets": [
+        "hazardous-materials-nuclear-radiological"
+      ],
+      "parent": "hazardous-materials"
     },
     {
       "id": "heraldry",
@@ -2075,6 +2505,296 @@
       ]
     },
     {
+      "id": "mechanic-aerospace",
+      "name": "Mechanic (Aerospace)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mechanic-aerospace"
+      ],
+      "parent": "mechanic"
+    },
+    {
+      "id": "mechanic-airship",
+      "name": "Mechanic (Airship)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mechanic-airship"
+      ],
+      "parent": "mechanic"
+    },
+    {
+      "id": "mechanic-autogyro",
+      "name": "Mechanic (Autogyro)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mechanic-autogyro"
+      ],
+      "parent": "mechanic"
+    },
+    {
+      "id": "mechanic-automobile",
+      "name": "Mechanic (Automobile)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mechanic-automobile"
+      ],
+      "parent": "mechanic"
+    },
+    {
+      "id": "mechanic-construction-equipment",
+      "name": "Mechanic (Construction Equipment)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mechanic-construction-equipment"
+      ],
+      "parent": "mechanic"
+    },
+    {
+      "id": "mechanic-contragravity",
+      "name": "Mechanic (Contragravity)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mechanic-contragravity"
+      ],
+      "parent": "mechanic"
+    },
+    {
+      "id": "mechanic-flight-pack",
+      "name": "Mechanic (Flight Pack)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mechanic-flight-pack"
+      ],
+      "parent": "mechanic"
+    },
+    {
+      "id": "mechanic-free-flooding-sub",
+      "name": "Mechanic (Free-Flooding Sub)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mechanic-free-flooding-sub"
+      ],
+      "parent": "mechanic"
+    },
+    {
+      "id": "mechanic-glider",
+      "name": "Mechanic (Glider)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mechanic-glider"
+      ],
+      "parent": "mechanic"
+    },
+    {
+      "id": "mechanic-halftrack",
+      "name": "Mechanic (Halftrack)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mechanic-halftrack"
+      ],
+      "parent": "mechanic"
+    },
+    {
+      "id": "mechanic-heavy-airplane",
+      "name": "Mechanic (Heavy Airplane)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mechanic-heavy-airplane"
+      ],
+      "parent": "mechanic"
+    },
+    {
+      "id": "mechanic-heavy-wheeled",
+      "name": "Mechanic (Heavy Wheeled)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mechanic-heavy-wheeled"
+      ],
+      "parent": "mechanic"
+    },
+    {
+      "id": "mechanic-high-performance-airplane",
+      "name": "Mechanic (High-Performance Airplane)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mechanic-high-performance-airplane"
+      ],
+      "parent": "mechanic"
+    },
+    {
+      "id": "mechanic-high-performance-spacecraft",
+      "name": "Mechanic (High-Performance Spacecraft)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mechanic-high-performance-spacecraft"
+      ],
+      "parent": "mechanic"
+    },
+    {
+      "id": "mechanic-hovercraft",
+      "name": "Mechanic (Hovercraft)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mechanic-hovercraft"
+      ],
+      "parent": "mechanic"
+    },
+    {
+      "id": "mechanic-large-powerboat",
+      "name": "Mechanic (Large Powerboat)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mechanic-large-powerboat"
+      ],
+      "parent": "mechanic"
+    },
+    {
+      "id": "mechanic-large-sub",
+      "name": "Mechanic (Large Sub)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mechanic-large-sub"
+      ],
+      "parent": "mechanic"
+    },
+    {
+      "id": "mechanic-light-airplane",
+      "name": "Mechanic (Light Airplane)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mechanic-light-airplane"
+      ],
+      "parent": "mechanic"
+    },
+    {
+      "id": "mechanic-lighter-than-air",
+      "name": "Mechanic (Lighter-Than-Air)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mechanic-lighter-than-air"
+      ],
+      "parent": "mechanic"
+    },
+    {
+      "id": "mechanic-locomotive",
+      "name": "Mechanic (Locomotive)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mechanic-locomotive"
+      ],
+      "parent": "mechanic"
+    },
+    {
+      "id": "mechanic-low-performance-spacecraft",
+      "name": "Mechanic (Low-Performance Spacecraft)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mechanic-low-performance-spacecraft"
+      ],
+      "parent": "mechanic"
+    },
+    {
+      "id": "mechanic-mecha",
+      "name": "Mechanic (Mecha)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mechanic-mecha"
+      ],
+      "parent": "mechanic"
+    },
+    {
+      "id": "mechanic-mini-sub",
+      "name": "Mechanic (Mini-Sub)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mechanic-mini-sub"
+      ],
+      "parent": "mechanic"
+    },
+    {
+      "id": "mechanic-motorboat",
+      "name": "Mechanic (Motorboat)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mechanic-motorboat"
+      ],
+      "parent": "mechanic"
+    },
+    {
+      "id": "mechanic-motorcycle",
+      "name": "Mechanic (Motorcycle)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mechanic-motorcycle"
+      ],
+      "parent": "mechanic"
+    },
+    {
+      "id": "mechanic-sailboat",
+      "name": "Mechanic (Sailboat)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mechanic-sailboat"
+      ],
+      "parent": "mechanic"
+    },
+    {
+      "id": "mechanic-tracked",
+      "name": "Mechanic (Tracked)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mechanic-tracked"
+      ],
+      "parent": "mechanic"
+    },
+    {
+      "id": "mechanic-ultralight",
+      "name": "Mechanic (Ultralight)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mechanic-ultralight"
+      ],
+      "parent": "mechanic"
+    },
+    {
+      "id": "mechanic-vertol",
+      "name": "Mechanic (Vertol)",
+      "page": 207,
+      "kind": "expansion",
+      "targets": [
+        "mechanic-vertol"
+      ],
+      "parent": "mechanic"
+    },
+    {
       "id": "meditation",
       "name": "Meditation",
       "page": 207,
@@ -2298,6 +3018,36 @@
       "targets": [
         "paleontology"
       ]
+    },
+    {
+      "id": "paleontology-paleoanthropology",
+      "name": "Paleontology (Paleoanthropology)",
+      "page": 212,
+      "kind": "expansion",
+      "targets": [
+        "paleontology-paleoanthropology"
+      ],
+      "parent": "paleontology"
+    },
+    {
+      "id": "paleontology-paleobotany",
+      "name": "Paleontology (Paleobotany)",
+      "page": 212,
+      "kind": "expansion",
+      "targets": [
+        "paleontology-paleobotany"
+      ],
+      "parent": "paleontology"
+    },
+    {
+      "id": "paleontology-paleozoology",
+      "name": "Paleontology (Paleozoology)",
+      "page": 212,
+      "kind": "expansion",
+      "targets": [
+        "paleontology-paleozoology"
+      ],
+      "parent": "paleontology"
     },
     {
       "id": "panhandling",

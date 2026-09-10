@@ -225,8 +225,8 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.world.environmental_hazards` | yes | yes | partial | #110; [persistent exposure schedules](gurps-hazards.md) |
 | `gurps.magic.spellcasting` | no | yes | partial | #117/#171; approved builds, representative effects; remaining variants below |
 | `gurps.supernatural.abilities` | no | yes | partial | #118 representative execution complete; exhaustive audit #119 |
-| `gurps.vehicles.movement` | no | yes | partial | #120, #207; [vehicle operation audit](gurps-vehicles.md) |
-| `gurps.vehicles.combat` | no | yes | partial | #120, #207; [vehicle operation audit](gurps-vehicles.md) |
+| `gurps.vehicles.movement` | no | yes | partial | #358; [vehicle operation audit](gurps-vehicles.md); remaining #392, #393, #394, #395, #396 |
+| `gurps.vehicles.combat` | no | yes | partial | #358; [vehicle operation audit](gurps-vehicles.md); remaining #397 |
 
 Profile registration and explicit migration (#96) are infrastructure, not
 mechanics: they add no row and change no state above. Both GURPS profiles remain
@@ -415,8 +415,13 @@ reactions and income (#370) — as `transferred_procedure_scope` in the report.
 families into 39 concrete specialties and four B233 techniques — and transfers
 twelve discipline-keyed rows to #356 and Motion-Picture Camera to #338; its bound
 vehicle rows additionally record `gurps.vehicles.movement` until #358 verifies
-that capability. Those definitions are not yet in a package pin: two ids already
-exist in the pinned package on another hook, which is a deliberate migration.
+that capability. #356 then binds 83 more, expanding seven discipline-keyed
+families into 46 concrete specialties and deriving 29 Mechanic machine types from
+the vehicle specialties #346 recorded rather than authoring them twice; the four
+families whose axis is a planet type, a species or a region record that axis and
+transfer their procedure to #390. Those definitions are not yet in a package pin:
+two ids already exist in the pinned package on another hook, which is a
+deliberate migration.
 A bound row reports as `implemented` and stays blocked by the printing delta. Item-level owners and unsupported/listing-only states reach `source_audit`.
 All candidates remain unavailable; no saved profile/package pin changes. See
 [the mundane skill inventory](gurps-mundane-skills.md) for the coverage matrix.
@@ -975,8 +980,29 @@ compiled operator/rider profiles, mounted attacks/defenses, Aim/penalty consumpt
 mount loss-table/fall consequences, and atomic tactical/object synchronization.
 #105, #106 and #102 remain open hard merge prerequisites; live object integration
 also depends on #181. This foundation alone does not satisfy #120 acceptance.
-#207 tracks the additional Basic Set locomotion, collision and ejection audit and
-remains a blocker for #122. Nothing here certifies full vehicle or Basic Set coverage.
+#207 tracked the additional Basic Set locomotion, collision and ejection audit
+and is closed; #358 and its children #392-#397 carry what it left, and remain
+blockers for #122. Nothing here certifies full vehicle or Basic Set coverage.
+
+### Vehicle coverage audit (#358)
+
+`rules/vehicle_coverage.py` audits the declared locomotion modes one at a time:
+what the adapter carries, which of control loss, collision, occupant injury and
+restart it resolves, and every residual with the live issue that owns it. #120
+closed after landing a ground slice and #207 closed after expanding the modes,
+so both capability rows are owned by #358 from here, and their status is derived
+from the audit rather than hand-set. No mode qualifies yet — the ground modes owe
+terrain and ejection aftermath (#392), air owes three-dimensional movement
+(#393), water and underwater owe their casualty states (#394), space cannot
+travel at all (#395), `ground-mount` carries no version-two operation (#396) —
+and `gurps.vehicles.combat` has no implementation behind it (#397). Both rows
+therefore stay `partial`, and the audit rejects a declared status or owner that
+disagrees with it. The #346 vehicle skill procedures publish
+`gurps.vehicles.movement` as an activation blocker through
+`mundane_skills.technology.unsupported_scope`, reported as
+`unverified_activation_scope`, so the scenario, character and LLM validators see
+the gap rather than inferring support. Evidence is in
+`tests/test_vehicle_coverage.py`.
 
 ### Version-two vehicle operations (#207)
 

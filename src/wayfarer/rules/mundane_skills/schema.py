@@ -157,10 +157,18 @@ class InventoryRow(Record):
             raise ValueError("Technique mechanics must be parent-relative")
         if sum(x is not None for x in (self.technique, self.template, self.variable)) > 1:
             raise ValueError("A row is a technique, a template or a variable family")
-        if (self.template is not None or self.variable is not None) and (
-            self.attribute is not None or self.specialty is not None
-        ):
-            raise ValueError("A template or variable family records no concrete mechanics")
+        if self.template is not None and (self.attribute is not None or self.specialty is not None):
+            raise ValueError("A technique template records no concrete mechanics")
+        # An open family may still fix the numbers every subject rolls against
+        # (B180 Biology is IQ/VH whichever planet type it covers), but it never
+        # names one of them, and it records those numbers only once.
+        if self.variable is not None:
+            if self.specialty is not None:
+                raise ValueError("An open family names no concrete specialty")
+            if self.attribute is not None and (
+                self.variable.attribute is not None or self.variable.difficulty is not None
+            ):
+                raise ValueError("An open family records its mechanics once")
         if self.prerequisite_groups and self.attribute is None:
             raise ValueError("Structured mechanics require attribute and difficulty")
         for group in self.prerequisite_groups:
