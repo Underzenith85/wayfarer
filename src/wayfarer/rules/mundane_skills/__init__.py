@@ -23,6 +23,8 @@ from wayfarer.rules.catalog import (
 )
 from wayfarer.rules.gurps_characters import source
 from wayfarer.rules.gurps_skills import definitions as representative_definitions
+from wayfarer.rules.mundane_skills.ranged import OWNER as RANGED_OWNER
+from wayfarer.rules.mundane_skills.ranged import PROCEDURES as RANGED_PROCEDURES
 from wayfarer.rules.mundane_skills.schema import Exclusion, Exclusions, InventoryRow
 from wayfarer.rules.skill_types import ControllingAttribute as A
 from wayfarer.rules.skill_types import SkillDefault, SkillPrerequisite, SkillSpec, Specialty
@@ -57,6 +59,11 @@ class SkillAudit:
     followup_issues: tuple[int, ...]
     specialty_required: bool = False
     tl_required: bool = False
+    # True only when a runtime module binds this row to a dispatch that already
+    # resolves it. Recording mechanics never sets it. A family row is bound by
+    # its concrete specialties and still has no dispatch of its own.
+    bound: bool = False
+    dispatch: str | None = None
     provenance: str = (
         "Characters Fourth Edition, third printing; first-printing delta audit pending"
     )
@@ -72,7 +79,9 @@ class SkillAudit:
     @property
     def implementation(self) -> str:
         """Certification state of this row, never a family-level claim."""
-        return "unsupported" if self.definition is not None else "listing-only"
+        if self.definition is None:
+            return "listing-only"
+        return "implemented" if self.bound else "unsupported"
 
     @property
     def owners(self) -> tuple[int, ...]:
@@ -210,6 +219,23 @@ def inventory() -> tuple[SkillAudit, ...]:
         blockers = ["first-printing-delta-audit", *row.blockers]
         if definition is None:
             blockers.append("metadata-audit")
+        issues = row.issues
+        dispatch: str | None = None
+        procedure = RANGED_PROCEDURES.get(identifier)
+        if procedure is not None:
+            # The binding may only resolve or keep the blockers this inventory
+            # recorded, and its numbers must be the recorded ones.
+            if set(procedure.resolved) | set(procedure.blockers) != set(row.blockers):
+                raise ValidationError(f"Runtime binding disagrees with the inventory: {identifier}")
+            if procedure.spec() != spec:
+                raise ValidationError(f"Runtime binding changes recorded mechanics: {identifier}")
+            if procedure.blockers and not procedure.owners:
+                raise ValidationError(f"Transferred row names no owner: {identifier}")
+            blockers = [b for b in blockers if b not in procedure.resolved]
+            issues = tuple(dict.fromkeys(issues + (RANGED_OWNER,) + procedure.owners))
+            if procedure.dispatchable:
+                definition = procedure.definition()
+                dispatch = "combat.ranged-attack"
         result.append(
             SkillAudit(
                 identifier,
@@ -217,9 +243,11 @@ def inventory() -> tuple[SkillAudit, ...]:
                 definition.skill.reference if definition and definition.skill else f"B{row.page}",
                 definition,
                 tuple(blockers),
-                row.issues,
+                issues,
                 row.specialty_required,
                 row.tl_required,
+                bound=procedure is not None and procedure.implemented,
+                dispatch=dispatch,
             )
         )
     return tuple(result)
@@ -229,7 +257,7 @@ def candidate_package() -> RulesPackage:
     """Separate immutable package; unsupported entries cannot activate campaigns."""
     return RulesPackage(
         "package:gurps-mundane-skill-candidates",
-        "0.2.0",
+        "0.3.0",
         "gurps-4e-2004",
         (SOURCE,),
         tuple(
@@ -257,7 +285,14 @@ def validate_inventory(entries: tuple[SkillAudit, ...]) -> None:
         if entry.definition and entry.definition.skill:
             if entry.definition.id != entry.id:
                 raise ValidationError(f"Mismatched skill definition ID for {entry.id}")
-            if entry.definition.status is not ImplementationStatus.UNSUPPORTED:
+            implemented = entry.definition.status is ImplementationStatus.IMPLEMENTED
+            if implemented != (entry.dispatch is not None):
+                raise ValidationError(f"Only a dispatched row may be implemented: {entry.id}")
+            if entry.dispatch is not None and (
+                not entry.bound or entry.dispatch not in entry.definition.hooks
+            ):
+                raise ValidationError(f"Dispatched row must carry its hook: {entry.id}")
+            if not implemented and entry.definition.status is not ImplementationStatus.UNSUPPORTED:
                 raise ValidationError(f"Provisional definition must be unsupported: {entry.id}")
             spec = entry.definition.skill
             allowed_targets = identifiers | {a.value for a in A}

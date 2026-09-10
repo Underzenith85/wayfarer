@@ -211,6 +211,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.combat.aim` | yes | yes | partial | #104/#152; target-bound accumulation, disruption, bracing and typed fixed/variable scopes; broader ranged resolution #106/#173 |
 | `gurps.combat.ammunition` | yes | yes | partial | #106; [reservations and reload timing](gurps-ranged.md); #173 adds opt-in per-round loading and magazine unloading; remaining #173 |
 | `gurps.combat.rapid_fire` | no | yes | partial | #106; [burst, Dodge and burst-critical resolution](gurps-ranged.md); remaining #173 |
+| `gurps.combat.ranged_weapon_skills` | no | yes | partial | #344; [bound ranged combat skill procedures and their transferred rows](gurps-mundane-skills.md); remaining #354, #355, #357, #359, #360, #361, #362 |
 | `gurps.combat.unarmed` | yes | yes | partial | #108, #176; [unarmed critical effects, defenses, declared Wait reactions and remaining integrations](gurps-unarmed.md) |
 | `gurps.combat.grappling` | yes | yes | partial | #108, #176; [durable grips, Wait while engaged and remaining integrations](gurps-unarmed.md) |
 | `gurps.tactical.hex_movement` | no | yes | partial | #105 |
@@ -375,11 +376,12 @@ Will-based targets, optional/required specialties, techniques, reference integri
 and unavailable/unknown IDs. Full specialty expansion and runtime availability
 remain visible item-level blockers under #112 and the indicated mechanics owners.
 
-The candidate `0.2.0` audit validates its inventory and exclusions with strict
+The candidate `0.3.0` audit validates its inventory and exclusions with strict
 typed records. Defaults, prerequisites and specialty parents must reference
 accounted-for entries; required-specialty and TL flags survive into the report.
-The inventory now contains 257 records, including six Mathematics specialties,
-with 238 structured definitions and 28 exclusions. Twelve entries have complete
+The inventory now contains 264 records, including six Mathematics specialties and
+the seven Thrown Weapon specialties #344 expands, with 245 structured definitions
+and 28 exclusions. Twelve entries have complete
 unconditional default lists; conditional defaults remain explicitly blocked.
 Representative fallback definitions are normalized to unsupported just like newly
 indexed entries. These checks improve data integrity without making blocked
@@ -389,9 +391,13 @@ Each row is classified by the structure it records, and the audit rejects an
 inventory that leaves any structural class unsampled or any row unclassified.
 Rows without recorded mechanics are reported as `listing-only` rather than as
 partial definitions, and each row's own blockers and certification state reach
-`source_audit` instead of one family status for the chapter. 223 rows still name
+`source_audit` instead of one family status for the chapter. 209 rows still name
 no mechanics owner beyond this audit; the report publishes that count as
-`runtime_owner_unassigned`, a visible #122 blocker. Excluded cinematic and
+`runtime_owner_unassigned`, a visible #122 blocker. #344 binds the first twelve
+rows to a runtime procedure and transfers the rest of the ranged combat group to
+#354, #355, #357, #359, #360, #361 and #362; a bound row reports as
+`implemented` and stays blocked by the printing delta, and its definitions live
+in a new pin rather than in this candidate package. Excluded cinematic and
 supernatural skills are validated against the #119 catalog that owns them, so a
 transfer cannot silently drop a Basic Set skill. The accounting matrix is
 [the mundane skill inventory](gurps-mundane-skills.md).

@@ -81,6 +81,8 @@ async def setup(
     object_hp: int | None = None,
     critical_breakage: Literal["ordinary", "cheap", "resistant"] | None = None,
     attacker_weight: int | None = None,
+    extra_definitions: tuple[RuleDefinition, ...] = (),
+    extra_purchases: tuple[Purchase, ...] = (),
 ) -> tuple[str, PlayService]:
     equipment = EquipmentCatalog(
         profile_id=profile,
@@ -305,16 +307,20 @@ async def setup(
             ),
         )
     )
-    extras = skills + tuple(
-        RuleDefinition(
-            e.definition_id,
-            DefinitionKind.EQUIPMENT,
-            e.definition_id,
-            source,
-            0,
-            ImplementationStatus.IMPLEMENTED,
+    extras = (
+        skills
+        + extra_definitions
+        + tuple(
+            RuleDefinition(
+                e.definition_id,
+                DefinitionKind.EQUIPMENT,
+                e.definition_id,
+                source,
+                0,
+                ImplementationStatus.IMPLEMENTED,
+            )
+            for e in equipment.entries
         )
-        for e in equipment.entries
     )
     from wayfarer.rules.abilities import definition
     from wayfarer.rules.traits import TraitOptions
@@ -427,7 +433,7 @@ async def setup(
         )
         if trained
         else ()
-    )
+    ) + extra_purchases
     actors = tuple(
         ActorSetup(
             actor_id=a,

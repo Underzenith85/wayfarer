@@ -5210,6 +5210,188 @@
     ]
   },
   {
+    "id": "thrown-weapon-axe-mace",
+    "name": "Thrown Weapon (Axe/Mace)",
+    "page": 226,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "specialty": {
+      "family": "thrown-weapon",
+      "name": "axe-mace"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "thrown-weapon-dart",
+    "name": "Thrown Weapon (Dart)",
+    "page": 226,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "specialty": {
+      "family": "thrown-weapon",
+      "name": "dart"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "thrown-weapon-harpoon",
+    "name": "Thrown Weapon (Harpoon)",
+    "page": 226,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "specialty": {
+      "family": "thrown-weapon",
+      "name": "harpoon"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "thrown-weapon-knife",
+    "name": "Thrown Weapon (Knife)",
+    "page": 226,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "specialty": {
+      "family": "thrown-weapon",
+      "name": "knife"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "thrown-weapon-shuriken",
+    "name": "Thrown Weapon (Shuriken)",
+    "page": 226,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "specialty": {
+      "family": "thrown-weapon",
+      "name": "shuriken"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "thrown-weapon-spear",
+    "name": "Thrown Weapon (Spear)",
+    "page": 226,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "specialty": {
+      "family": "thrown-weapon",
+      "name": "spear"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
+    "id": "thrown-weapon-stick",
+    "name": "Thrown Weapon (Stick)",
+    "page": 226,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "specialty": {
+      "family": "thrown-weapon",
+      "name": "stick"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults"
+    ],
+    "issues": [
+      112
+    ]
+  },
+  {
     "id": "tonfa",
     "name": "Tonfa",
     "page": 209,

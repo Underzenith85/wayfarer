@@ -26,6 +26,17 @@ specified numeric expectations, not a claim of source certification.
 | Critical persistence | `ranged-critical-v1` resource events retain the table/result trace, pre-resolution combatants, equipment catalog, selected mode, build revisions, scene, ammunition load, inventory and pools inside the existing command CAS. New records also retain the complete ordered table-roll chain (including self-hit and breakage rerolls), the roll subject and affected weapon. Retried commands return the saved receipt. Unresolved contexts do not claim completed consequences. |
 | Evidence | `tests/test_gurps_ranged.py`: numeric thrown/bow/burst fixtures, modifier boundaries, independent per-hit damage, minimum ST, defense filtering, reload interruption/restart, lost-response retries and reservation conservation. `tests/test_ranged_critical_bursts.py`: burst critical hits, undefended criticals, single-projectile redirection and restart/retry receipts. |
 
+Weapon skills are not interchangeable here. #344 binds Bow, Crossbow, Sling,
+Blowpipe and the seven concrete Thrown Weapon specialties to this dispatch and
+declares the exact weapon modes each governs; a mode outside its skill's class,
+a skill family used in place of a specialty, and every ranged combat skill whose
+procedure is still transferred to an open child issue are refused when the
+equipment catalog is built and again before dice. See
+[Ranged combat procedures](gurps-mundane-skills.md#ranged-combat-procedures-344).
+Firearms, beams, crew-served weapons, liquid projectors, entangling weapons and
+launcher-assisted throws remain unsupported; this change does not widen the
+permitted fire modes.
+
 Additional numeric regression evidence is in `tests/test_ranged_followups.py`,
 checked against Campaigns fourth printing, B373, B376, B382, B399-400 and
 B556-557, and Characters third printing, B147. Those printings do not certify the

@@ -173,6 +173,8 @@ def test_candidate_audit_and_runtime_agree(monkeypatch: pytest.MonkeyPatch) -> N
     entries = inventory()
     package = candidate_package()
     assert len(package.definitions) == len(entries)
+    # The accounting package never carries a hook, even for a row whose runtime
+    # procedure is bound in a separate campaign pin.
     assert all(
         d.status is ImplementationStatus.UNSUPPORTED and not d.hooks for d in package.definitions
     )
@@ -180,8 +182,17 @@ def test_candidate_audit_and_runtime_agree(monkeypatch: pytest.MonkeyPatch) -> N
         e.definition is None
         or (e.definition.status is ImplementationStatus.UNSUPPORTED and not e.definition.hooks)
         for e in entries
+        if not e.bound
     )
-    entry = next(e for e in entries if e.definition)
+    bow = next(e for e in entries if e.id == "skill:bow")
+    assert bow.bound and bow.dispatch == "combat.ranged-attack"
+    assert bow.definition is not None
+    assert bow.definition.status is ImplementationStatus.IMPLEMENTED
+    # #191's printing delta still blocks every row, so nothing is runtime-available.
+    assert all(e.blockers for e in entries) and not bow.available
+    with pytest.raises(ValidationError, match="unavailable"):
+        require_available("skill:bow")
+    entry = next(e for e in entries if e.definition and not e.bound)
     monkeypatch.setattr(module, "inventory", lambda: (replace(entry, blockers=()),))
     # Even a mistakenly cleared blocker list cannot activate an unsupported definition.
     with pytest.raises(ValidationError, match="unavailable"):
@@ -236,6 +247,7 @@ def test_structural_classes_are_recorded_and_completely_sampled() -> None:
     assert all(e.structural_classes for e in entries.values())
     assert entries["skill:vacc-suit"].implementation == "listing-only"
     assert entries["skill:accounting"].implementation == "unsupported"
+    assert entries["skill:bow"].implementation == "implemented"
     assert sum(e.implementation == "listing-only" for e in entries.values()) == 19
 
 
@@ -257,13 +269,49 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     assert entries["skill:broadsword"].owners == (103,)
     assert entries["skill:first-aid"].owners == (109,)
     assert entries["skill:accounting"].owners == ()
-    assert coverage_blockers(PROFILE) == (103, 109, 110, 111, 112)
+    # #344 transfers every ranged combat row it does not implement to a named child.
+    assert entries["skill:bolas"].owners == (344, 354)
+    assert entries["skill:guns"].owners == (344, 355)
+    assert entries["skill:bow"].owners == (344,)
+    assert coverage_blockers(PROFILE) == (
+        103,
+        109,
+        110,
+        111,
+        112,
+        344,
+        354,
+        355,
+        357,
+        359,
+        360,
+        361,
+        362,
+    )
     with pytest.raises(ValidationError, match="outside the selected profile"):
         coverage_blockers("gurps-lite-4e-2004")
     report = audit_report()
-    assert report["coverage_blockers"] == [103, 109, 110, 111, 112]
-    assert report["runtime_owner_unassigned"] == 223
-    assert report["implementation_counts"] == {"listing-only": 19, "unsupported": 238}
+    assert report["coverage_blockers"] == [
+        103,
+        109,
+        110,
+        111,
+        112,
+        344,
+        354,
+        355,
+        357,
+        359,
+        360,
+        361,
+        362,
+    ]
+    assert report["runtime_owner_unassigned"] == 209
+    assert report["implementation_counts"] == {
+        "implemented": 12,
+        "listing-only": 19,
+        "unsupported": 233,
+    }
     counts = report["structural_class_counts"]
     assert isinstance(counts, dict) and counts["listing-only"] == 19
 

@@ -26,6 +26,7 @@ from wayfarer.simulation.gurps_equipment import (
     MeleeMode,
     RangedMode,
     inventory_load,
+    require_skill_procedure,
 )
 from wayfarer.simulation.hit_locations import (
     attack_penalty,
@@ -216,6 +217,7 @@ def mode(
     )
     if selected.hands + held_others > 2:
         raise ValidationError("Selected grip exceeds available hands")
+    require_skill_procedure(catalog(play).profile_id, selected)
     level(build(play, state, actor_id), selected.skill_id)
     return selected
 
