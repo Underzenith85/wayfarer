@@ -1,9 +1,12 @@
 """GM selection of campaign-authored B236 consequences, committed once."""
 
 import json
+from collections.abc import Callable
+from dataclasses import dataclass
 
 from pydantic import Field
 
+from wayfarer.character.compiler import ValidatedBuild
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.models import Campaign, Event, Id
 from wayfarer.orchestration.access import CampaignAccess
@@ -11,15 +14,17 @@ from wayfarer.orchestration.gurps_melee import build
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.spell_effects import armor
 from wayfarer.simulation.actions import PlayState
-from wayfarer.simulation.combat import Combatant, GridPoint
+from wayfarer.simulation.combat import Combatant, Encounter, GridPoint
 from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.hex_geometry import Hex
 from wayfarer.simulation.injury import Wound, apply_injury
 from wayfarer.simulation.resources import Command, ResourceEvent
 from wayfarer.simulation.spell_backfires import Backfire, apply_backfire, backfires, save
+from wayfarer.simulation.spell_bindings import BackfireAlternative
 from wayfarer.simulation.spell_effects import break_daze
 from wayfarer.simulation.spells import (
     SPELLS,
+    SpellEffect,
     SpellEvent,
     SpellResult,
     active_spells,
@@ -82,6 +87,27 @@ class SpellBackfireService:
 def resolve(
     play: PlayService, state: PlayState, command: ResolveSpellBackfire
 ) -> tuple[PlayState, Backfire]:
+    return reduce_backfire(state, command, BackfireContext(play))
+
+
+@dataclass(frozen=True)
+class BackfireContext:
+    play: PlayService
+
+
+@dataclass(frozen=True)
+class BackfireSelection:
+    item: Backfire
+    choice: BackfireAlternative
+    effect: SpellEffect
+    encounter: Encounter | None
+    target_id: str
+    compiled: ValidatedBuild
+
+
+def _select_backfire(
+    play: PlayService, state: PlayState, command: ResolveSpellBackfire
+) -> BackfireSelection:
     item = next((b for b in backfires(state.resources) if b.id == command.backfire_id), None)
     rules = play.engine.rules.spells
     choice = (
@@ -180,146 +206,214 @@ def resolve(
     )
     compiled = candidates[target_id]
     assert compiled.statistics
+    return BackfireSelection(item, choice, effect, encounter, target_id, compiled)
+
+
+def _reroll(
+    state: PlayState,
+    command: ResolveSpellBackfire,
+    context: BackfireContext,
+    selection: BackfireSelection,
+) -> PlayState:
+    play = context.play
+    item = selection.item
+    compiled = selection.compiled
+    assert compiled.statistics
     resources = state.resources
-    if choice.effect == "reroll":
-        resources = apply_backfire(
+    resources = apply_backfire(
+        resources,
+        command_id=command.id + ":reroll",
+        actor_id=item.actor_id,
+        cast_id=item.cast_id,
+        spell_id=item.spell_id,
+        ht=compiled.statistics.ht,
+        severity="normal",
+        rng=play.rng,
+    )
+    return state.model_copy(update={"resources": resources})
+
+
+def _summon(
+    state: PlayState,
+    command: ResolveSpellBackfire,
+    context: BackfireContext,
+    selection: BackfireSelection,
+) -> PlayState:
+    choice = selection.choice
+    encounter, target_id, compiled = selection.encounter, selection.target_id, selection.compiled
+    assert compiled.statistics
+    resources = state.resources
+    assert encounter and choice.position
+    point = (
+        Hex(q=choice.position[0], r=choice.position[1])
+        if encounter.hex_battlefield
+        else GridPoint(x=choice.position[0], y=choice.position[1])
+    )
+    actor = next(a for a in state.actors if a.actor_id == target_id)
+    participant = Combatant(
+        actor_id=target_id,
+        initiative=compiled.statistics.dx,
+        facing="north",
+        reach=1,
+        movement_allowance=compiled.statistics.basic_move,
+        position=point,
+        hex_facing=0 if encounter.hex_battlefield else None,
+        hand_bindings=tuple(
+            (i, h)
+            for i, h in actor.held_item_hands
+            if any(item.id == i and item.ready and item.equipped for item in resources.items)
+        ),
+        ready_item_ids=tuple(
+            i.id for i in resources.items if i.owner_id == target_id and i.ready and i.equipped
+        ),
+    )
+    encounter = encounter.model_copy(
+        update={
+            "participants": encounter.participants + (participant,),
+            "turn_order": encounter.turn_order + (target_id,),
+        }
+    )
+    state = state.model_copy(
+        update={
+            "encounters": tuple(encounter if e.id == encounter.id else e for e in state.encounters)
+        }
+    )
+    from dataclasses import replace
+
+    from wayfarer.world import Fact
+
+    fact = Fact("summon:" + command.id, target_id, "visible", "A summoned presence arrives.")
+    world = replace(state.world, facts=state.world.facts + (fact,))
+    for observer in encounter.participants:
+        world = world.learn(observer.actor_id, fact.id)
+    state = state.model_copy(update={"world": world})
+    return state.model_copy(update={"resources": resources})
+
+
+def _effect(
+    state: PlayState,
+    command: ResolveSpellBackfire,
+    context: BackfireContext,
+    selection: BackfireSelection,
+) -> PlayState:
+    play = context.play
+    choice, effect = selection.choice, selection.effect
+    encounter, target_id, compiled = selection.encounter, selection.target_id, selection.compiled
+    assert compiled.statistics
+    resources = state.resources
+    if choice.effect == "damage" or effect.spell_id == "fireball":
+        count = effect.energy if choice.effect == "retarget" else choice.damage_dice
+        damage = max(
+            0,
+            sum(play.rng.randbelow(6) + 1 for _ in range(count))
+            + (0 if choice.effect == "retarget" else choice.damage_add),
+        )
+        if choice.effect != "retarget":
+            hp = next(p for p in resources.pools if p.id == "hp:" + target_id)
+            # B236 limits improvised consequences: never kill outright.
+            damage = min(damage, max(0, hp.current + hp.maximum - 1))
+        resources, _ = apply_injury(
             resources,
-            command_id=command.id + ":reroll",
-            actor_id=item.actor_id,
-            cast_id=item.cast_id,
-            spell_id=item.spell_id,
+            Wound(
+                id=event_id(command.id) + ":impact",
+                actor_id=target_id,
+                expected_revision=resources.revision,
+                basic_damage=damage,
+                resistance=armor(play, state, target_id),
+                damage_type="burn" if choice.effect == "retarget" else choice.damage_type,
+            ),
             ht=compiled.statistics.ht,
-            severity="normal",
             rng=play.rng,
+            system=True,
         )
-    elif choice.effect == "summon":
-        assert encounter and choice.position
-        point = (
-            Hex(q=choice.position[0], r=choice.position[1])
-            if encounter.hex_battlefield
-            else GridPoint(x=choice.position[0], y=choice.position[1])
-        )
-        actor = next(a for a in state.actors if a.actor_id == target_id)
-        participant = Combatant(
-            actor_id=target_id,
-            initiative=compiled.statistics.dx,
-            facing="north",
-            reach=1,
-            movement_allowance=compiled.statistics.basic_move,
-            position=point,
-            hex_facing=0 if encounter.hex_battlefield else None,
-            hand_bindings=tuple(
-                (i, h)
-                for i, h in actor.held_item_hands
-                if any(item.id == i and item.ready and item.equipped for item in resources.items)
-            ),
-            ready_item_ids=tuple(
-                i.id for i in resources.items if i.owner_id == target_id and i.ready and i.equipped
-            ),
-        )
-        encounter = encounter.model_copy(
+    elif choice.effect == "reverse" and effect.spell_id == "daze":
+        resources = break_daze(resources, target_id, command.id)
+    elif choice.effect == "reverse" and effect.spell_id == "create-fire":
+        for fire in active_spells(resources):
+            if fire.spell_id == "create-fire" and fire.target_id == target_id:
+                resources = resources.model_copy(
+                    update={
+                        "events": resources.events
+                        + (
+                            ResourceEvent(
+                                id=event_id(command.id + ":extinguish:" + fire.cast_id),
+                                at=resources.game_time,
+                                target_id=target_id,
+                                kind=SpellEvent(
+                                    effect=fire.model_copy(update={"phase": "ended"}),
+                                    result=SpellResult(outcome="cancelled"),
+                                ).model_dump_json(),
+                            ),
+                        )
+                    }
+                )
+    else:
+        position = effect.position
+        if encounter:
+            point = next(p.position for p in encounter.participants if p.actor_id == target_id)
+            position = (point.q, point.r) if isinstance(point, Hex) else (point.x, point.y)
+        duration = SPELLS[effect.spell_id].duration
+        replacement = effect.model_copy(
             update={
-                "participants": encounter.participants + (participant,),
-                "turn_order": encounter.turn_order + (target_id,),
+                "phase": "active",
+                "target_id": target_id,
+                "position": position,
+                "reversed": choice.effect == "reverse",
+                "expires_at": resources.game_time + duration if duration else None,
             }
         )
-        state = state.model_copy(
+        resources = resources.model_copy(
             update={
-                "encounters": tuple(
-                    encounter if e.id == encounter.id else e for e in state.encounters
+                "events": resources.events
+                + (
+                    ResourceEvent(
+                        id=event_id(command.id),
+                        at=resources.game_time,
+                        target_id=target_id,
+                        kind=SpellEvent(
+                            effect=replacement, result=SpellResult(outcome="active")
+                        ).model_dump_json(),
+                    ),
                 )
             }
         )
-        from dataclasses import replace
+    return state.model_copy(update={"resources": resources})
 
-        from wayfarer.world import Fact
 
-        fact = Fact("summon:" + command.id, target_id, "visible", "A summoned presence arrives.")
-        world = replace(state.world, facts=state.world.facts + (fact,))
-        for observer in encounter.participants:
-            world = world.learn(observer.actor_id, fact.id)
-        state = state.model_copy(update={"world": world})
-    elif choice.effect in ("retarget", "reverse", "damage"):
-        if choice.effect == "damage" or effect.spell_id == "fireball":
-            count = effect.energy if choice.effect == "retarget" else choice.damage_dice
-            damage = max(
-                0,
-                sum(play.rng.randbelow(6) + 1 for _ in range(count))
-                + (0 if choice.effect == "retarget" else choice.damage_add),
-            )
-            if choice.effect != "retarget":
-                hp = next(p for p in resources.pools if p.id == "hp:" + target_id)
-                # B236 limits improvised consequences: never kill outright.
-                damage = min(damage, max(0, hp.current + hp.maximum - 1))
-            resources, _ = apply_injury(
-                resources,
-                Wound(
-                    id=event_id(command.id) + ":impact",
-                    actor_id=target_id,
-                    expected_revision=resources.revision,
-                    basic_damage=damage,
-                    resistance=armor(play, state, target_id),
-                    damage_type="burn" if choice.effect == "retarget" else choice.damage_type,
-                ),
-                ht=compiled.statistics.ht,
-                rng=play.rng,
-                system=True,
-            )
-        elif choice.effect == "reverse" and effect.spell_id == "daze":
-            resources = break_daze(resources, target_id, command.id)
-        elif choice.effect == "reverse" and effect.spell_id == "create-fire":
-            for fire in active_spells(resources):
-                if fire.spell_id == "create-fire" and fire.target_id == target_id:
-                    resources = resources.model_copy(
-                        update={
-                            "events": resources.events
-                            + (
-                                ResourceEvent(
-                                    id=event_id(command.id + ":extinguish:" + fire.cast_id),
-                                    at=resources.game_time,
-                                    target_id=target_id,
-                                    kind=SpellEvent(
-                                        effect=fire.model_copy(update={"phase": "ended"}),
-                                        result=SpellResult(outcome="cancelled"),
-                                    ).model_dump_json(),
-                                ),
-                            )
-                        }
-                    )
-        else:
-            position = effect.position
-            if encounter:
-                point = next(p.position for p in encounter.participants if p.actor_id == target_id)
-                position = (point.q, point.r) if isinstance(point, Hex) else (point.x, point.y)
-            duration = SPELLS[effect.spell_id].duration
-            replacement = effect.model_copy(
-                update={
-                    "phase": "active",
-                    "target_id": target_id,
-                    "position": position,
-                    "reversed": choice.effect == "reverse",
-                    "expires_at": resources.game_time + duration if duration else None,
-                }
-            )
-            resources = resources.model_copy(
-                update={
-                    "events": resources.events
-                    + (
-                        ResourceEvent(
-                            id=event_id(command.id),
-                            at=resources.game_time,
-                            target_id=target_id,
-                            kind=SpellEvent(
-                                effect=replacement, result=SpellResult(outcome="active")
-                            ).model_dump_json(),
-                        ),
-                    )
-                }
-            )
-    item = item.model_copy(
-        update={"pending": False, "resolution_id": choice.id, "target_id": target_id}
+def _waive(
+    state: PlayState,
+    command: ResolveSpellBackfire,
+    context: BackfireContext,
+    selection: BackfireSelection,
+) -> PlayState:
+    return state
+
+
+_BACKFIRES: dict[
+    str, Callable[[PlayState, ResolveSpellBackfire, BackfireContext, BackfireSelection], PlayState]
+] = {
+    "reroll": _reroll,
+    "summon": _summon,
+    "retarget": _effect,
+    "reverse": _effect,
+    "damage": _effect,
+    "waive": _waive,
+}
+
+
+def reduce_backfire(
+    state: PlayState, command: ResolveSpellBackfire, context: BackfireContext
+) -> tuple[PlayState, Backfire]:
+    selection = _select_backfire(context.play, state, command)
+    state = _BACKFIRES[selection.choice.effect](state, command, context, selection)
+    item = selection.item.model_copy(
+        update={
+            "pending": False,
+            "resolution_id": selection.choice.id,
+            "target_id": selection.target_id,
+        }
     )
-    resources = save(resources, item, command.id).model_copy(
+    resources = save(state.resources, item, command.id).model_copy(
         update={"revision": state.revision + 1}
     )
     return state.model_copy(update={"revision": state.revision + 1, "resources": resources}), item

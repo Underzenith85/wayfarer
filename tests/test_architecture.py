@@ -9,8 +9,69 @@ from pathlib import Path
 
 import wayfarer
 
+REDUCER_MODULES = (
+    "combat",
+    "physical",
+    "spells",
+    "setup",
+    "abilities",
+    "director",
+    "spell_backfires",
+)
+
 
 class ArchitectureTests(unittest.TestCase):
+    def test_orchestration_steps_stay_reviewable(self) -> None:
+        """#417's service seams must not grow another giant reducer or callback."""
+        package = Path(wayfarer.__file__).parent / "orchestration"
+        for module in REDUCER_MODULES:
+            source = package / f"{module}.py"
+            tree = ast.parse(source.read_text())
+            for node in ast.walk(tree):
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    assert node.end_lineno is not None
+                    with self.subTest(module=module, function=node.name):
+                        self.assertLessEqual(node.end_lineno - node.lineno + 1, 200)
+
+    def test_transaction_callbacks_are_straight_sequences(self) -> None:
+        """Dispatch and mutable working state belong in named steps, not closures."""
+        package = Path(wayfarer.__file__).parent / "orchestration"
+        for module in REDUCER_MODULES:
+            tree = ast.parse((package / f"{module}.py").read_text())
+            for service in ast.walk(tree):
+                if not isinstance(service, ast.AsyncFunctionDef):
+                    continue
+                callbacks = {
+                    node.name: node for node in service.body if isinstance(node, ast.FunctionDef)
+                }
+                for call in ast.walk(service):
+                    if not (
+                        isinstance(call, ast.Call)
+                        and isinstance(call.func, ast.Attribute)
+                        and call.func.attr == "commit_turn"
+                    ):
+                        continue
+                    with self.subTest(module=module, function=service.name):
+                        self.assertGreaterEqual(len(call.args), 5)
+                        callback = call.args[4]
+                        self.assertIsInstance(callback, ast.Name)
+                        assert isinstance(callback, ast.Name)
+                        self.assertIn(callback.id, callbacks)
+                        for statement in callbacks[callback.id].body:
+                            self.assertIsInstance(
+                                statement, (ast.Assign, ast.AnnAssign, ast.Expr, ast.Return)
+                            )
+                        self.assertFalse(
+                            any(
+                                isinstance(
+                                    node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)
+                                )
+                                for statement in callbacks[callback.id].body
+                                for node in ast.walk(statement)
+                            ),
+                            "A transaction callback must not define another closure",
+                        )
+
     def test_domain_imports_are_independent(self) -> None:
         package = Path(wayfarer.__file__).parent
         allowed = {
