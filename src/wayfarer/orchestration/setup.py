@@ -1,6 +1,9 @@
 """Revision-checked lobby edits and atomic opening-scene activation."""
 
 import json
+from collections.abc import Callable
+from copy import deepcopy
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from uuid import NAMESPACE_URL, uuid5
 
@@ -21,6 +24,306 @@ from wayfarer.simulation.setup import CreateSetup, Seat, Setup, SetupCommand
 
 if TYPE_CHECKING:
     from wayfarer.orchestration.providers import Orchestrator
+
+
+@dataclass(frozen=True)
+class SetupContext:
+    play: PlayService
+    principal_id: str
+
+
+def _validate_setup(setup: Setup, play: PlayService) -> None:
+    if setup.graph is None or setup.graph.brief != setup.brief:
+        raise ValidationError("Select a scenario matching the saved setup brief")
+    report = ScenarioStudio(play, npc_reviewer=play.engine.reviewer).validate(setup.graph)
+    if not report.valid:
+        raise ValidationError(
+            "; ".join(f.message for f in report.findings if f.severity == "error")
+        )
+
+
+def _edit_setup(
+    campaign: Campaign, setup: Setup, command: SetupCommand, context: SetupContext
+) -> tuple[Campaign, Setup]:
+    seats = list(setup.seats)
+    if "scenario_document_json" in campaign:
+        raise ConflictError("Edit the catalog and create a new game to change a pinned scenario")
+    # An omitted graph leaves the saved adventure intact; explicit null
+    # clears it. Keep controllers for characters that still exist,
+    # but require everyone to review the edited setup again.
+    graph = command.graph if "graph" in command.model_fields_set else setup.graph
+    setup = setup.model_copy(update={"brief": command.brief or setup.brief, "graph": graph})
+    player_ids = {a.actor_id for a in graph.actors} - set(graph.npc_actor_ids) if graph else set()
+    seats = [
+        s.model_copy(
+            update={
+                "ready": False,
+                "actor_ids": tuple(a for a in s.actor_ids if a in player_ids),
+            }
+        )
+        for s in seats
+    ]
+    return campaign, setup.model_copy(update={"seats": tuple(seats)})
+
+
+def _invite_setup(
+    campaign: Campaign, setup: Setup, command: SetupCommand, context: SetupContext
+) -> tuple[Campaign, Setup]:
+    seats = list(setup.seats)
+    if not command.principal_id or any(s.principal_id == command.principal_id for s in seats):
+        raise ValidationError("Invite a distinct player identity")
+    if len(seats) >= 30:
+        raise ValidationError("Party is full")
+    seats.append(Seat(principal_id=command.principal_id))
+    seats = [s.model_copy(update={"ready": False}) for s in seats]
+    return campaign, setup.model_copy(update={"seats": tuple(seats)})
+
+
+def _join_setup(
+    campaign: Campaign, setup: Setup, command: SetupCommand, context: SetupContext
+) -> tuple[Campaign, Setup]:
+    me = SetupService.seat(setup, context.principal_id)
+    seats = list(setup.seats)
+    seats = [s.model_copy(update={"joined": True}) if s == me else s for s in seats]
+    return campaign, setup.model_copy(update={"seats": tuple(seats)})
+
+
+def _assign_setup(
+    campaign: Campaign, setup: Setup, command: SetupCommand, context: SetupContext
+) -> tuple[Campaign, Setup]:
+    seats = list(setup.seats)
+    target = next((s for s in seats if s.principal_id == command.principal_id and s.joined), None)
+    available = (
+        {a.actor_id for a in setup.graph.actors if a.actor_id not in setup.graph.npc_actor_ids}
+        if setup.graph
+        else set()
+    )
+    if (
+        target is None
+        or len(set(command.actor_ids)) != len(command.actor_ids)
+        or not set(command.actor_ids) <= available
+    ):
+        raise ValidationError("Assign known player characters to a joined player")
+    if any(set(command.actor_ids) & set(s.actor_ids) for s in seats if s != target):
+        raise ConflictError("Character already has a controller")
+    seats = [
+        s.model_copy(update={"actor_ids": command.actor_ids, "ready": False})
+        if s == target
+        else s.model_copy(update={"ready": False})
+        for s in seats
+    ]
+    return campaign, setup.model_copy(update={"seats": tuple(seats)})
+
+
+def _ready_setup(
+    campaign: Campaign, setup: Setup, command: SetupCommand, context: SetupContext
+) -> tuple[Campaign, Setup]:
+    play = context.play
+    me = SetupService.seat(setup, context.principal_id)
+    seats = list(setup.seats)
+    if not me.joined or not me.actor_ids:
+        raise ValidationError("Join and select a legal character first")
+    _validate_setup(setup, play)
+    seats = [s.model_copy(update={"ready": command.ready}) if s == me else s for s in seats]
+    return campaign, setup.model_copy(update={"seats": tuple(seats)})
+
+
+def _preview_setup(
+    campaign: Campaign, setup: Setup, command: SetupCommand, context: SetupContext
+) -> tuple[Campaign, Setup]:
+    play = context.play
+    seats = list(setup.seats)
+    if setup.phase != "completed" or command.graph is None:
+        raise ConflictError("Complete the adventure before previewing its successor")
+    from wayfarer.orchestration.continuation import prepare
+
+    graph, _ = prepare(play, campaign, setup, command.graph)
+    setup = setup.model_copy(update={"next_graph": graph})
+    return campaign, setup.model_copy(update={"seats": tuple(seats)})
+
+
+def _continue_setup(
+    campaign: Campaign, setup: Setup, command: SetupCommand, context: SetupContext
+) -> tuple[Campaign, Setup]:
+    play = context.play
+    seats = list(setup.seats)
+    if setup.phase != "completed" or setup.next_graph is None:
+        raise ConflictError("Save and review a next-adventure preview first")
+    from wayfarer.orchestration.continuation import prepare
+
+    graph, state = prepare(play, campaign, setup, setup.next_graph)
+    campaign["play_json"] = state.model_dump_json()
+    campaign["scenario_graph_json"] = graph.model_dump_json()
+    campaign["scenario"]["title"] = graph.title
+    setup = setup.model_copy(
+        update={
+            "graph": graph,
+            "brief": graph.brief,
+            "next_graph": None,
+            "phase": "active",
+        }
+    )
+    return campaign, setup.model_copy(update={"seats": tuple(seats)})
+
+
+def _activate_setup(
+    campaign: Campaign, setup: Setup, command: SetupCommand, context: SetupContext
+) -> tuple[Campaign, Setup]:
+    play = context.play
+    seats = list(setup.seats)
+    if setup.phase != "ready" or not all(s.joined and s.ready and s.actor_ids for s in seats):
+        raise ConflictError("Every invited player must join and confirm readiness")
+    _validate_setup(setup, play)
+    if "scenario_document_json" in campaign:
+        from wayfarer.orchestration.scenario_documents import ScenarioDocuments
+        from wayfarer.simulation.scenario_document import PregeneratedCharacter
+
+        assert setup.graph is not None
+        documents = ScenarioDocuments(ScenarioStudio(play, npc_reviewer=play.engine.reviewer))
+        party = tuple(
+            PregeneratedCharacter(slot_id=a.actor_id, proposal=a.proposal)
+            for a in setup.graph.actors
+            if a.actor_id not in setup.graph.npc_actor_ids
+        )
+        if documents.validate(campaign["scenario_document_json"], party=party).status != "playable":
+            raise ValidationError("Pinned scenario is incompatible with this engine or party")
+    assert setup.graph is not None
+    graph = setup.graph
+    assigned = [a for s in seats for a in s.actor_ids]
+    if len(set(assigned)) != len(assigned) or set(assigned) != {
+        a.actor_id for a in graph.actors
+    } - set(graph.npc_actor_ids):
+        raise ValidationError("Every player character needs exactly one controller")
+    studio = ScenarioStudio(play, npc_reviewer=play.engine.reviewer)
+    activated = PlayService(play.store, studio.engine(graph), rng=play.rng, profiles=play.profiles)
+    seed = campaign.copy()
+    seed["revision"] = 0
+    members = tuple(
+        CampaignMember(principal_id=s.principal_id, role="player", actor_ids=s.actor_ids)
+        for s in seats
+    ) + tuple(
+        CampaignMember(principal_id=gm, role="gm")
+        for gm in sorted(play.engine.reviewer.gm_ids)
+        if gm not in {s.principal_id for s in seats}
+    )
+    state = activated.initial_state(seed, graph.world, graph.resources, graph.actors, members)
+    campaign["play_json"] = state.model_dump_json()
+    campaign["scenario_graph_json"] = graph.model_dump_json()
+    campaign["scenario"]["title"] = graph.title
+    setup = setup.model_copy(update={"phase": "active"})
+    return campaign, setup.model_copy(update={"seats": tuple(seats)})
+
+
+def _lifecycle_setup(
+    campaign: Campaign, setup: Setup, command: SetupCommand, context: SetupContext
+) -> tuple[Campaign, Setup]:
+    op = command.operation
+    seats = list(setup.seats)
+    transitions = {
+        "pause": ("active", "paused"),
+        "resume": ("paused", "active"),
+        "complete": ("active", "completed"),
+        "archive": ("completed", "archived"),
+        "unarchive": ("archived", "completed"),
+    }
+    source, destination = transitions[op]
+    if setup.phase != source:
+        raise ConflictError("Invalid lifecycle transition")
+    from wayfarer.simulation.actions import PlayState
+
+    state = PlayState.model_validate_json(campaign["play_json"])
+    if op == "complete" and state.objectives.outcome == "ongoing":
+        raise ValidationError("The engine must determine the adventure outcome first")
+    if op in ("pause", "complete", "archive") and any(
+        t.phase not in ("complete", "clarification") for t in state.director
+    ):
+        raise ConflictError("Finish the in-flight turn before changing lifecycle")
+    if op == "complete":
+        if state.party.queue or any(e.status == "active" for e in state.encounters):
+            raise ConflictError("Resolve queued actions and active combat before completion")
+        from wayfarer.simulation.continuation import AdventureSnapshot
+
+        if setup.graph is None:
+            raise ValidationError("Missing completed scenario")
+        setup = setup.model_copy(
+            update={
+                "adventures": setup.adventures
+                + (AdventureSnapshot(graph=setup.graph, state=state),)
+            }
+        )
+    setup = setup.model_copy(update={"phase": destination})
+    return campaign, setup.model_copy(update={"seats": tuple(seats)})
+
+
+_SETUP_STEPS: dict[
+    str, Callable[[Campaign, Setup, SetupCommand, SetupContext], tuple[Campaign, Setup]]
+] = {
+    "edit": _edit_setup,
+    "invite": _invite_setup,
+    "join": _join_setup,
+    "assign": _assign_setup,
+    "ready": _ready_setup,
+    "preview": _preview_setup,
+    "continue": _continue_setup,
+    "activate": _activate_setup,
+    "pause": _lifecycle_setup,
+    "resume": _lifecycle_setup,
+    "complete": _lifecycle_setup,
+    "archive": _lifecycle_setup,
+    "unarchive": _lifecycle_setup,
+}
+
+
+def reduce_setup(
+    before: Campaign, command: SetupCommand, context: SetupContext
+) -> tuple[Campaign, Setup]:
+    # Setup owns several campaign fields; copy the nested scenario as well.
+    campaign = deepcopy(before)
+    setup = SetupService.load(campaign)
+    SetupService.seat(setup, context.principal_id)
+    op = command.operation
+    if op not in ("join", "ready") and setup.host_id != context.principal_id:
+        raise AuthorizationError("Only the host can change setup or lifecycle")
+    if op in ("edit", "invite", "join", "assign", "ready") and setup.phase not in (
+        "draft",
+        "ready",
+    ):
+        raise ConflictError("Party and controller assignments are locked after activation")
+    campaign, setup = _SETUP_STEPS[op](campaign, setup, command, context)
+    seats = setup.seats
+    if op in ("edit", "invite", "join", "assign", "ready"):
+        setup = setup.model_copy(
+            update={
+                "phase": "ready"
+                if all(s.ready and s.joined and s.actor_ids for s in seats)
+                else "draft"
+            }
+        )
+    setup = setup.model_copy(update={"seats": tuple(seats)})
+    revision = campaign["revision"] + 1
+    if "play_json" in campaign:
+        from wayfarer.simulation.actions import PlayState
+
+        state = PlayState.model_validate_json(campaign["play_json"])
+        state = state.model_copy(
+            update={
+                "revision": revision,
+                "resources": state.resources.model_copy(update={"revision": revision}),
+                "lifecycle": setup.phase,
+                "rulings": tuple(
+                    r.model_copy(update={"valid_revision": revision})
+                    if r.current_status(state.revision, state.resources.game_time)
+                    in ("pending", "approved")
+                    else r
+                    for r in state.rulings
+                ),
+            }
+        )
+        campaign["play_json"] = state.model_dump_json()
+    campaign["revision"] = revision
+    campaign["setup_json"] = setup.model_dump_json()
+    campaign["complete"] = setup.phase in ("completed", "archived")
+    return campaign, setup
 
 
 class SetupService:
@@ -180,237 +483,9 @@ class SetupService:
         key = "setup:" + command.id
 
         def resolve(campaign: Campaign) -> Event:
-            setup = self.load(campaign)
-            me = self.seat(setup, principal_id)
-            play = self.play.for_campaign(campaign)
-            op = command.operation
-            if op not in ("join", "ready") and setup.host_id != principal_id:
-                raise AuthorizationError("Only the host can change setup or lifecycle")
-            if op in ("edit", "invite", "join", "assign", "ready") and setup.phase not in (
-                "draft",
-                "ready",
-            ):
-                raise ConflictError("Party and controller assignments are locked after activation")
-            seats = list(setup.seats)
-            if op == "edit":
-                if "scenario_document_json" in campaign:
-                    raise ConflictError(
-                        "Edit the catalog and create a new game to change a pinned scenario"
-                    )
-                # An omitted graph leaves the saved adventure intact; explicit null
-                # clears it. Keep controllers for characters that still exist,
-                # but require everyone to review the edited setup again.
-                graph = command.graph if "graph" in command.model_fields_set else setup.graph
-                setup = setup.model_copy(
-                    update={"brief": command.brief or setup.brief, "graph": graph}
-                )
-                player_ids = (
-                    {a.actor_id for a in graph.actors} - set(graph.npc_actor_ids)
-                    if graph
-                    else set()
-                )
-                seats = [
-                    s.model_copy(
-                        update={
-                            "ready": False,
-                            "actor_ids": tuple(a for a in s.actor_ids if a in player_ids),
-                        }
-                    )
-                    for s in seats
-                ]
-            elif op == "invite":
-                if not command.principal_id or any(
-                    s.principal_id == command.principal_id for s in seats
-                ):
-                    raise ValidationError("Invite a distinct player identity")
-                if len(seats) >= 30:
-                    raise ValidationError("Party is full")
-                seats.append(Seat(principal_id=command.principal_id))
-                seats = [s.model_copy(update={"ready": False}) for s in seats]
-            elif op == "join":
-                seats = [s.model_copy(update={"joined": True}) if s == me else s for s in seats]
-            elif op == "assign":
-                target = next(
-                    (s for s in seats if s.principal_id == command.principal_id and s.joined), None
-                )
-                available = (
-                    {
-                        a.actor_id
-                        for a in setup.graph.actors
-                        if a.actor_id not in setup.graph.npc_actor_ids
-                    }
-                    if setup.graph
-                    else set()
-                )
-                if (
-                    target is None
-                    or len(set(command.actor_ids)) != len(command.actor_ids)
-                    or not set(command.actor_ids) <= available
-                ):
-                    raise ValidationError("Assign known player characters to a joined player")
-                if any(set(command.actor_ids) & set(s.actor_ids) for s in seats if s != target):
-                    raise ConflictError("Character already has a controller")
-                seats = [
-                    s.model_copy(update={"actor_ids": command.actor_ids, "ready": False})
-                    if s == target
-                    else s.model_copy(update={"ready": False})
-                    for s in seats
-                ]
-            elif op == "ready":
-                if not me.joined or not me.actor_ids:
-                    raise ValidationError("Join and select a legal character first")
-                self.validate(setup, play)
-                seats = [
-                    s.model_copy(update={"ready": command.ready}) if s == me else s for s in seats
-                ]
-            elif op == "preview":
-                if setup.phase != "completed" or command.graph is None:
-                    raise ConflictError("Complete the adventure before previewing its successor")
-                from wayfarer.orchestration.continuation import prepare
-
-                graph, _ = prepare(play, campaign, setup, command.graph)
-                setup = setup.model_copy(update={"next_graph": graph})
-            elif op == "continue":
-                if setup.phase != "completed" or setup.next_graph is None:
-                    raise ConflictError("Save and review a next-adventure preview first")
-                from wayfarer.orchestration.continuation import prepare
-
-                graph, state = prepare(play, campaign, setup, setup.next_graph)
-                campaign["play_json"] = state.model_dump_json()
-                campaign["scenario_graph_json"] = graph.model_dump_json()
-                campaign["scenario"]["title"] = graph.title
-                setup = setup.model_copy(
-                    update={
-                        "graph": graph,
-                        "brief": graph.brief,
-                        "next_graph": None,
-                        "phase": "active",
-                    }
-                )
-            elif op == "activate":
-                if setup.phase != "ready" or not all(
-                    s.joined and s.ready and s.actor_ids for s in seats
-                ):
-                    raise ConflictError("Every invited player must join and confirm readiness")
-                self.validate(setup, play)
-                if "scenario_document_json" in campaign:
-                    from wayfarer.orchestration.scenario_documents import ScenarioDocuments
-                    from wayfarer.simulation.scenario_document import PregeneratedCharacter
-
-                    assert setup.graph is not None
-                    documents = ScenarioDocuments(
-                        ScenarioStudio(play, npc_reviewer=play.engine.reviewer)
-                    )
-                    party = tuple(
-                        PregeneratedCharacter(slot_id=a.actor_id, proposal=a.proposal)
-                        for a in setup.graph.actors
-                        if a.actor_id not in setup.graph.npc_actor_ids
-                    )
-                    if (
-                        documents.validate(campaign["scenario_document_json"], party=party).status
-                        != "playable"
-                    ):
-                        raise ValidationError(
-                            "Pinned scenario is incompatible with this engine or party"
-                        )
-                assert setup.graph is not None
-                graph = setup.graph
-                assigned = [a for s in seats for a in s.actor_ids]
-                if len(set(assigned)) != len(assigned) or set(assigned) != {
-                    a.actor_id for a in graph.actors
-                } - set(graph.npc_actor_ids):
-                    raise ValidationError("Every player character needs exactly one controller")
-                studio = ScenarioStudio(play, npc_reviewer=play.engine.reviewer)
-                activated = PlayService(
-                    play.store, studio.engine(graph), rng=play.rng, profiles=play.profiles
-                )
-                seed = campaign.copy()
-                seed["revision"] = 0
-                members = tuple(
-                    CampaignMember(
-                        principal_id=s.principal_id, role="player", actor_ids=s.actor_ids
-                    )
-                    for s in seats
-                ) + tuple(
-                    CampaignMember(principal_id=gm, role="gm")
-                    for gm in sorted(play.engine.reviewer.gm_ids)
-                    if gm not in {s.principal_id for s in seats}
-                )
-                state = activated.initial_state(
-                    seed, graph.world, graph.resources, graph.actors, members
-                )
-                campaign["play_json"] = state.model_dump_json()
-                campaign["scenario_graph_json"] = graph.model_dump_json()
-                campaign["scenario"]["title"] = graph.title
-                setup = setup.model_copy(update={"phase": "active"})
-            else:
-                transitions = {
-                    "pause": ("active", "paused"),
-                    "resume": ("paused", "active"),
-                    "complete": ("active", "completed"),
-                    "archive": ("completed", "archived"),
-                    "unarchive": ("archived", "completed"),
-                }
-                source, destination = transitions[op]
-                if setup.phase != source:
-                    raise ConflictError("Invalid lifecycle transition")
-                from wayfarer.simulation.actions import PlayState
-
-                state = PlayState.model_validate_json(campaign["play_json"])
-                if op == "complete" and state.objectives.outcome == "ongoing":
-                    raise ValidationError("The engine must determine the adventure outcome first")
-                if op in ("pause", "complete", "archive") and any(
-                    t.phase not in ("complete", "clarification") for t in state.director
-                ):
-                    raise ConflictError("Finish the in-flight turn before changing lifecycle")
-                if op == "complete":
-                    if state.party.queue or any(e.status == "active" for e in state.encounters):
-                        raise ConflictError(
-                            "Resolve queued actions and active combat before completion"
-                        )
-                    from wayfarer.simulation.continuation import AdventureSnapshot
-
-                    if setup.graph is None:
-                        raise ValidationError("Missing completed scenario")
-                    setup = setup.model_copy(
-                        update={
-                            "adventures": setup.adventures
-                            + (AdventureSnapshot(graph=setup.graph, state=state),)
-                        }
-                    )
-                setup = setup.model_copy(update={"phase": destination})
-            if op in ("edit", "invite", "join", "assign", "ready"):
-                setup = setup.model_copy(
-                    update={
-                        "phase": "ready"
-                        if all(s.ready and s.joined and s.actor_ids for s in seats)
-                        else "draft"
-                    }
-                )
-            setup = setup.model_copy(update={"seats": tuple(seats)})
-            revision = campaign["revision"] + 1
-            if "play_json" in campaign:
-                from wayfarer.simulation.actions import PlayState
-
-                state = PlayState.model_validate_json(campaign["play_json"])
-                state = state.model_copy(
-                    update={
-                        "revision": revision,
-                        "resources": state.resources.model_copy(update={"revision": revision}),
-                        "lifecycle": setup.phase,
-                        "rulings": tuple(
-                            r.model_copy(update={"valid_revision": revision})
-                            if r.current_status(state.revision, state.resources.game_time)
-                            in ("pending", "approved")
-                            else r
-                            for r in state.rulings
-                        ),
-                    }
-                )
-                campaign["play_json"] = state.model_dump_json()
-            campaign["revision"] = revision
-            campaign["setup_json"] = setup.model_dump_json()
-            campaign["complete"] = setup.phase in ("completed", "archived")
+            context = SetupContext(self.play.for_campaign(campaign), principal_id)
+            updated, setup = reduce_setup(campaign, command, context)
+            campaign.update(updated)
             return Event(input=payload, action="setup", outcome=setup.phase, roll=None)
 
         await self.play.store.commit_turn(
@@ -448,13 +523,7 @@ class SetupService:
 
     def validate(self, setup: Setup, play: PlayService | None = None) -> None:
         play = self.play if play is None else play
-        if setup.graph is None or setup.graph.brief != setup.brief:
-            raise ValidationError("Select a scenario matching the saved setup brief")
-        report = ScenarioStudio(play, npc_reviewer=play.engine.reviewer).validate(setup.graph)
-        if not report.valid:
-            raise ValidationError(
-                "; ".join(f.message for f in report.findings if f.severity == "error")
-            )
+        _validate_setup(setup, play)
 
     async def generate(
         self, cid: str, command: SetupCommand, llm: Orchestrator, *, principal_id: str
