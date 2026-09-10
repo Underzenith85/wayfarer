@@ -203,8 +203,8 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.injury.hit_locations` | no | yes | partial | #107; [living-human dispatch and blockers](gurps-hit-locations.md) |
 | `gurps.injury.armor_divisors` | no | yes | partial | #107; [numeric armor integration](gurps-hit-locations.md) |
 | `gurps.injury.lasting_wounds` | no | yes | partial | #107; [durable impairments and remaining effects](gurps-hit-locations.md) |
-| `gurps.combat.melee_attack` | yes | yes | partial | #103 |
-| `gurps.combat.active_defense` | yes | yes | partial | #103 |
+| `gurps.combat.melee_attack` | yes | yes | partial | #103; declared critical-Parry damage modes and restart evidence in [melee integration](gurps-melee.md) |
+| `gurps.combat.active_defense` | yes | yes | partial | #103; B376 heavy-weapon quality, BL limits and durable breakage in [melee integration](gurps-melee.md) |
 | `gurps.combat.maneuvers` | yes | yes | partial | #104 and #152 bounded transitions implemented; [executable behavior and certification boundary](gurps-maneuvers.md) |
 | `gurps.combat.turn_timing` | yes | yes | partial | #104 and #152; durable Wait zones, stop thrust, and attack-then-step implemented; #191 source reconciliation remains |
 | `gurps.combat.ranged_attack` | yes | yes | partial | #106; [ranged dispatch and evidence](gurps-ranged.md); #173 adds persisted critical misses, typed breakage, per-projectile locations, armed thrown Parry consequences and burst critical hits; [remaining protocols](gurps-ranged.md) stay #173 |

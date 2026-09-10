@@ -164,12 +164,17 @@ class EquipmentProfile(Record):
     critical_breakage: Literal["ordinary", "cheap", "resistant"] | None = Field(
         default=None, exclude_if=lambda v: v is None
     )
+    parry_quality: Literal["cheap", "good", "fine", "very-fine"] | None = Field(
+        default=None, exclude_if=lambda v: v is None
+    )
     container_capacity_millipounds: Nonnegative | None = Field(
         default=None, exclude_if=lambda v: v is None
     )
 
     @model_validator(mode="after")
     def valid_modes(self) -> Self:
+        if self.parry_quality is not None and (self.durability is None or not self.modes):
+            raise ValueError("Parry quality requires a durable weapon")
         if self.critical_breakage is not None and (self.durability is None or not self.modes):
             raise ValueError("Critical breakage requires a durable weapon")
         if len({mode.id for mode in self.modes}) != len(self.modes):
@@ -217,6 +222,8 @@ class EquipmentCatalog(Record):
                         raise ValueError(
                             "Residual modes require a pinned non-durable weapon definition"
                         )
+            if entry.parry_quality is not None and self.profile_id != "gurps-basic-set-4e-2004":
+                raise ValueError("Parry quality requires the exact Basic Set profile")
             if entry.critical_breakage is not None and self.profile_id != "gurps-basic-set-4e-2004":
                 raise ValueError("Critical breakage requires the exact Basic Set profile")
             if entry.durability is not None and entry.durability.profile_id != self.profile_id:

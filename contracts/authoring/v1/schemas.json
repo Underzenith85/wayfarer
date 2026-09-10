@@ -3128,6 +3128,24 @@
             "default": null,
             "title": "Critical Breakage"
           },
+          "parry_quality": {
+            "anyOf": [
+              {
+                "enum": [
+                  "cheap",
+                  "good",
+                  "fine",
+                  "very-fine"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Parry Quality"
+          },
           "container_capacity_millipounds": {
             "anyOf": [
               {

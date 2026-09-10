@@ -1433,7 +1433,7 @@
       "evidence": null,
       "tests": [
         "tests/test_gurps_equipment.py::test_load_bands_overload_and_unit_guard",
-        "tests/test_gurps_melee.py::test_heavy_weapon_parry_limit"
+        "tests/test_heavy_parry.py::test_heavy_parry_breakage_and_incoming_damage"
       ],
       "gap": null
     },
@@ -1575,6 +1575,19 @@
       "evidence": null,
       "tests": [
         "tests/test_basic_equipment.py::test_container_units_and_unsupported_activation"
+      ],
+      "gap": null
+    },
+    {
+      "id": "EquipmentProfile.parry_quality",
+      "unit": "weapon quality selector",
+      "reference": "B376 heavy-weapon breakage; Campaigns fourth printing (2008)",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_heavy_parry.py::test_heavy_parry_breakage_and_incoming_damage"
       ],
       "gap": null
     }
