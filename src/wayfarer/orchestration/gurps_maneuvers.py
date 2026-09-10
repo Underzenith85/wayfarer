@@ -120,6 +120,8 @@ def observe(
     value = attack_modifier(
         actor.maneuver_state, target.actor_id, int(level(attacker, weapon.skill_id).value)
     )
+    if target.unarmed_guard_dropped and actor.maneuver_state.evaluate_target_id == target.actor_id:
+        value += actor.maneuver_state.evaluate_bonus
     value -= hp.injury.shock if hp.injury else 0
     first = success_roll(
         catalog(play).profile_id,

@@ -4,12 +4,13 @@ import hashlib
 
 from wayfarer.errors import WayfarerError
 from wayfarer.models import Record
-from wayfarer.orchestration.combat import RepairEquipment, RetrieveEquipment
+from wayfarer.orchestration.combat import RepairEquipment, RetrieveEquipment, TakeCombatTurn
 from wayfarer.orchestration.equipment_retrieval import RetrievalTask
 from wayfarer.orchestration.equipment_retrieval import tasks as retrievals
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.tactical_view import TacticalSnapshot
 from wayfarer.rules.object_types import GroundPosition, ObjectCondition
+from wayfarer.rules.readiness_types import ProjectileProgress
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.object_repairs import RepairTask
 from wayfarer.simulation.object_repairs import tasks as repairs
@@ -17,7 +18,7 @@ from wayfarer.simulation.object_repairs import tasks as repairs
 
 class EquipmentChoice(Record):
     label: str
-    command: RepairEquipment | RetrieveEquipment
+    command: RepairEquipment | RetrieveEquipment | TakeCombatTurn
 
 
 class EquipmentView(Record):
@@ -28,6 +29,8 @@ class EquipmentView(Record):
     work: str | None = None
     due_in: int | None = None
     choices: tuple[EquipmentChoice, ...] = ()
+    readiness: ProjectileProgress | None = None
+    loaded_rounds: int | None = None
 
 
 class TacticalSnapshotV2(TacticalSnapshot):
@@ -43,7 +46,11 @@ def equipment_view(play: PlayService, state: PlayState, actor_id: str) -> tuple[
         *retrievals(state.resources),
     )
     for item in state.resources.items:
-        if item.owner_id != actor_id or (item.condition is None and item.ground is None):
+        load = next((v for v in state.resources.ammunition_loads if v.weapon_id == item.id), None)
+        progress = load.readiness if load else None
+        if item.owner_id != actor_id or (
+            item.condition is None and item.ground is None and progress is None
+        ):
             continue
         work = next(
             (
@@ -124,6 +131,54 @@ def equipment_view(play: PlayService, state: PlayState, actor_id: str) -> tuple[
                 work=("Retrieval" if item.ground else "Repair") if work else None,
                 due_in=max(0, work.due - state.resources.game_time) if work else None,
                 choices=tuple(choices),
+                readiness=progress,
+                loaded_rounds=load.rounds if load else None,
             )
         )
+    if encounter is not None:
+        from wayfarer.orchestration.thrown_items import record, recover
+        from wayfarer.orchestration.unarmed import free_hands
+
+        for item in state.resources.expended_items:
+            landing = record(state.resources, item.id)
+            if (
+                landing is None
+                or landing.encounter_id != encounter.id
+                or actor_id not in landing.observed_by
+            ):
+                continue
+            options: list[EquipmentChoice] = []
+            if encounter.current_actor_id == actor_id and encounter.status == "active":
+                for hand in free_hands(state, encounter, actor_id):
+                    command_id = (
+                        "recover:"
+                        + hashlib.sha256(
+                            f"{state.campaign_id}:{state.revision}:{item.id}:{actor_id}:{hand}".encode()
+                        ).hexdigest()
+                    )
+                    recovery = TakeCombatTurn(
+                        id=command_id,
+                        actor_id=actor_id,
+                        expected_revision=state.revision,
+                        encounter_id=encounter.id,
+                        maneuver="ready",
+                        item_id=item.id,
+                        ready_hand=hand,
+                        recover_thrown_item=True,
+                    )
+                    try:
+                        recover(play, state, encounter, recovery)
+                    except WayfarerError, ValueError:
+                        continue
+                    options.append(EquipmentChoice(label=f"Recover with {hand}", command=recovery))
+            result.append(
+                EquipmentView(
+                    id=item.id,
+                    name=item.definition_id,
+                    condition=item.condition if item.owner_id == actor_id else None,
+                    ground=landing.landing,
+                    work="Thrown item" if landing.landing else "Landing unresolved",
+                    choices=tuple(options),
+                )
+            )
     return tuple(result)

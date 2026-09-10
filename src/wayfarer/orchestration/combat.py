@@ -15,6 +15,7 @@ from wayfarer.orchestration.injury import resolve_injury
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.checks import CheckTrace
 from wayfarer.rules.location_types import Hand, HitLocation
+from wayfarer.rules.object_types import GroundPosition
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.adjudication import expire_rulings
 from wayfarer.simulation.combat import (
@@ -63,6 +64,10 @@ class TakeCombatTurn(CombatCommand):
     shots: int = Field(default=1, ge=1, le=100)
     reload_ammunition_id: str | None = None
     unload_ammunition: bool = Field(default=False, exclude_if=lambda v: not v)
+    fast_draw: bool = Field(default=False, exclude_if=lambda v: not v)
+    cocking_aid_id: str | None = Field(default=None, exclude_if=lambda v: v is None)
+    let_down_bow: bool = Field(default=False, exclude_if=lambda v: not v)
+    recover_thrown_item: bool = Field(default=False, exclude_if=lambda v: not v)
     escape_entanglement: bool = Field(default=False, exclude_if=lambda v: not v)
     mount_crew: tuple[Id, ...] = Field(default=(), exclude_if=lambda v: not v)
     firearm_service: Literal["diagnose", "clear", "repair"] | None = Field(
@@ -122,9 +127,17 @@ class ChooseDefense(CombatCommand):
     item_id: str | None = None
     second_defense: Defense | None = None
     second_item_id: str | None = None
+    catch_thrown: bool = Field(default=False, exclude_if=lambda v: not v)
     retreat: Hex | None = None
     parry_mode_id: str | None = Field(default=None, exclude_if=lambda value: value is None)
     second_parry_mode_id: str | None = Field(default=None, exclude_if=lambda value: value is None)
+
+
+class DeclareThrownLanding(CombatCommand):
+    kind: Literal["declare_thrown_landing"] = "declare_thrown_landing"
+    encounter_id: Id
+    item_id: Id
+    landing: GroundPosition
 
 
 class HexPlacement(Record):
@@ -187,6 +200,7 @@ TypedCombatCommand = Annotated[
     | RepairEquipment
     | RetrieveEquipment
     | ContinueCriticalMiss
+    | DeclareThrownLanding
     | MigrateEncounterHex,
     # Migration is explicit and uses the same receipt and CAS as combat commands.
     Field(discriminator="kind"),
@@ -233,7 +247,14 @@ class CombatService:
         if engine is None:
             raise ValidationError("Campaign combat is not configured")
         if isinstance(
-            command, (StartEncounter, EndEncounter, MigrateEncounterHex, ContinueCriticalMiss)
+            command,
+            (
+                StartEncounter,
+                EndEncounter,
+                MigrateEncounterHex,
+                ContinueCriticalMiss,
+                DeclareThrownLanding,
+            ),
         ) and (command.actor_id not in self.play.engine.reviewer.gm_ids):
             raise ValidationError("Encounter lifecycle requires GM authority")
         payload = json.dumps(
@@ -288,6 +309,10 @@ class CombatService:
                             "shots": 1,
                             "reload_ammunition_id": None,
                             "unload_ammunition": False,
+                            "fast_draw": False,
+                            "cocking_aid_id": None,
+                            "let_down_bow": False,
+                            "recover_thrown_item": False,
                             "firearm_service": None,
                             "firearm_service_skill": "weapon",
                             "destination": None,
@@ -532,6 +557,19 @@ class CombatService:
                         round=encounter.round,
                         current_actor_id=encounter.current_actor_id,
                     )
+                elif isinstance(command, DeclareThrownLanding):
+                    from wayfarer.orchestration.thrown_items import declare_landing
+
+                    resources = declare_landing(
+                        self.play, state, encounter, command.item_id, command.landing, command.id
+                    )
+                    state = state.model_copy(update={"resources": resources})
+                    result = CombatResult(
+                        encounter_id=encounter.id,
+                        code="combat.thrown_landing_declared",
+                        round=encounter.round,
+                        current_actor_id=encounter.current_actor_id,
+                    )
                 elif isinstance(command, ContinueCriticalMiss):
                     from wayfarer.orchestration.critical_continuation import continue_critical
 
@@ -730,7 +768,12 @@ class CombatService:
                     if command.maneuver == "ready" and command.item_id:
                         from wayfarer.orchestration.weapon_flight import retrieve
 
-                        state = retrieve(state, encounter, command.actor_id, command.item_id)
+                        if command.recover_thrown_item:
+                            from wayfarer.orchestration.thrown_items import recover
+
+                            state = recover(self.play, state, encounter, command)
+                        else:
+                            state = retrieve(state, encounter, command.actor_id, command.item_id)
                         resources = state.resources
                     if command.hit_location is not None and (
                         command.maneuver not in ATTACK_MANEUVERS
@@ -994,7 +1037,14 @@ class CombatService:
                             ),
                         )
                         if not allowed:
-                            if command.maneuver == "ready" and command.item_id:
+                            if command.recover_thrown_item:
+                                from wayfarer.orchestration.thrown_items import undo_recovery
+
+                                resources = undo_recovery(
+                                    initial_state.resources, resources, command.item_id
+                                )
+                                state = state.model_copy(update={"resources": resources})
+                            elif command.maneuver == "ready" and command.item_id:
                                 original = next(
                                     i
                                     for i in initial_state.resources.items
@@ -1018,6 +1068,10 @@ class CombatService:
                                     "shots": 1,
                                     "reload_ammunition_id": None,
                                     "unload_ammunition": False,
+                                    "fast_draw": False,
+                                    "cocking_aid_id": None,
+                                    "let_down_bow": False,
+                                    "recover_thrown_item": False,
                                     "firearm_service": None,
                                     "firearm_service_skill": "weapon",
                                     "item_id": None,
@@ -1096,6 +1150,7 @@ class CombatService:
                     if (
                         command_for_turn.maneuver == "ready"
                         and engine.rules.gurps_equipment is not None
+                        and result.code != "combat.wait_triggered"
                     ):
                         if command_for_turn.reload_ammunition_id is not None:
                             from wayfarer.orchestration.gurps_ranged import reload_weapon
@@ -1112,6 +1167,24 @@ class CombatService:
                                 self.play,
                                 state.model_copy(update={"resources": resources}),
                                 command_for_turn,
+                            )
+                        if command_for_turn.let_down_bow:
+                            from wayfarer.orchestration.gurps_melee import mode
+                            from wayfarer.orchestration.projectile_readiness import let_down
+                            from wayfarer.simulation.gurps_equipment import RangedMode
+
+                            selected = mode(
+                                self.play,
+                                state,
+                                command.actor_id,
+                                command.item_id or "",
+                                command.mode_id,
+                            )
+                            assert isinstance(selected, RangedMode)
+                            resources = let_down(
+                                state.model_copy(update={"resources": resources}),
+                                command_for_turn,
+                                selected,
                             )
                         if command_for_turn.mount_crew:
                             from wayfarer.orchestration.mounts import assign_crew
@@ -1210,7 +1283,18 @@ class CombatService:
                             do_nothing=command_for_turn.maneuver == "do_nothing",
                         )
                         resources = state.resources
+                    if command.recover_thrown_item and result.code == "combat.wait_triggered":
+                        from wayfarer.orchestration.thrown_items import undo_recovery
+
+                        resources = undo_recovery(
+                            initial_state.resources, resources, command.item_id
+                        )
+                        state = state.model_copy(update={"resources": resources})
                 elif isinstance(command, ChooseDefense):
+                    if command.catch_thrown:
+                        from wayfarer.orchestration.thrown_items import validate_catch
+
+                        validate_catch(self.play, state, encounter, command)
                     from wayfarer.simulation.abilities import interrupt_concentration
                     from wayfarer.simulation.spell_effects import require_not_dazed
 
@@ -1281,10 +1365,12 @@ class CombatService:
                                 encounter,
                                 command.actor_id,
                                 command.id,
-                                used,
+                                None if used in ("left-hand", "right-hand") else used,
                             )
-                            if used and not any(
-                                i.id == used and i.ready for i in state.resources.items
+                            if (
+                                used
+                                and used not in ("left-hand", "right-hand")
+                                and not any(i.id == used and i.ready for i in state.resources.items)
                             ):
                                 selected_defense = "none"
                         state, encounter, injury = resolve_melee(
@@ -1305,6 +1391,7 @@ class CombatService:
                             second_parry_mode_id=command.second_parry_mode_id
                             if selected_defense != "none"
                             else None,
+                            catch_thrown=command.catch_thrown,
                         )
                         from wayfarer.orchestration.gurps_melee import injury_turn
 
@@ -1545,6 +1632,11 @@ class CombatService:
                         system=True,
                         rng=self.play.rng,
                     )
+            from wayfarer.orchestration.projectile_readiness import interrupted_draws
+
+            resources = interrupted_draws(
+                self.play, initial_state, resources, encounter.id, encounter
+            )
             revision = state.revision + 1
             if encounter.hex_battlefield is not None:
                 from wayfarer.simulation.tactical import TacticalTrace

@@ -26,6 +26,7 @@ from wayfarer.rules.launcher_types import LauncherSpec
 from wayfarer.rules.location_types import HumanLocation
 from wayfarer.rules.mount_types import MountSpec
 from wayfarer.rules.object_types import ObjectProfile
+from wayfarer.rules.readiness_types import ProjectileReadiness
 from wayfarer.rules.spray_types import SprayerSpec
 from wayfarer.simulation.resources import EquipmentSpec, ResourceEngine, ResourceState
 
@@ -113,6 +114,7 @@ class RangedMode(Record):
     recoil: Positive = 1
     ammunition_id: Id | None = None
     thrown: bool = False
+    catchable: bool = Field(default=False, exclude_if=lambda v: not v)
     blockable: bool = False
     brace_kind: Literal["one-handed", "bipod"] | None = Field(
         default=None, exclude_if=lambda value: value is None
@@ -127,9 +129,21 @@ class RangedMode(Record):
     sprayer: SprayerSpec | None = Field(default=None, exclude_if=lambda value: value is None)
     launcher: LauncherSpec | None = Field(default=None, exclude_if=lambda value: value is None)
     firearm: FirearmSpec | None = Field(default=None, exclude_if=lambda v: v is None)
+    readiness: ProjectileReadiness | None = Field(default=None, exclude_if=lambda v: v is None)
 
     @model_validator(mode="after")
     def valid_range(self) -> Self:
+        if self.catchable and (not self.thrown or self.hands != 1):
+            raise ValueError("Catching requires a one-handed thrown weapon")
+        if self.readiness is not None:
+            if self.thrown:
+                raise ValueError("Projectile readiness cannot bind a thrown weapon")
+            if self.readiness.kind in ("bow", "crossbow") and (
+                self.rated_strength is None or self.rated_strength.kind != self.readiness.kind
+            ):
+                raise ValueError("Bow readiness requires matching rated weapon ST")
+            if self.readiness.kind == "firearm" and self.firearm is None:
+                raise ValueError("Firearm readiness requires pinned firearm facts")
         if self.firearm is not None and (
             self.thrown
             or self.blockable
@@ -330,6 +344,20 @@ class EquipmentCatalog(Record):
                 raise ValueError("Object durability requires the exact Basic Set profile")
             for mode in entry.modes:
                 require_skill_procedure(self.profile_id, mode)
+                if (
+                    isinstance(mode, RangedMode)
+                    and mode.catchable
+                    and self.profile_id != "gurps-basic-set-4e-2004"
+                ):
+                    raise ValueError("Catching requires the exact Basic Set profile")
+                if isinstance(mode, RangedMode) and mode.readiness is not None:
+                    if self.profile_id != "gurps-basic-set-4e-2004":
+                        raise ValueError(
+                            "Projectile readiness requires the exact Basic Set profile"
+                        )
+                    aid = mode.readiness.cocking_aid_definition_id
+                    if aid is not None and aid not in entries:
+                        raise ValueError("Cocking aid requires a pinned catalog entry")
                 if isinstance(mode, RangedMode) and mode.entangle is not None:
                     if self.profile_id != "gurps-basic-set-4e-2004":
                         raise ValueError("Entangling weapons require the exact Basic Set profile")
@@ -387,6 +415,19 @@ class EquipmentCatalog(Record):
                 raise ValidationError("Equipment source mismatch")
             skills = [mode.skill_id for mode in entry.modes]
             for mode in entry.modes:
+                if isinstance(mode, RangedMode) and mode.readiness is not None:
+                    spec = mode.readiness
+                    if spec.fast_draw_skill_id is not None:
+                        fast_skill = definitions.get(spec.fast_draw_skill_id)
+                        if (
+                            fast_skill is None
+                            or fast_skill.skill is None
+                            or fast_skill.skill.specialty is None
+                            or fast_skill.skill.specialty.family != "skill:fast-draw"
+                            or fast_skill.skill.specialty.name != spec.fast_draw_specialty
+                        ):
+                            raise ValidationError("Readiness requires an exact Fast-Draw specialty")
+                        skills.append(spec.fast_draw_skill_id)
                 if isinstance(mode, RangedMode) and mode.firearm is not None:
                     if mode.firearm.armoury_skill_id is not None:
                         skills.append(mode.firearm.armoury_skill_id)

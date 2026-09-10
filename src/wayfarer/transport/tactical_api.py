@@ -12,6 +12,7 @@ from wayfarer.orchestration.combat import (
     ChooseDefense,
     CombatService,
     ContinueCriticalMiss,
+    DeclareThrownLanding,
     MigrateEncounterHex,
     RepairEquipment,
     ResolveChokeEffects,
@@ -52,6 +53,7 @@ class TacticalRequestV2(Record):
         | RepairEquipment
         | RetrieveEquipment
         | ContinueCriticalMiss
+        | DeclareThrownLanding
     ) = Field(discriminator="kind")
 
 
@@ -125,7 +127,7 @@ async def execute(request: web.Request) -> web.Response:
     if state.lifecycle != "active":
         raise ValidationError("Resume the campaign before acting")
     encounter = CombatService._encounter(state, command.encounter_id)
-    if isinstance(command, (MigrateEncounterHex, ContinueCriticalMiss)):
+    if isinstance(command, (MigrateEncounterHex, ContinueCriticalMiss, DeclareThrownLanding)):
         if member.role != "gm":
             raise ValidationError("Migration requires GM authority")
     else:

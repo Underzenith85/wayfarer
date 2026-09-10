@@ -369,6 +369,11 @@
             "default": null,
             "title": "Second Item Id"
           },
+          "catch_thrown": {
+            "default": false,
+            "title": "Catch Thrown",
+            "type": "boolean"
+          },
           "retreat": {
             "anyOf": [
               {
@@ -429,6 +434,9 @@
               },
               {
                 "$ref": "#/components/schemas/RetrieveEquipment"
+              },
+              {
+                "$ref": "#/components/schemas/TakeCombatTurn"
               }
             ],
             "title": "Command"
@@ -503,6 +511,29 @@
             },
             "title": "Choices",
             "type": "array"
+          },
+          "readiness": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProjectileProgress"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "loaded_rounds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Loaded Rounds"
           }
         },
         "required": [
@@ -664,6 +695,55 @@
           "hp"
         ],
         "title": "ObjectCondition",
+        "type": "object"
+      },
+      "ProjectileProgress": {
+        "additionalProperties": false,
+        "properties": {
+          "stage": {
+            "default": "prepare",
+            "enum": [
+              "prepare",
+              "draw",
+              "cock",
+              "load",
+              "loaded",
+              "unload"
+            ],
+            "title": "Stage",
+            "type": "string"
+          },
+          "elapsed": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Elapsed",
+            "type": "integer"
+          },
+          "required": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Required",
+            "type": "integer"
+          },
+          "fast_draw_used": {
+            "default": false,
+            "title": "Fast Draw Used",
+            "type": "boolean"
+          },
+          "cocking_aid_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Cocking Aid Id"
+          }
+        },
+        "title": "ProjectileProgress",
         "type": "object"
       },
       "RepairEquipment": {
@@ -1274,6 +1354,33 @@
           "unload_ammunition": {
             "default": false,
             "title": "Unload Ammunition",
+            "type": "boolean"
+          },
+          "fast_draw": {
+            "default": false,
+            "title": "Fast Draw",
+            "type": "boolean"
+          },
+          "cocking_aid_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Cocking Aid Id"
+          },
+          "let_down_bow": {
+            "default": false,
+            "title": "Let Down Bow",
+            "type": "boolean"
+          },
+          "recover_thrown_item": {
+            "default": false,
+            "title": "Recover Thrown Item",
             "type": "boolean"
           },
           "escape_entanglement": {
@@ -2017,6 +2124,59 @@
         "title": "ContinueCriticalMiss",
         "type": "object"
       },
+      "DeclareThrownLanding": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "declare_thrown_landing",
+            "default": "declare_thrown_landing",
+            "title": "Kind",
+            "type": "string"
+          },
+          "encounter_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Encounter Id",
+            "type": "string"
+          },
+          "item_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Item Id",
+            "type": "string"
+          },
+          "landing": {
+            "$ref": "#/components/schemas/GroundPosition"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "expected_revision",
+          "encounter_id",
+          "item_id",
+          "landing"
+        ],
+        "title": "DeclareThrownLanding",
+        "type": "object"
+      },
       "HexBattlefield": {
         "additionalProperties": false,
         "description": "New tagged contract. Legacy square maps cannot validate as hex maps.",
@@ -2259,6 +2419,7 @@
               "mapping": {
                 "choose_defense": "#/components/schemas/ChooseDefense",
                 "continue_critical_miss": "#/components/schemas/ContinueCriticalMiss",
+                "declare_thrown_landing": "#/components/schemas/DeclareThrownLanding",
                 "migrate_encounter_hex": "#/components/schemas/MigrateEncounterHex",
                 "repair_equipment": "#/components/schemas/RepairEquipment",
                 "resolve_choke_effects": "#/components/schemas/ResolveChokeEffects",
@@ -2296,6 +2457,9 @@
               },
               {
                 "$ref": "#/components/schemas/ContinueCriticalMiss"
+              },
+              {
+                "$ref": "#/components/schemas/DeclareThrownLanding"
               }
             ],
             "title": "Command"

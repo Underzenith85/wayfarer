@@ -107,6 +107,11 @@ export interface components {
        * @default null
        */
       second_item_id: string | null;
+      /**
+       * Catch Thrown
+       * @default false
+       */
+      catch_thrown: boolean;
       /** @default null */
       retreat: components["schemas"]["Hex"] | null;
       /**
@@ -127,7 +132,8 @@ export interface components {
       /** Command */
       command:
         | components["schemas"]["RepairEquipment"]
-        | components["schemas"]["RetrieveEquipment"];
+        | components["schemas"]["RetrieveEquipment"]
+        | components["schemas"]["TakeCombatTurn"];
     };
     /** EquipmentView */
     EquipmentView: {
@@ -152,6 +158,13 @@ export interface components {
        * @default []
        */
       choices: components["schemas"]["EquipmentChoice"][];
+      /** @default null */
+      readiness: components["schemas"]["ProjectileProgress"] | null;
+      /**
+       * Loaded Rounds
+       * @default null
+       */
+      loaded_rounds: number | null;
     };
     /** GridPoint */
     GridPoint: {
@@ -215,6 +228,35 @@ export interface components {
        * @default null
        */
       shock_until: number | null;
+    };
+    /** ProjectileProgress */
+    ProjectileProgress: {
+      /**
+       * Stage
+       * @default prepare
+       * @enum {string}
+       */
+      stage: "prepare" | "draw" | "cock" | "load" | "loaded" | "unload";
+      /**
+       * Elapsed
+       * @default 0
+       */
+      elapsed: number;
+      /**
+       * Required
+       * @default 0
+       */
+      required: number;
+      /**
+       * Fast Draw Used
+       * @default false
+       */
+      fast_draw_used: boolean;
+      /**
+       * Cocking Aid Id
+       * @default null
+       */
+      cocking_aid_id: string | null;
     };
     /** RepairEquipment */
     RepairEquipment: {
@@ -473,6 +515,26 @@ export interface components {
        * @default false
        */
       unload_ammunition: boolean;
+      /**
+       * Fast Draw
+       * @default false
+       */
+      fast_draw: boolean;
+      /**
+       * Cocking Aid Id
+       * @default null
+       */
+      cocking_aid_id: string | null;
+      /**
+       * Let Down Bow
+       * @default false
+       */
+      let_down_bow: boolean;
+      /**
+       * Recover Thrown Item
+       * @default false
+       */
+      recover_thrown_item: boolean;
       /**
        * Escape Entanglement
        * @default false
@@ -814,6 +876,25 @@ export interface components {
        */
       stage: "migrate" | "resume";
     };
+    /** DeclareThrownLanding */
+    DeclareThrownLanding: {
+      /** Id */
+      id: string;
+      /** Actor Id */
+      actor_id: string;
+      /** Expected Revision */
+      expected_revision: number;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: "declare_thrown_landing";
+      /** Encounter Id */
+      encounter_id: string;
+      /** Item Id */
+      item_id: string;
+      landing: components["schemas"]["GroundPosition"];
+    };
     /**
      * HexBattlefield
      * @description New tagged contract. Legacy square maps cannot validate as hex maps.
@@ -925,7 +1006,8 @@ export interface components {
         | components["schemas"]["ResolveChokeEffects"]
         | components["schemas"]["RepairEquipment"]
         | components["schemas"]["RetrieveEquipment"]
-        | components["schemas"]["ContinueCriticalMiss"];
+        | components["schemas"]["ContinueCriticalMiss"]
+        | components["schemas"]["DeclareThrownLanding"];
     };
     TacticalError: {
       code: string;

@@ -71,6 +71,7 @@ async def setup(
     trained: bool = True,
     ability_defense: bool = False,
     human: bool = False,
+    free_defender_hand: bool = False,
     ranged_fixture: bool = False,
     ranged_mode: RangedMode | None = None,
     ranged_scene: tuple[RangedSituation, ...] = (),
@@ -504,14 +505,14 @@ async def setup(
             body=HumanBody(anatomy="human") if human else None,
             held_item_hands=(
                 (f"sword-{a}", "right-hand"),
-                *(((("shield-b", "left-hand"),)) if a == "b" else ()),
+                *(((("shield-b", "left-hand"),)) if a == "b" and not free_defender_hand else ()),
             )
             if human
             else (),
             proposal=CharacterProposal(
                 draft=gurps_draft(
                     *purchases,
-                    *(physical_purchases if a == "b" else ()),
+                    *(physical_purchases if a == "b" and not free_defender_hand else ()),
                     *(
                         (
                             Purchase(
@@ -546,8 +547,8 @@ async def setup(
                 id="shield-b",
                 definition_id="equipment:shield",
                 owner_id="b",
-                equipped=True,
-                ready=True,
+                equipped=not free_defender_hand,
+                ready=not free_defender_hand,
             ),
         ),
     )

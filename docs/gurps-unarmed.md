@@ -12,7 +12,7 @@ Issue #108 adds internal commands to the existing `CombatService` transaction. T
 | `break_free` | One Quick Contest with grip, pin, stun and lock modifiers. A failed arm-lock escape makes subsequent attempts harder. Pin escape attempts have a ten-round interval. |
 | `takedown` | One Quick Contest using ST, DX or grappling skill against a standing opponent. The loser falls and loses the reciprocal grip. |
 | `pin` | One Regular Contest round, using the existing contest normalization. The free-hand advantage is included. Both-success/both-failure leaves control unchanged and requires another turn, without rolling ahead in time. |
-| `arm_lock` | Offensive path from a surviving, two-hand Judo/Wrestling grapple on an earlier turn; an attack/defense pause captures the selected arm. |
+| `arm_lock` | Offensive path from a surviving, two-hand Judo/Wrestling grapple on an earlier turn, or a successful Judo barehanded parry against an unarmed attack on the first following turn. The defensive route needs two free hands, a selected arm, and close-combat entry when adjacent; an attack/defense pause captures the arm. |
 | `lock_damage` | Once on each subsequent holder turn, a passive contest applies crushing damage to the arm, excluding flexible armor. The action does not consume the holder's attack. Winning a contest on an already crippled arm applies shock and knockdown/stun checks through the injury service, without losing more HP or adding another crippling injury. |
 | `strangle` | A neck-grip contest applies crushing neck damage. Penetrating injury starts the existing durable suffocation schedule; one-hand use carries its penalty. |
 | `ResolveChokeEffects` | The victim settles a due grip-specific suffocation deadline. Existing hazard/fatigue logic owns FP, consciousness and the no-air deadline. It consumes no combat turn and cannot duplicate a tick. |
@@ -33,9 +33,9 @@ The declared source is Basic Set Fourth Edition, first printing (2004), with the
 
 Both `gurps.combat.unarmed` and `gurps.combat.grappling` remain **partial**, which keeps the existing scenario/character capability checks fail-closed. #108 remains open. [Follow-up #176](https://github.com/Underzenith85/wayfarer/issues/176) tracks the remaining work:
 
-- Remaining unarmed critical-miss consequences: knockout/recovery (3/18), attacking stumble displacement (7/14), dropped-guard Evaluate/Feint timing (13), torn-muscle lasting penalties (15), and falling onto a ready impaling weapon (5/6/16). Armed critical-parry failures also retain an explicit blocker. These outcomes keep their recorded dice and halt continuation.
+- Remaining unarmed critical-miss consequences: knockout/recovery (3/18), attacking stumble displacement (7/14), torn-muscle lasting penalties (15), and selecting among multiple ready impaling modes (5/6/16). Armed critical-parry failures use the existing weapon consequence reducer; cases lacking sufficient weapon metadata still halt with recorded dice.
 - All-Out Attack Double/Feint, movement paths beyond the existing close-combat entry, two-handed Wrestling/Sumo parries, remaining skill-specific defenses, and retreat/following during control attacks. Wait is integrated below; Evaluate, Feint, Aim and Concentrate while a grip is held remain explicitly rejected.
-- The defensive parry-to-arm-lock route and the distinct Choke Hold technique.
+- The defensive Wrestling parry-to-arm-lock route, barehanded parries against armed attacks, and the distinct Choke Hold technique. Judo parry-to-lock against unarmed attacks is integrated below.
 - Escape steps, dragging/carrying, twice-ST movement exceptions, Size Modifier/multiarm variants and additional strikes/targets. Unsupported movement/reload/maneuver combinations are rejected explicitly.
 
 Current bodies have no authored Size Modifier, so tests cover equal-sized human participants. This does not implement large/small creature grappling. Optional/supplement grappling systems and control points are excluded.
@@ -52,6 +52,15 @@ The Double Defense subset of #176 has restart, duplicate-receipt, pre-dice rejec
 - Ready while grappling requires explicitly selected free hands. A grappled actor makes a DX check (including applicable shock/control penalties); failure drops only the selected item. The check and result survive restart and command replay. Partial release does not consume an attack or release other hands.
 
 `tests/test_unarmed_integrations.py` contains independent numeric cases and transaction/replay tests; `tests/test_tactical.py` verifies the v1/v2 HTTP boundary. Both capability families remain partial. These integrations do **not** complete #176 or #108.
+
+### Critical consequences and Judo follow-up
+
+- B557 lost balance (9–11) also forbids free grip actions and Wait reactions until the subject's next turn. Dropped guard (13) doubles opponents' Evaluate bonuses and Feint penalties, including weapon attacks and the second defense of Double Defense. Both effects survive restart and expire at the individual actor boundary, not at the round boundary.
+- Falling onto one unambiguous ready impaling weapon (5/6/16) uses the falling fighter's ST, the weapon's damage mode and armor divisor, torso DR, and the shared injury reducer. Result 6 halves basic damage before DR and wounding. Multiple eligible modes retain an explicit blocker; the engine does not choose one arbitrarily.
+- An armed critical parry delegates to the shared weapon-miss reducer, retaining the selected parry mode, original table dice, reroll dice, equipment condition and ground location. The incoming unarmed hit then resolves once. Barehanded failures continue to use the unarmed table.
+- The selected Judo parry records the attacker and first eligible following turn. A defensive arm lock names no existing grip, rechecks both hands and reach before dice, and creates the lock only after its own attack/defense resolution. A failed parry grants no opportunity; spending the first following turn expires it. This subset does not implement Wrestling parries or armed-attack defense.
+
+Independent examples and restart/duplicate-receipt tests are in `tests/test_unarmed_critical_followups.py` and `tests/test_unarmed_parry_lock.py`. Source review used B403 and B557 of the supplied Campaigns PDF, SHA-256 `79cff8f75b91b4ba72e7947320bf98e184515e60108bda0f0891d379b3c96e80`. This matches the already-audited **fourth printing**, not the pinned first printing plus January 2007 errata; the exact-baseline blocker in #191 remains. No whole-issue or certification claim is made.
 
 ## Unarmed Wait reactions
 

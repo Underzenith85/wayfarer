@@ -892,6 +892,17 @@
             "minimum": 0,
             "title": "Reload Progress",
             "type": "integer"
+          },
+          "readiness": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ProjectileProgress"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           }
         },
         "required": [
@@ -5123,6 +5134,134 @@
         "title": "PregeneratedCharacter",
         "type": "object"
       },
+      "ProjectileProgress": {
+        "additionalProperties": false,
+        "properties": {
+          "stage": {
+            "default": "prepare",
+            "enum": [
+              "prepare",
+              "draw",
+              "cock",
+              "load",
+              "loaded",
+              "unload"
+            ],
+            "title": "Stage",
+            "type": "string"
+          },
+          "elapsed": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Elapsed",
+            "type": "integer"
+          },
+          "required": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Required",
+            "type": "integer"
+          },
+          "fast_draw_used": {
+            "default": false,
+            "title": "Fast Draw Used",
+            "type": "boolean"
+          },
+          "cocking_aid_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Cocking Aid Id"
+          }
+        },
+        "title": "ProjectileProgress",
+        "type": "object"
+      },
+      "ProjectileReadiness": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "bow",
+              "crossbow",
+              "projectile",
+              "firearm"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "fast_draw_skill_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Fast Draw Skill Id"
+          },
+          "fast_draw_specialty": {
+            "anyOf": [
+              {
+                "enum": [
+                  "Arrow",
+                  "Ammo"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Fast Draw Specialty"
+          },
+          "fast_draw_seconds": {
+            "default": 1,
+            "minimum": 1,
+            "title": "Fast Draw Seconds",
+            "type": "integer"
+          },
+          "cocking_aid_definition_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Cocking Aid Definition Id"
+          },
+          "unload_seconds_per_round": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Unload Seconds Per Round"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "title": "ProjectileReadiness",
+        "type": "object"
+      },
       "ProtectionProfile": {
         "additionalProperties": false,
         "properties": {
@@ -5370,6 +5509,11 @@
             "title": "Thrown",
             "type": "boolean"
           },
+          "catchable": {
+            "default": false,
+            "title": "Catchable",
+            "type": "boolean"
+          },
           "blockable": {
             "default": false,
             "title": "Blockable",
@@ -5461,6 +5605,17 @@
             "anyOf": [
               {
                 "$ref": "#/$defs/FirearmSpec"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "readiness": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ProjectileReadiness"
               },
               {
                 "type": "null"

@@ -27,6 +27,7 @@ from wayfarer.rules.firearm_types import FirearmFailure
 from wayfarer.rules.hazard_types import HazardSchedule, RecoveryRestriction, require_hazards_settled
 from wayfarer.rules.injury_types import InjuryStatus
 from wayfarer.rules.object_types import GroundPosition, ObjectCondition, ObjectProfile, ObjectResult
+from wayfarer.rules.readiness_types import ProjectileProgress
 from wayfarer.rules.recovery_types import FatigueStatus, RecoveryTask, require_settled, retire_tasks
 from wayfarer.rules.transport_types import Transport
 from wayfarer.world import EntityKind, World
@@ -124,6 +125,7 @@ class AmmunitionLoad(Record):
     ammunition_item_id: Id
     rounds: int = Field(ge=0)
     reload_progress: int = Field(default=0, ge=0)
+    readiness: ProjectileProgress | None = Field(default=None, exclude_if=lambda v: v is None)
 
 
 class ResourceState(Record):

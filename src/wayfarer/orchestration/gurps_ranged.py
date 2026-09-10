@@ -109,6 +109,20 @@ def situation(
 def validate_command(
     play: PlayService, state: PlayState, encounter: Encounter, command: TakeCombatTurn
 ) -> None:
+    if command.recover_thrown_item:
+        if (
+            command.maneuver != "ready"
+            or not command.item_id
+            or command.reload_ammunition_id
+            or command.unload_ammunition
+            or command.firearm_service
+            or command.fast_draw
+            or command.let_down_bow
+        ):
+            raise ValidationError("Thrown recovery requires a dedicated Ready")
+        from wayfarer.orchestration.thrown_items import recover
+
+        recover(play, state, encounter, command)
     if command.braced and command.maneuver != "aim":
         raise ValidationError("Bracing is selected as part of Aim")
     if command.step_timing == "after" and command.maneuver != "attack":
@@ -146,6 +160,7 @@ def validate_command(
         and command.mode_id is not None
         and command.reload_ammunition_id is None
         and not command.unload_ammunition
+        and not command.let_down_bow
         and command.firearm_service is None
     ):
         raise ValidationError("Ready mode selection requires a reload")
@@ -174,10 +189,29 @@ def validate_command(
         if command.maneuver != "ready" or command.reload_ammunition_id is not None:
             raise ValidationError("Unload requires a separate Ready maneuver")
         unload_weapon(play, state, command)
+    if command.fast_draw and command.reload_ammunition_id is None:
+        raise ValidationError("Fast-Draw requires an explicit projectile reload")
+    if command.cocking_aid_id is not None and command.reload_ammunition_id is None:
+        raise ValidationError("Cocking aids require a reload")
+    if command.let_down_bow:
+        if (
+            command.maneuver != "ready"
+            or command.reload_ammunition_id is not None
+            or command.unload_ammunition
+            or command.firearm_service is not None
+        ):
+            raise ValidationError("Bow let-down requires its own Ready")
+        from wayfarer.orchestration.gurps_melee import mode
+        from wayfarer.orchestration.projectile_readiness import let_down
+
+        selected = mode(play, state, command.actor_id, command.item_id or "", command.mode_id)
+        if not isinstance(selected, RangedMode):
+            raise ValidationError("Let-down requires a bow mode")
+        let_down(state, command, selected)
     if command.reload_ammunition_id is not None:
         if command.maneuver != "ready":
             raise ValidationError("Reload requires a Ready maneuver")
-        reload_weapon(play, state, command)  # Validate before consciousness/exertion dice.
+        reload_weapon(play, state, command, validate_only=True)
 
 
 def unload_weapon(play: PlayService, state: PlayState, command: TakeCombatTurn) -> ResourceState:
@@ -199,6 +233,10 @@ def unload_weapon(play: PlayService, state: PlayState, command: TakeCombatTurn) 
         raise ValidationError("Unload requires the loaded weapon mode")
     entry = next(e for e in equipment.entries if e.definition_id == item.definition_id)
     weapon = next((m for m in entry.modes if m.id == loaded.mode_id), None)
+    if isinstance(weapon, RangedMode) and weapon.readiness is not None:
+        from wayfarer.orchestration.projectile_readiness import unload
+
+        return unload(state, command, weapon)
     if not isinstance(weapon, RangedMode) or weapon.reload_protocol != "magazine":
         raise ValidationError("Individual-round unloading requires its own timing protocol")
     result = state.resources.model_copy(
@@ -212,7 +250,9 @@ def unload_weapon(play: PlayService, state: PlayState, command: TakeCombatTurn) 
     return result
 
 
-def reload_weapon(play: PlayService, state: PlayState, command: TakeCombatTurn) -> ResourceState:
+def reload_weapon(
+    play: PlayService, state: PlayState, command: TakeCombatTurn, *, validate_only: bool = False
+) -> ResourceState:
     from wayfarer.orchestration.gurps_melee import catalog
 
     equipment = catalog(play)
@@ -236,6 +276,12 @@ def reload_weapon(play: PlayService, state: PlayState, command: TakeCombatTurn) 
     weapon = modes[0]
     if item.firearm_failure is not None:
         raise ValidationError("Service the firearm failure before reloading")
+    if weapon.readiness is not None:
+        from wayfarer.orchestration.projectile_readiness import reload
+
+        return reload(play, state, command, weapon, validate_only=validate_only)
+    if command.fast_draw or command.cocking_aid_id is not None:
+        raise ValidationError("This weapon has no explicit readiness protocol")
     reload_seconds = weapon.reload_seconds
     if weapon.rated_strength is not None:
         from wayfarer.orchestration.gurps_melee import build
@@ -381,6 +427,11 @@ def prepare(
             or load.mode_id != weapon.id
             or load.rounds < needed
             or (load.reload_progress and weapon.reload_protocol != "per-round")
+            or (
+                load.readiness is not None
+                and load.readiness.stage not in ("loaded", "unload")
+                and weapon.reload_protocol != "per-round"
+            )
         ):
             raise ValidationError("Weapon is unloaded or reload is incomplete")
     if weapon.sprayer is not None:
@@ -426,7 +477,14 @@ def prepare(
                 target_item_id if targeting_weapon and candidate == "parry" else None,
             )
         except ValidationError:
-            continue
+            if candidate != "parry" or not weapon.catchable or targeting_weapon:
+                continue
+            from wayfarer.orchestration.unarmed import unarmed_defense
+
+            try:
+                unarmed_defense(play, state, encounter, target.actor_id, "parry", None)
+            except ValidationError:
+                continue
         allowed.append(candidate)
     return encounter.model_copy(
         update={
@@ -450,23 +508,35 @@ def expend(
     weapon: RangedMode,
     *,
     shots: int | None = None,
+    hit: bool = False,
+    catcher_id: str | None = None,
+    hand: str | None = None,
 ) -> tuple[PlayState, Encounter]:
+    from wayfarer.orchestration.gurps_melee import catalog
+
     pending = encounter.pending_defense
     assert pending is not None
     resources = state.resources
     if weapon.thrown:
         item = next(i for i in resources.items if i.id == pending.weapon_id)
-        resources = resources.model_copy(
-            update={
-                "items": tuple(i for i in resources.items if i.id != item.id),
-                "expended_items": resources.expended_items
-                + (
-                    item.model_copy(
-                        update={"equipped": False, "ready": False, "container_id": None}
+        if catalog(play).profile_id == "gurps-basic-set-4e-2004":
+            from wayfarer.orchestration.thrown_items import landed
+
+            resources, encounter = landed(
+                state, encounter, item, hit=hit, catcher_id=catcher_id, hand=hand
+            )
+        else:
+            resources = resources.model_copy(
+                update={
+                    "items": tuple(i for i in resources.items if i.id != item.id),
+                    "expended_items": resources.expended_items
+                    + (
+                        item.model_copy(
+                            update={"equipped": False, "ready": False, "container_id": None}
+                        ),
                     ),
-                ),
-            }
-        )
+                }
+            )
         actor = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
         encounter = CombatEngine._replace(
             encounter,
@@ -503,6 +573,7 @@ def resolve(
     second_item_id: str | None,
     parry_mode_id: str | None = None,
     second_parry_mode_id: str | None = None,
+    catch_thrown: bool = False,
 ) -> tuple[PlayState, Encounter, InjuryTrace]:
     from wayfarer.orchestration.gurps_maneuvers import distracted
     from wayfarer.orchestration.gurps_melee import build, catalog, defense_value, level
@@ -787,7 +858,32 @@ def resolve(
     )
     miss_effect_dice: tuple[int, ...] = ()
     miss_lasting_ids: tuple[str, ...] = ()
-    if blocked:
+    if blocked and parry_item in ("left-hand", "right-hand"):
+        from wayfarer.orchestration.unarmed import critical_miss
+        from wayfarer.simulation.unarmed import PendingUnarmed
+
+        encounter = CombatEngine._replace(encounter, target)
+        state, encounter, checks, dice, handled = critical_miss(
+            play,
+            state,
+            encounter,
+            PendingUnarmed(
+                id=pending.id,
+                actor_id=pending.attacker_id,
+                target_id=pending.defender_id,
+                action="punch",
+                skill="attribute:dx",
+                hands=(),
+                allowed=("none", "parry"),
+            ),
+            target.actor_id,
+            critical_table,
+            parry_item,
+        )
+        miss_effect_dice = dice + tuple(d for check in checks for d in check.dice)
+        blocked = None if handled else "ranged-critical-unarmed-parry"
+        target = next(p for p in encounter.participants if p.actor_id == target.actor_id)
+    elif blocked:
         from wayfarer.orchestration.ranged_misses import resolve_miss
 
         # Preserve defense counters/posture before applying consequences to the defender.
@@ -806,13 +902,33 @@ def resolve(
         miss_lasting_ids = miss.lasting_injury_ids
         if parry_item is not None:
             target = next(p for p in encounter.participants if p.actor_id == target.actor_id)
+    caught_hand = next(
+        (
+            equipment_id
+            for choice, roll, equipment_id in (
+                (selected, defense, defense_item),
+                (second_defense, second_trace, second_item),
+            )
+            if catch_thrown
+            and choice == "parry"
+            and equipment_id in ("left-hand", "right-hand")
+            and roll is not None
+            and roll.outcome is Outcome.CRITICAL_SUCCESS
+        ),
+        None,
+    )
+    encounter = CombatEngine._replace(encounter, target)
     state, encounter = expend(
         play,
         state,
         encounter,
         weapon,
         shots=shots_fired if weapon.sprayer is None else weapon.sprayer.rounds_per_second,
+        hit=bool(hits),
+        catcher_id=target.actor_id if caught_hand else None,
+        hand=caught_hand,
     )
+    target = next(p for p in encounter.participants if p.actor_id == target.actor_id)
     location: HumanLocation | None = None
     location_dice: tuple[int, ...] = ()
     if hits and pending.hit_location:
