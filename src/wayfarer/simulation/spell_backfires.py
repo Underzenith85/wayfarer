@@ -257,6 +257,7 @@ def refund_due(state: ResourceState, actor_id: str, *, turn: int | None = None) 
                 "current": current,
                 "fatigue": status.model_copy(
                     update={
+                        "power": max(0, status.power - granted),
                         "collapsed": status.collapsed and current <= 0,
                         "unconscious": status.unconscious and current <= 0,
                     }

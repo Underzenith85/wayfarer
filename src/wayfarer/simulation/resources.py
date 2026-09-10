@@ -22,6 +22,7 @@ from wayfarer.rules.catalog import (
 )
 from wayfarer.rules.checks import RandomSource
 from wayfarer.rules.effects import Effect
+from wayfarer.rules.firearm_types import FirearmFailure
 from wayfarer.rules.hazard_types import HazardSchedule, RecoveryRestriction, require_hazards_settled
 from wayfarer.rules.injury_types import InjuryStatus
 from wayfarer.rules.object_types import GroundPosition, ObjectCondition, ObjectProfile, ObjectResult
@@ -65,6 +66,7 @@ class Item(Record):
     ready: bool = False
     condition: ObjectCondition | None = Field(default=None, exclude_if=lambda v: v is None)
     ground: GroundPosition | None = Field(default=None, exclude_if=lambda v: v is None)
+    firearm_failure: FirearmFailure | None = Field(default=None, exclude_if=lambda v: v is None)
 
 
 class Owner(Record):

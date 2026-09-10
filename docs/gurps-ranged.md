@@ -73,12 +73,12 @@ ordinary drop semantics are retained, while break results remain paused.
 
 Burst critical hits are implemented here, with independent evidence in
 `tests/test_ranged_critical_bursts.py` (Campaigns fourth printing B373, B399,
-B556). #173 remains open for complete firearm malfunction precedence and catalog
-facts: the ledger's `malfunction` behaviour stays unsupported because #180's
-firearms section records no pinned row, so no audited weapon can carry a
-malfunction number, and the table's own printing reconciliation stays with #191.
-A malfunction number must not be inferred from a skill name, damage type or
-existing recoil data. Named follow-ups retain the other required scope:
+B556). #173 now supplies [opt-in conventional firearm malfunctions](gurps-firearms.md):
+B407 precedence, single-shot stoppages, retained misfires, diagnosis, clearing,
+and mechanical repair with persisted consequences and receipts. Catalog auditing
+remains #180, low-TL/exotic malfunction variants remain #371; printing reconciliation
+remains #191. No malfunction number is inferred from a skill or damage type.
+Named follow-ups retain the other required scope:
 #286 owns individual-round unloading, Fast-Draw and bow draw/hold fatigue;
 #287 owns bare-handed catches and thrown-item battlefield recovery. Those
 protocols require additional typed skill, weapon readiness, and ground-item state;

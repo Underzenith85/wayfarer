@@ -27,6 +27,7 @@ from wayfarer.rules.mundane_traits.runtime import (
     REPUTATION_BINDINGS,
     SUPPORTED_HOOKS,
 )
+from wayfarer.rules.physical_traits import PHYSICAL_BINDINGS, PHYSICAL_HOOKS
 from wayfarer.rules.traits import TraitRules, validate_metadata
 
 PROFILE: Final = "gurps-basic-set-4e-2004"
@@ -464,7 +465,9 @@ def inventory(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> tuple[TraitEntry, 
     result = tuple(
         replace(
             e,
-            followup_issues=(191, EFFECT_OWNERS[e.effect]) if e.effect in EFFECT_OWNERS else (191,),
+            followup_issues=(191, EFFECT_OWNERS[e.effect])
+            if e.effect in EFFECT_OWNERS and e.effect not in PHYSICAL_HOOKS
+            else (191,),
         )
         for e in entries
     )
@@ -492,6 +495,10 @@ def validate_inventory(entries: tuple[TraitEntry, ...]) -> None:
             entry.effect == "trait.reputation" and entry.id not in REPUTATION_BINDINGS
         ):
             raise ValidationError("Standing effect requires an exact catalog binding")
+        if entry.effect in PHYSICAL_HOOKS and (
+            entry.id not in PHYSICAL_BINDINGS or PHYSICAL_BINDINGS[entry.id][0] != entry.effect
+        ):
+            raise ValidationError("Physical effect requires an exact catalog binding")
         definition = entry.definition(entries)
         assert definition.trait_rules is not None
         validate_metadata(definition.trait_rules)
@@ -501,7 +508,7 @@ def candidate_package(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> RulesPacka
     entries = inventory(vocabulary)
     return RulesPackage(
         "package:gurps-mundane-trait-candidates",
-        "0.2.0",
+        "0.3.0",
         "gurps-4e",
         (SOURCE,),
         tuple(entry.definition(entries) for entry in entries),
@@ -538,7 +545,6 @@ def audit_report(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> dict[str, objec
             "variable relationship constructions",
             "multimillionaire wealth",
             "setting-dependent rank prerequisites",
-            "healing attribute prerequisites",
             "free Status from Wealth or Rank",
             "language-talent cost interactions",
             "relationship count limits and Ally/Dependent netting",

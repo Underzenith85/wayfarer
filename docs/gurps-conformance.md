@@ -207,7 +207,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.combat.active_defense` | yes | yes | partial | #103; B376 heavy-weapon quality, BL limits and durable breakage in [melee integration](gurps-melee.md) |
 | `gurps.combat.maneuvers` | yes | yes | partial | #104 and #152 bounded transitions implemented; [executable behavior and certification boundary](gurps-maneuvers.md) |
 | `gurps.combat.turn_timing` | yes | yes | partial | #104 and #152; durable Wait zones, stop thrust, and attack-then-step implemented; #191 source reconciliation remains |
-| `gurps.combat.ranged_attack` | yes | yes | partial | #106; [ranged dispatch, rated bow/crossbow ST and evidence](gurps-ranged.md); #173 adds persisted critical misses, typed breakage, per-projectile locations, armed thrown Parry consequences and burst critical hits; [remaining protocols](gurps-ranged.md) stay #173 |
+| `gurps.combat.ranged_attack` | yes | yes | partial | #106; [ranged dispatch, rated bow/crossbow ST and evidence](gurps-ranged.md); #173 adds persisted critical misses, typed breakage, per-projectile locations, armed thrown Parry consequences, burst critical hits and [opt-in firearm malfunctions](gurps-firearms.md); [remaining protocols](gurps-ranged.md) stay #173 |
 | `gurps.combat.aim` | yes | yes | partial | #104/#152; target-bound accumulation, disruption, bracing and typed fixed/variable scopes; broader ranged resolution #106/#173 |
 | `gurps.combat.ammunition` | yes | yes | partial | #106; [reservations, rated crossbow timing and reload conservation](gurps-ranged.md); #173 adds opt-in per-round loading and magazine unloading; remaining #173 |
 | `gurps.combat.rapid_fire` | no | yes | partial | #106; [burst, Dodge and burst-critical resolution](gurps-ranged.md); remaining #173 |
@@ -426,7 +426,13 @@ initiator's build (#113), so declaring them twice cannot double-count. Selected
 Appearance and Reputation entries also bind through approved purchases (#113);
 authored values for a purchased source reject. See the
 [selected inventory](gurps-mundane-traits.md) for costs, runtime boundaries and
-concrete coverage blockers #332–#335.
+concrete coverage blockers #333–#335.
+
+Issue #332 binds the selected physical traits to combat, sense checks, surprise,
+fatigue and natural recovery. Approved package pins determine the immutable
+projection; private receipts and replay retain the existing transaction boundary.
+See the [physical coverage matrix](gurps-mundane-traits.md#physical-trait-execution-332)
+for numeric expectations, timing behavior and source-certification limits.
 
 Standing the observer cannot perceive contributes nothing, a reputation whose
 class is absent is never rolled for, and every unrecognized value fails closed.
