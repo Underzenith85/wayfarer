@@ -19,6 +19,7 @@ from wayfarer.character.statistics import (
 from wayfarer.errors import ValidationError
 from wayfarer.rules.catalog import DefinitionKind, RulesPackage
 from wayfarer.rules.conformance import require_capabilities
+from wayfarer.rules.firearm_types import FirearmSpec
 from wayfarer.rules.location_types import HumanLocation
 from wayfarer.rules.object_types import ObjectProfile
 from wayfarer.simulation.resources import EquipmentSpec, Id, Record, ResourceEngine, ResourceState
@@ -116,9 +117,19 @@ class RangedMode(Record):
     rated_strength: RatedStrength | None = Field(
         default=None, exclude_if=lambda value: value is None
     )
+    firearm: FirearmSpec | None = Field(default=None, exclude_if=lambda v: v is None)
 
     @model_validator(mode="after")
     def valid_range(self) -> Self:
+        if self.firearm is not None and (
+            self.thrown
+            or self.blockable
+            or self.rated_strength is not None
+            or self.damage.basis != "fixed"
+            or self.damage.tight_beam
+            or self.damage.damage_type not in ("pi-", "pi", "pi+", "pi++")
+        ):
+            raise ValueError("Malfunctions require an explicit conventional firearm mode")
         if self.half_damage_range is not None and self.half_damage_range > self.maximum_range:
             raise ValueError("Half-damage range exceeds maximum range")
         if self.thrown and self.reload_protocol != "magazine":
@@ -253,6 +264,11 @@ class EquipmentCatalog(Record):
             if entry.durability is not None and entry.durability.profile_id != self.profile_id:
                 raise ValueError("Object durability requires the exact Basic Set profile")
             for mode in entry.modes:
+                if isinstance(mode, RangedMode) and mode.firearm is not None:
+                    if self.profile_id != "gurps-basic-set-4e-2004":
+                        raise ValueError("Firearm malfunctions require the exact Basic Set profile")
+                    if mode.firearm.technology_level != entry.technology_level:
+                        raise ValueError("Firearm and equipment technology levels must agree")
                 if isinstance(mode, RangedMode) and mode.rated_strength is not None:
                     if self.profile_id != "gurps-basic-set-4e-2004":
                         raise ValueError("Rated weapon ST requires the exact Basic Set profile")
@@ -289,6 +305,10 @@ class EquipmentCatalog(Record):
             ):
                 raise ValidationError("Equipment source mismatch")
             skills = [mode.skill_id for mode in entry.modes]
+            for mode in entry.modes:
+                if isinstance(mode, RangedMode) and mode.firearm is not None:
+                    if mode.firearm.armoury_skill_id is not None:
+                        skills.append(mode.firearm.armoury_skill_id)
             if entry.shield is not None:
                 skills.append(entry.shield.skill_id)
             for skill in skills:

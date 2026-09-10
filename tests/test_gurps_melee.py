@@ -201,7 +201,14 @@ async def setup(
         )
     if ranged_mode is not None:
         entries = tuple(
-            e.model_copy(update={"modes": e.modes + (ranged_mode,)})
+            e.model_copy(
+                update={
+                    "modes": e.modes + (ranged_mode,),
+                    "technology_level": ranged_mode.firearm.technology_level
+                    if ranged_mode.firearm
+                    else e.technology_level,
+                }
+            )
             if e.definition_id == "equipment:broadsword"
             else e
             for e in equipment.entries
@@ -319,6 +326,22 @@ async def setup(
             ),
         )
     )
+    armoury_id = (
+        ranged_mode.firearm.armoury_skill_id if ranged_mode and ranged_mode.firearm else None
+    )
+    if armoury_id:
+        skills += (
+            RuleDefinition(
+                armoury_id,
+                DefinitionKind.SKILL,
+                "Armoury (Small Arms)",
+                source,
+                None,
+                ImplementationStatus.IMPLEMENTED,
+                hooks=("character.gurps-skill", "check.target"),
+                skill=SkillSpec(ControllingAttribute.IQ, Difficulty.AVERAGE, "B178/B407"),
+            ),
+        )
     extras = skills + tuple(
         RuleDefinition(
             e.definition_id,
@@ -425,6 +448,7 @@ async def setup(
         (
             Purchase(definition_id="skill:broadsword", amount=12),
             Purchase(definition_id="skill:shield", amount=4),
+            *((Purchase(definition_id=armoury_id, amount=4),) if armoury_id else ()),
             *(
                 (Purchase(definition_id=durability.repair_skill_id, amount=4),)
                 if durability and durability.repair_skill_id

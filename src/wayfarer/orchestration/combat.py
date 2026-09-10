@@ -63,6 +63,12 @@ class TakeCombatTurn(CombatCommand):
     shots: int = Field(default=1, ge=1, le=100)
     reload_ammunition_id: str | None = None
     unload_ammunition: bool = Field(default=False, exclude_if=lambda v: not v)
+    firearm_service: Literal["diagnose", "clear", "repair"] | None = Field(
+        default=None, exclude_if=lambda v: v is None
+    )
+    firearm_service_skill: Literal["weapon", "armoury"] = Field(
+        default="weapon", exclude_if=lambda v: v == "weapon"
+    )
     hit_location: HitLocation | None = None
     target_item_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
     ready_hand: Hand | Literal["both"] | None = None
@@ -263,6 +269,8 @@ class CombatService:
                             "shots": 1,
                             "reload_ammunition_id": None,
                             "unload_ammunition": False,
+                            "firearm_service": None,
+                            "firearm_service_skill": "weapon",
                             "destination": None,
                             "hex_path": (),
                             "hex_facing": None,
@@ -934,6 +942,8 @@ class CombatService:
                                     "shots": 1,
                                     "reload_ammunition_id": None,
                                     "unload_ammunition": False,
+                                    "firearm_service": None,
+                                    "firearm_service_skill": "weapon",
                                     "item_id": None,
                                     "mode_id": None,
                                     "target_id": None,
@@ -1025,6 +1035,15 @@ class CombatService:
                             resources = unload_weapon(
                                 self.play,
                                 state.model_copy(update={"resources": resources}),
+                                command_for_turn,
+                            )
+                        if command_for_turn.firearm_service is not None:
+                            from wayfarer.orchestration.firearms import service
+
+                            resources = service(
+                                self.play,
+                                state.model_copy(update={"resources": resources}),
+                                encounter,
                                 command_for_turn,
                             )
                         from wayfarer.orchestration.location_combat import bind_ready_hand
