@@ -226,17 +226,22 @@ def test_structural_classes_are_recorded_and_completely_sampled() -> None:
         "skill:astronomy": {"attribute-default", "prerequisite", "technology-level"},
         # B176 Area Knowledge requires a specialty this inventory does not expand.
         "skill:area-knowledge": {"attribute-default", "unexpanded-specialty"},
-        # B228 Vacc Suit carries no verified mechanics at all.
-        "skill:vacc-suit": {"listing-only"},
+        # B192/B228 Vacc Suit is a concrete Environment Suit specialty (#346).
+        "skill:vacc-suit": {"attribute-default", "required-specialty", "technology-level"},
+        # B233 Work by Touch is a technique of Traps, not a skill with defaults.
+        "skill:work-by-touch": {"no-default", "technique"},
+        # B211 Weather Sense still carries no verified mechanics at all.
+        "skill:weather-sense": {"listing-only"},
     }
     for identifier, classes in expected.items():
         assert {c.value for c in entries[identifier].structural_classes} == classes
     sampled = {c for e in entries.values() for c in e.structural_classes}
     assert sampled == set(StructuralClass)
     assert all(e.structural_classes for e in entries.values())
-    assert entries["skill:vacc-suit"].implementation == "listing-only"
+    assert entries["skill:weather-sense"].implementation == "listing-only"
     assert entries["skill:accounting"].implementation == "unsupported"
-    assert sum(e.implementation == "listing-only" for e in entries.values()) == 19
+    assert entries["skill:vacc-suit"].implementation == "implemented"
+    assert sum(e.implementation == "listing-only" for e in entries.values()) == 11
 
 
 def test_unsampled_or_unclassified_rows_are_rejected() -> None:
@@ -257,15 +262,19 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     assert entries["skill:broadsword"].owners == (103,)
     assert entries["skill:first-aid"].owners == (109,)
     assert entries["skill:accounting"].owners == ()
-    assert coverage_blockers(PROFILE) == (103, 109, 110, 111, 112)
+    assert coverage_blockers(PROFILE) == (103, 109, 110, 111, 112, 338, 346, 353, 356, 358)
     with pytest.raises(ValidationError, match="outside the selected profile"):
         coverage_blockers("gurps-lite-4e-2004")
     report = audit_report()
-    assert report["coverage_blockers"] == [103, 109, 110, 111, 112]
-    assert report["runtime_owner_unassigned"] == 223
-    assert report["implementation_counts"] == {"listing-only": 19, "unsupported": 238}
+    assert report["coverage_blockers"] == [103, 109, 110, 111, 112, 338, 346, 353, 356, 358]
+    assert report["runtime_owner_unassigned"] == 170
+    assert report["implementation_counts"] == {
+        "implemented": 83,
+        "listing-only": 11,
+        "unsupported": 206,
+    }
     counts = report["structural_class_counts"]
-    assert isinstance(counts, dict) and counts["listing-only"] == 19
+    assert isinstance(counts, dict) and counts["listing-only"] == 11
 
 
 def test_excluded_skills_remain_owned_by_the_catalog_that_carries_them() -> None:

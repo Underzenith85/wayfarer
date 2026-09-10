@@ -1,9 +1,15 @@
-"""Strict source-inventory records; audit-only flags are not runtime mechanics."""
+"""Strict source-inventory records; audit-only flags are not runtime mechanics.
+
+A row may drop an audit blocker only when an implemented procedure covers it.
+:mod:`wayfarer.rules.mundane_skills.technology` is the single authority for that,
+so a cleared blocker can never be asserted by the source record alone.
+"""
 
 from typing import Annotated, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from wayfarer.rules.mundane_skills.technology import covers
 from wayfarer.rules.skill_types import Difficulty
 
 AttributeName = Literal["IQ", "DX", "HT", "ST", "Will", "Per", "Perception"]
@@ -41,6 +47,14 @@ class SpecialtyRecord(Record):
     optional_parent: Identifier | None = None
 
 
+class TechniqueRecord(Record):
+    """A technique's parent-specific default and cap, both relative to the parent."""
+
+    parent: Identifier
+    default_modifier: Annotated[int, Field(le=0)]
+    maximum_modifier: int = 0
+
+
 class InventoryRow(Record):
     id: Identifier
     name: Annotated[str, Field(min_length=1)]
@@ -51,27 +65,50 @@ class InventoryRow(Record):
     skill_defaults: tuple[SkillDefaultRecord, ...] = ()
     prerequisites: tuple[Identifier, ...] = ()
     specialty: SpecialtyRecord | None = None
+    technique: TechniqueRecord | None = None
     specialty_required: bool = False
     tl_required: bool = False
-    blockers: Annotated[tuple[Blocker, ...], Field(min_length=1)]
+    blockers: tuple[Blocker, ...] = ()
     issues: Annotated[tuple[Annotated[int, Field(gt=0)], ...], Field(min_length=1)]
+
+    @property
+    def covered(self) -> bool:
+        """Whether an implemented procedure resolves this row, family or parent."""
+        return covers(
+            f"skill:{self.id}",
+            self.specialty.family if self.specialty else None,
+            f"skill:{self.technique.parent}" if self.technique else None,
+        )
 
     @model_validator(mode="after")
     def coherent(self) -> Self:
         if (self.attribute is None) != (self.difficulty is None):
             raise ValueError("Attribute and difficulty must be recorded together")
         if self.attribute is None and (
-            self.attribute_defaults or self.skill_defaults or self.prerequisites or self.specialty
+            self.attribute_defaults
+            or self.skill_defaults
+            or self.prerequisites
+            or self.specialty
+            or self.technique
         ):
             raise ValueError("Structured mechanics require attribute and difficulty")
-        if (
-            self.specialty_required
-            and not self.specialty
-            and "specialty-expansion" not in self.blockers
-        ):
-            raise ValueError("Unexpanded required specialties need an explicit blocker")
-        if self.tl_required and "technology-level-context" not in self.blockers:
-            raise ValueError("Unimplemented TL context needs an explicit blocker")
+        if self.technique is not None and self.specialty is not None:
+            raise ValueError("A row is a technique or a specialty, never both")
+        if not self.covered:
+            if not self.blockers:
+                raise ValueError("An uncovered row must record why it is unavailable")
+            if (
+                self.specialty_required
+                and not self.specialty
+                and "specialty-expansion" not in self.blockers
+            ):
+                raise ValueError("Unexpanded required specialties need an explicit blocker")
+            if self.tl_required and "technology-level-context" not in self.blockers:
+                raise ValueError("Unimplemented TL context needs an explicit blocker")
+        elif self.attribute is None:
+            raise ValueError("A covered row must record its mechanics")
+        elif "runtime-procedure" in self.blockers:
+            raise ValueError("A covered row cannot also block on its own runtime procedure")
         for values in (
             self.blockers,
             self.issues,

@@ -378,8 +378,9 @@ remain visible item-level blockers under #112 and the indicated mechanics owners
 The candidate `0.2.0` audit validates its inventory and exclusions with strict
 typed records. Defaults, prerequisites and specialty parents must reference
 accounted-for entries; required-specialty and TL flags survive into the report.
-The inventory now contains 257 records, including six Mathematics specialties,
-with 238 structured definitions and 28 exclusions. Twelve entries have complete
+The inventory now contains 300 records, including six Mathematics specialties
+and the concrete vehicle, crew and ordnance specialties #346 expanded, with 289
+structured definitions and 28 exclusions. Twelve entries have complete
 unconditional default lists; conditional defaults remain explicitly blocked.
 Representative fallback definitions are normalized to unsupported just like newly
 indexed entries. These checks improve data integrity without making blocked
@@ -389,9 +390,14 @@ Each row is classified by the structure it records, and the audit rejects an
 inventory that leaves any structural class unsampled or any row unclassified.
 Rows without recorded mechanics are reported as `listing-only` rather than as
 partial definitions, and each row's own blockers and certification state reach
-`source_audit` instead of one family status for the chapter. 223 rows still name
+`source_audit` instead of one family status for the chapter. 170 rows still name
 no mechanics owner beyond this audit; the report publishes that count as
-`runtime_owner_unassigned`, a visible #122 blocker. Excluded cinematic and
+`runtime_owner_unassigned`, a visible #122 blocker. 83 rows now report
+`implemented` because `rules.mundane_skills.technology` (#346) resolves them
+through a specific procedure that dispatches into an existing authoritative
+service; an implemented row is still unavailable, and its remaining source,
+specialty and capability blockers stay item-level and owned by #336, #353, #356,
+#358 and #338. Excluded cinematic and
 supernatural skills are validated against the #119 catalog that owns them, so a
 transfer cannot silently drop a Basic Set skill. The accounting matrix is
 [the mundane skill inventory](gurps-mundane-skills.md).

@@ -11,14 +11,6 @@
         "modifier": -6
       }
     ],
-    "specialty_required": false,
-    "tl_required": false,
-    "blockers": [
-      "runtime-procedure"
-    ],
-    "issues": [
-      112
-    ],
     "skill_defaults": [
       {
         "target": "finance",
@@ -32,6 +24,14 @@
         "target": "merchant",
         "modifier": -5
       }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
     ]
   },
   {
@@ -67,14 +67,6 @@
         "modifier": -5
       }
     ],
-    "specialty_required": false,
-    "tl_required": false,
-    "blockers": [
-      "runtime-procedure"
-    ],
-    "issues": [
-      112
-    ],
     "skill_defaults": [
       {
         "target": "performance",
@@ -84,6 +76,14 @@
         "target": "public-speaking",
         "modifier": -5
       }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
     ]
   },
   {
@@ -98,6 +98,12 @@
         "modifier": -5
       }
     ],
+    "skill_defaults": [
+      {
+        "target": "merchant",
+        "modifier": -3
+      }
+    ],
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
@@ -105,12 +111,6 @@
     ],
     "issues": [
       112
-    ],
-    "skill_defaults": [
-      {
-        "target": "merchant",
-        "modifier": -3
-      }
     ]
   },
   {
@@ -128,11 +128,25 @@
     "id": "airshipman",
     "name": "Airshipman",
     "page": 174,
-    "blockers": [
-      "family-specialty-expansion"
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
     ],
+    "specialty": {
+      "family": "crewman",
+      "name": "airshipman"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
     "issues": [
-      112
+      112,
+      346,
+      358
     ]
   },
   {
@@ -227,12 +241,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "runtime-procedure",
-      "technology-level-context",
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353
     ]
   },
   {
@@ -261,13 +275,13 @@
   {
     "id": "arm-lock-judo",
     "name": "Arm Lock (Judo)",
+    "page": 230,
     "blockers": [
       "runtime-procedure"
     ],
     "issues": [
       112
-    ],
-    "page": 230
+    ]
   },
   {
     "id": "armoury",
@@ -350,17 +364,15 @@
         "modifier": -6
       }
     ],
-    "specialty_required": false,
-    "tl_required": true,
-    "blockers": [
-      "runtime-procedure",
-      "technology-level-context"
-    ],
-    "issues": [
-      112
-    ],
     "prerequisites": [
       "mathematics-applied"
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346
     ]
   },
   {
@@ -422,11 +434,24 @@
     "id": "battlesuit",
     "name": "Battlesuit",
     "page": 179,
-    "blockers": [
-      "family-specialty-expansion"
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      }
     ],
+    "specialty": {
+      "family": "environment-suit",
+      "name": "battlesuit"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
     "issues": [
-      112
+      112,
+      346
     ]
   },
   {
@@ -490,7 +515,10 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353,
+      356
     ]
   },
   {
@@ -514,7 +542,10 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353,
+      356
     ]
   },
   {
@@ -557,13 +588,129 @@
     "specialty_required": true,
     "tl_required": true,
     "blockers": [
-      "runtime-procedure",
-      "specialty-expansion",
-      "technology-level-context",
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353,
+      358
+    ]
+  },
+  {
+    "id": "boating-large-powerboat",
+    "name": "Boating (Large Powerboat)",
+    "page": 180,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "boating",
+      "name": "large-powerboat"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "boating-motorboat",
+    "name": "Boating (Motorboat)",
+    "page": 180,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "boating",
+      "name": "motorboat"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "boating-sailboat",
+    "name": "Boating (Sailboat)",
+    "page": 180,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "boating",
+      "name": "sailboat"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "boating-unpowered",
+    "name": "Boating (Unpowered)",
+    "page": 180,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "boating",
+      "name": "unpowered"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
     ]
   },
   {
@@ -573,14 +720,6 @@
     "attribute": "Per",
     "difficulty": "average",
     "attribute_defaults": [],
-    "specialty_required": false,
-    "tl_required": false,
-    "blockers": [
-      "runtime-procedure"
-    ],
-    "issues": [
-      112
-    ],
     "skill_defaults": [
       {
         "target": "detect-lies",
@@ -590,6 +729,14 @@
         "target": "psychology",
         "modifier": -4
       }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
     ]
   },
   {
@@ -674,6 +821,9 @@
     "attribute": "IQ",
     "difficulty": "hard",
     "attribute_defaults": [],
+    "prerequisites": [
+      "psychology"
+    ],
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
@@ -683,9 +833,6 @@
     ],
     "issues": [
       112
-    ],
-    "prerequisites": [
-      "psychology"
     ]
   },
   {
@@ -815,12 +962,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "runtime-procedure",
-      "technology-level-context",
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353
     ]
   },
   {
@@ -838,12 +985,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "runtime-procedure",
-      "technology-level-context",
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353
     ]
   },
   {
@@ -926,12 +1073,10 @@
     ],
     "specialty_required": false,
     "tl_required": true,
-    "blockers": [
-      "runtime-procedure",
-      "technology-level-context"
-    ],
+    "blockers": [],
     "issues": [
-      112
+      112,
+      346
     ]
   },
   {
@@ -943,12 +1088,10 @@
     "attribute_defaults": [],
     "specialty_required": false,
     "tl_required": true,
-    "blockers": [
-      "runtime-procedure",
-      "technology-level-context"
-    ],
+    "blockers": [],
     "issues": [
-      112
+      112,
+      346
     ]
   },
   {
@@ -986,6 +1129,12 @@
         "modifier": -5
       }
     ],
+    "skill_defaults": [
+      {
+        "target": "housekeeping",
+        "modifier": -5
+      }
+    ],
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
@@ -993,12 +1142,6 @@
     ],
     "issues": [
       112
-    ],
-    "skill_defaults": [
-      {
-        "target": "housekeeping",
-        "modifier": -5
-      }
     ]
   },
   {
@@ -1038,12 +1181,11 @@
     ],
     "specialty_required": false,
     "tl_required": true,
-    "blockers": [
-      "runtime-procedure",
-      "technology-level-context"
-    ],
+    "blockers": [],
     "issues": [
-      112
+      112,
+      346,
+      358
     ]
   },
   {
@@ -1061,12 +1203,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "runtime-procedure",
-      "technology-level-context",
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353
     ]
   },
   {
@@ -1100,12 +1242,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "runtime-procedure",
-      "technology-level-context",
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353
     ]
   },
   {
@@ -1129,7 +1271,10 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353,
+      356
     ]
   },
   {
@@ -1187,16 +1332,6 @@
         "modifier": -6
       }
     ],
-    "specialty_required": false,
-    "tl_required": true,
-    "blockers": [
-      "runtime-procedure",
-      "technology-level-context"
-    ],
-    "issues": [
-      109,
-      112
-    ],
     "skill_defaults": [
       {
         "target": "first-aid",
@@ -1210,6 +1345,16 @@
         "target": "veterinary",
         "modifier": -5
       }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      109,
+      112
     ]
   },
   {
@@ -1224,6 +1369,12 @@
         "modifier": -6
       }
     ],
+    "skill_defaults": [
+      {
+        "target": "politics",
+        "modifier": -6
+      }
+    ],
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
@@ -1232,12 +1383,6 @@
     "issues": [
       111,
       112
-    ],
-    "skill_defaults": [
-      {
-        "target": "politics",
-        "modifier": -6
-      }
     ]
   },
   {
@@ -1261,18 +1406,34 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353,
+      356
     ]
   },
   {
     "id": "diving-suit",
     "name": "Diving Suit",
     "page": 187,
-    "blockers": [
-      "family-specialty-expansion"
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      }
     ],
+    "specialty": {
+      "family": "environment-suit",
+      "name": "diving-suit"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
     "issues": [
-      112
+      112,
+      346
     ]
   },
   {
@@ -1315,13 +1476,274 @@
     "specialty_required": true,
     "tl_required": true,
     "blockers": [
-      "runtime-procedure",
-      "specialty-expansion",
-      "technology-level-context",
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353,
+      358
+    ]
+  },
+  {
+    "id": "driving-automobile",
+    "name": "Driving (Automobile)",
+    "page": 188,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "driving",
+      "name": "automobile"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "driving-construction-equipment",
+    "name": "Driving (Construction Equipment)",
+    "page": 188,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "driving",
+      "name": "construction-equipment"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "driving-halftrack",
+    "name": "Driving (Halftrack)",
+    "page": 188,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "driving",
+      "name": "halftrack"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "driving-heavy-wheeled",
+    "name": "Driving (Heavy Wheeled)",
+    "page": 188,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "driving",
+      "name": "heavy-wheeled"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "driving-hovercraft",
+    "name": "Driving (Hovercraft)",
+    "page": 188,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "driving",
+      "name": "hovercraft"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "driving-locomotive",
+    "name": "Driving (Locomotive)",
+    "page": 188,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "driving",
+      "name": "locomotive"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "driving-mecha",
+    "name": "Driving (Mecha)",
+    "page": 188,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "driving",
+      "name": "mecha"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "driving-motorcycle",
+    "name": "Driving (Motorcycle)",
+    "page": 188,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "driving",
+      "name": "motorcycle"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "driving-tracked",
+    "name": "Driving (Tracked)",
+    "page": 188,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      },
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "driving",
+      "name": "tracked"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
     ]
   },
   {
@@ -1383,12 +1805,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "runtime-procedure",
-      "technology-level-context",
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353
     ]
   },
   {
@@ -1412,7 +1834,10 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353,
+      356
     ]
   },
   {
@@ -1436,7 +1861,10 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353,
+      356
     ]
   },
   {
@@ -1456,7 +1884,10 @@
       "prerequisite-procedure"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353,
+      356
     ]
   },
   {
@@ -1474,12 +1905,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "runtime-procedure",
-      "technology-level-context",
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353
     ]
   },
   {
@@ -1600,13 +2031,132 @@
     "specialty_required": true,
     "tl_required": true,
     "blockers": [
-      "runtime-procedure",
-      "specialty-expansion",
-      "technology-level-context",
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353
+    ]
+  },
+  {
+    "id": "explosives-demolition",
+    "name": "Explosives (Demolition)",
+    "page": 194,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "explosives",
+      "name": "demolition"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346
+    ]
+  },
+  {
+    "id": "explosives-explosive-ordnance-disposal",
+    "name": "Explosives (Explosive Ordnance Disposal)",
+    "page": 194,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "explosives",
+      "name": "explosive-ordnance-disposal"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346
+    ]
+  },
+  {
+    "id": "explosives-fireworks",
+    "name": "Explosives (Fireworks)",
+    "page": 194,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "explosives",
+      "name": "fireworks"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346
+    ]
+  },
+  {
+    "id": "explosives-nuclear-ordnance-disposal",
+    "name": "Explosives (Nuclear Ordnance Disposal)",
+    "page": 194,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "explosives",
+      "name": "nuclear-ordnance-disposal"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346
+    ]
+  },
+  {
+    "id": "explosives-underwater-demolition",
+    "name": "Explosives (Underwater Demolition)",
+    "page": 194,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -5
+      }
+    ],
+    "specialty": {
+      "family": "explosives",
+      "name": "underwater-demolition"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346
     ]
   },
   {
@@ -1761,16 +2311,6 @@
         "modifier": -4
       }
     ],
-    "specialty_required": false,
-    "tl_required": true,
-    "blockers": [
-      "runtime-procedure",
-      "technology-level-context"
-    ],
-    "issues": [
-      109,
-      112
-    ],
     "skill_defaults": [
       {
         "target": "esoteric-medicine",
@@ -1784,6 +2324,16 @@
         "target": "veterinary",
         "modifier": -4
       }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      109,
+      112
     ]
   },
   {
@@ -1898,12 +2448,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "runtime-procedure",
-      "technology-level-context",
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353
     ]
   },
   {
@@ -1967,12 +2517,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "runtime-procedure",
-      "technology-level-context",
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353
     ]
   },
   {
@@ -2015,12 +2565,10 @@
     ],
     "specialty_required": false,
     "tl_required": true,
-    "blockers": [
-      "runtime-procedure",
-      "technology-level-context"
-    ],
+    "blockers": [],
     "issues": [
-      112
+      112,
+      346
     ]
   },
   {
@@ -2131,7 +2679,10 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353,
+      356
     ]
   },
   {
@@ -2155,7 +2706,10 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353,
+      356
     ]
   },
   {
@@ -2268,7 +2822,9 @@
       "technology-level-context"
     ],
     "issues": [
-      112
+      112,
+      346,
+      356
     ]
   },
   {
@@ -2461,12 +3017,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "runtime-procedure",
-      "technology-level-context",
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353
     ]
   },
   {
@@ -2600,13 +3156,13 @@
   {
     "id": "kicking-karate",
     "name": "Kicking (Karate)",
+    "page": 232,
     "blockers": [
       "runtime-procedure"
     ],
     "issues": [
       112
-    ],
-    "page": 232
+    ]
   },
   {
     "id": "knife",
@@ -2999,13 +3555,12 @@
     "specialty_required": true,
     "tl_required": true,
     "blockers": [
-      "runtime-procedure",
-      "specialty-expansion",
-      "technology-level-context",
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353
     ]
   },
   {
@@ -3053,12 +3608,12 @@
     "specialty_required": true,
     "tl_required": true,
     "blockers": [
-      "runtime-procedure",
-      "technology-level-context",
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353
     ]
   },
   {
@@ -3105,12 +3660,10 @@
     },
     "specialty_required": true,
     "tl_required": true,
-    "blockers": [
-      "runtime-procedure",
-      "technology-level-context"
-    ],
+    "blockers": [],
     "issues": [
-      112
+      112,
+      346
     ]
   },
   {
@@ -3157,12 +3710,10 @@
     },
     "specialty_required": true,
     "tl_required": true,
-    "blockers": [
-      "runtime-procedure",
-      "technology-level-context"
-    ],
+    "blockers": [],
     "issues": [
-      112
+      112,
+      346
     ]
   },
   {
@@ -3205,12 +3756,10 @@
     },
     "specialty_required": true,
     "tl_required": true,
-    "blockers": [
-      "runtime-procedure",
-      "technology-level-context"
-    ],
+    "blockers": [],
     "issues": [
-      112
+      112,
+      346
     ]
   },
   {
@@ -3253,12 +3802,10 @@
     },
     "specialty_required": true,
     "tl_required": true,
-    "blockers": [
-      "runtime-procedure",
-      "technology-level-context"
-    ],
+    "blockers": [],
     "issues": [
-      112
+      112,
+      346
     ]
   },
   {
@@ -3306,12 +3853,12 @@
     "specialty_required": true,
     "tl_required": true,
     "blockers": [
-      "runtime-procedure",
-      "technology-level-context",
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353
     ]
   },
   {
@@ -3335,7 +3882,10 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353,
+      356
     ]
   },
   {
@@ -3392,12 +3942,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "runtime-procedure",
-      "technology-level-context",
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353
     ]
   },
   {
@@ -3482,6 +4032,28 @@
     "issues": [
       103,
       112
+    ]
+  },
+  {
+    "id": "motion-picture-camera",
+    "name": "Motion Picture Camera",
+    "page": 231,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "technique": {
+      "parent": "photography",
+      "default_modifier": -2,
+      "maximum_modifier": 0
+    },
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112,
+      346,
+      338
     ]
   },
   {
@@ -3586,11 +4158,24 @@
     "id": "nbc-suit",
     "name": "NBC Suit",
     "page": 211,
-    "blockers": [
-      "family-specialty-expansion"
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      }
     ],
+    "specialty": {
+      "family": "environment-suit",
+      "name": "nbc-suit"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
     "issues": [
-      112
+      112,
+      346
     ]
   },
   {
@@ -3608,6 +4193,26 @@
     ],
     "issues": [
       112
+    ]
+  },
+  {
+    "id": "no-landing-extraction",
+    "name": "No-Landing Extraction",
+    "page": 232,
+    "attribute": "DX",
+    "difficulty": "hard",
+    "technique": {
+      "parent": "piloting",
+      "default_modifier": -5,
+      "maximum_modifier": 0
+    },
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
     ]
   },
   {
@@ -3691,7 +4296,10 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353,
+      356
     ]
   },
   {
@@ -3858,16 +4466,6 @@
         "modifier": -7
       }
     ],
-    "specialty_required": false,
-    "tl_required": true,
-    "blockers": [
-      "runtime-procedure",
-      "technology-level-context"
-    ],
-    "issues": [
-      109,
-      112
-    ],
     "skill_defaults": [
       {
         "target": "first-aid",
@@ -3877,6 +4475,16 @@
         "target": "veterinary",
         "modifier": -5
       }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context"
+    ],
+    "issues": [
+      109,
+      112
     ]
   },
   {
@@ -3894,24 +4502,32 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "runtime-procedure",
-      "technology-level-context",
       "prerequisite-procedure"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353
     ]
   },
   {
     "id": "physics-acoustics",
     "name": "Physics (Acoustics)",
-    "blockers": [
-      "runtime-procedure"
-    ],
+    "page": 213,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "specialty": {
+      "family": "physics",
+      "name": "acoustics",
+      "optional_parent": "physics"
+    },
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [],
     "issues": [
-      112
-    ],
-    "page": 213
+      112,
+      346
+    ]
   },
   {
     "id": "physiology",
@@ -3973,13 +4589,361 @@
     ],
     "specialty_required": true,
     "tl_required": true,
-    "blockers": [
-      "runtime-procedure",
-      "specialty-expansion",
-      "technology-level-context"
-    ],
+    "blockers": [],
     "issues": [
-      112
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "piloting-aerospace",
+    "name": "Piloting (Aerospace)",
+    "page": 214,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty": {
+      "family": "piloting",
+      "name": "aerospace"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "piloting-airship",
+    "name": "Piloting (Airship)",
+    "page": 214,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty": {
+      "family": "piloting",
+      "name": "airship"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "piloting-autogyro",
+    "name": "Piloting (Autogyro)",
+    "page": 214,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty": {
+      "family": "piloting",
+      "name": "autogyro"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "piloting-contragravity",
+    "name": "Piloting (Contragravity)",
+    "page": 214,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty": {
+      "family": "piloting",
+      "name": "contragravity"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "piloting-flight-pack",
+    "name": "Piloting (Flight Pack)",
+    "page": 214,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty": {
+      "family": "piloting",
+      "name": "flight-pack"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "piloting-glider",
+    "name": "Piloting (Glider)",
+    "page": 214,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty": {
+      "family": "piloting",
+      "name": "glider"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "piloting-heavy-airplane",
+    "name": "Piloting (Heavy Airplane)",
+    "page": 214,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty": {
+      "family": "piloting",
+      "name": "heavy-airplane"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "piloting-high-performance-airplane",
+    "name": "Piloting (High-Performance Airplane)",
+    "page": 214,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty": {
+      "family": "piloting",
+      "name": "high-performance-airplane"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "piloting-high-performance-spacecraft",
+    "name": "Piloting (High-Performance Spacecraft)",
+    "page": 214,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty": {
+      "family": "piloting",
+      "name": "high-performance-spacecraft"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "piloting-light-airplane",
+    "name": "Piloting (Light Airplane)",
+    "page": 214,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty": {
+      "family": "piloting",
+      "name": "light-airplane"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "piloting-lighter-than-air",
+    "name": "Piloting (Lighter-Than-Air)",
+    "page": 214,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty": {
+      "family": "piloting",
+      "name": "lighter-than-air"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "piloting-low-performance-spacecraft",
+    "name": "Piloting (Low-Performance Spacecraft)",
+    "page": 214,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty": {
+      "family": "piloting",
+      "name": "low-performance-spacecraft"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "piloting-ultralight",
+    "name": "Piloting (Ultralight)",
+    "page": 214,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty": {
+      "family": "piloting",
+      "name": "ultralight"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "piloting-vertol",
+    "name": "Piloting (Vertol)",
+    "page": 214,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty": {
+      "family": "piloting",
+      "name": "vertol"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
     ]
   },
   {
@@ -3994,6 +4958,12 @@
         "modifier": -5
       }
     ],
+    "skill_defaults": [
+      {
+        "target": "writing",
+        "modifier": -5
+      }
+    ],
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
@@ -4001,12 +4971,6 @@
     ],
     "issues": [
       112
-    ],
-    "skill_defaults": [
-      {
-        "target": "writing",
-        "modifier": -5
-      }
     ]
   },
   {
@@ -4161,14 +5125,6 @@
         "modifier": -5
       }
     ],
-    "specialty_required": false,
-    "tl_required": false,
-    "blockers": [
-      "runtime-procedure"
-    ],
-    "issues": [
-      112
-    ],
     "skill_defaults": [
       {
         "target": "acting",
@@ -4182,6 +5138,14 @@
         "target": "politics",
         "modifier": -5
       }
+    ],
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [
+      "runtime-procedure"
+    ],
+    "issues": [
+      112
     ]
   },
   {
@@ -4233,13 +5197,13 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "runtime-procedure",
-      "technology-level-context",
       "conditional-or-skill-defaults",
       "prerequisite-procedure"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353
     ]
   },
   {
@@ -4360,6 +5324,9 @@
         "modifier": -5
       }
     ],
+    "prerequisites": [
+      "swimming"
+    ],
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
@@ -4369,20 +5336,31 @@
     ],
     "issues": [
       112
-    ],
-    "prerequisites": [
-      "swimming"
     ]
   },
   {
     "id": "seamanship",
     "name": "Seamanship",
     "page": 219,
-    "blockers": [
-      "family-specialty-expansion"
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
     ],
+    "specialty": {
+      "family": "crewman",
+      "name": "seamanship"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
     "issues": [
-      112
+      112,
+      346,
+      358
     ]
   },
   {
@@ -4405,6 +5383,25 @@
     ],
     "issues": [
       112
+    ]
+  },
+  {
+    "id": "set-trap",
+    "name": "Set Trap",
+    "page": 233,
+    "attribute": "IQ",
+    "difficulty": "average",
+    "technique": {
+      "parent": "traps",
+      "default_modifier": -2,
+      "maximum_modifier": 0
+    },
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [],
+    "issues": [
+      112,
+      346
     ]
   },
   {
@@ -4510,14 +5507,114 @@
     "specialty_required": true,
     "tl_required": true,
     "blockers": [
-      "runtime-procedure",
-      "specialty-expansion",
-      "technology-level-context",
       "conditional-or-skill-defaults",
       "prerequisite-procedure"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353,
+      358
+    ]
+  },
+  {
+    "id": "shiphandling-airship",
+    "name": "Shiphandling (Airship)",
+    "page": 220,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty": {
+      "family": "shiphandling",
+      "name": "airship"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "shiphandling-ship",
+    "name": "Shiphandling (Ship)",
+    "page": 220,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty": {
+      "family": "shiphandling",
+      "name": "ship"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "shiphandling-starship",
+    "name": "Shiphandling (Starship)",
+    "page": 220,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty": {
+      "family": "shiphandling",
+      "name": "starship"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "shiphandling-submarine",
+    "name": "Shiphandling (Submarine)",
+    "page": 220,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty": {
+      "family": "shiphandling",
+      "name": "submarine"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
     ]
   },
   {
@@ -4746,11 +5843,25 @@
     "id": "spacer",
     "name": "Spacer",
     "page": 222,
-    "blockers": [
-      "family-specialty-expansion"
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
     ],
+    "specialty": {
+      "family": "crewman",
+      "name": "spacer"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
     "issues": [
-      112
+      112,
+      346,
+      358
     ]
   },
   {
@@ -4947,24 +6058,111 @@
     ],
     "specialty_required": true,
     "tl_required": true,
-    "blockers": [
-      "runtime-procedure",
-      "specialty-expansion",
-      "technology-level-context"
-    ],
+    "blockers": [],
     "issues": [
-      112
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "submarine-free-flooding",
+    "name": "Submarine (Free-Flooding Sub)",
+    "page": 223,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty": {
+      "family": "submarine",
+      "name": "free-flooding"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "submarine-large",
+    "name": "Submarine (Large Sub)",
+    "page": 223,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty": {
+      "family": "submarine",
+      "name": "large"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
+    ]
+  },
+  {
+    "id": "submarine-mini",
+    "name": "Submarine (Mini-Sub)",
+    "page": 223,
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -6
+      }
+    ],
+    "specialty": {
+      "family": "submarine",
+      "name": "mini"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
+    "issues": [
+      112,
+      346,
+      358
     ]
   },
   {
     "id": "submariner",
     "name": "Submariner",
     "page": 223,
-    "blockers": [
-      "family-specialty-expansion"
+    "attribute": "IQ",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "IQ",
+        "modifier": -4
+      }
     ],
+    "specialty": {
+      "family": "crewman",
+      "name": "submariner"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
     "issues": [
-      112
+      112,
+      346,
+      358
     ]
   },
   {
@@ -4990,16 +6188,6 @@
     "attribute": "IQ",
     "difficulty": "very-hard",
     "attribute_defaults": [],
-    "specialty_required": false,
-    "tl_required": true,
-    "blockers": [
-      "runtime-procedure",
-      "technology-level-context",
-      "prerequisite-procedure"
-    ],
-    "issues": [
-      112
-    ],
     "skill_defaults": [
       {
         "target": "first-aid",
@@ -5017,6 +6205,16 @@
         "target": "veterinary",
         "modifier": -5
       }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "blockers": [
+      "runtime-procedure",
+      "technology-level-context",
+      "prerequisite-procedure"
+    ],
+    "issues": [
+      112
     ]
   },
   {
@@ -5045,13 +6243,13 @@
   {
     "id": "survival-woodlands",
     "name": "Survival (Woodlands)",
+    "page": 223,
     "blockers": [
       "runtime-procedure"
     ],
     "issues": [
       112
-    ],
-    "page": 223
+    ]
   },
   {
     "id": "swimming",
@@ -5262,12 +6460,12 @@
     "specialty_required": false,
     "tl_required": true,
     "blockers": [
-      "runtime-procedure",
-      "technology-level-context",
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      346,
+      353
     ]
   },
   {
@@ -5365,11 +6563,24 @@
     "id": "vacc-suit",
     "name": "Vacc Suit",
     "page": 228,
-    "blockers": [
-      "family-specialty-expansion"
+    "attribute": "DX",
+    "difficulty": "average",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -5
+      }
     ],
+    "specialty": {
+      "family": "environment-suit",
+      "name": "vacc-suit"
+    },
+    "specialty_required": true,
+    "tl_required": true,
+    "blockers": [],
     "issues": [
-      112
+      112,
+      346
     ]
   },
   {
@@ -5432,6 +6643,25 @@
     "issues": [
       103,
       112
+    ]
+  },
+  {
+    "id": "work-by-touch",
+    "name": "Work by Touch",
+    "page": 233,
+    "attribute": "IQ",
+    "difficulty": "hard",
+    "technique": {
+      "parent": "traps",
+      "default_modifier": -5,
+      "maximum_modifier": 0
+    },
+    "specialty_required": false,
+    "tl_required": false,
+    "blockers": [],
+    "issues": [
+      112,
+      346
     ]
   },
   {
