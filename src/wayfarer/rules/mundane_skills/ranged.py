@@ -94,6 +94,9 @@ CROSSBOW: Final = WeaponClass(thrown=False, ammunition=True, rated_kind="crossbo
 THROWN: Final = WeaponClass(thrown=True, ammunition=False, hands=(1,))
 # B222: a throw made with a separate held launcher, never a bare thrown spear.
 LAUNCHED: Final = WeaponClass(thrown=True, ammunition=False, hands=(1,), launched=True)
+# B201: an innate attack comes from the creature. There is no item to reserve,
+# no missile to reload, and no grip that limits it.
+INNATE: Final = WeaponClass(thrown=False, ammunition=False, tight_beam=True)
 # TL-indexed personal weapons (#355). Rapid fire and recoil are the mode's own
 # pinned facts, so these ceilings are the engine's supported bounds, not a
 # table value. A beam is never a conventional firearm and a gun is never a beam.
@@ -733,6 +736,8 @@ _ROWS: Final = (
         transferred={CONDITIONAL_DEFAULTS: (362,)},
         unsupported=STREAM_RESIDUALS,
     ),
+    # B201: the attack comes from the creature, so each specialty is a delivery
+    # rather than a weapon class (#361).
     RangedProcedure(
         "skill:innate-attack",
         "Innate Attack",
@@ -740,7 +745,58 @@ _ROWS: Final = (
         A.DX,
         D.EASY,
         (SkillDefault(A.DX, -4),),
-        transferred={RUNTIME_PROCEDURE: (361,), SPECIALTY_EXPANSION: (361,)},
+        specialties=tuple(
+            f"skill:innate-attack-{key}" for key in ("beam", "breath", "gaze", "projectile")
+        ),
+        resolved=(RUNTIME_PROCEDURE, SPECIALTY_EXPANSION),
+    ),
+    RangedProcedure(
+        "skill:innate-attack-beam",
+        "Innate Attack (Beam)",
+        201,
+        A.DX,
+        D.EASY,
+        (SkillDefault(A.DX, -4),),
+        INNATE,
+        Specialty("innate-attack", "beam"),
+        resolved=(RUNTIME_PROCEDURE,),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
+    ),
+    RangedProcedure(
+        "skill:innate-attack-breath",
+        "Innate Attack (Breath)",
+        201,
+        A.DX,
+        D.EASY,
+        (SkillDefault(A.DX, -4),),
+        INNATE,
+        Specialty("innate-attack", "breath"),
+        resolved=(RUNTIME_PROCEDURE,),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
+    ),
+    RangedProcedure(
+        "skill:innate-attack-gaze",
+        "Innate Attack (Gaze)",
+        201,
+        A.DX,
+        D.EASY,
+        (SkillDefault(A.DX, -4),),
+        INNATE,
+        Specialty("innate-attack", "gaze"),
+        resolved=(RUNTIME_PROCEDURE,),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
+    ),
+    RangedProcedure(
+        "skill:innate-attack-projectile",
+        "Innate Attack (Projectile)",
+        201,
+        A.DX,
+        D.EASY,
+        (SkillDefault(A.DX, -4),),
+        INNATE,
+        Specialty("innate-attack", "projectile"),
+        resolved=(RUNTIME_PROCEDURE,),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
 )
 # Every listed ranged combat row, plus the concrete specialties this issue expands.

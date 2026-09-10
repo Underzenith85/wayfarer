@@ -215,12 +215,17 @@ class ActionEngine:
             validate_definitions(reviewer.compiler.statistics_profile, definitions)
             if reviewer.compiler.statistics_profile != rules.spells.profile_id:
                 raise ValidationError("Spell rules require the exact compiled profile")
+            from wayfarer.rules.mundane_skills.ranged import PROCEDURES as RANGED_PROCEDURES
             from wayfarer.rules.spell_catalog import projectile_definition
 
-            if (
-                any(c.spell_id == "fireball" for c in rules.spells.channels)
-                and definitions.get("skill:innate-attack-projectile") != projectile_definition()
-            ):
+            # #361 reconciles the adapter's projectile skill with the mundane
+            # inventory's Projectile specialty. Both are pinned definitions of
+            # the same B201 row, so either satisfies the channel; nothing else
+            # does, and no existing pin changes.
+            projectile = RANGED_PROCEDURES["skill:innate-attack-projectile"]
+            if any(c.spell_id == "fireball" for c in rules.spells.channels) and definitions.get(
+                "skill:innate-attack-projectile"
+            ) not in (projectile_definition(), projectile.definition()):
                 raise ValidationError("Fireball requires the pinned projectile skill")
             if any("spell:" + c.spell_id not in definitions for c in rules.spells.channels):
                 raise ValidationError("Spell channels require pinned training definitions")

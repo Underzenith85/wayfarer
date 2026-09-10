@@ -319,7 +319,6 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         346,
         356,
         358,
-        361,
         362,
         366,
         367,
@@ -353,7 +352,6 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         346,
         356,
         358,
-        361,
         362,
         366,
         367,
@@ -371,8 +369,8 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         # 45 ranged (#344, #354, #355, #357, #359), 16 social (#345) and 83
         # technology (#346) rows dispatch a real procedure.
         "contextual": 28,
-        "implemented": 228,
-        "unsupported": 177,
+        "implemented": 233,
+        "unsupported": 176,
     }
     # A bound row can still leave part of its entry to another issue; that gap is
     # published rather than folded into the blocker list.
@@ -441,10 +439,10 @@ def test_independent_source_index_accounts_for_every_listing() -> None:
     assert "third printing" in index.observed_source
     assert len([e for e in index.entries if e.kind == "skill"]) == 275
     assert len([e for e in index.entries if e.kind == "technique"]) == 27
-    # #344 expands Thrown Weapon, #355 the two TL-indexed weapon families, #357
-    # the crew-served ones, #359 the liquid projectors, #346 the vehicle and
-    # crew families and #356 the discipline-keyed ones.
-    assert len([e for e in index.entries if e.kind == "expansion"]) == 158
+    # #344 and its children expand Thrown Weapon, the two TL-indexed weapon
+    # families, the crew-served ones, the liquid projectors and Innate Attack;
+    # #346 the vehicle and crew families and #356 the discipline-keyed ones.
+    assert len([e for e in index.entries if e.kind == "expansion"]) == 162
     assert indexed_expansions(index, "thrown-weapon") == 7
     indexed = {e.id: e for e in index.entries}
     assert indexed["brain-hacking"].page == 182

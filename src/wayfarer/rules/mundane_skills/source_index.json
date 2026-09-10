@@ -2071,6 +2071,46 @@
       ]
     },
     {
+      "id": "innate-attack-beam",
+      "name": "Innate Attack (Beam)",
+      "page": 201,
+      "kind": "expansion",
+      "targets": [
+        "innate-attack-beam"
+      ],
+      "parent": "innate-attack"
+    },
+    {
+      "id": "innate-attack-breath",
+      "name": "Innate Attack (Breath)",
+      "page": 201,
+      "kind": "expansion",
+      "targets": [
+        "innate-attack-breath"
+      ],
+      "parent": "innate-attack"
+    },
+    {
+      "id": "innate-attack-gaze",
+      "name": "Innate Attack (Gaze)",
+      "page": 201,
+      "kind": "expansion",
+      "targets": [
+        "innate-attack-gaze"
+      ],
+      "parent": "innate-attack"
+    },
+    {
+      "id": "innate-attack-projectile",
+      "name": "Innate Attack (Projectile)",
+      "page": 201,
+      "kind": "expansion",
+      "targets": [
+        "innate-attack-projectile"
+      ],
+      "parent": "innate-attack"
+    },
+    {
       "id": "intelligence-analysis",
       "name": "Intelligence Analysis",
       "page": 201,

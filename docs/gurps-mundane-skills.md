@@ -116,7 +116,6 @@ retained where previously recorded, but they do not replace the active owners.
 | #342 | Medicine and mental procedures. |
 | #343 | Physical, outdoor and animal procedures. |
 | #344 | Ranged combat skill procedures; see below for what it bound and what it transferred. |
-| #361 | Innate Attack specialties beyond Projectile. |
 | #362 | Cross-specialty and conditional defaults for ranged combat skills. |
 | #345 | Social skill procedures; see below for what it bound and what it transferred. |
 | #346 | Technology, science and vehicle procedures; see below for what it bound and what it transferred. |
@@ -164,7 +163,8 @@ equipment catalog is built and again when a mode is selected in play.
 | `skill:artillery-*`, `skill:gunner-*` | B178, B198 | Implemented. Fired from a served mount rather than a grip. Cross-specialty defaults remain with #362. |
 | `skill:liquid-projector` | B205, DX/E, DX-4 | Family expanded into four concrete specialties (Flamethrower, Sprayer, Squirt Gun, Water Cannon); never dispatched itself. |
 | `skill:liquid-projector-*` | B205, DX/E, DX-4 | Implemented. Holds a stream second by second. Lingering fire and simultaneous area coverage are published scope owned by #398. |
-| `skill:innate-attack` | B201, DX/E, DX-4 | Transferred to #361. The Projectile specialty is already dispatched by the opt-in spell adapter under its own pin; reconciling it here is an explicit migration. |
+| `skill:innate-attack` | B201, DX/E, DX-4 | Family expanded into four concrete specialties (Beam, Breath, Gaze, Projectile); never dispatched itself. |
+| `skill:innate-attack-*` | B201, DX/E, DX-4 | Implemented. The attack comes from the creature: no missile, no reload, no grip. Cross-specialty defaults remain with #362. |
 
 ### Bindings (#354)
 
@@ -245,6 +245,20 @@ Firing requires the launcher in hand: without it the mode does not exist, and a
 bare thrown spear is Thrown Weapon (Spear) rather than this row at a penalty.
 The projectile is expended exactly as any other thrown weapon and the launcher
 stays ready for the next throw. Evidence is in `tests/test_launcher_throws.py`.
+
+### Innate attacks (#361)
+
+An innate attack (B201) comes from the creature rather than from an item, so
+its modes carry no ammunition reference, are never thrown, and are not limited
+by a grip. Each of the four indexed specialties is a distinct row with no
+cross-specialty inference.
+
+The Projectile specialty was already dispatched by the opt-in spell adapter
+under its own pin. Both are now pinned definitions of the same B201 row with
+the same recorded mechanics; the reconciled row adds the specialty record and
+the ranged dispatch hook the adapter never carried. The fireball channel gate
+accepts either, so no existing pin changes and no saved campaign is broken.
+Evidence is in `tests/test_innate_attack_specialties.py`.
 
 A binding may only resolve or keep the blockers the inventory recorded, and its
 numbers must be the recorded ones: `inventory()` raises on either drift, and on
