@@ -1,0 +1,255 @@
+{
+  "baseline_id": "gurps-4e-2004-first-printing+errata-2007-01-26",
+  "source_id": "sjg:basic-set-characters-4e-2004",
+  "profile": "gurps-basic-set-4e-2004",
+  "owner": 356,
+  "references": [
+    "B168 technology level",
+    "B169 familiarity and specialties",
+    "B180 Bioengineering",
+    "B186 Current Affairs",
+    "B189 Electronics Operation",
+    "B190 Electronics Repair and Engineer",
+    "B199 Hazardous Materials",
+    "B207 Mechanic",
+    "B212 Paleontology",
+    "B301-B304 skill index"
+  ],
+  "provenance": "Hand-entered expected results under the provisional implementation policy. Every effective target, margin, outcome and unit count was worked out from the source rules and never generated from engine output. Frozen first-printing artifact verification remains #382.",
+  "cases": [
+    {
+      "id": "bioengineering-cloning-designs-in-steps",
+      "skill_id": "skill:bioengineering-cloning",
+      "reference": "B180",
+      "note": "A design task at the operator's own TL: no modifier applies, and the margin buys one further step apiece.",
+      "input": {
+        "level": 13,
+        "operator_tl": 9,
+        "task_tl": 9,
+        "familiar": true,
+        "handling": 0,
+        "dice": [3, 4, 4]
+      },
+      "expected": {
+        "dispatch": "noncombat.approach",
+        "effect": "task-finding",
+        "effective_target": 13,
+        "total": 11,
+        "margin": 2,
+        "outcome": "success",
+        "units": 3,
+        "unit": "design-step",
+        "hazard": false,
+        "activation_blockers": []
+      }
+    },
+    {
+      "id": "current-affairs-headline-news-caps-at-three-items",
+      "skill_id": "skill:current-affairs-headline-news",
+      "reference": "B186",
+      "note": "A recall roll answers what the character already knows; a margin of four would buy five items, but the topic holds three.",
+      "input": {
+        "level": 14,
+        "operator_tl": 9,
+        "task_tl": 9,
+        "familiar": true,
+        "handling": 0,
+        "dice": [3, 3, 4]
+      },
+      "expected": {
+        "dispatch": "noncombat.approach",
+        "effect": "task-finding",
+        "effective_target": 14,
+        "total": 10,
+        "margin": 4,
+        "outcome": "success",
+        "units": 3,
+        "unit": "news-item",
+        "hazard": false,
+        "activation_blockers": []
+      }
+    },
+    {
+      "id": "electronics-operation-sensors-two-tls-behind",
+      "skill_id": "skill:electronics-operation-sensors",
+      "reference": "B168, B189",
+      "note": "Two levels of TL difference is -2 either way; the exact success still yields one reading.",
+      "input": {
+        "level": 12,
+        "operator_tl": 9,
+        "task_tl": 7,
+        "familiar": true,
+        "handling": 0,
+        "dice": [3, 3, 4]
+      },
+      "expected": {
+        "dispatch": "noncombat.approach",
+        "effect": "task-finding",
+        "effective_target": 10,
+        "total": 10,
+        "margin": 0,
+        "outcome": "success",
+        "units": 1,
+        "unit": "reading",
+        "hazard": false,
+        "activation_blockers": []
+      }
+    },
+    {
+      "id": "electronics-repair-computers-restores-with-the-margin",
+      "skill_id": "skill:electronics-repair-computers",
+      "reference": "B190",
+      "note": "Repair is retried until it succeeds, so a failure is not hazardous; the margin adds one point of restored HP apiece.",
+      "input": {
+        "level": 15,
+        "operator_tl": 9,
+        "task_tl": 9,
+        "familiar": true,
+        "handling": 0,
+        "dice": [4, 4, 4]
+      },
+      "expected": {
+        "dispatch": "object.repair",
+        "effect": "repair-progress",
+        "effective_target": 15,
+        "total": 12,
+        "margin": 3,
+        "outcome": "success",
+        "units": 4,
+        "unit": "restored-hp",
+        "hazard": false,
+        "activation_blockers": []
+      }
+    },
+    {
+      "id": "engineer-combat-design-fails-without-hazard",
+      "skill_id": "skill:engineer-combat",
+      "reference": "B190",
+      "note": "A flawed design is not known to be flawed yet, so the failure produces nothing and injures nobody.",
+      "input": {
+        "level": 12,
+        "operator_tl": 9,
+        "task_tl": 9,
+        "familiar": true,
+        "handling": 0,
+        "dice": [5, 5, 5]
+      },
+      "expected": {
+        "dispatch": "noncombat.approach",
+        "effect": "task-finding",
+        "effective_target": 12,
+        "total": 15,
+        "margin": -3,
+        "outcome": "failure",
+        "units": 0,
+        "unit": "design-step",
+        "hazard": false,
+        "activation_blockers": []
+      }
+    },
+    {
+      "id": "hazardous-materials-chemical-breach-is-hazardous",
+      "skill_id": "skill:hazardous-materials-chemical",
+      "reference": "B199",
+      "note": "Eighteen is a critical failure at any level, and losing containment is a hazard rather than a wasted attempt.",
+      "input": {
+        "level": 13,
+        "operator_tl": 9,
+        "task_tl": 9,
+        "familiar": true,
+        "handling": 0,
+        "dice": [6, 6, 6]
+      },
+      "expected": {
+        "dispatch": "hazard.exposure",
+        "effect": "sealed-suit-integrity",
+        "effective_target": 13,
+        "total": 18,
+        "margin": -5,
+        "outcome": "critical-failure",
+        "units": 0,
+        "unit": "containment-held",
+        "hazard": true,
+        "activation_blockers": []
+      }
+    },
+    {
+      "id": "mechanic-automobile-critical-success",
+      "skill_id": "skill:mechanic-automobile",
+      "reference": "B207",
+      "note": "A total of four is a critical success at any level; the margin of ten still decides how much was restored.",
+      "input": {
+        "level": 14,
+        "operator_tl": 8,
+        "task_tl": 8,
+        "familiar": true,
+        "handling": 0,
+        "dice": [1, 1, 2]
+      },
+      "expected": {
+        "dispatch": "object.repair",
+        "effect": "repair-progress",
+        "effective_target": 14,
+        "total": 4,
+        "margin": 10,
+        "outcome": "critical-success",
+        "units": 11,
+        "unit": "restored-hp",
+        "hazard": false,
+        "activation_blockers": []
+      }
+    },
+    {
+      "id": "mechanic-large-sub-on-an-unfamiliar-boat",
+      "skill_id": "skill:mechanic-large-sub",
+      "reference": "B169, B207",
+      "note": "An unfamiliar machine of a kind the character does know is a flat -2, never a refusal; repairing one needs no vehicle movement capability.",
+      "input": {
+        "level": 14,
+        "operator_tl": 8,
+        "task_tl": 8,
+        "familiar": false,
+        "handling": 0,
+        "dice": [3, 4, 5]
+      },
+      "expected": {
+        "dispatch": "object.repair",
+        "effect": "repair-progress",
+        "effective_target": 12,
+        "total": 12,
+        "margin": 0,
+        "outcome": "success",
+        "units": 1,
+        "unit": "restored-hp",
+        "hazard": false,
+        "activation_blockers": []
+      }
+    },
+    {
+      "id": "paleontology-paleobotany-two-tls-ahead",
+      "skill_id": "skill:paleontology-paleobotany",
+      "reference": "B168, B212",
+      "note": "Working two TLs ahead costs the same -2 as working two behind, and the failure yields no finding at all.",
+      "input": {
+        "level": 11,
+        "operator_tl": 8,
+        "task_tl": 10,
+        "familiar": true,
+        "handling": 0,
+        "dice": [4, 4, 4]
+      },
+      "expected": {
+        "dispatch": "noncombat.approach",
+        "effect": "task-finding",
+        "effective_target": 9,
+        "total": 12,
+        "margin": -3,
+        "outcome": "failure",
+        "units": 0,
+        "unit": "finding",
+        "hazard": false,
+        "activation_blockers": []
+      }
+    }
+  ]
+}

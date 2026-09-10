@@ -332,6 +332,7 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         383,
         384,
         385,
+        390,
     )
     with pytest.raises(ValidationError, match="outside the selected profile"):
         coverage_blockers("gurps-lite-4e-2004")
@@ -367,14 +368,15 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         383,
         384,
         385,
+        390,
     ]
     assert report["runtime_owner_unassigned"] == 0
     assert report["implementation_counts"] == {
         # 40 ranged (#344, #354, #355, #357), 16 social (#345) and 83
         # technology (#346) rows dispatch a real procedure.
         "contextual": 28,
-        "implemented": 139,
-        "unsupported": 187,
+        "implemented": 222,
+        "unsupported": 179,
     }
     # A bound row can still leave part of its entry to another issue; that gap is
     # published rather than folded into the blocker list.
@@ -436,8 +438,10 @@ def test_independent_source_index_accounts_for_every_listing() -> None:
     assert "third printing" in index.observed_source
     assert len([e for e in index.entries if e.kind == "skill"]) == 275
     assert len([e for e in index.entries if e.kind == "technique"]) == 27
-    # #344 expands Thrown Weapon and #355 the two TL-indexed weapon families.
-    assert len([e for e in index.entries if e.kind == "expansion"]) == 79
+    # #344 expands Thrown Weapon, #355 the two TL-indexed weapon families, #357
+    # the crew-served ones, #346 the vehicle and crew families and #356 the
+    # discipline-keyed ones.
+    assert len([e for e in index.entries if e.kind == "expansion"]) == 154
     assert indexed_expansions(index, "thrown-weapon") == 7
     indexed = {e.id: e for e in index.entries}
     assert indexed["brain-hacking"].page == 182
