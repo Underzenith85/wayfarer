@@ -9,9 +9,26 @@ B360-361 (fright consequences), B420 (stun), and Characters B120-121
 Existing v1 scenario documents and their schemas are unchanged. Server-authored
 campaigns opt into `SocialActionRules` with a `NPCSocialRules(version=2)` policy.
 `NPCSocialPlan` accepts ordinary NPC actions or `NPCSocialAction` entries. The
-additional `social` record selects reaction, Diplomacy influence, fright, or
+additional `social` record selects reaction, influence, fright, or
 self-control, a subject, bounded fact references, and a situation modifier.
 This is trusted scenario configuration, not an LLM command or player roll target.
+
+Influence selects its procedure from the approved `skill_id`: Diplomacy,
+Fast-Talk, Intimidation, Savoir-Faire (including specialized IDs), Sex Appeal,
+or Streetwise. The campaign must pin an implemented skill definition and the
+initiator must have a compiled trained or legal default level. A built subject's
+Will comes from its approved build; `npc_will` supplies only an unbuilt NPC's Will.
+The authored `specious_intimidation` flag produces a Very Bad reaction on a loss
+or tie. It is invalid for any other procedure. Existing profile package pins are
+unchanged; broader skill catalog population remains #112.
+
+Trusted `SocialContext.influence_conditions` supports the B359 Indomitable,
+appropriate Empathy, Unfazeable, and Slave Mentality cases. The director's resolver
+must bind these from authoritative subject/initiator traits and circumstances.
+Automatic wins/losses skip contest dice; Diplomacy still compares its ordinary
+reaction. Their reasons and all roll traces stay private. Contradictory automatic
+outcomes fail before randomness. These conditions do not create trait catalog
+entries or certify unimplemented trait runtime bindings (#113).
 
 A trigger may also carry `NPCSocialStanding`: an authored Appearance level,
 bounded Reputations with the classes that recognize them, and the audience the
@@ -34,6 +51,11 @@ and approved HT/Will. Self-control reads the approved purchase's options and
 catalog metadata; unknown/unapproved traits reject before dice. Character
 compilation still requires the exact runtime-hook capability, and this change
 does not enable an uncertified trait catalog or profile.
+
+Self-control now applies the trigger's situation modifier to the approved
+self-control rating, independently of Will (Characters B121). The private trace
+retains the rating, modifier and triggering occurrence. Replaying an occurrence
+does not draw again or change the approved character.
 
 Reaction and influence dispatch adds the modifiers the initiator's approved
 build implies, from the pinned definition's implemented runtime binding
@@ -62,6 +84,16 @@ days. The director can change care prospectively using `FrightService` and a
 `FrightDecision(kind="care")`. Past-due care cannot be rewritten. Upon recovery,
 the recorded aftermath lasts as long as the entire catatonic episode.
 
+Recovered coma/catatonia applies its recorded penalty to influence skill/Will,
+new Fright Checks, immediate fright HT checks, and fright recovery/panic Will
+checks. Each episode expires at its own deadline. This modifies checks, not
+purchased statistics, HT-based durations, reaction totals, or self-control
+ratings. Social NPC actions can run with this penalty; unrelated action adapters
+retain their conservative aftermath guard until #299 implements their checks.
+Permanent losses still require adjudication before new social checks; recovery
+can continue. When retching ends, B428's 1 FP loss is applied once through the
+fatigue service, within the same command revision and receipt as recovery.
+
 For row-33 panic, `FrightDecision(kind="panic-response")` records a response
 already adjudicated with the player, then checks recovery. A failed Will check
 draws the next private severity. This does not execute a movement, attack,
@@ -70,8 +102,8 @@ membership, pinned director authority, CAS and stable command receipts.
 
 ## Remaining limits
 
-Permanent attribute losses and aftermath penalties remain explicit blockers, not
-implemented arithmetic. Trait/quirk selection still needs approval-aware build
+Permanent attribute losses remain explicit blockers, not implemented arithmetic.
+Aftermath penalties outside the social/fright paths remain blocked. Trait/quirk selection still needs approval-aware build
 adjudication. Condition-specific retching and panic movement need fuller combat
 integration. These limits remain visible under #299; neither #137 nor social
 certification is marked complete.
@@ -79,3 +111,6 @@ certification is marked complete.
 `tests/test_live_social.py` exercises real campaign waits, NPC dispatch, automatic
 failed recovery, SQLite restart replay, hidden traces, care decisions, coma
 rescheduling, catatonia injury/duration, panic responses, and v2 contract drift.
+`tests/test_social_completion.py` adds source-referenced influence exceptions,
+all six procedures, compiled authored skill dispatch, modified self-control,
+aftermath expiration and exclusions, and retry-safe retching recovery.

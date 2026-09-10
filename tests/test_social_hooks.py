@@ -172,6 +172,7 @@ def test_golden_influence_cases(case: Case) -> None:
         trace.modifiers,
         rng=rng,
     )
+    assert influence.contest is not None
     assert influence.contest.first.effective_target == number(case, "effective_target")
     assert influence.contest.winner == ("pc" if text(case, "winner") == "actor" else "npc")
     assert influence.outcome == text(case, "outcome")

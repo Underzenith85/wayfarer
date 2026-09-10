@@ -10,7 +10,7 @@ from wayfarer.models import Campaign, Event
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.gurps_checks import success_roll
-from wayfarer.simulation.fright import effects, save
+from wayfarer.simulation.fright import aftermath_modifiers, effects, save
 from wayfarer.simulation.resources import Command
 
 
@@ -74,9 +74,13 @@ class FrightService:
                 ):
                     raise ValidationError("Panic response requires an explicit row-33 adjudication")
                 # Record a completed, externally adjudicated response, not a forced player action.
-                passed = success_roll(
-                    "gurps-basic-set-4e-2004", item.recovery_target, rng=play.rng
-                ).outcome.succeeded
+                check = success_roll(
+                    "gurps-basic-set-4e-2004",
+                    item.recovery_target,
+                    aftermath_modifiers(resources, command.actor_id),
+                    rng=play.rng,
+                )
+                passed = check.outcome.succeeded
                 effect = item.effect
                 if not passed:
                     effect = effect.model_copy(
@@ -89,6 +93,7 @@ class FrightService:
                         "active": not passed,
                         "effect": effect,
                         "panic_responses": item.panic_responses + (command.response,),
+                        "recovery_checks": item.recovery_checks + (check,),
                     }
                 )
             resources = save(resources, item, command.id).model_copy(
