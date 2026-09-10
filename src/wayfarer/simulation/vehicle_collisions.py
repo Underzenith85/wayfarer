@@ -113,7 +113,7 @@ def impact(
 
     vehicles = (t,) if target is None else (t, target)
     if any(v.locomotion == "ground-mount" for v in vehicles):
-        raise ValidationError("Mounted collision requires #120 rider separation")
+        raise ValidationError("Mounted collision requires #396 rider separation")
     if any(v.mechanics_version != 2 for v in vehicles):
         raise ValidationError(
             "Collision exchange requires explicit transport version 2 on both bodies"

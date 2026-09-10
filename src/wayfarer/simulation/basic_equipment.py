@@ -175,7 +175,9 @@ class VehicleEntry(Record):
     required_capabilities: tuple[str, ...] = ("gurps.vehicles.movement", "gurps.vehicles.combat")
 
     def require_operation(self) -> None:
-        raise ValidationError("Vehicle listing does not implement operation; see #120")
+        # #120 closed without the operation integration; #358 owns the two
+        # capability rows a listed vehicle would need before it can be driven.
+        raise ValidationError("Vehicle listing does not implement operation; see #358")
 
 
 VEHICLE_INDEX = (

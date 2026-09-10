@@ -197,6 +197,15 @@ ANALYSIS: Final = _study()
 
 
 @dataclass(frozen=True, slots=True)
+class UnsupportedScope:
+    """A capability a bound row needs that the registry has not verified yet."""
+
+    id: str
+    detail: str
+    owner_issue: int
+
+
+@dataclass(frozen=True, slots=True)
 class TechnologyProcedure:
     """One accounted-for technology row and the dispatch it does or does not have."""
 
@@ -1168,6 +1177,36 @@ PROCEDURES: Final = MappingProxyType({entry.id: entry for entry in _ROWS})
 def definitions() -> tuple[RuleDefinition, ...]:
     """Dispatchable technology skills for a new package pin; unbound rows are absent."""
     return tuple(entry.definition() for entry in _ROWS if entry.dispatchable)
+
+
+# What each activation capability would have to cover before a bound row may be
+# offered in play. The registry decides whether it is covered; this only says why.
+ACTIVATION_DETAIL: Final = MappingProxyType(
+    {
+        "gurps.vehicles.movement": (
+            "control loss, collision, occupant injury and restart for the "
+            "locomotion mode this row operates"
+        ),
+    }
+)
+
+
+def unsupported_scope() -> tuple[tuple[str, UnsupportedScope], ...]:
+    """Publish every capability a bound row needs that is not yet verified.
+
+    The procedure executes and is tested; what is missing is the capability the
+    scenario, character and LLM validators consult before offering the skill.
+    Publishing it keeps that gap visible instead of leaving live play to discover
+    it, and an unnamed capability is a coverage failure rather than an omission.
+    """
+    scope = []
+    for entry in _ROWS:
+        for identifier in entry.activation_blockers:
+            detail = ACTIVATION_DETAIL.get(identifier)
+            if detail is None:
+                raise ValidationError(f"Activation blocker names no scope: {identifier}")
+            scope.append((entry.id, UnsupportedScope(identifier, detail, CAPABILITY_OWNER)))
+    return tuple(scope)
 
 
 # --- Execution ----------------------------------------------------------------

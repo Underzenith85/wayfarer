@@ -28,6 +28,7 @@ from wayfarer.rules.mundane_skills.schema import Exclusion, Exclusions, Inventor
 from wayfarer.rules.mundane_skills.social import PROCEDURES as SOCIAL_PROCEDURES
 from wayfarer.rules.mundane_skills.social import unsupported_scope as social_scope
 from wayfarer.rules.mundane_skills.technology import PROCEDURES as TECHNOLOGY_PROCEDURES
+from wayfarer.rules.mundane_skills.technology import unsupported_scope as technology_scope
 from wayfarer.rules.skill_types import ControllingAttribute as A
 from wayfarer.rules.skill_types import (
     PrerequisiteGroup,
@@ -635,6 +636,12 @@ def audit_report() -> dict[str, object]:
         # not a blocker, and publishing it keeps the gap visible to #122.
         "transferred_procedure_scope": [
             {"skill": identifier} | asdict(scope) for identifier, scope in social_scope()
+        ],
+        # A bound row can also execute while the capability live play consults
+        # is still unverified. That is not a blocker on the row, and publishing
+        # it keeps #358's gap visible to the scenario and character validators.
+        "unverified_activation_scope": [
+            {"skill": identifier} | asdict(scope) for identifier, scope in technology_scope()
         ],
         "structured": sum(e.definition is not None for e in entries),
         "required_specialties": sum(e.specialty_required for e in entries),
