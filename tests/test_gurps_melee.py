@@ -34,6 +34,7 @@ from wayfarer.rules.catalog import (
     RulesCatalog,
 )
 from wayfarer.rules.checks import RecordedDice
+from wayfarer.rules.explosion_types import ExplosionSpec
 from wayfarer.rules.location_types import HumanBody
 from wayfarer.rules.object_types import ObjectCondition, ObjectProfile
 from wayfarer.rules.recovery_types import RecoveryTask
@@ -90,6 +91,8 @@ async def setup(
     extra_purchases: tuple[Purchase, ...] = (),
     campaign_technology_level: int | None = None,
     extra_equipment: tuple[EquipmentProfile, ...] = (),
+    warhead: ExplosionSpec | None = None,
+    power_cell_capacity: int | None = None,
     extra_items: tuple[Item, ...] = (),
 ) -> tuple[str, PlayService]:
     equipment = EquipmentCatalog(
@@ -212,6 +215,7 @@ async def setup(
             e.model_copy(
                 update={
                     "modes": e.modes + (ranged_mode,),
+                    "warhead": warhead if ranged_mode.thrown else None,
                     "technology_level": ranged_mode.firearm.technology_level
                     if ranged_mode.firearm
                     else e.technology_level,
@@ -230,6 +234,8 @@ async def setup(
                     price=1,
                     technology_level=1,
                     ammunition=True,
+                    warhead=warhead,
+                    power_cell_capacity=power_cell_capacity,
                 ),
             )
         equipment = equipment.model_copy(update={"entries": entries})
@@ -571,7 +577,8 @@ async def setup(
                         id="ammo-a",
                         definition_id=ranged_mode.ammunition_id,
                         owner_id="a",
-                        quantity=10,
+                        quantity=1 if power_cell_capacity else 10,
+                        charges=power_cell_capacity,
                     ),
                 )
             }

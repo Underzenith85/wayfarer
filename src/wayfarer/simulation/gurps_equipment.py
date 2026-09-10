@@ -20,6 +20,7 @@ from wayfarer.errors import ValidationError
 from wayfarer.rules.catalog import DefinitionKind, RulesPackage
 from wayfarer.rules.conformance import require_capabilities
 from wayfarer.rules.entangle_types import EntangleSpec
+from wayfarer.rules.explosion_types import ExplosionSpec
 from wayfarer.rules.firearm_types import FirearmSpec
 from wayfarer.rules.launcher_types import LauncherSpec
 from wayfarer.rules.location_types import HumanLocation
@@ -143,15 +144,33 @@ class RangedMode(Record):
                 raise ValueError("Bow readiness requires matching rated weapon ST")
             if self.readiness.kind == "firearm" and self.firearm is None:
                 raise ValueError("Firearm readiness requires pinned firearm facts")
-        if self.firearm is not None and (
-            self.thrown
-            or self.blockable
-            or self.rated_strength is not None
-            or self.damage.basis != "fixed"
-            or self.damage.tight_beam
-            or self.damage.damage_type not in ("pi-", "pi", "pi+", "pi++")
+        if (
+            self.firearm is not None
+            and self.firearm.action not in ("beam", "grenade", "single-use")
+            and (
+                self.thrown
+                or self.blockable
+                or self.rated_strength is not None
+                or self.damage.basis != "fixed"
+                or self.damage.tight_beam
+                or self.damage.damage_type not in ("pi-", "pi", "pi+", "pi++")
+            )
         ):
             raise ValueError("Malfunctions require an explicit conventional firearm mode")
+        if self.firearm is not None:
+            action = self.firearm.action
+            if action == "beam" and (
+                self.thrown or self.damage.basis != "fixed" or self.damage.damage_type != "burn"
+            ):
+                raise ValueError("Beam requires a fixed burning projectile mode")
+            if action == "grenade" and (not self.thrown or self.catchable):
+                raise ValueError("Grenades require an uncaught single thrown instance")
+            if action == "single-use" and (
+                self.thrown or self.shots != 1 or self.rate_of_fire != 1
+            ):
+                raise ValueError("Single-use launcher requires one loaded shot")
+            if self.readiness is not None and action in ("beam", "grenade", "single-use"):
+                raise ValueError("Exotic weapons do not use conventional Fast-Draw readiness")
         if self.half_damage_range is not None and self.half_damage_range > self.maximum_range:
             raise ValueError("Half-damage range exceeds maximum range")
         if self.thrown and self.reload_protocol != "magazine":
@@ -236,7 +255,9 @@ def require_skill_procedure(profile_id: str, mode: MeleeMode | RangedMode) -> No
         tight_beam=mode.damage.tight_beam,
         rated_kind=rated.kind if rated is not None else None,
         entangling=isinstance(mode, RangedMode) and mode.entangle is not None,
-        conventional_firearm=isinstance(mode, RangedMode) and mode.firearm is not None,
+        conventional_firearm=isinstance(mode, RangedMode)
+        and mode.firearm is not None
+        and mode.firearm.action not in ("beam", "grenade"),
         mounted=isinstance(mode, RangedMode) and mode.mount is not None,
         spraying=isinstance(mode, RangedMode) and mode.sprayer is not None,
         launched=isinstance(mode, RangedMode) and mode.launcher is not None,
@@ -280,12 +301,24 @@ class EquipmentProfile(Record):
     parry_quality: Literal["cheap", "good", "fine", "very-fine"] | None = Field(
         default=None, exclude_if=lambda v: v is None
     )
+    warhead: ExplosionSpec | None = Field(default=None, exclude_if=lambda v: v is None)
+    power_cell_capacity: Positive | None = Field(default=None, exclude_if=lambda v: v is None)
     container_capacity_millipounds: Nonnegative | None = Field(
         default=None, exclude_if=lambda v: v is None
     )
 
     @model_validator(mode="after")
     def valid_modes(self) -> Self:
+        if self.power_cell_capacity is not None and (not self.ammunition or self.warhead):
+            raise ValueError("Power cell requires nonexplosive ammunition metadata")
+        if self.warhead is not None and not (
+            self.ammunition
+            or any(
+                isinstance(m, RangedMode) and m.firearm and m.firearm.action == "grenade"
+                for m in self.modes
+            )
+        ):
+            raise ValueError("Warheads require ammunition or grenade construction")
         if self.parry_quality is not None and (self.durability is None or not self.modes):
             raise ValueError("Parry quality requires a durable weapon")
         if self.critical_breakage is not None and (self.durability is None or not self.modes):
@@ -307,7 +340,14 @@ class EquipmentProfile(Record):
             definition_id=self.definition_id,
             unit_weight=self.weight_millipounds,
             technology_level=self.technology_level,
-            stackable=not bool(self.modes or self.armor or self.shield or self.durability),
+            stackable=not bool(
+                self.modes
+                or self.armor
+                or self.shield
+                or self.durability
+                or self.power_cell_capacity
+            ),
+            power_cell_capacity=self.power_cell_capacity,
             durability=self.durability,
             container_capacity=self.container_capacity_millipounds,
             slot=self.slot,
@@ -325,6 +365,10 @@ class EquipmentCatalog(Record):
         if len(entries) != len(self.entries):
             raise ValueError("Duplicate equipment definition")
         for entry in self.entries:
+            if (
+                entry.warhead is not None or entry.power_cell_capacity is not None
+            ) and self.profile_id != "gurps-basic-set-4e-2004":
+                raise ValueError("Exotic ammunition requires the exact Basic Set profile")
             if entry.durability and entry.durability.residual_definitions:
                 for replacement in entry.durability.residual_definitions:
                     if replacement is not None and (
@@ -343,6 +387,23 @@ class EquipmentCatalog(Record):
                 raise ValueError("Object durability requires the exact Basic Set profile")
             for mode in entry.modes:
                 require_skill_procedure(self.profile_id, mode)
+                if isinstance(mode, RangedMode):
+                    cell = entries.get(mode.ammunition_id or "")
+                    if (
+                        cell
+                        and cell.power_cell_capacity
+                        and (mode.firearm is None or mode.firearm.action != "beam")
+                    ):
+                        raise ValueError("Power cells require explicit beam construction")
+                if isinstance(mode, RangedMode) and mode.firearm:
+                    action = mode.firearm.action
+                    ammo = entries.get(mode.ammunition_id or "")
+                    if action == "grenade" and entry.warhead is None:
+                        raise ValueError("Grenade requires pinned explosive damage")
+                    if action == "beam" and (ammo is None or ammo.power_cell_capacity is None):
+                        raise ValueError("Beam requires a pinned power-cell capacity")
+                    if action != "beam" and ammo and ammo.power_cell_capacity:
+                        raise ValueError("Only beam modes may bind power cells")
                 if (
                     isinstance(mode, RangedMode)
                     and mode.catchable

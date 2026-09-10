@@ -14,6 +14,7 @@ from wayfarer.models import Campaign, Event
 from wayfarer.orchestration.injury import resolve_injury
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.checks import CheckTrace
+from wayfarer.rules.explosion_types import BlastResponse
 from wayfarer.rules.location_types import Hand, HitLocation
 from wayfarer.rules.object_types import GroundPosition
 from wayfarer.simulation.actions import PlayState
@@ -133,6 +134,17 @@ class ChooseDefense(CombatCommand):
     second_parry_mode_id: str | None = Field(default=None, exclude_if=lambda value: value is None)
 
 
+class ResolveWeaponExplosion(CombatCommand):
+    kind: Literal["resolve_weapon_explosion"] = "resolve_weapon_explosion"
+    encounter_id: Id
+    blast_id: Id
+    responses: tuple[BlastResponse, ...]
+    object_cover: dict[str, int]
+    object_sizes: dict[str, int] = Field(default_factory=dict)
+    center: GroundPosition | None = None
+    environment: Literal["air", "water", "vacuum"]
+
+
 class DeclareThrownLanding(CombatCommand):
     kind: Literal["declare_thrown_landing"] = "declare_thrown_landing"
     encounter_id: Id
@@ -201,6 +213,7 @@ TypedCombatCommand = Annotated[
     | RetrieveEquipment
     | ContinueCriticalMiss
     | DeclareThrownLanding
+    | ResolveWeaponExplosion
     | MigrateEncounterHex,
     # Migration is explicit and uses the same receipt and CAS as combat commands.
     Field(discriminator="kind"),
@@ -254,6 +267,7 @@ class CombatService:
                 MigrateEncounterHex,
                 ContinueCriticalMiss,
                 DeclareThrownLanding,
+                ResolveWeaponExplosion,
             ),
         ) and (command.actor_id not in self.play.engine.reviewer.gm_ids):
             raise ValidationError("Encounter lifecycle requires GM authority")
@@ -270,7 +284,16 @@ class CombatService:
 
         def resolve(campaign: Campaign) -> Event:
             command = submitted_command
+            blast_deferred_ticks = 0
             state = self.play._load(campaign)
+            if isinstance(command, EndEncounter):
+                from wayfarer.simulation.explosions import blasts
+
+                if any(
+                    not b.resolved and b.encounter_id == command.encounter_id
+                    for b in blasts(state.resources)
+                ):
+                    raise ConflictError("Resolve armed explosives before ending the encounter")
             initial_state = state
             resuming = False
             reaction = False
@@ -554,6 +577,28 @@ class CombatService:
                     result = CombatResult(
                         encounter_id=encounter.id,
                         code="combat.hex_migrated",
+                        round=encounter.round,
+                        current_actor_id=encounter.current_actor_id,
+                    )
+                elif isinstance(command, ResolveWeaponExplosion):
+                    from wayfarer.orchestration.weapon_explosions import resolve_blast
+
+                    state, encounter, blast_deferred_ticks = resolve_blast(
+                        self.play,
+                        state,
+                        encounter,
+                        blast_id=command.blast_id,
+                        command_id=command.id,
+                        responses=command.responses,
+                        object_cover=command.object_cover,
+                        object_sizes=command.object_sizes,
+                        center=command.center,
+                        environment=command.environment,
+                    )
+                    resources = state.resources
+                    result = CombatResult(
+                        encounter_id=encounter.id,
+                        code="combat.weapon_explosion_resolved",
                         round=encounter.round,
                         current_actor_id=encounter.current_actor_id,
                     )
@@ -1600,7 +1645,12 @@ class CombatService:
                 if group.ready_through > resources.game_time:
                     raise ConflictError("Combat waits at the shared-time barrier")
                 prior = next((e for e in state.encounters if e.id == encounter.id), None)
-                ticks = max(0, encounter.round - prior.round) if prior is not None else 0
+                ticks = (
+                    max(0, encounter.round - prior.round) if prior is not None else 0
+                ) + blast_deferred_ticks
+                from wayfarer.simulation.explosions import defer_round
+
+                resources, ticks = defer_round(resources, encounter.id, ticks, command.id)
                 party = party.model_copy(
                     update={
                         "groups": tuple(
@@ -1617,7 +1667,12 @@ class CombatService:
                 or self.play.engine.rules.abilities
             ):
                 prior = next((e for e in state.encounters if e.id == encounter.id), None)
-                ticks = max(0, encounter.round - prior.round) if prior is not None else 0
+                ticks = (
+                    max(0, encounter.round - prior.round) if prior is not None else 0
+                ) + blast_deferred_ticks
+                from wayfarer.simulation.explosions import defer_round
+
+                resources, ticks = defer_round(resources, encounter.id, ticks, command.id)
                 if ticks:
                     resources = self.play.engine.resources.apply(
                         resources,

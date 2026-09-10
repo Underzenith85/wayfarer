@@ -123,6 +123,7 @@ describe("Tactical panel", () => {
         condition: null,
         readiness: null,
         loaded_rounds: null,
+        charges: null,
         ground: { encounter_id: "fight", geometry: "hex", x: -6, y: 0 },
         work: null,
         due_in: null,

@@ -534,6 +534,18 @@
             ],
             "default": null,
             "title": "Loaded Rounds"
+          },
+          "charges": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Charges"
           }
         },
         "required": [
@@ -2066,6 +2078,101 @@
         "title": "TacticalSnapshotV2",
         "type": "object"
       },
+      "BlastResponse": {
+        "additionalProperties": false,
+        "description": "GM declares chosen defenses and scene cover before any blast dice.",
+        "properties": {
+          "actor_id": {
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "cover_dr": {
+            "minimum": 0,
+            "title": "Cover Dr",
+            "type": "integer"
+          },
+          "covered_locations": {
+            "default": [],
+            "items": {
+              "enum": [
+                "torso",
+                "vitals",
+                "skull",
+                "face",
+                "neck",
+                "groin",
+                "left-arm",
+                "right-arm",
+                "left-leg",
+                "right-leg",
+                "left-hand",
+                "right-hand",
+                "left-foot",
+                "right-foot",
+                "left-eye",
+                "right-eye"
+              ],
+              "type": "string"
+            },
+            "title": "Covered Locations",
+            "type": "array"
+          },
+          "dive_covered_locations": {
+            "default": [],
+            "items": {
+              "enum": [
+                "torso",
+                "vitals",
+                "skull",
+                "face",
+                "neck",
+                "groin",
+                "left-arm",
+                "right-arm",
+                "left-leg",
+                "right-leg",
+                "left-hand",
+                "right-hand",
+                "left-foot",
+                "right-foot",
+                "left-eye",
+                "right-eye"
+              ],
+              "type": "string"
+            },
+            "title": "Dive Covered Locations",
+            "type": "array"
+          },
+          "size_modifier": {
+            "title": "Size Modifier",
+            "type": "integer"
+          },
+          "dive_to": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GroundPosition"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "dive_cover_dr": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Dive Cover Dr",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "actor_id",
+          "cover_dr",
+          "size_modifier"
+        ],
+        "title": "BlastResponse",
+        "type": "object"
+      },
       "ContinueCriticalMiss": {
         "additionalProperties": false,
         "properties": {
@@ -2393,6 +2500,99 @@
         "title": "ResolveChokeEffects",
         "type": "object"
       },
+      "ResolveWeaponExplosion": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "resolve_weapon_explosion",
+            "default": "resolve_weapon_explosion",
+            "title": "Kind",
+            "type": "string"
+          },
+          "encounter_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Encounter Id",
+            "type": "string"
+          },
+          "blast_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Blast Id",
+            "type": "string"
+          },
+          "responses": {
+            "items": {
+              "$ref": "#/components/schemas/BlastResponse"
+            },
+            "title": "Responses",
+            "type": "array"
+          },
+          "object_cover": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Object Cover",
+            "type": "object"
+          },
+          "object_sizes": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Object Sizes",
+            "type": "object"
+          },
+          "center": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GroundPosition"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "environment": {
+            "enum": [
+              "air",
+              "water",
+              "vacuum"
+            ],
+            "title": "Environment",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "expected_revision",
+          "encounter_id",
+          "blast_id",
+          "responses",
+          "object_cover",
+          "environment"
+        ],
+        "title": "ResolveWeaponExplosion",
+        "type": "object"
+      },
       "Stairway": {
         "additionalProperties": false,
         "description": "Authored traversable edge, not permission to climb or jump a cliff.",
@@ -2423,6 +2623,7 @@
                 "migrate_encounter_hex": "#/components/schemas/MigrateEncounterHex",
                 "repair_equipment": "#/components/schemas/RepairEquipment",
                 "resolve_choke_effects": "#/components/schemas/ResolveChokeEffects",
+                "resolve_weapon_explosion": "#/components/schemas/ResolveWeaponExplosion",
                 "resume_interrupted_turn": "#/components/schemas/ResumeInterruptedTurn",
                 "retrieve_equipment": "#/components/schemas/RetrieveEquipment",
                 "take_combat_turn": "#/components/schemas/TakeCombatTurn",
@@ -2460,6 +2661,9 @@
               },
               {
                 "$ref": "#/components/schemas/DeclareThrownLanding"
+              },
+              {
+                "$ref": "#/components/schemas/ResolveWeaponExplosion"
               }
             ],
             "title": "Command"

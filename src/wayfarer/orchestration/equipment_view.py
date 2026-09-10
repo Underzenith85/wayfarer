@@ -31,6 +31,7 @@ class EquipmentView(Record):
     choices: tuple[EquipmentChoice, ...] = ()
     readiness: ProjectileProgress | None = None
     loaded_rounds: int | None = None
+    charges: int | None = None
 
 
 class TacticalSnapshotV2(TacticalSnapshot):
@@ -40,6 +41,9 @@ class TacticalSnapshotV2(TacticalSnapshot):
 
 def equipment_view(play: PlayService, state: PlayState, actor_id: str) -> tuple[EquipmentView, ...]:
     encounter = next((e for e in reversed(state.encounters) if actor_id in e.turn_order), None)
+    from wayfarer.simulation.explosions import blasts
+
+    pending_blasts = tuple(b for b in blasts(state.resources) if not b.resolved)
     result: list[EquipmentView] = []
     work_tasks: tuple[RepairTask | RetrievalTask, ...] = (
         *repairs(state.resources),
@@ -48,8 +52,14 @@ def equipment_view(play: PlayService, state: PlayState, actor_id: str) -> tuple[
     for item in state.resources.items:
         load = next((v for v in state.resources.ammunition_loads if v.weapon_id == item.id), None)
         progress = load.readiness if load else None
+        blast = next((b for b in pending_blasts if b.source_item_id == item.id), None)
         if item.owner_id != actor_id or (
-            item.condition is None and item.ground is None and progress is None
+            item.condition is None
+            and item.ground is None
+            and progress is None
+            and item.charges is None
+            and item.firearm_failure is None
+            and blast is None
         ):
             continue
         work = next(
@@ -128,11 +138,22 @@ def equipment_view(play: PlayService, state: PlayState, actor_id: str) -> tuple[
                 name=item.definition_id,
                 condition=item.condition,
                 ground=item.ground,
-                work=("Retrieval" if item.ground else "Repair") if work else None,
-                due_in=max(0, work.due - state.resources.game_time) if work else None,
+                work="Explosion pending"
+                if blast
+                else ("Retrieval" if item.ground else "Repair")
+                if work
+                else item.firearm_failure.kind
+                if item.firearm_failure
+                else None,
+                due_in=max(0, blast.due - state.resources.game_time)
+                if blast
+                else max(0, work.due - state.resources.game_time)
+                if work
+                else None,
                 choices=tuple(choices),
                 readiness=progress,
                 loaded_rounds=load.rounds if load else None,
+                charges=item.charges,
             )
         )
     if encounter is not None:
@@ -147,6 +168,7 @@ def equipment_view(play: PlayService, state: PlayState, actor_id: str) -> tuple[
                 or actor_id not in landing.observed_by
             ):
                 continue
+            blast = next((b for b in pending_blasts if b.source_item_id == item.id), None)
             options: list[EquipmentChoice] = []
             if encounter.current_actor_id == actor_id and encounter.status == "active":
                 for hand in free_hands(state, encounter, actor_id):
@@ -177,7 +199,14 @@ def equipment_view(play: PlayService, state: PlayState, actor_id: str) -> tuple[
                     name=item.definition_id,
                     condition=item.condition if item.owner_id == actor_id else None,
                     ground=landing.landing,
-                    work="Thrown item" if landing.landing else "Landing unresolved",
+                    work="Explosion pending"
+                    if blast
+                    else item.firearm_failure.kind
+                    if item.firearm_failure
+                    else "Thrown item"
+                    if landing.landing
+                    else "Landing unresolved",
+                    due_in=max(0, blast.due - state.resources.game_time) if blast else None,
                     choices=tuple(options),
                 )
             )

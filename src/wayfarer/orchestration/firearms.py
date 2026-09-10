@@ -74,14 +74,26 @@ def roll_malfunction(
         return attack, shots, (), None
     table = tuple(play.rng.randbelow(6) + 1 for _ in range(3))
     total = sum(table)
-    kind: Literal["mechanical", "stoppage", "misfire"] = (
+    kind: Literal["mechanical", "stoppage", "misfire", "explosion", "delayed", "dud"] = (
         "mechanical" if total <= 4 or total >= 15 else "stoppage" if 9 <= total <= 11 else "misfire"
     )
+    if total >= 15 and (
+        spec.technology_level == 3
+        or spec.technology_level == 4
+        and spec.action in ("grenade", "breechloader", "repeating")
+    ):
+        kind = "explosion"
+    elif spec.action == "grenade":
+        kind = "delayed" if kind == "mechanical" else "dud"
+    elif spec.action == "beam" and kind == "stoppage":
+        kind = "mechanical"
+    elif spec.action == "single-use" and kind == "stoppage":
+        kind = "dud"
     failure = FirearmFailure(
         mode_id=weapon.id,
         cause_id=cause_id,
         kind=kind,
-        blocked_round=kind == "misfire",
+        blocked_round=kind == "misfire" and spec.action != "beam",
         diagnosed=kind == "stoppage",
     )
     fired = int(kind == "stoppage")
@@ -126,7 +138,7 @@ def service(
     if item is None or item.owner_id != command.actor_id or not item.equipped:
         raise ValidationError("Firearm service requires an owned equipped weapon")
     failure = item.firearm_failure
-    if failure is None or failure.kind == "destroyed":
+    if failure is None or failure.kind in ("destroyed", "dud", "delayed", "explosion"):
         raise ValidationError("Firearm has no serviceable failure")
     if command.mode_id not in (None, failure.mode_id):
         raise ValidationError("Firearm service must match the failed mode")

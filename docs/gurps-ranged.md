@@ -99,7 +99,7 @@ Burst critical hits are implemented here, with independent evidence in
 B556). #173 now supplies [opt-in conventional firearm malfunctions](gurps-firearms.md):
 B407 precedence, single-shot stoppages, retained misfires, diagnosis, clearing,
 and mechanical repair with persisted consequences and receipts. Catalog auditing
-remains #180, low-TL/exotic malfunction variants remain #371; printing reconciliation
+remains #180, [low-TL/exotic malfunction protocols](gurps-exotic-malfunctions.md) are explicit opt-ins; printing reconciliation
 remains #191. No malfunction number is inferred from a skill or damage type.
 Named follow-ups retain the other required scope:
 #286 owns individual-round unloading, Fast-Draw and bow draw/hold fatigue;
