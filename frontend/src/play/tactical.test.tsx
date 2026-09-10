@@ -24,6 +24,7 @@ const command: Extract<TacticalCommand, { kind: "choose_defense" }> = {
 };
 const snapshot: TacticalSnapshot = {
   equipment: [],
+  close_combat_choices: [],
   version: "tactical-v2",
   campaign_id: "campaign",
   actor_id: "a",
@@ -82,6 +83,38 @@ class FakeClient extends TacticalClient {
 }
 
 describe("Tactical panel", () => {
+  it("submits the recorded v2 suffocation choice", async () => {
+    const client = new FakeClient();
+    const resolve: TacticalCommand = {
+      kind: "resolve_choke_effects",
+      id: "choke-tick",
+      actor_id: "a",
+      encounter_id: "fight",
+      expected_revision: 4,
+      grip_id: "hold",
+    };
+    client.reads.mockResolvedValue({
+      ...structuredClone(snapshot),
+      close_combat_choices: [
+        { label: "Resolve suffocation", command: resolve },
+      ],
+    });
+    render(
+      <TacticalPanel
+        client={client}
+        cid="campaign"
+        actor="a"
+        onChange={async () => {}}
+      />,
+    );
+    const button = await screen.findByRole("button", {
+      name: "Resolve suffocation",
+    });
+    button.focus();
+    expect(button).toHaveFocus();
+    fireEvent.click(button);
+    await waitFor(() => expect(client.writes).toHaveBeenCalledWith(resolve));
+  });
   it("renders the server-filtered map and equivalent text/keyboard controls", async () => {
     const client = new FakeClient();
     render(

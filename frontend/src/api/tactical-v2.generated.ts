@@ -120,6 +120,15 @@ export interface components {
        */
       second_parry_mode_id: string | null;
     };
+    /** CloseCombatChoice */
+    CloseCombatChoice: {
+      /** Label */
+      label: string;
+      /** Command */
+      command:
+        | components["schemas"]["TakeUnarmedTurn"]
+        | components["schemas"]["ResolveChokeEffects"];
+    };
     /** EquipmentChoice */
     EquipmentChoice: {
       /** Label */
@@ -279,6 +288,24 @@ export interface components {
        * @default null
        */
       task_id: string | null;
+    };
+    /** ResolveChokeEffects */
+    ResolveChokeEffects: {
+      /** Id */
+      id: string;
+      /** Actor Id */
+      actor_id: string;
+      /** Expected Revision */
+      expected_revision: number;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: "resolve_choke_effects";
+      /** Encounter Id */
+      encounter_id: string;
+      /** Grip Id */
+      grip_id: string;
     };
     /** ResumeInterruptedTurn */
     ResumeInterruptedTurn: {
@@ -703,6 +730,11 @@ export interface components {
        */
       enter_close_combat: boolean;
       /**
+       * Choke Hold
+       * @default false
+       */
+      choke_hold: boolean;
+      /**
        * Maneuver
        * @default attack
        * @enum {string}
@@ -841,6 +873,11 @@ export interface components {
        * @default []
        */
       equipment: components["schemas"]["EquipmentView"][];
+      /**
+       * Close Combat Choices
+       * @default []
+       */
+      close_combat_choices: components["schemas"]["CloseCombatChoice"][];
     };
     /** ContinueCriticalMiss */
     ContinueCriticalMiss: {
@@ -937,24 +974,6 @@ export interface components {
         | "crawling"
         | "sitting"
         | "lying";
-    };
-    /** ResolveChokeEffects */
-    ResolveChokeEffects: {
-      /** Id */
-      id: string;
-      /** Actor Id */
-      actor_id: string;
-      /** Expected Revision */
-      expected_revision: number;
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      kind: "resolve_choke_effects";
-      /** Encounter Id */
-      encounter_id: string;
-      /** Grip Id */
-      grip_id: string;
     };
     /**
      * Stairway

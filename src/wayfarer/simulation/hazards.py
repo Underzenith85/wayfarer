@@ -8,7 +8,7 @@ from typing import Literal
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.rules.gurps_checks import success_roll
-from wayfarer.rules.hazard_types import HazardSchedule, RecoveryRestriction
+from wayfarer.rules.hazard_types import CombatHazardTurn, HazardSchedule, RecoveryRestriction
 from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.fatigue import FatigueCost, apply_fatigue
 from wayfarer.simulation.injury import Wound, apply_injury
@@ -38,6 +38,7 @@ def apply_hazard(
     *,
     rng: RandomSource,
     system: bool = False,
+    combat_turn: CombatHazardTurn | None = None,
 ) -> tuple[ResourceState, HazardResult]:
     if not system:
         raise ValidationError("Hazards require authoritative scenario context")
@@ -71,7 +72,7 @@ def apply_hazard(
             raise ConflictError("Exposure is not active")
         schedule = existing
         if command.kind == "leave":
-            if schedule.due <= state.game_time:
+            if schedule.combat_turn is None and schedule.due <= state.game_time:
                 raise ConflictError("Resolve due exposure before leaving")
             if schedule.spec.kind in ("poison", "disease", "drowning"):
                 raise ValidationError("Ending this condition requires its treatment procedure")
@@ -85,7 +86,10 @@ def apply_hazard(
                 }
             )
         else:
-            if state.game_time != schedule.due:
+            if schedule.combat_turn is not None:
+                if combat_turn != schedule.combat_turn or state.game_time < schedule.due:
+                    raise ConflictError("Resolve suffocation on its recorded combat turn")
+            elif state.game_time != schedule.due:
                 raise ConflictError("Resolve hazards at their shared-clock deadline")
             spec = schedule.spec
             checking = (
@@ -271,7 +275,12 @@ def apply_hazard(
                     "remaining": remaining,
                     "cycle": schedule.cycle + 1,
                     "successes": successes,
-                    "due": schedule.due + interval,
+                    "due": (state.game_time if schedule.combat_turn else schedule.due) + interval,
+                    "combat_turn": schedule.combat_turn.model_copy(
+                        update={"round": schedule.combat_turn.round + 1}
+                    )
+                    if schedule.combat_turn
+                    else None,
                     "stage": stage,
                     "next_check_at": next_check_at,
                     "active": remaining > 0,

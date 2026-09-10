@@ -415,6 +415,32 @@
         "title": "ChooseDefense",
         "type": "object"
       },
+      "CloseCombatChoice": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "command": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TakeUnarmedTurn"
+              },
+              {
+                "$ref": "#/components/schemas/ResolveChokeEffects"
+              }
+            ],
+            "title": "Command"
+          }
+        },
+        "required": [
+          "label",
+          "command"
+        ],
+        "title": "CloseCombatChoice",
+        "type": "object"
+      },
       "EquipmentChoice": {
         "additionalProperties": false,
         "properties": {
@@ -809,6 +835,55 @@
           "stage"
         ],
         "title": "RepairEquipment",
+        "type": "object"
+      },
+      "ResolveChokeEffects": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "resolve_choke_effects",
+            "default": "resolve_choke_effects",
+            "title": "Kind",
+            "type": "string"
+          },
+          "encounter_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Encounter Id",
+            "type": "string"
+          },
+          "grip_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Grip Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "expected_revision",
+          "encounter_id",
+          "grip_id"
+        ],
+        "title": "ResolveChokeEffects",
         "type": "object"
       },
       "ResumeInterruptedTurn": {
@@ -1737,6 +1812,11 @@
             "title": "Enter Close Combat",
             "type": "boolean"
           },
+          "choke_hold": {
+            "default": false,
+            "title": "Choke Hold",
+            "type": "boolean"
+          },
           "maneuver": {
             "default": "attack",
             "enum": [
@@ -2042,6 +2122,14 @@
             },
             "title": "Equipment",
             "type": "array"
+          },
+          "close_combat_choices": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/CloseCombatChoice"
+            },
+            "title": "Close Combat Choices",
+            "type": "array"
           }
         },
         "required": [
@@ -2276,55 +2364,6 @@
           "facing"
         ],
         "title": "Pose",
-        "type": "object"
-      },
-      "ResolveChokeEffects": {
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "maxLength": 200,
-            "minLength": 1,
-            "title": "Id",
-            "type": "string"
-          },
-          "actor_id": {
-            "maxLength": 200,
-            "minLength": 1,
-            "title": "Actor Id",
-            "type": "string"
-          },
-          "expected_revision": {
-            "minimum": 0,
-            "title": "Expected Revision",
-            "type": "integer"
-          },
-          "kind": {
-            "const": "resolve_choke_effects",
-            "default": "resolve_choke_effects",
-            "title": "Kind",
-            "type": "string"
-          },
-          "encounter_id": {
-            "maxLength": 200,
-            "minLength": 1,
-            "title": "Encounter Id",
-            "type": "string"
-          },
-          "grip_id": {
-            "maxLength": 200,
-            "minLength": 1,
-            "title": "Grip Id",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "actor_id",
-          "expected_revision",
-          "encounter_id",
-          "grip_id"
-        ],
-        "title": "ResolveChokeEffects",
         "type": "object"
       },
       "Stairway": {

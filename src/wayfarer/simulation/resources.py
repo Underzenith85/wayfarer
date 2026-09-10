@@ -177,7 +177,10 @@ class ResourceState(Record):
             if (
                 hazard.active
                 and not hp.injury.dead
-                and (hazard.remaining == 0 or hazard.due < self.game_time)
+                and (
+                    hazard.remaining == 0
+                    or (hazard.combat_turn is None and hazard.due < self.game_time)
+                )
             ):
                 raise ValueError("Active hazard cannot have expired or exhausted cycles")
         if len({task.id for task in self.recovery_tasks}) != len(self.recovery_tasks):
@@ -599,7 +602,10 @@ class ResourceEngine:
             living = {
                 p.id.removeprefix("hp:") for p in state.pools if p.injury and not p.injury.dead
             }
-            if any(h.active and h.actor_id in living and h.due < command.to for h in state.hazards):
+            if any(
+                h.active and h.combat_turn is None and h.actor_id in living and h.due < command.to
+                for h in state.hazards
+            ):
                 raise ConflictError(
                     "Advance to the hazard deadline and resolve it before continuing"
                 )

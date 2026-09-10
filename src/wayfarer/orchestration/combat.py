@@ -100,6 +100,7 @@ class TakeUnarmedTurn(CombatCommand):
     location: GrappleLocation = "torso"
     grip_id: Id | None = None
     enter_close_combat: bool = False
+    choke_hold: bool = Field(default=False, exclude_if=lambda v: not v)
     maneuver: Literal["attack", "all_out_attack", "move_and_attack"] = Field(
         default="attack", exclude_if=lambda value: value == "attack"
     )
@@ -1464,7 +1465,11 @@ class CombatService:
                     }
                 )
             if engine.rules.gurps_equipment is not None:
-                from wayfarer.orchestration.unarmed import retire_chokes, settle_control
+                from wayfarer.orchestration.unarmed import (
+                    finish_choke_turns,
+                    retire_chokes,
+                    settle_control,
+                )
 
                 prior_grips = next(
                     (e.grips for e in initial_state.encounters if e.id == encounter.id), ()
@@ -1479,6 +1484,7 @@ class CombatService:
                     encounter.grips,
                     command.id,
                 )
+                state = finish_choke_turns(state, encounter)
                 resources = state.resources
                 encounters = tuple(encounter if e.id == encounter.id else e for e in encounters)
             if encounter.status == "completed" and engine.rules.gurps_equipment is not None:

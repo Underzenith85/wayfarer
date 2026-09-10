@@ -35,7 +35,7 @@ Both `gurps.combat.unarmed` and `gurps.combat.grappling` remain **partial**, whi
 
 - Remaining unarmed critical-miss consequences: knockout/recovery (3/18), attacking stumble displacement (7/14), torn-muscle lasting penalties (15), and selecting among multiple ready impaling modes (5/6/16). Armed critical-parry failures use the existing weapon consequence reducer; cases lacking sufficient weapon metadata still halt with recorded dice.
 - All-Out Attack Double/Feint, movement paths beyond the existing close-combat entry, two-handed Wrestling/Sumo parries, remaining skill-specific defenses, and retreat/following during control attacks. Wait is integrated below; Evaluate, Feint, Aim and Concentrate while a grip is held remain explicitly rejected.
-- The defensive Wrestling parry-to-arm-lock route, barehanded parries against armed attacks, and the distinct Choke Hold technique. Judo parry-to-lock against unarmed attacks is integrated below.
+- The defensive Wrestling parry-to-arm-lock route, barehanded parries against armed attacks, and Choke Hold rear-entry Wait integration. Judo parry-to-lock against unarmed attacks is integrated below.
 - Escape steps, dragging/carrying, twice-ST movement exceptions, Size Modifier/multiarm variants and additional strikes/targets. Unsupported movement/reload/maneuver combinations are rejected explicitly.
 
 Current bodies have no authored Size Modifier, so tests cover equal-sized human participants. This does not implement large/small creature grappling. Optional/supplement grappling systems and control points are excluded.
@@ -104,6 +104,39 @@ hex projection and the v1/v2 HTTP boundary. Wait integration does not complete #
 
 ## Versioned command contract
 
-`/api/tactical/v2/campaigns/{cid}/commands` accepts `TakeUnarmedTurn.maneuver` and `attack_option`, plus `ChooseDefense.parry_mode_id` and `second_parry_mode_id` and `TakeCombatTurn.wait_trigger.unarmed`. The unchanged snapshot format remains `tactical-v1`. Gameplay v1 and the tactical v1 input schema remain unchanged; the latter rejects the new options. Omitted v2 options do not alter the canonical command payload, preserving existing receipt digests. The tactical v1 request keeps its own frozen `TakeCombatTurn` and `WaitTrigger` shapes, which require `item_id` and reject `unarmed`; the v1 document gains only the unreferenced `UnarmedReaction` definition that the shared snapshot projection carries. See `contracts/tactical/v2/openapi.json` and `frontend/src/api/tactical-v2.generated.ts`.
+`/api/tactical/v2/campaigns/{cid}/commands` accepts `TakeUnarmedTurn.maneuver`, `attack_option` and `choke_hold`, plus `ChooseDefense.parry_mode_id` and `second_parry_mode_id` and `TakeCombatTurn.wait_trigger.unarmed`. The v2 snapshot adds `close_combat_choices` for Choke Hold and due suffocation; the frozen v1 snapshot does not include them. Gameplay v1 and the tactical v1 input schema remain unchanged; the latter rejects the new options. Omitted v2 options do not alter the canonical command payload, preserving existing receipt digests. The tactical v1 request keeps its own frozen `TakeCombatTurn` and `WaitTrigger` shapes, which require `item_id` and reject `unarmed`; the v1 document gains only the unreferenced `UnarmedReaction` definition that the shared snapshot projection carries. See `contracts/tactical/v2/openapi.json` and `frontend/src/api/tactical-v2.generated.ts`.
 
 Verify both contracts with `uv run python -m scripts.tactical_contracts --check` and `uv run python -m scripts.tactical_contracts --version 2 --check`. The exact historical printing/errata equivalence audit remains open; numeric tests are not a source-baseline certification.
+
+
+## Choke Hold (B404)
+
+The v2 `TakeUnarmedTurn` grapple with `choke_hold: true` requires two free usable hands,
+Judo or Wrestling, the neck, and explicit entry from an adjacent rear hex. The attack
+uses Judo-2 or Wrestling-3, replacing the ordinary grapple location penalty. Existing
+rear-attack geometry permits no active defense in this supported profile. A successful
+hold controls the head and neck and imposes the grapple DX penalty without tying up the
+victim's hands. Escape uses the holder's +5 two-hand bonus once, not twice.
+
+Suffocation starts with the hold. Each following holder turn requires the victim's
+`ResolveChokeEffects` before that turn proceeds, costing 1 FP through the shared hazard
+and fatigue reducers. It consumes no turn. A victim earlier in initiative can escape
+before this phase, even after the round clock has advanced. Durable holder/round timing
+prevents early or repeated ticks and survives restart. Optional subsequent `strangle`
+damage gains +3 ST and retains the existing exposure. Partial release is invalid; full
+release or holder incapacitation ends the exposure. Ending combat retains the no-air
+start time and converts a surviving hold to ordinary shared-clock suffocation.
+
+V2 offers validated Choke Hold commands only for visible targets and offers the victim
+an authorized suffocation control when due, including while unconscious. V1 inputs,
+snapshots and canonical payloads without the new option remain unchanged. Tests in
+`tests/test_choke_hold.py` cover both initiative orders and skills, escape, release,
+third-party incapacitation, crushing damage, unconsciousness, restart receipts, and HTTP
+version/auth boundaries. Frontend tests cover submitting the offered command.
+
+This subset rejects square-grid initiation, same-hex rear-position inference and any
+active Wait declaration or interruption before dice. Rear-entry provenance through Wait
+and awareness-based rear-defense exceptions remain further integration work. It does
+not change ordinary B370 strangling timing or finish #176. Source review uses B404 and
+B436 of the supplied fourth-printing Campaigns PDF with the SHA-256 recorded above;
+first-printing plus January 2007 errata certification remains blocked by #191.

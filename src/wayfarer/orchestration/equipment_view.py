@@ -8,6 +8,7 @@ from wayfarer.orchestration.equipment_retrieval import RetrievalTask
 from wayfarer.orchestration.equipment_retrieval import tasks as retrievals
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.tactical_view import TacticalSnapshot
+from wayfarer.orchestration.unarmed_view import CloseCombatChoice
 from wayfarer.rules.object_types import GroundPosition, ObjectCondition
 from wayfarer.rules.readiness_types import ProjectileProgress
 from wayfarer.simulation.actions import PlayState
@@ -36,6 +37,7 @@ class EquipmentView(Record):
 class TacticalSnapshotV2(TacticalSnapshot):
     version: str = "tactical-v2"
     equipment: tuple[EquipmentView, ...] = ()
+    close_combat_choices: tuple[CloseCombatChoice, ...] = ()
 
 
 def equipment_view(play: PlayService, state: PlayState, actor_id: str) -> tuple[EquipmentView, ...]:

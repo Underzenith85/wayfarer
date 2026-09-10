@@ -247,7 +247,12 @@ export function TacticalPanel({
             directions increase clockwise.
           </p>
           <div className="tactical-actions">
-            {encounter.choices.map((choice) => (
+            {[
+              ...encounter.choices,
+              ...(snapshot.close_combat_choices ?? []).filter(
+                (choice) => choice.command.encounter_id === encounter.id,
+              ),
+            ].map((choice) => (
               <Button
                 key={choice.command.id}
                 disabled={busy || retry !== null}

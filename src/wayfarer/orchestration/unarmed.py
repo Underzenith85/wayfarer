@@ -98,7 +98,10 @@ def settle_control(state: PlayState, encounter: Encounter) -> Encounter:
         p.model_copy(
             update={
                 "arm_locked": any(g.target_id == p.actor_id and g.arm_lock for g in grips),
-                "grappled": any(g.target_id == p.actor_id and g.location == "torso" for g in grips),
+                "grappled": any(
+                    g.target_id == p.actor_id and (g.location == "torso" or g.choke_hold)
+                    for g in grips
+                ),
                 "pinned": any(g.target_id == p.actor_id and g.pinned for g in grips),
             }
         )
@@ -115,7 +118,15 @@ def settle_control(state: PlayState, encounter: Encounter) -> Encounter:
 
 
 def guard_control(encounter: Encounter, command: TypedCombatCommand, state: PlayState) -> None:
-    from wayfarer.orchestration.combat import ChooseDefense, TakeCombatTurn, TakeUnarmedTurn
+    from wayfarer.orchestration.combat import (
+        ChooseDefense,
+        ResolveChokeEffects,
+        TakeCombatTurn,
+        TakeUnarmedTurn,
+    )
+
+    if not isinstance(command, ResolveChokeEffects):
+        require_choke_turn_settled(state, encounter)
 
     if encounter.pending_unarmed is not None:
         if (
@@ -328,6 +339,27 @@ def validate_action(
     if command.maneuver == "move_and_attack" and command.action not in ("punch", "kick", "grapple"):
         raise ValidationError("Move and Attack requires a strike or grapple")
     actor, target = fighter(encounter, command.actor_id), fighter(encounter, command.target_id)
+    if command.choke_hold:
+        from wayfarer.orchestration.location_combat import from_behind
+
+        if (
+            command.action != "grapple"
+            or command.location != "neck"
+            or command.skill not in ("skill:judo", "skill:wrestling")
+            or set(command.hands) != {"left-hand", "right-hand"}
+            or not command.enter_close_combat
+            or encounter.hex_battlefield is None
+            or not from_behind(actor, target)
+        ):
+            raise ValidationError(
+                "Choke Hold requires two hands, Judo/Wrestling and explicit rear hex entry"
+            )
+        if encounter.wait_interrupt is not None or any(
+            p.maneuver_state.wait is not None for p in encounter.participants
+        ):
+            raise ValidationError(
+                "Choke Hold during a Wait requires rear-entry interruption context"
+            )
     if actor.actor_id == target.actor_id:
         raise ValidationError("Unarmed action requires another actor")
     for participant in (actor, target):
@@ -504,10 +536,12 @@ def validate_action(
             and (
                 len(set(command.hands)) != len(command.hands)
                 or not set(command.hands) <= set(grip.hands)
-                or (grip.arm_lock and set(command.hands) != set(grip.hands))
+                or ((grip.arm_lock or grip.choke_hold) and set(command.hands) != set(grip.hands))
             )
         ):
-            raise ValidationError("Release must select held hands; an arm lock requires both hands")
+            raise ValidationError(
+                "Release must select held hands; an arm lock or Choke Hold requires both hands"
+            )
         if command.action == "break_free" and encounter.round < grip.escape_after_round:
             raise ValidationError("A pinned escape attempt requires ten seconds between attempts")
         if command.action == "pin" and (
@@ -729,7 +763,7 @@ def execute_unarmed(
                     update={"close_pairs": tuple(sorted(pairs))}
                 )
             allowed_defenses: list[str] = ["none"]
-            for choice in ("dodge", "parry"):
+            for choice in () if command.choke_hold else ("dodge", "parry"):
                 try:
                     unarmed_defense(
                         play,
@@ -778,6 +812,7 @@ def execute_unarmed(
                     "target_id": command.target_id,
                     "action": command.action,
                     "grip_id": command.grip_id,
+                    "choke_hold": command.choke_hold,
                     "skill": command.skill,
                     "foot": command.foot,
                     "hands": command.hands,
@@ -1029,9 +1064,11 @@ def defend(
         {"torso": 0, "neck": 2, "left-arm": 1, "right-arm": 1, "left-leg": 1, "right-leg": 1}[
             pending.location
         ]
-        if pending.action == "grapple"
+        if pending.action == "grapple" and not pending.choke_hold
         else 0
     )
+    if pending.choke_hold:
+        value -= 2 if pending.skill == "skill:judo" else 3
     if pending.action in ("punch", "kick"):
         value -= {
             "torso": 0,
@@ -1211,7 +1248,10 @@ def defend(
             skill=pending.skill,
             acquired_round=encounter.round,
             arm_lock=pending.action == "arm_lock",
+            choke_hold=pending.choke_hold,
         )
+        if grip.choke_hold:
+            state, grip = start_choke(play, state, grip, pending.id, encounter=encounter)
         encounter = encounter.model_copy(
             update={"grips": tuple(g for g in encounter.grips if g.id != pending.grip_id) + (grip,)}
         )
@@ -1768,6 +1808,7 @@ def control(
         first = strength(play, state, actor.actor_id, trained=False)
         if command.action == "strangle":
             first -= 5 if len(grip.hands) == 1 else 0
+            first += 3 if grip.choke_hold else 0
         else:
             attacker = build(play, state, actor.actor_id)
             first = max(
@@ -1907,12 +1948,19 @@ def control(
 
 
 def start_choke(
-    play: PlayService, state: PlayState, grip: Grip, command_id: str
+    play: PlayService,
+    state: PlayState,
+    grip: Grip,
+    command_id: str,
+    *,
+    encounter: Encounter | None = None,
 ) -> tuple[PlayState, Grip]:
     """The existing suffocation schedule owns FP, consciousness and death timing."""
-    from wayfarer.rules.hazard_types import HazardSchedule, HazardSpec
+    from wayfarer.rules.hazard_types import CombatHazardTurn, HazardSchedule, HazardSpec
     from wayfarer.simulation.hazards import HazardCommand, apply_hazard
 
+    if grip.choke_hold and encounter is None:
+        raise ValidationError("Choke Hold requires its holder-turn timing context")
     compiled = build(play, state, grip.target_id)
     assert compiled.statistics is not None
     entity = next(e for e in state.world.entities if e.id == grip.target_id)
@@ -1927,7 +1975,7 @@ def start_choke(
             interval=1,
             cycles=240,
             resistible=False,
-            reference="B370/B436",
+            reference="B404/B436" if grip.choke_hold else "B370/B436",
         ),
         started=state.resources.game_time,
         due=state.resources.game_time + 1,
@@ -1936,6 +1984,11 @@ def start_choke(
         will=compiled.statistics.will,
         swimming=compiled.statistics.ht,
         no_air_since=state.resources.game_time,
+        combat_turn=CombatHazardTurn(
+            encounter_id=encounter.id, actor_id=grip.holder_id, round=encounter.round + 1
+        )
+        if grip.choke_hold and encounter is not None
+        else None,
     )
     resources, _ = apply_hazard(
         state.resources,
@@ -1955,15 +2008,53 @@ def start_choke(
     )
 
 
+def require_choke_turn_settled(state: PlayState, encounter: Encounter) -> None:
+    """B404 deadlines follow the holder's turn, not the start of a round."""
+    if encounter.status != "active" or encounter.wait_interrupt is not None:
+        return
+    if any(
+        h.active
+        and h.combat_turn is not None
+        and h.combat_turn.encounter_id == encounter.id
+        and h.combat_turn.actor_id == encounter.current_actor_id
+        and h.combat_turn.round <= encounter.round
+        and h.due <= state.resources.game_time
+        for h in state.resources.hazards
+    ):
+        raise ConflictError("Resolve Choke Hold suffocation before the holder's turn")
+
+
+def finish_choke_turns(state: PlayState, encounter: Encounter) -> PlayState:
+    """Combat ending does not restore air: surviving holds become clock exposures."""
+    if encounter.status == "active":
+        return state
+    return state.model_copy(
+        update={
+            "resources": state.resources.model_copy(
+                update={
+                    "hazards": tuple(
+                        h.model_copy(
+                            update={"combat_turn": None, "due": state.resources.game_time + 1}
+                        )
+                        if h.combat_turn is not None and h.combat_turn.encounter_id == encounter.id
+                        else h
+                        for h in state.resources.hazards
+                    ),
+                }
+            )
+        }
+    )
+
+
 def resolve_choke(
     play: PlayService, state: PlayState, encounter: Encounter, command: ResolveChokeEffects
 ) -> tuple[PlayState, CombatResult]:
     from wayfarer.simulation.hazards import HazardCommand, apply_hazard
 
     require_basic(catalog(play).profile_id)
+    validate_choke_resolution(state, encounter, command)
     grip = next((g for g in encounter.grips if g.id == command.grip_id), None)
-    if grip is None or grip.target_id != command.actor_id or grip.hazard_id is None:
-        raise ValidationError("Only the choking actor may settle this grip's due effects")
+    assert grip is not None
     schedule = next(h for h in state.resources.hazards if h.id == grip.hazard_id)
     resources, _ = apply_hazard(
         state.resources,
@@ -1977,6 +2068,7 @@ def resolve_choke(
         schedule,
         rng=play.rng,
         system=True,
+        combat_turn=schedule.combat_turn,
     )
     state = state.model_copy(update={"resources": resources})
     if not fatigue_ready(state, command.actor_id):
@@ -1998,6 +2090,27 @@ def resolve_choke(
         round=encounter.round,
         current_actor_id=encounter.current_actor_id,
     )
+
+
+def validate_choke_resolution(
+    state: PlayState, encounter: Encounter, command: ResolveChokeEffects
+) -> None:
+    """Pure validation shared by the command reducer and v2 choice projection."""
+    grip = next((g for g in encounter.grips if g.id == command.grip_id), None)
+    if grip is None or grip.target_id != command.actor_id or grip.hazard_id is None:
+        raise ValidationError("Only the choking actor may settle this grip's due effects")
+    schedule = next(h for h in state.resources.hazards if h.id == grip.hazard_id)
+    if schedule.combat_turn is not None and (
+        encounter.status != "active"
+        or encounter.wait_interrupt is not None
+        or encounter.pending_unarmed is not None
+        or encounter.pending_defense is not None
+        or encounter.current_actor_id != schedule.combat_turn.actor_id
+        or encounter.round != schedule.combat_turn.round
+    ):
+        raise ValidationError("Choke Hold suffocation is due on the holder's following turn")
+    if not schedule.active or schedule.due > state.resources.game_time:
+        raise ValidationError("This grip has no due suffocation effects")
 
 
 def retire_chokes(

@@ -81,6 +81,8 @@ async def read(request: web.Request) -> web.Response:
 
 
 def enrich(play: PlayService, state: PlayState, result: TacticalSnapshot) -> TacticalSnapshotV2:
+    from wayfarer.orchestration.unarmed_view import close_combat_choices
+
     return TacticalSnapshotV2.model_validate_json(
         json.dumps(
             {
@@ -88,6 +90,10 @@ def enrich(play: PlayService, state: PlayState, result: TacticalSnapshot) -> Tac
                 "version": "tactical-v2",
                 "equipment": [
                     v.model_dump(mode="json") for v in equipment_view(play, state, result.actor_id)
+                ],
+                "close_combat_choices": [
+                    c.model_dump(mode="json")
+                    for c in close_combat_choices(play, state, result.actor_id)
                 ],
             }
         )
