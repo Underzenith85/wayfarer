@@ -189,6 +189,13 @@ class Combatant(Record):
     parries: tuple[str, ...] = ()
     block_used: bool = False
     defense_penalty: int = Field(default=0, ge=-20, le=0)
+    # B557: these last until this actor's next turn, including across a Wait.
+    unarmed_balance_lost: bool = Field(default=False, exclude_if=lambda v: not v)
+    unarmed_guard_dropped: bool = Field(default=False, exclude_if=lambda v: not v)
+    # Attacker, actual parrying skill, and the first following defender turn.
+    unarmed_lock_opportunity: tuple[str, str, int] | None = Field(
+        default=None, exclude_if=lambda v: v is None
+    )
     last_maneuver: Maneuver | None = None
     last_attack_item_id: str | None = None
     hand_bindings: tuple[tuple[str, Literal["left-hand", "right-hand"]], ...] = ()
@@ -600,6 +607,8 @@ class CombatEngine:
                             "parries": (),
                             "block_used": False,
                             "defense_penalty": 0,
+                            "unarmed_balance_lost": False,
+                            "unarmed_guard_dropped": False,
                             "retreat_used": False,
                             "retreat_attacker_id": None,
                             "tactical_defense_bonus": 0,
