@@ -79,6 +79,7 @@ def apply_object(
     command: ObjectCommand,
     *,
     system: bool = False,
+    shield: bool = False,
     rng: RandomSource = secrets,
 ) -> tuple[ResourceState, ObjectResult]:
     """Trusted resolved damage only; the caller resolves targeting and attack damage.
@@ -91,7 +92,9 @@ def apply_object(
     engine.validate(state)
     if command.actor_id not in engine.actors:
         raise ValidationError("Unknown object command actor")
-    digest = hashlib.sha256(command.model_dump_json().encode()).hexdigest()
+    digest = hashlib.sha256(
+        (command.model_dump_json() + (":shield" if shield else "")).encode()
+    ).hexdigest()
     previous = next((r for r in state.receipts if r.command_id == command.id), None)
     if previous is not None:
         if previous.digest != digest:
@@ -112,7 +115,7 @@ def apply_object(
     condition = item.condition
     if profile is None or condition is None:
         raise ValidationError("Object requires an explicit Basic Set durability profile")
-    if condition.destroyed:
+    if condition.destroyed and not (shield and isinstance(command, DamageObject)):
         raise ValidationError("Object is already destroyed")
     rolls: list[tuple[int, int, int]] = []
 
@@ -131,7 +134,7 @@ def apply_object(
     injury, dr = 0, profile.dr
     hp = condition.hp
     disabled: bool = condition.disabled
-    destroyed: bool = False
+    destroyed: bool = condition.destroyed
     stress_at = condition.last_stress_at
     if isinstance(command, DamageObject):
         dr = int(Decimal(profile.dr) / command.armor_divisor)
@@ -164,7 +167,7 @@ def apply_object(
         hp -= injury
         if hp <= -5 * profile.hp:
             disabled = destroyed = True
-        else:
+        elif not destroyed:
             for multiple in range(1, 5):
                 if hp <= -multiple * profile.hp < condition.hp and not passes():
                     disabled = destroyed = True
@@ -212,6 +215,7 @@ def apply_object(
         update={
             "condition": updated_condition,
             "ready": item.ready and (not disabled or usable),
+            "equipped": item.equipped and not (shield and hp <= -10 * profile.hp),
         }
     )
     updated = state.model_copy(

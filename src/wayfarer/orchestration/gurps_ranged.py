@@ -306,6 +306,7 @@ def prepare(
     *,
     shots: int,
     hit_location: HitLocation | None,
+    target_item_id: str | None = None,
 ) -> Encounter:
     from wayfarer.orchestration.gurps_melee import build, catalog, defense_value
 
@@ -313,7 +314,12 @@ def prepare(
     assert pending is not None
     actor = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     target = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
-    scene = situation(encounter, actor.actor_id, target.actor_id, weapon)
+    geometry = encounter
+    if target_item_id:
+        from wayfarer.orchestration.object_combat import target_geometry
+
+        geometry = target_geometry(play, state, encounter, target_item_id)
+    scene = situation(geometry, actor.actor_id, target.actor_id, weapon)
     from wayfarer.orchestration.location_combat import disabled
 
     if len(disabled(state, actor.actor_id) & {"left-eye", "right-eye"}) == 2:
@@ -361,6 +367,16 @@ def prepare(
             raise ValidationError("Weapon is unloaded or reload is incomplete")
     allowed: list[Defense] = ["none"]
     for candidate in ("dodge", "block", "parry"):
+        from wayfarer.orchestration.object_combat import weapon_target
+
+        if (
+            target_item_id
+            and next(i for i in state.resources.items if i.id == target_item_id).ground
+        ):
+            continue
+        targeting_weapon = weapon_target(play, state, target_item_id)
+        if targeting_weapon and candidate == "block":
+            continue
         if candidate == "parry" and (
             not weapon.thrown or catalog(play).profile_id != "gurps-basic-set-4e-2004"
         ):
@@ -371,7 +387,13 @@ def prepare(
             from wayfarer.simulation.tactical import defense_adjustment
 
             defense_adjustment(encounter, actor, target)
-            defense_value(play, state, target, candidate)
+            defense_value(
+                play,
+                state,
+                target,
+                candidate,
+                target_item_id if targeting_weapon and candidate == "parry" else None,
+            )
         except ValidationError:
             continue
         allowed.append(candidate)
@@ -383,6 +405,7 @@ def prepare(
                     "shots": shots,
                     "allowed": tuple(allowed),
                     "hit_location": hit_location,
+                    "target_item_id": target_item_id,
                 }
             )
         }
@@ -461,7 +484,12 @@ def resolve(
     actor = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     target = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
     original_target = target
-    scene = situation(encounter, actor.actor_id, target.actor_id, weapon)
+    geometry = encounter
+    if pending.target_item_id:
+        from wayfarer.orchestration.object_combat import target_geometry
+
+        geometry = target_geometry(play, state, encounter, pending.target_item_id)
+    scene = situation(geometry, actor.actor_id, target.actor_id, weapon)
     equipment = catalog(play)
     compiled = build(play, state, actor.actor_id)
     defender_build = build(play, state, target.actor_id)
@@ -493,6 +521,13 @@ def resolve(
         + rapid_fire_bonus(pending.shots)
         - max(0, weapon.minimum_st - st)
     )
+    if pending.target_item_id:
+        from wayfarer.orchestration.object_combat import target_modifier
+
+        attack_target += (
+            target_modifier(play, state, target.actor_id, pending.target_item_id)
+            - scene.size_modifier
+        )
     attack_target -= actor_hp.injury.shock if actor_hp.injury else 0
     from wayfarer.orchestration.location_combat import disabled
 
@@ -558,6 +593,7 @@ def resolve(
         if attack.outcome.succeeded
         else int(near_miss)
     )
+    initial_hits = hits
     defense = None
     second_trace = None
     if hits and attack.outcome is not Outcome.CRITICAL_SUCCESS and defense_value_ is not None:
@@ -578,6 +614,38 @@ def resolve(
         if defense.outcome is Outcome.CRITICAL_FAILURE and selected == "dodge":
             target = target.model_copy(update={"posture": "prone"})
     if hits and defense is not None and not defense.outcome.succeeded and second_value is not None:
+        from wayfarer.orchestration.object_combat import defense_stress
+
+        state, encounter = defense_stress(
+            play,
+            state,
+            encounter,
+            target.actor_id,
+            pending.id + ":second",
+            second_item,
+        )
+        target = target.model_copy(
+            update={
+                "ready_item_ids": tuple(
+                    i.id
+                    for i in state.resources.items
+                    if i.owner_id == target.actor_id and i.equipped and i.ready
+                )
+            }
+        )
+        try:
+            second_value, second_item = defense_value(
+                play,
+                state,
+                target,
+                second_defense or "none",
+                second_item,
+            )
+            if weapon.thrown and second_defense == "parry" and second_value:
+                second_value = DerivedValue(second_value.target, second_value.value - penalty, ())
+        except ValidationError:
+            second_value = None
+    if hits and defense is not None and not defense.outcome.succeeded and second_value is not None:
         second_trace = success_roll(equipment.profile_id, int(second_value.value), rng=play.rng)
         if second_trace.outcome.succeeded:
             avoided = (
@@ -596,6 +664,17 @@ def resolve(
             target = target.model_copy(update={"block_used": True})
         if second_trace.outcome is Outcome.CRITICAL_FAILURE and second_defense == "dodge":
             target = target.model_copy(update={"posture": "prone"})
+    from wayfarer.orchestration.object_combat import intercepted_projectiles
+
+    shield_hit, shield_impacts = intercepted_projectiles(
+        play,
+        state,
+        encounter,
+        second_trace or defense,
+        second_defense if second_trace else selected,
+        initial_hits,
+    )
+    impacts = hits + shield_impacts
     dropped = {
         equipment_id
         for choice, roll, equipment_id in (
@@ -752,7 +831,7 @@ def resolve(
     half = weapon.half_damage_range is not None and scene.distance_yards >= float(
         weapon.half_damage_range
     ) * (range_st if weapon.range_basis == "st" else 1)
-    for index in range(hits if blocked is None else 0):
+    for index in range(impacts if blocked is None else 0):
         if index and pending.hit_location == "random":
             from wayfarer.orchestration.location_combat import from_behind
 
@@ -790,6 +869,38 @@ def resolve(
         )
         if half:
             damage //= 2
+        from wayfarer.orchestration.object_combat import damage_target, shield_damage
+
+        if pending.target_item_id:
+            state, encounter, object_result = damage_target(
+                play,
+                state,
+                encounter,
+                pending.target_item_id,
+                damage,
+                weapon.damage,
+                impact=index,
+            )
+            damages.append(damage)
+            injuries.append(0)
+            hit_resistances[-1] = object_result.effective_dr if object_result else 0
+            if object_result:
+                effect_dice += tuple(d for roll in object_result.checks for d in roll)
+            continue
+        if shield_hit and index < shield_impacts:
+            state, encounter, damage = shield_damage(
+                play,
+                state,
+                encounter,
+                shield_hit,
+                damage,
+                weapon,
+                impact=index,
+            )
+            if damage == 0:
+                damages.append(0)
+                injuries.append(0)
+                continue
         resources, result = apply_injury(
             state.resources,
             Wound(
@@ -843,7 +954,7 @@ def resolve(
         injuries.append(result.injury)
         lasting_ids += result.lasting_injury_ids
         effect_dice += result.location_dice
-    if critical == 12 and not head and blocked is None:
+    if critical == 12 and not head and blocked is None and not pending.target_item_id:
         state = state.model_copy(
             update={
                 "resources": state.resources.model_copy(
@@ -858,7 +969,7 @@ def resolve(
                 )
             }
         )
-    if head and critical == 14 and blocked is None:
+    if head and critical == 14 and blocked is None and not pending.target_item_id:
         held_weapons = tuple(
             i.id
             for i in state.resources.items
@@ -948,7 +1059,7 @@ def resolve(
         shots_fired=shots_fired,
         malfunction_table=malfunction_table,
         malfunction=failure.kind if failure is not None else None,
-        hits=hits,
+        hits=impacts,
         per_hit_damage=tuple(damages),
         per_hit_injury=tuple(injuries),
         per_hit_resistance=tuple(hit_resistances) if pending.shots > 1 else (),

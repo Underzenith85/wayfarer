@@ -49,7 +49,13 @@ def captive(state: PlayState, actor_id: str) -> Captivity | None:
 
 
 def guard(state: PlayState, actor_id: str, kind: str, *, allow_fright: bool = False) -> None:
+    from wayfarer.orchestration.equipment_retrieval import tasks as retrievals
     from wayfarer.simulation.object_repairs import tasks
+
+    if kind not in ("question", "wait", "retrieve_equipment") and any(
+        t.actor_id == actor_id and t.status == "pending" for t in retrievals(state.resources)
+    ):
+        raise ConflictError("Finish or cancel equipment retrieval before acting")
 
     if kind not in ("question", "wait", "repair_equipment") and any(
         t.actor_id == actor_id and t.status == "pending" for t in tasks(state.resources)

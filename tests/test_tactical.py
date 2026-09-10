@@ -30,6 +30,7 @@ from wayfarer.orchestration.tactical_view import TacticalSnapshot, snapshot
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.rules.conformance import BASELINE_ID
+from wayfarer.rules.object_types import ObjectProfile
 from wayfarer.simulation.access import CampaignMember
 from wayfarer.simulation.combat import CombatResult, GridPoint, RangedSituation
 from wayfarer.simulation.hex_geometry import Cell, Hex, HexBattlefield, Pose
@@ -38,7 +39,11 @@ from wayfarer.world import Fact
 
 
 async def setup(
-    tmp_path: Path, *, unarmed: bool = False, migrate: bool = True
+    tmp_path: Path,
+    *,
+    unarmed: bool = False,
+    migrate: bool = True,
+    durability: ObjectProfile | None = None,
 ) -> tuple[str, PlayService]:
     if unarmed:
         cid, play = await unarmed_setup(tmp_path, third_actor=True)
@@ -49,6 +54,7 @@ async def setup(
             human=True,
             third_actor=True,
             ranged_fixture=True,
+            durability=durability,
             ranged_scene=(RangedSituation(attacker_id="a", defender_id="b", distance_yards=9),),
         )
 
@@ -148,7 +154,10 @@ async def view(
         f"{url}?actor_id={actor}", headers={"Authorization": f"Bearer {principal}-token"}
     ) as response:
         assert response.status == 200, await response.text()
-        return TacticalSnapshot.model_validate_json(await response.text())
+        from wayfarer.orchestration.equipment_view import TacticalSnapshotV2
+
+        model = TacticalSnapshotV2 if "/v2/" in url else TacticalSnapshot
+        return model.model_validate_json(await response.text())
 
 
 async def wait(cid: str, play: PlayService, actor: str) -> None:
@@ -717,3 +726,81 @@ async def test_unarmed_wait_declaration_is_a_v2_only_request_option(
     assert next(p for p in struck.resources.pools if p.id == "hp:a").current == 8
     ready = struck.encounters[0].wait_interrupt
     assert ready is not None and ready.ready
+
+
+async def test_v2_equipment_view_and_object_attack_use_authenticated_authority(
+    tmp_path: Path,
+) -> None:
+    cid, play = await setup(
+        tmp_path, durability=ObjectProfile(construction="homogenous", hp=12, dr=2, ht=12)
+    )
+    app = create_campaign_app(
+        CampaignAccess(play), {"alice-token": "alice", "bob-token": "bob"}, legacy_routes=True
+    )
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "127.0.0.1", 0)
+    await site.start()
+    root = f"http://127.0.0.1:{runner.addresses[0][1]}"
+    url = f"{root}/api/tactical/v2/campaigns/{cid}"
+    try:
+        async with aiohttp.ClientSession() as client:
+            async with client.get(
+                url, params={"actor_id": "a"}, headers={"Authorization": "Bearer alice-token"}
+            ) as response:
+                assert response.status == 200
+                data = await response.json()
+            assert all(item["id"].endswith("-a") for item in data["equipment"])
+            command = next(
+                c["command"]
+                for c in data["encounters"][0]["choices"]
+                if c["command"].get("target_item_id") == "sword-b"
+            )
+            async with client.post(
+                url + "/commands",
+                json={"command": command},
+                headers={"Authorization": "Bearer bob-token"},
+            ) as response:
+                assert response.status == 403
+            async with client.post(
+                url + "/commands",
+                json={"command": command},
+                headers={"Authorization": "Bearer alice-token"},
+            ) as response:
+                assert response.status == 200, await response.text()
+            async with client.get(
+                url, params={"actor_id": "b"}, headers={"Authorization": "Bearer bob-token"}
+            ) as response:
+                defense = next(
+                    c["command"]
+                    for c in (await response.json())["encounters"][0]["choices"]
+                    if c["command"].get("defense") == "none"
+                )
+            play.rng = RecordedDice([3, 3, 3, 2])
+            async with client.post(
+                url + "/commands",
+                json={"command": defense},
+                headers={"Authorization": "Bearer bob-token"},
+            ) as response:
+                assert response.status == 200, await response.text()
+                after = await response.json()
+            sword = next(i for i in after["equipment"] if i["id"] == "sword-b")
+            assert sword["condition"]["hp"] == 11
+            state = play._load(await play.store.read(cid))
+            assert next(p.current for p in state.resources.pools if p.id == "hp:b") == 10
+            play.rng = RecordedDice([])
+            async with client.post(
+                url + "/commands",
+                json={"command": defense},
+                headers={"Authorization": "Bearer bob-token"},
+            ) as response:
+                assert response.status == 200
+                assert await response.json() == after
+            async with client.get(
+                url.replace("/v2/", "/v1/"),
+                params={"actor_id": "b"},
+                headers={"Authorization": "Bearer bob-token"},
+            ) as response:
+                assert "equipment" not in await response.json()
+    finally:
+        await runner.cleanup()

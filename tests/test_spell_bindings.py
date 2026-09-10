@@ -29,7 +29,7 @@ from wayfarer.rules.gurps_magic import definitions
 from wayfarer.rules.spell_catalog import projectile_definition
 from wayfarer.simulation.actions import ActionEngine, ActionRules, ActorSetup, Wait
 from wayfarer.simulation.combat import Battlefield, CombatRules, GridPoint, Placement
-from wayfarer.simulation.gurps_equipment import EquipmentCatalog
+from wayfarer.simulation.gurps_equipment import EquipmentCatalog, EquipmentProfile
 from wayfarer.simulation.injury import Wound, apply_injury
 from wayfarer.simulation.resources import ResourceEngine
 from wayfarer.simulation.spell_bindings import BackfireAlternative, SpellChannel, SpellRules
@@ -86,6 +86,7 @@ async def setup(
     alternatives: tuple[BackfireAlternative, ...] = (),
     mana: Literal["none", "low", "normal", "high", "very-high"] = "normal",
     reserve: bool = False,
+    equipment: tuple[EquipmentProfile, ...] = (),
 ) -> tuple[str, PlayService]:
     fixture_world, fixture_resources = world(), resources()
     if reserve:
@@ -104,11 +105,61 @@ async def setup(
             }
         )
     compiled = compiler()
-    package = profile_package(PROFILE, *definitions(), projectile_definition())
+    from wayfarer.rules.catalog import DefinitionKind, ImplementationStatus, RuleDefinition
+    from wayfarer.rules.object_types import ObjectCondition
+    from wayfarer.simulation.resources import Item
+
+    package = profile_package(
+        PROFILE,
+        *definitions(),
+        projectile_definition(),
+        *(
+            RuleDefinition(
+                e.definition_id,
+                DefinitionKind.EQUIPMENT,
+                e.definition_id,
+                "sjg:basic-set-characters-4e-2004",
+                0,
+                ImplementationStatus.IMPLEMENTED,
+            )
+            for e in equipment
+        ),
+    )
+    if equipment:
+        base = profile_compiler(PROFILE, package=package)
+        compiled = CharacterCompiler(
+            RulesCatalog((package,)),
+            base.rules,
+            replace(
+                base.policy,
+                allow_supernatural=True,
+                allowed_equipment=frozenset(e.definition_id for e in equipment),
+            ),
+            statistics_profile=PROFILE,
+        )
+    fixture_resources = fixture_resources.model_copy(
+        update={
+            "items": tuple(
+                Item(
+                    id=f"target-{n}",
+                    definition_id=e.definition_id,
+                    owner_id="b",
+                    equipped=True,
+                    ready=True,
+                    condition=ObjectCondition(hp=e.durability.hp) if e.durability else None,
+                )
+                for n, e in enumerate(equipment)
+            )
+        }
+    )
     engine = ActionEngine(
         PowerReviewer(compiled, PowerPolicy(id="power", version=1), frozenset({"gm"})),
         ResourceEngine(
-            fixture_world, RulesCatalog((package,)), compiled.rules, compiled.policy, ()
+            fixture_world,
+            RulesCatalog((package,)),
+            compiled.rules,
+            compiled.policy,
+            tuple(e.inventory_spec() for e in equipment),
         ),
         ActionRules(
             id="spells",
@@ -117,7 +168,7 @@ async def setup(
                 id="arena",
                 version=1,
                 battlefields=(Battlefield(id="room", location_id="room", width=5, height=5),),
-                gurps_equipment=EquipmentCatalog(profile_id=PROFILE, entries=()),
+                gurps_equipment=EquipmentCatalog(profile_id=PROFILE, entries=equipment),
             )
             if combat
             else None,

@@ -158,6 +158,21 @@ class RepairEquipment(CombatCommand):
     task_id: Id | None = None
 
 
+class RetrieveEquipment(CombatCommand):
+    kind: Literal["retrieve_equipment"] = "retrieve_equipment"
+    encounter_id: Id
+    item_id: Id
+    stage: Literal["start", "finish", "cancel"]
+    task_id: Id | None = None
+
+
+class ContinueCriticalMiss(CombatCommand):
+    kind: Literal["continue_critical_miss"] = "continue_critical_miss"
+    encounter_id: Id
+    critical_id: Id
+    stage: Literal["migrate", "resume"]
+
+
 TypedCombatCommand = Annotated[
     StartEncounter
     | TakeCombatTurn
@@ -168,6 +183,8 @@ TypedCombatCommand = Annotated[
     | TakeUnarmedTurn
     | ResolveChokeEffects
     | RepairEquipment
+    | RetrieveEquipment
+    | ContinueCriticalMiss
     | MigrateEncounterHex,
     # Migration is explicit and uses the same receipt and CAS as combat commands.
     Field(discriminator="kind"),
@@ -213,9 +230,9 @@ class CombatService:
         engine = self.play.engine.combat
         if engine is None:
             raise ValidationError("Campaign combat is not configured")
-        if isinstance(command, (StartEncounter, EndEncounter, MigrateEncounterHex)) and (
-            command.actor_id not in self.play.engine.reviewer.gm_ids
-        ):
+        if isinstance(
+            command, (StartEncounter, EndEncounter, MigrateEncounterHex, ContinueCriticalMiss)
+        ) and (command.actor_id not in self.play.engine.reviewer.gm_ids):
             raise ValidationError("Encounter lifecycle requires GM authority")
         payload = json.dumps(
             {"operation": "combat", "command": command.model_dump(mode="json")},
@@ -503,6 +520,46 @@ class CombatService:
                     result = CombatResult(
                         encounter_id=encounter.id,
                         code="combat.hex_migrated",
+                        round=encounter.round,
+                        current_actor_id=encounter.current_actor_id,
+                    )
+                elif isinstance(command, ContinueCriticalMiss):
+                    from wayfarer.orchestration.critical_continuation import continue_critical
+
+                    state, encounter, continuation = continue_critical(
+                        self.play,
+                        state,
+                        encounter,
+                        critical_id=command.critical_id,
+                        command_id=command.id,
+                        stage=command.stage,
+                    )
+                    resources = state.resources
+                    result = CombatResult(
+                        encounter_id=encounter.id,
+                        code="critical." + continuation.status,
+                        round=encounter.round,
+                        current_actor_id=encounter.current_actor_id,
+                    )
+                elif isinstance(command, RetrieveEquipment):
+                    from wayfarer.orchestration.equipment_retrieval import (
+                        retrieve as retrieve_field,
+                    )
+
+                    state, retrieval_task = retrieve_field(
+                        self.play,
+                        state,
+                        encounter,
+                        actor_id=command.actor_id,
+                        item_id=command.item_id,
+                        command_id=command.id,
+                        stage=command.stage,
+                        task_id=command.task_id,
+                    )
+                    resources = state.resources
+                    result = CombatResult(
+                        encounter_id=encounter.id,
+                        code="equipment.retrieval_" + retrieval_task.status,
                         round=encounter.round,
                         current_actor_id=encounter.current_actor_id,
                     )
@@ -868,6 +925,16 @@ class CombatService:
                         allowed = not (
                             started_hp.injury.incapacitated or started_hp.injury.stunned or forced
                         )
+                        from wayfarer.orchestration.object_combat import worn_stress
+
+                        state, encounter = worn_stress(
+                            self.play,
+                            state,
+                            encounter,
+                            command.actor_id,
+                            command.id,
+                        )
+                        resources = state.resources
                         if allowed and command.maneuver != "do_nothing" and not resuming:
                             state, allowed = exertion(
                                 self.play, state, command.actor_id, command.id
@@ -1157,9 +1224,18 @@ class CombatService:
                             )
                             if not allowed:
                                 selected_defense = "none"
+                        from wayfarer.orchestration.object_combat import worn_stress
+
+                        state, encounter = worn_stress(
+                            self.play,
+                            state,
+                            encounter,
+                            command.actor_id,
+                            command.id,
+                        )
                         if selected_defense != "none":
                             from wayfarer.orchestration.gurps_melee import defense_value
-                            from wayfarer.orchestration.object_combat import stress
+                            from wayfarer.orchestration.object_combat import defense_stress
 
                             participant = next(
                                 p for p in encounter.participants if p.actor_id == command.actor_id
@@ -1172,17 +1248,18 @@ class CombatService:
                                 command.item_id,
                                 parry_mode_id=command.parry_mode_id,
                             )
-                            if used:
-                                state, encounter = stress(
-                                    self.play,
-                                    state,
-                                    encounter,
-                                    command.actor_id,
-                                    command.id,
-                                    (used,),
-                                )
-                                if not any(i.id == used and i.ready for i in state.resources.items):
-                                    selected_defense = "none"
+                            state, encounter = defense_stress(
+                                self.play,
+                                state,
+                                encounter,
+                                command.actor_id,
+                                command.id,
+                                used,
+                            )
+                            if used and not any(
+                                i.id == used and i.ready for i in state.resources.items
+                            ):
+                                selected_defense = "none"
                         state, encounter, injury = resolve_melee(
                             self.play,
                             state,

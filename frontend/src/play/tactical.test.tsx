@@ -8,7 +8,7 @@ import {
 } from "../api/tactical";
 import { TacticalPanel } from "./tactical";
 
-const command: TacticalCommand = {
+const command: Extract<TacticalCommand, { kind: "choose_defense" }> = {
   kind: "choose_defense",
   id: "same-receipt",
   actor_id: "a",
@@ -19,9 +19,12 @@ const command: TacticalCommand = {
   second_defense: null,
   second_item_id: null,
   retreat: null,
+  parry_mode_id: null,
+  second_parry_mode_id: null,
 };
 const snapshot: TacticalSnapshot = {
-  version: "tactical-v1",
+  equipment: [],
+  version: "tactical-v2",
   campaign_id: "campaign",
   actor_id: "a",
   revision: 4,
@@ -98,6 +101,48 @@ describe("Tactical panel", () => {
     expect(button).toHaveFocus();
     fireEvent.click(button);
     await waitFor(() => expect(client.writes).toHaveBeenCalledWith(command));
+  });
+  it("shows ground equipment and submits the recorded retrieval choice", async () => {
+    const client = new FakeClient();
+    const retrieval: TacticalCommand = {
+      kind: "retrieve_equipment",
+      id: "retrieve",
+      actor_id: "a",
+      expected_revision: 4,
+      encounter_id: "fight",
+      item_id: "sword",
+      stage: "start",
+      task_id: null,
+    };
+    const equipped = structuredClone(snapshot);
+    equipped.equipment = [
+      {
+        id: "sword",
+        name: "Sword",
+        condition: null,
+        ground: { encounter_id: "fight", geometry: "hex", x: -6, y: 0 },
+        work: null,
+        due_in: null,
+        choices: [{ label: "Start retrieval", command: retrieval }],
+      },
+    ];
+    client.reads.mockResolvedValue(equipped);
+    render(
+      <TacticalPanel
+        client={client}
+        cid="campaign"
+        actor="a"
+        onChange={async () => {}}
+      />,
+    );
+    const button = await screen.findByRole("button", {
+      name: "Start retrieval",
+    });
+    expect(screen.getByText(/Ground \(-6, 0\)/)).toBeVisible();
+    button.focus();
+    expect(button).toHaveFocus();
+    fireEvent.click(button);
+    await waitFor(() => expect(client.writes).toHaveBeenCalledWith(retrieval));
   });
   it("retains the exact command after a lost response and blocks new commands", async () => {
     const client = new FakeClient();

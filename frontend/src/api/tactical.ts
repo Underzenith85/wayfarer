@@ -1,16 +1,16 @@
 import createClient from "openapi-fetch";
 import { Ajv2020 } from "ajv/dist/2020";
 import addFormats from "ajv-formats";
-import document from "../../../contracts/tactical/v1/openapi.json";
-import type { paths, components } from "./tactical.generated";
+import document from "../../../contracts/tactical/v2/openapi.json";
+import type { paths, components } from "./tactical-v2.generated";
 
-export type TacticalSnapshot = components["schemas"]["TacticalSnapshot"];
+export type TacticalSnapshot = components["schemas"]["TacticalSnapshotV2"];
 export type TacticalCommand =
-  components["schemas"]["TacticalRequest"]["command"];
+  components["schemas"]["TacticalRequestV2"]["command"];
 const ajv = new Ajv2020({ strict: false });
 addFormats(ajv);
 const validate = ajv.compile<TacticalSnapshot>({
-  $ref: "#/components/schemas/TacticalSnapshot",
+  $ref: "#/components/schemas/TacticalSnapshotV2",
   components: document.components,
 });
 export function parseTactical(value: unknown): TacticalSnapshot {
@@ -23,7 +23,7 @@ export class TacticalClient {
   private client;
   constructor(origin: string, credential: string) {
     this.client = createClient<paths>({
-      baseUrl: `${origin}/api/tactical/v1`,
+      baseUrl: `${origin}/api/tactical/v2`,
       headers: { Authorization: `Bearer ${credential}` },
     });
   }
