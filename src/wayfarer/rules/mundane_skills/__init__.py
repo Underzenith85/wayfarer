@@ -24,6 +24,7 @@ from wayfarer.rules.catalog import (
 from wayfarer.rules.gurps_characters import source
 from wayfarer.rules.mundane_skills.ranged import PROCEDURES as RANGED_PROCEDURES
 from wayfarer.rules.mundane_skills.schema import Exclusion, Exclusions, InventoryRow, SourceIndex
+from wayfarer.rules.mundane_skills.technology import PROCEDURES as TECHNOLOGY_PROCEDURES
 from wayfarer.rules.skill_types import ControllingAttribute as A
 from wayfarer.rules.skill_types import (
     SkillDefault,
@@ -37,6 +38,9 @@ PROFILE = "gurps-basic-set-4e-2004"
 SOURCE = source(PROFILE)
 OWNER = 112
 CONTEXT_OWNER = 336
+# One runtime binding per procedure group. A row bound by two groups would let
+# either one claim it, so overlap is rejected rather than resolved by order.
+BINDINGS = (RANGED_PROCEDURES, TECHNOLOGY_PROCEDURES)
 
 
 class StructuralClass(StrEnum):
@@ -298,7 +302,10 @@ def inventory() -> tuple[SkillAudit, ...]:
         if definition is None:
             blockers.append("metadata-audit")
         dispatch: str | None = None
-        procedure = RANGED_PROCEDURES.get(identifier)
+        bound = [group[identifier] for group in BINDINGS if identifier in group]
+        if len(bound) > 1:
+            raise ValidationError(f"Row is bound by more than one procedure group: {identifier}")
+        procedure = bound[0] if bound else None
         transferred: tuple[tuple[str, tuple[int, ...]], ...] = ()
         if procedure is not None:
             # A binding may only resolve or keep the blockers this inventory
@@ -314,7 +321,7 @@ def inventory() -> tuple[SkillAudit, ...]:
             transferred = tuple(procedure.transferred.items())
             if procedure.dispatchable:
                 definition = procedure.definition()
-                dispatch = "combat.ranged-attack"
+                dispatch = procedure.dispatch
         result.append(
             SkillAudit(
                 identifier,

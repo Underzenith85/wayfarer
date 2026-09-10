@@ -36,6 +36,7 @@ from wayfarer.rules.skill_types import SkillDefault, SkillSpec, Specialty
 PROFILE: Final = "gurps-basic-set-4e-2004"
 OWNER: Final = 344
 CAPABILITIES: Final = ("gurps.combat.ranged_attack", "gurps.combat.ranged_weapon_skills")
+DISPATCH: Final = "combat.ranged-attack"
 RUNTIME_PROCEDURE: Final = "runtime-procedure"
 SPECIALTY_EXPANSION: Final = "specialty-expansion"
 CONDITIONAL_DEFAULTS: Final = "conditional-or-skill-defaults"
@@ -106,6 +107,10 @@ class RangedProcedure:
         return self.implemented and self.weapon is not None
 
     @property
+    def dispatch(self) -> str | None:
+        return DISPATCH if self.dispatchable else None
+
+    @property
     def reference(self) -> str:
         return f"B{self.page}"
 
@@ -128,7 +133,7 @@ class RangedProcedure:
             source(PROFILE).id,
             None,
             ImplementationStatus.IMPLEMENTED,
-            hooks=("character.gurps-skill", "combat.ranged-attack"),
+            hooks=("character.gurps-skill", DISPATCH),
             skill=self.spec(),
         )
 

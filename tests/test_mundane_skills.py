@@ -259,7 +259,7 @@ def test_structural_classes_are_recorded_and_completely_sampled() -> None:
     assert all(e.structural_classes for e in entries.values())
     assert entries["skill:neck-snap"].implementation == "listing-only"
     assert entries["skill:accounting"].implementation == "unsupported"
-    assert sum(e.implementation == "listing-only" for e in entries.values()) == 32
+    assert sum(e.implementation == "listing-only" for e in entries.values()) == 28
 
 
 def test_unsampled_or_unclassified_rows_are_rejected() -> None:
@@ -307,7 +307,9 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         346,
         354,
         355,
+        356,
         357,
+        358,
         359,
         360,
         361,
@@ -334,7 +336,9 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         346,
         354,
         355,
+        356,
         357,
+        358,
         359,
         360,
         361,
@@ -342,12 +346,12 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     ]
     assert report["runtime_owner_unassigned"] == 0
     assert report["implementation_counts"] == {
-        "implemented": 12,
-        "listing-only": 32,
-        "unsupported": 249,
+        "implemented": 95,
+        "listing-only": 28,
+        "unsupported": 209,
     }
     counts = report["structural_class_counts"]
-    assert isinstance(counts, dict) and counts["listing-only"] == 32
+    assert isinstance(counts, dict) and counts["listing-only"] == 28
 
 
 def test_excluded_skills_remain_owned_by_the_catalog_that_carries_them() -> None:
@@ -393,7 +397,7 @@ def test_independent_source_index_accounts_for_every_listing() -> None:
     assert len([e for e in index.entries if e.kind == "skill"]) == 275
     assert len([e for e in index.entries if e.kind == "technique"]) == 27
     # #344 expands the Thrown Weapon family into seven concrete specialties.
-    assert len([e for e in index.entries if e.kind == "expansion"]) == 18
+    assert len([e for e in index.entries if e.kind == "expansion"]) == 57
     assert indexed_expansions(index, "thrown-weapon") == 7
     indexed = {e.id: e for e in index.entries}
     assert indexed["brain-hacking"].page == 182
