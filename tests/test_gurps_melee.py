@@ -83,6 +83,8 @@ async def setup(
     attacker_weight: int | None = None,
     melee_modes: tuple[MeleeMode, ...] | None = None,
     parry_quality: Literal["cheap", "good", "fine", "very-fine"] | None = None,
+    physical_purchases: tuple[Purchase, ...] = (),
+    darkness_penalty: int = 0,
 ) -> tuple[str, PlayService]:
     equipment = EquipmentCatalog(
         profile_id=profile,
@@ -363,6 +365,17 @@ async def setup(
     package = profile_package(
         profile, *extras, *((definition(ability),) if ability_defense else ())
     )
+    from wayfarer.rules.physical_traits import PHYSICAL_HOOKS
+
+    if physical_purchases:
+        from wayfarer.rules.mundane_traits import candidate_package
+
+        physical = candidate_package()
+        package = replace(
+            package,
+            sources=package.sources + physical.sources,
+            definitions=package.definitions + physical.definitions,
+        )
     if critical_breakage is not None:
         from wayfarer.rules.object_types import ObjectProfile
 
@@ -407,6 +420,8 @@ async def setup(
         statistics_profile=profile,
         trait_runtime_hooks=frozenset({"ability:damage-resistance", "ability:fatigue"})
         if ability_defense
+        else PHYSICAL_HOOKS
+        if physical_purchases
         else frozenset(),
     )
     reviewer = PowerReviewer(
@@ -426,7 +441,11 @@ async def setup(
     combat = CombatRules(
         id="gurps-melee",
         version=1,
-        battlefields=(Battlefield(id="dock", location_id="dock", width=4, height=4),),
+        battlefields=(
+            Battlefield(
+                id="dock", location_id="dock", width=4, height=4, darkness_penalty=darkness_penalty
+            ),
+        ),
         gurps_equipment=equipment,
     )
     engine = ActionEngine(
@@ -479,6 +498,7 @@ async def setup(
             proposal=CharacterProposal(
                 draft=gurps_draft(
                     *purchases,
+                    *(physical_purchases if a == "b" else ()),
                     *(
                         (
                             Purchase(

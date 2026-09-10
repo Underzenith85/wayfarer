@@ -21,7 +21,7 @@ totals or manufacture activation approvals.
 ## Executable effects and coverage matrix
 
 Construction cost and executable effect stay separate. `mundane_traits.runtime`
-binds effects to existing authoritative services. Fifteen records have selected
+binds effects to existing authoritative services. Twenty-seven records have selected
 runtime bindings; this does not certify every rule or variant of those traits.
 
 | Selected records | Bound effect | Reference | Remaining owner |
@@ -48,12 +48,11 @@ consequences are not implemented. Reputation records name concrete details;
 these two selected constructions do not approximate class-scoped prices or
 recognition-frequency discounts.
 
-The other 50 records remain unavailable. Every record carries source owner #191;
+The other 38 records remain unavailable. Every record carries source owner #191;
 concrete runtime follow-ups are exported directly to the source audit:
 
 | Follow-up | Selected outstanding scope |
 | --- | --- |
-| #332 | Physical, combat, sensing, fatigue and healing effects/prerequisites |
 | #333 | Mental and behavioral effects, manual obligations and relationships |
 | #334 | Wealth, Status/Rank, language and culture interactions/constructions |
 | #335 | Appearance and reputation variants; Voice influence-skill bonuses |
@@ -65,7 +64,7 @@ or a priced construction never counts as complete runtime coverage.
 
 ## Pins, provenance and evidence
 
-Candidate version 0.2.0 adds the standing constructions. No registry profile or
+Candidate version 0.3.0 adds physical bindings after the 0.2.0 standing constructions. No registry profile or
 saved package pin is changed, and the package remains separate from frozen
 profiles. Campaigns without its explicit runtime hooks cannot activate these
 purchases. Public v1 contracts are unchanged.
@@ -79,3 +78,50 @@ exclusions, template totals, unavailable effects, modifier values and audiences,
 duplicate-source rejection, approved-build dispatch, hidden-source preservation
 and receipt replay without re-resolving or consuming dice. Expected numeric
 values are literals from the selected source pages, not generated from bindings.
+
+## Physical trait execution (#332)
+
+Candidate version **0.3.0** binds all 12 selected physical records, bringing the
+selected inventory to **27 bound records and 38 unavailable records**. The earlier
+0.2.0 standing scope above remains supported. Physical records retain #191 as a
+source-certification blocker; #332 is no longer an unimplemented runtime owner.
+
+| Records | Executable effects | Numeric reference |
+| --- | --- | --- |
+| Ambidexterity | Off-hand checks avoid the -4 penalty; existing two-weapon commitments remove only off-hand penalties and grant no extra attacks | B39 |
+| Combat Reflexes | +1 armed/unarmed active defenses; +1 Fast-Draw; +2 Fright Checks; +6 IQ waking, surprise and mental-stun recovery; side initiative +1/+2, no total-surprise freeze | B43, B393 |
+| Fit / Very Fit | +1/+2 HT rolls without changing HT or HT-based skills; five-minute ordinary FP recovery; Very Fit halves physical fatigue loss with durable fractional accounting | B55, B426-427 |
+| High Pain Threshold | No injury shock; +3 knockdown/stunning resistance and physical-torture resistance, without reducing damage | B59, B420 |
+| Night Vision | Cancels up to its level of partial-darkness attack/vision penalty, never the -10 for total darkness | B71 |
+| Acute Hearing, Taste/Smell, Touch, Vision | +1 per level only to the selected Sense roll | B35 |
+| Rapid / Very Rapid Healing | +5 natural-healing and crippling-duration HT checks; Very Rapid doubles natural HP healed; compiled HT 10/12 prerequisites | B79, B424 |
+
+`PhysicalTraits` is a server-derived projection stored with HP. Initial resource
+seeds cannot inject it; every loaded checkpoint compares it against the compiled
+purchases and exact implemented hooks. Advancement updates it without healing
+existing damage. Fitness changes require full FP and settled recovery so prior
+fatigue cannot be reclassified. Unsupported profiles and unbound definitions
+cannot supply this projection.
+
+The existing injury, fatigue, medical, hazard, fright and combat reducers consume
+it. Recovery tasks snapshot their rate and HT/healing bonuses, preserving earned
+partial rest and replay across restarts. Power-spent FP is tracked separately:
+neither its cost nor recovery is improved by fitness. Very-high-mana refunds
+reduce that same debt. First Aid and Physician skills do not receive healing
+trait bonuses; short-term stun/knockout recovery does not receive Rapid Healing.
+
+`PhysicalCheckService` binds server-authored triggers for Sense, waking,
+Fast-Draw, physical torture, off-hand and ordinary HT checks. Targets come from
+approved attributes/skills and the projected trait. `SurpriseService` determines
+side initiative and applies total/partial surprise before the first combat turn;
+recovery runs at the start of existing injury turns. Both use the existing CAS
+boundary, preserve receipts and keep detailed rolls in private resource events.
+
+Battlefields may declare a bounded `darkness_penalty` (default zero), pinned into
+the encounter. The authoring/scenario schemas explicitly include this additive
+field and persisted physical state; generated schemas were regenerated and
+reviewed. Frozen `/api/v1` play operations and fixtures are unchanged. The new
+check/surprise adapters are internal APIs, not new player-supplied rule contexts.
+
+Independent evidence is in `tests/test_physical_traits.py`, alongside existing
+injury, recovery, melee, ranged, unarmed, fright and schema conformance suites.

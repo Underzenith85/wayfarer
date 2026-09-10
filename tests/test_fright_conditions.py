@@ -194,3 +194,33 @@ def test_b365_move_and_attack_cap_is_after_condition_penalties(
     maneuver = ManeuverState(attack_bonus=-4, attack_cap=9)
     base = attack_modifier(maneuver, "target", skill, check_adjustment=penalty)
     assert base + penalty == expected
+
+
+@pytest.mark.parametrize(
+    "trait,kind,expected", [("acute-vision", "sense", 9), ("very-fit", "ht", 10)]
+)
+async def test_aftermath_combines_with_new_physical_trait_checks(
+    tmp_path: Path, trait: str, kind: Literal["sense", "ht"], expected: int
+) -> None:
+    import json
+
+    from test_mundane_trait_runtime import prepare
+
+    from wayfarer.character.compiler import Purchase
+    from wayfarer.orchestration.physical_checks import (
+        PhysicalCheck,
+        PhysicalCheckCommand,
+        PhysicalCheckService,
+    )
+
+    cid, play = await prepare(tmp_path, Purchase(definition_id="trait:" + trait))
+    await aftermath(cid, play)
+    service = PhysicalCheckService(play, lambda *_: PhysicalCheck(kind))
+    command = PhysicalCheckCommand(
+        id="observe", actor_id="a", expected_revision=1, trigger_id="scene-check"
+    )
+    await service.execute(cid, command, gm_id="gm")
+    state = play._load(await play.store.read(cid))
+    event = next(e for e in state.resources.events if e.id.startswith("physical-check:"))
+    assert json.loads(event.kind)["effective_target"] == expected
+    assert await play.store.read(cid) == await play.store.replay(cid)

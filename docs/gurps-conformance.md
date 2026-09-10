@@ -421,7 +421,13 @@ initiator's build (#113), so declaring them twice cannot double-count. Selected
 Appearance and Reputation entries also bind through approved purchases (#113);
 authored values for a purchased source reject. See the
 [selected inventory](gurps-mundane-traits.md) for costs, runtime boundaries and
-concrete coverage blockers #332–#335.
+concrete coverage blockers #333–#335.
+
+Issue #332 binds the selected physical traits to combat, sense checks, surprise,
+fatigue and natural recovery. Approved package pins determine the immutable
+projection; private receipts and replay retain the existing transaction boundary.
+See the [physical coverage matrix](gurps-mundane-traits.md#physical-trait-execution-332)
+for numeric expectations, timing behavior and source-certification limits.
 
 Standing the observer cannot perceive contributes nothing, a reputation whose
 class is absent is never rolled for, and every unrecognized value fails closed.

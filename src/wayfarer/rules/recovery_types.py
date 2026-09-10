@@ -19,6 +19,8 @@ class FatigueStatus(BaseModel):
     unconscious: bool = False
     heart_attack: bool = False
     heart_attack_deadline: int | None = Field(default=None, ge=0)
+    power: int = Field(default=0, ge=0, exclude_if=lambda v: v == 0)
+    half_paid: bool = Field(default=False, exclude_if=lambda v: not v)
     starvation: int = Field(default=0, ge=0)
     dehydration: int = Field(default=0, ge=0)
     sleep: int = Field(default=0, ge=0)
@@ -57,6 +59,10 @@ class RecoveryTask(BaseModel):
     ht: int = Field(default=10, ge=1)
     skill: int | None = Field(default=None, ge=1)
     treatment_modifier: int = 0
+    fp_interval: Literal[300, 600] = Field(default=600, exclude_if=lambda v: v == 600)
+    power_entitlement: int = Field(default=0, ge=0, exclude_if=lambda v: v == 0)
+    healing_bonus: int = Field(default=0, ge=0, exclude_if=lambda v: v == 0)
+    healing_rate: Literal[1, 2] = Field(default=1, exclude_if=lambda v: v == 1)
     ordinary_entitlement: int = Field(default=0, ge=0)
     starvation_entitlement: int = Field(default=0, ge=0)
     dehydration_entitlement: int = Field(default=0, ge=0)
@@ -73,7 +79,14 @@ def rest_entitlement(task: RecoveryTask, at: int | None = None) -> tuple[int, in
     end = min(task.due, task.interrupted_at if task.interrupted_at is not None else task.due)
     seconds = max(0, min(end, at if at is not None else end) - task.start)
     return (
-        min(task.ordinary_entitlement, seconds // 600),
+        min(task.ordinary_entitlement - task.power_entitlement, seconds // task.fp_interval)
+        + min(
+            task.power_entitlement,
+            max(
+                0, seconds - (task.ordinary_entitlement - task.power_entitlement) * task.fp_interval
+            )
+            // 600,
+        ),
         min(task.starvation_entitlement, 3 * (seconds // 86400)) if task.food else 0,
         task.dehydration_entitlement if task.water and seconds >= 86400 else 0,
         min(task.sleep_entitlement, 1 + (seconds - 28800) // 3600)

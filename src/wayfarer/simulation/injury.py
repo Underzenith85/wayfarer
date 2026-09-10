@@ -237,7 +237,11 @@ def apply_injury(
         score = stun_iq if reason == "stun-recovery" and stun_iq is not None else ht
         trace = success_roll(
             status.profile_id,
-            score + penalty,
+            score
+            + penalty
+            + status.physical_traits.injury_bonus(
+                reason, mental=reason == "stun-recovery" and stun_iq is not None
+            ),
             check_modifiers(
                 state,
                 command.actor_id,
@@ -416,6 +420,8 @@ def apply_injury(
             current -= injury
         if injury and not status.dead:
             shock = injury // max(1, pool.maximum // 10)
+            if status.physical_traits.high_pain_threshold:
+                shock = 0
             double_shock = double_shock or (
                 location == "groin"
                 and status.male_groin
@@ -557,6 +563,30 @@ def apply_injury(
             if status.stunned and not command.do_nothing:
                 raise ValidationError("Stunned actors must Do Nothing")
             status = status.model_copy(update={"phase": "acting", "turn": command.turn})
+            if status.surprise is not None:
+                surprise = status.surprise
+                if surprise.freeze_turns:
+                    status = status.model_copy(
+                        update={
+                            "surprise": surprise.model_copy(
+                                update={"freeze_turns": surprise.freeze_turns - 1}
+                            )
+                        }
+                    )
+                else:
+                    if stun_iq is None:
+                        raise ValidationError("Surprise recovery requires compiled IQ")
+                    recovered = check(
+                        "stun-recovery", surprise.attempts if surprise.partial else 0
+                    ).outcome.succeeded
+                    status = status.model_copy(
+                        update={
+                            "stunned": not recovered,
+                            "surprise": None
+                            if recovered
+                            else surprise.model_copy(update={"attempts": surprise.attempts + 1}),
+                        }
+                    )
             if (
                 current <= 0
                 and not status.incapacitated
@@ -568,7 +598,12 @@ def apply_injury(
         else:
             if status.phase != "acting" or command.turn != status.turn:
                 raise ValidationError("Injury turns must end once, after starting")
-            if status.stunned and not status.incapacitated and command.do_nothing:
+            if (
+                status.stunned
+                and status.surprise is None
+                and not status.incapacitated
+                and command.do_nothing
+            ):
                 if check("stun-recovery").outcome.succeeded:
                     status = status.model_copy(update={"stunned": False})
             status = status.model_copy(

@@ -340,12 +340,16 @@ def recover(
                 update={"due": min(recovery_due, item.next_care_due or recovery_due)}
             )
             return save(state, item, command_id), False
+    from wayfarer.simulation.physical_traits import physical_traits
+
+    traits = physical_traits(state, actor_id)
+    bonus = traits.fitness if effect.recovery_attribute == "ht" else 0
     check = (
         None
         if effect.recovery_attribute == "none"
         else success_roll(
             "gurps-basic-set-4e-2004",
-            item.recovery_target,
+            item.recovery_target + bonus,
             aftermath_modifiers(state, actor_id),
             rng=rng,
         )

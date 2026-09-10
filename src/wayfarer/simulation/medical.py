@@ -163,6 +163,9 @@ def accrue_rest(state: ResourceState, at: int) -> ResourceState:
         current = fp.current + sum(award)
         status = status.model_copy(
             update={
+                "power": max(
+                    0, status.power - max(0, award[0] - max(0, available[0] - status.power))
+                ),
                 "starvation": status.starvation - award[1],
                 "dehydration": status.dehydration - award[2],
                 "sleep": status.sleep - award[3],
@@ -262,7 +265,10 @@ def apply_recovery(
         if hp.injury.mortal_wound_due is None or state.game_time != hp.injury.mortal_wound_due:
             raise ValidationError("Mortal-wound survival check is not due")
         check = success_roll(
-            context.profile_id, context.ht, check_modifiers(state, target, "ht"), rng=rng
+            context.profile_id,
+            context.ht + hp.injury.physical_traits.fitness,
+            check_modifiers(state, target, "ht"),
+            rng=rng,
         )
         stabilized = check.outcome is Outcome.CRITICAL_SUCCESS
         dead = not check.outcome.succeeded
@@ -440,6 +446,13 @@ def apply_recovery(
             ht=context.ht,
             skill=context.skill,
             treatment_modifier=modifier,
+            fp_interval=300 if hp.injury.physical_traits.fitness else 600,
+            power_entitlement=min(entitled[0], fp.fatigue.power)
+            if fp is not None and fp.fatigue is not None
+            else 0,
+            healing_bonus=hp.injury.physical_traits.fitness
+            + (5 if hp.injury.physical_traits.healing else 0),
+            healing_rate=2 if hp.injury.physical_traits.healing == 2 else 1,
             ordinary_entitlement=entitled[0],
             starvation_entitlement=entitled[1],
             dehydration_entitlement=entitled[2],
@@ -488,6 +501,14 @@ def apply_recovery(
             restored = ordinary + starvation + dehydration + sleep + task.fp_recovered_total
             status = status.model_copy(
                 update={
+                    "power": max(
+                        0,
+                        status.power
+                        - max(
+                            0,
+                            ordinary - max(0, fp.maximum - fp.current - restricted - status.power),
+                        ),
+                    ),
                     "starvation": status.starvation - starvation,
                     "dehydration": status.dehydration - dehydration,
                     "sleep": status.sleep - sleep,
@@ -551,11 +572,12 @@ def apply_recovery(
             check = success_roll(
                 context.profile_id,
                 task.ht
+                + task.healing_bonus
                 + (1 if task.physician_skill is not None and task.physician_skill >= 12 else 0),
                 check_modifiers(state, target, "ht"),
                 rng=rng,
             )
-            healed = multiplier if check.outcome.succeeded else 0
+            healed = multiplier * task.healing_rate if check.outcome.succeeded else 0
         else:
             if task.skill is None or task.skill < 1:
                 raise ValidationError("Treatment requires a compiled medical skill")

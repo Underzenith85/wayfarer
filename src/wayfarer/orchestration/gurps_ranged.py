@@ -495,6 +495,8 @@ def resolve(
         - max(0, weapon.minimum_st - st)
     )
     attack_target -= actor_hp.injury.shock if actor_hp.injury else 0
+    if actor_hp.injury:
+        attack_target += actor_hp.injury.physical_traits.darkness(encounter.darkness_penalty)
     from wayfarer.orchestration.location_combat import disabled
 
     eyes = disabled(state, actor.actor_id) & {"left-eye", "right-eye"}

@@ -12,6 +12,7 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.character.compiler import CharacterDraft, ValidatedBuild, pool_limits
+from wayfarer.character.physical_traits import physical_traits
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, Event
 from wayfarer.orchestration.access import CampaignAccess
@@ -223,7 +224,14 @@ class FrightBuildService:
                             for o in state.resources.owners
                         ),
                         "pools": tuple(
-                            _refreshed(p, maxima[p.id.split(":", 1)[0]], compiled)
+                            _refreshed(
+                                p,
+                                maxima[p.id.split(":", 1)[0]],
+                                compiled,
+                                physical_traits(
+                                    compiled, play.engine.reviewer.compiler.definitions
+                                ),
+                            )
                             if p.id in ("hp:" + command.actor_id, "fp:" + command.actor_id)
                             else p
                             for p in state.resources.pools

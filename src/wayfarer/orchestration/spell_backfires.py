@@ -379,7 +379,7 @@ def recover_stuns(play: PlayService, state: PlayState) -> PlayState:
         assert compiled.statistics
         check = success_roll(
             PROFILE,
-            compiled.statistics.iq,
+            compiled.statistics.iq + 6 * int(hp.injury.physical_traits.combat_reflexes),
             check_modifiers(resources, item.actor_id, "iq"),
             rng=play.rng,
         )
