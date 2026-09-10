@@ -563,6 +563,9 @@ def validate_defense_choices(
     item_id: str | None,
     second_defense: Defense | None,
     second_item_id: str | None,
+    *,
+    parry_mode_id: str | None = None,
+    second_parry_mode_id: str | None = None,
 ) -> None:
     pending = encounter.pending_defense
     if pending is None:
@@ -572,7 +575,9 @@ def validate_defense_choices(
     ):
         raise ValidationError("Defense is not available against this attack")
     defender = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
-    _, first_item = defense_value(play, state, defender, selected, item_id)
+    _, first_item = defense_value(
+        play, state, defender, selected, item_id, parry_mode_id=parry_mode_id
+    )
     if second_defense is None:
         if second_item_id is not None:
             raise ValidationError("Second defense equipment requires a second defense")
@@ -583,7 +588,14 @@ def validate_defense_choices(
         or defender.maneuver_state.enhanced_defense != "double"
     ):
         raise ValidationError("Second defense requires All-Out Defense (Double)")
-    _, second_item = defense_value(play, state, defender, second_defense, second_item_id)
+    _, second_item = defense_value(
+        play,
+        state,
+        defender,
+        second_defense,
+        second_item_id,
+        parry_mode_id=second_parry_mode_id,
+    )
     if selected == second_defense and not (selected == "parry" and first_item != second_item):
         raise ValidationError(
             "Double defense requires different defenses or different parrying hands"
@@ -599,10 +611,14 @@ def resolve_melee(
     *,
     second_defense: Defense | None = None,
     second_item_id: str | None = None,
+    parry_mode_id: str | None = None,
+    second_parry_mode_id: str | None = None,
 ) -> tuple[PlayState, Encounter, InjuryTrace]:
     pending = encounter.pending_defense
     assert pending is not None
     if pending.spell_cast_id is not None:
+        if parry_mode_id is not None or second_parry_mode_id is not None:
+            raise ValidationError("Explicit parry damage modes are unavailable against spells")
         from wayfarer.orchestration.spell_missiles import resolve as resolve_spell
 
         return resolve_spell(
@@ -611,6 +627,10 @@ def resolve_melee(
     equipment = catalog(play)
     weapon = mode(play, state, pending.attacker_id, pending.weapon_id, pending.mode_id)
     if isinstance(weapon, RangedMode):
+        if parry_mode_id is not None or second_parry_mode_id is not None:
+            raise ValidationError(
+                "Explicit parry damage modes are unavailable against ranged attacks"
+            )
         from wayfarer.orchestration.gurps_ranged import resolve
 
         return resolve(
@@ -635,7 +655,13 @@ def resolve_melee(
     if hp.injury is None or attacker_hp.injury is None:
         raise ValidationError("GURPS injury pool requires explicit migration")
     defense_derived, defense_item = defense_value(
-        play, state, defender, selected, item_id, incoming_item_id=pending.weapon_id
+        play,
+        state,
+        defender,
+        selected,
+        item_id,
+        parry_mode_id=parry_mode_id,
+        incoming_item_id=pending.weapon_id,
     )
     second_derived = None
     second_item = None
@@ -652,6 +678,7 @@ def resolve_melee(
             defender,
             second_defense,
             second_item_id,
+            parry_mode_id=second_parry_mode_id,
             incoming_item_id=pending.weapon_id,
         )
         if second_defense == selected and not (selected == "parry" and second_item != defense_item):
@@ -812,6 +839,7 @@ def resolve_melee(
                 critical_dice = tuple(play.rng.randbelow(6) + 1 for _ in range(3))
                 blocked = f"basic-critical-miss:{sum(critical_dice)}:defender"
                 defense_item = second_item
+                parry_mode_id = second_parry_mode_id
                 hit = sum(critical_dice) in (7, 8, 9, 10, 11, 12, 13, 14, 16)
             elif second_item:
                 state = state.model_copy(
@@ -860,6 +888,7 @@ def resolve_melee(
             table=critical_dice,
             defender_item=defense_item,
             blocker=blocked,
+            parry_mode_id=parry_mode_id,
         )
         critical_tables = limb.table_rolls
         critical_dice = critical_tables[-1]
@@ -1247,6 +1276,7 @@ def resolve_melee(
             tables=critical_tables or (critical_dice,),
             defender_item=defense_item,
             incoming=incoming,
+            parry_mode_id=parry_mode_id,
         )
     trace = InjuryTrace(
         attack=attack,

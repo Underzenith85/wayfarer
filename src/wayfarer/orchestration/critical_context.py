@@ -20,6 +20,7 @@ def capture_critical(
     tables: tuple[tuple[int, ...], ...],
     defender_item: str | None,
     incoming: IncomingWound | None,
+    parry_mode_id: str | None = None,
 ) -> PlayState:
     pending = encounter.pending_defense
     rules = play.engine.rules.combat
@@ -43,6 +44,7 @@ def capture_critical(
         for m in entry.modes
         if isinstance(m, MeleeMode)
         and ((parrying and m.parry is not None) or (not parrying and m.id == pending.mode_id))
+        and (not parrying or parry_mode_id is None or m.id == parry_mode_id)
     )
     weapons = tuple(
         CriticalWeapon(

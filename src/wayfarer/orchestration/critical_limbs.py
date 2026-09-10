@@ -36,6 +36,7 @@ def resolve_limb(
     table: tuple[int, ...],
     defender_item: str | None,
     blocker: str,
+    parry_mode_id: str | None = None,
 ) -> tuple[PlayState, Encounter, CriticalLimbResult]:
     """Missing anatomy/grips/mode preserves the exact original blocker, before dice."""
     from wayfarer.orchestration.gurps_melee import build, catalog
@@ -67,7 +68,10 @@ def resolve_limb(
     modes: tuple[WeaponMode, ...] = tuple(
         m
         for m in entries[item.definition_id].modes
-        if parrying and isinstance(m, MeleeMode) and m.parry is not None
+        if parrying
+        and isinstance(m, MeleeMode)
+        and m.parry is not None
+        and (parry_mode_id is None or m.id == parry_mode_id)
     )
     if not parrying:
         modes = tuple(

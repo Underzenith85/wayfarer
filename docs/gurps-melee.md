@@ -39,8 +39,13 @@ explicit injury/fatigue pools requires migration, not implicit conversion.
   torso critical hits execute the numeric B556 table, including extra damage,
   reduced DR, forced major wounds, double shock and dropped held equipment.
 - Basic critical misses execute unready/drop, balance penalties and falling.
-  Rows requiring weapon quality/destruction or flying-weapon collisions persist their table roll and
-  block the encounter with `adjudication_required` and `blocked_reason`.
+  Breakage rows 3/4/17/18 use pinned durability and breakage resistance, including
+  one confirmation roll for resistant weapons and usable broken-weapon remnants.
+  Cheap weapons break on drop results. Swinging row 14 records a landing 1d yards
+  forward or backward, checks DX for occupants, and applies half basic damage
+  through canonical injury. A Ready requires retrieval at the recorded location.
+  Missing required equipment or anatomy data still blocks the encounter with
+  `adjudication_required` and `blocked_reason`.
   The blocked event also preserves immutable weapon modes and damage, build
   revision, equipment digest, HT, position/facing, limb DR, held items and any
   deferred incoming attack. Retrying or restarting reads the same record; it
@@ -51,8 +56,11 @@ explicit injury/fatigue pools requires migration, not implicit conversion.
   crippling, dropped grips and lasting-injury state. Impaling/piercing self-wound
   exceptions record exactly one additional table roll. Shoulder strain disables
   the wielding arm for 30 minutes while retaining the weapon, and cancels any
-  remaining attack that requires that arm. Parrying weapons with multiple damage
-  modes remain blocked for self-wounds until a canonical mode is selected.
+  remaining attack that requires that arm. `ChooseDefense.parry_mode_id` and
+  `second_parry_mode_id` select a legal melee parry mode before dice are rolled,
+  including its damage for self-wounds. Omitting the mode on a weapon with
+  multiple parrying modes preserves the explicit self-wound blocker; the engine
+  does not guess a damage mode. A selected mode is retained in blocked context.
 
 ## Evidence and remaining blockers
 
@@ -74,9 +82,15 @@ weapons three or more times a parrying weapon's weight; B376 itself could not be
 inspected during this change, so the threshold is an uninspected secondary
 reference and an explicit audit blocker for #191, not a compared page.
 
-Coverage remains **partial**. [#146](https://github.com/Underzenith85/wayfarer/issues/146)
-tracks the remaining Basic critical consequences and their dependencies on
-#104/#107/#114. Complete maneuvers, initiative/timing and tactical defense options
+`tests/test_critical_miss_completion.py`, `tests/test_critical_limbs.py`, and
+`tests/test_object_combat.py` cover #146's numeric consequences, equipment and
+lasting injuries, first/second parries, collision success/failure, backward
+flight, and SQLite restart/retry without new dice. B556-557 were inspected in
+the supplied Campaigns PDF for this completion; this does not certify the
+entire profile or resolve unrelated source-audit blockers.
+
+Coverage of the broader profile remains **partial**.
+Complete maneuvers, initiative/timing and tactical defense options
 remain #104; unarmed/grappling #108; ranged attacks #106. Heavy weapons are now
 refused a parry rather than parried at a breakage risk: no damage, wear or
 destruction is applied to a weapon for the attack it may not parry, and any such
@@ -85,9 +99,9 @@ Advantage-specific defense exceptions remain unavailable and belong to #113.
 The full GURPS profile remains unavailable until those capability gates pass.
 
 The durable critical context is an internal handoff, not a GM override or a
-client-supplied damage command. Breakage needs canonical quality/destruction,
-missing anatomy or wielding bindings preserve the limb blocker, and flying
-weapons need authoritative collision handling. No generic retry may reroll a
+client-supplied damage command. Breakage needs canonical quality/durability;
+missing anatomy, wielding bindings, or an ambiguous parry mode preserve the
+limb blocker. No generic retry may reroll a
 recorded miss. All-Out Defense's second critical parry also captures its own
 weapon and deferred incoming attack; unsupported head-hit effects remain on
 their separate head-table blocker.
