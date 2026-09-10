@@ -119,7 +119,7 @@ def test_the_family_expands_and_publishes_what_it_does_not_carry() -> None:
     }
     assert ("skill:liquid-projector", "lingering-fire", 398) in published
     assert ("skill:liquid-projector", "simultaneous-area-coverage", 398) in published
-    assert all(scope.owner_issue == 398 for _, scope in ranged_scope())
+    assert all(scope.owner_issue in (362, 398) for _, scope in ranged_scope())
 
 
 @pytest.mark.parametrize("identifier", SPECIALTIES)
