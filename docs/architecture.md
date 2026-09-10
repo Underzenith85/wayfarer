@@ -164,6 +164,66 @@ separate aggregate, because it exists before a character enters a campaign.
    is written to its own stream. A failed narration logs and leaves the turn
    committed.
 
+## Scenarios
+
+A scenario is configuration plus genesis state. It is never executed and it is
+never mutated by play.
+
+- **Authoring is its own aggregate.** A `ScenarioDocument` is edited, imported
+  or generated in the catalog; each change is a receipt in `scenario_receipts`,
+  and model generation is a proposal into this aggregate, not into a campaign.
+  `ScenarioStudio.validate` checks playability by instantiating the real
+  `ActionEngine` and calling `initial_state`, so authoring is judged by the
+  engine that will play it, never by a second rules implementation. A
+  `PublishedRevision` is immutable and carries its content digest, the engine
+  digest it was validated against and the party digest.
+- **Activation is the genesis command.** Setup's seat, readiness and activate
+  operations are commands in the pre-play segment of the campaign stream, and
+  `activate` is the one that produces revision 0 by folding the published
+  graph's world, initial resources and pregenerated actors into `PlayState`.
+  The genesis command carries the authoritative scenario reference: catalog
+  id, revision and content digest, checked against the published revision on
+  load. The graph copied onto the campaign row is a cache of that revision.
+- **The graph becomes rules and world, not mechanics.**
+  `ScenarioContent.runtime_rules()` folds scenes, objectives, checks, NPC
+  plans, recovery, party, spells and combat equipment into `ActionRules`, which
+  `PlayService.bind` compiles into the engine for that campaign. The result is
+  part of `configuration_digest`, so replay pins a scenario revision exactly as
+  it pins a rulebook. Mechanics come only from the rules profile in
+  `rules_ref`; `single_mechanics_source` rejects a document that supplies its
+  own. During play the scenario is inert: learned facts, scene cursors,
+  objective progress and NPC clocks live in `PlayState`, and scenario prose
+  reaches only the narrator's context.
+- **Continuation is a migration command.** `continuation.prepare` merges a next
+  graph with the old world under fixed rules: existing records win, builds are
+  preserved, settled rewards cannot recur, captives cannot be relocated. It
+  changes the digest, which is a replay boundary.
+
+### Maps
+
+There are three maps, and the scenario must own the templates for all of them
+in one place.
+
+- **World graph.** Locations and connections are authored in the scenario's
+  `World`, and every `Scene` binds to a `location_id`. Where each actor stands
+  is state (`Entity.location_id`, `ActorScene`), rewritten by move and travel
+  commands.
+- **Battlefield templates.** Square `Battlefield` templates are authored in
+  `CombatRules.battlefields`, each tied to a location, and are inside the
+  pinned digest. `StartEncounter` names a template and supplies placements;
+  the encounter holds the template id and each combatant's position and
+  facing. `validate_contexts` requires participants to share one scene whose
+  location matches the template's location, which is where the two maps meet.
+- **Hex maps are the exception to fix.** `HexBattlefield` is embedded whole in
+  `Encounter.hex_battlefield`, so a square map is pinned configuration while a
+  hex map is per-encounter state in the snapshot. That is the duplicate owner
+  #323 names. The target is one tagged union of square and hex templates under
+  `CombatRules.battlefields`, an encounter that holds a template reference and
+  a spatial-context instance, and an explicit `MigrationEntry` for legacy
+  snapshots that embed a map. Mapless combat (#324) is a scene with no
+  template, whose spatial facts arrive as `RangedSituation` and GM declaration
+  commands. Which map a client draws is a projection, never a mechanic.
+
 ## Consequences
 
 Replay by re-execution makes the engine's dice consumption order part of its
@@ -187,3 +247,10 @@ match the engine that replays it.
 4. Add the replay gate: rebuild every fixture campaign from its command log and
    compare to its snapshot.
 5. Move snapshots to cache status.
+6. Carry the scenario reference (catalog id, revision, content digest) on the
+   genesis and continuation commands and verify it on load; treat setup's
+   writes as pre-play commands of the same stream.
+7. Give map templates one owner: square and hex templates under
+   `CombatRules.battlefields`, a template reference plus spatial-context
+   instance on the encounter, and a migration for snapshots that embed a hex
+   map (with #323).
