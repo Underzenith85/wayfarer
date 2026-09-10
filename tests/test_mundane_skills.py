@@ -17,9 +17,11 @@ from wayfarer.rules.mundane_skills import (
     exclusions,
     inventory,
     require_available,
+    source_index,
     source_inventory,
     transferred_exclusions,
     validate_inventory,
+    validate_source_index,
 )
 from wayfarer.rules.mundane_skills.schema import Exclusion, InventoryRow
 from wayfarer.rules.skill_types import Difficulty
@@ -151,6 +153,9 @@ def test_mathematics_specialties_and_prerequisites() -> None:
         {"blockers": ["typo"]},
         {"issues": [0]},
         {"issues": [112, 112]},
+        {"procedure_owner": 112},
+        {"procedure_owner": 336},
+        {"issues": [112, 341]},
         {"tl_required": True},
         {"specialty_required": True},
         {
@@ -212,7 +217,7 @@ def test_structural_classes_are_recorded_and_completely_sampled() -> None:
         # B203 Karate: no recorded default of any kind.
         "skill:karate": {"no-default"},
         # B169/B213 optional Physics specialty and its unspecialized parent.
-        "skill:physics-acoustics": {"no-default", "optional-specialty"},
+        "skill:physics-acoustics": {"no-default", "optional-specialty", "technology-level"},
         # B207 Mathematics is a required specialty with TL context.
         "skill:mathematics-pure": {
             "attribute-default",
@@ -226,17 +231,24 @@ def test_structural_classes_are_recorded_and_completely_sampled() -> None:
         "skill:astronomy": {"attribute-default", "prerequisite", "technology-level"},
         # B176 Area Knowledge requires a specialty this inventory does not expand.
         "skill:area-knowledge": {"attribute-default", "unexpanded-specialty"},
-        # B228 Vacc Suit carries no verified mechanics at all.
-        "skill:vacc-suit": {"listing-only"},
+        # B192: distinct suit skill with all numeric defaults.
+        "skill:vacc-suit": {
+            "attribute-default",
+            "skill-default",
+            "required-specialty",
+            "technology-level",
+        },
+        "skill:weather-sense": {"attribute-default", "technology-level", "alias"},
+        "skill:neck-snap": {"listing-only", "technique-template"},
     }
     for identifier, classes in expected.items():
         assert {c.value for c in entries[identifier].structural_classes} == classes
     sampled = {c for e in entries.values() for c in e.structural_classes}
     assert sampled == set(StructuralClass)
     assert all(e.structural_classes for e in entries.values())
-    assert entries["skill:vacc-suit"].implementation == "listing-only"
+    assert entries["skill:neck-snap"].implementation == "listing-only"
     assert entries["skill:accounting"].implementation == "unsupported"
-    assert sum(e.implementation == "listing-only" for e in entries.values()) == 19
+    assert sum(e.implementation == "listing-only" for e in entries.values()) == 32
 
 
 def test_unsampled_or_unclassified_rows_are_rejected() -> None:
@@ -254,18 +266,50 @@ def test_unsampled_or_unclassified_rows_are_rejected() -> None:
 def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     """B208/B195: named mechanics owners survive; unowned rows are not hidden."""
     entries = {e.id: e for e in inventory()}
-    assert entries["skill:broadsword"].owners == (103,)
-    assert entries["skill:first-aid"].owners == (109,)
-    assert entries["skill:accounting"].owners == ()
-    assert coverage_blockers(PROFILE) == (103, 109, 110, 111, 112)
+    assert entries["skill:broadsword"].owners == (339,)
+    assert entries["skill:first-aid"].owners == (342,)
+    assert entries["skill:accounting"].owners == (341,)
+    assert coverage_blockers(PROFILE) == (
+        103,
+        109,
+        110,
+        111,
+        112,
+        336,
+        338,
+        339,
+        340,
+        341,
+        342,
+        343,
+        344,
+        345,
+        346,
+    )
     with pytest.raises(ValidationError, match="outside the selected profile"):
         coverage_blockers("gurps-lite-4e-2004")
     report = audit_report()
-    assert report["coverage_blockers"] == [103, 109, 110, 111, 112]
-    assert report["runtime_owner_unassigned"] == 223
-    assert report["implementation_counts"] == {"listing-only": 19, "unsupported": 238}
+    assert report["coverage_blockers"] == [
+        103,
+        109,
+        110,
+        111,
+        112,
+        336,
+        338,
+        339,
+        340,
+        341,
+        342,
+        343,
+        344,
+        345,
+        346,
+    ]
+    assert report["runtime_owner_unassigned"] == 0
+    assert report["implementation_counts"] == {"listing-only": 32, "unsupported": 254}
     counts = report["structural_class_counts"]
-    assert isinstance(counts, dict) and counts["listing-only"] == 19
+    assert isinstance(counts, dict) and counts["listing-only"] == 32
 
 
 def test_excluded_skills_remain_owned_by_the_catalog_that_carries_them() -> None:
@@ -297,3 +341,269 @@ def test_exclusion_records_reject_unowned_transfers(changes: dict[str, object]) 
     row = exclusions()[0].model_dump(mode="json")
     with pytest.raises(SchemaError):
         Exclusion.model_validate_json(json.dumps(row | changes))
+
+
+def test_independent_source_index_accounts_for_every_listing() -> None:
+    """Characters third printing B301-304: 275 skills and 27 named techniques."""
+    index = source_index()
+    assert index.baseline_reconciled is False
+    assert "third printing" in index.observed_source
+    assert len([e for e in index.entries if e.kind == "skill"]) == 275
+    assert len([e for e in index.entries if e.kind == "technique"]) == 27
+    assert len([e for e in index.entries if e.kind == "expansion"]) == 11
+    indexed = {e.id: e for e in index.entries}
+    assert indexed["brain-hacking"].page == 182
+    assert indexed["melee-weapon"].page == 208
+    assert indexed["combat-art-or-sport"].targets == ("combat-art", "combat-sport")
+    assert indexed["kicking"].page == 231
+    assert indexed["kicking-karate"].parent == "kicking"
+    assert indexed["neck-snap"].kind == "technique"
+    assert indexed["work-by-touch"].page == 233
+    validate_source_index(inventory(), exclusions())
+
+
+@pytest.mark.parametrize("identifier", ["accounting", "brain-hacking", "neck-snap"])
+def test_index_detects_deletion_even_when_other_structural_classes_survive(identifier: str) -> None:
+    entries = tuple(e for e in inventory() if e.id != f"skill:{identifier}")
+    with pytest.raises(ValidationError, match="Source index accounting mismatch"):
+        validate_source_index(entries, exclusions())
+
+
+def test_index_rejects_unindexed_rows_and_page_drift() -> None:
+    entries = inventory()
+    with pytest.raises(ValidationError, match="unindexed"):
+        validate_source_index((*entries, replace(entries[0], id="skill:invented")), exclusions())
+    with pytest.raises(ValidationError, match="page mismatch"):
+        validate_source_index((replace(entries[0], reference="B200"), *entries[1:]), exclusions())
+    with pytest.raises(ValidationError, match="missing"):
+        validate_source_index(entries, exclusions()[1:])
+
+
+@pytest.mark.parametrize(
+    ("identifier", "page", "attribute", "difficulty", "defaults"),
+    [
+        ("aerobatics", 174, "attribute:dx", "hard", {"attribute:dx": -6}),
+        ("aquabatics", 174, "attribute:dx", "hard", {"attribute:dx": -6}),
+        ("airshipman", 185, "attribute:iq", "easy", {"attribute:iq": -4}),
+        ("seamanship", 185, "attribute:iq", "easy", {"attribute:iq": -4}),
+        ("spacer", 185, "attribute:iq", "easy", {"attribute:iq": -4}),
+        ("submariner", 185, "attribute:iq", "easy", {"attribute:iq": -4}),
+        (
+            "battlesuit",
+            192,
+            "attribute:dx",
+            "average",
+            {
+                "attribute:dx": -5,
+                "skill:diving-suit": -4,
+                "skill:nbc-suit": -2,
+                "skill:vacc-suit": -2,
+            },
+        ),
+        (
+            "diving-suit",
+            192,
+            "attribute:dx",
+            "average",
+            {
+                "attribute:dx": -5,
+                "skill:battlesuit": -4,
+                "skill:nbc-suit": -4,
+                "skill:vacc-suit": -4,
+                "skill:scuba": -2,
+            },
+        ),
+        (
+            "nbc-suit",
+            192,
+            "attribute:dx",
+            "average",
+            {
+                "attribute:dx": -5,
+                "skill:battlesuit": -2,
+                "skill:diving-suit": -4,
+                "skill:vacc-suit": -2,
+            },
+        ),
+        (
+            "vacc-suit",
+            192,
+            "attribute:dx",
+            "average",
+            {
+                "attribute:dx": -5,
+                "skill:battlesuit": -2,
+                "skill:diving-suit": -4,
+                "skill:nbc-suit": -2,
+            },
+        ),
+        (
+            "jitte-sai",
+            208,
+            "attribute:dx",
+            "average",
+            {
+                "skill:force-sword": -4,
+                "skill:main-gauche": -4,
+                "skill:shortsword": -3,
+            },
+        ),
+        (
+            "force-whip",
+            209,
+            "attribute:dx",
+            "average",
+            {
+                "skill:kusari": -3,
+                "skill:monowire-whip": -3,
+                "skill:whip": -3,
+            },
+        ),
+        (
+            "kusari",
+            209,
+            "attribute:dx",
+            "hard",
+            {
+                "skill:force-whip": -3,
+                "skill:monowire-whip": -3,
+                "skill:whip": -3,
+                "skill:two-handed-flail": -4,
+            },
+        ),
+        (
+            "broadsword",
+            208,
+            "attribute:dx",
+            "average",
+            {
+                "skill:force-sword": -4,
+                "skill:rapier": -4,
+                "skill:saber": -4,
+                "skill:shortsword": -2,
+                "skill:two-handed-sword": -4,
+            },
+        ),
+    ],
+)
+def test_previously_unstructured_source_metadata(
+    identifier: str, page: int, attribute: str, difficulty: str, defaults: dict[str, int]
+) -> None:
+    """Independent B174/B185/B192/B208-209 numeric expectations; no synthesized defaults."""
+    entry = next(e for e in inventory() if e.id == f"skill:{identifier}")
+    assert entry.reference == f"B{page}"
+    assert entry.definition and entry.definition.skill
+    spec = entry.definition.skill
+    assert spec.attribute == attribute
+    assert spec.difficulty == difficulty
+    assert {d.target: d.modifier for d in spec.defaults} == defaults
+    assert not entry.available
+
+
+def test_alias_and_technique_context_stays_explicit() -> None:
+    """B209 Weather Sense is low-TL Meteorology; B230-232 techniques aren't skills."""
+    entries = {e.id: e for e in inventory()}
+    assert entries["skill:weather-sense"].alias_of == "skill:meteorology"
+    for id, parent, modifier, maximum, page in [
+        ("arm-lock-judo", "judo", 0, 4, 230),
+        ("kicking-karate", "karate", -2, 0, 231),
+    ]:
+        entry = entries[f"skill:{id}"]
+        assert entry.reference == f"B{page}"
+        assert entry.definition and entry.definition.skill and entry.definition.skill.technique
+        technique = entry.definition.skill.technique
+        assert (technique.parent, technique.default_modifier, technique.maximum_modifier) == (
+            f"skill:{parent}",
+            modifier,
+            maximum,
+        )
+    # ST-based Neck Snap and cinematic choices must not become generic DX rolls.
+    assert entries["skill:neck-snap"].definition is None
+    for id in ("dual-weapon-attack", "whirlwind-attack"):
+        assert "optional-rule-selection" in entries[f"skill:{id}"].blockers
+    assert "prerequisite-procedure" in entries["skill:brain-hacking"].blockers
+
+
+def test_every_blocker_has_a_named_followup() -> None:
+    for entry in inventory():
+        assert set(entry.blocker_owners) == set(entry.blockers)
+        assert entry.procedure_owner not in (112, 191, 336)
+        assert entry.blocker_owners["first-printing-delta-audit"] == (336,)
+        assert all(
+            set(owners) <= set(entry.followup_issues) for owners in entry.blocker_owners.values()
+        )
+        assert entry.owners == (entry.procedure_owner,)
+
+
+def test_alias_and_owner_validation() -> None:
+    entries = inventory()
+    first = entries[0]
+    for target in (first.id, "skill:missing"):
+        with pytest.raises(ValidationError, match="alias reference"):
+            validate_inventory((replace(first, alias_of=target), *entries[1:]))
+    with pytest.raises(ValidationError, match="Cyclic alias"):
+        validate_inventory(
+            (
+                replace(first, alias_of=entries[1].id),
+                replace(entries[1], alias_of=first.id),
+                *entries[2:],
+            )
+        )
+    with pytest.raises(ValidationError, match="Unowned blocker"):
+        validate_inventory(
+            (replace(first, followup_issues=(112, first.procedure_owner)), *entries[1:])
+        )
+
+
+def test_candidate_inventory_does_not_inherit_live_representative_metadata(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import wayfarer.rules.gurps_skills as live
+
+    before = candidate_package().digest
+    monkeypatch.setattr(live, "definitions", lambda _: ())
+    assert candidate_package().digest == before
+
+
+def test_invalid_acquisition_cycles_are_rejected_but_mutual_defaults_survive() -> None:
+    from wayfarer.rules.skill_types import SkillPrerequisite, Technique
+
+    entries = inventory()
+    validate_inventory(entries)  # Source contains reciprocal weapon defaults.
+    first, second = entries[:2]
+    assert first.definition and first.definition.skill
+    assert second.definition and second.definition.skill
+    cyclic_first = replace(
+        first,
+        definition=replace(
+            first.definition,
+            skill=replace(
+                first.definition.skill,
+                prerequisites=(SkillPrerequisite(second.id),),
+            ),
+        ),
+    )
+    cyclic_second = replace(
+        second,
+        definition=replace(
+            second.definition,
+            skill=replace(
+                second.definition.skill,
+                prerequisites=(SkillPrerequisite(first.id),),
+            ),
+        ),
+    )
+    with pytest.raises(ValidationError, match="Cyclic prerequisite"):
+        validate_inventory((cyclic_first, cyclic_second, *entries[2:]))
+    self_parent = replace(
+        first,
+        definition=replace(
+            first.definition,
+            skill=replace(
+                first.definition.skill,
+                technique=Technique(first.id, -2),
+            ),
+        ),
+    )
+    with pytest.raises(ValidationError, match="Cyclic prerequisite or technique"):
+        validate_inventory((self_parent, *entries[1:]))

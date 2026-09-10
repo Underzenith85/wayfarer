@@ -461,16 +461,32 @@ class CombatService:
                 from wayfarer.orchestration.tactical import prepare_defense
 
                 if isinstance(command, ChooseDefense):
-                    if (command.parry_mode_id is not None and command.defense != "parry") or (
-                        command.second_parry_mode_id is not None
-                        and command.second_defense != "parry"
-                    ):
-                        raise ValidationError("A parry mode requires a parry defense")
-                    if engine.rules.gurps_equipment is None and (
+                    if encounter.pending_unarmed is None and (
                         command.parry_mode_id is not None
                         or command.second_parry_mode_id is not None
                     ):
-                        raise ValidationError("Explicit parry damage modes require GURPS equipment")
+                        from wayfarer.orchestration.gurps_melee import mode
+                        from wayfarer.simulation.gurps_equipment import MeleeMode
+
+                        pending = encounter.pending_defense
+                        if (
+                            engine.rules.gurps_equipment is None
+                            or pending is None
+                            or pending.spell_cast_id is not None
+                            or not isinstance(
+                                mode(
+                                    self.play,
+                                    state,
+                                    pending.attacker_id,
+                                    pending.weapon_id,
+                                    pending.mode_id,
+                                ),
+                                MeleeMode,
+                            )
+                        ):
+                            raise ValidationError(
+                                "Explicit parry damage modes require a melee or unarmed attack"
+                            )
                     encounter = prepare_defense(self.play, state, encounter, command)
                 if isinstance(command, MigrateEncounterHex):
                     from wayfarer.orchestration.tactical import migrate
@@ -1160,8 +1176,12 @@ class CombatService:
                             second_item_id=command.second_item_id
                             if selected_defense != "none"
                             else None,
-                            parry_mode_id=command.parry_mode_id,
-                            second_parry_mode_id=command.second_parry_mode_id,
+                            parry_mode_id=command.parry_mode_id
+                            if selected_defense != "none"
+                            else None,
+                            second_parry_mode_id=command.second_parry_mode_id
+                            if selected_defense != "none"
+                            else None,
                         )
                         from wayfarer.orchestration.gurps_melee import injury_turn
 

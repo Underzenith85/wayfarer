@@ -210,7 +210,12 @@ def critical_breakage(
 
 
 def intercepting_shield(
-    play: PlayService, state: PlayState, encounter: Encounter, defense: CheckTrace | None
+    play: PlayService,
+    state: PlayState,
+    encounter: Encounter,
+    defense: CheckTrace | None,
+    *,
+    require_durable: bool = True,
 ) -> str | None:
     """B484: the DB must change an ordinary failed defense into success."""
     from wayfarer.orchestration.gurps_melee import catalog
@@ -246,7 +251,11 @@ def intercepting_shield(
     if not shields:
         return None
     bonus, item_id, durable = max(shields)
-    return item_id if durable and defense.total > defense.effective_target - bonus else None
+    return (
+        item_id
+        if (durable or not require_durable) and defense.total > defense.effective_target - bonus
+        else None
+    )
 
 
 def shield_damage(
