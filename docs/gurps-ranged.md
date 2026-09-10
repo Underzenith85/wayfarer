@@ -42,6 +42,19 @@ ratings, publish and explicitly select a new pinned catalog revision; saved
 definitions are not inferred or rewritten. Authoring and scenario schemas expose
 the new metadata; the frozen player command contract is unchanged.
 
+Weapon skills are not interchangeable here. #344 binds Bow, Crossbow, Sling,
+Blowpipe and the seven concrete Thrown Weapon specialties to this dispatch and
+declares the exact weapon modes each governs; a mode outside its skill's class,
+a skill family used in place of a specialty, and every ranged combat skill whose
+procedure is still transferred to an open child issue are refused when the
+equipment catalog is built and again before dice. See
+[Ranged combat procedures](gurps-mundane-skills.md#ranged-combat-procedures-344).
+Firearms, beams, crew-served weapons, liquid projectors, entangling weapons and
+launcher-assisted throws remain unsupported; this change does not widen the
+permitted fire modes. A B270 rated weapon ST belongs to the launcher its own
+skill governs: a rated bow cannot be fired under Crossbow, and a rated
+crossbow cannot be fired under Bow.
+
 Additional numeric regression evidence is in `tests/test_ranged_followups.py`,
 checked against Campaigns fourth printing, B373, B376, B382, B399-400 and
 B556-557, and Characters third printing, B147. Those printings do not certify the

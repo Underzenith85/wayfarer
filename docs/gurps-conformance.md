@@ -211,6 +211,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.combat.aim` | yes | yes | partial | #104/#152; target-bound accumulation, disruption, bracing and typed fixed/variable scopes; broader ranged resolution #106/#173 |
 | `gurps.combat.ammunition` | yes | yes | partial | #106; [reservations, rated crossbow timing and reload conservation](gurps-ranged.md); #173 adds opt-in per-round loading and magazine unloading; remaining #173 |
 | `gurps.combat.rapid_fire` | no | yes | partial | #106; [burst, Dodge and burst-critical resolution](gurps-ranged.md); remaining #173 |
+| `gurps.combat.ranged_weapon_skills` | no | yes | partial | #344; [bound ranged combat skill procedures and their transferred rows](gurps-mundane-skills.md); remaining #354, #355, #357, #359, #360, #361, #362 |
 | `gurps.combat.unarmed` | yes | yes | partial | #108, #176; [unarmed critical effects, defenses, declared Wait reactions and remaining integrations](gurps-unarmed.md) |
 | `gurps.combat.grappling` | yes | yes | partial | #108, #176; [durable grips, Wait while engaged and remaining integrations](gurps-unarmed.md) |
 | `gurps.tactical.hex_movement` | no | yes | partial | #105 |
@@ -376,14 +377,15 @@ and unavailable/unknown IDs. Full specialty expansion and runtime availability
 remain visible item-level blockers under #112 and the indicated mechanics owners.
 
 The candidate `0.3.0` audit reconciles an independent B301–B304 source index:
-275 skill listings, 27 named techniques and 11 explicit expansions map to 286
+275 skill listings, 27 named techniques and 18 explicit expansions map to 293
 mundane records plus 28 transferred exclusions. The combined Combat Art or Sport
 listing maps to two records. Missing entries, unindexed additions, invalid parents,
 page drift and transfer drift fail validation. Required contextual specialties
 remain explicitly blocked; these counts do not certify every possible specialty.
 
-There are 254 structured unsupported definitions and 32 listing-only records
-(27 technique templates and five variable families). Previously empty suit,
+There are 249 structured unsupported definitions, 12 implemented ranged combat
+procedures (#344) and 32 listing-only records (27 technique templates and five
+variable families). Previously empty suit,
 crewman and weapon definitions now carry source-indexed metadata, and candidate
 techniques no longer inherit definitions from live packages. Source/printing,
 context and runtime limitations are visible per row. Independent fixtures sample
@@ -391,7 +393,10 @@ all 12 structural classes, numeric defaults, technique caps and reference failur
 
 Every remaining blocker has a named owner: #336 owns source/context reconciliation,
 and #338–#346 own specific procedure inventories. `runtime_owner_unassigned` is
-zero. Item-level owners and unsupported/listing-only states reach `source_audit`.
+zero. #344 binds twelve ranged combat rows to a runtime procedure in a new pin
+and transfers the rest of that group to #354, #355, #357, #359, #360, #361 and
+#362, so a blocker a procedure owner splits keeps naming the child that owns it.
+A bound row reports as `implemented` and stays blocked by the printing delta. Item-level owners and unsupported/listing-only states reach `source_audit`.
 All candidates remain unavailable; no saved profile/package pin changes. See
 [the mundane skill inventory](gurps-mundane-skills.md) for the coverage matrix.
 

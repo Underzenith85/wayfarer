@@ -2663,6 +2663,76 @@
       ]
     },
     {
+      "id": "thrown-weapon-axe-mace",
+      "name": "Thrown Weapon (Axe/Mace)",
+      "page": 226,
+      "kind": "expansion",
+      "targets": [
+        "thrown-weapon-axe-mace"
+      ],
+      "parent": "thrown-weapon"
+    },
+    {
+      "id": "thrown-weapon-dart",
+      "name": "Thrown Weapon (Dart)",
+      "page": 226,
+      "kind": "expansion",
+      "targets": [
+        "thrown-weapon-dart"
+      ],
+      "parent": "thrown-weapon"
+    },
+    {
+      "id": "thrown-weapon-harpoon",
+      "name": "Thrown Weapon (Harpoon)",
+      "page": 226,
+      "kind": "expansion",
+      "targets": [
+        "thrown-weapon-harpoon"
+      ],
+      "parent": "thrown-weapon"
+    },
+    {
+      "id": "thrown-weapon-knife",
+      "name": "Thrown Weapon (Knife)",
+      "page": 226,
+      "kind": "expansion",
+      "targets": [
+        "thrown-weapon-knife"
+      ],
+      "parent": "thrown-weapon"
+    },
+    {
+      "id": "thrown-weapon-shuriken",
+      "name": "Thrown Weapon (Shuriken)",
+      "page": 226,
+      "kind": "expansion",
+      "targets": [
+        "thrown-weapon-shuriken"
+      ],
+      "parent": "thrown-weapon"
+    },
+    {
+      "id": "thrown-weapon-spear",
+      "name": "Thrown Weapon (Spear)",
+      "page": 226,
+      "kind": "expansion",
+      "targets": [
+        "thrown-weapon-spear"
+      ],
+      "parent": "thrown-weapon"
+    },
+    {
+      "id": "thrown-weapon-stick",
+      "name": "Thrown Weapon (Stick)",
+      "page": 226,
+      "kind": "expansion",
+      "targets": [
+        "thrown-weapon-stick"
+      ],
+      "parent": "thrown-weapon"
+    },
+    {
       "id": "tonfa",
       "name": "Tonfa",
       "page": 209,
