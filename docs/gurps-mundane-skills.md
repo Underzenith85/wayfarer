@@ -1,85 +1,110 @@
 # Basic Set mundane skill inventory (#112)
 
-`rules/mundane_skills` is the item-level accounting for the Basic Set skill
-chapter (B168–B233). **It accounts for entries; it does not make any skill
-playable.** Every row keeps an explicit blocker, no row is available at runtime,
-and no campaign profile, package pin or saved character changes because of it.
+`rules/mundane_skills` accounts for the Characters skill chapter without making
+unimplemented procedures playable. The candidate package is `0.3.0`; no saved
+campaign pin or live representative definition changes.
 
-## Source boundary
+## Source boundary and completeness
 
-| Observed source | References | Reconciliation |
-| --- | --- | --- |
-| Characters, Fourth Edition, third printing | B168–B233 skill chapter and index | The frozen baseline is `gurps-4e-2004-first-printing+errata-2007-01-26`. Every row carries the `first-printing-delta-audit` blocker until #191 reconciles the printings. |
+The supplied **Characters, Fourth Edition, third printing (2008), ISBN
+978-1-55634-729-0** is the observed source. `source_index.json` records its SHA-256
+and independently indexes B301–B304, with explicit chapter expansions at
+B168–B233. This observation is not verification of the selected first-printing
+plus 2007-01-26 errata baseline. That reconciliation remains #336, using #191's
+audit machinery. No rulebook prose is bundled.
 
-Records hold identifiers, page references, controlling attribute, difficulty,
-numeric defaults, prerequisites and specialty metadata. No rulebook prose is
-bundled. Values not confirmed against the source stay absent and blocked rather
-than reconstructed into a runnable roll.
+| Source accounting | Entries |
+| --- | ---: |
+| Indexed skill listings, B301–B304 | 275 |
+| Named technique listings, B304 | 27 |
+| Explicit chapter examples and parent-specific expansions | 11 |
+| **Source index total** | **313** |
+
+The combined Combat Art or Sport listing maps to two candidate records. Thus
+313 source entries map to **314 records: 286 mundane and 28 transferred** to
+#119's inventory. Specialty families remain explicitly blocked where context
+or expansion is incomplete. These counts do not claim enumeration of every
+possible player-defined specialty.
+
+Index reconciliation rejects missing records, unindexed additions, overlapping
+transfers, invalid expansion parents and page drift. It runs when consumers load
+the inventory, including the source-certification report. The exclusion transfer
+also verifies names, pages and owners against the supernatural catalog.
 
 ## Accounting matrix
 
-`python -m scripts.audit_mundane_skills` emits this matrix from the inventory
-itself; the counts below are the current report, not a separate transcription.
+`python -m scripts.audit_mundane_skills` generates the report from the typed data.
 
-| Accounting group | Rows | Coverage decision |
+| Accounting group | Rows | Decision |
 | --- | ---: | --- |
-| Structured candidate definitions | 238 | Attribute, difficulty and recorded defaults exist, and every definition is normalized to `unsupported`. |
-| Listing-only rows | 19 | Family, variable-scope and unexpanded entries whose mechanics are not recorded at all. They carry `metadata-audit` and cannot be mistaken for a definition. |
-| Transferred exclusions | 28 | Cinematic and supernatural skills owned by #119 with named follow-ups #242/#243 and #191. Exclusion from this inventory is not exclusion from the Basic Set. |
-| **Total accounted** | **285** | **No available row.** |
+| Structured candidate definitions | 254 | Unsupported; source/runtime blockers remain. |
+| Listing-only records | 32 | 27 technique templates and five variable families. |
+| Transferred cinematic/supernatural skills | 28 | Owned by #242/#243 and source audit #191. |
+| **Total accounted records** | **314** | **Zero available mundane candidates.** |
 
-Each row is also classified by the structure it actually records, so fixtures
-sample every class instead of the common shape only. Every class below must stay
-populated; an unsampled class fails `validate_inventory`.
+This revision fills the previously empty Aerobatics, Aquabatics, crewman, suit
+and weapon entries; records Weather Sense as a TL-dependent Meteorology alias;
+and accounts for Brain Hacking, Melee Weapon and every named technique. B208–B209
+weapon defaults include category cross-defaults. The scope of Force Sword's
+"any sword" default remains explicitly blocked. Brain Hacking's cross-package
+prerequisite, variable families and context-sensitive definitions remain blocked.
 
-| Structural class | Rows | Meaning |
-| --- | ---: | --- |
-| `attribute-default` | 177 | At least one numeric attribute default. |
-| `skill-default` | 18 | At least one default from another accounted-for skill. |
-| `no-default` | 59 | No default is recorded; a missing default is not an implied attribute default. |
-| `technology-level` | 76 | Requires TL context that this inventory does not supply. |
-| `unexpanded-specialty` | 57 | A required specialty exists in the source and is not expanded here. |
-| `listing-only` | 19 | No recorded mechanics. |
-| `required-specialty` | 7 | Expanded distinct specialty with no cross-specialty inference. |
-| `prerequisite` | 3 | Needs another trained skill. |
-| `technique` | 2 | Parent-relative technique, not an independent skill. |
-| `optional-specialty` | 1 | Optional specialty bound to its unspecialized parent. |
+The candidate package now owns its numeric data instead of inheriting it from
+live representative definitions. B230 Arm Lock (Judo) and B231 Kicking (Karate)
+are typed parent-relative techniques. A named template such as ST-based Neck Snap
+is not converted into an ordinary DX skill.
 
-## Ownership and remaining blockers
+| Structural class | Rows |
+| --- | ---: |
+| `attribute-default` | 188 |
+| `skill-default` | 44 |
+| `no-default` | 42 |
+| `technology-level` | 87 |
+| `unexpanded-specialty` | 59 |
+| `listing-only` | 32 |
+| `required-specialty` | 15 |
+| `prerequisite` | 3 |
+| `technique` | 2 |
+| `optional-specialty` | 1 |
+| `alias` | 1 |
+| `technique-template` | 27 |
 
-Item blockers name the issue that must resolve them, and those numbers reach the
-certification report directly: `source_audit` consumes each row with its own
-blockers and `unsupported`/`listing-only` state instead of one family status.
+Classes overlap. `no-default` means no default is recorded, not a claim that
+conditional defaults have been exhaustively verified. Fixtures sample every
+class with independently stated source expectations.
 
-| Blocker | Rows | Owner |
-| --- | ---: | --- |
-| `first-printing-delta-audit` | 257 | #191 printing/errata reconciliation |
-| `runtime-procedure` | 220 | #103, #109, #110, #111 where named; otherwise unassigned |
-| `technology-level-context` | 76 | Unassigned |
-| `conditional-or-skill-defaults` | 115 | Unassigned |
-| `specialty-expansion` | 57 | Unassigned |
-| `metadata-audit` | 19 | Unassigned |
-| `weapon-default-audit` / `combat-procedure` | 18 | #103 |
-| `family-specialty-expansion` | 15 | Unassigned |
-| `prerequisite-procedure` | 7 | Unassigned |
-| `variable-family-metadata` | 4 | Unassigned |
+## Remaining ownership
 
-223 of 257 rows currently name no mechanics owner beyond this audit. The report
-publishes that as `runtime_owner_unassigned`, so the gap is visible to #122
-rather than implied by a family-level "partial". Naming those owners requires
-dependency-linked follow-up issues and remains outstanding.
+Every mundane row retains #112 for accounting, #336 for source/context work,
+and a named procedure owner. The report maps each blocker to its owning issue;
+`runtime_owner_unassigned` is zero. Historical mechanics issue references are
+retained where previously recorded, but they do not replace the active owners.
 
-Exclusions are validated against the catalog that took them: each excluded skill
-must exist in the #119 inventory with the same page and the same follow-up
-issues. Drift there fails this audit instead of dropping the skill.
+| Owner | Remaining scope |
+| --- | --- |
+| #336 | Printing/errata reconciliation; conditional defaults, prerequisites, TL, aliases, specialties, variable families and technique expansion/policy. |
+| #338 | Arts, crafts and trade procedures. |
+| #339 | Melee, defense and tactical skill procedures. |
+| #340 | Combat technique procedures and parent-specific dispatch. |
+| #341 | Knowledge, investigation and professional information procedures. |
+| #342 | Medicine and mental procedures. |
+| #343 | Physical, outdoor and animal procedures. |
+| #344 | Ranged combat skill procedures. |
+| #345 | Social skill procedures. |
+| #346 | Technology, science and vehicle procedures. |
 
-## Runtime contract
+Each procedure follow-up lists its exact candidate IDs and must reuse existing
+authoritative services. Accounting completion does not certify those procedures.
 
-`require_available` rejects every unknown identifier and every blocked row, and
-cleared blockers still cannot activate an unsupported definition. The candidate
-package `package:gurps-mundane-skill-candidates` is separate and immutable; its
-definitions carry no hooks, so scenario, character and LLM validators cannot
-turn an accounted-for row into a mechanic. `tests/test_mundane_skills.py` fixes
-the structural classes, numeric default alternatives, specialty and prerequisite
-identities, owner propagation and the exclusion transfer independently of the
-audit report that consumes them.
+## Validation and runtime contract
+
+All candidates have unsupported status and no runtime hooks. `require_available`
+rejects unknown IDs, blocked rows and unsupported definitions even if their
+blocker list is mistakenly cleared. Scenario/character/LLM validation therefore
+cannot turn catalog presence into playable mechanics.
+
+Reference checks cover defaults, prerequisites, specialty/technique parents,
+aliases and source-index targets. Prerequisite, technique and alias cycles fail;
+valid reciprocal defaults remain source data. Tests independently assert numeric
+suit/crewman/weapon defaults, technique caps and pages, the complete source-index
+classes, deletion detection, owner propagation and exclusion transfer integrity.
