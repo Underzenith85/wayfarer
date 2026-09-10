@@ -49,7 +49,10 @@ a skill family used in place of a specialty, and every ranged combat skill whose
 procedure is still transferred to an open child issue are refused when the
 equipment catalog is built and again before dice. See
 [Ranged combat procedures](gurps-mundane-skills.md#ranged-combat-procedures-344).
-Firearms, beams, crew-served weapons, liquid projectors, entangling weapons and
+Bolas and Net are bound too: a landed, undefended throw leaves a pinned binding
+on the target that penalises its attacks and active defenses, can reduce Move to
+zero, and is shed only by winning a Ready-maneuver contest against the binding's
+ST. Firearms, beams, crew-served weapons, liquid projectors and
 launcher-assisted throws remain unsupported; this change does not widen the
 permitted fire modes. A B270 rated weapon ST belongs to the launcher its own
 skill governs: a rated bow cannot be fired under Crossbow, and a rated

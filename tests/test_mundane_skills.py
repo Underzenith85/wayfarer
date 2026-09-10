@@ -283,12 +283,12 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     # #344 keeps the ranged rows it did not implement visible under the concrete
     # children that own them, instead of resolving them into its own number.
     assert entries["skill:bow"].owners == (344,)
-    assert entries["skill:bolas"].owners == (344, 354)
+    assert entries["skill:bolas"].owners == (344,)
     assert entries["skill:net"].blocker_owners == {
         "first-printing-delta-audit": (336,),
-        "runtime-procedure": (344, 354),
         "conditional-or-skill-defaults": (336, 362),
     }
+    assert entries["skill:guns"].owners == (344, 355)
     assert coverage_blockers(PROFILE) == (
         103,
         109,
@@ -305,7 +305,6 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         344,
         345,
         346,
-        354,
         355,
         357,
         359,
@@ -332,7 +331,6 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         344,
         345,
         346,
-        354,
         355,
         357,
         359,
@@ -342,9 +340,9 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     ]
     assert report["runtime_owner_unassigned"] == 0
     assert report["implementation_counts"] == {
-        "implemented": 12,
+        "implemented": 14,
         "listing-only": 32,
-        "unsupported": 249,
+        "unsupported": 247,
     }
     counts = report["structural_class_counts"]
     assert isinstance(counts, dict) and counts["listing-only"] == 32

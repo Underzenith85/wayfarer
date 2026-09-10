@@ -117,7 +117,7 @@ def test_mundane_skill_rows_carry_item_level_owners_and_certification_state() ->
     assert sum(r.implementation == "listing-only" for r in rows) == 32
     # #344: a bound ranged procedure reaches certification as implemented, and a
     # transferred one reaches it naming the concrete open child that owns it.
-    assert sum(r.implementation == "implemented" for r in rows) == 12
+    assert sum(r.implementation == "implemented" for r in rows) == 14
     assert next(r for r in rows if r.id == "skill:bow").blockers == (112, 336, 344)
-    assert next(r for r in rows if r.id == "skill:net").blockers == (112, 336, 344, 354, 362)
+    assert next(r for r in rows if r.id == "skill:net").blockers == (112, 336, 344, 362)
     assert next(r for r in rows if r.id == "skill:broadsword").blockers == (103, 112, 336, 339)

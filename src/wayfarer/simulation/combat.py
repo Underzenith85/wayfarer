@@ -15,6 +15,7 @@ from pydantic import Field, model_validator
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.rules.checks import CheckTrace
 from wayfarer.rules.effects import DerivedValue
+from wayfarer.rules.entangle_types import Entanglement
 from wayfarer.rules.location_types import HitLocation, HumanLocation
 from wayfarer.simulation.gurps_equipment import EquipmentCatalog
 from wayfarer.simulation.hex_geometry import Hex, HexBattlefield
@@ -193,6 +194,7 @@ class Combatant(Record):
     arm_locked: bool = False
     grappled: bool = False
     pinned: bool = False
+    entangled: Entanglement | None = Field(default=None, exclude_if=lambda v: v is None)
     forced_do_nothing: bool = False
     maneuver_state: ManeuverState = Field(default_factory=ManeuverState)
 
@@ -1208,20 +1210,24 @@ class CombatEngine:
                 }
             )
         elif maneuver == "ready":
-            if item_id is None or any(
-                value is not None for value in (destination, facing, posture, target_id)
+            # A bound actor may spend its Ready struggling with the binding
+            # instead of readying an item (#354).
+            struggling = participant.entangled is not None
+            if any(value is not None for value in (destination, facing, posture, target_id)) or (
+                item_id is None and not struggling
             ):
                 raise ValidationError("Ready requires exactly one item")
-            resources = self.resources.apply(
-                resources,
-                Equip(
-                    id=f"{command_id}:ready",
-                    actor_id=actor_id,
-                    expected_revision=resources.revision,
-                    item_id=item_id,
-                    ready=True,
-                ),
-            )
+            if item_id is not None:
+                resources = self.resources.apply(
+                    resources,
+                    Equip(
+                        id=f"{command_id}:ready",
+                        actor_id=actor_id,
+                        expected_revision=resources.revision,
+                        item_id=item_id,
+                        ready=True,
+                    ),
+                )
             participant = participant.model_copy(
                 update={
                     "ready_item_ids": tuple(

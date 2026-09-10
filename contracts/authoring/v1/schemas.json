@@ -2925,6 +2925,60 @@
         "title": "Discovery",
         "type": "object"
       },
+      "EntangleSpec": {
+        "additionalProperties": false,
+        "description": "Explicit binding facts for one entangling weapon mode.",
+        "properties": {
+          "binding_st": {
+            "maximum": 40,
+            "minimum": 1,
+            "title": "Binding St",
+            "type": "integer"
+          },
+          "attack_penalty": {
+            "maximum": 0,
+            "minimum": -20,
+            "title": "Attack Penalty",
+            "type": "integer"
+          },
+          "defense_penalty": {
+            "maximum": 0,
+            "minimum": -20,
+            "title": "Defense Penalty",
+            "type": "integer"
+          },
+          "immobilizes": {
+            "title": "Immobilizes",
+            "type": "boolean"
+          },
+          "attached": {
+            "title": "Attached",
+            "type": "boolean"
+          },
+          "escape_skill_id": {
+            "anyOf": [
+              {
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Escape Skill Id"
+          }
+        },
+        "required": [
+          "binding_st",
+          "attack_penalty",
+          "defense_penalty",
+          "immobilizes",
+          "attached"
+        ],
+        "title": "EntangleSpec",
+        "type": "object"
+      },
       "Entity": {
         "properties": {
           "id": {
@@ -6000,6 +6054,17 @@
             "anyOf": [
               {
                 "$ref": "#/$defs/RatedStrength"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "entangle": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/EntangleSpec"
               },
               {
                 "type": "null"

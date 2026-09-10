@@ -23,6 +23,8 @@ from wayfarer.simulation.combat import (
     RangedSituation,
 )
 from wayfarer.simulation.condition_checks import check_modifiers
+from wayfarer.simulation.entangle import attack_penalty as entangle_attack_penalty
+from wayfarer.simulation.entangle import bind as entangle_bind
 from wayfarer.simulation.fatigue import fatigue_value
 from wayfarer.simulation.gurps_equipment import RangedMode
 from wayfarer.simulation.hit_locations import (
@@ -176,6 +178,19 @@ def validate_command(
         service(play, state, encounter, command, validate_only=True)
     elif command.firearm_service_skill != "weapon":
         raise ValidationError("Firearm service skill requires a service operation")
+    if command.escape_entanglement:
+        # Struggling free costs the whole Ready; it is not a free action bolted
+        # onto a reload, an unload or an attack.
+        if (
+            command.maneuver != "ready"
+            or command.reload_ammunition_id is not None
+            or command.unload_ammunition
+            or command.item_id is not None
+        ):
+            raise ValidationError("Escaping a binding requires its own Ready maneuver")
+        actor = next((p for p in encounter.participants if p.actor_id == command.actor_id), None)
+        if actor is None or actor.entangled is None:
+            raise ValidationError("Nothing is binding this actor")
     if command.unload_ammunition:
         if command.maneuver != "ready" or command.reload_ammunition_id is not None:
             raise ValidationError("Unload requires a separate Ready maneuver")
@@ -560,6 +575,7 @@ def resolve(
             target_modifier(play, state, target.actor_id, pending.target_item_id)
             - scene.size_modifier
         )
+    attack_target += entangle_attack_penalty(actor)
     attack_target -= actor_hp.injury.shock if actor_hp.injury else 0
     if actor_hp.injury:
         attack_target += actor_hp.injury.physical_traits.darkness(encounter.darkness_penalty)
@@ -1038,6 +1054,20 @@ def resolve(
             )
     updated = next(p for p in state.resources.pools if p.id == hp.id)
     assert updated.injury is not None
+    # B181/B211: a landed binding holds the target whatever damage it also did.
+    # A defended-away or blocked shot binds nothing.
+    if weapon.entangle is not None and hits and blocked is None:
+        target = entangle_bind(
+            target,
+            weapon.entangle,
+            source_actor_id=actor.actor_id,
+            weapon_definition_id=next(
+                i.definition_id
+                for i in (*state.resources.items, *state.resources.expended_items)
+                if i.id == pending.weapon_id
+            ),
+            mode_id=weapon.id,
+        )
     target = target.model_copy(
         update={
             "posture": "prone" if updated.injury.prone else target.posture,

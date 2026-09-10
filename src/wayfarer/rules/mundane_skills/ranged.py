@@ -9,8 +9,7 @@ Recording a skill never makes it playable. A row is implemented only when this
 module binds it to the ranged dispatch that already resolves it
 (`orchestration/gurps_ranged`), declares the exact weapon modes it governs, and
 names a registered capability. Every other listed row keeps its recorded
-blockers and names the concrete open child issue that owns them: #354
-entangling attacks, #355 TL-indexed firearms and beams, #357 crew-served and
+blockers and names the concrete open child issue that owns them: #355 TL-indexed firearms and beams, #357 crew-served and
 vehicle-mounted weapons, #359 liquid projector streams, #360 the spear-thrower
 launcher, #361 Innate Attack specialties, #362 cross-specialty and conditional
 defaults.
@@ -59,11 +58,17 @@ class WeaponClass:
     maximum_rate_of_fire: int = 1
     maximum_recoil: int = 1
     hands: tuple[Hands, ...] = (1, 2)
+    # Whether the mode must carry pinned entangling facts. A skill that binds
+    # its target needs them; every other ranged skill must not have them.
+    entangling: bool = False
     # The only B270 rated weapon ST (#348) this skill may carry, if any.
     rated_kind: Literal["bow", "crossbow"] | None = None
 
 
 LAUNCHER: Final = WeaponClass(thrown=False, ammunition=True)
+# A binding is thrown and must carry its pinned entangling facts (#354).
+BOLAS: Final = WeaponClass(thrown=True, ammunition=False, hands=(1,), entangling=True)
+NET: Final = WeaponClass(thrown=True, ammunition=False, entangling=True)
 BOW: Final = WeaponClass(thrown=False, ammunition=True, hands=(2,), rated_kind="bow")
 CROSSBOW: Final = WeaponClass(thrown=False, ammunition=True, rated_kind="crossbow")
 THROWN: Final = WeaponClass(thrown=True, ammunition=False, hands=(1,))
@@ -217,13 +222,16 @@ _ROWS: Final = (
     ),
     *THROWN_SPECIALTIES,
     # Transferred rows. Each keeps its recorded blockers and names its owner.
+    # B181/B211: a landed binding holds the target; the outcome is the
+    # entanglement, not the hit points it may also cost.
     RangedProcedure(
         "skill:bolas",
         "Bolas",
         181,
         A.DX,
         D.AVERAGE,
-        transferred={RUNTIME_PROCEDURE: (354,)},
+        weapon=BOLAS,
+        resolved=(RUNTIME_PROCEDURE,),
     ),
     RangedProcedure(
         "skill:net",
@@ -231,7 +239,9 @@ _ROWS: Final = (
         211,
         A.DX,
         D.HARD,
-        transferred={RUNTIME_PROCEDURE: (354,), CONDITIONAL_DEFAULTS: (362,)},
+        weapon=NET,
+        resolved=(RUNTIME_PROCEDURE,),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     RangedProcedure(
         "skill:spear-thrower",
@@ -337,6 +347,7 @@ def require_mode(
     hands: int,
     tight_beam: bool,
     rated_kind: str | None = None,
+    entangling: bool = False,
 ) -> RangedProcedure | None:
     """Fail closed before dice when a weapon claims an unbound ranged skill.
 
@@ -374,6 +385,8 @@ def require_mode(
         raise ValidationError(f"Rapid fire and recoil are outside the skill's class: {skill_id}")
     if hands not in weapon.hands:
         raise ValidationError(f"Weapon grip is outside the skill's class: {skill_id}")
+    if entangling != weapon.entangling:
+        raise ValidationError(f"Entangling facts are outside the skill's class: {skill_id}")
     # B270 rated weapon ST (#348) belongs to the launcher its own skill governs.
     if rated_kind != weapon.rated_kind and not (rated_kind is None and weapon.rated_kind):
         raise ValidationError(f"Rated weapon ST is outside the skill's class: {skill_id}")

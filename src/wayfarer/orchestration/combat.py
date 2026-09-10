@@ -63,6 +63,7 @@ class TakeCombatTurn(CombatCommand):
     shots: int = Field(default=1, ge=1, le=100)
     reload_ammunition_id: str | None = None
     unload_ammunition: bool = Field(default=False, exclude_if=lambda v: not v)
+    escape_entanglement: bool = Field(default=False, exclude_if=lambda v: not v)
     firearm_service: Literal["diagnose", "clear", "repair"] | None = Field(
         default=None, exclude_if=lambda v: v is None
     )
@@ -1107,6 +1108,15 @@ class CombatService:
                                 self.play,
                                 state.model_copy(update={"resources": resources}),
                                 command_for_turn,
+                            )
+                        if command_for_turn.escape_entanglement:
+                            from wayfarer.orchestration.entangle import escape_binding
+
+                            encounter = escape_binding(
+                                self.play,
+                                state.model_copy(update={"resources": resources}),
+                                encounter,
+                                command_for_turn.actor_id,
                             )
                         if command_for_turn.firearm_service is not None:
                             from wayfarer.orchestration.firearms import service

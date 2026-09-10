@@ -99,7 +99,6 @@ retained where previously recorded, but they do not replace the active owners.
 | #342 | Medicine and mental procedures. |
 | #343 | Physical, outdoor and animal procedures. |
 | #344 | Ranged combat skill procedures; see below for what it bound and what it transferred. |
-| #354 | Entangling ranged attacks (Bolas, Net). |
 | #355 | TL-indexed personal firearm and beam weapon specialties. |
 | #357 | Crew-served and vehicle-mounted ranged weapons. |
 | #359 | Liquid Projector streams and sprays. |
@@ -132,8 +131,8 @@ equipment catalog is built and again when a mode is selected in play.
 | `skill:blowpipe` | B180, DX/H, DX-6 | Implemented. Launcher with a pinned missile. Poisoned ammunition is an ammunition mechanic, not part of this skill. |
 | `skill:thrown-weapon` | B226, DX/E, DX-4 | Family expanded into seven concrete specialties (Axe/Mace, Dart, Harpoon, Knife, Shuriken, Spear, Stick) and never dispatched itself. |
 | `skill:thrown-weapon-*` | B226, DX/E, DX-4 | Implemented. The projectile is the item; it leaves active inventory and is retained in `expended_items`. |
-| `skill:bolas` | B181, DX/A | Transferred to #354; the outcome is a persisted entangled condition, not injury. |
-| `skill:net` | B211, DX/H | Transferred to #354 and #362. |
+| `skill:bolas` | B181, DX/A | Implemented. A landed throw binds the target; the binding, not the damage, is the outcome. |
+| `skill:net` | B211, DX/H | Implemented. Cross-skill defaults remain with #362. |
 | `skill:spear-thrower` | B222, DX/A, DX-5 | Transferred to #360 and #362; a launcher that modifies a projectile it does not consume. |
 | `skill:guns` | B198, DX/E, DX-4 | Transferred to #355; needs TL context and pinned firearm specialties. |
 | `skill:beam-weapons` | B179, DX/E, DX-4 | Transferred to #355. |
@@ -141,6 +140,25 @@ equipment catalog is built and again when a mode is selected in play.
 | `skill:gunner` | B198, DX/E, DX-4 | Transferred to #357. |
 | `skill:liquid-projector` | B205, DX/E, DX-4 | Transferred to #359; needs stream and spray state the dispatch does not have. |
 | `skill:innate-attack` | B201, DX/E, DX-4 | Transferred to #361. The Projectile specialty is already dispatched by the opt-in spell adapter under its own pin; reconciling it here is an explicit migration. |
+
+### Bindings (#354)
+
+An entangling weapon mode carries pinned `EntangleSpec` facts: the binding's own
+ST, the penalties it imposes on the victim's attacks and active defenses,
+whether it pins the legs, whether it stays on the target, and an optional
+trained escape skill. Nothing is inferred from a skill name, damage type or
+weight, and a binding is Basic-only and must be a single thrown weapon.
+
+A landed, undefended throw binds the target through the ordinary ranged
+dispatch: the projectile still resolves its damage, and the binding is recorded
+on the combatant in the encounter checkpoint. Breaking free is a Ready maneuver
+(`escape_entanglement`) resolved as a quick contest of the victim's ST — or the
+binding's pinned escape skill when the victim actually has a level in it —
+against the binding's ST. A win frees the victim; a loss records the attempt, so
+a replayed encounter reproduces the struggle instead of restarting it. While the
+binding holds it applies its attack and defense penalties through the shared
+melee, ranged and defense services, and a binding that pins the legs reduces
+Move to zero. Evidence is in `tests/test_entangling_attacks.py`.
 
 A binding may only resolve or keep the blockers the inventory recorded, and its
 numbers must be the recorded ones: `inventory()` raises on either drift, and on
