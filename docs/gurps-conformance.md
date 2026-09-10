@@ -393,6 +393,14 @@ techniques no longer inherit definitions from live packages. Source/printing,
 context and runtime limitations are visible per row. Independent fixtures sample
 all 12 structural classes, numeric defaults, technique caps and reference failures.
 
+#336 completed the contextual shapes: alternative prerequisites recorded as
+first-class sets the compiler satisfies one member of, a cross-package
+prerequisite resolved against the catalog that owns it, 23 B230-233 technique
+templates recording the parents the source permits, and five open families
+recording that the player names the specialty. What it could not settle without
+the source artifact or campaign state is split into #382, #383, #384 and #385,
+each owning specific blockers, so no row resolves into a general owner.
+
 Every remaining blocker has a named owner: #336 owns source/context reconciliation,
 and #338–#346 own specific procedure inventories. `runtime_owner_unassigned` is
 zero. #344 binds twelve ranged combat rows to a runtime procedure in a new pin

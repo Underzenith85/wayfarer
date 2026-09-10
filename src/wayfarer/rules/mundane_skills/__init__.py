@@ -11,6 +11,7 @@ from collections import Counter
 from dataclasses import asdict, dataclass
 from enum import StrEnum
 from pathlib import Path
+from types import MappingProxyType
 
 from pydantic import TypeAdapter
 
@@ -29,17 +30,37 @@ from wayfarer.rules.mundane_skills.social import unsupported_scope as social_sco
 from wayfarer.rules.mundane_skills.technology import PROCEDURES as TECHNOLOGY_PROCEDURES
 from wayfarer.rules.skill_types import ControllingAttribute as A
 from wayfarer.rules.skill_types import (
+    PrerequisiteGroup,
     SkillDefault,
     SkillPrerequisite,
     SkillSpec,
     Specialty,
     Technique,
+    TechniqueTemplate,
+    VariableFamily,
 )
 
+# Prerequisites recorded here whose target another catalog owns (B182).
+CROSS_PACKAGE = frozenset({"skill:computer-hacking"})
 PROFILE = "gurps-basic-set-4e-2004"
 SOURCE = source(PROFILE)
 OWNER = 112
 CONTEXT_OWNER = 336
+# #336 completed the contextual shapes and split what still needs the source
+# artifact or campaign state into concrete children. Each remaining blocker names
+# the one that owns it instead of resolving into the context owner.
+CONTEXT_RESIDUALS = MappingProxyType(
+    {
+        "first-printing-delta-audit": (382,),
+        "conditional-or-skill-defaults": (383,),
+        "prerequisite-procedure": (383,),
+        "weapon-default-audit": (383,),
+        "technology-level-context": (384,),
+        "optional-rule-selection": (384,),
+        "specialty-expansion": (385,),
+        "technique-expansion": (385,),
+    }
+)
 # One runtime binding per procedure group. A row bound by two groups would let
 # either one claim it, so overlap is rejected rather than resolved by order.
 BINDINGS = (RANGED_PROCEDURES, SOCIAL_PROCEDURES, TECHNOLOGY_PROCEDURES)
@@ -60,6 +81,8 @@ class StructuralClass(StrEnum):
     TECHNOLOGY_LEVEL = "technology-level"
     ALIAS = "alias"
     TECHNIQUE_TEMPLATE = "technique-template"
+    VARIABLE_FAMILY = "variable-family"
+    ALTERNATIVE_PREREQUISITE = "alternative-prerequisite"
 
 
 @dataclass(frozen=True)
@@ -74,6 +97,10 @@ class SkillAudit:
     tl_required: bool = False
     alias_of: str | None = None
     procedure_owner: int = 0
+    # B230-233 technique listing and open specialty family metadata (#336). A row
+    # carrying either records its contextual shape rather than a missing definition.
+    template: TechniqueTemplate | None = None
+    variable: VariableFamily | None = None
     # A row is bound only when a runtime module executes it through a service
     # that already resolves it; recording mechanics never sets this. A family
     # row is bound by its concrete specialties and has no dispatch of its own.
@@ -98,6 +125,11 @@ class SkillAudit:
     def implementation(self) -> str:
         """Certification state of this row, never a family-level claim."""
         if self.definition is None:
+            # A technique template and an open family are not rollable skills, so
+            # they record their contextual shape instead of a definition. That is
+            # not the same as a row whose mechanics are simply missing.
+            if self.template is not None or self.variable is not None:
+                return "contextual"
             return "listing-only"
         return "implemented" if self.bound else "unsupported"
 
@@ -124,7 +156,7 @@ class SkillAudit:
                     (
                         (self.procedure_owner,)
                         if blocker in ("runtime-procedure", "combat-procedure")
-                        else (CONTEXT_OWNER,)
+                        else CONTEXT_RESIDUALS.get(blocker, (CONTEXT_OWNER,))
                     )
                     + transferred.get(blocker, ())
                 )
@@ -162,8 +194,12 @@ class SkillAudit:
             found.add(StructuralClass.TECHNOLOGY_LEVEL)
         if self.alias_of:
             found.add(StructuralClass.ALIAS)
-        if "technique-expansion" in self.blockers:
+        if self.template is not None or "technique-expansion" in self.blockers:
             found.add(StructuralClass.TECHNIQUE_TEMPLATE)
+        if self.variable is not None:
+            found.add(StructuralClass.VARIABLE_FAMILY)
+        if spec is not None and spec.prerequisite_groups:
+            found.add(StructuralClass.ALTERNATIVE_PREREQUISITE)
         return tuple(sorted(found))
 
 
@@ -286,8 +322,37 @@ def inventory() -> tuple[SkillAudit, ...]:
                 )
                 if row.technique
                 else None,
+                tuple(
+                    PrerequisiteGroup(
+                        tuple(SkillPrerequisite(f"skill:{p}") for p in group.alternatives)
+                    )
+                    for group in row.prerequisite_groups
+                ),
             )
             if row.attribute is not None and row.difficulty is not None
+            else None
+        )
+        template = (
+            TechniqueTemplate(
+                row.template.difficulty,
+                row.template.default_modifier,
+                row.template.maximum_modifier,
+                tuple(f"skill:{parent}" for parent in row.template.parents),
+                f"skill:{row.template.parent_family}" if row.template.parent_family else None,
+                attributes[row.template.attribute] if row.template.attribute else None,
+            )
+            if row.template
+            else None
+        )
+        variable = (
+            VariableFamily(
+                row.variable.subject,
+                row.variable.determination,
+                f"skill:{row.variable.mirrors}" if row.variable.mirrors else None,
+                attributes[row.variable.attribute] if row.variable.attribute else None,
+                row.variable.difficulty,
+            )
+            if row.variable
             else None
         )
         if spec is not None:
@@ -301,7 +366,9 @@ def inventory() -> tuple[SkillAudit, ...]:
                 skill=spec,
             )
         blockers = ["first-printing-delta-audit", *row.blockers]
-        if definition is None:
+        # A template or an open family records its contextual shape; only a row
+        # with neither a definition nor a shape is still missing its metadata.
+        if definition is None and template is None and variable is None:
             blockers.append("metadata-audit")
         dispatch: str | None = None
         bound = [group[identifier] for group in BINDINGS if identifier in group]
@@ -336,6 +403,8 @@ def inventory() -> tuple[SkillAudit, ...]:
                 row.tl_required,
                 f"skill:{row.alias_of}" if row.alias_of else None,
                 row.procedure_owner,
+                template,
+                variable,
                 bound=procedure is not None and procedure.implemented,
                 dispatch=dispatch,
                 transferred=transferred,
@@ -369,8 +438,27 @@ def candidate_package() -> RulesPackage:
     )
 
 
+def cross_package_prerequisites() -> frozenset[str]:
+    """Prerequisites this chapter records but another catalog owns.
+
+    B182 Brain Hacking requires Computer Hacking, which the #119 supernatural
+    catalog carries. The reference is real source data, so it is resolved against
+    that catalog rather than dropped for being outside this inventory.
+    """
+    from wayfarer.rules.supernatural import inventory as owning_catalog
+
+    owned = {entry.id for entry in owning_catalog().entries if entry.kind == "skill"}
+    missing = CROSS_PACKAGE - owned
+    if missing:
+        raise ValidationError(
+            f"Cross-package prerequisite is unowned: {', '.join(sorted(missing))}"
+        )
+    return CROSS_PACKAGE
+
+
 def validate_inventory(entries: tuple[SkillAudit, ...]) -> None:
     identifiers = {e.id for e in entries}
+    cross_package = cross_package_prerequisites()
     if len(identifiers) != len(entries):
         raise ValidationError("Duplicate skill inventory ID")
     for entry in entries:
@@ -393,7 +481,13 @@ def validate_inventory(entries: tuple[SkillAudit, ...]) -> None:
             if any(d.target not in allowed_targets or d.target == entry.id for d in spec.defaults):
                 raise ValidationError(f"Invalid default references for {entry.id}")
             references = tuple(d.target for d in spec.defaults if d.target.startswith("skill:"))
-            references += tuple(p.target for p in spec.prerequisites)
+            # A prerequisite another catalog owns resolves there, not here.
+            references += tuple(
+                p.target
+                for p in spec.prerequisites
+                + tuple(p for g in spec.prerequisite_groups for p in g.alternatives)
+                if p.target not in cross_package
+            )
             if spec.technique:
                 references += (spec.technique.parent,)
             if spec.specialty and spec.specialty.optional_parent:
@@ -402,8 +496,25 @@ def validate_inventory(entries: tuple[SkillAudit, ...]) -> None:
                 references += (f"skill:{spec.specialty.family}",)
             if not set(references) <= identifiers:
                 raise ValidationError(f"Unresolved skill references for {entry.id}")
-            if any(p.target == entry.id or p.minimum < 1 for p in spec.prerequisites):
+            alternatives = tuple(
+                p for group in spec.prerequisite_groups for p in group.alternatives
+            )
+            if any(
+                p.target == entry.id or p.minimum < 1 for p in spec.prerequisites + alternatives
+            ):
                 raise ValidationError(f"Invalid prerequisite references for {entry.id}")
+            if any(len(group.alternatives) < 2 for group in spec.prerequisite_groups):
+                raise ValidationError(f"An alternative set needs alternatives: {entry.id}")
+        if entry.template is not None:
+            permitted = set(entry.template.parents)
+            if entry.id in permitted or not permitted <= identifiers:
+                raise ValidationError(f"Unresolved technique template parents for {entry.id}")
+            family = entry.template.parent_family
+            if family is not None and family not in identifiers:
+                raise ValidationError(f"Unresolved technique template family for {entry.id}")
+        if entry.variable is not None and entry.variable.mirrors is not None:
+            if entry.variable.mirrors not in identifiers or entry.variable.mirrors == entry.id:
+                raise ValidationError(f"Invalid variable family mirror for {entry.id}")
         if not entry.structural_classes:
             raise ValidationError(f"Unclassified inventory row: {entry.id}")
         if OWNER not in entry.followup_issues:
@@ -421,7 +532,21 @@ def validate_inventory(entries: tuple[SkillAudit, ...]) -> None:
     dependencies: dict[str, tuple[str, ...]] = {}
     for entry in entries:
         dependency_spec = entry.definition.skill if entry.definition else None
-        parents = tuple(p.target for p in dependency_spec.prerequisites) if dependency_spec else ()
+        # A prerequisite another catalog owns is not a node in this graph.
+        parents = (
+            tuple(p.target for p in dependency_spec.prerequisites if p.target in by_id)
+            if dependency_spec
+            else ()
+        )
+        if dependency_spec:
+            # An alternative is an acquisition edge too: a cycle through one is
+            # still a cycle, even though only one alternative need be satisfied.
+            parents += tuple(
+                p.target
+                for group in dependency_spec.prerequisite_groups
+                for p in group.alternatives
+                if p.target in by_id
+            )
         if dependency_spec and dependency_spec.technique:
             parents += (dependency_spec.technique.parent,)
         if (

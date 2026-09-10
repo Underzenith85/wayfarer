@@ -44,7 +44,7 @@ def test_inventory_and_references() -> None:
     assert candidate_package().digest == candidate_package().digest
     with pytest.raises(ValidationError, match="Duplicate"):
         validate_inventory(entries + entries[:1])
-    with pytest.raises(ValidationError, match="references"):
+    with pytest.raises(ValidationError, match="[Rr]eference|parents"):
         validate_inventory(tuple(e for e in entries if e.id != "skill:karate"))
 
 
@@ -139,8 +139,14 @@ def test_mathematics_specialties_and_prerequisites() -> None:
         assert [(p.target, p.minimum) for p in definition.skill.prerequisites] == [
             (f"skill:{target}", 1)
         ]
-    # The OR prerequisite for Surgery cannot be flattened to an AND list.
-    assert "prerequisite-procedure" in entries["skill:surgery"].blockers
+    # B223: Surgery's alternative set is recorded rather than flattened to an AND
+    # list, so one satisfied alternative is enough (#336).
+    surgery = entries["skill:surgery"].definition
+    assert surgery is not None and surgery.skill is not None
+    assert [
+        tuple(p.target for p in group.alternatives) for group in surgery.skill.prerequisite_groups
+    ] == [("skill:first-aid", "skill:physician", "skill:veterinary")]
+    assert "prerequisite-procedure" not in entries["skill:surgery"].blockers
 
 
 @pytest.mark.parametrize(
@@ -149,7 +155,7 @@ def test_mathematics_specialties_and_prerequisites() -> None:
         {"page": "174"},
         {"unexpected": True},
         {"difficulty": None},
-        {"blockers": []},
+        {"prerequisite_groups": [{"alternatives": ["acting"]}]},
         {"blockers": ["typo"]},
         {"issues": [0]},
         {"issues": [112, 112]},
@@ -257,9 +263,11 @@ def test_structural_classes_are_recorded_and_completely_sampled() -> None:
     sampled = {c for e in entries.values() for c in e.structural_classes}
     assert sampled == set(StructuralClass)
     assert all(e.structural_classes for e in entries.values())
-    assert entries["skill:neck-snap"].implementation == "listing-only"
+    # B232 Neck Snap records its technique template, not a rollable definition.
+    assert entries["skill:neck-snap"].implementation == "contextual"
     assert entries["skill:accounting"].implementation == "unsupported"
-    assert sum(e.implementation == "listing-only" for e in entries.values()) == 28
+    assert sum(e.implementation == "contextual" for e in entries.values()) == 28
+    assert not any(e.implementation == "listing-only" for e in entries.values())
 
 
 def test_unsampled_or_unclassified_rows_are_rejected() -> None:
@@ -284,9 +292,11 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     # children that own them, instead of resolving them into its own number.
     assert entries["skill:bow"].owners == (344,)
     assert entries["skill:bolas"].owners == (344,)
+    # #336 split its remaining contextual work into concrete children, so a
+    # blocker names the residual that owns it, plus any child a procedure split.
     assert entries["skill:net"].blocker_owners == {
-        "first-printing-delta-audit": (336,),
-        "conditional-or-skill-defaults": (336, 362),
+        "first-printing-delta-audit": (382,),
+        "conditional-or-skill-defaults": (383, 362),
     }
     assert entries["skill:guns"].owners == (344,)
     assert entries["skill:artillery"].owners == (344, 357)
@@ -306,7 +316,6 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         344,
         345,
         346,
-        353,
         356,
         357,
         358,
@@ -319,6 +328,10 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         368,
         369,
         370,
+        382,
+        383,
+        384,
+        385,
     )
     with pytest.raises(ValidationError, match="outside the selected profile"):
         coverage_blockers("gurps-lite-4e-2004")
@@ -339,7 +352,6 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         344,
         345,
         346,
-        353,
         356,
         357,
         358,
@@ -352,13 +364,15 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         368,
         369,
         370,
+        382,
+        383,
+        384,
+        385,
     ]
     assert report["runtime_owner_unassigned"] == 0
     assert report["implementation_counts"] == {
-        # 27 ranged (#344, #354, #355), 16 social (#345) and 83 technology
-        # (#346) rows dispatch a real procedure.
+        "contextual": 28,
         "implemented": 126,
-        "listing-only": 28,
         "unsupported": 189,
     }
     # A bound row can still leave part of its entry to another issue; that gap is
@@ -594,14 +608,19 @@ def test_alias_and_technique_context_stays_explicit() -> None:
     assert entries["skill:neck-snap"].definition is None
     for id in ("dual-weapon-attack", "whirlwind-attack"):
         assert "optional-rule-selection" in entries[f"skill:{id}"].blockers
-    assert "prerequisite-procedure" in entries["skill:brain-hacking"].blockers
+    # B182: the Computer Hacking prerequisite is recorded even though the #119
+    # catalog owns the target, so the row no longer blocks on it (#336).
+    brain_hacking = entries["skill:brain-hacking"].definition
+    assert brain_hacking is not None and brain_hacking.skill is not None
+    assert [p.target for p in brain_hacking.skill.prerequisites] == ["skill:computer-hacking"]
+    assert "prerequisite-procedure" not in entries["skill:brain-hacking"].blockers
 
 
 def test_every_blocker_has_a_named_followup() -> None:
     for entry in inventory():
         assert set(entry.blocker_owners) == set(entry.blockers)
         assert entry.procedure_owner not in (112, 191, 336)
-        assert entry.blocker_owners["first-printing-delta-audit"] == (336,)
+        assert entry.blocker_owners["first-printing-delta-audit"] == (382,)
         assert all(
             set(owners) <= set(entry.followup_issues) for owners in entry.blocker_owners.values()
         )
