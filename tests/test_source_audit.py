@@ -110,14 +110,23 @@ def test_mundane_skill_rows_carry_item_level_owners_and_certification_state() ->
     from wayfarer.rules.mundane_skills import PROFILE, coverage_blockers
 
     rows = [r for r in inventory() if r.scope == "mundane-skills"]
-    assert len(rows) == 293
+    assert len(rows) == 332
     assert all(r.owner == 112 and r.blockers for r in rows)
     assert {b for r in rows for b in r.blockers} == set(coverage_blockers(PROFILE))
     assert {r.implementation for r in rows} == {"implemented", "unsupported", "listing-only"}
-    assert sum(r.implementation == "listing-only" for r in rows) == 32
-    # #344: a bound ranged procedure reaches certification as implemented, and a
-    # transferred one reaches it naming the concrete open child that owns it.
-    assert sum(r.implementation == "implemented" for r in rows) == 14
+    assert sum(r.implementation == "listing-only" for r in rows) == 28
+    # #344, #345 and #346: a bound procedure reaches certification as implemented,
+    # and a transferred one reaches it naming the concrete open child that owns it.
+    assert sum(r.implementation == "implemented" for r in rows) == 113
+    assert next(r for r in rows if r.id == "skill:acting").blockers == (112, 336, 345)
+    assert next(r for r in rows if r.id == "skill:savoir-faire").blockers == (
+        111,
+        112,
+        336,
+        345,
+        353,
+        366,
+    )
     assert next(r for r in rows if r.id == "skill:bow").blockers == (112, 336, 344)
     assert next(r for r in rows if r.id == "skill:net").blockers == (112, 336, 344, 362)
     assert next(r for r in rows if r.id == "skill:broadsword").blockers == (103, 112, 336, 339)

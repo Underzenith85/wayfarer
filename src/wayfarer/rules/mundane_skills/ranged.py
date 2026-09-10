@@ -9,10 +9,10 @@ Recording a skill never makes it playable. A row is implemented only when this
 module binds it to the ranged dispatch that already resolves it
 (`orchestration/gurps_ranged`), declares the exact weapon modes it governs, and
 names a registered capability. Every other listed row keeps its recorded
-blockers and names the concrete open child issue that owns them: #355 TL-indexed firearms and beams, #357 crew-served and
-vehicle-mounted weapons, #359 liquid projector streams, #360 the spear-thrower
-launcher, #361 Innate Attack specialties, #362 cross-specialty and conditional
-defaults.
+blockers and names the concrete open child issue that owns them: #355
+TL-indexed firearms and beams, #357 crew-served and vehicle-mounted weapons,
+#359 liquid projector streams, #360 the spear-thrower launcher, #361 Innate
+Attack specialties, #362 cross-specialty and conditional defaults.
 """
 
 from collections.abc import Mapping
@@ -35,6 +35,7 @@ from wayfarer.rules.skill_types import SkillDefault, SkillSpec, Specialty
 PROFILE: Final = "gurps-basic-set-4e-2004"
 OWNER: Final = 344
 CAPABILITIES: Final = ("gurps.combat.ranged_attack", "gurps.combat.ranged_weapon_skills")
+DISPATCH: Final = "combat.ranged-attack"
 RUNTIME_PROCEDURE: Final = "runtime-procedure"
 SPECIALTY_EXPANSION: Final = "specialty-expansion"
 CONDITIONAL_DEFAULTS: Final = "conditional-or-skill-defaults"
@@ -111,6 +112,10 @@ class RangedProcedure:
         return self.implemented and self.weapon is not None
 
     @property
+    def dispatch(self) -> str | None:
+        return DISPATCH if self.dispatchable else None
+
+    @property
     def reference(self) -> str:
         return f"B{self.page}"
 
@@ -133,7 +138,7 @@ class RangedProcedure:
             source(PROFILE).id,
             None,
             ImplementationStatus.IMPLEMENTED,
-            hooks=("character.gurps-skill", "combat.ranged-attack"),
+            hooks=("character.gurps-skill", DISPATCH),
             skill=self.spec(),
         )
 

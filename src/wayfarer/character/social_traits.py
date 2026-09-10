@@ -12,6 +12,7 @@ from wayfarer.character.compiler import ValidatedBuild
 from wayfarer.errors import ValidationError
 from wayfarer.rules.catalog import ImplementationStatus, RuleDefinition
 from wayfarer.rules.gurps_social import ReactionModifier
+from wayfarer.rules.mundane_skills.social import VOICE, procedure
 from wayfarer.rules.mundane_traits.runtime import (
     APPEARANCE_BINDINGS,
     DEFAULT_AUDIENCE,
@@ -109,3 +110,38 @@ def reaction_modifiers(
             ReactionModifier("trait", binding.per_level * purchase.amount, purchase.definition_id)
         )
     return tuple(modifiers)
+
+
+def skill_conditions(
+    build: ValidatedBuild,
+    definitions: Mapping[str, RuleDefinition],
+    procedure_id: str,
+    audience: Audience = DEFAULT_AUDIENCE,
+) -> frozenset[str]:
+    """Named conditions the initiator's approved build asserts for a social procedure.
+
+    The build decides only whether a condition holds; the integer it is worth
+    belongs to the procedure (B97 Voice, `rules.mundane_skills.social`). A trait
+    that is not purchased, not implemented, not bound to its runtime hook, or not
+    perceptible to this audience asserts nothing, and a procedure that declares no
+    such modifier never receives the condition.
+    """
+    entry = procedure(procedure_id)
+    declared = {modifier.condition for modifier in entry.modifiers}
+    if VOICE.condition not in declared:
+        return frozenset()
+    binding = REACTION_BINDINGS["trait:voice"]
+    purchase = next(
+        (p for p in build.trait_purchases if p.definition_id == "trait:voice"),
+        None,
+    )
+    definition = definitions.get("trait:voice")
+    if purchase is None or definition is None or definition.trait_rules is None:
+        return frozenset()
+    if definition.status is not ImplementationStatus.IMPLEMENTED:
+        return frozenset()
+    if binding.hook not in definition.trait_rules.runtime_hooks:
+        return frozenset()
+    if not 1 <= purchase.amount <= definition.trait_rules.maximum_level:
+        raise ValidationError("Approved trait level is outside its catalog bounds")
+    return frozenset({VOICE.condition}) if audience.audible else frozenset()

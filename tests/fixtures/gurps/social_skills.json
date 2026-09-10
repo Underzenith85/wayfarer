@@ -1,0 +1,1017 @@
+{
+  "source": {
+    "id": "sjg:basic-set-characters-4e-2004",
+    "edition": "Basic Set: Characters, Fourth Edition, 2004 first printing",
+    "errata": "2007-01-26",
+    "pages": [
+      "B97 Voice",
+      "B174 Acting",
+      "B183 Carousing",
+      "B187 Diplomacy",
+      "B195 Fast-Talk",
+      "B196 Fortune-Telling",
+      "B198 Gesture",
+      "B202 Interrogation and Intimidation",
+      "B204 Leadership",
+      "B205 Lip Reading",
+      "B212 Panhandling and Performance",
+      "B215 Politics",
+      "B216 Propaganda and Public Speaking",
+      "B218 Savoir-Faire",
+      "B219 Sex Appeal",
+      "B223 Streetwise",
+      "B224 Teaching",
+      "B301-304 skill index",
+      "Campaigns B359 Influence Rolls"
+    ],
+    "provenance": "Hand-entered from model knowledge under the provisional implementation policy; artifact verification pending (#336, #191). Expected results are transcribed by hand and never generated from the implementation under test."
+  },
+  "procedures": [
+    {
+      "id": "skill:acting",
+      "reference": "B174",
+      "attribute": "attribute:iq",
+      "difficulty": "average",
+      "resolution": "quick-contest",
+      "required_conditions": [
+        "audience-perceptible"
+      ],
+      "modifiers": [],
+      "unsupported": [],
+      "dispatched": true,
+      "transferred": {},
+      "defaults": [
+        [
+          "attribute:iq",
+          -5
+        ],
+        [
+          "skill:performance",
+          -2
+        ],
+        [
+          "skill:public-speaking",
+          -5
+        ]
+      ]
+    },
+    {
+      "id": "skill:carousing",
+      "reference": "B183",
+      "attribute": "attribute:ht",
+      "difficulty": "easy",
+      "resolution": "success-roll",
+      "required_conditions": [
+        "social-gathering",
+        "audience-perceptible"
+      ],
+      "modifiers": [],
+      "unsupported": [
+        370
+      ],
+      "dispatched": true,
+      "transferred": {},
+      "defaults": [
+        [
+          "attribute:ht",
+          -4
+        ]
+      ]
+    },
+    {
+      "id": "skill:diplomacy",
+      "reference": "B187",
+      "attribute": "attribute:iq",
+      "difficulty": "hard",
+      "resolution": "influence",
+      "required_conditions": [
+        "audience-audible",
+        "shared-language"
+      ],
+      "modifiers": [
+        "audible-voice-trait"
+      ],
+      "unsupported": [],
+      "dispatched": true,
+      "transferred": {},
+      "defaults": [
+        [
+          "attribute:iq",
+          -6
+        ],
+        [
+          "skill:politics",
+          -6
+        ]
+      ]
+    },
+    {
+      "id": "skill:fast-talk",
+      "reference": "B195",
+      "attribute": "attribute:iq",
+      "difficulty": "average",
+      "resolution": "influence",
+      "required_conditions": [
+        "audience-audible",
+        "shared-language"
+      ],
+      "modifiers": [
+        "audible-voice-trait"
+      ],
+      "unsupported": [],
+      "dispatched": true,
+      "transferred": {
+        "conditional-or-skill-defaults": [
+          353
+        ]
+      },
+      "defaults": [
+        [
+          "attribute:iq",
+          -5
+        ]
+      ]
+    },
+    {
+      "id": "skill:fortune-telling",
+      "reference": "B196",
+      "attribute": "attribute:iq",
+      "difficulty": "average",
+      "resolution": "quick-contest",
+      "required_conditions": [],
+      "modifiers": [],
+      "unsupported": [],
+      "dispatched": false,
+      "transferred": {
+        "runtime-procedure": [
+          366
+        ],
+        "specialty-expansion": [
+          366
+        ],
+        "conditional-or-skill-defaults": [
+          353
+        ]
+      },
+      "defaults": [
+        [
+          "attribute:iq",
+          -5
+        ]
+      ]
+    },
+    {
+      "id": "skill:gesture",
+      "reference": "B198",
+      "attribute": "attribute:iq",
+      "difficulty": "easy",
+      "resolution": "success-roll",
+      "required_conditions": [
+        "audience-visible"
+      ],
+      "modifiers": [],
+      "unsupported": [],
+      "dispatched": true,
+      "transferred": {},
+      "defaults": [
+        [
+          "attribute:iq",
+          -4
+        ]
+      ]
+    },
+    {
+      "id": "skill:interrogation",
+      "reference": "B202",
+      "attribute": "attribute:iq",
+      "difficulty": "average",
+      "resolution": "regular-contest",
+      "required_conditions": [
+        "subject-restrained",
+        "shared-language"
+      ],
+      "modifiers": [],
+      "unsupported": [
+        368
+      ],
+      "dispatched": true,
+      "transferred": {
+        "conditional-or-skill-defaults": [
+          353
+        ]
+      },
+      "defaults": [
+        [
+          "attribute:iq",
+          -5
+        ]
+      ]
+    },
+    {
+      "id": "skill:intimidation",
+      "reference": "B202",
+      "attribute": "secondary:will",
+      "difficulty": "average",
+      "resolution": "influence",
+      "required_conditions": [
+        "audience-perceptible",
+        "credible-threat"
+      ],
+      "modifiers": [],
+      "unsupported": [],
+      "dispatched": true,
+      "transferred": {
+        "conditional-or-skill-defaults": [
+          353
+        ]
+      },
+      "defaults": [
+        [
+          "secondary:will",
+          -5
+        ]
+      ]
+    },
+    {
+      "id": "skill:leadership",
+      "reference": "B204",
+      "attribute": "attribute:iq",
+      "difficulty": "average",
+      "resolution": "success-roll",
+      "required_conditions": [
+        "followers-present",
+        "audience-audible"
+      ],
+      "modifiers": [
+        "audible-voice-trait"
+      ],
+      "unsupported": [
+        369
+      ],
+      "dispatched": true,
+      "transferred": {},
+      "defaults": [
+        [
+          "attribute:iq",
+          -5
+        ]
+      ]
+    },
+    {
+      "id": "skill:lip-reading",
+      "reference": "B205",
+      "attribute": "secondary:per",
+      "difficulty": "average",
+      "resolution": "success-roll",
+      "required_conditions": [
+        "speaker-lips-visible",
+        "shared-language"
+      ],
+      "modifiers": [],
+      "unsupported": [],
+      "dispatched": true,
+      "transferred": {},
+      "defaults": [
+        [
+          "secondary:per",
+          -10
+        ]
+      ]
+    },
+    {
+      "id": "skill:panhandling",
+      "reference": "B212",
+      "attribute": "attribute:iq",
+      "difficulty": "easy",
+      "resolution": "success-roll",
+      "required_conditions": [
+        "public-place",
+        "audience-perceptible"
+      ],
+      "modifiers": [],
+      "unsupported": [
+        370
+      ],
+      "dispatched": true,
+      "transferred": {
+        "conditional-or-skill-defaults": [
+          353
+        ]
+      },
+      "defaults": [
+        [
+          "attribute:iq",
+          -4
+        ]
+      ]
+    },
+    {
+      "id": "skill:performance",
+      "reference": "B212",
+      "attribute": "attribute:iq",
+      "difficulty": "average",
+      "resolution": "success-roll",
+      "required_conditions": [
+        "audience-perceptible"
+      ],
+      "modifiers": [
+        "audible-voice-trait"
+      ],
+      "unsupported": [
+        370
+      ],
+      "dispatched": true,
+      "transferred": {
+        "conditional-or-skill-defaults": [
+          353
+        ]
+      },
+      "defaults": [
+        [
+          "attribute:iq",
+          -5
+        ]
+      ]
+    },
+    {
+      "id": "skill:politics",
+      "reference": "B215",
+      "attribute": "attribute:iq",
+      "difficulty": "average",
+      "resolution": "quick-contest",
+      "required_conditions": [
+        "audience-audible",
+        "shared-language"
+      ],
+      "modifiers": [
+        "audible-voice-trait"
+      ],
+      "unsupported": [],
+      "dispatched": true,
+      "transferred": {
+        "conditional-or-skill-defaults": [
+          353
+        ]
+      },
+      "defaults": [
+        [
+          "attribute:iq",
+          -5
+        ]
+      ]
+    },
+    {
+      "id": "skill:propaganda",
+      "reference": "B216",
+      "attribute": "attribute:iq",
+      "difficulty": "average",
+      "resolution": "success-roll",
+      "required_conditions": [],
+      "modifiers": [],
+      "unsupported": [],
+      "dispatched": false,
+      "transferred": {
+        "runtime-procedure": [
+          367
+        ],
+        "technology-level-context": [
+          367
+        ],
+        "conditional-or-skill-defaults": [
+          353
+        ]
+      },
+      "defaults": [
+        [
+          "attribute:iq",
+          -5
+        ]
+      ]
+    },
+    {
+      "id": "skill:public-speaking",
+      "reference": "B216",
+      "attribute": "attribute:iq",
+      "difficulty": "average",
+      "resolution": "success-roll",
+      "required_conditions": [
+        "audience-audible",
+        "shared-language"
+      ],
+      "modifiers": [
+        "audible-voice-trait"
+      ],
+      "unsupported": [
+        370
+      ],
+      "dispatched": true,
+      "transferred": {},
+      "defaults": [
+        [
+          "attribute:iq",
+          -5
+        ],
+        [
+          "skill:acting",
+          -5
+        ],
+        [
+          "skill:performance",
+          -2
+        ],
+        [
+          "skill:politics",
+          -5
+        ]
+      ]
+    },
+    {
+      "id": "skill:savoir-faire",
+      "reference": "B218",
+      "attribute": "attribute:iq",
+      "difficulty": "easy",
+      "resolution": "influence",
+      "required_conditions": [],
+      "modifiers": [],
+      "unsupported": [],
+      "dispatched": false,
+      "transferred": {
+        "runtime-procedure": [
+          366
+        ],
+        "specialty-expansion": [
+          366
+        ],
+        "conditional-or-skill-defaults": [
+          353
+        ]
+      },
+      "defaults": [
+        [
+          "attribute:iq",
+          -4
+        ]
+      ]
+    },
+    {
+      "id": "skill:sex-appeal",
+      "reference": "B219",
+      "attribute": "attribute:ht",
+      "difficulty": "average",
+      "resolution": "influence",
+      "required_conditions": [
+        "audience-perceptible",
+        "subject-attracted"
+      ],
+      "modifiers": [
+        "audible-voice-trait"
+      ],
+      "unsupported": [],
+      "dispatched": true,
+      "transferred": {},
+      "defaults": [
+        [
+          "attribute:ht",
+          -3
+        ]
+      ]
+    },
+    {
+      "id": "skill:streetwise",
+      "reference": "B223",
+      "attribute": "attribute:iq",
+      "difficulty": "average",
+      "resolution": "influence",
+      "required_conditions": [
+        "audience-perceptible",
+        "criminal-milieu"
+      ],
+      "modifiers": [],
+      "unsupported": [],
+      "dispatched": true,
+      "transferred": {},
+      "defaults": [
+        [
+          "attribute:iq",
+          -5
+        ]
+      ]
+    },
+    {
+      "id": "skill:teaching",
+      "reference": "B224",
+      "attribute": "attribute:iq",
+      "difficulty": "average",
+      "resolution": "success-roll",
+      "required_conditions": [
+        "student-attentive",
+        "shared-language"
+      ],
+      "modifiers": [],
+      "unsupported": [
+        369
+      ],
+      "dispatched": true,
+      "transferred": {},
+      "defaults": [
+        [
+          "attribute:iq",
+          -5
+        ]
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "name": "acting-critical-failure-exposes-the-act",
+      "procedure": "skill:acting",
+      "skill": 13,
+      "resistance": 10,
+      "conditions": [
+        "audience-perceptible"
+      ],
+      "dice": [
+        6,
+        6,
+        6,
+        3,
+        3,
+        3
+      ],
+      "expected": {
+        "verdict": "critical-failure",
+        "effect": "acting-exposed",
+        "effective_skill": 13,
+        "requires_adjudication": true
+      }
+    },
+    {
+      "name": "acting-fools-an-unsuspecting-observer",
+      "procedure": "skill:acting",
+      "skill": 13,
+      "resistance": 10,
+      "conditions": [
+        "audience-perceptible"
+      ],
+      "dice": [
+        3,
+        3,
+        4,
+        4,
+        4,
+        4
+      ],
+      "expected": {
+        "verdict": "success",
+        "effect": "acting-believed",
+        "effective_skill": 13,
+        "requires_adjudication": false
+      }
+    },
+    {
+      "name": "carousing-buys-two-points-of-goodwill",
+      "procedure": "skill:carousing",
+      "skill": 12,
+      "conditions": [
+        "social-gathering",
+        "audience-perceptible"
+      ],
+      "dice": [
+        4,
+        4,
+        3
+      ],
+      "expected": {
+        "verdict": "success",
+        "effect": "carousing-goodwill",
+        "effective_skill": 12,
+        "reaction_modifier": 2,
+        "requires_adjudication": false
+      }
+    },
+    {
+      "name": "carousing-critical-failure-costs-goodwill-and-fatigue",
+      "procedure": "skill:carousing",
+      "skill": 12,
+      "conditions": [
+        "social-gathering",
+        "audience-perceptible"
+      ],
+      "dice": [
+        6,
+        6,
+        6
+      ],
+      "expected": {
+        "verdict": "critical-failure",
+        "effect": "carousing-disgrace",
+        "effective_skill": 12,
+        "reaction_modifier": -2,
+        "fatigue_cost": 1,
+        "requires_adjudication": true
+      }
+    },
+    {
+      "name": "diplomacy-keeps-the-better-ordinary-reaction",
+      "procedure": "skill:diplomacy",
+      "skill": 10,
+      "resistance": 12,
+      "conditions": [
+        "audience-audible",
+        "shared-language"
+      ],
+      "dice": [
+        5,
+        5,
+        5,
+        4,
+        4,
+        3,
+        6,
+        6,
+        5
+      ],
+      "expected": {
+        "verdict": "failure",
+        "effect": "diplomacy-rebuffed",
+        "effective_skill": 10,
+        "reaction": "very-good",
+        "requires_adjudication": false
+      }
+    },
+    {
+      "name": "diplomacy-with-voice-persuades",
+      "procedure": "skill:diplomacy",
+      "skill": 14,
+      "resistance": 11,
+      "conditions": [
+        "audience-audible",
+        "shared-language",
+        "audible-voice-trait"
+      ],
+      "dice": [
+        3,
+        3,
+        3,
+        4,
+        4,
+        4,
+        5,
+        5,
+        5
+      ],
+      "expected": {
+        "verdict": "success",
+        "effect": "diplomacy-persuaded",
+        "effective_skill": 16,
+        "reaction": "good",
+        "requires_adjudication": false
+      }
+    },
+    {
+      "name": "fast-talk-is-believed-until-it-is-not",
+      "procedure": "skill:fast-talk",
+      "skill": 13,
+      "resistance": 10,
+      "conditions": [
+        "audience-audible",
+        "shared-language"
+      ],
+      "dice": [
+        3,
+        4,
+        3,
+        4,
+        4,
+        4
+      ],
+      "expected": {
+        "verdict": "success",
+        "effect": "fast-talk-believed",
+        "effective_skill": 13,
+        "reaction": "good",
+        "aftermath_reaction": -3,
+        "requires_adjudication": false
+      }
+    },
+    {
+      "name": "gesture-is-limited-by-the-less-fluent-party",
+      "procedure": "skill:gesture",
+      "skill": 14,
+      "partner_skill": 9,
+      "conditions": [
+        "audience-visible"
+      ],
+      "dice": [
+        4,
+        3,
+        3
+      ],
+      "expected": {
+        "verdict": "failure",
+        "effect": "gesture-unclear",
+        "effective_skill": 9,
+        "requires_adjudication": false
+      }
+    },
+    {
+      "name": "interrogation-takes-two-rounds-to-decide",
+      "procedure": "skill:interrogation",
+      "skill": 12,
+      "resistance": 10,
+      "conditions": [
+        "subject-restrained",
+        "shared-language"
+      ],
+      "dice": [
+        4,
+        4,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        5,
+        5,
+        5
+      ],
+      "expected": {
+        "verdict": "success",
+        "effect": "interrogation-answered",
+        "effective_skill": 12,
+        "rounds": 2,
+        "requires_adjudication": false
+      }
+    },
+    {
+      "name": "intimidation-is-defied-on-the-better-margin",
+      "procedure": "skill:intimidation",
+      "skill": 12,
+      "resistance": 13,
+      "conditions": [
+        "audience-perceptible",
+        "credible-threat"
+      ],
+      "dice": [
+        4,
+        4,
+        4,
+        3,
+        4,
+        3
+      ],
+      "expected": {
+        "verdict": "failure",
+        "effect": "intimidation-defied",
+        "effective_skill": 12,
+        "reaction": "bad",
+        "requires_adjudication": true
+      }
+    },
+    {
+      "name": "leadership-carries-the-followers",
+      "procedure": "skill:leadership",
+      "skill": 12,
+      "conditions": [
+        "followers-present",
+        "audience-audible"
+      ],
+      "dice": [
+        2,
+        3,
+        3
+      ],
+      "expected": {
+        "verdict": "success",
+        "effect": "leadership-followed",
+        "effective_skill": 12,
+        "requires_adjudication": false
+      }
+    },
+    {
+      "name": "lip-reading-critical-failure-misreads-the-conversation",
+      "procedure": "skill:lip-reading",
+      "skill": 11,
+      "conditions": [
+        "speaker-lips-visible",
+        "shared-language"
+      ],
+      "dice": [
+        6,
+        6,
+        6
+      ],
+      "expected": {
+        "verdict": "critical-failure",
+        "effect": "lip-reading-misread",
+        "effective_skill": 11,
+        "requires_adjudication": true
+      }
+    },
+    {
+      "name": "panhandling-is-given-something",
+      "procedure": "skill:panhandling",
+      "skill": 10,
+      "conditions": [
+        "public-place",
+        "audience-perceptible"
+      ],
+      "dice": [
+        3,
+        3,
+        3
+      ],
+      "expected": {
+        "verdict": "success",
+        "effect": "panhandling-given",
+        "effective_skill": 10,
+        "requires_adjudication": false
+      }
+    },
+    {
+      "name": "performance-critical-success-is-acclaimed",
+      "procedure": "skill:performance",
+      "skill": 13,
+      "conditions": [
+        "audience-perceptible"
+      ],
+      "dice": [
+        1,
+        1,
+        2
+      ],
+      "expected": {
+        "verdict": "critical-success",
+        "effect": "performance-acclaimed",
+        "effective_skill": 13,
+        "requires_adjudication": false
+      }
+    },
+    {
+      "name": "politics-critical-success-wins-the-favour",
+      "procedure": "skill:politics",
+      "skill": 15,
+      "resistance": 10,
+      "conditions": [
+        "audience-audible",
+        "shared-language"
+      ],
+      "dice": [
+        1,
+        2,
+        2,
+        4,
+        4,
+        4
+      ],
+      "expected": {
+        "verdict": "critical-success",
+        "effect": "politics-favour",
+        "effective_skill": 15,
+        "requires_adjudication": false
+      }
+    },
+    {
+      "name": "politics-equal-margins-deadlock",
+      "procedure": "skill:politics",
+      "skill": 12,
+      "resistance": 12,
+      "conditions": [
+        "audience-audible",
+        "shared-language"
+      ],
+      "dice": [
+        4,
+        4,
+        3,
+        4,
+        4,
+        3
+      ],
+      "expected": {
+        "verdict": "tie",
+        "effect": "politics-deadlock",
+        "effective_skill": 12,
+        "requires_adjudication": false
+      }
+    },
+    {
+      "name": "public-speaking-voice-turns-a-miss-into-a-hit",
+      "procedure": "skill:public-speaking",
+      "skill": 11,
+      "conditions": [
+        "audience-audible",
+        "shared-language",
+        "audible-voice-trait"
+      ],
+      "dice": [
+        5,
+        4,
+        4
+      ],
+      "expected": {
+        "verdict": "success",
+        "effect": "public-speaking-swayed",
+        "effective_skill": 13,
+        "requires_adjudication": false
+      }
+    },
+    {
+      "name": "sex-appeal-wins-a-very-good-reaction",
+      "procedure": "skill:sex-appeal",
+      "skill": 12,
+      "resistance": 10,
+      "conditions": [
+        "audience-perceptible",
+        "subject-attracted"
+      ],
+      "dice": [
+        3,
+        3,
+        3,
+        5,
+        5,
+        5
+      ],
+      "expected": {
+        "verdict": "success",
+        "effect": "sex-appeal-charmed",
+        "effective_skill": 12,
+        "reaction": "very-good",
+        "requires_adjudication": false
+      }
+    },
+    {
+      "name": "streetwise-is-vouched-for",
+      "procedure": "skill:streetwise",
+      "skill": 13,
+      "resistance": 11,
+      "conditions": [
+        "audience-perceptible",
+        "criminal-milieu"
+      ],
+      "dice": [
+        3,
+        4,
+        3,
+        4,
+        4,
+        4
+      ],
+      "expected": {
+        "verdict": "success",
+        "effect": "streetwise-vouched",
+        "effective_skill": 13,
+        "reaction": "good",
+        "requires_adjudication": false
+      }
+    },
+    {
+      "name": "streetwise-tie-leaves-the-newcomer-watched",
+      "procedure": "skill:streetwise",
+      "skill": 12,
+      "resistance": 12,
+      "conditions": [
+        "audience-perceptible",
+        "criminal-milieu"
+      ],
+      "dice": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "expected": {
+        "verdict": "tie",
+        "effect": "streetwise-watched",
+        "effective_skill": 12,
+        "reaction": "bad",
+        "requires_adjudication": false
+      }
+    },
+    {
+      "name": "teaching-does-not-land",
+      "procedure": "skill:teaching",
+      "skill": 12,
+      "conditions": [
+        "student-attentive",
+        "shared-language"
+      ],
+      "dice": [
+        5,
+        5,
+        4
+      ],
+      "expected": {
+        "verdict": "failure",
+        "effect": "teaching-unclear",
+        "effective_skill": 12,
+        "requires_adjudication": false
+      }
+    }
+  ]
+}

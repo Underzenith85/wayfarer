@@ -286,6 +286,46 @@
       ]
     },
     {
+      "id": "boating-large-powerboat",
+      "name": "Boating (Large Powerboat)",
+      "page": 180,
+      "kind": "expansion",
+      "targets": [
+        "boating-large-powerboat"
+      ],
+      "parent": "boating"
+    },
+    {
+      "id": "boating-motorboat",
+      "name": "Boating (Motorboat)",
+      "page": 180,
+      "kind": "expansion",
+      "targets": [
+        "boating-motorboat"
+      ],
+      "parent": "boating"
+    },
+    {
+      "id": "boating-sailboat",
+      "name": "Boating (Sailboat)",
+      "page": 180,
+      "kind": "expansion",
+      "targets": [
+        "boating-sailboat"
+      ],
+      "parent": "boating"
+    },
+    {
+      "id": "boating-unpowered",
+      "name": "Boating (Unpowered)",
+      "page": 180,
+      "kind": "expansion",
+      "targets": [
+        "boating-unpowered"
+      ],
+      "parent": "boating"
+    },
+    {
       "id": "body-control",
       "name": "Body Control",
       "page": 181,
@@ -665,6 +705,96 @@
       ]
     },
     {
+      "id": "driving-automobile",
+      "name": "Driving (Automobile)",
+      "page": 188,
+      "kind": "expansion",
+      "targets": [
+        "driving-automobile"
+      ],
+      "parent": "driving"
+    },
+    {
+      "id": "driving-construction-equipment",
+      "name": "Driving (Construction Equipment)",
+      "page": 188,
+      "kind": "expansion",
+      "targets": [
+        "driving-construction-equipment"
+      ],
+      "parent": "driving"
+    },
+    {
+      "id": "driving-halftrack",
+      "name": "Driving (Halftrack)",
+      "page": 188,
+      "kind": "expansion",
+      "targets": [
+        "driving-halftrack"
+      ],
+      "parent": "driving"
+    },
+    {
+      "id": "driving-heavy-wheeled",
+      "name": "Driving (Heavy Wheeled)",
+      "page": 188,
+      "kind": "expansion",
+      "targets": [
+        "driving-heavy-wheeled"
+      ],
+      "parent": "driving"
+    },
+    {
+      "id": "driving-hovercraft",
+      "name": "Driving (Hovercraft)",
+      "page": 188,
+      "kind": "expansion",
+      "targets": [
+        "driving-hovercraft"
+      ],
+      "parent": "driving"
+    },
+    {
+      "id": "driving-locomotive",
+      "name": "Driving (Locomotive)",
+      "page": 188,
+      "kind": "expansion",
+      "targets": [
+        "driving-locomotive"
+      ],
+      "parent": "driving"
+    },
+    {
+      "id": "driving-mecha",
+      "name": "Driving (Mecha)",
+      "page": 188,
+      "kind": "expansion",
+      "targets": [
+        "driving-mecha"
+      ],
+      "parent": "driving"
+    },
+    {
+      "id": "driving-motorcycle",
+      "name": "Driving (Motorcycle)",
+      "page": 188,
+      "kind": "expansion",
+      "targets": [
+        "driving-motorcycle"
+      ],
+      "parent": "driving"
+    },
+    {
+      "id": "driving-tracked",
+      "name": "Driving (Tracked)",
+      "page": 188,
+      "kind": "expansion",
+      "targets": [
+        "driving-tracked"
+      ],
+      "parent": "driving"
+    },
+    {
       "id": "dropping",
       "name": "Dropping",
       "page": 189,
@@ -807,6 +937,56 @@
       "targets": [
         "explosives"
       ]
+    },
+    {
+      "id": "explosives-demolition",
+      "name": "Explosives (Demolition)",
+      "page": 194,
+      "kind": "expansion",
+      "targets": [
+        "explosives-demolition"
+      ],
+      "parent": "explosives"
+    },
+    {
+      "id": "explosives-explosive-ordnance-disposal",
+      "name": "Explosives (Explosive Ordnance Disposal)",
+      "page": 194,
+      "kind": "expansion",
+      "targets": [
+        "explosives-explosive-ordnance-disposal"
+      ],
+      "parent": "explosives"
+    },
+    {
+      "id": "explosives-fireworks",
+      "name": "Explosives (Fireworks)",
+      "page": 194,
+      "kind": "expansion",
+      "targets": [
+        "explosives-fireworks"
+      ],
+      "parent": "explosives"
+    },
+    {
+      "id": "explosives-nuclear-ordnance-disposal",
+      "name": "Explosives (Nuclear Ordnance Disposal)",
+      "page": 194,
+      "kind": "expansion",
+      "targets": [
+        "explosives-nuclear-ordnance-disposal"
+      ],
+      "parent": "explosives"
+    },
+    {
+      "id": "explosives-underwater-demolition",
+      "name": "Explosives (Underwater Demolition)",
+      "page": 194,
+      "kind": "expansion",
+      "targets": [
+        "explosives-underwater-demolition"
+      ],
+      "parent": "explosives"
     },
     {
       "id": "falconry",
@@ -1987,6 +2167,146 @@
       ]
     },
     {
+      "id": "piloting-aerospace",
+      "name": "Piloting (Aerospace)",
+      "page": 214,
+      "kind": "expansion",
+      "targets": [
+        "piloting-aerospace"
+      ],
+      "parent": "piloting"
+    },
+    {
+      "id": "piloting-airship",
+      "name": "Piloting (Airship)",
+      "page": 214,
+      "kind": "expansion",
+      "targets": [
+        "piloting-airship"
+      ],
+      "parent": "piloting"
+    },
+    {
+      "id": "piloting-autogyro",
+      "name": "Piloting (Autogyro)",
+      "page": 214,
+      "kind": "expansion",
+      "targets": [
+        "piloting-autogyro"
+      ],
+      "parent": "piloting"
+    },
+    {
+      "id": "piloting-contragravity",
+      "name": "Piloting (Contragravity)",
+      "page": 214,
+      "kind": "expansion",
+      "targets": [
+        "piloting-contragravity"
+      ],
+      "parent": "piloting"
+    },
+    {
+      "id": "piloting-flight-pack",
+      "name": "Piloting (Flight Pack)",
+      "page": 214,
+      "kind": "expansion",
+      "targets": [
+        "piloting-flight-pack"
+      ],
+      "parent": "piloting"
+    },
+    {
+      "id": "piloting-glider",
+      "name": "Piloting (Glider)",
+      "page": 214,
+      "kind": "expansion",
+      "targets": [
+        "piloting-glider"
+      ],
+      "parent": "piloting"
+    },
+    {
+      "id": "piloting-heavy-airplane",
+      "name": "Piloting (Heavy Airplane)",
+      "page": 214,
+      "kind": "expansion",
+      "targets": [
+        "piloting-heavy-airplane"
+      ],
+      "parent": "piloting"
+    },
+    {
+      "id": "piloting-high-performance-airplane",
+      "name": "Piloting (High-Performance Airplane)",
+      "page": 214,
+      "kind": "expansion",
+      "targets": [
+        "piloting-high-performance-airplane"
+      ],
+      "parent": "piloting"
+    },
+    {
+      "id": "piloting-high-performance-spacecraft",
+      "name": "Piloting (High-Performance Spacecraft)",
+      "page": 214,
+      "kind": "expansion",
+      "targets": [
+        "piloting-high-performance-spacecraft"
+      ],
+      "parent": "piloting"
+    },
+    {
+      "id": "piloting-light-airplane",
+      "name": "Piloting (Light Airplane)",
+      "page": 214,
+      "kind": "expansion",
+      "targets": [
+        "piloting-light-airplane"
+      ],
+      "parent": "piloting"
+    },
+    {
+      "id": "piloting-lighter-than-air",
+      "name": "Piloting (Lighter-Than-Air)",
+      "page": 214,
+      "kind": "expansion",
+      "targets": [
+        "piloting-lighter-than-air"
+      ],
+      "parent": "piloting"
+    },
+    {
+      "id": "piloting-low-performance-spacecraft",
+      "name": "Piloting (Low-Performance Spacecraft)",
+      "page": 214,
+      "kind": "expansion",
+      "targets": [
+        "piloting-low-performance-spacecraft"
+      ],
+      "parent": "piloting"
+    },
+    {
+      "id": "piloting-ultralight",
+      "name": "Piloting (Ultralight)",
+      "page": 214,
+      "kind": "expansion",
+      "targets": [
+        "piloting-ultralight"
+      ],
+      "parent": "piloting"
+    },
+    {
+      "id": "piloting-vertol",
+      "name": "Piloting (Vertol)",
+      "page": 214,
+      "kind": "expansion",
+      "targets": [
+        "piloting-vertol"
+      ],
+      "parent": "piloting"
+    },
+    {
       "id": "poetry",
       "name": "Poetry",
       "page": 214,
@@ -2293,6 +2613,46 @@
       ]
     },
     {
+      "id": "shiphandling-airship",
+      "name": "Shiphandling (Airship)",
+      "page": 220,
+      "kind": "expansion",
+      "targets": [
+        "shiphandling-airship"
+      ],
+      "parent": "shiphandling"
+    },
+    {
+      "id": "shiphandling-ship",
+      "name": "Shiphandling (Ship)",
+      "page": 220,
+      "kind": "expansion",
+      "targets": [
+        "shiphandling-ship"
+      ],
+      "parent": "shiphandling"
+    },
+    {
+      "id": "shiphandling-starship",
+      "name": "Shiphandling (Starship)",
+      "page": 220,
+      "kind": "expansion",
+      "targets": [
+        "shiphandling-starship"
+      ],
+      "parent": "shiphandling"
+    },
+    {
+      "id": "shiphandling-submarine",
+      "name": "Shiphandling (Submarine)",
+      "page": 220,
+      "kind": "expansion",
+      "targets": [
+        "shiphandling-submarine"
+      ],
+      "parent": "shiphandling"
+    },
+    {
       "id": "shortsword",
       "name": "Shortsword",
       "page": 209,
@@ -2498,6 +2858,36 @@
       "targets": [
         "submarine"
       ]
+    },
+    {
+      "id": "submarine-free-flooding",
+      "name": "Submarine (Free-Flooding Sub)",
+      "page": 223,
+      "kind": "expansion",
+      "targets": [
+        "submarine-free-flooding"
+      ],
+      "parent": "submarine"
+    },
+    {
+      "id": "submarine-large",
+      "name": "Submarine (Large Sub)",
+      "page": 223,
+      "kind": "expansion",
+      "targets": [
+        "submarine-large"
+      ],
+      "parent": "submarine"
+    },
+    {
+      "id": "submarine-mini",
+      "name": "Submarine (Mini-Sub)",
+      "page": 223,
+      "kind": "expansion",
+      "targets": [
+        "submarine-mini"
+      ],
+      "parent": "submarine"
     },
     {
       "id": "submariner",

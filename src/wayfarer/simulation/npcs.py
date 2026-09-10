@@ -6,6 +6,7 @@ from pydantic import Field, model_validator
 
 from wayfarer.errors import ValidationError
 from wayfarer.rules.gurps_social import influence_procedure
+from wayfarer.rules.mundane_skills.social import CONDITIONS, PROCEDURES
 from wayfarer.rules.social_hooks import Appearance, Recognition, ReputationScope
 from wayfarer.simulation.resources import Id, Record
 
@@ -41,7 +42,7 @@ class NPCSocialStanding(Record):
 class NPCSocialTrigger(Record):
     """Pinned scenario data, not model-supplied roll targets or trait options."""
 
-    kind: Literal["reaction", "influence", "fright", "self-control"]
+    kind: Literal["reaction", "influence", "fright", "self-control", "skill"]
     subject_id: Id
     modifier: int = Field(default=0, ge=-100, le=100)
     standing: NPCSocialStanding | None = None
@@ -51,10 +52,14 @@ class NPCSocialTrigger(Record):
     trait_id: Id | None = None
     required_fact_ids: tuple[Id, ...] = ()
     disclosure_fact_ids: tuple[Id, ...] = ()
+    # #345: named contextual facts a `skill` trigger asserts about the situation.
+    # The procedure owns every integer they are worth, so an author selects a
+    # circumstance here and never a roll modifier.
+    conditions: tuple[Id, ...] = Field(default=(), max_length=15)
 
     @model_validator(mode="after")
     def standing_belongs_to_a_reaction(self) -> Self:
-        if self.standing is not None and self.kind not in ("reaction", "influence"):
+        if self.standing is not None and self.kind not in ("reaction", "influence", "skill"):
             raise ValueError("Standing modifies reaction and influence rolls only")
         if self.kind == "influence":
             try:
@@ -65,6 +70,26 @@ class NPCSocialTrigger(Record):
             raise ValueError("Influence options require an influence trigger")
         if self.specious_intimidation and self.skill_id != "skill:intimidation":
             raise ValueError("Specious intimidation requires Intimidation")
+        return self
+
+    @model_validator(mode="after")
+    def procedure_scope_is_declared(self) -> Self:
+        """Reject an undeclared procedure or condition before any dice are drawn."""
+        if self.kind != "skill":
+            if self.conditions:
+                raise ValueError("Contextual conditions belong to a social skill trigger")
+            return self
+        if self.skill_id not in PROCEDURES:
+            raise ValueError(f"Unsupported social skill procedure: {self.skill_id}")
+        if self.modifier:
+            # A procedure derives its own modifiers from the conditions below, so
+            # an authored integer here would be mechanics the rule does not own.
+            raise ValueError("A social skill trigger selects conditions, not a modifier")
+        if len(set(self.conditions)) != len(self.conditions):
+            raise ValueError("Duplicate social skill condition")
+        unknown = sorted(set(self.conditions) - CONDITIONS)
+        if unknown:
+            raise ValueError(f"Undeclared social skill condition: {', '.join(unknown)}")
         return self
 
 

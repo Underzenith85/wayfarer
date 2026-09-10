@@ -451,7 +451,8 @@
               "reaction",
               "influence",
               "fright",
-              "self-control"
+              "self-control",
+              "skill"
             ],
             "title": "Kind",
             "type": "string"
@@ -531,6 +532,17 @@
               "type": "string"
             },
             "title": "Disclosure Fact Ids",
+            "type": "array"
+          },
+          "conditions": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 15,
+            "title": "Conditions",
             "type": "array"
           }
         },
@@ -4023,7 +4035,8 @@
               "reaction",
               "influence",
               "fright",
-              "self-control"
+              "self-control",
+              "skill"
             ],
             "title": "Kind",
             "type": "string"
@@ -4103,6 +4116,17 @@
               "type": "string"
             },
             "title": "Disclosure Fact Ids",
+            "type": "array"
+          },
+          "conditions": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 15,
+            "title": "Conditions",
             "type": "array"
           }
         },

@@ -69,6 +69,55 @@ Social disclosures must come from the subject's known facts and use the social
 outcome policy. Ordinary unconditional NPC disclosures cannot be mixed into a
 social action. Player characters cannot become reaction/influence subjects.
 
+## Whole-entry social skill procedures (#345)
+
+`rules.mundane_skills.social` carries one procedure per B168–B233 social skill.
+Each declares the shape that decides it — an unopposed success roll, a Quick
+Contest, a Regular Contest, or a B359 Influence roll — the contextual conditions
+it cannot proceed without, the modifiers it derives itself, and a named effect for
+every verdict that shape can reach. Numeric references are reconstructed from
+model knowledge under the provisional policy and pinned in
+`tests/fixtures/gurps/social_skills.json`, so frozen-source verification (#336)
+and the printing delta audit (#191) are a data change rather than a rewrite. The
+coverage matrix, including what each row transfers, is
+[the mundane skill inventory](gurps-mundane-skills.md).
+
+Nothing here is a second engine. Success rolls and contests are scored by
+`rules.gurps_checks`; influence procedures call the existing
+`rules.gurps_social.influence_roll`, so the Diplomacy fallback, the Sex Appeal
+outcome and the B359 trait exceptions keep their #111 behaviour, including an
+attempt a trait settles with no contest to read a winner from. Standing and trait
+reaction modifiers are derived and rolled before the check that consumes them, and
+only for the influence-shaped procedures B359 lets them reach; an unopposed
+procedure never consumes the recognition dice it cannot use.
+
+Conditions are named facts about the situation, never numbers. A trigger asserts
+`audience-audible` or `credible-threat`; the procedure owns what each is worth. A
+missing required condition rejects before dice, so Sex Appeal cannot run on an
+audience nobody declared attracted and Interrogation cannot run on a subject who
+is not held. `character.social_traits.skill_conditions` derives the build-supplied
+conditions from approved purchases only, which is how the B97 Voice bonus reaches
+Diplomacy, Fast-Talk, Leadership, Performance, Politics, Public Speaking and Sex
+Appeal without any resolver supplying an integer. Gesture is paired: B198 uses the
+less fluent party's level, and both parties need an approved level.
+
+The `skill` command kind commits through the same receipt ledger as every other
+social check. The public projection is the effect identifier alone; the verdict,
+the dice, the derived modifiers and the contest rounds stay in the private
+receipt. An effect that needs a ruling sets `requires_adjudication` rather than
+choosing for anyone, and an authored disclosure may be gated on an effect
+identifier exactly as it can be gated on a reaction band.
+
+`NPCSocialTrigger(kind="skill")` names the procedure and its conditions and
+rejects an undeclared identifier or circumstance before any dice are drawn. The
+initiator's level comes from the approved build and the subject's Will from
+theirs, so authoring selects a situation and never a roll target. Director
+dispatch through `SocialService` reaches the same procedures with a resolver-
+supplied level. `require_procedure` fails closed on the three rows that are not
+bound — Fortune-Telling and Savoir-Faire await their specialties (#366) and
+Propaganda its technology level (#367) — naming the child that owns each, and
+`supported` publishes the bound set to the scenario, character and LLM validators.
+
 ## Time and decisions
 
 All live clock adapters pass their transaction's RNG to resource advancement.
