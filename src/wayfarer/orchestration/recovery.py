@@ -50,6 +50,10 @@ def captive(state: PlayState, actor_id: str) -> Captivity | None:
 
 
 def guard(state: PlayState, actor_id: str, kind: str, *, allow_fright: bool = False) -> None:
+    if kind not in ("resolve_weapon_explosion", "declare_thrown_landing"):
+        from wayfarer.simulation.explosions import guard as blast_guard
+
+        blast_guard(state.resources)
     from wayfarer.orchestration.equipment_retrieval import tasks as retrievals
     from wayfarer.simulation.object_repairs import tasks
 

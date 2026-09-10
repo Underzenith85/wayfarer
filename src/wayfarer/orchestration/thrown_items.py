@@ -176,7 +176,9 @@ def recover(
     from wayfarer.orchestration.gurps_melee import build, catalog
     from wayfarer.orchestration.unarmed import free_hands
     from wayfarer.orchestration.weapon_flight import position
+    from wayfarer.simulation.explosions import guard as blast_guard
 
+    blast_guard(state.resources)
     equipment = catalog(play)
     if equipment.profile_id != "gurps-basic-set-4e-2004":
         raise ValidationError("Thrown recovery requires the exact Basic Set profile")
@@ -197,6 +199,8 @@ def recover(
         raise ValidationError("Ground recovery requires kneeling, sitting or lying down")
     if command.ready_hand not in free_hands(state, encounter, command.actor_id):
         raise ValidationError("Recovery requires an explicit free usable hand")
+    if item.firearm_failure and item.firearm_failure.kind in ("dud", "destroyed", "explosion"):
+        raise ValidationError("Spent or exploded weapons cannot be readied")
     if item.condition and item.condition.disabled:
         raise ValidationError("A broken thrown weapon cannot be readied")
     stats = build(play, state, command.actor_id).statistics

@@ -109,3 +109,81 @@ Pytest/Hypothesis belongs to #4, and production
 configuration, async I/O and error handling are implemented in wave 3 (#5). Existing demo limitations
 remain documented, including the synchronous local HTTP server and narration
 fallback. This wave introduces no authentication or production deployment.
+
+# ADR 002: Layers, streams and where non-determinism enters
+
+Status: proposed. Records the target shape agreed while refactoring entities
+and verbs; each step below is additive and lands behind the existing gates.
+
+## Layers
+
+| Layer | Owns | Today |
+| --- | --- | --- |
+| Clients | Web, mobile and voice front ends against one contract | `frontend/`, generated clients |
+| API | Frozen v1 HTTP and live-event contracts, authentication, projection | `transport/` |
+| Orchestrator | One session per active campaign, per-campaign serialization, entropy, clocks, LLM jobs, the outbox | `orchestration/` |
+| Engine | Pure GURPS rules and state transitions | `rules/`, `character/`, `simulation/` |
+| Persistence | Command log, event stream, narration stream, snapshots | `persistence/` |
+
+The engine signature is `resolve(state, command, rng) -> (state, events)` and
+the engine never imports entropy, clocks, storage, providers or HTTP. The
+orchestrator is the only layer that knows more than one campaign exists.
+
+## Three streams, one authority
+
+- **Command log (authoritative).** The typed command, the acting principal,
+  `expected_revision`, the entropy seed drawn for it, and for model-interpreted
+  turns the original text and proposal id. Rulings and GM declarations of
+  missing spatial facts are commands like any other.
+- **Event stream (derived, replayable).** What the engine reports happened:
+  the typed `ResourceEvent`, `SceneEvent`, `SpellEvent` and their siblings,
+  emitted as a list rather than buried in state.
+- **Narration stream (non-authoritative).** Generated prose keyed by campaign
+  and revision. Rebuilding state ignores it; players keep the text they read.
+
+Snapshots of `PlayState` per revision remain, as a cache:
+`state(n) = fold(snapshot(k), events[k+1:n])`. Character state is a projection
+of the campaign stream, not a second aggregate; the workshop draft is the one
+separate aggregate, because it exists before a character enters a campaign.
+
+## Where randomness, judgement and narration enter
+
+1. **Interpretation** runs before the transaction. Free text goes to the model,
+   which returns a typed proposal; the command log records the resulting
+   command. Replay never calls the model. NPC and director decisions follow the
+   same path from proposal to validated command.
+2. **Dice** are orchestrator-owned. One seed is drawn per command and stored in
+   the command record; the engine receives a deterministic `RandomSource` built
+   from it. `CheckTrace.dice` already records every draw as output, so replay
+   asserts the recorded traces reappear. End-of-turn hooks run in the same
+   transaction on the same seeded source.
+3. **Judgement** is a command. `DecideRuling` already is; declarations of
+   missing spatial facts (#324) and wall-clock inputs such as invitation expiry
+   must be too. Nothing inside the fold reads the clock.
+4. **Narration** runs after commit from the committed events and projection and
+   is written to its own stream. A failed narration logs and leaves the turn
+   committed.
+
+## Consequences
+
+Replay by re-execution makes the engine's dice consumption order part of its
+contract. A refactor that reorders two checks changes the traces for the same
+seed, so such a change is a rules migration event, exactly like a rulebook
+change. If that proves too strict, record the dice tape instead of the seed.
+
+Only the command log is authoritative. `PlayService.commit` is the single
+writer of play state today, and the event store gets the same single-writer
+test.
+
+Replay is valid only under the pinned rules digest. `configuration_digest`
+and `MigrationEntry` already exist; the gate is that a stream's digest must
+match the engine that replays it.
+
+## Migration order
+
+1. Record the seed per command and pass a seeded `RandomSource` into the engine.
+2. Store the interpretation proposal beside the command.
+3. Emit engine events as a list and append them to their own stream.
+4. Add the replay gate: rebuild every fixture campaign from its command log and
+   compare to its snapshot.
+5. Move snapshots to cache status.

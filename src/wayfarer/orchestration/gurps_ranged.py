@@ -315,13 +315,14 @@ def reload_weapon(
         for loaded in state.resources.ammunition_loads
         if loaded.ammunition_item_id == ammo.id
     )
-    if ammo.quantity <= reserved:
+    available_units = ammo.quantity if ammo.charges is None else ammo.charges
+    if available_units <= reserved:
         raise ValidationError("No unreserved ammunition remains")
     progress = (old.reload_progress if old else 0) + 1
     if progress >= max(1, reload_seconds):
         rounds += min(
             1 if weapon.reload_protocol == "per-round" else weapon.shots - rounds,
-            ammo.quantity - reserved,
+            available_units - reserved,
         )
         progress = 0
     load = AmmunitionLoad(
@@ -929,6 +930,23 @@ def resolve(
         hand=caught_hand,
     )
     target = next(p for p in encounter.participants if p.actor_id == target.actor_id)
+    from wayfarer.orchestration.weapon_explosions import schedule_payload
+
+    state, encounter, payload_attack = schedule_payload(
+        play,
+        state,
+        encounter,
+        weapon,
+        original_resources=original_resources,
+        failure=failure,
+        hits=hits,
+        shots_fired=shots_fired,
+        critical=critical,
+    )
+    target = next(p for p in encounter.participants if p.actor_id == target.actor_id)
+    if payload_attack:
+        hits = 0
+        impacts = shield_impacts
     location: HumanLocation | None = None
     location_dice: tuple[int, ...] = ()
     if hits and pending.hit_location:
@@ -1314,9 +1332,12 @@ def resolve(
                         scene=scene,
                         original_attack=original_attack,
                         ammunition_load=next(
-                            v
-                            for v in original_resources.ammunition_loads
-                            if v.weapon_id == pending.weapon_id
+                            (
+                                v
+                                for v in original_resources.ammunition_loads
+                                if v.weapon_id == pending.weapon_id
+                            ),
+                            None,
                         ),
                         items=tuple(
                             i
@@ -1337,6 +1358,32 @@ def resolve(
                         failure=failure,
                         trace=trace,
                     ),
+                )
+            }
+        )
+    if (
+        weapon.firearm
+        and weapon.firearm.action == "single-use"
+        and (shots_fired or failure and failure.kind == "dud")
+    ):
+        from wayfarer.simulation.firearms import spend_rounds
+
+        spent_resources = state.resources
+        if failure and failure.kind == "dud":
+            spent_resources = spend_rounds(spent_resources, pending.weapon_id, 1)
+        spent = next(i for i in spent_resources.items if i.id == pending.weapon_id)
+        state = state.model_copy(
+            update={
+                "resources": spent_resources.model_copy(
+                    update={
+                        "items": tuple(i for i in spent_resources.items if i.id != spent.id),
+                        "expended_items": spent_resources.expended_items
+                        + (
+                            spent.model_copy(
+                                update={"ready": False, "equipped": False, "container_id": None}
+                            ),
+                        ),
+                    }
                 )
             }
         )

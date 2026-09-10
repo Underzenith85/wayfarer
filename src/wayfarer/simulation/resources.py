@@ -46,6 +46,7 @@ class EquipmentSpec(Record):
     required_definitions: tuple[str, ...] = ()
     effects: tuple[Effect, ...] = ()
     durability: ObjectProfile | None = Field(default=None, exclude_if=lambda v: v is None)
+    power_cell_capacity: int | None = Field(default=None, ge=1, exclude_if=lambda v: v is None)
 
 
 class Item(Record):
@@ -59,6 +60,7 @@ class Item(Record):
     condition: ObjectCondition | None = Field(default=None, exclude_if=lambda v: v is None)
     ground: GroundPosition | None = Field(default=None, exclude_if=lambda v: v is None)
     firearm_failure: FirearmFailure | None = Field(default=None, exclude_if=lambda v: v is None)
+    charges: int | None = Field(default=None, ge=0, exclude_if=lambda v: v is None)
     # Everyone currently serving a mounted weapon, the gunner included (#357).
     mount_crew: tuple[Id, ...] = Field(default=(), exclude_if=lambda v: not v)
 
@@ -302,6 +304,11 @@ class ResourceEngine:
         return engine
 
     def validate(self, state: ResourceState) -> None:
+        from wayfarer.simulation.explosions import blasts
+
+        if any(not b.resolved and b.due < state.game_time for b in blasts(state)):
+            raise ValidationError("Unresolved explosion deadline cannot be in the past")
+
         def unique(values: tuple[str, ...]) -> None:
             if len(set(values)) != len(values):
                 raise ValidationError("Duplicate resource ID")
@@ -339,7 +346,10 @@ class ResourceEngine:
             ):
                 raise ValidationError("Loaded item must be ammunition")
             reserved[ammo.id] = reserved.get(ammo.id, 0) + load.rounds
-        if any(items[key].quantity < amount for key, amount in reserved.items()):
+        if any(
+            (ammo.quantity if ammo.charges is None else ammo.charges) < amount
+            for ammo, amount in ((items[key], count) for key, count in reserved.items())
+        ):
             raise ValidationError("Cannot consume or transfer reserved ammunition")
         occupied: dict[tuple[str, str], int] = {}
         for item in state.items:
@@ -375,6 +385,17 @@ class ResourceEngine:
                     raise ValidationError("Disabled equipment cannot be ready")
             elif item.condition is not None:
                 raise ValidationError("Object condition requires a pinned durability profile")
+            if spec.power_cell_capacity is not None:
+                if (
+                    item.quantity != 1
+                    or item.charges is None
+                    or item.charges > spec.power_cell_capacity
+                ):
+                    raise ValidationError(
+                        "Power cell requires explicit charges within pinned capacity"
+                    )
+            elif item.charges is not None:
+                raise ValidationError("Charges require a pinned power-cell definition")
             if item.ready and not item.equipped:
                 raise ValidationError("Unequipped item cannot be ready")
             if item.ground is not None and (item.equipped or item.ready or item.container_id):
@@ -477,6 +498,9 @@ class ResourceEngine:
 
             return advance(self, state, command, rng=rng)
         if not isinstance(command, Advance):
+            from wayfarer.simulation.explosions import guard as blast_guard
+
+            blast_guard(state)
             require_settled(state.recovery_tasks, frozenset({command.actor_id}), state.game_time)
             require_hazards_settled(state.hazards, frozenset({command.actor_id}), state.game_time)
         items = {i.id: i for i in state.items}
@@ -570,6 +594,9 @@ class ResourceEngine:
                 raise ValidationError("Effect already has an expiration")
             updated = state.model_copy(update={"scheduled": state.scheduled + (entry,)})
         elif isinstance(command, Advance):
+            from wayfarer.simulation.explosions import guard as blast_guard
+
+            blast_guard(state, advance_to=command.to)
             from wayfarer.simulation.fright import effects as fright_effects
             from wayfarer.simulation.spell_backfires import backfires
 

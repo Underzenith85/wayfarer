@@ -2326,6 +2326,30 @@
             "default": null,
             "title": "Parry Quality"
           },
+          "warhead": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ExplosionSpec"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "power_cell_capacity": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Power Cell Capacity"
+          },
           "container_capacity_millipounds": {
             "anyOf": [
               {
@@ -2348,6 +2372,66 @@
           "technology_level"
         ],
         "title": "EquipmentProfile",
+        "type": "object"
+      },
+      "ExplosionSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "dice": {
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Dice",
+            "type": "integer"
+          },
+          "adds": {
+            "default": 0,
+            "maximum": 100,
+            "minimum": -100,
+            "title": "Adds",
+            "type": "integer"
+          },
+          "multiplier": {
+            "default": 1,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Multiplier",
+            "type": "integer"
+          },
+          "damage_type": {
+            "default": "cr",
+            "enum": [
+              "cr",
+              "burn"
+            ],
+            "title": "Damage Type",
+            "type": "string"
+          },
+          "armor_divisor": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "default": "1",
+            "title": "Armor Divisor"
+          },
+          "fragmentation_dice": {
+            "default": 0,
+            "maximum": 100,
+            "minimum": 0,
+            "title": "Fragmentation Dice",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "dice"
+        ],
+        "title": "ExplosionSpec",
         "type": "object"
       },
       "Fact": {
@@ -2471,7 +2555,10 @@
               "misfire",
               "stoppage",
               "mechanical",
-              "destroyed"
+              "destroyed",
+              "dud",
+              "delayed",
+              "explosion"
             ],
             "title": "Kind",
             "type": "string"
@@ -2551,17 +2638,36 @@
         "properties": {
           "technology_level": {
             "maximum": 12,
-            "minimum": 5,
+            "minimum": 3,
             "title": "Technology Level",
             "type": "integer"
           },
           "action": {
             "enum": [
               "repeating",
-              "revolver"
+              "revolver",
+              "muzzleloader",
+              "breechloader",
+              "beam",
+              "single-use",
+              "grenade"
             ],
             "title": "Action",
             "type": "string"
+          },
+          "fuse_seconds": {
+            "anyOf": [
+              {
+                "maximum": 60,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Fuse Seconds"
           },
           "quality": {
             "default": "ordinary",
@@ -3385,6 +3491,19 @@
               }
             ],
             "default": null
+          },
+          "charges": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Charges"
           },
           "mount_crew": {
             "default": [],

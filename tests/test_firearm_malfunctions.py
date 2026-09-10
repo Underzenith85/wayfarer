@@ -115,6 +115,7 @@ async def test_malfunction_precedes_critical_miss_and_retries_once(
     assert len(events) == 1
     record = MalfunctionRecord.model_validate_json(events[0].kind)
     assert record.original_attack.dice == (6, 6, 6)
+    assert record.ammunition_load is not None
     assert record.ammunition_load.rounds == 6 and record.trace == result.injury
     assert save_malfunction(state.resources, record) == state.resources
     with pytest.raises(ConflictError):
@@ -229,7 +230,7 @@ async def test_stoppage_clearing_three_readies_and_interruption(
 def test_firearm_metadata_is_opt_in_and_bounded() -> None:
     assert "firearm" not in weapon().model_dump()
     with pytest.raises(ModelError):
-        FirearmSpec(technology_level=4, action="repeating")
+        FirearmSpec(technology_level=2, action="repeating")
     for changes in (
         dict(thrown=True),
         dict(blockable=True),
