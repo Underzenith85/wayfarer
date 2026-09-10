@@ -10,10 +10,11 @@ from pydantic import Field, model_validator
 from pydantic.json_schema import SkipJsonSchema
 
 from wayfarer.character.power import CharacterProposal
+from wayfarer.models import Id, Record
 from wayfarer.rules.catalog import CampaignRules
 from wayfarer.rules.transport_types import Transport
 from wayfarer.simulation.actions import ActorSetup
-from wayfarer.simulation.resources import Id, Record, ResourceState
+from wayfarer.simulation.resources import ResourceState
 from wayfarer.simulation.studio import GenerationBrief, ScenarioContent, StudioFinding
 
 Digest = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]

@@ -3,8 +3,8 @@
 from fractions import Fraction
 
 from wayfarer.errors import ValidationError
+from wayfarer.models import Record
 from wayfarer.rules.location_types import HitLocation
-from wayfarer.simulation.resources import Record
 
 
 class HeightEffect(Record):

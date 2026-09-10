@@ -9,6 +9,7 @@ from itertools import product
 from pydantic import Field
 
 from wayfarer.errors import ValidationError, WayfarerError
+from wayfarer.models import Record
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.combat import (
     COMBAT_ADAPTER,
@@ -27,7 +28,6 @@ from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import Encounter, Maneuver
 from wayfarer.simulation.gurps_equipment import MeleeMode, RangedMode
 from wayfarer.simulation.hex_geometry import Cell, Hex, neighbor
-from wayfarer.simulation.resources import Record
 from wayfarer.simulation.tactical import TacticalTrace, pose, sight
 
 

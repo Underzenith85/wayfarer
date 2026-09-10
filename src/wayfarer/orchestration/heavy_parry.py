@@ -6,13 +6,14 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Record
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.object_types import residual_definition
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import Combatant, Encounter
 from wayfarer.simulation.critical import Die
 from wayfarer.simulation.gurps_equipment import EquipmentProfile
-from wayfarer.simulation.resources import Item, Record, ResourceEvent
+from wayfarer.simulation.resources import Item, ResourceEvent
 
 
 class HeavyParryResult(Record):

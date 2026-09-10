@@ -4,6 +4,7 @@ import hashlib
 from typing import Literal
 
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Record
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.checks import CheckTrace, Outcome
 from wayfarer.rules.object_types import ObjectResult, residual_definition
@@ -13,7 +14,7 @@ from wayfarer.simulation.critical import Die, TableRoll
 from wayfarer.simulation.gurps_equipment import Damage, EquipmentProfile, MeleeMode, RangedMode
 from wayfarer.simulation.hex_geometry import Hex
 from wayfarer.simulation.objects import StressObject, apply_object
-from wayfarer.simulation.resources import Item, Record, ResourceEvent
+from wayfarer.simulation.resources import Item, ResourceEvent
 
 
 def effective_entry(play: PlayService, item: Item) -> EquipmentProfile:

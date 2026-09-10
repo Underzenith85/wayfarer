@@ -2,11 +2,12 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import Field
+
+from wayfarer.models import Record
 
 
-class FirearmSpec(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+class FirearmSpec(Record):
     # TL3/4 explosions, beams, grenades and explosive ammunition need distinct protocols.
     technology_level: int = Field(ge=5, le=12)
     action: Literal["repeating", "revolver"]
@@ -26,8 +27,7 @@ class FirearmSpec(BaseModel):
         }[self.quality]
 
 
-class FirearmFailure(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+class FirearmFailure(Record):
     mode_id: str = Field(min_length=1)
     cause_id: str = Field(min_length=1)
     kind: Literal["misfire", "stoppage", "mechanical", "destroyed"]

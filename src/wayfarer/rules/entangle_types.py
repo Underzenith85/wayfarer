@@ -8,13 +8,14 @@ supplies them and this module only carries the shape and the invariants.
 
 from typing import Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import Field, model_validator
+
+from wayfarer.models import Record
 
 
-class EntangleSpec(BaseModel):
+class EntangleSpec(Record):
     """Explicit binding facts for one entangling weapon mode."""
 
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
     # The binding's own ST, contested when the victim tries to break free.
     binding_st: int = Field(ge=1, le=40)
     # Penalties the binding imposes while it holds. Both are nonpositive: an
@@ -31,10 +32,9 @@ class EntangleSpec(BaseModel):
     escape_skill_id: str | None = Field(default=None, min_length=1)
 
 
-class Entanglement(BaseModel):
+class Entanglement(Record):
     """One live binding on a combatant, carried in the encounter checkpoint."""
 
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
     source_actor_id: str = Field(min_length=1)
     weapon_definition_id: str = Field(min_length=1)
     mode_id: str = Field(min_length=1)

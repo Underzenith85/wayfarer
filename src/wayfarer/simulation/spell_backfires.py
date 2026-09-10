@@ -11,10 +11,11 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Id, Record
 from wayfarer.rules.checks import CheckTrace, RandomSource
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.simulation.condition_checks import check_modifiers
-from wayfarer.simulation.resources import Id, Record, ResourceEvent, ResourceState
+from wayfarer.simulation.resources import ResourceEvent, ResourceState
 
 PREFIX = "spell-backfire:"
 REFUND = "mana-refund:"

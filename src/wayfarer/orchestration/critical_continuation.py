@@ -4,13 +4,14 @@ import hashlib
 from typing import Literal
 
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Record
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.location_types import HumanLocation
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import Encounter
 from wayfarer.simulation.critical import CriticalMiss, load_critical
 from wayfarer.simulation.injury import DisableLocation, Wound, apply_injury, apply_location_effect
-from wayfarer.simulation.resources import Record, ResourceEvent
+from wayfarer.simulation.resources import ResourceEvent
 
 
 class Continuation(Record):

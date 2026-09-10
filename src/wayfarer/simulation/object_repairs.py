@@ -5,9 +5,10 @@ from typing import Literal
 
 from pydantic import Field
 
+from wayfarer.models import Id, Record
 from wayfarer.rules.checks import CheckTrace
 from wayfarer.rules.object_types import ObjectCondition
-from wayfarer.simulation.resources import Id, Record, ResourceEvent, ResourceState
+from wayfarer.simulation.resources import ResourceEvent, ResourceState
 
 
 class RepairTask(Record):

@@ -7,7 +7,7 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.character.compiler import CharacterDraft
-from wayfarer.simulation.resources import Id, Record
+from wayfarer.models import Id, Record
 
 
 class AdvancementEntry(Record):

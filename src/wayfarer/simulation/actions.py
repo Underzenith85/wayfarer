@@ -13,6 +13,7 @@ from pydantic import Field, TypeAdapter
 from wayfarer.character.compiler import ValidatedBuild, pool_limits
 from wayfarer.character.power import Approval, CharacterProposal, PowerReviewer
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Record
 from wayfarer.rules.catalog import SKILLS, DefinitionKind, ImplementationStatus
 from wayfarer.rules.checks import CheckTrace, Modifier, Outcome, RandomSource, success_check
 from wayfarer.rules.effects import DerivedValue, EffectEvaluator, MechanicalTarget
@@ -31,7 +32,7 @@ from wayfarer.simulation.objectives import ObjectiveRules, ObjectiveState
 from wayfarer.simulation.party import PartyRules, PartyState
 from wayfarer.simulation.party import validate as validate_party
 from wayfarer.simulation.recovery import RecoveryRules, RecoveryState
-from wayfarer.simulation.resources import Advance, Consume, Record, ResourceEngine, ResourceState
+from wayfarer.simulation.resources import Advance, Consume, ResourceEngine, ResourceState
 from wayfarer.simulation.scenes import ActorScene, JournalEntry, SceneEvent, SceneRules
 from wayfarer.simulation.spell_bindings import SpellRules
 from wayfarer.world import Entity, EntityKind, World

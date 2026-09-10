@@ -14,7 +14,7 @@ from wayfarer.character.compiler import pool_limits
 from wayfarer.character.physical_traits import physical_traits
 from wayfarer.character.power import Approval
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, Event, Roll
+from wayfarer.models import Campaign, Event, Record, Roll
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
 from wayfarer.rules.catalog import reference
@@ -32,7 +32,7 @@ from wayfarer.simulation.actions import (
     TypedAction,
 )
 from wayfarer.simulation.adjudication import expire_rulings
-from wayfarer.simulation.resources import Pool, Record, ResourceState
+from wayfarer.simulation.resources import Pool, ResourceState
 from wayfarer.simulation.scenes import ActorScene, JournalEntry, SceneEvent
 from wayfarer.world import World
 

@@ -8,7 +8,7 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, Event, Id
 from wayfarer.orchestration.noncombat import NoncombatCommand, NoncombatService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.scenes import SceneService, TravelScene
@@ -21,7 +21,7 @@ from wayfarer.simulation.party import (
     group_for,
     migrate,
 )
-from wayfarer.simulation.resources import Advance, Id, Transfer
+from wayfarer.simulation.resources import Advance, Transfer
 
 
 class PartyCommand(ActionCommand):

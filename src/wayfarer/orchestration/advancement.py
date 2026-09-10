@@ -12,7 +12,7 @@ from wayfarer.character.physical_traits import physical_traits
 from wayfarer.character.power import CharacterProposal
 from wayfarer.character.statistics import RuntimePool, carry_over
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, Event, Id, Record
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.catalog import reference
 from wayfarer.rules.physical_traits import PhysicalTraits
@@ -26,7 +26,7 @@ from wayfarer.simulation.advancement import (
     MigrationPreview,
 )
 from wayfarer.simulation.encounter_context import EncounterSceneBinding, bind_scene, migrate_unique
-from wayfarer.simulation.resources import Id, Pool, Record
+from wayfarer.simulation.resources import Pool
 from wayfarer.simulation.scenes import ActorScene
 
 

@@ -2,13 +2,12 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import Field
+
+from wayfarer.models import Record
 
 
-class AbilitySpec(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid", frozen=True, strict=True, revalidate_instances="always"
-    )
+class AbilitySpec(Record):
     definition_id: str = Field(min_length=1, max_length=200)
     kind: Literal["burning-malediction", "damage-resistance", "detect", "mind-reading"]
     modifiers: tuple[str, ...] = ()

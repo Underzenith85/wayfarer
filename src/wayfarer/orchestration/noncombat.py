@@ -6,13 +6,13 @@ import json
 from typing import Literal
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, Event, Id
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.checks import Modifier, Outcome, success_check
 from wayfarer.simulation.actions import ActionCommand, PlayState
 from wayfarer.simulation.condition_checks import definition_modifiers
 from wayfarer.simulation.noncombat import NoncombatEncounter
-from wayfarer.simulation.resources import Advance, Id
+from wayfarer.simulation.resources import Advance
 
 
 class NoncombatCommand(ActionCommand):

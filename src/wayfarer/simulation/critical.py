@@ -6,9 +6,10 @@ from typing import Annotated, Literal
 from pydantic import Field, model_validator
 
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Id, Record
 from wayfarer.rules.location_types import Hand, HitLocation, HumanLocation
 from wayfarer.simulation.gurps_equipment import DamageType, MeleeMode
-from wayfarer.simulation.resources import Id, Record, ResourceEvent, ResourceState
+from wayfarer.simulation.resources import ResourceEvent, ResourceState
 
 Die = Annotated[int, Field(ge=1, le=6)]
 TableRoll = tuple[Die, Die, Die]

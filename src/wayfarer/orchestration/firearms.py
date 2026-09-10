@@ -4,6 +4,7 @@ from dataclasses import replace
 from typing import TYPE_CHECKING, Literal
 
 from wayfarer.errors import ValidationError
+from wayfarer.models import Record
 from wayfarer.rules.checks import CheckTrace, Outcome, RecordedDice
 from wayfarer.rules.firearm_types import FirearmFailure
 from wayfarer.rules.gurps_checks import success_roll
@@ -12,7 +13,7 @@ from wayfarer.simulation.combat import Encounter
 from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.firearms import spend_rounds
 from wayfarer.simulation.gurps_equipment import RangedMode
-from wayfarer.simulation.resources import Record, ResourceEvent, ResourceState
+from wayfarer.simulation.resources import ResourceEvent, ResourceState
 
 if TYPE_CHECKING:
     from wayfarer.orchestration.combat import TakeCombatTurn

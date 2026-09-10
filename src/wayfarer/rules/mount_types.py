@@ -11,13 +11,14 @@ name, a damage type or a weapon's weight.
 
 from typing import Self
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import Field, model_validator
+
+from wayfarer.models import Record
 
 
-class MountSpec(BaseModel):
+class MountSpec(Record):
     """Explicit mount facts for one crew-served or vehicle-mounted weapon mode."""
 
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
     # Everyone the weapon needs to fire, the gunner included.
     crew: int = Field(ge=1, le=20)
     # Seconds of laying the mount needs before an indirect shot. A weapon laid

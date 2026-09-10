@@ -8,13 +8,14 @@ here is inferred from a skill name or a damage type.
 
 from typing import Self
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import Field, model_validator
+
+from wayfarer.models import Record
 
 
-class SprayerSpec(BaseModel):
+class SprayerSpec(Record):
     """Explicit stream facts for one liquid projector mode."""
 
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
     # The longest a single stream can run before it must stop.
     sustained_seconds: int = Field(ge=1, le=60)
     # Rounds the stream consumes for every second it is held, the first included.
@@ -24,10 +25,9 @@ class SprayerSpec(BaseModel):
     ignites: bool = False
 
 
-class Stream(BaseModel):
+class Stream(Record):
     """One stream a firer is currently holding, carried in the encounter."""
 
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
     weapon_id: str = Field(min_length=1)
     mode_id: str = Field(min_length=1)
     target_id: str = Field(min_length=1)

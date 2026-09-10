@@ -11,6 +11,7 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Id, Record
 from wayfarer.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.rules.hazard_types import require_hazards_settled
@@ -18,7 +19,7 @@ from wayfarer.rules.recovery_types import interrupt_tasks, require_settled
 from wayfarer.simulation.concentration import require_idle_concentration
 from wayfarer.simulation.condition_checks import check_modifiers, retching_penalty
 from wayfarer.simulation.fatigue import FatigueCost, apply_fatigue
-from wayfarer.simulation.resources import Command, Id, Receipt, Record, ResourceEvent, ResourceState
+from wayfarer.simulation.resources import Command, Receipt, ResourceEvent, ResourceState
 
 PROFILE: Literal["gurps-basic-set-4e-2004"] = "gurps-basic-set-4e-2004"
 PREFIX = "spell:"

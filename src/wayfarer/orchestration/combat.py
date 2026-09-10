@@ -10,7 +10,7 @@ from pydantic import Field, TypeAdapter
 from pydantic import ValidationError as SchemaError
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, Event, Id, Record
 from wayfarer.orchestration.injury import resolve_injury
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.checks import CheckTrace
@@ -31,7 +31,7 @@ from wayfarer.simulation.combat import (
 )
 from wayfarer.simulation.hex_geometry import Hex, HexBattlefield, Pose
 from wayfarer.simulation.maneuvers import ATTACK_MANEUVERS, AttackOption, DefenseOption, WaitTrigger
-from wayfarer.simulation.resources import Advance, Id, Record
+from wayfarer.simulation.resources import Advance
 from wayfarer.simulation.unarmed import GrappleLocation, UnarmedAction, UnarmedSkill
 
 

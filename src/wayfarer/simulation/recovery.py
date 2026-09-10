@@ -6,7 +6,7 @@ from pydantic import Field
 
 from wayfarer.character.compiler import CharacterDraft
 from wayfarer.character.power import CharacterProposal
-from wayfarer.simulation.resources import Id, Record
+from wayfarer.models import Id, Record
 
 SetbackKind = Literal["retreat", "surrender", "capture", "incapacitation", "death"]
 RecoveryKind = Literal[

@@ -2,18 +2,16 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import Field, model_validator
 
 from wayfarer.errors import ConflictError
+from wayfarer.models import Record
 
 ProfileId = Literal["gurps-lite-4e-2004", "gurps-basic-set-4e-2004"]
 FatigueCause = Literal["ordinary", "starvation", "dehydration", "sleep"]
 
 
-class FatigueStatus(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid", frozen=True, strict=True, revalidate_instances="always"
-    )
+class FatigueStatus(Record):
     profile_id: ProfileId
     collapsed: bool = False
     unconscious: bool = False
@@ -32,10 +30,7 @@ class FatigueStatus(BaseModel):
         return self
 
 
-class RecoveryTask(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid", frozen=True, strict=True, revalidate_instances="always"
-    )
+class RecoveryTask(Record):
     id: str = Field(min_length=1, max_length=200)
     actor_id: str
     target_id: str

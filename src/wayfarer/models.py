@@ -1,8 +1,28 @@
-"""Shared demo contracts. Runtime validation remains at the service boundary."""
+"""Shared typed contracts: the entity base class and the legacy demo records.
+
+Entities are frozen, strict, closed records. Every state transition returns a new
+record; verbs live in engines and functions, never on the entity itself.
+Runtime validation remains at the service boundary.
+"""
 
 from __future__ import annotations
 
-from typing import Literal, NotRequired, TypedDict
+from typing import Annotated, Literal, NotRequired, TypedDict
+
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class Record(BaseModel):
+    """Immutable entity contract shared by rules, character, simulation and orchestration."""
+
+    model_config = ConfigDict(
+        extra="forbid", frozen=True, strict=True, revalidate_instances="always"
+    )
+
+
+Id = Annotated[str, Field(min_length=1, max_length=200)]
+Count = Annotated[int, Field(ge=1, le=1000000)]
+Tick = Annotated[int, Field(ge=0)]
 
 Action = Literal["observe", "talk", "sneak", "rest", "ask"]
 

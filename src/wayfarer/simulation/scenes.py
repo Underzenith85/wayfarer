@@ -7,7 +7,7 @@ from typing import Literal
 from pydantic import Field, model_validator
 
 from wayfarer.errors import ValidationError
-from wayfarer.simulation.resources import Id, Record
+from wayfarer.models import Id, Record
 from wayfarer.world import EntityKind, World
 
 

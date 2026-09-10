@@ -10,14 +10,13 @@ from pydantic import Field, TypeAdapter
 
 from wayfarer.character.power import Approval, CharacterProposal
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, Event, Id, Record
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.advancement import _refreshed
 from wayfarer.orchestration.providers import Orchestrator, ProviderRequest
 from wayfarer.rules.catalog import CampaignPolicy
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.director import AuthorDraft
-from wayfarer.simulation.resources import Id, Record
 
 
 class DraftCommand(Record):

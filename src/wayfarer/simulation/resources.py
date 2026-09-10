@@ -10,9 +10,10 @@ import hashlib
 from copy import copy
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
+from pydantic import Field, TypeAdapter, model_validator
 
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Count, Id, Record, Tick
 from wayfarer.rules.catalog import (
     CampaignPolicy,
     CampaignRules,
@@ -29,16 +30,6 @@ from wayfarer.rules.object_types import GroundPosition, ObjectCondition, ObjectP
 from wayfarer.rules.recovery_types import FatigueStatus, RecoveryTask, require_settled, retire_tasks
 from wayfarer.rules.transport_types import Transport
 from wayfarer.world import EntityKind, World
-
-Id = Annotated[str, Field(min_length=1, max_length=200)]
-Count = Annotated[int, Field(ge=1, le=1000000)]
-Tick = Annotated[int, Field(ge=0)]
-
-
-class Record(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid", frozen=True, strict=True, revalidate_instances="always"
-    )
 
 
 class EquipmentSpec(Record):

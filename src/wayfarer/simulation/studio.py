@@ -6,6 +6,7 @@ from typing import Literal
 
 from pydantic import Field
 
+from wayfarer.models import Id, Record
 from wayfarer.simulation.ability_types import AbilityRules
 from wayfarer.simulation.actions import ActionRules, ActorSetup
 from wayfarer.simulation.combat import AttackProfile, CombatConsequence, ProtectionProfile
@@ -15,7 +16,7 @@ from wayfarer.simulation.npcs import NPCRules
 from wayfarer.simulation.objectives import ObjectiveRules
 from wayfarer.simulation.party import PartyRules
 from wayfarer.simulation.recovery import RecoveryRules
-from wayfarer.simulation.resources import Id, Record, ResourceState
+from wayfarer.simulation.resources import ResourceState
 from wayfarer.simulation.scenes import SceneRules
 from wayfarer.simulation.spell_bindings import SpellRules
 from wayfarer.world import World

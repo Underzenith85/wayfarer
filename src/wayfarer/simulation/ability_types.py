@@ -4,9 +4,10 @@ from typing import Literal
 
 from pydantic import Field, model_validator
 
+from wayfarer.models import Id, Record
 from wayfarer.rules.ability_types import AbilitySpec as AbilitySpec
 from wayfarer.rules.checks import CheckTrace
-from wayfarer.simulation.resources import Command, Id, Record
+from wayfarer.simulation.resources import Command
 
 
 class AbilityChannel(Record):

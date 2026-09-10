@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Literal
 from pydantic import Field, model_validator
 
 from wayfarer.errors import ValidationError
-from wayfarer.simulation.resources import Id, Record
+from wayfarer.models import Id, Record
 
 if TYPE_CHECKING:
     from wayfarer.simulation.actions import PlayState

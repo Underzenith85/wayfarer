@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic import Field, model_validator
 
-from wayfarer.simulation.resources import Id, Record
+from wayfarer.models import Id, Record
 from wayfarer.simulation.spells import SpellId
 
 

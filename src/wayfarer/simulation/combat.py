@@ -13,6 +13,7 @@ from typing import Literal
 from pydantic import Field, model_validator
 
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Id, Record
 from wayfarer.rules.checks import CheckTrace
 from wayfarer.rules.effects import DerivedValue
 from wayfarer.rules.entangle_types import Entanglement
@@ -28,7 +29,7 @@ from wayfarer.simulation.maneuvers import (
     WaitInterrupt,
     WaitTrigger,
 )
-from wayfarer.simulation.resources import Equip, Id, Record, ResourceEngine, ResourceState
+from wayfarer.simulation.resources import Equip, ResourceEngine, ResourceState
 from wayfarer.simulation.tactical import TacticalTrace
 from wayfarer.simulation.unarmed import Grip, PendingUnarmed, UnarmedTrace
 from wayfarer.world import EntityKind, World

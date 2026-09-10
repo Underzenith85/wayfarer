@@ -14,8 +14,8 @@ from pydantic import Field, model_validator
 from pydantic.config import JsonDict
 
 from wayfarer.errors import ValidationError
+from wayfarer.models import Id, Record
 from wayfarer.rules.conformance import BASELINE_ID
-from wayfarer.simulation.resources import Id, Record
 
 Facing = Literal[0, 1, 2, 3, 4, 5]
 Posture = Literal["standing", "crouching", "kneeling", "crawling", "sitting", "lying"]

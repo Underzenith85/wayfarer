@@ -4,12 +4,13 @@ import hashlib
 from typing import Literal
 
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Record
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.object_types import GroundPosition
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import Encounter
 from wayfarer.simulation.hex_geometry import Hex
-from wayfarer.simulation.resources import Record, ResourceEvent, ResourceState
+from wayfarer.simulation.resources import ResourceEvent, ResourceState
 
 
 class RetrievalTask(Record):

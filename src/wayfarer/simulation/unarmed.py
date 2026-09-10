@@ -11,10 +11,11 @@ from typing import TYPE_CHECKING, Literal, Self
 from pydantic import Field, model_validator
 
 from wayfarer.errors import ValidationError
+from wayfarer.models import Id, Record
 from wayfarer.rules.checks import CheckTrace, Modifier, RandomSource
 from wayfarer.rules.gurps_checks import Contestant, quick_contest, regular_contest_round
 from wayfarer.rules.location_types import Hand
-from wayfarer.simulation.resources import Id, Record, ResourceState
+from wayfarer.simulation.resources import ResourceState
 
 if TYPE_CHECKING:
     from wayfarer.simulation.combat import Encounter

@@ -13,7 +13,7 @@ from pydantic import Field, TypeAdapter
 from pydantic import ValidationError as SchemaError
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event, Roll
+from wayfarer.models import Campaign, Event, Id, Roll
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.checks import Outcome
 from wayfarer.simulation.actions import (
@@ -24,7 +24,6 @@ from wayfarer.simulation.actions import (
     Social,
 )
 from wayfarer.simulation.adjudication import Ruling, expire_rulings
-from wayfarer.simulation.resources import Id
 
 
 class RequestRuling(ActionCommand):

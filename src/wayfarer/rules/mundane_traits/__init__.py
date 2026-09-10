@@ -11,9 +11,10 @@ from collections import Counter
 from dataclasses import asdict, dataclass, replace
 from typing import Annotated, Final, Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import Field, model_validator
 
 from wayfarer.errors import ValidationError
+from wayfarer.models import Record
 from wayfarer.rules.catalog import (
     DefinitionKind,
     ImplementationStatus,
@@ -40,7 +41,7 @@ SOURCE = SourceReference(
 Identifier = Annotated[str, Field(pattern=r"^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$", max_length=60)]
 
 
-class Vocabulary(BaseModel):
+class Vocabulary(Record):
     """Trusted campaign identifiers; each expansion is bound by the package digest.
 
     Languages here are additional languages, not the native language granted for
@@ -48,9 +49,6 @@ class Vocabulary(BaseModel):
     Names never choose a cost, effect, or arbitrary executable expression.
     """
 
-    model_config = ConfigDict(
-        extra="forbid", frozen=True, strict=True, revalidate_instances="always"
-    )
     languages: tuple[Identifier, ...] = Field(default=("trade",), strict=False, max_length=30)
     cultures: tuple[Identifier, ...] = Field(default=("foreign",), strict=False, max_length=30)
     organizations: tuple[Identifier, ...] = Field(default=("watch",), strict=False, max_length=30)

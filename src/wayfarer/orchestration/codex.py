@@ -40,8 +40,8 @@ from wayfarer.errors import (
     ProviderRequestError,
     ProviderTimeoutError,
 )
+from wayfarer.models import Record
 from wayfarer.orchestration.providers import ProviderReply, ProviderRequest, Usage
-from wayfarer.simulation.resources import Record
 
 
 def strict_schema(schema: dict[str, object]) -> JsonObject:
