@@ -8,7 +8,7 @@ resolves it. Every other record stays unsupported and cannot activate.
 """
 
 from collections import Counter
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from typing import Annotated, Final, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -21,7 +21,12 @@ from wayfarer.rules.catalog import (
     RulesPackage,
     SourceReference,
 )
-from wayfarer.rules.mundane_traits.runtime import REACTION_BINDINGS, SUPPORTED_HOOKS
+from wayfarer.rules.mundane_traits.runtime import (
+    APPEARANCE_BINDINGS,
+    REACTION_BINDINGS,
+    REPUTATION_BINDINGS,
+    SUPPORTED_HOOKS,
+)
 from wayfarer.rules.traits import TraitRules, validate_metadata
 
 PROFILE: Final = "gurps-basic-set-4e-2004"
@@ -94,6 +99,7 @@ class TraitEntry:
             "first-printing-delta-audit",
             *(() if self.implemented else (self.effect,)),
             *(binding.blockers if binding is not None else ()),
+            *(("disadvantage-consequences",) if self.effect == "trait.self_control" else ()),
         )
 
     @property
@@ -159,6 +165,51 @@ def _entry(
 
 
 DEFAULT_VOCABULARY = Vocabulary()
+
+# Concrete runtime owners, distinct from the source-reconciliation owner #191.
+EFFECT_OWNERS: Final = {
+    **dict.fromkeys(
+        (
+            "trait.off_hand",
+            "trait.combat_reflexes",
+            "trait.fitness",
+            "trait.pain",
+            "trait.darkness",
+            "trait.healing",
+            "trait.senses",
+        ),
+        332,
+    ),
+    **dict.fromkeys(
+        (
+            "trait.memory",
+            "trait.concentration",
+            "trait.creativity",
+            "trait.shyness",
+            "trait.penetrating_voice",
+            "trait.manual_obligation",
+            "trait.honesty",
+            "trait.truthfulness",
+            "trait.self_control",
+            "trait.associated_npc",
+            "trait.contact",
+        ),
+        333,
+    ),
+    **dict.fromkeys(
+        (
+            "trait.wealth",
+            "trait.status",
+            "trait.rank",
+            "trait.language",
+            "trait.language_talent",
+            "trait.culture",
+        ),
+        334,
+    ),
+    "trait.voice": 335,
+    "trait.appearance_resentment": 335,
+}
 
 
 def inventory(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> tuple[TraitEntry, ...]:
@@ -239,6 +290,39 @@ def inventory(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> tuple[TraitEntry, 
             obligations=("soldier-code",),
         ),
     ]
+    for level, points in (
+        ("hideous", -16),
+        ("ugly", -8),
+        ("unattractive", -4),
+        ("average", 0),
+        ("attractive", 4),
+        ("handsome", 12),
+        ("very-handsome", 16),
+    ):
+        entries.append(
+            _entry(
+                f"appearance-{level}",
+                f"Appearance ({level})",
+                points,
+                21,
+                "trait.appearance" if level != "very-handsome" else "trait.appearance_resentment",
+                group="appearance",
+                category="background",
+            )
+        )
+    for detail, points in (("bravery", 5), ("cruelty", -5)):
+        entries.append(
+            _entry(
+                f"reputation-{detail}",
+                f"Reputation ({detail}; everyone; always)",
+                points,
+                27,
+                "trait.reputation",
+                levels=4,
+                category="background",
+                identity=detail,
+            )
+        )
     for sense in ("hearing", "taste-smell", "touch", "vision"):
         entries.append(_entry(f"acute-{sense}", f"Acute {sense}", 2, 35, "trait.senses", levels=10))
     for key, points in (
@@ -377,7 +461,13 @@ def inventory(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> tuple[TraitEntry, 
                 ),
             )
         )
-    result = tuple(entries)
+    result = tuple(
+        replace(
+            e,
+            followup_issues=(191, EFFECT_OWNERS[e.effect]) if e.effect in EFFECT_OWNERS else (191,),
+        )
+        for e in entries
+    )
     if not REACTION_BINDINGS.keys() <= {entry.id for entry in result}:
         raise ValidationError("Runtime binding without a selected trait record")
     validate_inventory(result)
@@ -389,7 +479,7 @@ def validate_inventory(entries: tuple[TraitEntry, ...]) -> None:
     if len(identifiers) != len(entries):
         raise ValidationError("Duplicate mundane trait identifier")
     for entry in entries:
-        if not entry.effect or not entry.followup_issues or not 23 <= entry.page <= 165:
+        if not entry.effect or not entry.followup_issues or not 21 <= entry.page <= 165:
             raise ValidationError("Trait requires indexed provenance and an owned effect blocker")
         if not set(entry.prerequisites) <= identifiers or entry.id in entry.prerequisites:
             raise ValidationError("Unresolved trait prerequisite")
@@ -398,6 +488,10 @@ def validate_inventory(entries: tuple[TraitEntry, ...]) -> None:
             raise ValidationError("Runtime binding disagrees with its trait effect")
         if entry.implemented and entry.obligations:
             raise ValidationError("A manual obligation is not an executable effect")
+        if (entry.effect == "trait.appearance" and entry.id not in APPEARANCE_BINDINGS) or (
+            entry.effect == "trait.reputation" and entry.id not in REPUTATION_BINDINGS
+        ):
+            raise ValidationError("Standing effect requires an exact catalog binding")
         definition = entry.definition(entries)
         assert definition.trait_rules is not None
         validate_metadata(definition.trait_rules)
@@ -407,7 +501,7 @@ def candidate_package(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> RulesPacka
     entries = inventory(vocabulary)
     return RulesPackage(
         "package:gurps-mundane-trait-candidates",
-        "0.1.0",
+        "0.2.0",
         "gurps-4e",
         (SOURCE,),
         tuple(entry.definition(entries) for entry in entries),
@@ -429,6 +523,10 @@ def audit_report(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> dict[str, objec
             key: asdict(binding) | {"reference": binding.reference}
             for key, binding in sorted(REACTION_BINDINGS.items())
         },
+        "standing_bindings": {
+            "appearance": dict(APPEARANCE_BINDINGS),
+            "reputation": dict(REPUTATION_BINDINGS),
+        },
         "total": len(entries),
         "available": sum(e.implemented for e in entries),
         "categories": dict(sorted(Counter(e.category for e in entries).items())),
@@ -445,5 +543,7 @@ def audit_report(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> dict[str, objec
             "language-talent cost interactions",
             "relationship count limits and Ally/Dependent netting",
             "exotic and supernatural traits",
+            "appearance special options and modifiers",
+            "restricted-audience and uncertain-recognition reputation constructions",
         ),
     }
