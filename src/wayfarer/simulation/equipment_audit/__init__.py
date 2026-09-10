@@ -22,6 +22,7 @@ from wayfarer.errors import ValidationError
 from wayfarer.rules.catalog import DefinitionKind, RulesPackage
 from wayfarer.rules.conformance import CAPABILITIES, PROFILES
 from wayfarer.rules.entangle_types import EntangleSpec
+from wayfarer.rules.explosion_types import ExplosionSpec
 from wayfarer.rules.firearm_types import FirearmSpec
 from wayfarer.rules.launcher_types import LauncherSpec
 from wayfarer.rules.mount_types import MountSpec
@@ -63,6 +64,7 @@ AUDITED_MODELS = (
     RangedMode,
     RatedStrength,
     FirearmSpec,
+    ExplosionSpec,
     ProjectileReadiness,
     EntangleSpec,
     MountSpec,

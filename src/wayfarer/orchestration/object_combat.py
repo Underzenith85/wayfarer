@@ -19,7 +19,11 @@ from wayfarer.simulation.resources import Item, Record, ResourceEvent
 def effective_entry(play: PlayService, item: Item) -> EquipmentProfile:
     from wayfarer.orchestration.gurps_melee import catalog
 
-    if item.firearm_failure is not None and item.firearm_failure.kind == "destroyed":
+    if item.firearm_failure is not None and item.firearm_failure.kind in (
+        "destroyed",
+        "explosion",
+        "dud",
+    ):
         raise ValidationError("Destroyed firearm has no usable weapon mode")
     entries = {e.definition_id: e for e in catalog(play).entries}
     entry = entries[item.definition_id]
