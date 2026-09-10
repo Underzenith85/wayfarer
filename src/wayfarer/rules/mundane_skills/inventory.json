@@ -19,7 +19,8 @@
     "issues": [
       112,
       336,
-      341
+      341,
+      382
     ],
     "skill_defaults": [
       {
@@ -57,7 +58,8 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382
     ],
     "procedure_owner": 343
   },
@@ -81,7 +83,8 @@
     "issues": [
       112,
       336,
-      345
+      345,
+      382
     ],
     "skill_defaults": [
       {
@@ -115,7 +118,8 @@
     "issues": [
       112,
       336,
-      341
+      341,
+      382
     ],
     "skill_defaults": [
       {
@@ -136,7 +140,9 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382,
+      383
     ],
     "attribute": "DX",
     "difficulty": "hard",
@@ -160,7 +166,9 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      384
     ],
     "attribute": "IQ",
     "difficulty": "easy",
@@ -198,7 +206,9 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382,
+      385
     ],
     "procedure_owner": 343
   },
@@ -224,7 +234,10 @@
     "issues": [
       112,
       336,
-      341
+      341,
+      382,
+      383,
+      385
     ],
     "procedure_owner": 341
   },
@@ -239,7 +252,9 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382,
+      383
     ],
     "attribute": "DX",
     "difficulty": "hard",
@@ -271,7 +286,8 @@
     "issues": [
       112,
       336,
-      341
+      341,
+      382
     ],
     "procedure_owner": 341
   },
@@ -297,7 +313,10 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -323,7 +342,10 @@
     "issues": [
       112,
       336,
-      341
+      341,
+      382,
+      383,
+      385
     ],
     "procedure_owner": 341
   },
@@ -332,15 +354,25 @@
     "name": "Arm Lock",
     "page": 230,
     "blockers": [
-      "technique-expansion",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      340
+      340,
+      382
     ],
-    "procedure_owner": 340
+    "procedure_owner": 340,
+    "template": {
+      "difficulty": "average",
+      "default_modifier": 0,
+      "maximum_modifier": 4,
+      "parents": [
+        "judo",
+        "sumo-wrestling",
+        "wrestling"
+      ]
+    }
   },
   {
     "id": "arm-lock-judo",
@@ -351,7 +383,8 @@
     "issues": [
       112,
       336,
-      340
+      340,
+      382
     ],
     "page": 230,
     "attribute": "DX",
@@ -386,7 +419,11 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382,
+      383,
+      384,
+      385
     ],
     "procedure_owner": 338
   },
@@ -413,7 +450,10 @@
       112,
       336,
       344,
-      357
+      357,
+      382,
+      384,
+      385
     ],
     "procedure_owner": 344
   },
@@ -438,7 +478,9 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382,
+      385
     ],
     "procedure_owner": 338
   },
@@ -463,7 +505,9 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      384
     ],
     "prerequisites": [
       "mathematics-applied"
@@ -486,7 +530,9 @@
     "issues": [
       112,
       336,
-      342
+      342,
+      382,
+      383
     ],
     "procedure_owner": 342
   },
@@ -504,7 +550,8 @@
       103,
       112,
       336,
-      339
+      339,
+      382
     ],
     "skill_defaults": [
       {
@@ -523,15 +570,24 @@
     "name": "Back Kick",
     "page": 230,
     "blockers": [
-      "technique-expansion",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      340
+      340,
+      382
     ],
-    "procedure_owner": 340
+    "procedure_owner": 340,
+    "template": {
+      "difficulty": "hard",
+      "default_modifier": -2,
+      "maximum_modifier": 0,
+      "parents": [
+        "brawling",
+        "karate"
+      ]
+    }
   },
   {
     "id": "bartender",
@@ -554,7 +610,9 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382,
+      383
     ],
     "procedure_owner": 338
   },
@@ -569,7 +627,9 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      384
     ],
     "attribute": "DX",
     "difficulty": "average",
@@ -623,7 +683,10 @@
       112,
       336,
       344,
-      355
+      355,
+      382,
+      384,
+      385
     ],
     "procedure_owner": 344
   },
@@ -648,7 +711,9 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382,
+      383
     ],
     "procedure_owner": 343
   },
@@ -671,7 +736,11 @@
       112,
       336,
       346,
-      356
+      356,
+      382,
+      383,
+      384,
+      385
     ],
     "procedure_owner": 346
   },
@@ -699,7 +768,11 @@
       112,
       336,
       346,
-      356
+      356,
+      382,
+      383,
+      384,
+      385
     ],
     "procedure_owner": 346
   },
@@ -723,7 +796,8 @@
     "issues": [
       112,
       336,
-      344
+      344,
+      382
     ],
     "procedure_owner": 344
   },
@@ -754,7 +828,11 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      383,
+      384,
+      385
     ],
     "procedure_owner": 346
   },
@@ -789,7 +867,10 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -824,7 +905,10 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -859,7 +943,10 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -894,7 +981,10 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -913,7 +1003,8 @@
     "issues": [
       112,
       336,
-      341
+      341,
+      382
     ],
     "skill_defaults": [
       {
@@ -948,7 +1039,9 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382,
+      383
     ],
     "procedure_owner": 343
   },
@@ -968,7 +1061,8 @@
       112,
       336,
       344,
-      354
+      354,
+      382
     ],
     "procedure_owner": 344
   },
@@ -992,7 +1086,8 @@
     "issues": [
       112,
       336,
-      344
+      344,
+      382
     ],
     "procedure_owner": 344
   },
@@ -1011,7 +1106,8 @@
     "issues": [
       112,
       336,
-      339
+      339,
+      382
     ],
     "procedure_owner": 339
   },
@@ -1025,15 +1121,20 @@
     "blockers": [
       "runtime-procedure",
       "technology-level-context",
-      "conditional-or-skill-defaults",
-      "prerequisite-procedure"
+      "conditional-or-skill-defaults"
     ],
     "issues": [
       112,
       336,
-      342
+      342,
+      382,
+      383,
+      384
     ],
-    "procedure_owner": 342
+    "procedure_owner": 342,
+    "prerequisites": [
+      "computer-hacking"
+    ]
   },
   {
     "id": "brainwashing",
@@ -1052,7 +1153,10 @@
     "issues": [
       112,
       336,
-      342
+      342,
+      382,
+      383,
+      384
     ],
     "prerequisites": [
       "psychology"
@@ -1074,7 +1178,8 @@
     "issues": [
       112,
       336,
-      339
+      339,
+      382
     ],
     "procedure_owner": 339
   },
@@ -1093,7 +1198,8 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382
     ],
     "procedure_owner": 343
   },
@@ -1111,7 +1217,8 @@
       103,
       112,
       336,
-      339
+      339,
+      382
     ],
     "skill_defaults": [
       {
@@ -1158,7 +1265,9 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382,
+      383
     ],
     "procedure_owner": 338
   },
@@ -1182,7 +1291,8 @@
     "issues": [
       112,
       336,
-      345
+      345,
+      382
     ],
     "procedure_owner": 345
   },
@@ -1206,7 +1316,8 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382
     ],
     "procedure_owner": 338
   },
@@ -1232,7 +1343,10 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -1258,7 +1372,10 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -1267,15 +1384,24 @@
     "name": "Choke Hold",
     "page": 230,
     "blockers": [
-      "technique-expansion",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      340
+      340,
+      382
     ],
-    "procedure_owner": 340
+    "procedure_owner": 340,
+    "template": {
+      "difficulty": "hard",
+      "default_modifier": -2,
+      "maximum_modifier": 0,
+      "parents": [
+        "judo",
+        "wrestling"
+      ]
+    }
   },
   {
     "id": "climbing",
@@ -1298,7 +1424,8 @@
       110,
       112,
       336,
-      343
+      343,
+      382
     ],
     "procedure_owner": 343
   },
@@ -1323,7 +1450,9 @@
     "issues": [
       112,
       336,
-      339
+      339,
+      382,
+      383
     ],
     "procedure_owner": 339
   },
@@ -1331,29 +1460,37 @@
     "id": "combat-art",
     "name": "Combat Art",
     "page": 184,
-    "blockers": [
-      "variable-family-metadata"
-    ],
+    "blockers": [],
     "issues": [
       112,
       336,
-      339
+      339,
+      382
     ],
-    "procedure_owner": 339
+    "procedure_owner": 339,
+    "variable": {
+      "subject": "one combat skill practised as an art",
+      "determination": "mirrors-parent",
+      "mirrors": "melee-weapon"
+    }
   },
   {
     "id": "combat-sport",
     "name": "Combat Sport",
     "page": 184,
-    "blockers": [
-      "variable-family-metadata"
-    ],
+    "blockers": [],
     "issues": [
       112,
       336,
-      339
+      339,
+      382
     ],
-    "procedure_owner": 339
+    "procedure_owner": 339,
+    "variable": {
+      "subject": "one combat skill practised as a sport",
+      "determination": "mirrors-parent",
+      "mirrors": "melee-weapon"
+    }
   },
   {
     "id": "computer-operation",
@@ -1376,7 +1513,9 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      384
     ],
     "procedure_owner": 346
   },
@@ -1396,7 +1535,9 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      384
     ],
     "procedure_owner": 346
   },
@@ -1422,7 +1563,10 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382,
+      383,
+      385
     ],
     "procedure_owner": 338
   },
@@ -1446,7 +1590,8 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382
     ],
     "skill_defaults": [
       {
@@ -1478,7 +1623,10 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 338
   },
@@ -1504,7 +1652,10 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      384,
+      385
     ],
     "procedure_owner": 346
   },
@@ -1530,7 +1681,10 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -1554,7 +1708,8 @@
     "issues": [
       112,
       336,
-      344
+      344,
+      382
     ],
     "procedure_owner": 344
   },
@@ -1575,7 +1730,10 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -1603,7 +1761,11 @@
       112,
       336,
       346,
-      356
+      356,
+      382,
+      383,
+      384,
+      385
     ],
     "procedure_owner": 346
   },
@@ -1627,7 +1789,8 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382
     ],
     "procedure_owner": 338
   },
@@ -1652,7 +1815,9 @@
     "issues": [
       112,
       336,
-      341
+      341,
+      382,
+      383
     ],
     "procedure_owner": 341
   },
@@ -1678,7 +1843,9 @@
       109,
       112,
       336,
-      342
+      342,
+      382,
+      384
     ],
     "skill_defaults": [
       {
@@ -1717,7 +1884,8 @@
       111,
       112,
       336,
-      345
+      345,
+      382
     ],
     "skill_defaults": [
       {
@@ -1732,15 +1900,25 @@
     "name": "Disarming",
     "page": 230,
     "blockers": [
-      "technique-expansion",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      340
+      340,
+      382
     ],
-    "procedure_owner": 340
+    "procedure_owner": 340,
+    "template": {
+      "difficulty": "hard",
+      "default_modifier": -2,
+      "maximum_modifier": 0,
+      "parents": [
+        "judo",
+        "karate"
+      ],
+      "parent_family": "melee-weapon"
+    }
   },
   {
     "id": "disguise",
@@ -1766,7 +1944,11 @@
       112,
       336,
       346,
-      356
+      356,
+      382,
+      383,
+      384,
+      385
     ],
     "procedure_owner": 346
   },
@@ -1781,7 +1963,9 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      384
     ],
     "attribute": "DX",
     "difficulty": "average",
@@ -1836,7 +2020,8 @@
     "issues": [
       112,
       336,
-      342
+      342,
+      382
     ],
     "procedure_owner": 342
   },
@@ -1867,7 +2052,11 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      383,
+      384,
+      385
     ],
     "procedure_owner": 346
   },
@@ -1902,7 +2091,10 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -1937,7 +2129,10 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -1972,7 +2167,10 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -2007,7 +2205,10 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -2042,7 +2243,10 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -2077,7 +2281,10 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -2112,7 +2319,10 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -2147,7 +2357,10 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -2182,7 +2395,10 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -2207,7 +2423,9 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382,
+      383
     ],
     "procedure_owner": 343
   },
@@ -2216,16 +2434,27 @@
     "name": "Dual-Weapon Attack",
     "page": 230,
     "blockers": [
-      "technique-expansion",
       "runtime-procedure",
       "optional-rule-selection"
     ],
     "issues": [
       112,
       336,
-      340
+      340,
+      382,
+      384
     ],
-    "procedure_owner": 340
+    "procedure_owner": 340,
+    "template": {
+      "difficulty": "hard",
+      "default_modifier": -4,
+      "maximum_modifier": 0,
+      "parents": [
+        "brawling",
+        "karate"
+      ],
+      "parent_family": "melee-weapon"
+    }
   },
   {
     "id": "economics",
@@ -2248,7 +2477,9 @@
     "issues": [
       112,
       336,
-      341
+      341,
+      382,
+      383
     ],
     "procedure_owner": 341
   },
@@ -2257,15 +2488,24 @@
     "name": "Elbow Strike",
     "page": 230,
     "blockers": [
-      "technique-expansion",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      340
+      340,
+      382
     ],
-    "procedure_owner": 340
+    "procedure_owner": 340,
+    "template": {
+      "difficulty": "average",
+      "default_modifier": -2,
+      "maximum_modifier": 0,
+      "parents": [
+        "brawling",
+        "karate"
+      ]
+    }
   },
   {
     "id": "electrician",
@@ -2289,7 +2529,10 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -2317,7 +2560,11 @@
       112,
       336,
       346,
-      356
+      356,
+      382,
+      383,
+      384,
+      385
     ],
     "procedure_owner": 346
   },
@@ -2345,7 +2592,11 @@
       112,
       336,
       346,
-      356
+      356,
+      382,
+      383,
+      384,
+      385
     ],
     "procedure_owner": 346
   },
@@ -2369,7 +2620,11 @@
       112,
       336,
       346,
-      356
+      356,
+      382,
+      383,
+      384,
+      385
     ],
     "procedure_owner": 346
   },
@@ -2396,7 +2651,11 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      383,
+      384,
+      385
     ],
     "procedure_owner": 346
   },
@@ -2421,7 +2680,9 @@
     "issues": [
       112,
       336,
-      342
+      342,
+      382,
+      383
     ],
     "procedure_owner": 342
   },
@@ -2445,7 +2706,8 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382
     ],
     "procedure_owner": 343
   },
@@ -2469,7 +2731,8 @@
     "issues": [
       112,
       336,
-      342
+      342,
+      382
     ],
     "procedure_owner": 342
   },
@@ -2494,7 +2757,9 @@
     "issues": [
       112,
       336,
-      342
+      342,
+      382,
+      383
     ],
     "procedure_owner": 342
   },
@@ -2514,7 +2779,9 @@
     "issues": [
       112,
       336,
-      341
+      341,
+      382,
+      385
     ],
     "procedure_owner": 341
   },
@@ -2541,7 +2808,11 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      383,
+      384,
+      385
     ],
     "procedure_owner": 346
   },
@@ -2571,7 +2842,10 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -2601,7 +2875,10 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -2631,7 +2908,10 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -2661,7 +2941,10 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -2691,7 +2974,10 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -2716,7 +3002,9 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382,
+      383
     ],
     "procedure_owner": 343
   },
@@ -2742,7 +3030,10 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 338
   },
@@ -2762,7 +3053,9 @@
     "issues": [
       112,
       336,
-      339
+      339,
+      382,
+      385
     ],
     "procedure_owner": 339
   },
@@ -2788,7 +3081,9 @@
       111,
       112,
       336,
-      345
+      345,
+      382,
+      383
     ],
     "procedure_owner": 345
   },
@@ -2797,15 +3092,25 @@
     "name": "Feint",
     "page": 231,
     "blockers": [
-      "technique-expansion",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      340
+      340,
+      382
     ],
-    "procedure_owner": 340
+    "procedure_owner": 340,
+    "template": {
+      "difficulty": "hard",
+      "default_modifier": 0,
+      "maximum_modifier": 0,
+      "parents": [
+        "judo",
+        "karate"
+      ],
+      "parent_family": "melee-weapon"
+    }
   },
   {
     "id": "filch",
@@ -2828,7 +3133,9 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382,
+      383
     ],
     "procedure_owner": 338
   },
@@ -2848,7 +3155,9 @@
     "issues": [
       112,
       336,
-      341
+      341,
+      382,
+      383
     ],
     "procedure_owner": 341
   },
@@ -2857,15 +3166,24 @@
     "name": "Finger Lock",
     "page": 231,
     "blockers": [
-      "technique-expansion",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      340
+      340,
+      382
     ],
-    "procedure_owner": 340
+    "procedure_owner": 340,
+    "template": {
+      "difficulty": "hard",
+      "default_modifier": -4,
+      "maximum_modifier": 0,
+      "parents": [
+        "judo",
+        "wrestling"
+      ]
+    }
   },
   {
     "id": "fire-eating",
@@ -2882,7 +3200,8 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382
     ],
     "procedure_owner": 338
   },
@@ -2908,7 +3227,9 @@
       109,
       112,
       336,
-      342
+      342,
+      382,
+      384
     ],
     "skill_defaults": [
       {
@@ -2946,7 +3267,8 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382
     ],
     "procedure_owner": 343
   },
@@ -2964,7 +3286,8 @@
       103,
       112,
       336,
-      339
+      339,
+      382
     ],
     "skill_defaults": [
       {
@@ -2999,7 +3322,9 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382,
+      383
     ],
     "procedure_owner": 343
   },
@@ -3014,7 +3339,9 @@
     "issues": [
       112,
       336,
-      339
+      339,
+      382,
+      383
     ],
     "attribute": "DX",
     "difficulty": "average",
@@ -3053,7 +3380,8 @@
     "issues": [
       112,
       336,
-      339
+      339,
+      382
     ],
     "attribute": "DX",
     "difficulty": "average",
@@ -3089,7 +3417,8 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382
     ],
     "procedure_owner": 343
   },
@@ -3115,7 +3444,10 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -3141,7 +3473,10 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 338
   },
@@ -3167,7 +3502,10 @@
     "issues": [
       112,
       336,
-      345
+      345,
+      382,
+      383,
+      385
     ],
     "procedure_owner": 345
   },
@@ -3193,7 +3531,10 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -3222,7 +3563,9 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382,
+      383
     ],
     "procedure_owner": 343
   },
@@ -3247,7 +3590,9 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      384
     ],
     "procedure_owner": 346
   },
@@ -3272,7 +3617,9 @@
     "issues": [
       112,
       336,
-      341
+      341,
+      382,
+      383
     ],
     "procedure_owner": 341
   },
@@ -3297,7 +3644,9 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382,
+      385
     ],
     "procedure_owner": 338
   },
@@ -3322,7 +3671,9 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382,
+      383
     ],
     "procedure_owner": 343
   },
@@ -3346,7 +3697,8 @@
     "issues": [
       112,
       336,
-      339
+      339,
+      382
     ],
     "procedure_owner": 339
   },
@@ -3374,7 +3726,11 @@
       112,
       336,
       346,
-      356
+      356,
+      382,
+      383,
+      384,
+      385
     ],
     "procedure_owner": 346
   },
@@ -3402,7 +3758,11 @@
       112,
       336,
       346,
-      356
+      356,
+      382,
+      383,
+      384,
+      385
     ],
     "procedure_owner": 346
   },
@@ -3426,7 +3786,8 @@
     "issues": [
       112,
       336,
-      345
+      345,
+      382
     ],
     "procedure_owner": 345
   },
@@ -3435,15 +3796,28 @@
     "name": "Ground Fighting",
     "page": 231,
     "blockers": [
-      "technique-expansion",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      340
+      340,
+      382
     ],
-    "procedure_owner": 340
+    "procedure_owner": 340,
+    "template": {
+      "difficulty": "hard",
+      "default_modifier": -4,
+      "maximum_modifier": 0,
+      "parents": [
+        "brawling",
+        "karate",
+        "judo",
+        "sumo-wrestling",
+        "wrestling"
+      ],
+      "parent_family": "melee-weapon"
+    }
   },
   {
     "id": "group-performance",
@@ -3467,7 +3841,10 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382,
+      383,
+      385
     ],
     "procedure_owner": 338
   },
@@ -3494,7 +3871,10 @@
       112,
       336,
       344,
-      357
+      357,
+      382,
+      384,
+      385
     ],
     "procedure_owner": 344
   },
@@ -3521,7 +3901,10 @@
       112,
       336,
       344,
-      355
+      355,
+      382,
+      384,
+      385
     ],
     "procedure_owner": 344
   },
@@ -3548,7 +3931,10 @@
       112,
       336,
       346,
-      356
+      356,
+      382,
+      384,
+      385
     ],
     "procedure_owner": 346
   },
@@ -3573,7 +3959,9 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382,
+      383
     ],
     "procedure_owner": 338
   },
@@ -3593,7 +3981,9 @@
     "issues": [
       112,
       336,
-      341
+      341,
+      382,
+      385
     ],
     "procedure_owner": 341
   },
@@ -3618,7 +4008,8 @@
       110,
       112,
       336,
-      343
+      343,
+      382
     ],
     "procedure_owner": 343
   },
@@ -3643,7 +4034,9 @@
     "issues": [
       112,
       336,
-      341
+      341,
+      382,
+      385
     ],
     "procedure_owner": 341
   },
@@ -3651,15 +4044,19 @@
     "id": "hobby-skill",
     "name": "Hobby Skill",
     "page": 200,
-    "blockers": [
-      "variable-family-metadata"
-    ],
+    "blockers": [],
     "issues": [
       112,
       336,
-      338
+      338,
+      382
     ],
-    "procedure_owner": 338
+    "procedure_owner": 338,
+    "variable": {
+      "subject": "one hobby the player names",
+      "determination": "chosen-with-subject",
+      "difficulty": "easy"
+    }
   },
   {
     "id": "holdout",
@@ -3682,7 +4079,9 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382,
+      383
     ],
     "procedure_owner": 338
   },
@@ -3691,15 +4090,23 @@
     "name": "Horse Archery",
     "page": 231,
     "blockers": [
-      "technique-expansion",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      340
+      340,
+      382
     ],
-    "procedure_owner": 340
+    "procedure_owner": 340,
+    "template": {
+      "difficulty": "hard",
+      "default_modifier": -4,
+      "maximum_modifier": 0,
+      "parents": [
+        "bow"
+      ]
+    }
   },
   {
     "id": "housekeeping",
@@ -3721,7 +4128,8 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382
     ],
     "procedure_owner": 338
   },
@@ -3740,7 +4148,8 @@
     "issues": [
       112,
       336,
-      342
+      342,
+      382
     ],
     "procedure_owner": 342
   },
@@ -3749,15 +4158,23 @@
     "name": "Impersonate",
     "page": 233,
     "blockers": [
-      "technique-expansion",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      338
+      338,
+      382
     ],
-    "procedure_owner": 338
+    "procedure_owner": 338,
+    "template": {
+      "difficulty": "hard",
+      "default_modifier": -4,
+      "maximum_modifier": 0,
+      "parents": [
+        "acting"
+      ]
+    }
   },
   {
     "id": "innate-attack",
@@ -3781,7 +4198,9 @@
       112,
       336,
       344,
-      361
+      361,
+      382,
+      385
     ],
     "procedure_owner": 344
   },
@@ -3807,7 +4226,10 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -3832,7 +4254,9 @@
     "issues": [
       112,
       336,
-      345
+      345,
+      382,
+      383
     ],
     "procedure_owner": 345
   },
@@ -3858,7 +4282,9 @@
       111,
       112,
       336,
-      345
+      345,
+      382,
+      383
     ],
     "procedure_owner": 345
   },
@@ -3884,7 +4310,10 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 338
   },
@@ -3898,7 +4327,8 @@
     "issues": [
       112,
       336,
-      339
+      339,
+      382
     ],
     "attribute": "DX",
     "difficulty": "average",
@@ -3934,7 +4364,8 @@
     "issues": [
       112,
       336,
-      339
+      339,
+      382
     ],
     "procedure_owner": 339
   },
@@ -3943,15 +4374,24 @@
     "name": "Jump Kick",
     "page": 231,
     "blockers": [
-      "technique-expansion",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      340
+      340,
+      382
     ],
-    "procedure_owner": 340
+    "procedure_owner": 340,
+    "template": {
+      "difficulty": "hard",
+      "default_modifier": -4,
+      "maximum_modifier": 0,
+      "parents": [
+        "brawling",
+        "karate"
+      ]
+    }
   },
   {
     "id": "jumping",
@@ -3969,7 +4409,8 @@
       110,
       112,
       336,
-      343
+      343,
+      382
     ],
     "procedure_owner": 343
   },
@@ -3988,7 +4429,8 @@
     "issues": [
       112,
       336,
-      339
+      339,
+      382
     ],
     "procedure_owner": 339
   },
@@ -3997,15 +4439,24 @@
     "name": "Kicking",
     "page": 231,
     "blockers": [
-      "technique-expansion",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      340
+      340,
+      382
     ],
-    "procedure_owner": 340
+    "procedure_owner": 340,
+    "template": {
+      "difficulty": "hard",
+      "default_modifier": -2,
+      "maximum_modifier": 0,
+      "parents": [
+        "brawling",
+        "karate"
+      ]
+    }
   },
   {
     "id": "kicking-karate",
@@ -4016,7 +4467,8 @@
     "issues": [
       112,
       336,
-      340
+      340,
+      382
     ],
     "page": 231,
     "attribute": "DX",
@@ -4033,15 +4485,25 @@
     "name": "Knee Strike",
     "page": 232,
     "blockers": [
-      "technique-expansion",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      340
+      340,
+      382
     ],
-    "procedure_owner": 340
+    "procedure_owner": 340,
+    "template": {
+      "difficulty": "average",
+      "default_modifier": -2,
+      "maximum_modifier": 0,
+      "parents": [
+        "brawling",
+        "karate",
+        "wrestling"
+      ]
+    }
   },
   {
     "id": "knife",
@@ -4057,7 +4519,8 @@
       103,
       112,
       336,
-      339
+      339,
+      382
     ],
     "skill_defaults": [
       {
@@ -4096,7 +4559,9 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382,
+      383
     ],
     "procedure_owner": 343
   },
@@ -4110,7 +4575,8 @@
     "issues": [
       112,
       336,
-      339
+      339,
+      382
     ],
     "attribute": "DX",
     "difficulty": "hard",
@@ -4157,7 +4623,9 @@
     "issues": [
       112,
       336,
-      339
+      339,
+      382,
+      383
     ],
     "procedure_owner": 339
   },
@@ -4176,7 +4644,8 @@
     "issues": [
       112,
       336,
-      339
+      339,
+      382
     ],
     "procedure_owner": 339
   },
@@ -4201,7 +4670,9 @@
     "issues": [
       112,
       336,
-      341
+      341,
+      382,
+      385
     ],
     "procedure_owner": 341
   },
@@ -4225,7 +4696,8 @@
     "issues": [
       112,
       336,
-      345
+      345,
+      382
     ],
     "procedure_owner": 345
   },
@@ -4249,7 +4721,8 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382
     ],
     "procedure_owner": 338
   },
@@ -4258,15 +4731,23 @@
     "name": "Lifesaving",
     "page": 233,
     "blockers": [
-      "technique-expansion",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      343
+      343,
+      382
     ],
-    "procedure_owner": 343
+    "procedure_owner": 343,
+    "template": {
+      "difficulty": "average",
+      "default_modifier": -4,
+      "maximum_modifier": 0,
+      "parents": [
+        "swimming"
+      ]
+    }
   },
   {
     "id": "lifting",
@@ -4283,7 +4764,8 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382
     ],
     "procedure_owner": 343
   },
@@ -4302,7 +4784,8 @@
     "issues": [
       112,
       336,
-      341
+      341,
+      382
     ],
     "procedure_owner": 341
   },
@@ -4326,7 +4809,8 @@
     "issues": [
       112,
       336,
-      345
+      345,
+      382
     ],
     "procedure_owner": 345
   },
@@ -4353,7 +4837,10 @@
       112,
       336,
       344,
-      359
+      359,
+      382,
+      384,
+      385
     ],
     "procedure_owner": 344
   },
@@ -4377,7 +4864,8 @@
     "issues": [
       112,
       336,
-      341
+      341,
+      382
     ],
     "procedure_owner": 341
   },
@@ -4402,7 +4890,9 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382,
+      384
     ],
     "procedure_owner": 338
   },
@@ -4428,7 +4918,10 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 338
   },
@@ -4446,7 +4939,8 @@
       103,
       112,
       336,
-      339
+      339,
+      382
     ],
     "skill_defaults": [
       {
@@ -4494,7 +4988,10 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 338
   },
@@ -4519,7 +5016,9 @@
     "issues": [
       112,
       336,
-      341
+      341,
+      382,
+      383
     ],
     "procedure_owner": 341
   },
@@ -4543,7 +5042,8 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382
     ],
     "procedure_owner": 338
   },
@@ -4570,7 +5070,11 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      383,
+      384,
+      385
     ],
     "procedure_owner": 346
   },
@@ -4626,7 +5130,10 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -4681,7 +5188,9 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      384
     ],
     "procedure_owner": 346
   },
@@ -4736,7 +5245,9 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      384
     ],
     "procedure_owner": 346
   },
@@ -4787,7 +5298,9 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      384
     ],
     "procedure_owner": 346
   },
@@ -4838,7 +5351,9 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      384
     ],
     "procedure_owner": 346
   },
@@ -4894,7 +5409,10 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -4922,7 +5440,11 @@
       112,
       336,
       346,
-      356
+      356,
+      382,
+      383,
+      384,
+      385
     ],
     "procedure_owner": 346
   },
@@ -4947,7 +5469,9 @@
     "issues": [
       112,
       336,
-      342
+      342,
+      382,
+      383
     ],
     "procedure_owner": 342
   },
@@ -4956,16 +5480,22 @@
     "name": "Melee Weapon",
     "page": 208,
     "blockers": [
-      "variable-family-metadata",
       "combat-procedure"
     ],
     "issues": [
       103,
       112,
       336,
-      339
+      339,
+      382
     ],
-    "procedure_owner": 339
+    "procedure_owner": 339,
+    "variable": {
+      "subject": "one B208-209 melee weapon class",
+      "determination": "chosen-with-subject",
+      "attribute": "DX",
+      "difficulty": "average"
+    }
   },
   {
     "id": "merchant",
@@ -4988,7 +5518,9 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382,
+      383
     ],
     "procedure_owner": 338
   },
@@ -5009,7 +5541,10 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -5035,7 +5570,10 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382,
+      384,
+      385
     ],
     "procedure_owner": 343
   },
@@ -5061,7 +5599,10 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382,
+      383,
+      385
     ],
     "procedure_owner": 338
   },
@@ -5086,7 +5627,9 @@
     "issues": [
       112,
       336,
-      342
+      342,
+      382,
+      383
     ],
     "procedure_owner": 342
   },
@@ -5104,7 +5647,8 @@
       103,
       112,
       336,
-      339
+      339,
+      382
     ],
     "skill_defaults": [
       {
@@ -5134,7 +5678,9 @@
       112,
       336,
       338,
-      346
+      346,
+      382,
+      385
     ],
     "procedure_owner": 346,
     "attribute": "IQ",
@@ -5165,7 +5711,8 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382
     ],
     "procedure_owner": 343
   },
@@ -5185,7 +5732,9 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382,
+      383
     ],
     "procedure_owner": 338
   },
@@ -5206,7 +5755,10 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382,
+      383,
+      385
     ],
     "procedure_owner": 338
   },
@@ -5232,7 +5784,10 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382,
+      383,
+      385
     ],
     "procedure_owner": 343
   },
@@ -5254,7 +5809,11 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382,
+      383,
+      384,
+      385
     ],
     "procedure_owner": 343
   },
@@ -5269,7 +5828,9 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      384
     ],
     "attribute": "DX",
     "difficulty": "average",
@@ -5305,15 +5866,24 @@
     "name": "Neck Snap",
     "page": 232,
     "blockers": [
-      "technique-expansion",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      340
+      340,
+      382
     ],
-    "procedure_owner": 340
+    "procedure_owner": 340,
+    "template": {
+      "difficulty": "hard",
+      "default_modifier": -4,
+      "maximum_modifier": 0,
+      "parents": [
+        "wrestling"
+      ],
+      "attribute": "ST"
+    }
   },
   {
     "id": "net",
@@ -5333,7 +5903,9 @@
       336,
       344,
       354,
-      362
+      362,
+      382,
+      383
     ],
     "procedure_owner": 344
   },
@@ -5349,7 +5921,9 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      385
     ],
     "procedure_owner": 346,
     "attribute": "DX",
@@ -5381,7 +5955,9 @@
     "issues": [
       112,
       336,
-      341
+      341,
+      382,
+      383
     ],
     "procedure_owner": 341
   },
@@ -5405,7 +5981,8 @@
     "issues": [
       112,
       336,
-      341
+      341,
+      382
     ],
     "procedure_owner": 341
   },
@@ -5414,15 +5991,21 @@
     "name": "Off-Hand Weapon Training",
     "page": 232,
     "blockers": [
-      "technique-expansion",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      340
+      340,
+      382
     ],
-    "procedure_owner": 340
+    "procedure_owner": 340,
+    "template": {
+      "difficulty": "hard",
+      "default_modifier": -4,
+      "maximum_modifier": 0,
+      "parent_family": "melee-weapon"
+    }
   },
   {
     "id": "packing",
@@ -5445,7 +6028,9 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382,
+      383
     ],
     "procedure_owner": 343
   },
@@ -5468,7 +6053,11 @@
       112,
       336,
       346,
-      356
+      356,
+      382,
+      383,
+      384,
+      385
     ],
     "procedure_owner": 346
   },
@@ -5493,7 +6082,9 @@
     "issues": [
       112,
       336,
-      345
+      345,
+      382,
+      383
     ],
     "procedure_owner": 345
   },
@@ -5518,7 +6109,9 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382,
+      384
     ],
     "procedure_owner": 343
   },
@@ -5537,7 +6130,8 @@
     "issues": [
       112,
       336,
-      339
+      339,
+      382
     ],
     "procedure_owner": 339
   },
@@ -5562,7 +6156,9 @@
     "issues": [
       112,
       336,
-      345
+      345,
+      382,
+      383
     ],
     "procedure_owner": 345
   },
@@ -5590,7 +6186,11 @@
       109,
       112,
       336,
-      342
+      342,
+      382,
+      383,
+      384,
+      385
     ],
     "procedure_owner": 342
   },
@@ -5615,7 +6215,9 @@
     "issues": [
       112,
       336,
-      341
+      341,
+      382,
+      385
     ],
     "procedure_owner": 341
   },
@@ -5641,7 +6243,10 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 338
   },
@@ -5667,7 +6272,9 @@
       109,
       112,
       336,
-      342
+      342,
+      382,
+      384
     ],
     "skill_defaults": [
       {
@@ -5703,7 +6310,10 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -5718,7 +6328,10 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      383,
+      384
     ],
     "page": 213,
     "attribute": "IQ",
@@ -5754,7 +6367,11 @@
     "issues": [
       112,
       336,
-      342
+      342,
+      382,
+      383,
+      384,
+      385
     ],
     "procedure_owner": 342
   },
@@ -5779,7 +6396,9 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382,
+      383
     ],
     "procedure_owner": 338
   },
@@ -5805,7 +6424,10 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      384,
+      385
     ],
     "procedure_owner": 346
   },
@@ -5835,7 +6457,9 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      384
     ],
     "procedure_owner": 346
   },
@@ -5865,7 +6489,9 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      384
     ],
     "procedure_owner": 346
   },
@@ -5895,7 +6521,9 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      384
     ],
     "procedure_owner": 346
   },
@@ -5925,7 +6553,9 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      384
     ],
     "procedure_owner": 346
   },
@@ -5955,7 +6585,9 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      384
     ],
     "procedure_owner": 346
   },
@@ -5985,7 +6617,9 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      384
     ],
     "procedure_owner": 346
   },
@@ -6015,7 +6649,9 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      384
     ],
     "procedure_owner": 346
   },
@@ -6045,7 +6681,9 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      384
     ],
     "procedure_owner": 346
   },
@@ -6075,7 +6713,9 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      384
     ],
     "procedure_owner": 346
   },
@@ -6105,7 +6745,9 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      384
     ],
     "procedure_owner": 346
   },
@@ -6135,7 +6777,9 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      384
     ],
     "procedure_owner": 346
   },
@@ -6165,7 +6809,9 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      384
     ],
     "procedure_owner": 346
   },
@@ -6195,7 +6841,9 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      384
     ],
     "procedure_owner": 346
   },
@@ -6225,7 +6873,9 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      384
     ],
     "procedure_owner": 346
   },
@@ -6249,7 +6899,8 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382
     ],
     "skill_defaults": [
       {
@@ -6281,7 +6932,10 @@
     "issues": [
       112,
       336,
-      342
+      342,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 342
   },
@@ -6299,7 +6953,8 @@
       103,
       112,
       336,
-      339
+      339,
+      382
     ],
     "skill_defaults": [
       {
@@ -6338,7 +6993,9 @@
     "issues": [
       112,
       336,
-      345
+      345,
+      382,
+      383
     ],
     "procedure_owner": 345
   },
@@ -6346,15 +7003,19 @@
     "id": "professional-skill",
     "name": "Professional Skill",
     "page": 215,
-    "blockers": [
-      "variable-family-metadata"
-    ],
+    "blockers": [],
     "issues": [
       112,
       336,
-      338
+      338,
+      382
     ],
-    "procedure_owner": 338
+    "procedure_owner": 338,
+    "variable": {
+      "subject": "one profession the player names",
+      "determination": "chosen-with-subject",
+      "difficulty": "average"
+    }
   },
   {
     "id": "propaganda",
@@ -6378,7 +7039,10 @@
     "issues": [
       112,
       336,
-      345
+      345,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 345
   },
@@ -6404,7 +7068,10 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 338
   },
@@ -6429,7 +7096,9 @@
     "issues": [
       112,
       336,
-      342
+      342,
+      382,
+      383
     ],
     "procedure_owner": 342
   },
@@ -6453,7 +7122,8 @@
     "issues": [
       112,
       336,
-      345
+      345,
+      382
     ],
     "skill_defaults": [
       {
@@ -6485,7 +7155,8 @@
       103,
       112,
       336,
-      339
+      339,
+      382
     ],
     "skill_defaults": [
       {
@@ -6524,7 +7195,10 @@
     "issues": [
       112,
       336,
-      341
+      341,
+      382,
+      383,
+      385
     ],
     "procedure_owner": 341
   },
@@ -6551,7 +7225,10 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -6560,15 +7237,25 @@
     "name": "Retain Weapon",
     "page": 232,
     "blockers": [
-      "technique-expansion",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      340
+      340,
+      382
     ],
-    "procedure_owner": 340
+    "procedure_owner": 340,
+    "template": {
+      "difficulty": "hard",
+      "default_modifier": -2,
+      "maximum_modifier": 0,
+      "parents": [
+        "judo",
+        "karate"
+      ],
+      "parent_family": "melee-weapon"
+    }
   },
   {
     "id": "riding",
@@ -6592,7 +7279,10 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382,
+      383,
+      385
     ],
     "procedure_owner": 343
   },
@@ -6601,15 +7291,23 @@
     "name": "Rope Up",
     "page": 233,
     "blockers": [
-      "technique-expansion",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      343
+      343,
+      382
     ],
-    "procedure_owner": 343
+    "procedure_owner": 343,
+    "template": {
+      "difficulty": "average",
+      "default_modifier": -4,
+      "maximum_modifier": 0,
+      "parents": [
+        "climbing"
+      ]
+    }
   },
   {
     "id": "running",
@@ -6632,7 +7330,8 @@
       110,
       112,
       336,
-      343
+      343,
+      382
     ],
     "procedure_owner": 343
   },
@@ -6650,7 +7349,8 @@
       103,
       112,
       336,
-      339
+      339,
+      382
     ],
     "skill_defaults": [
       {
@@ -6699,7 +7399,10 @@
       111,
       112,
       336,
-      345
+      345,
+      382,
+      383,
+      385
     ],
     "procedure_owner": 345
   },
@@ -6708,15 +7411,23 @@
     "name": "Scaling",
     "page": 233,
     "blockers": [
-      "technique-expansion",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      343
+      343,
+      382
     ],
-    "procedure_owner": 343
+    "procedure_owner": 343,
+    "template": {
+      "difficulty": "hard",
+      "default_modifier": -4,
+      "maximum_modifier": 0,
+      "parents": [
+        "climbing"
+      ]
+    }
   },
   {
     "id": "scrounging",
@@ -6738,7 +7449,8 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382
     ],
     "procedure_owner": 343
   },
@@ -6764,7 +7476,10 @@
     "issues": [
       112,
       336,
-      342
+      342,
+      382,
+      383,
+      384
     ],
     "prerequisites": [
       "swimming"
@@ -6783,7 +7498,9 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      384
     ],
     "attribute": "IQ",
     "difficulty": "easy",
@@ -6821,7 +7538,9 @@
     "issues": [
       112,
       336,
-      341
+      341,
+      382,
+      383
     ],
     "procedure_owner": 341
   },
@@ -6836,7 +7555,9 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      385
     ],
     "procedure_owner": 346,
     "attribute": "IQ",
@@ -6868,7 +7589,9 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382,
+      384
     ],
     "procedure_owner": 338
   },
@@ -6893,7 +7616,8 @@
       111,
       112,
       336,
-      345
+      345,
+      382
     ],
     "procedure_owner": 345
   },
@@ -6918,7 +7642,9 @@
     "issues": [
       112,
       336,
-      341
+      341,
+      382,
+      383
     ],
     "procedure_owner": 341
   },
@@ -6943,7 +7669,9 @@
     "issues": [
       112,
       336,
-      339
+      339,
+      382,
+      385
     ],
     "procedure_owner": 339
   },
@@ -6971,7 +7699,11 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      383,
+      384,
+      385
     ],
     "procedure_owner": 346
   },
@@ -7003,7 +7735,10 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -7035,7 +7770,10 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -7067,7 +7805,10 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -7099,7 +7840,10 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -7117,7 +7861,8 @@
       103,
       112,
       336,
-      339
+      339,
+      382
     ],
     "skill_defaults": [
       {
@@ -7171,7 +7916,8 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382
     ],
     "procedure_owner": 338
   },
@@ -7195,7 +7941,8 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382
     ],
     "procedure_owner": 343
   },
@@ -7219,7 +7966,8 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382
     ],
     "procedure_owner": 343
   },
@@ -7239,7 +7987,9 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382,
+      383
     ],
     "procedure_owner": 338
   },
@@ -7263,7 +8013,8 @@
     "issues": [
       112,
       336,
-      344
+      344,
+      382
     ],
     "procedure_owner": 344
   },
@@ -7272,15 +8023,23 @@
     "name": "Slip Handcuffs",
     "page": 233,
     "blockers": [
-      "technique-expansion",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      343
+      343,
+      382
     ],
-    "procedure_owner": 343
+    "procedure_owner": 343,
+    "template": {
+      "difficulty": "hard",
+      "default_modifier": -4,
+      "maximum_modifier": 0,
+      "parents": [
+        "escape"
+      ]
+    }
   },
   {
     "id": "smallsword",
@@ -7296,7 +8055,8 @@
       103,
       112,
       336,
-      339
+      339,
+      382
     ],
     "skill_defaults": [
       {
@@ -7341,7 +8101,11 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382,
+      383,
+      384,
+      385
     ],
     "procedure_owner": 338
   },
@@ -7365,7 +8129,8 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382
     ],
     "procedure_owner": 338
   },
@@ -7390,7 +8155,9 @@
     "issues": [
       112,
       336,
-      341
+      341,
+      382,
+      383
     ],
     "procedure_owner": 341
   },
@@ -7415,7 +8182,9 @@
     "issues": [
       112,
       336,
-      339
+      339,
+      382,
+      384
     ],
     "procedure_owner": 339
   },
@@ -7431,7 +8200,9 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      384
     ],
     "attribute": "IQ",
     "difficulty": "easy",
@@ -7462,7 +8233,8 @@
       103,
       112,
       336,
-      339
+      339,
+      382
     ],
     "skill_defaults": [
       {
@@ -7499,7 +8271,9 @@
       336,
       344,
       360,
-      362
+      362,
+      382,
+      383
     ],
     "procedure_owner": 344
   },
@@ -7518,7 +8292,8 @@
     "issues": [
       112,
       336,
-      341
+      341,
+      382
     ],
     "procedure_owner": 341
   },
@@ -7543,7 +8318,9 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382,
+      383
     ],
     "procedure_owner": 343
   },
@@ -7561,7 +8338,8 @@
       103,
       112,
       336,
-      339
+      339,
+      382
     ],
     "skill_defaults": [
       {
@@ -7591,7 +8369,9 @@
     "issues": [
       112,
       336,
-      339
+      339,
+      382,
+      383
     ],
     "procedure_owner": 339
   },
@@ -7620,7 +8400,9 @@
     "issues": [
       112,
       336,
-      341
+      341,
+      382,
+      383
     ],
     "procedure_owner": 341
   },
@@ -7646,7 +8428,10 @@
     "issues": [
       112,
       336,
-      339
+      339,
+      382,
+      383,
+      385
     ],
     "procedure_owner": 339
   },
@@ -7671,7 +8456,8 @@
       111,
       112,
       336,
-      345
+      345,
+      382
     ],
     "procedure_owner": 345
   },
@@ -7697,7 +8483,10 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      384,
+      385
     ],
     "procedure_owner": 346
   },
@@ -7727,7 +8516,9 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      384
     ],
     "procedure_owner": 346
   },
@@ -7757,7 +8548,9 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      384
     ],
     "procedure_owner": 346
   },
@@ -7787,7 +8580,9 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      384
     ],
     "procedure_owner": 346
   },
@@ -7803,7 +8598,9 @@
       112,
       336,
       346,
-      358
+      358,
+      382,
+      384
     ],
     "attribute": "IQ",
     "difficulty": "easy",
@@ -7835,7 +8632,8 @@
     "issues": [
       112,
       336,
-      339
+      339,
+      382
     ],
     "procedure_owner": 339
   },
@@ -7850,13 +8648,14 @@
     "tl_required": true,
     "blockers": [
       "runtime-procedure",
-      "technology-level-context",
-      "prerequisite-procedure"
+      "technology-level-context"
     ],
     "issues": [
       112,
       336,
-      342
+      342,
+      382,
+      384
     ],
     "skill_defaults": [
       {
@@ -7876,7 +8675,16 @@
         "modifier": -5
       }
     ],
-    "procedure_owner": 342
+    "procedure_owner": 342,
+    "prerequisite_groups": [
+      {
+        "alternatives": [
+          "first-aid",
+          "physician",
+          "veterinary"
+        ]
+      }
+    ]
   },
   {
     "id": "survival",
@@ -7900,7 +8708,10 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382,
+      383,
+      385
     ],
     "procedure_owner": 343
   },
@@ -7914,7 +8725,9 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382,
+      383
     ],
     "page": 223,
     "attribute": "Per",
@@ -7936,15 +8749,26 @@
     "name": "Sweep",
     "page": 232,
     "blockers": [
-      "technique-expansion",
       "runtime-procedure"
     ],
     "issues": [
       112,
       336,
-      340
+      340,
+      382
     ],
-    "procedure_owner": 340
+    "procedure_owner": 340,
+    "template": {
+      "difficulty": "hard",
+      "default_modifier": -4,
+      "maximum_modifier": 0,
+      "parents": [
+        "judo",
+        "karate",
+        "sumo-wrestling",
+        "wrestling"
+      ]
+    }
   },
   {
     "id": "swimming",
@@ -7967,7 +8791,8 @@
       110,
       112,
       336,
-      343
+      343,
+      382
     ],
     "procedure_owner": 343
   },
@@ -7992,7 +8817,9 @@
     "issues": [
       112,
       336,
-      339
+      339,
+      382,
+      383
     ],
     "procedure_owner": 339
   },
@@ -8016,7 +8843,8 @@
     "issues": [
       112,
       336,
-      345
+      345,
+      382
     ],
     "procedure_owner": 345
   },
@@ -8042,7 +8870,10 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382,
+      383,
+      385
     ],
     "procedure_owner": 343
   },
@@ -8068,7 +8899,10 @@
     "issues": [
       112,
       336,
-      341
+      341,
+      382,
+      383,
+      385
     ],
     "procedure_owner": 341
   },
@@ -8093,7 +8927,9 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382,
+      383
     ],
     "procedure_owner": 343
   },
@@ -8120,7 +8956,10 @@
       112,
       336,
       344,
-      362
+      362,
+      382,
+      383,
+      385
     ],
     "procedure_owner": 344
   },
@@ -8150,7 +8989,9 @@
       112,
       336,
       344,
-      362
+      362,
+      382,
+      383
     ],
     "procedure_owner": 344
   },
@@ -8180,7 +9021,9 @@
       112,
       336,
       344,
-      362
+      362,
+      382,
+      383
     ],
     "procedure_owner": 344
   },
@@ -8210,7 +9053,9 @@
       112,
       336,
       344,
-      362
+      362,
+      382,
+      383
     ],
     "procedure_owner": 344
   },
@@ -8240,7 +9085,9 @@
       112,
       336,
       344,
-      362
+      362,
+      382,
+      383
     ],
     "procedure_owner": 344
   },
@@ -8270,7 +9117,9 @@
       112,
       336,
       344,
-      362
+      362,
+      382,
+      383
     ],
     "procedure_owner": 344
   },
@@ -8300,7 +9149,9 @@
       112,
       336,
       344,
-      362
+      362,
+      382,
+      383
     ],
     "procedure_owner": 344
   },
@@ -8330,7 +9181,9 @@
       112,
       336,
       344,
-      362
+      362,
+      382,
+      383
     ],
     "procedure_owner": 344
   },
@@ -8348,7 +9201,8 @@
       103,
       112,
       336,
-      339
+      339,
+      382
     ],
     "skill_defaults": [
       {
@@ -8379,7 +9233,9 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382,
+      383
     ],
     "procedure_owner": 343
   },
@@ -8405,7 +9261,10 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 346
   },
@@ -8423,7 +9282,8 @@
       103,
       112,
       336,
-      339
+      339,
+      382
     ],
     "skill_defaults": [
       {
@@ -8455,7 +9315,8 @@
       103,
       112,
       336,
-      339
+      339,
+      382
     ],
     "skill_defaults": [
       {
@@ -8487,7 +9348,8 @@
       103,
       112,
       336,
-      339
+      339,
+      382
     ],
     "skill_defaults": [
       {
@@ -8522,7 +9384,9 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382,
+      383
     ],
     "procedure_owner": 338
   },
@@ -8546,7 +9410,8 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382
     ],
     "procedure_owner": 343
   },
@@ -8561,7 +9426,9 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      384
     ],
     "attribute": "DX",
     "difficulty": "average",
@@ -8607,7 +9474,8 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382
     ],
     "procedure_owner": 338
   },
@@ -8629,7 +9497,10 @@
       109,
       112,
       336,
-      342
+      342,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 342
   },
@@ -8644,7 +9515,9 @@
     "issues": [
       112,
       336,
-      343
+      343,
+      382,
+      384
     ],
     "attribute": "IQ",
     "difficulty": "average",
@@ -8672,7 +9545,8 @@
       103,
       112,
       336,
-      339
+      339,
+      382
     ],
     "skill_defaults": [
       {
@@ -8695,16 +9569,26 @@
     "name": "Whirlwind Attack",
     "page": 232,
     "blockers": [
-      "technique-expansion",
       "runtime-procedure",
       "optional-rule-selection"
     ],
     "issues": [
       112,
       336,
-      340
+      340,
+      382,
+      384
     ],
-    "procedure_owner": 340
+    "procedure_owner": 340,
+    "template": {
+      "difficulty": "hard",
+      "default_modifier": -4,
+      "maximum_modifier": 0,
+      "parents": [
+        "karate"
+      ],
+      "parent_family": "melee-weapon"
+    }
   },
   {
     "id": "work-by-touch",
@@ -8717,7 +9601,9 @@
     "issues": [
       112,
       336,
-      346
+      346,
+      382,
+      385
     ],
     "procedure_owner": 346,
     "attribute": "IQ",
@@ -8743,7 +9629,8 @@
     "issues": [
       112,
       336,
-      339
+      339,
+      382
     ],
     "procedure_owner": 339
   },
@@ -8768,7 +9655,9 @@
     "issues": [
       112,
       336,
-      338
+      338,
+      382,
+      383
     ],
     "procedure_owner": 338
   }

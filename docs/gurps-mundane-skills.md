@@ -76,13 +76,18 @@ is not converted into an ordinary DX skill.
 | `unexpanded-specialty` | 59 |
 | `listing-only` | 28 |
 | `technique-template` | 24 |
+| `variable-family` | 5 |
+| `alternative-prerequisite` | 1 |
 | `technique` | 6 |
 | `prerequisite` | 3 |
 | `optional-specialty` | 1 |
 | `alias` | 1 |
 
-Classes overlap. `no-default` means no default is recorded, not a claim that
-conditional defaults have been exhaustively verified. Fixtures sample every
+Classes overlap, and a class describes what a row records structurally while
+`implementation` describes its certification state: the 28 `listing-only` rows
+record no rollable definition, and 28 of them are `contextual` because they do
+record a technique template or an open family. `no-default` means no default is
+recorded, not a claim that conditional defaults have been exhaustively verified. Fixtures sample every
 class with independently stated source expectations.
 
 ## Remaining ownership
@@ -94,7 +99,11 @@ retained where previously recorded, but they do not replace the active owners.
 
 | Owner | Remaining scope |
 | --- | --- |
-| #336 | Printing/errata reconciliation; conditional defaults, prerequisites, TL, aliases, specialties, variable families and technique expansion/policy. |
+| #336 | Complete. The contextual shapes landed; everything it could not settle without the artifact or campaign state names one of the four children below. |
+| #382 | Verifying the frozen first-printing baseline against the source artifact. |
+| #383 | Conditional skill defaults and the remaining alternative prerequisites. |
+| #384 | Technology-level context for TL-tagged skills, and optional-rule selection. |
+| #385 | The remaining required and optional specialty families, and the one unexpanded technique template. |
 | #338 | Arts, crafts and trade procedures. |
 | #339 | Melee, defense and tactical skill procedures. |
 | #340 | Combat technique procedures and parent-specific dispatch. |
@@ -213,6 +222,49 @@ recorded Diving Suit default reaches `skill:scuba`, which another group owns, so
 these definitions do not resolve as a standalone catalog. Evidence for the
 bindings themselves is in `tests/test_technology_skills.py` and
 `tests/fixtures/gurps/technology_skills.json`.
+
+## Contextual catalog metadata (#336)
+
+Three shapes let the source be recorded as it is stated instead of flattened into
+something the compiler happens to support. All three are catalog metadata: none
+of them makes a skill playable, and every row still carries the printing delta.
+
+**Alternative prerequisites.** B168 states several prerequisites as "A or B".
+`SkillSpec.prerequisite_groups` records each alternative set, and the skill
+compiler requires every firm prerequisite plus one satisfied member of each set.
+A set of one is rejected, because that is a firm prerequisite in disguise. B223
+Surgery — First Aid, Physician or Veterinary — is the case the audit already
+recorded as unflattenable, and it is the one this issue states; the other rows
+that need an alternative set keep their blocker under #383 rather than a guess.
+
+**Cross-package prerequisites.** B182 Brain Hacking requires Computer Hacking,
+which the #119 supernatural catalog carries. `cross_package_prerequisites()`
+resolves the reference against that catalog and fails if the owner ever drops it,
+so a real source reference is neither dropped for being out of scope nor invented
+locally. Such a target is excluded from this inventory's own cycle graph.
+
+**Technique templates and open families.** A B230-233 technique bought against
+Judo and against Karate is two distinct skills, so a template records the parents
+the source permits and expands to a concrete parent-relative technique only for
+one of them; expanding against any other parent raises. Where the source permits
+a whole class rather than a list ("any melee weapon skill"), the template names
+the open family instead. B232 Neck Snap keeps its own ST attribute rather than
+inheriting its parent's. The five open families — Combat Art, Combat Sport, Hobby
+Skill, Melee Weapon, Professional Skill — record that the player names the
+specialty and how its mechanics are then determined, because an enumeration would
+be an invention rather than a reconciliation.
+
+An unused alternative set is pruned from a package's canonical JSON exactly as
+absent skill and trait metadata already is, so adding the shape moves no digest of
+a package pinned before it existed. `tests/test_contextual_metadata.py` pins that,
+along with the compiler behaviour and every recorded template and family.
+
+What this issue could not settle is split into four children, each owning specific
+blockers rather than a share of a general one: **#382** the frozen first-printing
+verification every row waits on, **#383** conditional defaults and the remaining
+alternative prerequisites, **#384** technology-level context and optional-rule
+selection, **#385** the remaining specialty families. `blocker_owners` names them
+per row, so #336 itself keeps nothing.
 
 ## Validation and runtime contract
 

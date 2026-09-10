@@ -42,10 +42,67 @@ class Specialty:
 
 
 @dataclass(frozen=True, slots=True)
+class PrerequisiteGroup:
+    """An alternative set: satisfying any one member satisfies the requirement.
+
+    B168 states several prerequisites as "A or B". Flattening that into the
+    ``prerequisites`` AND list would either demand both or silently drop one, so
+    an alternative set is recorded as its own shape.
+    """
+
+    alternatives: tuple[SkillPrerequisite, ...]
+
+
+@dataclass(frozen=True, slots=True)
 class Technique:
     parent: str
     default_modifier: int
     maximum_modifier: int = 0
+
+
+@dataclass(frozen=True, slots=True)
+class TechniqueTemplate:
+    """A B230-233 technique listing, before a concrete parent is chosen.
+
+    A template is not rollable: the same technique bought against Judo and
+    against Karate is two distinct skills. ``parents`` names the skills the
+    source permits, and ``parent_family`` points at a variable family when the
+    source permits a whole class ("any melee weapon skill") instead of a list.
+    ``attribute`` is the parent's controlling attribute unless the source
+    overrides it, as ST-based Neck Snap does.
+    """
+
+    difficulty: Difficulty
+    default_modifier: int
+    maximum_modifier: int = 0
+    parents: tuple[str, ...] = ()
+    parent_family: str | None = None
+    attribute: ControllingAttribute | None = None
+
+    def expand(self, parent: str) -> Technique:
+        """The concrete parent-relative technique for one permitted parent."""
+        if parent not in self.parents:
+            raise ValueError(f"Parent is outside the template's permitted set: {parent}")
+        return Technique(parent, self.default_modifier, self.maximum_modifier)
+
+
+@dataclass(frozen=True, slots=True)
+class VariableFamily:
+    """A family whose specialties the player defines, so no list can enumerate them.
+
+    Hobby Skill, Professional Skill, the Combat Art/Sport pair and the Melee
+    Weapon class are open sets. Recording the shape is the whole of the contextual
+    metadata; an enumeration would be an invention, not a reconciliation.
+    """
+
+    subject: str
+    # How a chosen specialty gets its mechanics: mirroring the combat skill it is
+    # an art of, or chosen with the subject. An open family may leave the
+    # controlling attribute and difficulty to that choice, so neither is required.
+    determination: str
+    mirrors: str | None = None
+    attribute: ControllingAttribute | None = None
+    difficulty: Difficulty | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -57,3 +114,6 @@ class SkillSpec:
     prerequisites: tuple[SkillPrerequisite, ...] = ()
     specialty: Specialty | None = None
     technique: Technique | None = None
+    # One satisfied alternative per group, in addition to every ``prerequisites``
+    # entry. An empty tuple keeps historic package digests byte-for-byte.
+    prerequisite_groups: tuple[PrerequisiteGroup, ...] = ()

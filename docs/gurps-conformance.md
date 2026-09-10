@@ -383,11 +383,19 @@ listing maps to two records. Missing entries, unindexed additions, invalid paren
 page drift and transfer drift fail validation. Required contextual specialties
 remain explicitly blocked; these counts do not certify every possible specialty.
 
+#336 completed the contextual shapes: alternative prerequisites recorded as
+first-class sets the compiler satisfies one member of, a cross-package
+prerequisite resolved against the catalog that owns it, 23 B230-233 technique
+templates recording the parents the source permits, and five open families
+recording that the player names the specialty. What it could not settle without
+the source artifact or campaign state is split into #382, #383, #384 and #385,
+each owning specific blockers, so no row resolves into a general owner.
+
 There are 209 structured unsupported definitions, 95 implemented procedures
 (12 ranged combat rows from #344 and 83 technology, science and vehicle rows from
-#346) and 28 listing-only records (23 technique templates and five variable
-families). Previously empty suit,
-crewman and weapon definitions now carry source-indexed metadata, and candidate
+#346) and 28 contextual records (23 technique templates and five open
+families). Previously empty suit, crewman and weapon definitions now carry
+source-indexed metadata, and candidate
 techniques no longer inherit definitions from live packages. Source/printing,
 context and runtime limitations are visible per row. Independent fixtures sample
 all 12 structural classes, numeric defaults, technique caps and reference failures.

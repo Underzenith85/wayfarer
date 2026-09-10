@@ -110,6 +110,23 @@
         "title": "ImplementationStatus",
         "type": "string"
       },
+      "PrerequisiteGroup": {
+        "description": "An alternative set: satisfying any one member satisfies the requirement.\n\nB168 states several prerequisites as \"A or B\". Flattening that into the\n``prerequisites`` AND list would either demand both or silently drop one, so\nan alternative set is recorded as its own shape.",
+        "properties": {
+          "alternatives": {
+            "items": {
+              "$ref": "#/components/schemas/SkillPrerequisite"
+            },
+            "title": "Alternatives",
+            "type": "array"
+          }
+        },
+        "required": [
+          "alternatives"
+        ],
+        "title": "PrerequisiteGroup",
+        "type": "object"
+      },
       "ProfileOption": {
         "additionalProperties": false,
         "properties": {
@@ -232,6 +249,14 @@
               }
             ],
             "default": null
+          },
+          "prerequisite_groups": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/PrerequisiteGroup"
+            },
+            "title": "Prerequisite Groups",
+            "type": "array"
           }
         },
         "required": [

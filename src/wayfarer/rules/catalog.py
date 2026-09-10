@@ -90,6 +90,12 @@ class RulesPackage:
             for extension in ("skill", "trait_rules"):
                 if definition[extension] is None:
                     del definition[extension]
+            # A later skill mechanic that a definition does not use is absent for
+            # the same reason: an unused alternative-prerequisite set must not
+            # move the digest of a package pinned before the shape existed.
+            skill = definition.get("skill")
+            if skill is not None and not skill["prerequisite_groups"]:
+                del skill["prerequisite_groups"]
         return json.dumps(data, sort_keys=True, separators=(",", ":"))
 
     @property

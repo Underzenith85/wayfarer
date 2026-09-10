@@ -113,11 +113,26 @@ def test_mundane_skill_rows_carry_item_level_owners_and_certification_state() ->
     assert len(rows) == 332
     assert all(r.owner == 112 and r.blockers for r in rows)
     assert {b for r in rows for b in r.blockers} == set(coverage_blockers(PROFILE))
-    assert {r.implementation for r in rows} == {"implemented", "unsupported", "listing-only"}
-    assert sum(r.implementation == "listing-only" for r in rows) == 28
+    assert {r.implementation for r in rows} == {"implemented", "unsupported", "contextual"}
+    # #336 records a technique template or an open family for each of these.
+    assert sum(r.implementation == "contextual" for r in rows) == 28
     # #344: a bound ranged procedure reaches certification as implemented, and a
     # transferred one reaches it naming the concrete open child that owns it.
     assert sum(r.implementation == "implemented" for r in rows) == 95
-    assert next(r for r in rows if r.id == "skill:bow").blockers == (112, 336, 344)
-    assert next(r for r in rows if r.id == "skill:net").blockers == (112, 336, 344, 354, 362)
-    assert next(r for r in rows if r.id == "skill:broadsword").blockers == (103, 112, 336, 339)
+    assert next(r for r in rows if r.id == "skill:bow").blockers == (112, 336, 344, 382)
+    assert next(r for r in rows if r.id == "skill:net").blockers == (
+        112,
+        336,
+        344,
+        354,
+        362,
+        382,
+        383,
+    )
+    assert next(r for r in rows if r.id == "skill:broadsword").blockers == (
+        103,
+        112,
+        336,
+        339,
+        382,
+    )
