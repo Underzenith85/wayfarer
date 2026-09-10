@@ -131,6 +131,10 @@ def resolve_limb(
             else ("right-leg" if side_die <= 3 else "left-leg")
         )
         expression = stats.swing if mode.damage.basis == "swing" else stats.thrust
+        if isinstance(mode, RangedMode) and mode.rated_strength is not None:
+            from wayfarer.character.statistics import damage as strength_damage
+
+            expression = strength_damage(catalog(play).profile_id, mode.rated_strength.st)[0]
         dice = tuple(play.rng.randbelow(6) + 1 for _ in range(mode.damage.dice or expression.dice))
         damage = max(
             0 if mode.damage.damage_type == "cr" else 1,

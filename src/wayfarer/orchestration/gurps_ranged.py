@@ -217,6 +217,22 @@ def reload_weapon(play: PlayService, state: PlayState, command: TakeCombatTurn) 
     if len(modes) != 1 or modes[0].thrown:
         raise ValidationError("Reload requires one projectile mode")
     weapon = modes[0]
+    reload_seconds = weapon.reload_seconds
+    if weapon.rated_strength is not None:
+        from wayfarer.orchestration.gurps_melee import build
+
+        stats = build(play, state, command.actor_id).statistics
+        assert stats is not None
+        fp = next(p for p in state.resources.pools if p.id == f"fp:{command.actor_id}")
+        st = fatigue_value(fp, stats.st)
+        validate_rated_strength(equipment.profile_id, weapon, st)
+        if weapon.rated_strength.kind == "crossbow":
+            difference = weapon.rated_strength.st - st
+            if difference >= 5:
+                raise ValidationError("Crossbow ST is too high to reload")
+            if difference >= 3:
+                raise ValidationError("Crossbow reload requires an explicit cocking-aid protocol")
+            reload_seconds = 8 if difference > 0 else 4
     if weapon.reload_protocol == "per-round" and equipment.profile_id != "gurps-basic-set-4e-2004":
         raise ValidationError("Per-round reload requires the exact Basic Set profile")
     if ammo.definition_id != weapon.ammunition_id or item.quantity != 1:
@@ -237,7 +253,7 @@ def reload_weapon(play: PlayService, state: PlayState, command: TakeCombatTurn) 
     if ammo.quantity <= reserved:
         raise ValidationError("No unreserved ammunition remains")
     progress = (old.reload_progress if old else 0) + 1
-    if progress >= max(1, weapon.reload_seconds):
+    if progress >= max(1, reload_seconds):
         rounds += min(
             1 if weapon.reload_protocol == "per-round" else weapon.shots - rounds,
             ammo.quantity - reserved,
@@ -260,6 +276,15 @@ def reload_weapon(play: PlayService, state: PlayState, command: TakeCombatTurn) 
     )
     play.engine.resources.validate(result)
     return result
+
+
+def validate_rated_strength(profile_id: str, weapon: RangedMode, st: int) -> None:
+    if weapon.rated_strength is None:
+        return
+    if profile_id != "gurps-basic-set-4e-2004":
+        raise ValidationError("Rated weapon ST requires the exact Basic Set profile")
+    if weapon.rated_strength.kind == "bow" and weapon.rated_strength.st > st:
+        raise ValidationError("Bow ST exceeds the wielder's effective ST")
 
 
 def prepare(
@@ -286,8 +311,10 @@ def prepare(
     assert stats is not None
     fp = next(p for p in state.resources.pools if p.id == f"fp:{actor.actor_id}")
     st = fatigue_value(fp, stats.st)
+    validate_rated_strength(catalog(play).profile_id, weapon, st)
+    range_st = weapon.rated_strength.st if weapon.rated_strength is not None else st
     if scene.distance_yards > float(weapon.maximum_range) * (
-        st if weapon.range_basis == "st" else 1
+        range_st if weapon.range_basis == "st" else 1
     ):
         raise ValidationError("Target exceeds maximum ranged weapon range")
     if shots > min(weapon.rate_of_fire, 100) or (
@@ -440,6 +467,7 @@ def resolve(
     hp = next(p for p in state.resources.pools if p.id == f"hp:{target.actor_id}")
     fp = next(p for p in state.resources.pools if p.id == f"fp:{actor.actor_id}")
     st = fatigue_value(fp, stats.st)
+    validate_rated_strength(equipment.profile_id, weapon, st)
     aim = actor.maneuver_state
     aimed = (aim.aim_item_id, aim.aim_mode_id, aim.aim_target_id) == (
         pending.weapon_id,
@@ -689,11 +717,17 @@ def resolve(
     hit_locations: list[HumanLocation | None] = []
     hit_location_dice: list[tuple[int, ...]] = []
     expression = stats.swing if weapon.damage.basis == "swing" else stats.thrust
+    range_st = st
+    if weapon.rated_strength is not None:
+        from wayfarer.character.statistics import damage as strength_damage
+
+        range_st = weapon.rated_strength.st
+        expression = strength_damage(equipment.profile_id, range_st)[0]
     count = weapon.damage.dice or expression.dice
     adds = weapon.damage.adds + (0 if weapon.damage.basis == "fixed" else expression.add)
-    half = weapon.half_damage_range is not None and scene.distance_yards > float(
+    half = weapon.half_damage_range is not None and scene.distance_yards >= float(
         weapon.half_damage_range
-    ) * (st if weapon.range_basis == "st" else 1)
+    ) * (range_st if weapon.range_basis == "st" else 1)
     for index in range(hits if blocked is None else 0):
         if index and pending.hit_location == "random":
             from wayfarer.orchestration.location_combat import from_behind
