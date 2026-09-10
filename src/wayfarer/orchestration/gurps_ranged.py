@@ -83,6 +83,8 @@ def situation(
     attacker: str,
     defender: str,
     weapon: RangedMode | None = None,
+    *,
+    ground: bool = False,
 ) -> RangedSituation:
     value = next(
         (
@@ -108,6 +110,17 @@ def situation(
             beam=bool(weapon and weapon.damage.tight_beam),
         )
         value = value.model_copy(update={"distance_yards": float(distance)})
+    if ground:
+        actor = next(p for p in encounter.participants if p.actor_id == attacker)
+        target = next(p for p in encounter.participants if p.actor_id == defender)
+        value = value.model_copy(
+            update={
+                "speed_yards_per_second": 0.0,
+                "distance_yards": value.distance_yards
+                if encounter.hex_battlefield is not None
+                else float(CombatEngine.distance(actor.position, target.position)),
+            }
+        )
     return value
 
 
@@ -319,7 +332,16 @@ def prepare(
         from wayfarer.orchestration.object_combat import target_geometry
 
         geometry = target_geometry(play, state, encounter, target_item_id)
-    scene = situation(geometry, actor.actor_id, target.actor_id, weapon)
+    scene = situation(
+        geometry,
+        actor.actor_id,
+        target.actor_id,
+        weapon,
+        ground=bool(
+            target_item_id
+            and next(i for i in state.resources.items if i.id == target_item_id).ground
+        ),
+    )
     from wayfarer.orchestration.location_combat import disabled
 
     if len(disabled(state, actor.actor_id) & {"left-eye", "right-eye"}) == 2:
@@ -489,7 +511,16 @@ def resolve(
         from wayfarer.orchestration.object_combat import target_geometry
 
         geometry = target_geometry(play, state, encounter, pending.target_item_id)
-    scene = situation(geometry, actor.actor_id, target.actor_id, weapon)
+    scene = situation(
+        geometry,
+        actor.actor_id,
+        target.actor_id,
+        weapon,
+        ground=bool(
+            pending.target_item_id
+            and next(i for i in state.resources.items if i.id == pending.target_item_id).ground
+        ),
+    )
     equipment = catalog(play)
     compiled = build(play, state, actor.actor_id)
     defender_build = build(play, state, target.actor_id)

@@ -223,3 +223,81 @@ async def test_destroyed_shield_remains_carried_until_minus_ten_hp(tmp_path: Pat
     item = next(i for i in state.resources.items if i.id == "shield-b")
     assert item.condition and item.condition.hp == -120
     assert not item.equipped and item.owner_id == "b" and residual == 57
+
+
+async def test_ground_projectile_uses_item_distance_and_zero_speed(tmp_path: Path) -> None:
+    from wayfarer.models import Campaign, Event
+    from wayfarer.rules.object_types import GroundPosition
+
+    cid, play = await setup(
+        tmp_path,
+        "gurps-basic-set-4e-2004",
+        ranged_mode=weapon(thrown=True),
+        ranged_scene=scene(distance=20, speed=20),
+        durability=ObjectProfile(construction="homogenous", hp=12, dr=0, ht=12),
+    )
+
+    def drop(campaign: Campaign) -> Event:
+        state = play._load(campaign)
+        state = state.model_copy(
+            update={
+                "resources": state.resources.model_copy(
+                    update={
+                        "items": tuple(
+                            i.model_copy(
+                                update={
+                                    "ready": False,
+                                    "equipped": False,
+                                    "ground": GroundPosition(
+                                        encounter_id="fight", geometry="grid", x=3, y=0
+                                    ),
+                                }
+                            )
+                            if i.id == "sword-b"
+                            else i
+                            for i in state.resources.items
+                        )
+                    }
+                )
+            }
+        )
+        from wayfarer.orchestration.object_combat import synchronize
+
+        state = state.model_copy(
+            update={
+                "encounters": tuple(synchronize(state, e) for e in state.encounters),
+                "actors": tuple(
+                    a.model_copy(
+                        update={
+                            "held_item_hands": tuple(
+                                (i, h) for i, h in a.held_item_hands if i != "sword-b"
+                            )
+                        }
+                    )
+                    for a in state.actors
+                ),
+            }
+        )
+        campaign["play_json"] = state.model_dump_json()
+        return Event(input="fixture", action="combat", outcome="drop", roll=None)
+
+    await play.store.commit_turn(cid, "drop-fixture", 1, "drop-fixture", drop)
+    await turn(
+        cid,
+        play,
+        "a",
+        "attack",
+        item_id="sword-a",
+        target_id="b",
+        target_item_id="sword-b",
+        mode_id="ranged",
+    )
+    state = play._load(await play.store.read(cid))
+    assert state.encounters[0].pending_defense and state.encounters[0].pending_defense.allowed == (
+        "none",
+    )
+    play.rng = RecordedDice([2, 3, 3, 2])
+    result = await defend(cid, play, "b")
+    assert result.injury and result.injury.attack.effective_target == 8  # 13 - size4 - range1
+    assert result.injury.injury == 0
+    assert play._load(await play.store.read(cid)).resources.object_results[-1].injury == 2
