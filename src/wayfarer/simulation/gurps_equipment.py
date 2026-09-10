@@ -113,6 +113,7 @@ class RangedMode(Record):
     recoil: Positive = 1
     ammunition_id: Id | None = None
     thrown: bool = False
+    catchable: bool = Field(default=False, exclude_if=lambda v: not v)
     blockable: bool = False
     brace_kind: Literal["one-handed", "bipod"] | None = Field(
         default=None, exclude_if=lambda value: value is None
@@ -131,6 +132,8 @@ class RangedMode(Record):
 
     @model_validator(mode="after")
     def valid_range(self) -> Self:
+        if self.catchable and (not self.thrown or self.hands != 1):
+            raise ValueError("Catching requires a one-handed thrown weapon")
         if self.readiness is not None:
             if self.thrown:
                 raise ValueError("Projectile readiness cannot bind a thrown weapon")
@@ -340,6 +343,12 @@ class EquipmentCatalog(Record):
                 raise ValueError("Object durability requires the exact Basic Set profile")
             for mode in entry.modes:
                 require_skill_procedure(self.profile_id, mode)
+                if (
+                    isinstance(mode, RangedMode)
+                    and mode.catchable
+                    and self.profile_id != "gurps-basic-set-4e-2004"
+                ):
+                    raise ValueError("Catching requires the exact Basic Set profile")
                 if isinstance(mode, RangedMode) and mode.readiness is not None:
                     if self.profile_id != "gurps-basic-set-4e-2004":
                         raise ValueError(

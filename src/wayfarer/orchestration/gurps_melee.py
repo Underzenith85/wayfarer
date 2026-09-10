@@ -20,7 +20,7 @@ from wayfarer.rules.location_types import HitLocation, HumanLocation
 from wayfarer.rules.mundane_skills.ranged import require_technology
 from wayfarer.rules.recovery_types import interrupt_tasks
 from wayfarer.simulation.actions import PlayState
-from wayfarer.simulation.combat import Combatant, Defense, Encounter, InjuryTrace
+from wayfarer.simulation.combat import Combatant, CombatEngine, Defense, Encounter, InjuryTrace
 from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.entangle import attack_penalty as entangle_attack_penalty
 from wayfarer.simulation.entangle import defense_penalty as entangle_defense_penalty
@@ -387,6 +387,29 @@ def defense_value(
         selected == "parry" and participant.maneuver_state.parry_forbidden
     ):
         raise ValidationError("The selected maneuver forbids this defense")
+    if selected == "parry" and item_id in ("left-hand", "right-hand"):
+        from wayfarer.orchestration.unarmed import unarmed_defense
+
+        encounter = next(
+            (
+                e
+                for e in state.encounters
+                if e.pending_defense and e.pending_defense.defender_id == participant.actor_id
+            ),
+            None,
+        )
+        if encounter is None or encounter.pending_defense is None:
+            raise ValidationError("Barehanded projectile parry requires a pending throw")
+        pending = encounter.pending_defense
+        incoming = mode(play, state, pending.attacker_id, pending.weapon_id, pending.mode_id)
+        if not isinstance(incoming, RangedMode) or not incoming.catchable:
+            raise ValidationError("Barehanded projectile parry requires an opted-in thrown mode")
+        encounter = CombatEngine._replace(encounter, participant)
+        bare_value, hand = unarmed_defense(
+            play, state, encounter, participant.actor_id, selected, item_id, mode_id=parry_mode_id
+        )
+        assert bare_value is not None
+        return DerivedValue("defense:parry", Decimal(bare_value), ()), hand
     compiled = build(play, state, participant.actor_id)
     assert compiled.statistics is not None
     hp = next(p for p in state.resources.pools if p.id == f"hp:{participant.actor_id}")
@@ -757,6 +780,7 @@ def resolve_melee(
     second_item_id: str | None = None,
     parry_mode_id: str | None = None,
     second_parry_mode_id: str | None = None,
+    catch_thrown: bool = False,
 ) -> tuple[PlayState, Encounter, InjuryTrace]:
     pending = encounter.pending_defense
     assert pending is not None
@@ -782,6 +806,7 @@ def resolve_melee(
             second_item_id=second_item_id,
             parry_mode_id=parry_mode_id,
             second_parry_mode_id=second_parry_mode_id,
+            catch_thrown=catch_thrown,
         )
     attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     defender = next(p for p in encounter.participants if p.actor_id == pending.defender_id)

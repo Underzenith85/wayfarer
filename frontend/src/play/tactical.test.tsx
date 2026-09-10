@@ -10,6 +10,7 @@ import { TacticalPanel } from "./tactical";
 
 const command: Extract<TacticalCommand, { kind: "choose_defense" }> = {
   kind: "choose_defense",
+  catch_thrown: false,
   id: "same-receipt",
   actor_id: "a",
   encounter_id: "fight",

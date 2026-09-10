@@ -6239,6 +6239,11 @@
             "title": "Thrown",
             "type": "boolean"
           },
+          "catchable": {
+            "default": false,
+            "title": "Catchable",
+            "type": "boolean"
+          },
           "blockable": {
             "default": false,
             "title": "Blockable",
