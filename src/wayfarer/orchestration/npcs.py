@@ -316,10 +316,45 @@ def social_occurrence(
         if value is None:
             raise ValidationError("Influence skill has no approved level")
         target = int(value.value)
+    elif trigger.kind == "skill":
+        # #345: the authored trigger names the procedure and the circumstances;
+        # the initiator's approved level and the subject's Will come from builds.
+        from wayfarer.rules.mundane_skills.social import require_procedure
+
+        procedure = require_procedure(profile_id, trigger.skill_id)
+        if not any(a.actor_id == actor_id for a in state.actors):
+            raise ValidationError("Social skill initiator requires an approved build")
+        compiled = build(play, state, actor_id)
+        value = next((v for v in compiled.sheet.values if v.target == procedure.id), None)
+        if value is None:
+            raise ValidationError("Social skill has no approved level")
+        context.procedure_id = procedure.id
+        context.skill_level = int(value.value)
+        context.conditions = frozenset(trigger.conditions)
+        if procedure.paired:
+            # B198: the less fluent party decides, so the subject needs the skill
+            # too. Gesture is the only paired row, and no authored trigger reaches
+            # this yet: its catalog definition is activated with #336/#366.
+            if not any(a.actor_id == trigger.subject_id for a in state.actors):
+                raise ValidationError("A paired social skill needs both approved builds")
+            other = build(play, state, trigger.subject_id)
+            partner = next((v for v in other.sheet.values if v.target == procedure.id), None)
+            if partner is None:
+                raise ValidationError("The other party has no approved level for this skill")
+            context.partner_skill = int(partner.value)
+        will = trigger.npc_will
+        if any(a.actor_id == trigger.subject_id for a in state.actors):
+            resisting = build(play, state, trigger.subject_id)
+            assert resisting.statistics is not None
+            will = resisting.statistics.will
+        will = will + trigger.modifier
     context.target, context.will, context.ht = target, will, ht
     context.required_fact_ids = trigger.required_fact_ids
-    if trigger.kind in ("reaction", "influence"):
-        context.modifiers = (ReactionModifier("situation", trigger.modifier, occurrence_id, True),)
+    if trigger.kind in ("reaction", "influence", "skill"):
+        if trigger.kind != "skill":
+            context.modifiers = (
+                ReactionModifier("situation", trigger.modifier, occurrence_id, True),
+            )
         if trigger.standing is not None:
             context.standing, context.audience = _standing(trigger.standing)
     command = SocialCommand(

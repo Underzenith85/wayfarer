@@ -44,7 +44,7 @@ def bind_trait_modifiers(
     """
     from wayfarer.character.social_traits import bind_standing, reaction_modifiers
 
-    check: Check = "influence" if command.kind == "influence" else "reaction"
+    check: Check = "influence" if command.kind in ("influence", "skill") else "reaction"
     actor = next((a for a in state.actors if a.actor_id == command.actor_id), None)
     if actor is None or actor.approval is None:
         context.bind_trait_modifiers(())
@@ -62,6 +62,40 @@ def bind_trait_modifiers(
             context.audience,
         )
     )
+
+
+def bind_skill_conditions(
+    play: PlayService, state: PlayState, command: SocialCommand, context: SocialContext
+) -> None:
+    """Derive the #345 procedure's build-supplied conditions and reaction modifiers.
+
+    The approved build decides only whether a named condition holds; the procedure
+    owns what each one is worth. An initiator without an approved build asserts
+    nothing extra, and a resolver still cannot supply a trait modifier itself.
+    """
+    from wayfarer.rules.mundane_skills.social import Resolution, require_procedure
+
+    if context.procedure_id is None:
+        raise ValidationError("Social skill dispatch requires a declared procedure")
+    procedure = require_procedure(context.profile_id, context.procedure_id)
+    actor = next((a for a in state.actors if a.actor_id == command.actor_id), None)
+    if actor is None or actor.approval is None:
+        context.bind_trait_modifiers(())
+        return
+    from wayfarer.character.social_traits import skill_conditions
+    from wayfarer.orchestration.gurps_melee import build
+
+    approved = build(play, state, command.actor_id)
+    definitions = play.engine.reviewer.compiler.definitions
+    context.conditions = context.conditions | skill_conditions(
+        approved, definitions, procedure.id, context.audience
+    )
+    if procedure.resolution is not Resolution.INFLUENCE:
+        # Reaction modifiers reach influence rolls only (B359); an unopposed
+        # procedure must not silently collect them.
+        context.bind_trait_modifiers(())
+        return
+    bind_trait_modifiers(play, state, command, context)
 
 
 def dispatch(
@@ -86,12 +120,15 @@ def dispatch(
         assert statistics is not None
         if interaction.context.ht != statistics.ht or interaction.context.will != statistics.will:
             raise ValidationError("Fright context must match approved HT and Will")
-    # A player subject may resist fear or a disadvantage, but reaction
-    # and influence never select behavior or disclose facts on their behalf.
-    if command.kind in ("reaction", "influence"):
+    # A player subject may resist fear or a disadvantage, but reaction, influence
+    # and skill procedures never select behavior or disclose facts on their behalf.
+    if command.kind in ("reaction", "influence", "skill"):
         if any(m.role == "player" and command.subject_id in m.actor_ids for m in before.members):
             raise ValidationError("NPC social outcomes cannot control a player character")
-        bind_trait_modifiers(play, before, command, interaction.context)
+        if command.kind == "skill":
+            bind_skill_conditions(play, before, command, interaction.context)
+        else:
+            bind_trait_modifiers(play, before, command, interaction.context)
     resources, world, outcome = apply_interaction(
         before.resources,
         before.world,

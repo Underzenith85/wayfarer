@@ -147,8 +147,8 @@ def test_mathematics_specialties_and_prerequisites() -> None:
         {"page": "174"},
         {"unexpected": True},
         {"difficulty": None},
-        {"blockers": []},
         {"blockers": ["typo"]},
+        {"blockers": ["runtime-procedure", "runtime-procedure"]},
         {"issues": [0]},
         {"issues": [112, 112]},
         {"tl_required": True},
@@ -257,13 +257,21 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     assert entries["skill:broadsword"].owners == (103,)
     assert entries["skill:first-aid"].owners == (109,)
     assert entries["skill:accounting"].owners == ()
-    assert coverage_blockers(PROFILE) == (103, 109, 110, 111, 112)
+    owners = (103, 109, 110, 111, 112, 345, 353, 366, 367, 368, 369, 370)
+    assert coverage_blockers(PROFILE) == owners
     with pytest.raises(ValidationError, match="outside the selected profile"):
         coverage_blockers("gurps-lite-4e-2004")
     report = audit_report()
-    assert report["coverage_blockers"] == [103, 109, 110, 111, 112]
-    assert report["runtime_owner_unassigned"] == 223
-    assert report["implementation_counts"] == {"listing-only": 19, "unsupported": 238}
+    assert report["coverage_blockers"] == list(owners)
+    assert report["runtime_owner_unassigned"] == 210
+    # #345 social rows: nine whole entries, ten whose remaining scope is transferred.
+    assert report["implementation_counts"] == {
+        "implemented": 9,
+        "listing-only": 19,
+        "partial": 10,
+        "unsupported": 219,
+    }
+    assert report["procedures"] == 19
     counts = report["structural_class_counts"]
     assert isinstance(counts, dict) and counts["listing-only"] == 19
 

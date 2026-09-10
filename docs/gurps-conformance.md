@@ -389,11 +389,12 @@ Each row is classified by the structure it records, and the audit rejects an
 inventory that leaves any structural class unsampled or any row unclassified.
 Rows without recorded mechanics are reported as `listing-only` rather than as
 partial definitions, and each row's own blockers and certification state reach
-`source_audit` instead of one family status for the chapter. 223 rows still name
+`source_audit` instead of one family status for the chapter. 210 rows still name
 no mechanics owner beyond this audit; the report publishes that count as
-`runtime_owner_unassigned`, a visible #122 blocker. Excluded cinematic and
-supernatural skills are validated against the #119 catalog that owns them, so a
-transfer cannot silently drop a Basic Set skill. The accounting matrix is
+`runtime_owner_unassigned`, a visible #122 blocker; it fell from 223 once the
+#345 social rows named their procedure owner and their transferred children.
+Excluded cinematic and supernatural skills are validated against the #119
+catalog that owns them, so a transfer cannot silently drop a Basic Set skill. The accounting matrix is
 [the mundane skill inventory](gurps-mundane-skills.md).
 
 ## Provisional social procedures (#111)
@@ -442,6 +443,17 @@ all roll targets, hidden modifier values and source IDs. No player choice is
 modified by a social outcome. Explicit server-authored NPC disclosures can teach
 the initiating actor configured facts already known to the NPC; ordinary rolls
 do not reveal other facts or change NPC beliefs.
+
+The nineteen B168–B233 social skills carry whole-entry procedures in
+`rules.mundane_skills.social` (#345): a declared resolution shape, contextual
+prerequisites that reject before dice, rule-owned modifiers including the B97
+Voice bonus, and a named effect per verdict, committed through the same receipt
+ledger as the `skill` command kind. Influence-shaped procedures reuse
+`influence_roll` rather than restating B359. Ten of those rows keep a blocker
+because a named part of the entry is owned by #366–#370, and `unsupported_scope`
+publishes that to validators. Expected results are pinned independently in
+`tests/fixtures/gurps/social_skills.json` and run by `tests/test_social_skills.py`;
+the accounting is [the mundane skill inventory](gurps-mundane-skills.md).
 
 Reaction/influence/fright coverage remains **partial**, and runtime self-control
 is partial: these are server-only procedures, with full NPC play dispatch and

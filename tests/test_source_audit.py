@@ -113,6 +113,11 @@ def test_mundane_skill_rows_carry_item_level_owners_and_certification_state() ->
     assert len(rows) == 257
     assert all(r.owner == 112 and r.blockers for r in rows)
     assert {b for r in rows for b in r.blockers} == set(coverage_blockers(PROFILE))
-    assert {r.implementation for r in rows} == {"unsupported", "listing-only"}
+    assert {r.implementation for r in rows} == {
+        "implemented",
+        "partial",
+        "unsupported",
+        "listing-only",
+    }
     assert sum(r.implementation == "listing-only" for r in rows) == 19
     assert next(r for r in rows if r.id == "skill:broadsword").blockers == (103, 112)

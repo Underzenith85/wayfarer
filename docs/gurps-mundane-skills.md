@@ -2,8 +2,12 @@
 
 `rules/mundane_skills` is the item-level accounting for the Basic Set skill
 chapter (B168–B233). **It accounts for entries; it does not make any skill
-playable.** Every row keeps an explicit blocker, no row is available at runtime,
-and no campaign profile, package pin or saved character changes because of it.
+playable.** Every row keeps the shared printing-delta blocker, no row is
+available at runtime, and no campaign profile, package pin or saved character
+changes because of it. Runtime procedures live in submodules beside the
+accounting — `rules/mundane_skills/social.py` for the #345 social group — and
+`procedure_registry` reconciles the two so a cleared blocker always has an
+executable procedure behind it.
 
 ## Source boundary
 
@@ -24,6 +28,7 @@ itself; the counts below are the current report, not a separate transcription.
 | Accounting group | Rows | Coverage decision |
 | --- | ---: | --- |
 | Structured candidate definitions | 238 | Attribute, difficulty and recorded defaults exist, and every definition is normalized to `unsupported`. |
+| Rows with a runtime procedure | 19 | The #345 social group. Nine are whole entries; ten keep `runtime-procedure` while a named part is owned elsewhere. |
 | Listing-only rows | 19 | Family, variable-scope and unexpanded entries whose mechanics are not recorded at all. They carry `metadata-audit` and cannot be mistaken for a definition. |
 | Transferred exclusions | 28 | Cinematic and supernatural skills owned by #119 with named follow-ups #242/#243 and #191. Exclusion from this inventory is not exclusion from the Basic Set. |
 | **Total accounted** | **285** | **No available row.** |
@@ -54,17 +59,17 @@ blockers and `unsupported`/`listing-only` state instead of one family status.
 | Blocker | Rows | Owner |
 | --- | ---: | --- |
 | `first-printing-delta-audit` | 257 | #191 printing/errata reconciliation |
-| `runtime-procedure` | 220 | #103, #109, #110, #111 where named; otherwise unassigned |
-| `technology-level-context` | 76 | Unassigned |
-| `conditional-or-skill-defaults` | 115 | Unassigned |
-| `specialty-expansion` | 57 | Unassigned |
+| `runtime-procedure` | 211 | #103, #109, #110, #111, #345 where named; otherwise unassigned |
+| `technology-level-context` | 76 | #367 for Propaganda; otherwise unassigned |
+| `conditional-or-skill-defaults` | 115 | #353 where named; otherwise unassigned |
+| `specialty-expansion` | 57 | #366 for the social rows; otherwise unassigned |
 | `metadata-audit` | 19 | Unassigned |
 | `weapon-default-audit` / `combat-procedure` | 18 | #103 |
 | `family-specialty-expansion` | 15 | Unassigned |
 | `prerequisite-procedure` | 7 | Unassigned |
 | `variable-family-metadata` | 4 | Unassigned |
 
-223 of 257 rows currently name no mechanics owner beyond this audit. The report
+210 of 257 rows currently name no mechanics owner beyond this audit. The report
 publishes that as `runtime_owner_unassigned`, so the gap is visible to #122
 rather than implied by a family-level "partial". Naming those owners requires
 dependency-linked follow-up issues and remains outstanding.
@@ -72,6 +77,33 @@ dependency-linked follow-up issues and remains outstanding.
 Exclusions are validated against the catalog that took them: each excluded skill
 must exist in the #119 inventory with the same page and the same follow-up
 issues. Drift there fails this audit instead of dropping the skill.
+
+## Runtime procedures (#345 social group)
+
+The nineteen social rows carry executable whole-entry procedures. Each row's
+`implementation` reflects its own entry rather than the group:
+
+| State | Rows | Meaning |
+| --- | ---: | --- |
+| `implemented` | 9 | Acting, Diplomacy, Fast-Talk, Gesture, Intimidation, Lip Reading, Politics, Sex Appeal, Streetwise. The whole entry runs. |
+| `partial` | 10 | The procedure runs, but a named part of the entry is transferred to an open child and the row keeps `runtime-procedure`. |
+
+Transferred scope is published by `unsupported_scope`, reported as
+`transferred_procedure_scope`, and owned by:
+
+| Owner | Rows | Transferred part |
+| --- | --- | --- |
+| #366 | Fortune-Telling, Savoir-Faire | The required specialties each row needs before it is learnable |
+| #367 | Propaganda | The technology level that decides medium, reach and duration |
+| #368 | Interrogation | Coercion modifiers and their injury, fatigue and reaction cost |
+| #369 | Leadership, Teaching | Group activity and study-time advancement bindings |
+| #370 | Carousing, Panhandling, Performance, Public Speaking | Audience reactions, income and material outcomes |
+
+`validate_procedures` rejects a row that clears `runtime-procedure` without a
+whole entry behind it, a procedure whose transferred part names no owning issue
+on the row it blocks, and a row that records neither a blocker nor a procedure.
+The behaviour of each procedure is documented in
+[the social runtime](gurps-social-runtime.md).
 
 ## Runtime contract
 

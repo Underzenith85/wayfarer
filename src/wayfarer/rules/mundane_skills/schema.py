@@ -53,7 +53,10 @@ class InventoryRow(Record):
     specialty: SpecialtyRecord | None = None
     specialty_required: bool = False
     tl_required: bool = False
-    blockers: Annotated[tuple[Blocker, ...], Field(min_length=1)]
+    # A row may record no item-level blocker of its own once its procedure is
+    # implemented; `inventory()` still carries the shared printing-delta audit,
+    # so no row is ever unblocked here.
+    blockers: tuple[Blocker, ...] = ()
     issues: Annotated[tuple[Annotated[int, Field(gt=0)], ...], Field(min_length=1)]
 
     @model_validator(mode="after")

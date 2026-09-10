@@ -57,6 +57,8 @@ class SkillAudit:
     followup_issues: tuple[int, ...]
     specialty_required: bool = False
     tl_required: bool = False
+    procedure: bool = False
+    """Whether an executable whole-entry procedure exists for this row."""
     provenance: str = (
         "Characters Fourth Edition, third printing; first-printing delta audit pending"
     )
@@ -71,7 +73,14 @@ class SkillAudit:
 
     @property
     def implementation(self) -> str:
-        """Certification state of this row, never a family-level claim."""
+        """Certification state of this row, never a family-level claim.
+
+        A row is `implemented` only when a runtime procedure exists *and* nothing
+        of its entry is still transferred to another issue; a procedure whose
+        entry is partly transferred stays `partial` and keeps its blocker.
+        """
+        if self.procedure:
+            return "partial" if "runtime-procedure" in self.blockers else "implemented"
         return "unsupported" if self.definition is not None else "listing-only"
 
     @property
@@ -108,6 +117,20 @@ class SkillAudit:
         if self.tl_required:
             found.add(StructuralClass.TECHNOLOGY_LEVEL)
         return tuple(sorted(found))
+
+
+def procedure_registry() -> dict[str, tuple[int, ...]]:
+    """Rows with an executable procedure, mapped to the owners of transferred scope.
+
+    An empty tuple means the whole entry is implemented here. A non-empty tuple
+    means part of the entry is owned elsewhere, so the row keeps its blocker.
+    """
+    from wayfarer.rules.mundane_skills.social import procedures as social
+
+    return {
+        entry.id: tuple(sorted({scope.owner_issue for scope in entry.unsupported}))
+        for entry in social()
+    }
 
 
 def source_inventory() -> tuple[InventoryRow, ...]:
@@ -157,6 +180,7 @@ def coverage_blockers(profile_id: str) -> tuple[int, ...]:
 
 def inventory() -> tuple[SkillAudit, ...]:
     rows = source_inventory()
+    registry = procedure_registry()
     existing = {d.id: d for d in representative_definitions(PROFILE)}
     result = []
     for row in rows:
@@ -220,6 +244,7 @@ def inventory() -> tuple[SkillAudit, ...]:
                 row.issues,
                 row.specialty_required,
                 row.tl_required,
+                identifier in registry,
             )
         )
     return tuple(result)
@@ -245,6 +270,33 @@ def candidate_package() -> RulesPackage:
             for entry in inventory()
         ),
     )
+
+
+def validate_procedures(entries: tuple[SkillAudit, ...]) -> None:
+    """Reconcile the runtime procedure registry against this accounting.
+
+    A cleared `runtime-procedure` blocker must be backed by a procedure that
+    implements the whole entry, and every part a procedure transfers elsewhere
+    must be named as an owning issue on the row it blocks.
+    """
+    registry = procedure_registry()
+    rows = {entry.id: entry for entry in entries}
+    unknown = sorted(set(registry) - set(rows))
+    if unknown:
+        raise ValidationError(f"Procedure is outside the inventory: {', '.join(unknown)}")
+    for entry in entries:
+        transferred = registry.get(entry.id)
+        blocked = "runtime-procedure" in entry.blockers
+        if transferred is None:
+            # Replaces the old schema-level minimum: a row may record no
+            # item-level blocker only when a procedure accounts for it.
+            if entry.blockers == ("first-printing-delta-audit",):
+                raise ValidationError(f"Row records neither blocker nor procedure: {entry.id}")
+            continue
+        if bool(transferred) != blocked:
+            raise ValidationError(f"Procedure completeness and blocker disagree: {entry.id}")
+        if not set(transferred) <= set(entry.followup_issues):
+            raise ValidationError(f"Transferred procedure scope is unowned: {entry.id}")
 
 
 def validate_inventory(entries: tuple[SkillAudit, ...]) -> None:
@@ -279,6 +331,7 @@ def validate_inventory(entries: tuple[SkillAudit, ...]) -> None:
             raise ValidationError(f"Unclassified inventory row: {entry.id}")
         if OWNER not in entry.followup_issues:
             raise ValidationError(f"Inventory row leaves this audit unowned: {entry.id}")
+    validate_procedures(entries)
     sampled = {structural for entry in entries for structural in entry.structural_classes}
     missing = sorted(set(StructuralClass) - sampled)
     if missing:
@@ -324,6 +377,12 @@ def audit_report() -> dict[str, object]:
         # Rows whose only recorded issue is this audit have no named mechanics
         # owner yet; that is a visible certification blocker for #122, not silence.
         "runtime_owner_unassigned": sum(not entry.owners for entry in entries),
+        "procedures": sum(e.procedure for e in entries),
+        "transferred_procedure_scope": {
+            identifier: list(owners)
+            for identifier, owners in sorted(procedure_registry().items())
+            if owners
+        },
         "structured": sum(e.definition is not None for e in entries),
         "required_specialties": sum(e.specialty_required for e in entries),
         "technology_level_dependent": sum(e.tl_required for e in entries),

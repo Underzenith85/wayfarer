@@ -69,11 +69,10 @@
     ],
     "specialty_required": false,
     "tl_required": false,
-    "blockers": [
-      "runtime-procedure"
-    ],
+    "blockers": [],
     "issues": [
-      112
+      112,
+      345
     ],
     "skill_defaults": [
       {
@@ -776,7 +775,9 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
+      112,
+      345,
+      370
     ]
   },
   {
@@ -1226,12 +1227,11 @@
     ],
     "specialty_required": false,
     "tl_required": false,
-    "blockers": [
-      "runtime-procedure"
-    ],
+    "blockers": [],
     "issues": [
       111,
-      112
+      112,
+      345
     ],
     "skill_defaults": [
       {
@@ -1686,12 +1686,13 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
       "conditional-or-skill-defaults"
     ],
     "issues": [
       111,
-      112
+      112,
+      345,
+      353
     ]
   },
   {
@@ -1949,7 +1950,10 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      345,
+      353,
+      366
     ]
   },
   {
@@ -2172,11 +2176,10 @@
     ],
     "specialty_required": false,
     "tl_required": false,
-    "blockers": [
-      "runtime-procedure"
-    ],
+    "blockers": [],
     "issues": [
-      112
+      112,
+      345
     ]
   },
   {
@@ -2488,7 +2491,10 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      345,
+      353,
+      368
     ]
   },
   {
@@ -2506,12 +2512,13 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
       "conditional-or-skill-defaults"
     ],
     "issues": [
       111,
-      112
+      112,
+      345,
+      353
     ]
   },
   {
@@ -2736,7 +2743,9 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
+      112,
+      345,
+      369
     ]
   },
   {
@@ -2806,11 +2815,10 @@
     ],
     "specialty_required": false,
     "tl_required": false,
-    "blockers": [
-      "runtime-procedure"
-    ],
+    "blockers": [],
     "issues": [
-      112
+      112,
+      345
     ]
   },
   {
@@ -3713,7 +3721,10 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      345,
+      353,
+      370
     ]
   },
   {
@@ -3773,7 +3784,10 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      345,
+      353,
+      370
     ]
   },
   {
@@ -4063,11 +4077,12 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      345,
+      353
     ]
   },
   {
@@ -4101,7 +4116,10 @@
       "conditional-or-skill-defaults"
     ],
     "issues": [
-      112
+      112,
+      345,
+      353,
+      367
     ]
   },
   {
@@ -4167,7 +4185,9 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
+      112,
+      345,
+      370
     ],
     "skill_defaults": [
       {
@@ -4324,7 +4344,10 @@
     ],
     "issues": [
       111,
-      112
+      112,
+      345,
+      353,
+      366
     ]
   },
   {
@@ -4443,12 +4466,11 @@
     ],
     "specialty_required": false,
     "tl_required": false,
-    "blockers": [
-      "runtime-procedure"
-    ],
+    "blockers": [],
     "issues": [
       111,
-      112
+      112,
+      345
     ]
   },
   {
@@ -4925,12 +4947,11 @@
     ],
     "specialty_required": false,
     "tl_required": false,
-    "blockers": [
-      "runtime-procedure"
-    ],
+    "blockers": [],
     "issues": [
       111,
-      112
+      112,
+      345
     ]
   },
   {
@@ -5115,7 +5136,9 @@
       "runtime-procedure"
     ],
     "issues": [
-      112
+      112,
+      345,
+      369
     ]
   },
   {
