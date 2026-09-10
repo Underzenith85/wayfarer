@@ -494,6 +494,11 @@
             "title": "Skill Id",
             "type": "string"
           },
+          "specious_intimidation": {
+            "default": false,
+            "title": "Specious Intimidation",
+            "type": "boolean"
+          },
           "trait_id": {
             "anyOf": [
               {

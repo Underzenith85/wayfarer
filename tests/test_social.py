@@ -47,6 +47,7 @@ def test_influence_diplomacy_and_sex_appeal() -> None:
     fallback = influence_roll(
         PROFILE, "diplomacy", "pc", "npc", 10, 10, (), rng=RecordedDice([4, 4, 4, 3, 3, 3, 5, 5, 5])
     )
+    assert fallback.contest is not None
     assert fallback.outcome == "good" and fallback.contest.winner == "npc"
     seduction = influence_roll(
         PROFILE, "sex-appeal", "pc", "npc", 12, 10, (), rng=RecordedDice([3, 3, 3, 4, 4, 4])

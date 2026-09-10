@@ -191,7 +191,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.check.regular_contest` | no | yes | verified | #99 |
 | `gurps.check.resistance` | yes | yes | verified | #99 |
 | `gurps.social.reaction` | yes | yes | partial | #111 ([standing hooks and golden cases](#provisional-social-procedures-111)); catalog content #113 |
-| `gurps.social.influence` | yes | yes | partial | #111; authored influence is Diplomacy-only, remaining skills #113/#137 |
+| `gurps.social.influence` | yes | yes | partial | #111; all six authored procedures and B359 exceptions; catalog/trait binding #112/#113 |
 | `gurps.social.fright` | no | yes | partial | #111; lasting consequences #299 |
 | `gurps.equipment.weapon_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; source audit pending) |
 | `gurps.equipment.armor_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; source audit pending) |
@@ -400,9 +400,13 @@ All candidates remain unavailable; no saved profile/package pin changes. See
 `rules.gurps_social` implements reaction bands and typed status/reputation/
 appearance modifiers, influence contests with Diplomacy fallback and Sex Appeal
 outcomes, self-control from catalog-validated TraitOptions, and Basic-only fright
-checks with the Rule of 14. References are reconstructed from model knowledge
-under the owner's explicit authorization: Lite 3-4/10/24, B120-121, B359-362,
-B494-495, using the frozen 2004/2007-errata baseline; source audit is pending.
+checks with the Rule of 14. Independent cases in `tests/test_social_completion.py`
+reference Characters Fourth Edition, third printing, B121 and Campaigns Fourth
+Edition, fourth printing, B359-361/B428. They cover all six procedures, automatic
+Indomitable/Unfazeable/Slave Mentality outcomes, the appropriate Empathy exception,
+specious intimidation, self-control modifiers, social/fright aftermath penalties
+and retching recovery. The registry's distinct frozen 2004/2007-errata baseline
+and Lite evidence remain pending certification.
 
 `rules.social_hooks` owns the two reaction sources no build binding covers, so a
 scenario, a character sheet or a generated proposal selects a declared standing
@@ -460,18 +464,26 @@ builds. Authoritative clock adapters now automatically settle successive fright
 deadlines, including failed recovery checks, within their existing transaction.
 Catatonia applies daily escalating unattended injury, respects an explicit
 director care decision, and records aftermath based on total elapsed duration.
-Permanent losses and aftermath penalties still conservatively block actions;
-they are not implemented stat changes or check penalties.
+Permanent losses still conservatively block actions; they are not implemented
+stat changes. Aftermath now penalizes social/fright skill and attribute checks,
+including recovery and immediate fright HT checks, with per-episode expiration.
+It does not alter raw statistics or HT-based durations and does not affect
+reaction totals or self-control ratings. Other action adapters retain the
+conservative aftermath guard pending #299. Retching's terminal 1 FP cost now
+commits once through fatigue, with one external recovery-command revision.
 
 The opt-in `SocialActionRules`/`NPCSocialRules` v2 policy routes bounded NPC
 occurrences through the same social reducer, with approved trait options and
-occurrence-derived identities. It has a separate checked-in social v2 schema;
+occurrence-derived identities. All six influence procedures dispatch from a
+pinned compiled skill (including Savoir-Faire specialties); built subjects use
+approved Will. Self-control applies the authored situation modifier to its
+approved rating. It has a separate checked-in social v2 schema;
 frozen v1 scenario/authoring contracts do not change. Panic response adjudication
 records a director-confirmed response and resolves subsequent Will/severity rolls
 without forcing player actions. Combat supports Do Nothing, no defense, and
 stunned active defenses at -4, while other fright conditions reject active
 defense. Full condition-specific retching/panic behavior and lasting trait/stat
-adjudication remain in #299, along with aftermath penalty integration and v2
+adjudication remain in #299, along with aftermath integration outside social/fright and v2
 scenario authoring adoption. Campaign reads and event streams now present
 owner-scoped lasting choice requirements, and campaign dispatch accepts authorized
 care/panic decisions. Full #137 completion still depends on #299; coverage stays
