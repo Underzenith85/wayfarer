@@ -23,6 +23,7 @@ from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.rules.mundane_skills import inventory
 from wayfarer.rules.mundane_skills.ranged import (
+    CONDITIONAL_DEFAULTS,
     PROCEDURES,
     definitions,
     require_capability,
@@ -243,25 +244,24 @@ async def test_thrown_specialties_dispatch_and_expend_the_item(
     assert await play.store.read(cid) == await play.store.replay(cid)
 
 
-@pytest.mark.parametrize(
-    ("identifier", "expected"),
-    [],
-)
-def test_transferred_rows_fail_closed_naming_their_owner(identifier: str, expected: str) -> None:
-    with pytest.raises(ValidationError, match="unsupported") as error:
-        require_mode(
-            BASIC,
-            identifier,
-            ranged=True,
-            thrown=False,
-            ammunition=True,
-            rate_of_fire=1,
-            recoil=1,
-            hands=1,
-            tight_beam=False,
-        )
-    assert expected in str(error.value)
-    assert "runtime-procedure" in str(error.value)
+def test_no_listed_row_is_left_transferred() -> None:
+    """Every row #344 audits now has a bound procedure, so none fails closed.
+
+    The refusal path itself is still exercised: it is the one an unbound row
+    would take, and `test_family_and_out_of_class_weapons_are_refused_before_dice`
+    covers the family and weapon-class refusals that remain.
+    """
+    unbound = {
+        identifier: PROCEDURES[identifier].transferred
+        for identifier in LISTED
+        if not PROCEDURES[identifier].implemented
+    }
+    assert unbound == {}
+    # A row that kept a blocker would still have to name the child that owns it.
+    for identifier in LISTED:
+        procedure = PROCEDURES[identifier]
+        assert all(owners for owners in procedure.transferred.values()), identifier
+        assert set(procedure.blockers) <= {CONDITIONAL_DEFAULTS}, identifier
 
 
 def test_family_and_out_of_class_weapons_are_refused_before_dice() -> None:
