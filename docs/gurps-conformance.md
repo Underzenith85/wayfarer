@@ -193,6 +193,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.social.reaction` | yes | yes | partial | #111 ([standing hooks and golden cases](#provisional-social-procedures-111)); catalog content #113 |
 | `gurps.social.influence` | yes | yes | partial | #111; all six authored procedures and B359 exceptions; catalog/trait binding #112/#113 |
 | `gurps.social.fright` | no | yes | partial | #111; lasting consequences #299 |
+| `gurps.social.skill_procedures` | no | yes | partial | #345; [bound social skill procedures and their transferred rows](gurps-mundane-skills.md); remaining #353, #366, #367, #368, #369, #370 |
 | `gurps.equipment.weapon_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; source audit pending) |
 | `gurps.equipment.armor_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; source audit pending) |
 | `gurps.equipment.catalog` | yes | yes | partial | #114 |
@@ -383,6 +384,15 @@ listing maps to two records. Missing entries, unindexed additions, invalid paren
 page drift and transfer drift fail validation. Required contextual specialties
 remain explicitly blocked; these counts do not certify every possible specialty.
 
+There are 193 structured unsupported definitions, 111 implemented procedures
+(12 ranged combat rows from #344, 16 social rows from #345 and 83 technology,
+science and vehicle rows from #346) and 28 listing-only records (23 technique
+templates and five variable families). Previously empty suit,
+crewman and weapon definitions now carry source-indexed metadata, and candidate
+techniques no longer inherit definitions from live packages. Source/printing,
+context and runtime limitations are visible per row. Independent fixtures sample
+all 12 structural classes, numeric defaults, technique caps and reference failures.
+
 #336 completed the contextual shapes: alternative prerequisites recorded as
 first-class sets the compiler satisfies one member of, a cross-package
 prerequisite resolved against the catalog that owns it, 23 B230-233 technique
@@ -391,20 +401,16 @@ recording that the player names the specialty. What it could not settle without
 the source artifact or campaign state is split into #382, #383, #384 and #385,
 each owning specific blockers, so no row resolves into a general owner.
 
-There are 209 structured unsupported definitions, 95 implemented procedures
-(12 ranged combat rows from #344 and 83 technology, science and vehicle rows from
-#346) and 28 contextual records (23 technique templates and five open
-families). Previously empty suit, crewman and weapon definitions now carry
-source-indexed metadata, and candidate
-techniques no longer inherit definitions from live packages. Source/printing,
-context and runtime limitations are visible per row. Independent fixtures sample
-all 12 structural classes, numeric defaults, technique caps and reference failures.
-
 Every remaining blocker has a named owner: #336 owns source/context reconciliation,
 and #338–#346 own specific procedure inventories. `runtime_owner_unassigned` is
 zero. #344 binds twelve ranged combat rows to a runtime procedure in a new pin
 and transfers the rest of that group to #354, #355, #357, #359, #360, #361 and
 #362, so a blocker a procedure owner splits keeps naming the child that owns it.
+#345 binds sixteen social rows the same way in a further pin, transfers
+Fortune-Telling and Savoir-Faire to #366, Propaganda to #367 and the conditional
+defaults to #353, and declares the part of a *bound* entry it still does not
+carry — coercion (#368), advancement and group activity (#369), audience
+reactions and income (#370) — as `transferred_procedure_scope` in the report.
 #346 binds 83 technology, science and vehicle rows the same way — expanding six
 families into 39 concrete specialties and four B233 techniques — and transfers
 twelve discipline-keyed rows to #356 and Motion-Picture Camera to #338; its bound
@@ -471,6 +477,28 @@ all roll targets, hidden modifier values and source IDs. No player choice is
 modified by a social outcome. Explicit server-authored NPC disclosures can teach
 the initiating actor configured facts already known to the NPC; ordinary rolls
 do not reveal other facts or change NPC beliefs.
+
+### Whole-entry social skill procedures (#345)
+
+`rules.mundane_skills.social` carries one procedure per B168–B233 social skill.
+Each declares the shape that decides it — an unopposed success roll, a Quick
+Contest, a Regular Contest, or a B359 Influence roll — the contextual conditions
+it cannot proceed without, the modifiers it derives itself, and a named effect for
+every verdict that shape can reach. Sixteen rows are bound and reach a new package
+pin; Fortune-Telling and Savoir-Faire cannot be learned without their specialties
+(#366) and Propaganda cannot resolve without a technology level (#367), so those
+three keep `runtime-procedure` and are absent from the pin.
+
+Nothing here is a second engine: rolls are scored by `rules.gurps_checks` and
+influence procedures call the existing `influence_roll`, so the Diplomacy
+fallback, the Sex Appeal outcome and the B359 trait exceptions keep their #111
+behaviour. Conditions are named facts about the situation, never numbers; a
+missing required condition rejects before dice. The B97 Voice skill bonus reaches
+the seven skills it improves through `character.social_traits.skill_conditions`,
+which reads approved purchases only. The `skill` command kind commits through the
+same receipt ledger and publishes only the effect identifier.
+`tests/fixtures/gurps/social_skills.json` pins the declared table and every
+expected result by hand; `tests/test_social_skills.py` runs them.
 
 Reaction/influence/fright coverage remains **partial**, and runtime self-control
 is partial: these are server-only procedures, with full NPC play dispatch and

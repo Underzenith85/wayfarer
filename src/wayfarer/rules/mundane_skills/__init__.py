@@ -25,6 +25,8 @@ from wayfarer.rules.catalog import (
 from wayfarer.rules.gurps_characters import source
 from wayfarer.rules.mundane_skills.ranged import PROCEDURES as RANGED_PROCEDURES
 from wayfarer.rules.mundane_skills.schema import Exclusion, Exclusions, InventoryRow, SourceIndex
+from wayfarer.rules.mundane_skills.social import PROCEDURES as SOCIAL_PROCEDURES
+from wayfarer.rules.mundane_skills.social import unsupported_scope as social_scope
 from wayfarer.rules.mundane_skills.technology import PROCEDURES as TECHNOLOGY_PROCEDURES
 from wayfarer.rules.skill_types import ControllingAttribute as A
 from wayfarer.rules.skill_types import (
@@ -61,7 +63,7 @@ CONTEXT_RESIDUALS = MappingProxyType(
 )
 # One runtime binding per procedure group. A row bound by two groups would let
 # either one claim it, so overlap is rejected rather than resolved by order.
-BINDINGS = (RANGED_PROCEDURES, TECHNOLOGY_PROCEDURES)
+BINDINGS = (RANGED_PROCEDURES, SOCIAL_PROCEDURES, TECHNOLOGY_PROCEDURES)
 
 
 class StructuralClass(StrEnum):
@@ -629,6 +631,11 @@ def audit_report() -> dict[str, object]:
         # Rows whose only recorded issue is this audit have no named mechanics
         # owner yet; that is a visible certification blocker for #122, not silence.
         "runtime_owner_unassigned": sum(not entry.owners for entry in entries),
+        # A bound row can still leave part of its entry to another issue. That is
+        # not a blocker, and publishing it keeps the gap visible to #122.
+        "transferred_procedure_scope": [
+            {"skill": identifier} | asdict(scope) for identifier, scope in social_scope()
+        ],
         "structured": sum(e.definition is not None for e in entries),
         "required_specialties": sum(e.specialty_required for e in entries),
         "technology_level_dependent": sum(e.tl_required for e in entries),

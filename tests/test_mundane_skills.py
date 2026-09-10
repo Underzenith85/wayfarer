@@ -155,8 +155,8 @@ def test_mathematics_specialties_and_prerequisites() -> None:
         {"page": "174"},
         {"unexpected": True},
         {"difficulty": None},
-        {"blockers": ["typo"]},
         {"prerequisite_groups": [{"alternatives": ["acting"]}]},
+        {"blockers": ["typo"]},
         {"issues": [0]},
         {"issues": [112, 112]},
         {"procedure_owner": 112},
@@ -324,6 +324,11 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         360,
         361,
         362,
+        366,
+        367,
+        368,
+        369,
+        370,
         382,
         383,
         384,
@@ -357,6 +362,11 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         360,
         361,
         362,
+        366,
+        367,
+        368,
+        369,
+        370,
         382,
         383,
         384,
@@ -364,13 +374,31 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     ]
     assert report["runtime_owner_unassigned"] == 0
     assert report["implementation_counts"] == {
+        # 12 ranged (#344), 16 social (#345) and 83 technology (#346) rows
+        # dispatch a real procedure.
+        "implemented": 111,
+        # 23 technique templates and five open families record a contextual
+        # shape rather than a rollable definition (#336).
         "contextual": 28,
-        "implemented": 95,
-        "unsupported": 209,
+        "unsupported": 193,
     }
+    # A bound row can still leave part of its entry to another issue; that gap is
+    # published rather than folded into the blocker list.
+    scope = report["transferred_procedure_scope"]
+    assert isinstance(scope, list)
+    assert {str(row["skill"]) for row in scope} == {
+        "skill:carousing",
+        "skill:interrogation",
+        "skill:leadership",
+        "skill:panhandling",
+        "skill:performance",
+        "skill:public-speaking",
+        "skill:teaching",
+    }
+    assert all(row["owner_issue"] in (368, 369, 370) and row["detail"] for row in scope)
+    counts = report["structural_class_counts"]
     # The structural class still reads "no rollable definition recorded"; the
     # certification state is what distinguishes a recorded shape from a gap.
-    counts = report["structural_class_counts"]
     assert isinstance(counts, dict) and counts["listing-only"] == 28
 
 
