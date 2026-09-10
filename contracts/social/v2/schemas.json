@@ -3374,6 +3374,16 @@
               }
             ],
             "default": null
+          },
+          "mount_crew": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Mount Crew",
+            "type": "array"
           }
         },
         "required": [
@@ -3544,6 +3554,40 @@
           "reach"
         ],
         "title": "MeleeMode",
+        "type": "object"
+      },
+      "MountSpec": {
+        "additionalProperties": false,
+        "description": "Explicit mount facts for one crew-served or vehicle-mounted weapon mode.",
+        "properties": {
+          "crew": {
+            "maximum": 20,
+            "minimum": 1,
+            "title": "Crew",
+            "type": "integer"
+          },
+          "laying_seconds": {
+            "maximum": 60,
+            "minimum": 0,
+            "title": "Laying Seconds",
+            "type": "integer"
+          },
+          "indirect": {
+            "default": false,
+            "title": "Indirect",
+            "type": "boolean"
+          },
+          "vehicle_mounted": {
+            "default": false,
+            "title": "Vehicle Mounted",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "crew",
+          "laying_seconds"
+        ],
+        "title": "MountSpec",
         "type": "object"
       },
       "NPCAction": {
@@ -5335,6 +5379,17 @@
             "anyOf": [
               {
                 "$ref": "#/$defs/EntangleSpec"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "mount": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/MountSpec"
               },
               {
                 "type": "null"
