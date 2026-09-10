@@ -58,6 +58,30 @@ Nouns and verbs are kept apart at three levels.
 Architecture tests enforce the single entity base, that importing the action
 entities never loads the engine, and that no other module assigns `play_json`.
 
+### Transaction reducer seams (#417)
+
+Combat, physical procedures, spells, abilities, spell backfires, setup and the
+director use named steps. Their transaction callbacks load the checkpoint, call
+the reducer, run the existing checkpoint hooks where applicable, and commit.
+The architecture gate limits functions in these seven modules to 200 lines and
+requires their transaction callbacks to remain straight sequences without nested
+closures.
+
+Command-scoped context records supply the dependencies previously captured by
+large callbacks. Combat dispatches by command kind after normalizing interrupted
+turns; its steps keep pre-turn state and the resource accumulator explicit until
+settlement. Physical procedures, setup operations, backfire effects and director
+phases likewise use dispatch tables. Director provider calls and durable phase
+saves remain outside domain transactions.
+
+The `reduce_*` entry points return new state and a result without committing.
+Setup returns a separate campaign value because activation changes several
+campaign fields, including the nested scenario. Existing service entry points,
+receipts, checkpoint ordering, dice consumption and transport contracts stay the
+same. Contexts still use the existing `PlayService` rule adapters; replacing
+those handles with narrower rules dependencies belongs to #415. Seed recording
+and typed event streams remain the separate ADR 002 migration steps.
+
 ### Direction set by the open issues
 
 The open engine issues fix the next moves in the same direction, so refactors
