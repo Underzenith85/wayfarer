@@ -1276,6 +1276,11 @@
             "title": "Unload Ammunition",
             "type": "boolean"
           },
+          "escape_entanglement": {
+            "default": false,
+            "title": "Escape Entanglement",
+            "type": "boolean"
+          },
           "firearm_service": {
             "anyOf": [
               {

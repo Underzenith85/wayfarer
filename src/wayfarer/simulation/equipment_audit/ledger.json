@@ -1646,6 +1646,97 @@
       "gap": null
     },
     {
+      "id": "RangedMode.entangle",
+      "unit": "optional entangling binding protocol",
+      "reference": "Characters third printing B181/B211; frozen first-printing/errata reconciliation pending #191",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_entangling_attacks.py::test_landed_net_binds_the_target_and_stops_its_movement"
+      ],
+      "gap": null
+    },
+    {
+      "id": "EntangleSpec.binding_st",
+      "unit": "binding strength level",
+      "reference": "Characters third printing B181/B211; frozen first-printing/errata reconciliation pending #191",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_entangling_attacks.py::test_escape_frees_or_records_the_attempt"
+      ],
+      "gap": null
+    },
+    {
+      "id": "EntangleSpec.attack_penalty",
+      "unit": "attack roll modifier",
+      "reference": "Characters third printing B181/B211; frozen first-printing/errata reconciliation pending #191",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_entangling_attacks.py::test_binding_penalises_the_victims_attacks_and_defenses"
+      ],
+      "gap": null
+    },
+    {
+      "id": "EntangleSpec.defense_penalty",
+      "unit": "active defense modifier",
+      "reference": "Characters third printing B181/B211; frozen first-printing/errata reconciliation pending #191",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_entangling_attacks.py::test_binding_penalises_the_victims_attacks_and_defenses"
+      ],
+      "gap": null
+    },
+    {
+      "id": "EntangleSpec.immobilizes",
+      "unit": "movement restriction flag",
+      "reference": "Characters third printing B181/B211; frozen first-printing/errata reconciliation pending #191",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_entangling_attacks.py::test_landed_net_binds_the_target_and_stops_its_movement"
+      ],
+      "gap": null
+    },
+    {
+      "id": "EntangleSpec.attached",
+      "unit": "weapon retention flag",
+      "reference": "Characters third printing B181/B211; frozen first-printing/errata reconciliation pending #191",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_entangling_attacks.py::test_landed_net_binds_the_target_and_stops_its_movement"
+      ],
+      "gap": null
+    },
+    {
+      "id": "EntangleSpec.escape_skill_id",
+      "unit": "optional trained escape skill reference",
+      "reference": "Characters third printing B181/B211; frozen first-printing/errata reconciliation pending #191",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_entangling_attacks.py::test_escape_frees_or_records_the_attempt"
+      ],
+      "gap": null
+    },
+    {
       "id": "FirearmSpec.technology_level",
       "unit": "technology level",
       "reference": "Campaigns fourth printing B382/B407; baseline reconciliation remains #191",

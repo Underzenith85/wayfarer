@@ -145,12 +145,10 @@ def test_listed_scope_is_completely_accounted_for() -> None:
     assert transferred == {
         "skill:artillery": (357,),
         "skill:beam-weapons": (355,),
-        "skill:bolas": (354,),
         "skill:gunner": (357,),
         "skill:guns": (355,),
         "skill:innate-attack": (361,),
         "skill:liquid-projector": (359,),
-        "skill:net": (354, 362),
         "skill:spear-thrower": (360, 362),
     }
 
@@ -166,7 +164,10 @@ def test_thrown_weapon_family_is_expanded_into_concrete_specialties() -> None:
         assert specialty.family == "thrown-weapon" and specialty.optional_parent is None
     # The family itself is absent from the runtime pin; only its specialties bind.
     assert "skill:thrown-weapon" not in {d.id for d in definitions()}
-    assert {d.id for d in definitions()} == {row[0] for row in DISPATCHED}
+    assert {d.id for d in definitions()} == {row[0] for row in DISPATCHED} | {
+        "skill:bolas",
+        "skill:net",
+    }
 
 
 @pytest.mark.parametrize(
@@ -257,8 +258,6 @@ async def test_thrown_specialties_dispatch_and_expend_the_item(
         ("skill:artillery", "#357"),
         ("skill:gunner", "#357"),
         ("skill:liquid-projector", "#359"),
-        ("skill:bolas", "#354"),
-        ("skill:net", "#354"),
         ("skill:spear-thrower", "#360"),
         ("skill:innate-attack", "#361"),
     ],

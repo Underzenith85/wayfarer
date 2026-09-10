@@ -21,6 +21,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from wayfarer.errors import ValidationError
 from wayfarer.rules.catalog import DefinitionKind, RulesPackage
 from wayfarer.rules.conformance import CAPABILITIES, PROFILES
+from wayfarer.rules.entangle_types import EntangleSpec
 from wayfarer.rules.firearm_types import FirearmSpec
 from wayfarer.rules.profiles import (
     GURPS_CAMPAIGNS_PACKAGE,
@@ -58,6 +59,7 @@ AUDITED_MODELS = (
     RangedMode,
     RatedStrength,
     FirearmSpec,
+    EntangleSpec,
     Armor,
     Shield,
     EquipmentProfile,

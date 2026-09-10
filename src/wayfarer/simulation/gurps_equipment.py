@@ -19,6 +19,7 @@ from wayfarer.character.statistics import (
 from wayfarer.errors import ValidationError
 from wayfarer.rules.catalog import DefinitionKind, RulesPackage
 from wayfarer.rules.conformance import require_capabilities
+from wayfarer.rules.entangle_types import EntangleSpec
 from wayfarer.rules.firearm_types import FirearmSpec
 from wayfarer.rules.location_types import HumanLocation
 from wayfarer.rules.object_types import ObjectProfile
@@ -117,6 +118,7 @@ class RangedMode(Record):
     rated_strength: RatedStrength | None = Field(
         default=None, exclude_if=lambda value: value is None
     )
+    entangle: EntangleSpec | None = Field(default=None, exclude_if=lambda value: value is None)
     firearm: FirearmSpec | None = Field(default=None, exclude_if=lambda v: v is None)
 
     @model_validator(mode="after")
@@ -159,6 +161,16 @@ class RangedMode(Record):
             2 if self.rated_strength.kind == "bow" else 4
         ):
             raise ValueError("Rated bows require their ordinary two- or four-second reload timing")
+        # A binding is thrown once and holds the target; it is not a rapid-fire
+        # projectile, and it cannot also be a rated launcher or a firearm.
+        if self.entangle is not None and (
+            not self.thrown
+            or self.rate_of_fire != 1
+            or self.shots != 1
+            or self.rated_strength is not None
+            or self.firearm is not None
+        ):
+            raise ValueError("Entangling weapons are single thrown bindings")
         return self
 
 
@@ -187,6 +199,7 @@ def require_skill_procedure(profile_id: str, mode: MeleeMode | RangedMode) -> No
         hands=mode.hands,
         tight_beam=mode.damage.tight_beam,
         rated_kind=rated.kind if rated is not None else None,
+        entangling=isinstance(mode, RangedMode) and mode.entangle is not None,
     )
 
 
@@ -290,6 +303,9 @@ class EquipmentCatalog(Record):
                 raise ValueError("Object durability requires the exact Basic Set profile")
             for mode in entry.modes:
                 require_skill_procedure(self.profile_id, mode)
+                if isinstance(mode, RangedMode) and mode.entangle is not None:
+                    if self.profile_id != "gurps-basic-set-4e-2004":
+                        raise ValueError("Entangling weapons require the exact Basic Set profile")
                 if isinstance(mode, RangedMode) and mode.firearm is not None:
                     if self.profile_id != "gurps-basic-set-4e-2004":
                         raise ValueError("Firearm malfunctions require the exact Basic Set profile")
