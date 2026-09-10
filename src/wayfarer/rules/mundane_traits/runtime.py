@@ -12,6 +12,18 @@ from types import MappingProxyType
 from typing import Final, Literal
 
 Check = Literal["reaction", "influence"]
+Appearance = Literal[
+    "horrific",
+    "monstrous",
+    "hideous",
+    "ugly",
+    "unattractive",
+    "average",
+    "attractive",
+    "handsome",
+    "very-handsome",
+    "transcendent",
+]
 Perception = Literal["perceptible", "audible", "status"]
 SELF_CONTROL_HOOK: Final = "trait.self_control"
 
@@ -20,8 +32,9 @@ SELF_CONTROL_HOOK: Final = "trait.self_control"
 class Audience:
     """Trusted server description of the reacting party, never a player claim.
 
-    `attracted` and `classes` describe the same observer for the appearance and
-    reputation hooks (#111); no binding below reads them.
+    `attracted`, `visible`, and `appearance_applicable` control appearance
+    reactions (B21); `classes` selects reputation audiences. These describe
+    the same observer as the other social modifiers.
     """
 
     perceptible: bool = True
@@ -29,6 +42,8 @@ class Audience:
     recognizes_status: bool = True
     attracted: bool = False
     classes: tuple[str, ...] = ()
+    visible: bool = True
+    appearance_applicable: bool = True
 
 
 DEFAULT_AUDIENCE: Final = Audience()
@@ -88,8 +103,21 @@ REACTION_BINDINGS: Final = MappingProxyType(
         ),
     }
 )
-# Rank, reputation and appearance reaction sources remain unbound: their
-# audiences and free-level interactions are not decided by this selection.
+APPEARANCE_BINDINGS: Final[MappingProxyType[str, Appearance]] = MappingProxyType(
+    {
+        f"trait:appearance-{level}": level
+        for level in ("hideous", "ugly", "unattractive", "average", "attractive", "handsome")
+    }
+)
+# These selected constructions are recognized by everyone, always (B26-28).
+# Restricted audiences and recognition frequency are separate constructions.
+REPUTATION_BINDINGS: Final = MappingProxyType(
+    {
+        "trait:reputation-bravery": 1,
+        "trait:reputation-cruelty": -1,
+    }
+)
+STANDING_HOOKS: Final = frozenset({"trait.appearance", "trait.reputation"})
 SUPPORTED_HOOKS: Final = frozenset(
-    {SELF_CONTROL_HOOK} | {binding.hook for binding in REACTION_BINDINGS.values()}
+    {SELF_CONTROL_HOOK} | {binding.hook for binding in REACTION_BINDINGS.values()} | STANDING_HOOKS
 )

@@ -64,6 +64,15 @@ def runtime_compiler() -> CharacterCompiler:
 @pytest.mark.parametrize(
     ("identifier", "levels", "expected", "page"),
     [
+        ("appearance-hideous", 1, -16, 21),
+        ("appearance-ugly", 1, -8, 21),
+        ("appearance-unattractive", 1, -4, 21),
+        ("appearance-average", 1, 0, 21),
+        ("appearance-attractive", 1, 4, 21),
+        ("appearance-handsome", 1, 12, 21),
+        ("appearance-very-handsome", 1, 16, 21),
+        ("reputation-bravery", 4, 20, 27),
+        ("reputation-cruelty", 4, -20, 27),
         ("ambidexterity", 1, 5, 39),
         ("charisma", 3, 15, 41),
         ("combat-reflexes", 1, 15, 43),
@@ -129,6 +138,8 @@ def test_curiosity_uses_existing_self_control_cost(
 @pytest.mark.parametrize(
     ("first", "second"),
     [
+        ("appearance-handsome", "appearance-average"),
+        ("appearance-attractive", "appearance-ugly"),
         ("fit", "very-fit"),
         ("eidetic-memory", "photographic-memory"),
         ("status", "low-status"),
@@ -166,6 +177,14 @@ def test_inventory_package_and_audit_reconcile() -> None:
         d.id for d in package.definitions if d.status is ImplementationStatus.IMPLEMENTED
     }
     assert implemented == {
+        "trait:appearance-hideous",
+        "trait:appearance-ugly",
+        "trait:appearance-unattractive",
+        "trait:appearance-average",
+        "trait:appearance-attractive",
+        "trait:appearance-handsome",
+        "trait:reputation-bravery",
+        "trait:reputation-cruelty",
         "trait:bad-temper",
         "trait:charisma",
         "trait:curious",
