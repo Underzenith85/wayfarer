@@ -243,6 +243,15 @@ def representative_templates() -> tuple[Template, ...]:
             taboo_traits=("trait:shyness-severe",),
         ),
         Template(
+            id="template:celebrated-envoy",
+            kind="occupational",
+            includes=("template:envoy",),
+            purchases=(
+                Purchase(definition_id="trait:appearance-handsome"),
+                Purchase(definition_id="trait:reputation-bravery", amount=2),
+            ),
+        ),
+        Template(
             id="template:guard",
             kind="occupational",
             purchases=(

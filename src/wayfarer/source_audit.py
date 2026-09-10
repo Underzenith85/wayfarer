@@ -98,6 +98,7 @@ def inventory() -> tuple[InventoryItem, ...]:
             113,
             "implemented" if e.implemented else "partial",
             "mundane-traits",
+            blockers=e.followup_issues,
         )
         for e in traits()
     )

@@ -1,4 +1,4 @@
-"""Appearance and reputation reaction hooks, the sources no build binding covers.
+"""Shared appearance and reputation reaction resolver.
 
 Intended sources: Basic Set Characters, Fourth Edition, B21 (Appearance) and
 B26-27 (Reputation), on the frozen 2004 first printing / 2007-01-26 errata
@@ -7,11 +7,11 @@ provisional-implementation authorization; exact printing verification remains an
 audit blocker. No rulebook prose here.
 
 Status, Charisma and Voice are *not* declared here: `rules.mundane_traits.runtime`
-binds them to approved purchases of pinned definitions (#113), and dispatch adds
-them from the initiator's build. Appearance and Reputation have no catalog entry
-to bind yet, so trusted scenario configuration declares them and this module
-derives their values; once those entries exist the binding path should own them
-too (#113). Either way a modifier is derived by rule, never supplied as a number.
+binds them to approved purchases of pinned definitions (#113). Selected
+appearance and reputation purchases also use this resolver through
+character.social_traits.bind_standing. Legacy actors without those purchases
+retain authored standing; a purchased source cannot also be supplied by a
+scenario resolver. Values are derived by rule, never supplied as a number.
 """
 
 from __future__ import annotations
@@ -25,19 +25,8 @@ from wayfarer.rules.checks import RandomSource, draw_dice
 from wayfarer.rules.conformance import capability, profile
 from wayfarer.rules.gurps_social import ReactionModifier
 from wayfarer.rules.mundane_traits.runtime import DEFAULT_AUDIENCE, Audience
+from wayfarer.rules.mundane_traits.runtime import Appearance as Appearance
 
-Appearance = Literal[
-    "horrific",
-    "monstrous",
-    "hideous",
-    "ugly",
-    "unattractive",
-    "average",
-    "attractive",
-    "handsome",
-    "very-handsome",
-    "transcendent",
-]
 ReputationScope = Literal["everyone", "large-class", "small-class"]
 Recognition = Literal["always", "sometimes", "occasionally"]
 
@@ -159,7 +148,7 @@ def standing_modifiers(
     validate_standing(standing)
     modifiers: list[ReactionModifier] = []
     recognition: list[RecognitionRoll] = []
-    if audience.perceptible:
+    if audience.perceptible and audience.visible and audience.appearance_applicable:
         indifferent, attracted = APPEARANCE_REACTIONS[standing.appearance]
         value = attracted if audience.attracted else indifferent
         if value:

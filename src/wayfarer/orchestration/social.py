@@ -42,7 +42,7 @@ def bind_trait_modifiers(
     modifier, and an unbound or unpurchased trait contributes nothing. An
     unapproved initiator (an NPC without a build) contributes nothing either.
     """
-    from wayfarer.character.social_traits import reaction_modifiers
+    from wayfarer.character.social_traits import bind_standing, reaction_modifiers
 
     check: Check = "influence" if command.kind == "influence" else "reaction"
     actor = next((a for a in state.actors if a.actor_id == command.actor_id), None)
@@ -51,10 +51,13 @@ def bind_trait_modifiers(
         return
     from wayfarer.orchestration.gurps_melee import build
 
+    approved = build(play, state, command.actor_id)
+    definitions = play.engine.reviewer.compiler.definitions
+    context.standing = bind_standing(approved, definitions, context.standing, context.modifiers)
     context.bind_trait_modifiers(
         reaction_modifiers(
-            build(play, state, command.actor_id),
-            play.engine.reviewer.compiler.definitions,
+            approved,
+            definitions,
             check,
             context.audience,
         )

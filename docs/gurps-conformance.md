@@ -414,9 +414,11 @@ and its always/10-or-less/7-or-less recognition roll (B26-27), on the frozen
 provisional policy below; the artifact audit is pending. Status, Charisma and
 Voice are deliberately absent here: `rules.mundane_traits.runtime` binds those to
 approved purchases of pinned definitions and dispatch derives them from the
-initiator's build (#113), so declaring them twice cannot double-count. Appearance
-and Reputation have no catalog entry to bind yet; when #113 adds one, the binding
-path should own them too.
+initiator's build (#113), so declaring them twice cannot double-count. Selected
+Appearance and Reputation entries also bind through approved purchases (#113);
+authored values for a purchased source reject. See the
+[selected inventory](gurps-mundane-traits.md) for costs, runtime boundaries and
+concrete coverage blockers #332–#335.
 
 Standing the observer cannot perceive contributes nothing, a reputation whose
 class is absent is never rolled for, and every unrecognized value fails closed.
