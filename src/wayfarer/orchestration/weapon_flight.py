@@ -10,6 +10,7 @@ from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.rules.object_types import GroundPosition
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import Combatant, Encounter
+from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.critical import Die, TableRoll
 from wayfarer.simulation.gurps_equipment import MeleeMode
 from wayfarer.simulation.hex_geometry import DIRECTIONS, Hex
@@ -107,7 +108,12 @@ def resolve_flight(
             continue
         target_build = build(play, state, target.actor_id)
         assert target_build.statistics is not None
-        check = success_roll(catalog(play).profile_id, target_build.statistics.dx, rng=play.rng)
+        check = success_roll(
+            catalog(play).profile_id,
+            target_build.statistics.dx,
+            check_modifiers(state.resources, target.actor_id, "dx"),
+            rng=play.rng,
+        )
         effect_dice += check.dice
         dice: tuple[int, ...] = ()
         injury = 0

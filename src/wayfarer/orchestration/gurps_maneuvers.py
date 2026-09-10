@@ -9,6 +9,7 @@ from wayfarer.orchestration.gurps_melee import build, catalog, level, mode
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import CombatEngine, Encounter
+from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.gurps_equipment import MeleeMode, RangedMode
 from wayfarer.simulation.maneuvers import attack_modifier
 
@@ -120,13 +121,19 @@ def observe(
         actor.maneuver_state, target.actor_id, int(level(attacker, weapon.skill_id).value)
     )
     value -= hp.injury.shock if hp.injury else 0
-    first = success_roll(catalog(play).profile_id, value, rng=play.rng)
-    second = success_roll(catalog(play).profile_id, defense, rng=play.rng)
-    penalty = (
-        max(0, value - sum(first.dice) - max(0, defense - sum(second.dice)))
-        if first.outcome.succeeded
-        else 0
+    first = success_roll(
+        catalog(play).profile_id,
+        value,
+        check_modifiers(state.resources, actor.actor_id, "dx"),
+        rng=play.rng,
     )
+    second = success_roll(
+        catalog(play).profile_id,
+        defense,
+        check_modifiers(state.resources, target.actor_id, "dx", defensive=True),
+        rng=play.rng,
+    )
+    penalty = max(0, first.margin - max(0, second.margin)) if first.outcome.succeeded else 0
     return CombatEngine._replace(
         encounter,
         actor.model_copy(
@@ -163,7 +170,10 @@ def distracted(
         or (
             injured
             and not success_roll(
-                catalog(play).profile_id, compiled.statistics.will, rng=play.rng
+                catalog(play).profile_id,
+                compiled.statistics.will,
+                check_modifiers(state.resources, actor_id, "will"),
+                rng=play.rng,
             ).outcome.succeeded
         )
     ):
@@ -172,7 +182,10 @@ def distracted(
         )
     if commitment.concentrating and (defended or injured):
         if not success_roll(
-            catalog(play).profile_id, compiled.statistics.will - 3, rng=play.rng
+            catalog(play).profile_id,
+            compiled.statistics.will - 3,
+            check_modifiers(state.resources, actor_id, "will"),
+            rng=play.rng,
         ).outcome.succeeded:
             commitment = commitment.model_copy(
                 update={"concentrating": False, "concentration_seconds": 0}

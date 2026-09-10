@@ -12,6 +12,7 @@ from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.spell_effects import armor
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import Combatant, GridPoint
+from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.hex_geometry import Hex
 from wayfarer.simulation.injury import Wound, apply_injury
 from wayfarer.simulation.resources import Command, Id, ResourceEvent
@@ -379,6 +380,7 @@ def recover_stuns(play: PlayService, state: PlayState) -> PlayState:
         check = success_roll(
             PROFILE,
             compiled.statistics.iq + 6 * int(hp.injury.physical_traits.combat_reflexes),
+            check_modifiers(resources, item.actor_id, "iq"),
             rng=play.rng,
         )
         if check.outcome.succeeded:

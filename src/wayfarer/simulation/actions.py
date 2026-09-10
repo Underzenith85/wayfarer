@@ -23,6 +23,7 @@ from wayfarer.simulation.access import CampaignMember
 from wayfarer.simulation.adjudication import Ruling, RulingPolicy, expire_rulings
 from wayfarer.simulation.advancement import AdvancementEntry, MigrationEntry
 from wayfarer.simulation.combat import CombatEngine, CombatResult, CombatRules, Encounter
+from wayfarer.simulation.condition_checks import definition_modifiers
 from wayfarer.simulation.director import AuthorDraft, DirectorTurn
 from wayfarer.simulation.noncombat import NoncombatEncounter, NoncombatRules
 from wayfarer.simulation.npcs import NPCRules, NPCState
@@ -732,7 +733,7 @@ class ActionEngine:
         from wayfarer.simulation.fright import blocked, requires_adjudication
 
         if not isinstance(command, Wait) and (
-            blocked(state.resources, command.actor_id)
+            blocked(state.resources, command.actor_id, kind=command.kind)
             or requires_adjudication(state.resources, command.actor_id)
         ):
             return result("rejected", "actor.fright")
@@ -1076,7 +1077,13 @@ class ActionEngine:
                     if darkness
                     else ()
                 )
-                + extra_modifiers,
+                + extra_modifiers
+                + definition_modifiers(
+                    state.resources,
+                    actor.actor_id,
+                    rule.definition_id,
+                    self.reviewer.compiler.definitions,
+                ),
                 rng=rng,
                 rules_package=rule.package_id,
                 rules_version=rule.package_version,

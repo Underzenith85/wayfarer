@@ -22,6 +22,7 @@ from wayfarer.simulation.combat import (
     InjuryTrace,
     RangedSituation,
 )
+from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.fatigue import fatigue_value
 from wayfarer.simulation.gurps_equipment import RangedMode
 from wayfarer.simulation.hit_locations import (
@@ -533,7 +534,12 @@ def resolve(
     state = state.model_copy(
         update={"resources": before_attack(state.resources, pending.weapon_id, weapon)}
     )
-    attack = success_roll(equipment.profile_id, attack_target, rng=play.rng)
+    attack = success_roll(
+        equipment.profile_id,
+        attack_target,
+        check_modifiers(state.resources, actor.actor_id, "dx"),
+        rng=play.rng,
+    )
     original_attack = attack
     attack, shots_fired, malfunction_table, failure = roll_malfunction(
         play,

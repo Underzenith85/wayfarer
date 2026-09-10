@@ -36,35 +36,13 @@ from wayfarer.simulation.scenario_document import (
     PublicBrief,
     PublishedRevision,
     ScenarioDocument,
+    ScenarioDocumentBase,
     digest_json,
 )
+from wayfarer.simulation.scenario_document import (
+    parse_document as parse_document,
+)
 from wayfarer.simulation.studio import ScenarioGraph, StudioFinding
-
-
-def parse_document(source: str) -> ScenarioDocument:
-    """Reject unknown versions and ambiguous JSON before strict domain decoding."""
-    if len(source) > 2_000_000:
-        raise ValueError("Scenario document exceeds the import size limit")
-
-    def pairs(items: list[tuple[str, object]]) -> dict[str, object]:
-        result: dict[str, object] = {}
-        for key, value in items:
-            if key in result:
-                raise ValueError(f"Duplicate JSON key: {key}")
-            result[key] = value
-        return result
-
-    def constant(value: str) -> object:
-        raise ValueError(f"Non-finite JSON number: {value}")
-
-    raw = json.loads(source, object_pairs_hook=pairs, parse_constant=constant)
-    if (
-        not isinstance(raw, dict)
-        or type(raw.get("schema_version")) is not int
-        or raw["schema_version"] != 1
-    ):
-        raise ValueError("Unsupported scenario schema_version; explicit migration is required")
-    return ScenarioDocument.model_validate_json(source)
 
 
 def required_capabilities(graph: PortableGraph) -> tuple[Capability, ...]:
@@ -120,7 +98,7 @@ def adapt_graph(
     public: PublicBrief,
     author: str,
     include_pregenerated: bool = True,
-) -> ScenarioDocument:
+) -> ScenarioDocumentBase:
     """Explicit adapter for current initial graphs; callers retain the source bytes.
 
     A public brief is mandatory: private prose is never implicitly made public.
@@ -128,7 +106,13 @@ def adapt_graph(
     """
     raw = graph.model_dump(mode="json", exclude={"actors"})
     raw["actions"] = graph.runtime_rules().model_dump(mode="json")
-    portable = PortableGraph.model_validate_json(json.dumps(raw))
+    from wayfarer.simulation.npcs import NPCSocialRules
+    from wayfarer.simulation.social_policy import SocialPortableGraph, SocialScenarioDocument
+
+    social = isinstance(graph.npcs, NPCSocialRules)
+    portable = (SocialPortableGraph if social else PortableGraph).model_validate_json(
+        json.dumps(raw)
+    )
     slots = tuple(
         PartySlot(
             actor_id=a.actor_id, role="Adventurer", aware_of=a.aware_of, conditions=a.conditions
@@ -138,8 +122,8 @@ def adapt_graph(
     )
     if any(a.available_at for a in graph.actors):
         raise ValidationError("Adapter requires a fresh actor timeline")
-    return ScenarioDocument(
-        schema_version=1,
+    value: dict[str, object] = dict(
+        schema_version=2 if social else 1,
         scenario_id=graph.id,
         revision_id=revision_id,
         revision=1,
@@ -168,10 +152,12 @@ def adapt_graph(
         if include_pregenerated
         else (),
     )
+    encoded = TypeAdapter(dict[str, object]).dump_json(value)
+    return (SocialScenarioDocument if social else ScenarioDocument).model_validate_json(encoded)
 
 
 def bind_party(
-    document: ScenarioDocument, party: tuple[PregeneratedCharacter, ...] | None = None
+    document: ScenarioDocumentBase, party: tuple[PregeneratedCharacter, ...] | None = None
 ) -> ScenarioGraph:
     """Bind proposals to scenario-local actor slots. Account membership is separate.
 
@@ -196,7 +182,9 @@ def bind_party(
     )
     raw = document.graph.model_dump(mode="json")
     raw["actors"] = [a.model_dump(mode="json") for a in actors]
-    return ScenarioGraph.model_validate_json(json.dumps(raw))
+    from wayfarer.simulation.social_policy import parse_graph
+
+    return parse_graph(json.dumps(raw))
 
 
 class ScenarioDocuments:

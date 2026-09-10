@@ -144,8 +144,8 @@ class PortableGraph(ScenarioContent):
         return self
 
 
-class ScenarioDocument(Record):
-    schema_version: Literal[1]
+class ScenarioDocumentBase(Record):
+    schema_version: Literal[1, 2]
     scenario_id: Id
     revision_id: Id
     revision: int = Field(ge=1)
@@ -159,7 +159,7 @@ class ScenarioDocument(Record):
     gm_notes: str = Field(default="", max_length=20000)
 
     @model_validator(mode="after")
-    def identities(self) -> ScenarioDocument:
+    def identities(self) -> ScenarioDocumentBase:
         if self.scenario_id != self.graph.id:
             raise ValueError("Scenario and graph identity must match")
         slots = {s.actor_id for s in self.party.slots}
@@ -182,6 +182,10 @@ class ScenarioDocument(Record):
     @property
     def digest(self) -> str:
         return digest_json(self.model_dump(mode="json"))
+
+
+class ScenarioDocument(ScenarioDocumentBase):
+    schema_version: Literal[1]
 
 
 class PlayerScenarioExport(Record):
@@ -222,7 +226,7 @@ class PublishedRevision(Record):
 
     @model_validator(mode="after")
     def consistent(self) -> PublishedRevision:
-        document = ScenarioDocument.model_validate_json(self.content_json)
+        document = parse_document(self.content_json)
         if (
             self.report.status != "playable"
             or self.report.content_digest != document.digest
@@ -233,3 +237,33 @@ class PublishedRevision(Record):
         ):
             raise ValueError("Published revision does not match validated canonical content")
         return self
+
+
+def parse_document(source: str) -> ScenarioDocumentBase:
+    """Reject unknown versions and ambiguous JSON before strict domain decoding."""
+    if len(source) > 2_000_000:
+        raise ValueError("Scenario document exceeds the import size limit")
+
+    def pairs(items: list[tuple[str, object]]) -> dict[str, object]:
+        result: dict[str, object] = {}
+        for key, value in items:
+            if key in result:
+                raise ValueError(f"Duplicate JSON key: {key}")
+            result[key] = value
+        return result
+
+    def constant(value: str) -> object:
+        raise ValueError(f"Non-finite JSON number: {value}")
+
+    raw = json.loads(source, object_pairs_hook=pairs, parse_constant=constant)
+    if (
+        not isinstance(raw, dict)
+        or type(raw.get("schema_version")) is not int
+        or raw["schema_version"] not in (1, 2)
+    ):
+        raise ValueError("Unsupported scenario schema_version; explicit migration is required")
+    if raw["schema_version"] == 2:
+        from wayfarer.simulation.social_policy import SocialScenarioDocument
+
+        return SocialScenarioDocument.model_validate_json(source)
+    return ScenarioDocument.model_validate_json(source)
