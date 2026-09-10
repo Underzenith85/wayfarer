@@ -37,6 +37,7 @@ from wayfarer.simulation.gurps_equipment import (
     Parry,
     Provenance,
     RangedMode,
+    RatedStrength,
     Shield,
 )
 
@@ -48,7 +49,17 @@ EQUIPMENT_ISSUE = 180
 PROFILE_FIELD_ISSUE = 101
 """Origin of the weapon/armor profile field verification carried forward into #180."""
 
-AUDITED_MODELS = (Provenance, Damage, Parry, MeleeMode, RangedMode, Armor, Shield, EquipmentProfile)
+AUDITED_MODELS = (
+    Provenance,
+    Damage,
+    Parry,
+    MeleeMode,
+    RangedMode,
+    RatedStrength,
+    Armor,
+    Shield,
+    EquipmentProfile,
+)
 """Every equipment schema model whose fields require a declared unit and source anchor."""
 
 PINNED_PACKAGES: tuple[RulesPackage, ...] = (

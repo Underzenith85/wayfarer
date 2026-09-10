@@ -10,7 +10,7 @@ from wayfarer.models import Campaign, Event
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.gurps_checks import success_roll
-from wayfarer.simulation.fright import aftermath_modifiers, effects, save
+from wayfarer.simulation.fright import aftermath_modifiers, effects, public_id, save
 from wayfarer.simulation.resources import Command
 
 
@@ -51,7 +51,9 @@ class FrightService:
                 (
                     i
                     for i in effects(before.resources)
-                    if i.id == command.fright_id and i.actor_id == command.actor_id and i.active
+                    if command.fright_id in (i.id, public_id(i))
+                    and i.actor_id == command.actor_id
+                    and i.active
                 ),
                 None,
             )

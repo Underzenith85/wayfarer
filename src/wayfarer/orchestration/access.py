@@ -41,6 +41,7 @@ class CampaignAccess:
     @staticmethod
     def _projection(state: PlayState, member: CampaignMember) -> dict[str, object]:
         from wayfarer.orchestration.tactical_view import legacy_encounter
+        from wayfarer.simulation.fright import projection as fright_projection
 
         if member.role == "gm":
             return {
@@ -51,6 +52,7 @@ class CampaignAccess:
                 "role": member.role,
                 "actors": tuple(actor.actor_id for actor in state.actors),
                 "world": asdict(state.world),
+                "fright": fright_projection(state.resources, (), director=True),
             }
         perspectives: dict[str, object] = {}
         for actor_id in member.actor_ids:
@@ -138,6 +140,7 @@ class CampaignAccess:
             "game_time": state.resources.game_time,
             "role": member.role,
             "actors": member.actor_ids,
+            "fright": fright_projection(state.resources, member.actor_ids),
             "inventory": tuple(
                 i.model_dump(mode="json")
                 for i in state.resources.items
@@ -335,12 +338,20 @@ class CampaignAccess:
         if (
             isinstance(value.get("actor_id"), str)
             and isinstance(kind, str)
-            and kind != "gurps_recovery"
+            and kind not in ("gurps_recovery", "care", "panic-response")
         ):
             guard(state, str(value["actor_id"]), kind)
         raw = json.dumps(value)
         try:
-            if kind == "migrate_encounter_scenes":
+            if kind in ("care", "panic-response"):
+                from wayfarer.orchestration.fright import FrightDecision, FrightService
+
+                await FrightService(self.play).execute(
+                    cid,
+                    FrightDecision.model_validate_json(raw),
+                    authenticated_gm_id=principal_id,
+                )
+            elif kind == "migrate_encounter_scenes":
                 from wayfarer.orchestration.encounter_scenes import (
                     EncounterSceneService,
                     MigrateEncounterScenes,

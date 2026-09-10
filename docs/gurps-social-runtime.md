@@ -100,6 +100,26 @@ draws the next private severity. This does not execute a movement, attack,
 character purchase, or any other player choice. Decisions require current GM
 membership, pinned director authority, CAS and stable command receipts.
 
+## Campaign presentation and dispatch
+
+Campaign reads and resumable event projections include a `fright` collection.
+Players see only their controlled actors; directors see all consequences.
+Trait choices, point requirements and permanent attribute losses stay visible
+after temporary recovery and explicitly require build approval. These records
+do not change the approved build or claim that a trait has been selected.
+References are opaque hashes, excluding authored trigger identities, table rolls,
+recovery targets and private responses from player projections.
+
+The campaign command endpoint routes `care` and `panic-response` decisions to
+`FrightService` using the authenticated principal. Directors can use the projected
+reference as `fright_id`; the existing internal IDs remain accepted. These
+administrative decisions bypass the incapacitated actor action guard, while the
+service still enforces director authority, active consequences, CAS and retries.
+
+`tests/test_fright_access.py` covers owner and spectator visibility, lasting
+requirements after recovery/restart, event projection privacy, unchanged builds,
+panic command replay, and care through the authenticated HTTP endpoint.
+
 ## Remaining limits
 
 Permanent attribute losses remain explicit blockers, not implemented arithmetic.

@@ -35,6 +35,16 @@ def observe(
         if len(modes) != 1:
             raise ValidationError("Aim requires one selected ranged mode")
         aimed_mode = modes[0]
+        if aimed_mode.rated_strength is not None:
+            from wayfarer.orchestration.gurps_ranged import validate_rated_strength
+            from wayfarer.simulation.fatigue import fatigue_value
+
+            stats = build(play, state, actor.actor_id).statistics
+            assert stats is not None
+            fp = next(p for p in state.resources.pools if p.id == f"fp:{actor.actor_id}")
+            validate_rated_strength(
+                catalog(play).profile_id, aimed_mode, fatigue_value(fp, stats.st)
+            )
         hands = tuple(hand for item_id, hand in actor.hand_bindings if item_id == item.id)
         if command.braced:
             if aimed_mode.brace_kind == "one-handed" and set(hands) != {
