@@ -300,7 +300,7 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     }
     assert entries["skill:guns"].owners == (344,)
     assert entries["skill:artillery"].owners == (344,)
-    assert entries["skill:spear-thrower"].owners == (344, 360, 362)
+    assert entries["skill:spear-thrower"].owners == (344, 362)
     assert coverage_blockers(PROFILE) == (
         103,
         109,
@@ -319,7 +319,6 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         346,
         356,
         358,
-        360,
         361,
         362,
         366,
@@ -354,7 +353,6 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         346,
         356,
         358,
-        360,
         361,
         362,
         366,
@@ -373,8 +371,8 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         # 45 ranged (#344, #354, #355, #357, #359), 16 social (#345) and 83
         # technology (#346) rows dispatch a real procedure.
         "contextual": 28,
-        "implemented": 227,
-        "unsupported": 178,
+        "implemented": 228,
+        "unsupported": 177,
     }
     # A bound row can still leave part of its entry to another issue; that gap is
     # published rather than folded into the blocker list.

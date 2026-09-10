@@ -120,7 +120,7 @@ def test_mundane_skill_rows_carry_item_level_owners_and_certification_state() ->
     # reaches certification
     # as implemented, and a transferred one reaches it naming the concrete open
     # child that owns it.
-    assert sum(r.implementation == "implemented" for r in rows) == 227
+    assert sum(r.implementation == "implemented" for r in rows) == 228
     assert next(r for r in rows if r.id == "skill:acting").blockers == (112, 336, 345, 382)
     assert next(r for r in rows if r.id == "skill:savoir-faire").blockers == (
         111,

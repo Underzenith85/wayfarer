@@ -23,6 +23,7 @@ from wayfarer.rules.catalog import DefinitionKind, RulesPackage
 from wayfarer.rules.conformance import CAPABILITIES, PROFILES
 from wayfarer.rules.entangle_types import EntangleSpec
 from wayfarer.rules.firearm_types import FirearmSpec
+from wayfarer.rules.launcher_types import LauncherSpec
 from wayfarer.rules.mount_types import MountSpec
 from wayfarer.rules.profiles import (
     GURPS_CAMPAIGNS_PACKAGE,
@@ -64,6 +65,7 @@ AUDITED_MODELS = (
     EntangleSpec,
     MountSpec,
     SprayerSpec,
+    LauncherSpec,
     Armor,
     Shield,
     EquipmentProfile,

@@ -179,6 +179,37 @@ def level(compiled: ValidatedBuild, target: str) -> DerivedValue:
     return value
 
 
+def launched_mode(
+    play: PlayService, state: PlayState, actor_id: str, selected: RangedMode
+) -> RangedMode:
+    """Apply the launcher's pinned effect, or refuse the throw without it."""
+    spec = selected.launcher
+    assert spec is not None
+    held = next(
+        (
+            i
+            for i in state.resources.items
+            if i.owner_id == actor_id
+            and i.definition_id == spec.launcher_definition_id
+            and i.equipped
+            and i.ready
+            and (i.condition is None or not i.condition.disabled)
+        ),
+        None,
+    )
+    if held is None:
+        raise ValidationError("This throw requires its launcher in hand")
+    ranges: dict[str, object] = {
+        "maximum_range": selected.maximum_range * spec.range_multiplier,
+        "damage": selected.damage.model_copy(
+            update={"adds": selected.damage.adds + spec.damage_bonus}
+        ),
+    }
+    if selected.half_damage_range is not None:
+        ranges["half_damage_range"] = selected.half_damage_range * spec.range_multiplier
+    return selected.model_copy(update=ranges)
+
+
 def mode(
     play: PlayService, state: PlayState, actor_id: str, item_id: str, mode_id: str | None
 ) -> MeleeMode | RangedMode:
@@ -246,6 +277,10 @@ def mode(
     )
     if mount is None and selected.hands + held_others > 2:
         raise ValidationError("Selected grip exceeds available hands")
+    if isinstance(selected, RangedMode) and selected.launcher is not None:
+        # B222: the launcher is a second held item that improves the throw. It
+        # is not consumed, and without it in hand this mode does not exist.
+        selected = launched_mode(play, state, actor_id, selected)
     require_skill_procedure(catalog(play).profile_id, selected)
     require_technology(
         selected.skill_id,

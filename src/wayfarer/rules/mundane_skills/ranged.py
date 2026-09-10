@@ -78,6 +78,9 @@ class WeaponClass:
     # Whether the mode must carry pinned stream facts. Only the liquid projector
     # rows hold a stream open; every other ranged skill fires and is done.
     spraying: bool = False
+    # Whether the throw is launcher-assisted. Only the spear thrower row throws
+    # with a separate held launcher; every other thrown row uses the item alone.
+    launched: bool = False
     # The only B270 rated weapon ST (#348) this skill may carry, if any.
     rated_kind: Literal["bow", "crossbow"] | None = None
 
@@ -89,6 +92,8 @@ NET: Final = WeaponClass(thrown=True, ammunition=False, entangling=True)
 BOW: Final = WeaponClass(thrown=False, ammunition=True, hands=(2,), rated_kind="bow")
 CROSSBOW: Final = WeaponClass(thrown=False, ammunition=True, rated_kind="crossbow")
 THROWN: Final = WeaponClass(thrown=True, ammunition=False, hands=(1,))
+# B222: a throw made with a separate held launcher, never a bare thrown spear.
+LAUNCHED: Final = WeaponClass(thrown=True, ammunition=False, hands=(1,), launched=True)
 # TL-indexed personal weapons (#355). Rapid fire and recoil are the mode's own
 # pinned facts, so these ceilings are the engine's supported bounds, not a
 # table value. A beam is never a conventional firearm and a gun is never a beam.
@@ -331,7 +336,9 @@ _ROWS: Final = (
         A.DX,
         D.AVERAGE,
         (SkillDefault(A.DX, -5),),
-        transferred={RUNTIME_PROCEDURE: (360,), CONDITIONAL_DEFAULTS: (362,)},
+        LAUNCHED,
+        resolved=(RUNTIME_PROCEDURE,),
+        transferred={CONDITIONAL_DEFAULTS: (362,)},
     ),
     # B198/B179: TL-indexed families, expanded into concrete specialties that
     # each dispatch a weapon of the campaign's own technology level (#355).
@@ -795,6 +802,7 @@ def require_mode(
     conventional_firearm: bool = False,
     mounted: bool = False,
     spraying: bool = False,
+    launched: bool = False,
 ) -> RangedProcedure | None:
     """Fail closed before dice when a weapon claims an unbound ranged skill.
 
@@ -838,6 +846,8 @@ def require_mode(
         raise ValidationError(f"Mount facts are outside the skill's class: {skill_id}")
     if spraying != weapon.spraying:
         raise ValidationError(f"Stream facts are outside the skill's class: {skill_id}")
+    if launched != weapon.launched:
+        raise ValidationError(f"Launcher facts are outside the skill's class: {skill_id}")
     if (
         weapon.conventional_firearm is not None
         and conventional_firearm != weapon.conventional_firearm
