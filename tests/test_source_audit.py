@@ -110,7 +110,7 @@ def test_mundane_skill_rows_carry_item_level_owners_and_certification_state() ->
     from wayfarer.rules.mundane_skills import PROFILE, coverage_blockers
 
     rows = [r for r in inventory() if r.scope == "mundane-skills"]
-    assert len(rows) == 332
+    assert len(rows) == 343
     assert all(r.owner == 112 and r.blockers for r in rows)
     assert {b for r in rows for b in r.blockers} == set(coverage_blockers(PROFILE))
     assert {r.implementation for r in rows} == {"implemented", "unsupported", "contextual"}
@@ -118,7 +118,7 @@ def test_mundane_skill_rows_carry_item_level_owners_and_certification_state() ->
     assert sum(r.implementation == "contextual" for r in rows) == 28
     # #344, #345 and #346: a bound procedure reaches certification as implemented,
     # and a transferred one reaches it naming the concrete open child that owns it.
-    assert sum(r.implementation == "implemented" for r in rows) == 113
+    assert sum(r.implementation == "implemented" for r in rows) == 126
     assert next(r for r in rows if r.id == "skill:acting").blockers == (112, 336, 345, 382)
     assert next(r for r in rows if r.id == "skill:savoir-faire").blockers == (
         111,

@@ -112,7 +112,6 @@ retained where previously recorded, but they do not replace the active owners.
 | #342 | Medicine and mental procedures. |
 | #343 | Physical, outdoor and animal procedures. |
 | #344 | Ranged combat skill procedures; see below for what it bound and what it transferred. |
-| #355 | TL-indexed personal firearm and beam weapon specialties. |
 | #357 | Crew-served and vehicle-mounted ranged weapons. |
 | #359 | Liquid Projector streams and sprays. |
 | #360 | The Spear Thrower launcher procedure. |
@@ -155,8 +154,9 @@ equipment catalog is built and again when a mode is selected in play.
 | `skill:bolas` | B181, DX/A | Implemented. A landed throw binds the target; the binding, not the damage, is the outcome. |
 | `skill:net` | B211, DX/H | Implemented. Cross-skill defaults remain with #362. |
 | `skill:spear-thrower` | B222, DX/A, DX-5 | Transferred to #360 and #362; a launcher that modifies a projectile it does not consume. |
-| `skill:guns` | B198, DX/E, DX-4 | Transferred to #355; needs TL context and pinned firearm specialties. |
-| `skill:beam-weapons` | B179, DX/E, DX-4 | Transferred to #355. |
+| `skill:guns` | B198, DX/E, DX-4 | Family expanded into eight concrete specialties (Pistol, Rifle, Shotgun, Submachine Gun, Light Machine Gun, Musket, Grenade Launcher, Light Anti-Armor Weapon); never dispatched itself. |
+| `skill:beam-weapons` | B179, DX/E, DX-4 | Family expanded into three concrete specialties (Pistol, Rifle, Projector); never dispatched itself. |
+| `skill:guns-*`, `skill:beam-weapons-*` | B198, B179, DX/E, DX-4 | Implemented. TL-indexed: each dispatches a weapon of the campaign's own era. Cross-specialty defaults remain with #362. |
 | `skill:artillery` | B178, IQ/A, IQ-5 | Transferred to #357; mounted or crew-served, and IQ-based. |
 | `skill:gunner` | B198, DX/E, DX-4 | Transferred to #357. |
 | `skill:liquid-projector` | B205, DX/E, DX-4 | Transferred to #359; needs stream and spray state the dispatch does not have. |
@@ -180,6 +180,18 @@ a replayed encounter reproduces the struggle instead of restarting it. While the
 binding holds it applies its attack and defense penalties through the shared
 melee, ranged and defense services, and a binding that pins the legs reduces
 Move to zero. Evidence is in `tests/test_entangling_attacks.py`.
+
+### Technology level (#355)
+
+Guns (B198) and Beam Weapons (B179) are TL-indexed families. Their concrete
+specialties come from the B301-B304 index and each is a distinct row with no
+cross-specialty inference. A TL-indexed skill dispatches only when the campaign
+policy pins a `technology_level` and the weapon's own equipment technology
+level matches it: a weapon from another era fails closed rather than resolving
+with an invented familiarity penalty, and an unpinned campaign era refuses the
+skill outright. Tight-beam damage is resolvable only by the beam rows, and the
+conventional firearm metadata #372 pinned is refused on a beam weapon.
+Evidence is in `tests/test_tl_indexed_ranged_skills.py`.
 
 A binding may only resolve or keep the blockers the inventory recorded, and its
 numbers must be the recorded ones: `inventory()` raises on either drift, and on

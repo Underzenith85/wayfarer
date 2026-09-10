@@ -136,7 +136,7 @@ def test_listed_scope_is_completely_accounted_for() -> None:
         assert set(procedure.blockers) <= set(entry.blockers), identifier
         assert 344 in entry.followup_issues, identifier
         assert set(procedure.owners) <= set(entry.followup_issues), identifier
-    assert set(PROCEDURES) == set(LISTED) | {row[0] for row in THROWN}
+    assert set(LISTED) | {row[0] for row in THROWN} <= set(PROCEDURES)
     transferred = {
         identifier: PROCEDURES[identifier].owners
         for identifier in LISTED
@@ -144,9 +144,7 @@ def test_listed_scope_is_completely_accounted_for() -> None:
     }
     assert transferred == {
         "skill:artillery": (357,),
-        "skill:beam-weapons": (355,),
         "skill:gunner": (357,),
-        "skill:guns": (355,),
         "skill:innate-attack": (361,),
         "skill:liquid-projector": (359,),
         "skill:spear-thrower": (360, 362),
@@ -164,10 +162,10 @@ def test_thrown_weapon_family_is_expanded_into_concrete_specialties() -> None:
         assert specialty.family == "thrown-weapon" and specialty.optional_parent is None
     # The family itself is absent from the runtime pin; only its specialties bind.
     assert "skill:thrown-weapon" not in {d.id for d in definitions()}
-    assert {d.id for d in definitions()} == {row[0] for row in DISPATCHED} | {
-        "skill:bolas",
-        "skill:net",
-    }
+    dispatched = {d.id for d in definitions()}
+    assert {row[0] for row in DISPATCHED} | {"skill:bolas", "skill:net"} <= dispatched
+    # The two families themselves stay out of the runtime pin.
+    assert not {"skill:thrown-weapon", "skill:guns", "skill:beam-weapons"} & dispatched
 
 
 @pytest.mark.parametrize(
@@ -253,8 +251,6 @@ async def test_thrown_specialties_dispatch_and_expend_the_item(
 @pytest.mark.parametrize(
     ("identifier", "expected"),
     [
-        ("skill:guns", "#355"),
-        ("skill:beam-weapons", "#355"),
         ("skill:artillery", "#357"),
         ("skill:gunner", "#357"),
         ("skill:liquid-projector", "#359"),
@@ -376,10 +372,11 @@ def test_authored_catalogs_fail_closed_before_a_campaign_exists() -> None:
         )
 
     assert catalog("skill:crossbow") is not None
-    with pytest.raises(ValidationError, match="#355"):
-        catalog("skill:guns")
-    with pytest.raises(ValidationError, match="concrete specialty"):
-        catalog("skill:thrown-weapon")
+    with pytest.raises(ValidationError, match="#357"):
+        catalog("skill:artillery")
+    for family in ("skill:thrown-weapon", "skill:guns", "skill:beam-weapons"):
+        with pytest.raises(ValidationError, match="concrete specialty"):
+            catalog(family)
     with pytest.raises(ValidationError, match="outside the skill's class"):
         catalog("skill:crossbow", rate_of_fire=3)
 

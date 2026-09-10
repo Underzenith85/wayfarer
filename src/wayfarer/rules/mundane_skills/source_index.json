@@ -232,6 +232,36 @@
       ]
     },
     {
+      "id": "beam-weapons-pistol",
+      "name": "Beam Weapons (Pistol)",
+      "page": 179,
+      "kind": "expansion",
+      "targets": [
+        "beam-weapons-pistol"
+      ],
+      "parent": "beam-weapons"
+    },
+    {
+      "id": "beam-weapons-rifle",
+      "name": "Beam Weapons (Rifle)",
+      "page": 179,
+      "kind": "expansion",
+      "targets": [
+        "beam-weapons-rifle"
+      ],
+      "parent": "beam-weapons"
+    },
+    {
+      "id": "beam-weapons-projector",
+      "name": "Beam Weapons (Projector)",
+      "page": 179,
+      "kind": "expansion",
+      "targets": [
+        "beam-weapons-projector"
+      ],
+      "parent": "beam-weapons"
+    },
+    {
       "id": "bicycling",
       "name": "Bicycling",
       "page": 180,
@@ -1293,6 +1323,86 @@
       "targets": [
         "guns"
       ]
+    },
+    {
+      "id": "guns-pistol",
+      "name": "Guns (Pistol)",
+      "page": 198,
+      "kind": "expansion",
+      "targets": [
+        "guns-pistol"
+      ],
+      "parent": "guns"
+    },
+    {
+      "id": "guns-rifle",
+      "name": "Guns (Rifle)",
+      "page": 198,
+      "kind": "expansion",
+      "targets": [
+        "guns-rifle"
+      ],
+      "parent": "guns"
+    },
+    {
+      "id": "guns-shotgun",
+      "name": "Guns (Shotgun)",
+      "page": 198,
+      "kind": "expansion",
+      "targets": [
+        "guns-shotgun"
+      ],
+      "parent": "guns"
+    },
+    {
+      "id": "guns-submachine-gun",
+      "name": "Guns (Submachine Gun)",
+      "page": 198,
+      "kind": "expansion",
+      "targets": [
+        "guns-submachine-gun"
+      ],
+      "parent": "guns"
+    },
+    {
+      "id": "guns-light-machine-gun",
+      "name": "Guns (Light Machine Gun)",
+      "page": 198,
+      "kind": "expansion",
+      "targets": [
+        "guns-light-machine-gun"
+      ],
+      "parent": "guns"
+    },
+    {
+      "id": "guns-musket",
+      "name": "Guns (Musket)",
+      "page": 198,
+      "kind": "expansion",
+      "targets": [
+        "guns-musket"
+      ],
+      "parent": "guns"
+    },
+    {
+      "id": "guns-grenade-launcher",
+      "name": "Guns (Grenade Launcher)",
+      "page": 198,
+      "kind": "expansion",
+      "targets": [
+        "guns-grenade-launcher"
+      ],
+      "parent": "guns"
+    },
+    {
+      "id": "guns-light-anti-armor-weapon",
+      "name": "Guns (Light Anti-Armor Weapon)",
+      "page": 198,
+      "kind": "expansion",
+      "targets": [
+        "guns-light-anti-armor-weapon"
+      ],
+      "parent": "guns"
     },
     {
       "id": "hazardous-materials",

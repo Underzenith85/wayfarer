@@ -683,10 +683,111 @@
       112,
       336,
       344,
-      355,
       382,
       384,
       385
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "beam-weapons-pistol",
+    "name": "Beam Weapons (Pistol)",
+    "page": 179,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "beam-weapons",
+      "name": "pistol"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362,
+      382,
+      383,
+      384
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "beam-weapons-projector",
+    "name": "Beam Weapons (Projector)",
+    "page": 179,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "beam-weapons",
+      "name": "projector"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362,
+      382,
+      383,
+      384
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "beam-weapons-rifle",
+    "name": "Beam Weapons (Rifle)",
+    "page": 179,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "beam-weapons",
+      "name": "rifle"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 344
   },
@@ -3902,10 +4003,281 @@
       112,
       336,
       344,
-      355,
       382,
       384,
       385
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "guns-grenade-launcher",
+    "name": "Guns (Grenade Launcher)",
+    "page": 198,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "guns",
+      "name": "grenade-launcher"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362,
+      382,
+      383,
+      384
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "guns-light-anti-armor-weapon",
+    "name": "Guns (Light Anti-Armor Weapon)",
+    "page": 198,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "guns",
+      "name": "light-anti-armor-weapon"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362,
+      382,
+      383,
+      384
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "guns-light-machine-gun",
+    "name": "Guns (Light Machine Gun)",
+    "page": 198,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "guns",
+      "name": "light-machine-gun"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362,
+      382,
+      383,
+      384
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "guns-musket",
+    "name": "Guns (Musket)",
+    "page": 198,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "guns",
+      "name": "musket"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362,
+      382,
+      383,
+      384
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "guns-pistol",
+    "name": "Guns (Pistol)",
+    "page": 198,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "guns",
+      "name": "pistol"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362,
+      382,
+      383,
+      384
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "guns-rifle",
+    "name": "Guns (Rifle)",
+    "page": 198,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "guns",
+      "name": "rifle"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362,
+      382,
+      383,
+      384
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "guns-shotgun",
+    "name": "Guns (Shotgun)",
+    "page": 198,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "guns",
+      "name": "shotgun"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362,
+      382,
+      383,
+      384
+    ],
+    "procedure_owner": 344
+  },
+  {
+    "id": "guns-submachine-gun",
+    "name": "Guns (Submachine Gun)",
+    "page": 198,
+    "attribute": "DX",
+    "difficulty": "easy",
+    "attribute_defaults": [
+      {
+        "attribute": "DX",
+        "modifier": -4
+      }
+    ],
+    "specialty_required": false,
+    "tl_required": true,
+    "specialty": {
+      "family": "guns",
+      "name": "submachine-gun"
+    },
+    "blockers": [
+      "runtime-procedure",
+      "conditional-or-skill-defaults",
+      "technology-level-context"
+    ],
+    "issues": [
+      112,
+      336,
+      344,
+      362,
+      382,
+      383,
+      384
     ],
     "procedure_owner": 344
   },
