@@ -10,10 +10,10 @@ import aiosqlite
 
 from wayfarer import validation
 from wayfarer.errors import ConflictError, NotFoundError, StorageError, ValidationError
-from wayfarer.models import Campaign, Event, TurnResult
+from wayfarer.models import Campaign, CommandReceipt, TurnResult
 from wayfarer.persistence import snapshots
 from wayfarer.persistence.events import (
-    EVENT_SCHEMA_VERSION,
+    COMMAND_SCHEMA_VERSION,
     CommandEntropy,
     CommandOrigin,
     CommandRecord,
@@ -319,7 +319,7 @@ class AsyncSQLiteStore:
         request_id: str,
         revision: int,
         text: str,
-        resolve: Callable[[Campaign], Event | CommandResolution],
+        resolve: Callable[[Campaign], CommandReceipt | CommandResolution],
         *,
         actor_id: str = "system",
         entropy: CommandEntropy | None = None,
@@ -340,7 +340,8 @@ class AsyncSQLiteStore:
             await self._ensure_stream(db, cid)
             before = deepcopy(state)
             resolved = resolve(state)
-            event = resolved.transcript if isinstance(resolved, CommandResolution) else resolved
+            event = resolved.receipt if isinstance(resolved, CommandResolution) else resolved
+            validation.fields(validation.mapping(event), {"action", "outcome"})
             emitted = (
                 resolved.events
                 if isinstance(resolved, CommandResolution)
@@ -371,7 +372,7 @@ class AsyncSQLiteStore:
                     state["revision"],
                     input_digest,
                     state["rules"],
-                    EVENT_SCHEMA_VERSION,
+                    COMMAND_SCHEMA_VERSION,
                     json.dumps(event),
                     "{}",
                     entropy.seed if entropy else None,
@@ -430,7 +431,9 @@ class AsyncSQLiteStore:
                         entropy_seed=row[9],
                         rng_algorithm=row[11],
                         recorded_at_us=row[12],
-                        command_input=row[14],
+                        command_input=row[14]
+                        if row[14] is not None
+                        else self._legacy_input(row[7]),
                         scenario_boundary=ScenarioBoundary.model_validate_json(row[15])
                         if row[15]
                         else None,
@@ -445,13 +448,17 @@ class AsyncSQLiteStore:
             await db.close()
 
     @staticmethod
-    def _event(raw: str) -> Event:
+    def _legacy_input(raw: str) -> str | None:
         data = validation.mapping(validation.decode(raw))
-        return Event(
-            input=validation.string(data["input"]),
+        value = data.get("input")
+        return validation.string(value) if value is not None else None
+
+    @staticmethod
+    def _event(raw: str) -> CommandReceipt:
+        data = validation.mapping(validation.decode(raw))
+        return CommandReceipt(
             action=validation.event_action(data["action"]),
             outcome=validation.string(data["outcome"]),
-            roll=None if data["roll"] is None else validation.roll(data["roll"]),
         )
 
     async def replay(self, cid: str, revision: int | None = None) -> Campaign:

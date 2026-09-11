@@ -44,7 +44,7 @@ async def test_provider_timeout_is_typed(slow_provider: str) -> None:
     )
     async with aiohttp.ClientSession() as session:
         with pytest.raises(ProviderTimeoutError):
-            await llm.LLMClient(settings, session).generate("test", {}, llm.ACTION_SCHEMA)
+            await llm.LLMClient(settings, session).generate("test", {}, llm.NARRATION_SCHEMA)
 
 
 async def test_cancellation_propagates(slow_provider: str) -> None:
@@ -53,7 +53,7 @@ async def test_cancellation_propagates(slow_provider: str) -> None:
     )
     async with aiohttp.ClientSession() as session:
         task = asyncio.create_task(
-            llm.LLMClient(settings, session).generate("test", {}, llm.ACTION_SCHEMA)
+            llm.LLMClient(settings, session).generate("test", {}, llm.NARRATION_SCHEMA)
         )
         await asyncio.sleep(0.02)
         task.cancel()

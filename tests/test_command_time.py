@@ -7,7 +7,7 @@ import pytest
 from test_actions import campaign, engine
 from test_v1_api import api as api
 
-from wayfarer.models import Campaign, Event, TurnResult
+from wayfarer.models import Campaign, CommandReceipt, TurnResult
 from wayfarer.orchestration import entropy
 from wayfarer.orchestration.clock import CommandInstant
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
@@ -41,10 +41,10 @@ async def test_clock_captured_before_callback_and_retry_keeps_original(
     monkeypatch.setattr(entropy, "capture_instant", lambda: next(instants))
     calls = []
 
-    def reduce(state: Campaign) -> Event:
+    def reduce(state: Campaign) -> CommandReceipt:
         calls.append(state["revision"])
         state["revision"] += 1
-        return Event(input="clock", action="ask", outcome="done", roll=None)
+        return CommandReceipt(action="legacy", outcome="done")
 
     await entropy.commit_command(store, initial["id"], "clock", 0, "clock", reduce)
     await entropy.commit_command(store, initial["id"], "clock", 0, "clock", reduce)

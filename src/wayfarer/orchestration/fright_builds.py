@@ -14,7 +14,7 @@ from pydantic import Field
 from wayfarer.character.compiler import CharacterDraft, ValidatedBuild, pool_limits
 from wayfarer.character.physical_traits import physical_traits
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.advancement import _refreshed
 from wayfarer.orchestration.entropy import commit_command
@@ -162,7 +162,7 @@ class FrightBuildService:
             sort_keys=True,
         )
 
-        def reduce(campaign: Campaign) -> Event:
+        def reduce(campaign: Campaign) -> CommandReceipt:
             state = play._load(campaign)
             item = next(
                 (
@@ -273,9 +273,7 @@ class FrightBuildService:
                 }
             )
             play.commit(campaign, updated)
-            return Event(
-                input=payload, action="npc", outcome="fright build decision recorded", roll=None
-            )
+            return CommandReceipt(action="npc", outcome="fright build decision recorded")
 
         await commit_command(
             play.store,

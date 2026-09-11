@@ -8,7 +8,7 @@ from typing import Literal
 
 from wayfarer.character.compiler import pool_limits
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.advancement import (
     AdvanceCharacter,
     AdvancementService,
@@ -696,7 +696,7 @@ class RecoveryService:
             raise ValidationError("Setbacks require trusted GM authority and authored evidence")
         payload = command.model_dump_json()
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             state = self.play._load(campaign)
             revision = state.revision + 1
             state = state.model_copy(
@@ -713,7 +713,7 @@ class RecoveryService:
             state = PartyService(self.play).flush(state)
             state = self.play.checkpoint(state)
             self.play.commit(campaign, state)
-            return Event(input=payload, action="recovery", outcome=command.kind, roll=None)
+            return CommandReceipt(action="recovery", outcome=command.kind)
 
         result = await commit_command(
             self.play.store,

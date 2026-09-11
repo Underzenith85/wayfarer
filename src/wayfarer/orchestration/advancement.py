@@ -12,7 +12,7 @@ from wayfarer.character.physical_traits import physical_traits
 from wayfarer.character.power import CharacterProposal
 from wayfarer.character.statistics import RuntimePool, carry_over
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event, Id, Record
+from wayfarer.models import Campaign, CommandReceipt, Id, Record
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.catalog import reference
@@ -169,7 +169,7 @@ class AdvancementService:
             raise ValidationError("Point grants require GM authority")
         payload = self._payload("grant", command.model_dump(mode="json"))
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             state = self.play._load(campaign)
             build = _build(self.play, state, command.target_actor_id)
             entry = AdvancementEntry(
@@ -185,9 +185,7 @@ class AdvancementService:
             updated = self._revision(state, advancement=state.advancement + (entry,))
             updated = self.play.checkpoint(updated)
             self.play.commit(campaign, updated)
-            return Event(
-                input=payload, action="advancement", outcome=entry.model_dump_json(), roll=None
-            )
+            return CommandReceipt(action="advancement", outcome=entry.model_dump_json())
 
         committed = await commit_command(
             self.play.store,
@@ -297,15 +295,13 @@ class AdvancementService:
         # Validate inside the transaction so a committed retry reaches its receipt first.
         payload = self._payload("advance", command.model_dump(mode="json"))
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             state = self.play._load(campaign)
             updated = self.reduce_purchase(state, command, revision=state.revision + 1)
             entry = updated.advancement[-1]
             updated = self.play.checkpoint(updated)
             self.play.commit(campaign, updated)
-            return Event(
-                input=payload, action="advancement", outcome=entry.model_dump_json(), roll=None
-            )
+            return CommandReceipt(action="advancement", outcome=entry.model_dump_json())
 
         committed = await commit_command(
             self.play.store,
@@ -413,7 +409,7 @@ class MigrationService:
         # setup host) can only carry characters that stay within automatic limits.
         gm = authenticated_gm_id in self.target.engine.reviewer.gm_ids
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             state = self.current._load(campaign)
             approvals = []
             actors = []
@@ -508,9 +504,7 @@ class MigrationService:
                 ).model_dump_json()
             campaign["rules_ref"] = reference(self.target.engine.resources.rules)
             self.target.commit(campaign, updated)
-            return Event(
-                input=payload, action="rules-migration", outcome=entry.model_dump_json(), roll=None
-            )
+            return CommandReceipt(action="rules-migration", outcome=entry.model_dump_json())
 
         committed = await commit_command(
             self.current.store,

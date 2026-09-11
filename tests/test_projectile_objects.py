@@ -228,7 +228,7 @@ async def test_destroyed_shield_remains_carried_until_minus_ten_hp(tmp_path: Pat
 
 
 async def test_ground_projectile_uses_item_distance_and_zero_speed(tmp_path: Path) -> None:
-    from wayfarer.models import Campaign, Event
+    from wayfarer.models import Campaign, CommandReceipt
     from wayfarer.rules.object_types import GroundPosition
 
     cid, play = await setup(
@@ -239,7 +239,7 @@ async def test_ground_projectile_uses_item_distance_and_zero_speed(tmp_path: Pat
         durability=ObjectProfile(construction="homogenous", hp=12, dr=0, ht=12),
     )
 
-    def drop(campaign: Campaign) -> Event:
+    def drop(campaign: Campaign) -> CommandReceipt:
         state = play._load(campaign)
         state = state.model_copy(
             update={
@@ -281,7 +281,7 @@ async def test_ground_projectile_uses_item_distance_and_zero_speed(tmp_path: Pat
             }
         )
         campaign["play_json"] = state.model_dump_json()
-        return Event(input="fixture", action="combat", outcome="drop", roll=None)
+        return CommandReceipt(action="combat", outcome="drop")
 
     await play.store.commit_turn(cid, "drop-fixture", 1, "drop-fixture", drop)
     await turn(

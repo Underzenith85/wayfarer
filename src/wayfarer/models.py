@@ -24,8 +24,6 @@ Id = Annotated[str, Field(min_length=1, max_length=200)]
 Count = Annotated[int, Field(ge=1, le=1000000)]
 Tick = Annotated[int, Field(ge=0)]
 
-Action = Literal["observe", "talk", "sneak", "rest", "ask"]
-
 
 class Character(TypedDict):
     name: str
@@ -47,7 +45,7 @@ class Message(TypedDict):
     role: str
     text: str
     roll: NotRequired[Roll | None]
-    action: NotRequired[Action]
+    action: NotRequired[str]
     flavor: NotRequired[str]
 
 
@@ -89,39 +87,37 @@ class RulesReference(TypedDict):
     policy_version: int
 
 
-EventAction = (
-    Action
-    | Literal[
-        "resource",
-        "v1-membership",
-        "typed-action",
-        "power-approval",
-        "request_ruling",
-        "decide_ruling",
-        "execute_ruling",
-        "evaluate_ruling",
-        "combat",
-        "advancement",
-        "rules-migration",
-        "encounter-scenes",
-        "scene",
-        "objectives",
-        "noncombat",
-        "party",
-        "npc",
-        "recovery",
-        "director",
-        "workshop",
-        "setup",
-    ]
-)
+EventAction = Literal[
+    "legacy",
+    "resource",
+    "v1-membership",
+    "typed-action",
+    "power-approval",
+    "request_ruling",
+    "decide_ruling",
+    "execute_ruling",
+    "evaluate_ruling",
+    "combat",
+    "advancement",
+    "rules-migration",
+    "encounter-scenes",
+    "scene",
+    "objectives",
+    "noncombat",
+    "party",
+    "npc",
+    "recovery",
+    "director",
+    "workshop",
+    "setup",
+]
 
 
-class Event(TypedDict):
-    input: str
+class CommandReceipt(TypedDict):
+    """Command family and typed result; exact input and dice have their own owners."""
+
     action: EventAction
     outcome: str
-    roll: Roll | None
 
 
 class ValidationResult(TypedDict):
@@ -139,7 +135,7 @@ class PublicCampaign(Campaign):
 class CommittedTurn(TypedDict):
     kind: Literal["committed"]
     state: Campaign
-    event: Event
+    event: CommandReceipt
 
 
 class ReplayedTurn(TypedDict):

@@ -10,7 +10,7 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer import validation
-from wayfarer.models import Campaign, Event, Record
+from wayfarer.models import Campaign, CommandReceipt, Record
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.replay import execute_recorded
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
@@ -46,12 +46,7 @@ class FixtureCommand(Record):
             resulting_revision=self.resulting_revision,
             payload_hash=payload_digest({"input": self.command_input}),
             rules_version=before["rules"],
-            event=Event(
-                input=self.command_input,
-                action=validation.event_action(self.action),
-                outcome="",
-                roll=None,
-            ),
+            event=CommandReceipt(action=validation.event_action(self.action), outcome=""),
             state_after=after,
             entropy_seed=self.seed,
             rng_algorithm=RNG_ALGORITHM,

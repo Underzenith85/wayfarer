@@ -13,10 +13,9 @@ from pydantic import Field, TypeAdapter
 from pydantic import ValidationError as SchemaError
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event, Id, Roll
+from wayfarer.models import Campaign, CommandReceipt, Id
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
-from wayfarer.rules.checks import Outcome
 from wayfarer.simulation.actions import (
     ACTION_ADAPTER,
     ActionCommand,
@@ -229,25 +228,11 @@ class AdjudicationService:
             separators=(",", ":"),
         )
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             state = self.play._load(campaign)
-            roll: Roll | None = None
             result: Ruling | ActionResult
             if isinstance(command, ExecuteRuling):
                 updated, result = self._execute(state, command)
-                if result.check is not None:
-                    check = result.check
-                    roll = Roll(
-                        dice=list(check.dice),
-                        total=check.total,
-                        target=check.effective_target,
-                        success=check.outcome in (Outcome.SUCCESS, Outcome.CRITICAL_SUCCESS),
-                        critical="success"
-                        if check.outcome is Outcome.CRITICAL_SUCCESS
-                        else "failure"
-                        if check.outcome is Outcome.CRITICAL_FAILURE
-                        else None,
-                    )
             else:
                 updated = (
                     self._request(state, command)
@@ -268,9 +253,7 @@ class AdjudicationService:
                 result = next(r for r in updated.rulings if r.id == ruling_id)
             updated = self.play.checkpoint(updated, before=state)
             self.play.commit(campaign, updated)
-            return Event(
-                input=payload, action=command.kind, outcome=result.model_dump_json(), roll=roll
-            )
+            return CommandReceipt(action=command.kind, outcome=result.model_dump_json())
 
         committed = await commit_command(
             self.play.store,

@@ -14,7 +14,7 @@ from wayfarer.errors import (
     StorageError,
     ValidationError,
 )
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
@@ -543,11 +543,11 @@ class SetupService:
         )
         key = "setup:" + command.id
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             context = SetupContext(self.play.for_campaign(campaign), principal_id)
             updated, setup = reduce_setup(campaign, command, context)
             campaign.update(updated)
-            return Event(input=payload, action="setup", outcome=setup.phase, roll=None)
+            return CommandReceipt(action="setup", outcome=setup.phase)
 
         await commit_command(
             self.play.store,
@@ -614,7 +614,7 @@ class SetupService:
         generation_id = "generation:" + command.id
         for event in await self.play.store.history(cid):
             if event.command_id == "setup:" + generation_id:
-                prior = json.loads(event.event["input"])
+                prior = json.loads(event.command_input or "{}")
                 if (
                     prior["principal"] != principal_id
                     or prior["command"]["expected_revision"] != command.expected_revision

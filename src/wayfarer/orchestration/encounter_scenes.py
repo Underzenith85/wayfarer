@@ -8,7 +8,7 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, Event, Id, Record
+from wayfarer.models import Campaign, CommandReceipt, Id, Record
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.simulation.actions import PlayState
@@ -45,7 +45,7 @@ class EncounterSceneService:
             sort_keys=True,
         )
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             state = self.play._load(campaign)
             bindings = {b.encounter_id: b.scene_id for b in command.bindings}
             if len(bindings) != len(command.bindings) or not set(bindings) <= {
@@ -71,12 +71,7 @@ class EncounterSceneService:
             )
             # Structural only: no checkpoint, clocks, dice, discovery or effects.
             self.play.commit(campaign, updated)
-            return Event(
-                input=payload,
-                action="encounter-scenes",
-                outcome=command.model_dump_json(),
-                roll=None,
-            )
+            return CommandReceipt(action="encounter-scenes", outcome=command.model_dump_json())
 
         committed = await commit_command(
             self.play.store,

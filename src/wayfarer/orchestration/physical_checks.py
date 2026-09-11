@@ -11,7 +11,7 @@ from dataclasses import asdict, dataclass
 from typing import Literal
 
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.gurps_checks import success_roll
@@ -52,7 +52,7 @@ class PhysicalCheckService:
             {"physical-check": command.model_dump(mode="json"), "gm": gm_id}, sort_keys=True
         )
 
-        def reduce(campaign: Campaign) -> Event:
+        def reduce(campaign: Campaign) -> CommandReceipt:
             state = play._load(campaign)
             if gm_id not in play.engine.reviewer.gm_ids or not any(
                 m.principal_id == gm_id and m.role == "gm" for m in state.members
@@ -142,12 +142,7 @@ class PhysicalCheckService:
                 before=state,
             )
             play.commit(campaign, updated)
-            return Event(
-                input=payload,
-                action="noncombat",
-                outcome=json.dumps(trace.outcome.succeeded),
-                roll=None,
-            )
+            return CommandReceipt(action="noncombat", outcome=json.dumps(trace.outcome.succeeded))
 
         committed = await commit_command(
             play.store,

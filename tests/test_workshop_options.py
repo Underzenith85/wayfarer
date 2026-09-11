@@ -9,7 +9,7 @@ from test_wave9 import prepare
 from scripts.workshop_contracts import contract
 from wayfarer.character.compiler import CharacterDraft, Purchase
 from wayfarer.character.power import CharacterProposal
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.workshop import DraftCommand, WorkshopService
 from wayfarer.orchestration.workshop_options import ProfilePreviewRequest, preview_profile
@@ -92,7 +92,7 @@ async def test_setup_reactivation_does_not_heal(tmp_path: Path) -> None:
     state = play._load(await play.store.read(cid))
     proposal = state.actors[0].proposal
 
-    def injure(campaign: Campaign) -> Event:
+    def injure(campaign: Campaign) -> CommandReceipt:
         current = play._load(campaign)
         resources = current.resources.model_copy(
             update={
@@ -107,7 +107,7 @@ async def test_setup_reactivation_does_not_heal(tmp_path: Path) -> None:
         campaign["play_json"] = current.model_copy(
             update={"revision": 1, "resources": resources}
         ).model_dump_json()
-        return Event(input="injure", action="resource", outcome="hurt", roll=None)
+        return CommandReceipt(action="resource", outcome="hurt")
 
     await play.store.commit_turn(cid, "injury", 0, "injure", injure, actor_id="a")
     workshop = WorkshopService(CampaignAccess(play))

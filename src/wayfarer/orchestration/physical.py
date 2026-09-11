@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.simulation.mechanics.physical import PhysicalCommand as PhysicalCommand
@@ -36,14 +36,12 @@ class PhysicalService:
 
         context = PhysicalContext(play.rules_context, self.resolver, self.play.rng)
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
             updated, result = reduce_physical(before, command, context)
             updated = play.checkpoint(updated, before=before)
             play.commit(campaign, updated)
-            return Event(
-                input=payload, action="noncombat", outcome=result.model_dump_json(), roll=None
-            )
+            return CommandReceipt(action="noncombat", outcome=result.model_dump_json())
 
         committed = await commit_command(
             play.store,

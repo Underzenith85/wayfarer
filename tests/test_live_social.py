@@ -324,14 +324,14 @@ async def test_coma_failed_roll_reschedules_before_requested_frontier(tmp_path: 
 
 
 async def test_care_decision_is_authorized_and_retry_safe(tmp_path: Path) -> None:
-    from wayfarer.models import Event
+    from wayfarer.models import CommandReceipt
 
     cid, play = await prepare(tmp_path)
 
     # Install the consequence through an ordinary trusted campaign transaction.
     from wayfarer.models import Campaign
 
-    def apply(campaign: Campaign) -> Event:
+    def apply(campaign: Campaign) -> CommandReceipt:
         before = play._load(campaign)
         resources = apply_effect(
             before.resources,
@@ -354,7 +354,7 @@ async def test_care_decision_is_authorized_and_retry_safe(tmp_path: Path) -> Non
         ).model_copy(update={"revision": 1})
         state = before.model_copy(update={"revision": 1, "resources": resources})
         campaign["revision"], campaign["play_json"] = 1, state.model_dump_json()
-        return Event(input="seed", action="npc", outcome="fear", roll=None)
+        return CommandReceipt(action="npc", outcome="fear")
 
     await play.store.commit_turn(cid, "seed", 0, "seed", apply, actor_id="gm")
     command = FrightDecision(

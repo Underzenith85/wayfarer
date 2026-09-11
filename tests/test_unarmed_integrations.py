@@ -9,7 +9,7 @@ import pytest
 from test_unarmed import action, defend, setup, state_of
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.combat import ChooseDefense, CombatService, TakeUnarmedTurn
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
@@ -18,10 +18,10 @@ from wayfarer.simulation.actions import PlayState
 
 
 async def checkpoint(cid: str, play: PlayService, state: PlayState) -> None:
-    def commit(campaign: Campaign) -> Event:
+    def commit(campaign: Campaign) -> CommandReceipt:
         play.engine.validate(state)
         campaign["play_json"] = state.model_dump_json()
-        return Event(input="fixture", action="combat", outcome="fixture", roll=None)
+        return CommandReceipt(action="combat", outcome="fixture")
 
     await play.store.commit_turn(
         cid, f"fixture-{state.revision}", state.revision, "fixture", commit

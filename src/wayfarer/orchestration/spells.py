@@ -3,7 +3,7 @@
 import json
 
 from wayfarer.errors import AuthorizationError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
@@ -86,18 +86,16 @@ class SpellService:
 
         execution = SpellExecutionContext(play.rules_context, self.resolve)
 
-        def reduce(campaign: Campaign) -> Event:
+        def reduce(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
             updated, result = reduce_spell(before, command, execution)
             updated = play.checkpoint(updated, before=before)
             play.commit(campaign, updated)
             result = _recorded_spell_result(updated, command)
             # Roll targets, opposed traces, and bindings stay in the private ledger.
-            return Event(
-                input=payload,
+            return CommandReceipt(
                 action="resource",
                 outcome="spell:" + apparent_result(updated.resources, command, result).outcome,
-                roll=None,
             )
 
         committed = await commit_command(

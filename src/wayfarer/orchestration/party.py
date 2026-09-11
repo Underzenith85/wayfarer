@@ -8,7 +8,7 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event, Id
+from wayfarer.models import Campaign, CommandReceipt, Id
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.noncombat import NoncombatCommand, NoncombatService
 from wayfarer.orchestration.play import PlayService
@@ -485,10 +485,10 @@ class PartyService:
             {"operation": "party", "command": command.model_dump(mode="json")}, sort_keys=True
         )
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             state = self.reduce(self.play._load(campaign), command)
             self.play.commit(campaign, state)
-            return Event(input=payload, action="party", outcome=command.kind, roll=None)
+            return CommandReceipt(action="party", outcome=command.kind)
 
         committed = await commit_command(
             self.play.store,

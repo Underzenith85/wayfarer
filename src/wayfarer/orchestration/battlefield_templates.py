@@ -187,7 +187,7 @@ async def migrate_embedded_maps(
 ) -> Campaign:
     import json
 
-    from wayfarer.models import Event
+    from wayfarer.models import CommandReceipt
     from wayfarer.orchestration.entropy import commit_command
 
     play = play.for_campaign(await play.store.read(cid))
@@ -205,7 +205,7 @@ async def migrate_embedded_maps(
         sort_keys=True,
     )
 
-    def resolve(campaign: Campaign) -> Event:
+    def resolve(campaign: Campaign) -> CommandReceipt:
         bound, state = lift_embedded(campaign, play, command_id=command_id, actor_id=actor_id)
         state = state.model_copy(
             update={
@@ -214,7 +214,7 @@ async def migrate_embedded_maps(
             }
         )
         bound.commit(campaign, state)
-        return Event(input=payload, action="combat", outcome="Map templates migrated", roll=None)
+        return CommandReceipt(action="combat", outcome="Map templates migrated")
 
     result = await commit_command(
         play.store,

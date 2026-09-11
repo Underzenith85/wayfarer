@@ -15,7 +15,7 @@ from test_tactical import setup as hex_setup
 from test_wave14 import Table
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.combat import (
     CombatContext,
@@ -74,7 +74,7 @@ async def test_legacy_command_metadata_migrates_without_inventing_a_seed(tmp_pat
     path = tmp_path / "legacy.sqlite"
     initial = campaign(engine())
     initial["revision"] = 1
-    event = Event(input="legacy", action="ask", outcome="old", roll=None)
+    event = CommandReceipt(action="legacy", outcome="old")
     with closing(sqlite3.connect(path)) as db, db:
         db.execute("CREATE TABLE campaigns (id TEXT PRIMARY KEY, state TEXT NOT NULL)")
         db.execute("INSERT INTO campaigns VALUES (?, ?)", (initial["id"], json.dumps(initial)))
@@ -116,11 +116,11 @@ async def test_independent_campaigns_have_independent_streams(tmp_path: Path) ->
     await store.insert(initial)
     await store.insert(other)
 
-    def reduce(state: Campaign) -> Event:
+    def reduce(state: Campaign) -> CommandReceipt:
         # Separate handles, as with a reducer and its checkpoint hook, share one stream.
         draws = draw_dice(CommandRandom()) + draw_dice(CommandRandom())
         state["revision"] += 1
-        return Event(input="draws", action="ask", outcome=json.dumps(draws), roll=None)
+        return CommandReceipt(action="legacy", outcome=json.dumps(draws))
 
     await asyncio.gather(
         *(
@@ -270,7 +270,7 @@ async def test_scope_resets_on_failure_and_explicit_test_rng_is_not_seed_replay(
     await store.insert(initial)
     handle = CommandRandom()
 
-    def fail(state: Campaign) -> Event:
+    def fail(state: Campaign) -> CommandReceipt:
         draw_dice(handle)
         raise ValidationError("injected failure")
 
@@ -280,10 +280,10 @@ async def test_scope_resets_on_failure_and_explicit_test_rng_is_not_seed_replay(
     with pytest.raises(ValidationError, match="command scope"):
         draw_dice(handle)
 
-    def succeed(state: Campaign) -> Event:
+    def succeed(state: Campaign) -> CommandReceipt:
         assert draw_dice(handle) == (1, 2, 3)
         state["revision"] += 1
-        return Event(input="succeeded", action="ask", outcome="done", roll=None)
+        return CommandReceipt(action="legacy", outcome="done")
 
     await commit_command(
         store, initial["id"], "succeeded", 0, "succeeded", succeed, rng=RecordedDice((1, 2, 3))

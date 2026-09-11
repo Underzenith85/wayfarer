@@ -210,7 +210,7 @@ campaign events; the scenario catalog remains a separate aggregate.
 | `checkpoint_digests` | Atomic state hashes authenticating cached revisions |
 | `snapshots` | Optional format-2 checkpoint and event-projection caches |
 | `campaigns` | Stable identity/lock row and replaceable periodic cache |
-| `events` | Legacy transcript receipts retained for compatibility |
+| `events` | Compatibility receipt index; new entries have only family and result |
 | `narration_stream` | Non-authoritative legacy-service narration keyed by message |
 | `narration_migrations` | One-time import markers for old flavor text |
 
@@ -239,8 +239,11 @@ it migrates. Defaulted additions need no migration. Writers use each kind's curr
 version; stream consumers receive its normalized current version. Command receipts
 use the same registry mechanism before being returned by `history`.
 
-Version 1 is the first persisted event and command shape; no fictional historical
-shape is introduced. `tests/fixtures/retained_schemas.json` freezes the retained
+Event schemas remain at version 1. Command schema 2 removes transcript input and
+roll fields from receipts. The v1-to-v2 reader retains the command input in its
+dedicated field and reads the remaining family/result metadata. New writes reject
+extra transcript fields. This is a storage shape migration, not engine code
+versioning. `tests/fixtures/retained_schemas.json` freezes the retained
 versions and a real fold checkpoint. Release evidence lists those versions and
 rejects any missing reader. Structural migration tests exercise ordered rename and
 restructure steps and both adapters through the shared registry.

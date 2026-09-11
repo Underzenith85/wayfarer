@@ -14,7 +14,7 @@ import pytest_asyncio
 from aiohttp import web
 from test_actions import Dice, actor_setup, campaign, engine, resource_seed, world
 
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
@@ -310,7 +310,7 @@ async def test_revocation_barrier_clears_stream_and_receipt_access(
         ws, _ = await connect(client, base, cid)
         raw = await service.play.store.read(cid)
 
-        def revoke(campaign: Campaign) -> Event:
+        def revoke(campaign: Campaign) -> CommandReceipt:
             state = service.play._load(campaign)
             state = state.model_copy(
                 update={
@@ -322,7 +322,7 @@ async def test_revocation_barrier_clears_stream_and_receipt_access(
                 }
             )
             campaign["play_json"], campaign["revision"] = state.model_dump_json(), state.revision
-            return Event(input="revoke", action="v1-membership", outcome="revoked", roll=None)
+            return CommandReceipt(action="v1-membership", outcome="revoked")
 
         await service.play.store.commit_turn(cid, uid(), raw["revision"], "revoke", revoke)
         async with asyncio.timeout(5):
