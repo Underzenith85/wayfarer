@@ -37,8 +37,10 @@ async def test_atomic_stream_fold_retry_and_schema(tmp_path: Path, backend: str)
     state = fold(initial, [e.event for e in stream])
     assert document(state) == document(await play.store.read(cid))
     assert document((await play.store.stream_states(cid))[-1][0]) == document(state)
-    schema = json.loads((Path(__file__).parents[1] / "contracts/v1/events.schema.json").read_text())
-    validator = Draft202012Validator({"$defs": schema["$defs"], "$ref": "#/$defs/EngineEvent"})
+    schema = json.loads(
+        (Path(__file__).parents[1] / "contracts/v1/engine-events.schema.json").read_text()
+    )
+    validator = Draft202012Validator(schema)
     for event in stream:
         validator.validate(json.loads(EVENT_ADAPTER.dump_json(event.event)))
     await access.execute(cid, command.model_dump(mode="json"), principal_id="alice")

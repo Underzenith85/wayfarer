@@ -145,13 +145,17 @@ def validate_contract(
 def validate_engine_events() -> None:
     from wayfarer.simulation.events import EVENT_ADAPTER
 
-    schema = mapping(read(ROOT / "events.schema.json"))
+    schema = mapping(read(ROOT / "engine-events.schema.json"))
     Draft202012Validator.check_schema(schema)
     expected = EVENT_ADAPTER.json_schema()
-    definitions = expected.pop("$defs")
-    actual = mapping(schema["$defs"])
-    if actual["EngineEvent"] != expected or any(actual.get(k) != v for k, v in definitions.items()):
-        raise ValueError("Engine event schema changed; regenerate and review events.schema.json")
+    actual = {k: v for k, v in schema.items() if k not in ("$schema", "$id")}
+    actual["$defs"] = {
+        k: v for k, v in mapping(actual["$defs"]).items() if k != "StoredEngineEvent"
+    }
+    if actual != expected:
+        raise ValueError(
+            "Engine event schema changed; regenerate and review engine-events.schema.json"
+        )
 
 
 def main() -> None:

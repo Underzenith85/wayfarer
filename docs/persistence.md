@@ -127,8 +127,9 @@ reads no longer depend on command `state_after` columns or the snapshots table.
 This step retains the existing snapshot-based general load path; #419 demotes
 that cache after the replay gate and upcaster registry land.
 
-`contracts/v1/events.schema.json` defines `EngineEvent` and schema-version-1
-`StoredEngineEvent` alongside the unchanged live messages. The offline validator
+`contracts/v1/events.schema.json` links to the separately versioned
+`engine-events.schema.json`, defining the engine event union and schema-version-1
+`StoredEngineEvent`. The frozen live schema has no semantic changes. The offline validator
 checks the definitions against the runtime models; schema changes require review.
 Run `uv run python -m scripts.update_engine_event_schema` to regenerate the
 engine definitions while preserving the wire definitions.

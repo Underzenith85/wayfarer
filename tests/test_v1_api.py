@@ -336,7 +336,7 @@ async def test_revocation_barrier_clears_stream_and_receipt_access(
 
 async def test_runtime_schema_copies_match_frozen_sources() -> None:
     root = Path(__file__).resolve().parents[1]
-    for name in ("openapi.json", "schemas.json", "events.schema.json"):
+    for name in ("openapi.json", "schemas.json", "events.schema.json", "engine-events.schema.json"):
         assert json.loads((root / "contracts/v1" / name).read_text()) == json.loads(
             (root / "src/wayfarer/transport/v1" / name).read_text()
         )
