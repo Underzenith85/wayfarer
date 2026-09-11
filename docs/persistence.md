@@ -65,6 +65,27 @@ architecture gate rejects clock imports in simulation and clock reads in command
 resolver callbacks and their local helpers. The comprehensive command re-execution
 gate remains part of #418.
 
+## Command origins (#412)
+
+Model-originated commands carry an optional private `origin_json` annotation with
+schema version, validated proposal type and JSON, provider/model identifiers, and
+a SHA-256 digest of the canonical proposal. Only structured, validated proposals
+are retained; credentials, account details, provider envelopes and raw output are
+excluded. Custom providers identify themselves as `custom` with an unknown model
+unless they supply these bounded fields. Responses and Codex adapters supply their
+configured model and provider identifiers.
+
+Origins do not participate in command digests, engine inputs, campaign state,
+projections or narration. Exact retries preserve the winning annotation. Direct
+client commands have no origin. Orchestration forwards annotations through a
+scoped task-local boundary, reset even on failure. Director interpretation receipts
+and private v1 action records retain proposals before dispatch so recovery can
+attach the same origin without requesting another interpretation. Trusted NPC
+proposal callers use the same origin shape; authored NPC decisions have none.
+Draft-only provider operations do not commit commands and therefore create no
+command-origin rows. Replay consumes stored commands/state without calling a
+provider. SQLite/PostgreSQL migrations leave legacy origins null.
+
 ## Receipts and recovery
 
 Command IDs are unique per campaign. An exact retry returns the original result,

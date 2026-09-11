@@ -22,6 +22,7 @@ from wayfarer.orchestration.providers import (
     ProviderRequest,
     TurnResponse,
 )
+from wayfarer.persistence.events import CommandOrigin
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.director import DirectorTurn
 
@@ -62,7 +63,9 @@ class DirectorService:
         self.access = orchestrator.access
         self.play = self.access.play
 
-    async def _save(self, cid: str, turn: DirectorTurn, revision: int) -> None:
+    async def _save(
+        self, cid: str, turn: DirectorTurn, revision: int, *, origin: CommandOrigin | None = None
+    ) -> None:
         payload = turn.model_dump_json()
         key = "director:" + hashlib.sha256(payload.encode()).hexdigest()[:64]
 
@@ -81,6 +84,7 @@ class DirectorService:
             resolve,
             actor_id=turn.actor_id,
             rng=self.play.rng,
+            origin=origin,
         )
 
     async def run(
@@ -230,17 +234,16 @@ class DirectorService:
             await self._save(cid, turn, revision)
             return None
         try:
-            intent = Intent.model_validate_json(
-                await self.llm._call(
-                    ProviderRequest(
-                        operation="intent",
-                        session_id=session,
-                        context_json=context,
-                        prompt=text,
-                        output_schema=Intent.model_json_schema(),
-                    )
+            reply = await self.llm._reply(
+                ProviderRequest(
+                    operation="intent",
+                    session_id=session,
+                    context_json=context,
+                    prompt=text,
+                    output_schema=Intent.model_json_schema(),
                 )
             )
+            intent = Intent.model_validate_json(reply.payload_json)
             command = intent.command(
                 "turn:" + hashlib.sha256(command_id.encode()).hexdigest()[:64],
                 actor_id,
@@ -270,7 +273,14 @@ class DirectorService:
                 activity_json=json.dumps(command),
             ).model_dump(mode="json")
         turn = turn.model_copy(update={"command_json": json.dumps(command), "phase": "resolution"})
-        await self._save(cid, turn, revision)
+        await self._save(
+            cid,
+            turn,
+            revision,
+            origin=CommandOrigin.proposal(
+                "Intent", intent.model_dump(mode="json"), provider=reply.provider, model=reply.model
+            ),
+        )
         if checkpoint:
             checkpoint("resolution")
         return None
@@ -302,7 +312,16 @@ class DirectorService:
                 await self._save(cid, turn, state.revision)
                 return None
             try:
-                await self.access.execute(cid, command, principal_id=principal_id)
+                origin = next(
+                    (
+                        e.origin
+                        for e in history
+                        if e.resulting_revision == command["expected_revision"]
+                        and e.event["action"] == "director"
+                    ),
+                    None,
+                )
+                await self.access.execute(cid, command, principal_id=principal_id, origin=origin)
             except (ValidationError, ConflictError, AuthorizationError) as exc:
                 current = self.play._load(await self.play.store.read(cid))
                 turn = turn.model_copy(update={"phase": "clarification", "narration": str(exc)})
