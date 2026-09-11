@@ -33,6 +33,7 @@ from wayfarer.simulation.resources import EquipmentSpec, ResourceEngine, Resourc
 
 Nonnegative = Annotated[int, Field(ge=0)]
 Positive = Annotated[int, Field(ge=1)]
+Money = Annotated[Decimal | int, Field(ge=0, allow_inf_nan=False)]
 DamageType = Literal["cr", "cut", "imp", "pi-", "pi", "pi+", "pi++", "burn", "cor", "tox", "fat"]
 Location = HumanLocation | Literal["arms", "hands", "legs", "feet", "eyes"]
 
@@ -287,7 +288,7 @@ class EquipmentProfile(Record):
     definition_id: Id
     provenance: Provenance
     weight_millipounds: Nonnegative
-    price: Nonnegative
+    price: Money
     technology_level: Nonnegative
     slot: Id | None = None
     ammunition: bool = False
