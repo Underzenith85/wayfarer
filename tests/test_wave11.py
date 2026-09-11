@@ -432,7 +432,8 @@ async def test_invalid_typed_turn_can_be_corrected(tmp_path: Path) -> None:
 async def test_explicit_question_cannot_be_interpreted_as_mutation(tmp_path: Path) -> None:
     cid, play = await prepare(tmp_path)
     provider = FakeProvider(payload='{"kind":"wait","ticks":100}')
-    result = await DirectorService(Orchestrator(CampaignAccess(play), provider)).run(
+    director = DirectorService(Orchestrator(CampaignAccess(play), provider))
+    result = await director.run(
         cid,
         principal_id="alice",
         actor_id="a",
@@ -442,6 +443,7 @@ async def test_explicit_question_cannot_be_interpreted_as_mutation(tmp_path: Pat
     )
     assert not result.committed
     assert play._load(await play.store.read(cid)).resources.game_time == 0
+    await director.llm.jobs.drain()
     assert [r.operation for r in provider.requests] == ["narration"]
 
 
