@@ -16,11 +16,13 @@ from wayfarer.persistence.events import (
     CommandRecord,
     CommandResolution,
     StoredEvent,
+    command_scenario,
     payload_digest,
     upcast_command,
 )
 from wayfarer.persistence.upcasters import EVENT_UPCASTERS, read_event
 from wayfarer.simulation.events import EVENT_ADAPTER, EngineEvent, command_events, document, fold
+from wayfarer.simulation.scenario_document import ScenarioBoundary
 
 SNAPSHOT_INTERVAL = 10
 
@@ -92,6 +94,7 @@ class AsyncPostgresStore:
             "recorded_at_us",
             "origin_json",
             "command_input",
+            "scenario_boundary_json",
         ):
             if column not in columns:
                 kind = "BIGINT" if column == "recorded_at_us" else "TEXT"
@@ -218,8 +221,8 @@ class AsyncPostgresStore:
                     """INSERT INTO command_log (
                         campaign, command_id, actor_id, expected_revision,
                         resulting_revision, payload_hash, rules_version,
-                        schema_version, event, state_after, entropy_seed, engine_version, rng_algorithm, recorded_at_us, origin_json, command_input
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s::jsonb, %s, %s, %s, %s, %s, %s)""",
+                        schema_version, event, state_after, entropy_seed, engine_version, rng_algorithm, recorded_at_us, origin_json, command_input, scenario_boundary_json
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s::jsonb, %s, %s, %s, %s, %s, %s, %s)""",
                     (
                         cid,
                         request_id,
@@ -237,6 +240,7 @@ class AsyncPostgresStore:
                         recorded_at_us,
                         origin.model_dump_json() if origin else None,
                         text,
+                        command_scenario(state),
                     ),
                 )
                 if state["revision"] % SNAPSHOT_INTERVAL == 0:
@@ -271,7 +275,7 @@ class AsyncPostgresStore:
         try:
             cursor = await db.execute(
                 """SELECT command_id, actor_id, expected_revision, resulting_revision,
-                          payload_hash, rules_version, schema_version, event, state_after, entropy_seed, engine_version, rng_algorithm, recorded_at_us, origin_json, command_input
+                          payload_hash, rules_version, schema_version, event, state_after, entropy_seed, engine_version, rng_algorithm, recorded_at_us, origin_json, command_input, scenario_boundary_json
                    FROM command_log WHERE campaign=%s ORDER BY resulting_revision""",
                 (cid,),
             )
@@ -305,6 +309,9 @@ class AsyncPostgresStore:
             rng_algorithm=validation.string(row[11]) if row[11] is not None else None,
             recorded_at_us=validation.integer(row[12]) if row[12] is not None else None,
             command_input=validation.string(row[14]) if row[14] is not None else None,
+            scenario_boundary=ScenarioBoundary.model_validate_json(validation.string(row[15]))
+            if row[15] is not None
+            else None,
             origin=CommandOrigin.model_validate_json(validation.string(row[13]))
             if row[13] is not None
             else None,

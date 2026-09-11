@@ -21,6 +21,7 @@ from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.studio import ScenarioStudio
 from wayfarer.rules.catalog import reference
 from wayfarer.simulation.access import CampaignMember
+from wayfarer.simulation.scenario_document import PublishedRevision
 from wayfarer.simulation.setup import CreateSetup, Seat, Setup, SetupCommand
 
 if TYPE_CHECKING:
@@ -153,8 +154,17 @@ def _continue_setup(
     from wayfarer.orchestration.continuation import prepare
 
     graph, state = prepare(play, campaign, setup, setup.next_graph)
-    campaign["play_json"] = state.model_dump_json()
-    campaign["scenario_graph_json"] = graph.model_dump_json()
+    from wayfarer.orchestration.scenario_references import pin_scenario
+
+    configured = ScenarioStudio(play, npc_reviewer=play.engine.reviewer).engine(graph)
+    pin_scenario(
+        campaign,
+        graph,
+        runtime_digest=configured.digest,
+        command_id="setup:" + command.id,
+        campaign_revision=command.expected_revision + 1,
+    )
+    PlayService(play.store, configured, rng=play.rng).commit(campaign, state)
     campaign["scenario"]["title"] = graph.title
     setup = setup.model_copy(
         update={
@@ -208,8 +218,20 @@ def _activate_setup(
         if gm not in {s.principal_id for s in seats}
     )
     state = activated.initial_state(seed, graph.world, graph.resources, graph.actors, members)
-    campaign["play_json"] = state.model_dump_json()
-    campaign["scenario_graph_json"] = graph.model_dump_json()
+    from wayfarer.orchestration.scenario_references import pin_scenario
+    from wayfarer.simulation.scenario_references import boundary
+
+    prior = boundary(campaign)
+    pin_scenario(
+        campaign,
+        graph,
+        runtime_digest=activated.engine.digest,
+        command_id="setup:" + command.id,
+        campaign_revision=command.expected_revision + 1,
+        published=prior.published if prior else None,
+        catalog_id=prior.reference.catalog_id if prior else None,
+    )
+    activated.commit(campaign, state)
     campaign["scenario"]["title"] = graph.title
     setup = setup.model_copy(update={"phase": "active"})
     return campaign, setup.model_copy(update={"seats": tuple(seats)})
@@ -301,7 +323,7 @@ def reduce_setup(
             }
         )
     setup = setup.model_copy(update={"seats": tuple(seats)})
-    revision = campaign["revision"] + 1
+    revision = before["revision"] + 1
     if "play_json" in campaign:
         from wayfarer.simulation.actions import PlayState
 
@@ -320,7 +342,7 @@ def reduce_setup(
                 ),
             }
         )
-        campaign["play_json"] = state.model_dump_json()
+        context.play.for_campaign(campaign).commit(campaign, state)
     campaign["revision"] = revision
     campaign["setup_json"] = setup.model_dump_json()
     campaign["complete"] = setup.phase in ("completed", "archived")
@@ -349,7 +371,13 @@ class SetupService:
         return seat
 
     async def create(
-        self, command: CreateSetup, *, principal_id: str, document_json: str | None = None
+        self,
+        command: CreateSetup,
+        *,
+        principal_id: str,
+        document_json: str | None = None,
+        published: PublishedRevision | None = None,
+        catalog_id: str | None = None,
     ) -> dict[str, object]:
         cid = str(uuid5(NAMESPACE_URL, json.dumps([principal_id, command.id])))
         # Existing creation receipts predate profile selection; keep their payload bytes.
@@ -402,6 +430,29 @@ class SetupService:
         )
         if document_json is not None:
             campaign["scenario_document_json"] = document_json
+            if command.graph is not None:
+                from wayfarer.orchestration.scenario_documents import ScenarioDocuments
+                from wayfarer.orchestration.scenario_references import pin_scenario
+
+                if published is None:
+                    documents = ScenarioDocuments(
+                        ScenarioStudio(play, npc_reviewer=play.engine.reviewer)
+                    )
+                    draft = documents.save_draft(
+                        document_json, draft_id="import", principal_id=principal_id
+                    )
+                    published = documents.publish(draft, principal_id=principal_id)
+                pin_scenario(
+                    campaign,
+                    command.graph,
+                    runtime_digest=ScenarioStudio(play, npc_reviewer=play.engine.reviewer)
+                    .engine(command.graph)
+                    .digest,
+                    command_id="setup:create",
+                    campaign_revision=0,
+                    published=published,
+                    catalog_id=catalog_id,
+                )
 
         from wayfarer import validation
 
@@ -418,6 +469,12 @@ class SetupService:
                 existing = campaign
         if self.load(existing).creation_json != payload:
             raise ConflictError("Creation identity already used for different input")
+        if catalog_id is not None:
+            from wayfarer.simulation.scenario_references import boundary
+
+            pin = boundary(existing)
+            if pin is not None and pin.reference.catalog_id != catalog_id:
+                raise ConflictError("Creation identity already pins another catalog")
         return await self.read(cid, principal_id=principal_id)
 
     async def listing(self, *, principal_id: str) -> list[dict[str, object]]:
@@ -432,6 +489,9 @@ class SetupService:
 
     async def read(self, cid: str, *, principal_id: str) -> dict[str, object]:
         campaign = await self.play.store.read(cid)
+        from wayfarer.simulation.scenario_references import verify
+
+        verify(campaign)
         setup = self.load(campaign)
         seat = self.seat(setup, principal_id)
         # The graph includes secrets. Only its author sees the editable graph.

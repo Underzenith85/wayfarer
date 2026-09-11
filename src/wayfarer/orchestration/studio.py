@@ -461,6 +461,24 @@ class ScenarioStudio:
                 raise ConflictError("Activation membership changed")
             return activated
         seed = campaign.copy()
-        seed["scenario_graph_json"] = graph.model_dump_json()
+        from wayfarer.orchestration.scenario_references import pin_scenario
+
+        published = None
+        if "scenario_document_json" in seed:
+            from wayfarer.orchestration.scenario_documents import ScenarioDocuments
+
+            documents = ScenarioDocuments(self)
+            draft = documents.save_draft(
+                seed["scenario_document_json"], draft_id="activation", principal_id=principal_id
+            )
+            published = documents.publish(draft, principal_id=principal_id)
+        pin_scenario(
+            seed,
+            graph,
+            runtime_digest=activated.engine.digest,
+            command_id="activate",
+            campaign_revision=0,
+            published=published,
+        )
         await activated.create(seed, graph.world, graph.resources, graph.actors, members)
         return activated

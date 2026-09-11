@@ -360,3 +360,10 @@ until every stored campaign has been snapshotted past it.
    the outbox as jobs.
 9. Fence, then retire, the wave-1 prototype resolver.
 10. Add the event upcaster registry before snapshots become a cache.
+
+
+Scenario stream implementation (#422): setup is the pre-play segment of the same
+receipt/event stream. Activation and continuation record scenario references and an
+adventure-local revision-zero boundary; the campaign CAS revision stays monotonic.
+Scenario graph and published-document caches are checked against that boundary on
+load. Setup no longer has an exception to the play checkpoint writer rule.

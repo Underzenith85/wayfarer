@@ -268,3 +268,25 @@ def parse_document(source: str) -> ScenarioDocumentBase:
 
         return SocialScenarioDocument.model_validate_json(source)
     return ScenarioDocument.model_validate_json(source)
+
+
+class ScenarioReference(Record):
+    """Immutable source identity; uncatalogued scenarios have a synthetic reference."""
+
+    catalog_id: Id | None = None
+    revision: int = Field(ge=1)
+    content_digest: Digest
+    engine_digest: Digest
+
+
+class ScenarioBoundary(Record):
+    """Adventure-local revision zero on a monotonic campaign stream."""
+
+    reference: ScenarioReference
+    graph_digest: Digest
+    runtime_digest: Digest
+    command_id: str
+    campaign_revision: int = Field(ge=0)
+    revision: Literal[0] = 0
+    segment: int = Field(ge=0)
+    published: PublishedRevision | None = None

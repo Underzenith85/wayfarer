@@ -15,7 +15,9 @@ from wayfarer.simulation.scenario_document import (
     Provenance,
     PublicBrief,
     PublishedRevision,
+    ScenarioBoundary,
     ScenarioDocument,
+    ScenarioReference,
 )
 
 ROOT = Path(__file__).resolve().parents[1] / "contracts" / "scenarios" / "v1"
@@ -67,6 +69,8 @@ def artifacts() -> dict[str, str]:
     )
     result = {}
     for name, model in (
+        ("reference", ScenarioReference),
+        ("boundary", ScenarioBoundary),
         ("document", ScenarioDocument),
         ("player", PlayerScenarioExport),
         ("draft", DraftRevision),

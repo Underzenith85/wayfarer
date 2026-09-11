@@ -220,3 +220,34 @@ snapshot. Retirement is blocked while any campaign lacks a snapshot at or past t
 last revision. Coverage is necessary, not permission to discard historical replay:
 retained fixture promises must also be explicitly reviewed before removal. Schema
 migration happens on read; stored stream rows are never rewritten.
+
+
+### Scenario boundaries and the pre-play segment (#422)
+
+New activations carry `ScenarioReference` (catalog ID, immutable published revision,
+content digest, engine digest). A `ScenarioBoundary` adds the runtime graph digest,
+runtime engine digest, command ID, segment number, and campaign revision at which
+the adventure starts. `revision: 0` is local to that adventure; the existing campaign
+revision remains monotonic for compare-and-set, receipts, outbox cursors, and retries.
+Activation is the transition from pre-play to adventure zero. Continuation starts the
+next segment without resetting the campaign stream or reusing receipt identities.
+
+Setup edit/invite/join/assign/ready/preview/activate/continue/complete operations already
+use command receipts and now share `PlayService.commit` for every play checkpoint.
+The single-writer architecture test no longer exempts setup. The initial lobby is the
+stream genesis; setup receipts are its pre-play segment, and activation is recorded
+in that same stream. Direct trusted studio activation carries its reference in genesis.
+
+The campaign's `scenario_reference_json` retains the boundary and immutable published
+source. Each command receipt also records `scenario_boundary_json` without duplicating
+that source. Catalog entries remain separate aggregates; later drafts cannot change
+a campaign's published source. Imported documents have no catalog ID. Bundled and
+runtime-authored graphs use a synthetic content digest. The copied graph is checked
+against its own digest because binding party characters changes it from the portable
+published document. Both source and runtime digests are verified before engine binding.
+Continuation pins the prepared next graph and clears the preceding portable-source
+cache; old segments remain verifiable through their earlier stream checkpoints.
+
+Legacy campaigns without a reference remain explicit legacy boundaries; the loader
+does not invent a catalog identity. New references and boundaries have published
+schemas under `contracts/scenarios/v1`.

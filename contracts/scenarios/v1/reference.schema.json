@@ -1,0 +1,43 @@
+{
+  "additionalProperties": false,
+  "description": "Immutable source identity; uncatalogued scenarios have a synthetic reference.",
+  "properties": {
+    "catalog_id": {
+      "anyOf": [
+        {
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Catalog Id"
+    },
+    "revision": {
+      "minimum": 1,
+      "title": "Revision",
+      "type": "integer"
+    },
+    "content_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Content Digest",
+      "type": "string"
+    },
+    "engine_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Engine Digest",
+      "type": "string"
+    }
+  },
+  "required": [
+    "revision",
+    "content_digest",
+    "engine_digest"
+  ],
+  "title": "ScenarioReference",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

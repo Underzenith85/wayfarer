@@ -1,0 +1,229 @@
+{
+  "$defs": {
+    "DocumentReport": {
+      "additionalProperties": false,
+      "properties": {
+        "content_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Content Digest",
+          "type": "string"
+        },
+        "engine_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Engine Digest",
+          "type": "string"
+        },
+        "party_digest": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Party Digest"
+        },
+        "status": {
+          "enum": [
+            "invalid",
+            "needs-party",
+            "playable"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "findings": {
+          "items": {
+            "$ref": "#/$defs/StudioFinding"
+          },
+          "title": "Findings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "content_digest",
+        "engine_digest",
+        "status",
+        "findings"
+      ],
+      "title": "DocumentReport",
+      "type": "object"
+    },
+    "PublishedRevision": {
+      "additionalProperties": false,
+      "description": "Immutable serialized snapshot; derived models cannot mutate the stored content.",
+      "properties": {
+        "scenario_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Scenario Id",
+          "type": "string"
+        },
+        "revision_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Revision Id",
+          "type": "string"
+        },
+        "revision": {
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "content_json": {
+          "title": "Content Json",
+          "type": "string"
+        },
+        "report": {
+          "$ref": "#/$defs/DocumentReport"
+        }
+      },
+      "required": [
+        "scenario_id",
+        "revision_id",
+        "revision",
+        "content_json",
+        "report"
+      ],
+      "title": "PublishedRevision",
+      "type": "object"
+    },
+    "ScenarioReference": {
+      "additionalProperties": false,
+      "description": "Immutable source identity; uncatalogued scenarios have a synthetic reference.",
+      "properties": {
+        "catalog_id": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Catalog Id"
+        },
+        "revision": {
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "content_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Content Digest",
+          "type": "string"
+        },
+        "engine_digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Engine Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "revision",
+        "content_digest",
+        "engine_digest"
+      ],
+      "title": "ScenarioReference",
+      "type": "object"
+    },
+    "StudioFinding": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "severity": {
+          "enum": [
+            "error",
+            "warning"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "reference": {
+          "title": "Reference",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "severity",
+        "reference",
+        "message"
+      ],
+      "title": "StudioFinding",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Adventure-local revision zero on a monotonic campaign stream.",
+  "properties": {
+    "reference": {
+      "$ref": "#/$defs/ScenarioReference"
+    },
+    "graph_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Graph Digest",
+      "type": "string"
+    },
+    "runtime_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Runtime Digest",
+      "type": "string"
+    },
+    "command_id": {
+      "title": "Command Id",
+      "type": "string"
+    },
+    "campaign_revision": {
+      "minimum": 0,
+      "title": "Campaign Revision",
+      "type": "integer"
+    },
+    "revision": {
+      "const": 0,
+      "default": 0,
+      "title": "Revision",
+      "type": "integer"
+    },
+    "segment": {
+      "minimum": 0,
+      "title": "Segment",
+      "type": "integer"
+    },
+    "published": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PublishedRevision"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "reference",
+    "graph_digest",
+    "runtime_digest",
+    "command_id",
+    "campaign_revision",
+    "segment"
+  ],
+  "title": "ScenarioBoundary",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

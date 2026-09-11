@@ -104,6 +104,9 @@ class PlayService:
             self.engine.resources.for_world(graph.world),
             graph.runtime_rules(),
         )
+        from wayfarer.simulation.scenario_references import verify
+
+        verify(campaign, runtime_digest=engine.digest)
         if (
             engine.digest == self.engine.digest
             and engine.resources.actors == self.engine.resources.actors
@@ -299,6 +302,9 @@ class PlayService:
         return state
 
     def _load(self, campaign: Campaign) -> PlayState:
+        from wayfarer.simulation.scenario_references import verify
+
+        verify(campaign, runtime_digest=self.engine.digest)
         if campaign.get("rules_ref") != reference(self.engine.resources.rules):
             raise ValidationError("Campaign rules do not match the play engine")
         raw = campaign.get("play_json")

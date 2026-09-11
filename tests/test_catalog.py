@@ -169,6 +169,14 @@ async def test_catalog_restart_revisions_isolation(config: Settings) -> None:
         assert await response.text() == exported
         assert await post(client, "", command) == entry
         for game in (game1, game2):
+            from wayfarer.simulation.scenario_references import boundary, verify
+
+            saved = await client.app[ACCESS_KEY].play.store.read(str(game["id"]))
+            pin = boundary(saved)
+            assert pin is not None and pin.reference.catalog_id == cid
+            assert pin.reference.revision == 1 and pin.published is not None
+            assert pin.published.content_json == exported
+            verify(saved)
             game_id = str(game["id"])
             steps: list[dict[str, object]] = [
                 {"operation": "assign", "principal_id": "alice", "actor_ids": ["mira"]},

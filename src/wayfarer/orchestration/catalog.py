@@ -244,6 +244,8 @@ class ScenarioCatalog:
             CreateSetup(id=command.id, brief=graph.brief, graph=graph),
             principal_id=principal,
             document_json=source,
+            published=revision.published,
+            catalog_id=cid,
         )
 
     async def create_generation_job(
