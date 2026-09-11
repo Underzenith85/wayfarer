@@ -3851,6 +3851,61 @@
             "title": "Resistance",
             "type": "integer"
           },
+          "resistance_bonus": {
+            "default": 0,
+            "title": "Resistance Bonus",
+            "type": "integer"
+          },
+          "survival": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Survival"
+          },
+          "treatment_bonus": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Treatment Bonus",
+            "type": "integer"
+          },
+          "symptoms": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Symptoms",
+            "type": "integer"
+          },
+          "full_hp": {
+            "default": 10,
+            "minimum": 1,
+            "title": "Full Hp",
+            "type": "integer"
+          },
+          "affliction_until": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Affliction Until",
+            "type": "integer"
+          },
+          "immune": {
+            "default": false,
+            "title": "Immune",
+            "type": "boolean"
+          },
+          "diagnosed_by": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Diagnosed By",
+            "type": "array"
+          },
           "active": {
             "default": true,
             "title": "Active",
@@ -3875,7 +3930,8 @@
               "cycles",
               "struggling",
               "recovering",
-              "swimming"
+              "swimming",
+              "rescued"
             ],
             "title": "Stage",
             "type": "string"
@@ -4005,6 +4061,53 @@
             "minLength": 1,
             "title": "Reference",
             "type": "string"
+          },
+          "variant": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Variant"
+          },
+          "affliction": {
+            "default": "none",
+            "enum": [
+              "none",
+              "coughing",
+              "blindness",
+              "paralysis",
+              "retching",
+              "seizure"
+            ],
+            "title": "Affliction",
+            "type": "string"
+          },
+          "affliction_seconds": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Affliction Seconds",
+            "type": "integer"
+          },
+          "duration_per_margin": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Duration Per Margin",
+            "type": "integer"
+          },
+          "bacterial": {
+            "default": false,
+            "title": "Bacterial",
+            "type": "boolean"
+          },
+          "drug_resistant": {
+            "default": false,
+            "title": "Drug Resistant",
+            "type": "boolean"
           },
           "recovery_successes": {
             "default": 1,
@@ -4310,7 +4413,8 @@
               "acute_taste_smell": 0,
               "acute_touch": 0,
               "acute_vision": 0,
-              "healing": 0
+              "healing": 0,
+              "temperature_tolerance": 0
             }
           },
           "surprise": {
@@ -5850,6 +5954,13 @@
             "maximum": 2,
             "minimum": 0,
             "title": "Healing",
+            "type": "integer"
+          },
+          "temperature_tolerance": {
+            "default": 0,
+            "maximum": 100,
+            "minimum": 0,
+            "title": "Temperature Tolerance",
             "type": "integer"
           }
         },
