@@ -206,6 +206,26 @@ class CombatStep:
     defense_before: Encounter | None = None
 
 
+def _elapsed_combat_ticks(prior: Encounter | None, encounter: Encounter) -> int:
+    """Return newly settled shared seconds without flattening actor-relative turns.
+
+    A completed initiative cycle settles one shared second.  If combat ends because
+    a turn completed partway through a cycle, that final one-second turn must also
+    settle; otherwise a decisive first action would consume no world time.  A GM
+    ending combat without another turn remains a zero-time lifecycle operation.
+    """
+    if prior is None:
+        return 0
+    ticks = max(0, encounter.round - prior.round)
+    completed_during_partial_cycle = (
+        prior.status == "active"
+        and encounter.status == "completed"
+        and encounter.round == prior.round
+        and encounter.turn_index != prior.turn_index
+    )
+    return ticks + int(completed_during_partial_cycle)
+
+
 def _prepare_command(
     state: PlayState, command: TypedCombatCommand, context: CombatContext
 ) -> tuple[PlayState, TypedCombatCommand, CombatContext]:
@@ -1649,9 +1669,7 @@ def _finish_combat(
         if group.ready_through > resources.game_time:
             raise ConflictError("Combat waits at the shared-time barrier")
         prior = next((e for e in state.encounters if e.id == encounter.id), None)
-        ticks = (
-            max(0, encounter.round - prior.round) if prior is not None else 0
-        ) + blast_deferred_ticks
+        ticks = _elapsed_combat_ticks(prior, encounter) + blast_deferred_ticks
         from wayfarer.simulation.explosions import defer_round
 
         resources, ticks = defer_round(resources, encounter.id, ticks, command.id)
@@ -1671,9 +1689,7 @@ def _finish_combat(
         or play.engine.rules.abilities
     ):
         prior = next((e for e in state.encounters if e.id == encounter.id), None)
-        ticks = (
-            max(0, encounter.round - prior.round) if prior is not None else 0
-        ) + blast_deferred_ticks
+        ticks = _elapsed_combat_ticks(prior, encounter) + blast_deferred_ticks
         from wayfarer.simulation.explosions import defer_round
 
         resources, ticks = defer_round(resources, encounter.id, ticks, command.id)
