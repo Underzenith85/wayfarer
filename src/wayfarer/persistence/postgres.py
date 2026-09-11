@@ -2,6 +2,7 @@
 
 import json
 from collections.abc import Callable
+from copy import deepcopy
 
 import psycopg
 
@@ -12,9 +13,12 @@ from wayfarer.persistence.events import (
     EVENT_SCHEMA_VERSION,
     CommandEntropy,
     CommandOrigin,
+    CommandRecord,
+    CommandResolution,
     StoredEvent,
     payload_digest,
 )
+from wayfarer.simulation.events import EVENT_ADAPTER, EngineEvent, command_events, document, fold
 
 SNAPSHOT_INTERVAL = 10
 
@@ -61,6 +65,18 @@ class AsyncPostgresStore:
                 revision BIGINT NOT NULL,
                 state JSONB NOT NULL,
                 PRIMARY KEY(campaign, revision)
+            )"""
+        )
+        await db.execute(
+            """CREATE TABLE IF NOT EXISTS stream_genesis (
+                campaign TEXT PRIMARY KEY, revision BIGINT NOT NULL, state TEXT NOT NULL
+            )"""
+        )
+        await db.execute(
+            """CREATE TABLE IF NOT EXISTS event_stream (
+                campaign TEXT NOT NULL, revision BIGINT NOT NULL, ordinal INTEGER NOT NULL,
+                command_id TEXT NOT NULL, schema_version INTEGER NOT NULL, event TEXT NOT NULL,
+                PRIMARY KEY(campaign, revision, ordinal)
             )"""
         )
         cursor = await db.execute(
@@ -163,7 +179,7 @@ class AsyncPostgresStore:
         request_id: str,
         revision: int,
         text: str,
-        resolve: Callable[[Campaign], Event],
+        resolve: Callable[[Campaign], Event | CommandResolution],
         *,
         actor_id: str = "system",
         entropy: CommandEntropy | None = None,
@@ -179,7 +195,18 @@ class AsyncPostgresStore:
                     return {"kind": "replayed", "state": duplicate}
                 if state["revision"] != revision:
                     raise ConflictError("Campaign changed. Refresh before retrying.")
-                event = resolve(state)
+                await self._ensure_stream(db, cid)
+                before = deepcopy(state)
+                resolved = resolve(state)
+                event = resolved.transcript if isinstance(resolved, CommandResolution) else resolved
+                emitted = (
+                    resolved.events
+                    if isinstance(resolved, CommandResolution)
+                    else command_events(before, state, event, actor_id)
+                )
+                if not emitted or document(fold(before, emitted)) != document(state):
+                    raise StorageError("Command events do not reproduce the committed state")
+                await self._append_events(db, cid, request_id, state["revision"], emitted)
                 await db.execute(
                     "UPDATE campaigns SET state=%s::jsonb WHERE id=%s",
                     (json.dumps(state), cid),
@@ -235,7 +262,7 @@ class AsyncPostgresStore:
         finally:
             await db.close()
 
-    async def history(self, cid: str) -> list[StoredEvent]:
+    async def history(self, cid: str) -> list[CommandRecord]:
         db = await self._connect()
         try:
             cursor = await db.execute(
@@ -250,7 +277,7 @@ class AsyncPostgresStore:
             await db.close()
 
     @staticmethod
-    def _stored(cid: str, row: tuple[object, ...]) -> StoredEvent:
+    def _stored(cid: str, row: tuple[object, ...]) -> CommandRecord:
         event_data = validation.mapping(row[7])
         event = Event(
             input=validation.string(event_data["input"]),
@@ -258,7 +285,7 @@ class AsyncPostgresStore:
             outcome=validation.string(event_data["outcome"]),
             roll=None if event_data["roll"] is None else validation.roll(event_data["roll"]),
         )
-        return StoredEvent(
+        return CommandRecord(
             campaign_id=cid,
             command_id=validation.string(row[0]),
             actor_id=validation.string(row[1]),
@@ -302,3 +329,126 @@ class AsyncPostgresStore:
             return state
         finally:
             await db.close()
+
+    @staticmethod
+    async def _append_events(
+        db: psycopg.AsyncConnection[tuple[object, ...]],
+        cid: str,
+        command_id: str,
+        revision: int,
+        events: list[EngineEvent],
+    ) -> None:
+        cursor = await db.execute(
+            "SELECT COALESCE(MAX(ordinal) + 1, 0) FROM event_stream WHERE campaign=%s AND revision=%s",
+            (cid, revision),
+        )
+        row = await cursor.fetchone()
+        assert row is not None
+        offset = int(str(row[0]))
+        for ordinal, event in enumerate(events, start=offset):
+            await db.execute(
+                "INSERT INTO event_stream (campaign, revision, ordinal, command_id, schema_version, event) VALUES (%s, %s, %s, %s, %s, %s)",
+                (
+                    cid,
+                    revision,
+                    ordinal,
+                    command_id,
+                    EVENT_SCHEMA_VERSION,
+                    EVENT_ADAPTER.dump_json(event).decode(),
+                ),
+            )
+
+    async def _ensure_stream(
+        self, db: psycopg.AsyncConnection[tuple[object, ...]], cid: str
+    ) -> None:
+        cursor = await db.execute("SELECT campaign FROM stream_genesis WHERE campaign=%s", (cid,))
+        if await cursor.fetchone() is not None:
+            return
+        cursor = await db.execute(
+            "SELECT revision, state FROM snapshots WHERE campaign=%s ORDER BY revision LIMIT 1",
+            (cid,),
+        )
+        initial = await cursor.fetchone()
+        if initial is None:
+            # Pre-event-store databases may have only their current campaign row.
+            # Preserve that explicit boundary; earlier state cannot be invented.
+            before = await self._read(db, cid)
+            revision = before["revision"]
+        else:
+            revision = int(str(initial[0]))
+            before = self._campaign(initial[1])
+        await db.execute(
+            "INSERT INTO stream_genesis (campaign, revision, state) VALUES (%s, %s, %s)",
+            (cid, revision, json.dumps(before)),
+        )
+        cursor = await db.execute(
+            "SELECT command_id, actor_id, resulting_revision, event, state_after FROM command_log WHERE campaign=%s AND resulting_revision>%s ORDER BY resulting_revision",
+            (cid, revision),
+        )
+        for row in await cursor.fetchall():
+            after = self._campaign(row[4])
+            transcript = self._stream_transcript(row[3])
+            events = command_events(before, after, transcript, str(row[1]))
+            await self._append_events(db, cid, str(row[0]), int(str(row[2])), events)
+            before = after
+
+    async def stream_states(
+        self, cid: str, *, through: int | None = None
+    ) -> list[tuple[Campaign, tuple[StoredEvent, ...]]]:
+        """Rebuild each retained revision from genesis and the dedicated stream."""
+        db = await self._connect()
+        try:
+            await db.execute("SELECT id FROM campaigns WHERE id=%s FOR UPDATE", (cid,))
+            await self._ensure_stream(db, cid)
+            cursor = await db.execute("SELECT state FROM stream_genesis WHERE campaign=%s", (cid,))
+            initial = await cursor.fetchone()
+            assert initial is not None
+            state = validation.campaign(validation.decode(validation.string(initial[0])))
+            cursor = await db.execute(
+                "SELECT command_id, revision, ordinal, schema_version, event FROM event_stream WHERE campaign=%s AND revision<=%s ORDER BY revision, ordinal",
+                (cid, through if through is not None else 2**63 - 1),
+            )
+            rows = await cursor.fetchall()
+            await db.commit()
+            result: list[tuple[Campaign, tuple[StoredEvent, ...]]] = [(state, ())]
+            grouped: list[StoredEvent] = []
+            for row in rows:
+                if int(str(row[3])) != EVENT_SCHEMA_VERSION:
+                    raise StorageError("Unsupported event schema version")
+                event = StoredEvent(
+                    cid,
+                    str(row[0]),
+                    int(str(row[1])),
+                    int(str(row[2])),
+                    EVENT_ADAPTER.validate_json(validation.string(row[4])),
+                    int(str(row[3])),
+                )
+                if grouped and event.revision != grouped[0].revision:
+                    state = fold(state, [e.event for e in grouped])
+                    result.append((state, tuple(grouped)))
+                    grouped = []
+                grouped.append(event)
+            if grouped:
+                state = fold(state, [e.event for e in grouped])
+                result.append((state, tuple(grouped)))
+            return result
+        finally:
+            await db.close()
+
+    async def stream(self, cid: str, *, after: int = 0) -> list[StoredEvent]:
+        return [
+            event
+            for _, events in await self.stream_states(cid)
+            for event in events
+            if event.revision > after
+        ]
+
+    @staticmethod
+    def _stream_transcript(raw: object) -> Event:
+        data = validation.mapping(raw)
+        return Event(
+            input=validation.string(data["input"]),
+            action=validation.event_action(data["action"]),
+            outcome=validation.string(data["outcome"]),
+            roll=None if data["roll"] is None else validation.roll(data["roll"]),
+        )

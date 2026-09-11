@@ -21,6 +21,35 @@ REDUCER_MODULES = (
 
 
 class ArchitectureTests(unittest.TestCase):
+    def test_event_stream_has_only_atomic_persistence_writers(self) -> None:
+        package = Path(wayfarer.__file__).parent
+        writers = set()
+        for source in package.rglob("*.py"):
+            tree = ast.parse(source.read_text())
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Constant) and isinstance(node.value, str):
+                    sql = node.value.upper()
+                    if "INSERT INTO EVENT_STREAM" in sql:
+                        writers.add(source.relative_to(package).as_posix())
+                    self.assertNotIn("UPDATE EVENT_STREAM", sql, str(source))
+                    self.assertNotIn("DELETE FROM EVENT_STREAM", sql, str(source))
+        self.assertEqual(writers, {"persistence/async_sqlite.py", "persistence/postgres.py"})
+        for writer in writers:
+            tree = ast.parse((package / writer).read_text())
+            commit = next(
+                n
+                for n in ast.walk(tree)
+                if isinstance(n, ast.AsyncFunctionDef) and n.name == "commit_turn"
+            )
+            calls = {
+                n.func.attr
+                for n in ast.walk(commit)
+                if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+            }
+            self.assertIn("_append_events", calls)
+        boundary = (package / "orchestration/entropy.py").read_text()
+        self.assertIn("CommandResolution(event, command_events(", boundary)
+
     def test_resolver_callbacks_do_not_read_clocks(self) -> None:
         package = Path(wayfarer.__file__).parent
         reads = {

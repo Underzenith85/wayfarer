@@ -3,16 +3,18 @@
 import secrets
 from collections.abc import Callable
 from contextvars import ContextVar
+from copy import deepcopy
 
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, Event, TurnResult
 from wayfarer.orchestration.clock import CommandInstant, capture_instant
 from wayfarer.orchestration.origins import current_origin
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.persistence.events import CommandEntropy, CommandOrigin
+from wayfarer.persistence.events import CommandEntropy, CommandOrigin, CommandResolution
 from wayfarer.persistence.postgres import AsyncPostgresStore
 from wayfarer.rules.checks import RandomSource, draw_index
 from wayfarer.rules.randomness import RNG_ALGORITHM, SeededRandom
+from wayfarer.simulation.events import command_events
 
 _active: ContextVar[RandomSource | None] = ContextVar("command_random", default=None)
 
@@ -65,10 +67,12 @@ async def commit_command(
     )
     source = handle.injected or SeededRandom(entropy.seed)
 
-    def run(state: Campaign) -> Event:
+    def run(state: Campaign) -> CommandResolution:
         token = _active.set(source)
         try:
-            return resolve(state)
+            before = deepcopy(state)
+            event = resolve(state)
+            return CommandResolution(event, command_events(before, state, event, actor_id))
         finally:
             _active.reset(token)
 

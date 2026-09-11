@@ -305,6 +305,14 @@ Simulation clock imports and resolver clock reads are prohibited by architecture
 tests. See [command time](persistence.md#command-time-414) for deadline boundaries,
 legacy receipts and operational clocks that remain outside simulation.
 
+The #413 implementation adds `event_stream` and `stream_genesis`, separates
+command receipts from stream rows, and makes the action resolver return an event
+list. The composed command reducer emits typed facts and private, digest-checked
+state changes; persistence verifies fold equality before the atomic append. V1
+projections and outbox history read folded stream states. See
+[the event stream](persistence.md#dedicated-event-stream-413). Engine version `2`
+marks the changed event contract. Snapshot-cache demotion remains #419.
+
 **Events declare their audience.** Knowledge isolation is a release invariant
 (#1, #45): reunion does not share secrets and captives learn nothing of their
 rescuers. Every event carries an audience, the whole campaign, a set of actor

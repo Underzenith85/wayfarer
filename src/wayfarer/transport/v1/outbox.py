@@ -1,6 +1,6 @@
 """Recoverable projected history, derived from atomic engine checkpoints.
 
-The engine's committed state_after log is the source outbox. Projection aliases
+The folded, audience-declared event stream is the source outbox. Projection aliases
 are persisted before delivery; a crash before materialization resumes the scan.
 No global revision or source event identity crosses the wire.
 """
@@ -8,6 +8,8 @@ No global revision or source event identity crosses the wire.
 from __future__ import annotations
 
 import secrets
+
+from wayfarer.simulation.events import visible
 
 from .common import Fault, Obj, array, encoded, obj, uid
 from .ledger import Transaction
@@ -47,14 +49,16 @@ async def sync(service: V1Service, tx: Transaction, principal: str, scope: Obj) 
         old_resources = [obj(r) for r in array(previous["resources"])]
         # Scan all commits after the last pinned boundary, including commits made
         # through other engine adapters. Compare only this authorized projection.
-        history = await service.play.store.history(cid)
+        history = await service.play.store.stream_states(cid, through=view.state.revision)
         candidates: list[list[Obj]] = []
-        for event in history:
-            if not int(str(previous["revision"])) < event.resulting_revision <= view.state.revision:
+        for state, stream_events in history:
+            if not int(str(previous["revision"])) < state["revision"] <= view.state.revision:
+                continue
+            if not any(visible(event.event, view.member) for event in stream_events):
                 continue
             try:
                 historical = service.projector.make(
-                    event.state_after, principal, str(view.campaign["updated_at"]), viewpoint=aid
+                    state, principal, str(view.campaign["updated_at"]), viewpoint=aid
                 )
             except Fault:
                 previous["policy"] = ""

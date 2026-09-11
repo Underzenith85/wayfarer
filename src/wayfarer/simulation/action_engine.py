@@ -48,6 +48,7 @@ from wayfarer.simulation.adjudication import expire_rulings
 from wayfarer.simulation.advancement import validate_ledgers
 from wayfarer.simulation.combat import CombatEngine, CombatRules, validate_consequences
 from wayfarer.simulation.condition_checks import definition_modifiers
+from wayfarer.simulation.events import ActionResolved, ActorAudience, EngineEvent, play_events
 from wayfarer.simulation.noncombat import validate_state as validate_noncombat_state
 from wayfarer.simulation.party import validate as validate_party
 from wayfarer.simulation.party import validate_effects as validate_party_effects
@@ -762,6 +763,26 @@ class ActionEngine:
         return derived[rule.definition_id], tuple(attributes.values())
 
     def resolve(
+        self,
+        state: PlayState,
+        command: TypedAction,
+        *,
+        rng: RandomSource = NO_RANDOM,
+        ruling_id: str | None = None,
+        advance_time: bool = True,
+    ) -> tuple[PlayState, list[EngineEvent]]:
+        updated, result = self._resolve_action(
+            state, command, rng=rng, ruling_id=ruling_id, advance_time=advance_time
+        )
+        events = play_events(state, updated, command.actor_id)
+        # Rejected/question resolutions still produce a typed result, but are not committed.
+        events = [e for e in events if not isinstance(e, ActionResolved)]
+        events.append(
+            ActionResolved(audience=ActorAudience(actor_ids=(command.actor_id,)), result=result)
+        )
+        return updated, events
+
+    def _resolve_action(
         self,
         state: PlayState,
         command: TypedAction,

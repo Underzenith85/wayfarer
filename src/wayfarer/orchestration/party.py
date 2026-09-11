@@ -14,6 +14,7 @@ from wayfarer.orchestration.noncombat import NoncombatCommand, NoncombatService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.scenes import SceneService, TravelScene
 from wayfarer.simulation.actions import ActionCommand, Inspect, PlayState, Social, UseItem, Wait
+from wayfarer.simulation.events import action_result
 from wayfarer.simulation.party import (
     ActivityReceipt,
     PendingEffect,
@@ -235,9 +236,10 @@ class PartyService:
                             update={"revision": revision, "resources": state.resources}
                         )
                         action = action.model_copy(update={"expected_revision": revision})
-                        state, result = self.play.engine.resolve(
+                        state, resolved_events = self.play.engine.resolve(
                             working, action, rng=self.play.rng, advance_time=False
                         )
+                        result = action_result(resolved_events)
                         if result.status != "committed":
                             raise ValidationError("Activity became infeasible")
                         state = state.model_copy(

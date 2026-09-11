@@ -47,6 +47,7 @@ from wayfarer.rules.skill_types import (
     Specialty,
     Technique,
 )
+from wayfarer.simulation.events import action_result
 
 
 def attrs(**overrides: int) -> dict[str, Decimal]:
@@ -367,7 +368,8 @@ def test_actual_action_accepts_unpurchased_default_and_uses_per() -> None:
     )
     action = Inspect(id="inspect", actor_id="a", target_id="chest", expected_revision=0)
     assert engine.assess(state, action).status == "feasible"
-    _, result = engine.resolve(state, action, rng=Dice())
+    _, resolved_events = engine.resolve(state, action, rng=Dice())
+    result = action_result(resolved_events)
     assert result.check is not None
     assert result.check.effective_target == 9
 

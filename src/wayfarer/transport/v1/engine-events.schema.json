@@ -1,0 +1,2725 @@
+{
+  "$defs": {
+    "AbilityEffect": {
+      "additionalProperties": false,
+      "properties": {
+        "distracted": {
+          "default": false,
+          "title": "Distracted",
+          "type": "boolean"
+        },
+        "analyzing": {
+          "default": false,
+          "title": "Analyzing",
+          "type": "boolean"
+        },
+        "activation_shock": {
+          "default": 0,
+          "title": "Activation Shock",
+          "type": "integer"
+        },
+        "build_revision": {
+          "default": "",
+          "title": "Build Revision",
+          "type": "string"
+        },
+        "actor_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "ability_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Ability Id",
+          "type": "string"
+        },
+        "kind": {
+          "title": "Kind",
+          "type": "string"
+        },
+        "target_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Target Id",
+          "type": "string"
+        },
+        "started_at": {
+          "title": "Started At",
+          "type": "integer"
+        },
+        "expires_at": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expires At"
+        },
+        "active": {
+          "default": true,
+          "title": "Active",
+          "type": "boolean"
+        },
+        "level": {
+          "minimum": 1,
+          "title": "Level",
+          "type": "integer"
+        },
+        "maintenance_cost": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Maintenance Cost",
+          "type": "integer"
+        },
+        "concentrating": {
+          "default": false,
+          "title": "Concentrating",
+          "type": "boolean"
+        },
+        "ready_at": {
+          "default": 0,
+          "title": "Ready At",
+          "type": "integer"
+        },
+        "hp_at_start": {
+          "default": 0,
+          "title": "Hp At Start",
+          "type": "integer"
+        },
+        "channel_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Channel Id"
+        }
+      },
+      "required": [
+        "actor_id",
+        "ability_id",
+        "kind",
+        "target_id",
+        "started_at",
+        "level"
+      ],
+      "title": "AbilityEffect",
+      "type": "object"
+    },
+    "AbilityEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "actor_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "ability_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Ability Id",
+          "type": "string"
+        },
+        "target_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Target Id",
+          "type": "string"
+        },
+        "outcome": {
+          "$ref": "#/$defs/AbilityOutcome"
+        },
+        "effect": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AbilityEffect"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "failed": {
+          "default": false,
+          "title": "Failed",
+          "type": "boolean"
+        },
+        "critical_failure": {
+          "default": false,
+          "title": "Critical Failure",
+          "type": "boolean"
+        },
+        "checks": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/CheckTrace"
+          },
+          "title": "Checks",
+          "type": "array"
+        },
+        "damage_dice": {
+          "default": [],
+          "items": {
+            "type": "integer"
+          },
+          "title": "Damage Dice",
+          "type": "array"
+        }
+      },
+      "required": [
+        "actor_id",
+        "ability_id",
+        "target_id",
+        "outcome"
+      ],
+      "title": "AbilityEvent",
+      "type": "object"
+    },
+    "AbilityOutcome": {
+      "additionalProperties": false,
+      "properties": {
+        "outcome": {
+          "enum": [
+            "concentrating",
+            "interrupted",
+            "active",
+            "cancelled",
+            "resisted",
+            "detected",
+            "nothing",
+            "analyzed",
+            "hit",
+            "unavailable"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "revealed_fact_ids": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Revealed Fact Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "outcome"
+      ],
+      "title": "AbilityOutcome",
+      "type": "object"
+    },
+    "AbilityResolved": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "ability.resolved",
+          "default": "ability.resolved",
+          "title": "Kind",
+          "type": "string"
+        },
+        "audience": {
+          "$ref": "#/$defs/GMAudience",
+          "default": {
+            "kind": "gm"
+          }
+        },
+        "fact": {
+          "$ref": "#/$defs/AbilityEvent"
+        }
+      },
+      "required": [
+        "fact"
+      ],
+      "title": "AbilityResolved",
+      "type": "object"
+    },
+    "ActionResolved": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "action.resolved",
+          "default": "action.resolved",
+          "title": "Kind",
+          "type": "string"
+        },
+        "audience": {
+          "discriminator": {
+            "mapping": {
+              "actors": "#/$defs/ActorAudience",
+              "campaign": "#/$defs/CampaignAudience",
+              "gm": "#/$defs/GMAudience"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/CampaignAudience"
+            },
+            {
+              "$ref": "#/$defs/ActorAudience"
+            },
+            {
+              "$ref": "#/$defs/GMAudience"
+            }
+          ],
+          "title": "Audience"
+        },
+        "result": {
+          "$ref": "#/$defs/ActionResult"
+        }
+      },
+      "required": [
+        "audience",
+        "result"
+      ],
+      "title": "ActionResolved",
+      "type": "object"
+    },
+    "ActionResult": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "feasible",
+            "clarification",
+            "question",
+            "rejected",
+            "unsupported",
+            "adjudication_required",
+            "committed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "revision": {
+          "title": "Revision",
+          "type": "integer"
+        },
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "command_id": {
+          "title": "Command Id",
+          "type": "string"
+        },
+        "check": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CheckTrace"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "derived": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DerivedValue"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "dependencies": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/DerivedValue"
+          },
+          "title": "Dependencies",
+          "type": "array"
+        },
+        "revealed_fact_ids": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Revealed Fact Ids",
+          "type": "array"
+        },
+        "rules_digest": {
+          "default": "",
+          "title": "Rules Digest",
+          "type": "string"
+        },
+        "ruling_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ruling Id"
+        }
+      },
+      "required": [
+        "status",
+        "revision",
+        "code",
+        "command_id"
+      ],
+      "title": "ActionResult",
+      "type": "object"
+    },
+    "ActorAudience": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "actors",
+          "default": "actors",
+          "title": "Kind",
+          "type": "string"
+        },
+        "actor_ids": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Actor Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "actor_ids"
+      ],
+      "title": "ActorAudience",
+      "type": "object"
+    },
+    "CampaignAudience": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "campaign",
+          "default": "campaign",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "title": "CampaignAudience",
+      "type": "object"
+    },
+    "CheckTrace": {
+      "properties": {
+        "rules_package": {
+          "title": "Rules Package",
+          "type": "string"
+        },
+        "rules_version": {
+          "title": "Rules Version",
+          "type": "string"
+        },
+        "rule_id": {
+          "title": "Rule Id",
+          "type": "string"
+        },
+        "base_target": {
+          "title": "Base Target",
+          "type": "integer"
+        },
+        "modifiers": {
+          "items": {
+            "$ref": "#/$defs/Modifier"
+          },
+          "title": "Modifiers",
+          "type": "array"
+        },
+        "effective_target": {
+          "title": "Effective Target",
+          "type": "integer"
+        },
+        "dice": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "title": "Dice",
+          "type": "array"
+        },
+        "total": {
+          "title": "Total",
+          "type": "integer"
+        },
+        "margin": {
+          "title": "Margin",
+          "type": "integer"
+        },
+        "outcome": {
+          "$ref": "#/$defs/Outcome"
+        }
+      },
+      "required": [
+        "rules_package",
+        "rules_version",
+        "rule_id",
+        "base_target",
+        "modifiers",
+        "effective_target",
+        "dice",
+        "total",
+        "margin",
+        "outcome"
+      ],
+      "title": "CheckTrace",
+      "type": "object"
+    },
+    "CombatResolved": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "combat.resolved",
+          "default": "combat.resolved",
+          "title": "Kind",
+          "type": "string"
+        },
+        "audience": {
+          "$ref": "#/$defs/GMAudience",
+          "default": {
+            "kind": "gm"
+          }
+        },
+        "result": {
+          "$ref": "#/$defs/CombatResult"
+        }
+      },
+      "required": [
+        "result"
+      ],
+      "title": "CombatResolved",
+      "type": "object"
+    },
+    "CombatResult": {
+      "additionalProperties": false,
+      "properties": {
+        "encounter_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Encounter Id",
+          "type": "string"
+        },
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "round": {
+          "minimum": 1,
+          "title": "Round",
+          "type": "integer"
+        },
+        "current_actor_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Current Actor Id",
+          "type": "string"
+        },
+        "pending_defense_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pending Defense Id"
+        },
+        "available": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Available",
+          "type": "array"
+        },
+        "injury": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/InjuryTrace"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "unarmed": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/UnarmedTrace"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "encounter_id",
+        "code",
+        "round",
+        "current_actor_id"
+      ],
+      "title": "CombatResult",
+      "type": "object"
+    },
+    "CommandApplied": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "command.applied",
+          "default": "command.applied",
+          "title": "Kind",
+          "type": "string"
+        },
+        "audience": {
+          "discriminator": {
+            "mapping": {
+              "actors": "#/$defs/ActorAudience",
+              "campaign": "#/$defs/CampaignAudience",
+              "gm": "#/$defs/GMAudience"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/CampaignAudience"
+            },
+            {
+              "$ref": "#/$defs/ActorAudience"
+            },
+            {
+              "$ref": "#/$defs/GMAudience"
+            }
+          ],
+          "title": "Audience"
+        },
+        "actor_id": {
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "action": {
+          "title": "Action",
+          "type": "string"
+        }
+      },
+      "required": [
+        "audience",
+        "actor_id",
+        "action"
+      ],
+      "title": "CommandApplied",
+      "type": "object"
+    },
+    "DerivedValue": {
+      "properties": {
+        "target": {
+          "title": "Target",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Value"
+        },
+        "explanations": {
+          "items": {
+            "$ref": "#/$defs/ExplanationEntry"
+          },
+          "title": "Explanations",
+          "type": "array"
+        }
+      },
+      "required": [
+        "target",
+        "value",
+        "explanations"
+      ],
+      "title": "DerivedValue",
+      "type": "object"
+    },
+    "ExplanationEntry": {
+      "properties": {
+        "effect_id": {
+          "title": "Effect Id",
+          "type": "string"
+        },
+        "source_id": {
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_version": {
+          "title": "Source Version",
+          "type": "string"
+        },
+        "operation": {
+          "$ref": "#/$defs/Operation"
+        },
+        "before": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Before"
+        },
+        "operand": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Operand"
+        },
+        "after": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "After"
+        }
+      },
+      "required": [
+        "effect_id",
+        "source_id",
+        "source_version",
+        "operation",
+        "before",
+        "operand",
+        "after"
+      ],
+      "title": "ExplanationEntry",
+      "type": "object"
+    },
+    "FrightEffect": {
+      "additionalProperties": false,
+      "properties": {
+        "table_total": {
+          "minimum": 4,
+          "title": "Table Total",
+          "type": "integer"
+        },
+        "condition": {
+          "default": "none",
+          "enum": [
+            "none",
+            "stunned",
+            "retching",
+            "unconscious",
+            "panic",
+            "catatonia",
+            "seizure"
+          ],
+          "title": "Condition",
+          "type": "string"
+        },
+        "duration_seconds": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Duration Seconds",
+          "type": "integer"
+        },
+        "recovery_attribute": {
+          "default": "none",
+          "enum": [
+            "none",
+            "ht",
+            "will",
+            "modified-will"
+          ],
+          "title": "Recovery Attribute",
+          "type": "string"
+        },
+        "recovery_interval_seconds": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Recovery Interval Seconds",
+          "type": "integer"
+        },
+        "repeat_duration_dice": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Repeat Duration Dice",
+          "type": "integer"
+        },
+        "repeat_duration_unit": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Repeat Duration Unit",
+          "type": "integer"
+        },
+        "hp_loss": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Hp Loss",
+          "type": "integer"
+        },
+        "fp_loss": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Fp Loss",
+          "type": "integer"
+        },
+        "permanent_ht_loss": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Permanent Ht Loss",
+          "type": "integer"
+        },
+        "permanent_iq_loss": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Permanent Iq Loss",
+          "type": "integer"
+        },
+        "trait_choice": {
+          "default": "none",
+          "enum": [
+            "none",
+            "quirk",
+            "delusion",
+            "mental",
+            "physical",
+            "worsen-self-control"
+          ],
+          "title": "Trait Choice",
+          "type": "string"
+        },
+        "trait_points": {
+          "default": 0,
+          "maximum": 0,
+          "title": "Trait Points",
+          "type": "integer"
+        },
+        "aftermath_penalty": {
+          "default": 0,
+          "title": "Aftermath Penalty",
+          "type": "integer"
+        },
+        "aftermath_seconds": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Aftermath Seconds",
+          "type": "integer"
+        },
+        "neglect_progression": {
+          "default": false,
+          "title": "Neglect Progression",
+          "type": "boolean"
+        },
+        "panic_severity": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Panic Severity"
+        },
+        "dice": {
+          "default": [],
+          "items": {
+            "type": "integer"
+          },
+          "title": "Dice",
+          "type": "array"
+        },
+        "checks": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/CheckTrace"
+          },
+          "title": "Checks",
+          "type": "array"
+        }
+      },
+      "required": [
+        "table_total"
+      ],
+      "title": "FrightEffect",
+      "type": "object"
+    },
+    "FrightResolved": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "fright.resolved",
+          "default": "fright.resolved",
+          "title": "Kind",
+          "type": "string"
+        },
+        "audience": {
+          "$ref": "#/$defs/GMAudience",
+          "default": {
+            "kind": "gm"
+          }
+        },
+        "fact": {
+          "$ref": "#/$defs/TimedFright"
+        }
+      },
+      "required": [
+        "fact"
+      ],
+      "title": "FrightResolved",
+      "type": "object"
+    },
+    "GMAudience": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "gm",
+          "default": "gm",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "title": "GMAudience",
+      "type": "object"
+    },
+    "HazardResolved": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "hazard.resolved",
+          "default": "hazard.resolved",
+          "title": "Kind",
+          "type": "string"
+        },
+        "audience": {
+          "$ref": "#/$defs/GMAudience",
+          "default": {
+            "kind": "gm"
+          }
+        },
+        "result": {
+          "$ref": "#/$defs/HazardResult"
+        }
+      },
+      "required": [
+        "result"
+      ],
+      "title": "HazardResolved",
+      "type": "object"
+    },
+    "HazardResult": {
+      "additionalProperties": false,
+      "properties": {
+        "schedule_id": {
+          "title": "Schedule Id",
+          "type": "string"
+        },
+        "active": {
+          "title": "Active",
+          "type": "boolean"
+        },
+        "due": {
+          "title": "Due",
+          "type": "integer"
+        },
+        "hp_lost": {
+          "default": 0,
+          "title": "Hp Lost",
+          "type": "integer"
+        },
+        "fp_lost": {
+          "default": 0,
+          "title": "Fp Lost",
+          "type": "integer"
+        },
+        "check": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CheckTrace"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "consciousness": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CheckTrace"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "schedule_id",
+        "active",
+        "due"
+      ],
+      "title": "HazardResult",
+      "type": "object"
+    },
+    "InjuryCheck": {
+      "additionalProperties": false,
+      "properties": {
+        "reason": {
+          "enum": [
+            "death",
+            "major-wound",
+            "consciousness",
+            "stun-recovery",
+            "crippling-duration",
+            "grip-retention"
+          ],
+          "title": "Reason",
+          "type": "string"
+        },
+        "threshold": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Threshold"
+        },
+        "check": {
+          "$ref": "#/$defs/CheckTrace"
+        }
+      },
+      "required": [
+        "reason",
+        "check"
+      ],
+      "title": "InjuryCheck",
+      "type": "object"
+    },
+    "InjuryResolved": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "injury.resolved",
+          "default": "injury.resolved",
+          "title": "Kind",
+          "type": "string"
+        },
+        "audience": {
+          "$ref": "#/$defs/GMAudience",
+          "default": {
+            "kind": "gm"
+          }
+        },
+        "result": {
+          "$ref": "#/$defs/InjuryResult"
+        }
+      },
+      "required": [
+        "result"
+      ],
+      "title": "InjuryResolved",
+      "type": "object"
+    },
+    "InjuryResult": {
+      "additionalProperties": false,
+      "properties": {
+        "penetration": {
+          "default": 0,
+          "title": "Penetration",
+          "type": "integer"
+        },
+        "injury": {
+          "default": 0,
+          "title": "Injury",
+          "type": "integer"
+        },
+        "checks": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/InjuryCheck"
+          },
+          "title": "Checks",
+          "type": "array"
+        },
+        "dropped_ready_items": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Dropped Ready Items",
+          "type": "array"
+        },
+        "location": {
+          "anyOf": [
+            {
+              "enum": [
+                "torso",
+                "vitals",
+                "skull",
+                "face",
+                "neck",
+                "groin",
+                "left-arm",
+                "right-arm",
+                "left-leg",
+                "right-leg",
+                "left-hand",
+                "right-hand",
+                "left-foot",
+                "right-foot",
+                "left-eye",
+                "right-eye"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Location"
+        },
+        "location_dice": {
+          "default": [],
+          "items": {
+            "type": "integer"
+          },
+          "title": "Location Dice",
+          "type": "array"
+        },
+        "duration_dice": {
+          "default": [],
+          "items": {
+            "type": "integer"
+          },
+          "title": "Duration Dice",
+          "type": "array"
+        },
+        "uncapped_injury": {
+          "default": 0,
+          "title": "Uncapped Injury",
+          "type": "integer"
+        },
+        "effective_resistance": {
+          "default": 0,
+          "title": "Effective Resistance",
+          "type": "integer"
+        },
+        "lasting_injury_ids": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Lasting Injury Ids",
+          "type": "array"
+        }
+      },
+      "title": "InjuryResult",
+      "type": "object"
+    },
+    "InjuryTrace": {
+      "additionalProperties": false,
+      "properties": {
+        "attack": {
+          "$ref": "#/$defs/CheckTrace"
+        },
+        "defense": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CheckTrace"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "second_defense": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CheckTrace"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "attack_value": {
+          "$ref": "#/$defs/DerivedValue"
+        },
+        "defense_value": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DerivedValue"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "damage_dice": {
+          "default": [],
+          "items": {
+            "type": "integer"
+          },
+          "title": "Damage Dice",
+          "type": "array"
+        },
+        "basic_damage": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Basic Damage",
+          "type": "integer"
+        },
+        "resistance": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Resistance",
+          "type": "integer"
+        },
+        "injury": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Injury",
+          "type": "integer"
+        },
+        "hp_before": {
+          "title": "Hp Before",
+          "type": "integer"
+        },
+        "hp_after": {
+          "title": "Hp After",
+          "type": "integer"
+        },
+        "incapacitated": {
+          "default": false,
+          "title": "Incapacitated",
+          "type": "boolean"
+        },
+        "stunned_until": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Stunned Until"
+        },
+        "profile_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "rules_version": {
+          "title": "Rules Version",
+          "type": "string"
+        },
+        "critical_table": {
+          "default": [],
+          "items": {
+            "type": "integer"
+          },
+          "title": "Critical Table",
+          "type": "array"
+        },
+        "malfunction_table": {
+          "default": [],
+          "items": {
+            "type": "integer"
+          },
+          "title": "Malfunction Table",
+          "type": "array"
+        },
+        "malfunction": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Malfunction"
+        },
+        "adjudication_required": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Adjudication Required"
+        },
+        "location": {
+          "anyOf": [
+            {
+              "enum": [
+                "torso",
+                "vitals",
+                "skull",
+                "face",
+                "neck",
+                "groin",
+                "left-arm",
+                "right-arm",
+                "left-leg",
+                "right-leg",
+                "left-hand",
+                "right-hand",
+                "left-foot",
+                "right-foot",
+                "left-eye",
+                "right-eye"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Location"
+        },
+        "location_dice": {
+          "default": [],
+          "items": {
+            "type": "integer"
+          },
+          "title": "Location Dice",
+          "type": "array"
+        },
+        "effect_dice": {
+          "default": [],
+          "items": {
+            "type": "integer"
+          },
+          "title": "Effect Dice",
+          "type": "array"
+        },
+        "lasting_injury_ids": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Lasting Injury Ids",
+          "type": "array"
+        },
+        "shots_fired": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Shots Fired",
+          "type": "integer"
+        },
+        "hits": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Hits",
+          "type": "integer"
+        },
+        "per_hit_damage": {
+          "default": [],
+          "items": {
+            "type": "integer"
+          },
+          "title": "Per Hit Damage",
+          "type": "array"
+        },
+        "per_hit_injury": {
+          "default": [],
+          "items": {
+            "type": "integer"
+          },
+          "title": "Per Hit Injury",
+          "type": "array"
+        },
+        "per_hit_resistance": {
+          "default": [],
+          "items": {
+            "type": "integer"
+          },
+          "title": "Per Hit Resistance",
+          "type": "array"
+        },
+        "per_hit_locations": {
+          "default": [],
+          "items": {
+            "anyOf": [
+              {
+                "enum": [
+                  "torso",
+                  "vitals",
+                  "skull",
+                  "face",
+                  "neck",
+                  "groin",
+                  "left-arm",
+                  "right-arm",
+                  "left-leg",
+                  "right-leg",
+                  "left-hand",
+                  "right-hand",
+                  "left-foot",
+                  "right-foot",
+                  "left-eye",
+                  "right-eye"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "title": "Per Hit Locations",
+          "type": "array"
+        },
+        "per_hit_location_dice": {
+          "default": [],
+          "items": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "title": "Per Hit Location Dice",
+          "type": "array"
+        }
+      },
+      "required": [
+        "attack",
+        "attack_value",
+        "hp_before",
+        "hp_after",
+        "profile_id",
+        "rules_version"
+      ],
+      "title": "InjuryTrace",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "Modifier": {
+      "properties": {
+        "value": {
+          "title": "Value",
+          "type": "integer"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "source_id": {
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_version": {
+          "title": "Source Version",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/ModifierKind",
+          "default": "situational"
+        }
+      },
+      "required": [
+        "value",
+        "reason",
+        "source_id",
+        "source_version"
+      ],
+      "title": "Modifier",
+      "type": "object"
+    },
+    "ModifierKind": {
+      "description": "Why a modifier applies; receipts keep every kind visible and separately auditable.",
+      "enum": [
+        "situational",
+        "equipment",
+        "trait",
+        "time",
+        "repeated-attempt",
+        "contest-adjustment",
+        "rule-of-16"
+      ],
+      "title": "ModifierKind",
+      "type": "string"
+    },
+    "Operation": {
+      "enum": [
+        "replace",
+        "add",
+        "multiply",
+        "round-half-even",
+        "round-down",
+        "minimum",
+        "maximum"
+      ],
+      "title": "Operation",
+      "type": "string"
+    },
+    "Outcome": {
+      "enum": [
+        "critical-success",
+        "success",
+        "failure",
+        "critical-failure"
+      ],
+      "title": "Outcome",
+      "type": "string"
+    },
+    "PathChange": {
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "enum": [
+            "set",
+            "remove"
+          ],
+          "title": "Operation",
+          "type": "string"
+        },
+        "path": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              }
+            ]
+          },
+          "minItems": 1,
+          "title": "Path",
+          "type": "array"
+        },
+        "value": {
+          "$ref": "#/$defs/JsonValue",
+          "default": null
+        }
+      },
+      "required": [
+        "operation",
+        "path"
+      ],
+      "title": "PathChange",
+      "type": "object"
+    },
+    "PendingUnarmed": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "actor_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "target_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Target Id",
+          "type": "string"
+        },
+        "action": {
+          "enum": [
+            "punch",
+            "kick",
+            "grapple",
+            "arm_lock"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "grip_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Grip Id"
+        },
+        "skill": {
+          "enum": [
+            "attribute:dx",
+            "skill:brawling",
+            "skill:boxing",
+            "skill:karate",
+            "skill:judo",
+            "skill:wrestling",
+            "skill:sumo-wrestling"
+          ],
+          "title": "Skill",
+          "type": "string"
+        },
+        "foot": {
+          "default": "right-foot",
+          "enum": [
+            "left-foot",
+            "right-foot"
+          ],
+          "title": "Foot",
+          "type": "string"
+        },
+        "hands": {
+          "default": [],
+          "items": {
+            "enum": [
+              "left-hand",
+              "right-hand"
+            ],
+            "type": "string"
+          },
+          "title": "Hands",
+          "type": "array"
+        },
+        "location": {
+          "default": "torso",
+          "enum": [
+            "torso",
+            "neck",
+            "left-arm",
+            "right-arm",
+            "left-leg",
+            "right-leg"
+          ],
+          "title": "Location",
+          "type": "string"
+        },
+        "allowed": {
+          "items": {
+            "enum": [
+              "dodge",
+              "parry",
+              "none"
+            ],
+            "type": "string"
+          },
+          "title": "Allowed",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "actor_id",
+        "target_id",
+        "action",
+        "skill",
+        "allowed"
+      ],
+      "title": "PendingUnarmed",
+      "type": "object"
+    },
+    "ProjectionRefresh": {
+      "additionalProperties": false,
+      "description": "A payload-free hint; delivery still requires a changed authorized projection.",
+      "properties": {
+        "kind": {
+          "const": "projection.refresh",
+          "default": "projection.refresh",
+          "title": "Kind",
+          "type": "string"
+        },
+        "audience": {
+          "$ref": "#/$defs/CampaignAudience",
+          "default": {
+            "kind": "campaign"
+          }
+        }
+      },
+      "title": "ProjectionRefresh",
+      "type": "object"
+    },
+    "ResourceChanged": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "resource.changed",
+          "default": "resource.changed",
+          "title": "Kind",
+          "type": "string"
+        },
+        "audience": {
+          "discriminator": {
+            "mapping": {
+              "actors": "#/$defs/ActorAudience",
+              "campaign": "#/$defs/CampaignAudience",
+              "gm": "#/$defs/GMAudience"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/CampaignAudience"
+            },
+            {
+              "$ref": "#/$defs/ActorAudience"
+            },
+            {
+              "$ref": "#/$defs/GMAudience"
+            }
+          ],
+          "title": "Audience"
+        },
+        "fact": {
+          "$ref": "#/$defs/ResourceEvent"
+        }
+      },
+      "required": [
+        "audience",
+        "fact"
+      ],
+      "title": "ResourceChanged",
+      "type": "object"
+    },
+    "ResourceEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "at": {
+          "minimum": 0,
+          "title": "At",
+          "type": "integer"
+        },
+        "kind": {
+          "title": "Kind",
+          "type": "string"
+        },
+        "target_id": {
+          "title": "Target Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "at",
+        "kind",
+        "target_id"
+      ],
+      "title": "ResourceEvent",
+      "type": "object"
+    },
+    "SceneChanged": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "scene.changed",
+          "default": "scene.changed",
+          "title": "Kind",
+          "type": "string"
+        },
+        "audience": {
+          "discriminator": {
+            "mapping": {
+              "actors": "#/$defs/ActorAudience",
+              "campaign": "#/$defs/CampaignAudience",
+              "gm": "#/$defs/GMAudience"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/CampaignAudience"
+            },
+            {
+              "$ref": "#/$defs/ActorAudience"
+            },
+            {
+              "$ref": "#/$defs/GMAudience"
+            }
+          ],
+          "title": "Audience"
+        },
+        "fact": {
+          "$ref": "#/$defs/SceneEvent"
+        }
+      },
+      "required": [
+        "audience",
+        "fact"
+      ],
+      "title": "SceneChanged",
+      "type": "object"
+    },
+    "SceneEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "actor_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "scene_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Scene Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "entered",
+            "exited",
+            "discovered",
+            "observed"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "fact_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fact Id"
+        },
+        "at": {
+          "minimum": 0,
+          "title": "At",
+          "type": "integer"
+        },
+        "revision": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "revealed_fact_ids": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Revealed Fact Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "actor_id",
+        "scene_id",
+        "kind",
+        "at"
+      ],
+      "title": "SceneEvent",
+      "type": "object"
+    },
+    "SpellEffect": {
+      "additionalProperties": false,
+      "properties": {
+        "cast_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Cast Id",
+          "type": "string"
+        },
+        "actor_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "target_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Target Id",
+          "type": "string"
+        },
+        "spell_id": {
+          "enum": [
+            "light",
+            "daze",
+            "fireball",
+            "create-fire"
+          ],
+          "title": "Spell Id",
+          "type": "string"
+        },
+        "build_revision": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Build Revision",
+          "type": "string"
+        },
+        "phase": {
+          "enum": [
+            "casting",
+            "active",
+            "ended"
+          ],
+          "title": "Phase",
+          "type": "string"
+        },
+        "started_at": {
+          "title": "Started At",
+          "type": "integer"
+        },
+        "ready_at": {
+          "title": "Ready At",
+          "type": "integer"
+        },
+        "expires_at": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expires At"
+        },
+        "skill": {
+          "title": "Skill",
+          "type": "integer"
+        },
+        "cost": {
+          "title": "Cost",
+          "type": "integer"
+        },
+        "maintenance": {
+          "title": "Maintenance",
+          "type": "integer"
+        },
+        "hp_at_start": {
+          "title": "Hp At Start",
+          "type": "integer"
+        },
+        "radius": {
+          "default": 1,
+          "title": "Radius",
+          "type": "integer"
+        },
+        "energy": {
+          "default": 1,
+          "title": "Energy",
+          "type": "integer"
+        },
+        "distracted": {
+          "default": false,
+          "title": "Distracted",
+          "type": "boolean"
+        },
+        "execute_effects": {
+          "default": false,
+          "title": "Execute Effects",
+          "type": "boolean"
+        },
+        "location_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Location Id"
+        },
+        "encounter_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Encounter Id"
+        },
+        "position": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position"
+        },
+        "geometry": {
+          "default": "square",
+          "enum": [
+            "square",
+            "hex"
+          ],
+          "title": "Geometry",
+          "type": "string"
+        },
+        "light_radius": {
+          "default": 2,
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Light Radius",
+          "type": "integer"
+        },
+        "light_penalty": {
+          "default": -3,
+          "maximum": 0,
+          "minimum": -9,
+          "title": "Light Penalty",
+          "type": "integer"
+        },
+        "concentration_seconds": {
+          "default": 1,
+          "title": "Concentration Seconds",
+          "type": "integer"
+        },
+        "missile_seconds": {
+          "default": 1,
+          "title": "Missile Seconds",
+          "type": "integer"
+        },
+        "hp_energy": {
+          "default": 0,
+          "title": "Hp Energy",
+          "type": "integer"
+        },
+        "execution_version": {
+          "default": 1,
+          "enum": [
+            1,
+            2
+          ],
+          "title": "Execution Version",
+          "type": "integer"
+        },
+        "required_turns": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Required Turns"
+        },
+        "concentrating": {
+          "default": false,
+          "title": "Concentrating",
+          "type": "boolean"
+        },
+        "reversed": {
+          "default": false,
+          "title": "Reversed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "cast_id",
+        "actor_id",
+        "target_id",
+        "spell_id",
+        "build_revision",
+        "phase",
+        "started_at",
+        "ready_at",
+        "skill",
+        "cost",
+        "maintenance",
+        "hp_at_start"
+      ],
+      "title": "SpellEffect",
+      "type": "object"
+    },
+    "SpellEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "effect": {
+          "$ref": "#/$defs/SpellEffect"
+        },
+        "result": {
+          "$ref": "#/$defs/SpellResult"
+        }
+      },
+      "required": [
+        "effect",
+        "result"
+      ],
+      "title": "SpellEvent",
+      "type": "object"
+    },
+    "SpellResolved": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "spell.resolved",
+          "default": "spell.resolved",
+          "title": "Kind",
+          "type": "string"
+        },
+        "audience": {
+          "$ref": "#/$defs/GMAudience",
+          "default": {
+            "kind": "gm"
+          }
+        },
+        "fact": {
+          "$ref": "#/$defs/SpellEvent"
+        }
+      },
+      "required": [
+        "fact"
+      ],
+      "title": "SpellResolved",
+      "type": "object"
+    },
+    "SpellResult": {
+      "additionalProperties": false,
+      "properties": {
+        "outcome": {
+          "enum": [
+            "casting",
+            "active",
+            "failed",
+            "resisted",
+            "cancelled",
+            "interrupted",
+            "critical-failure",
+            "released",
+            "remembered",
+            "forgotten"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "energy_spent": {
+          "default": 0,
+          "title": "Energy Spent",
+          "type": "integer"
+        },
+        "hp_spent": {
+          "default": 0,
+          "title": "Hp Spent",
+          "type": "integer"
+        },
+        "checks": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/CheckTrace"
+          },
+          "title": "Checks",
+          "type": "array"
+        }
+      },
+      "required": [
+        "outcome"
+      ],
+      "title": "SpellResult",
+      "type": "object"
+    },
+    "StatePatched": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "state.patched",
+          "default": "state.patched",
+          "title": "Kind",
+          "type": "string"
+        },
+        "audience": {
+          "$ref": "#/$defs/GMAudience",
+          "default": {
+            "kind": "gm"
+          }
+        },
+        "scope": {
+          "default": "campaign",
+          "enum": [
+            "campaign",
+            "play"
+          ],
+          "title": "Scope",
+          "type": "string"
+        },
+        "before_digest": {
+          "title": "Before Digest",
+          "type": "string"
+        },
+        "after_digest": {
+          "title": "After Digest",
+          "type": "string"
+        },
+        "changes": {
+          "items": {
+            "$ref": "#/$defs/PathChange"
+          },
+          "title": "Changes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "before_digest",
+        "after_digest",
+        "changes"
+      ],
+      "title": "StatePatched",
+      "type": "object"
+    },
+    "TimedFright": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "actor_id": {
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "trigger_id": {
+          "title": "Trigger Id",
+          "type": "string"
+        },
+        "effect": {
+          "$ref": "#/$defs/FrightEffect"
+        },
+        "started": {
+          "title": "Started",
+          "type": "integer"
+        },
+        "due": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Due"
+        },
+        "active": {
+          "title": "Active",
+          "type": "boolean"
+        },
+        "recovery_target": {
+          "title": "Recovery Target",
+          "type": "integer"
+        },
+        "aftermath_until": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Aftermath Until"
+        },
+        "recovery_due": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Recovery Due"
+        },
+        "care": {
+          "default": false,
+          "title": "Care",
+          "type": "boolean"
+        },
+        "neglect_days": {
+          "default": 0,
+          "title": "Neglect Days",
+          "type": "integer"
+        },
+        "next_care_due": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Care Due"
+        },
+        "panic_responses": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Panic Responses",
+          "type": "array"
+        },
+        "recovery_checks": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/CheckTrace"
+          },
+          "title": "Recovery Checks",
+          "type": "array"
+        },
+        "proposed_draft": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Proposed Draft"
+        },
+        "proposal_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Proposal Id"
+        },
+        "proposal_build_revision": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Proposal Build Revision"
+        },
+        "proposed_by": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Proposed By"
+        },
+        "proposed_related_trait": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Proposed Related Trait"
+        },
+        "adjudicated_build_revision": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Adjudicated Build Revision"
+        }
+      },
+      "required": [
+        "id",
+        "actor_id",
+        "trigger_id",
+        "effect",
+        "started",
+        "due",
+        "active",
+        "recovery_target"
+      ],
+      "title": "TimedFright",
+      "type": "object"
+    },
+    "UnarmedTrace": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "enum": [
+            "punch",
+            "kick",
+            "grapple",
+            "break_free",
+            "takedown",
+            "pin",
+            "release",
+            "arm_lock",
+            "lock_damage",
+            "strangle"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "actor_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "target_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Target Id",
+          "type": "string"
+        },
+        "intent": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PendingUnarmed"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "checks": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/CheckTrace"
+          },
+          "title": "Checks",
+          "type": "array"
+        },
+        "won": {
+          "default": false,
+          "title": "Won",
+          "type": "boolean"
+        },
+        "grip_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Grip Id"
+        },
+        "basic_damage": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Basic Damage",
+          "type": "integer"
+        },
+        "injury": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Injury",
+          "type": "integer"
+        },
+        "damage_dice": {
+          "default": [],
+          "items": {
+            "type": "integer"
+          },
+          "title": "Damage Dice",
+          "type": "array"
+        },
+        "blocked_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Blocked Reason"
+        },
+        "table_dice": {
+          "default": [],
+          "items": {
+            "type": "integer"
+          },
+          "title": "Table Dice",
+          "type": "array"
+        },
+        "effect_dice": {
+          "default": [],
+          "items": {
+            "type": "integer"
+          },
+          "title": "Effect Dice",
+          "type": "array"
+        },
+        "effect_checks": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/CheckTrace"
+          },
+          "title": "Effect Checks",
+          "type": "array"
+        },
+        "resolved_location": {
+          "anyOf": [
+            {
+              "enum": [
+                "torso",
+                "neck",
+                "left-arm",
+                "right-arm",
+                "left-leg",
+                "right-leg"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resolved Location"
+        },
+        "defenses": {
+          "default": [],
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "enum": [
+                  "dodge",
+                  "parry",
+                  "none"
+                ],
+                "type": "string"
+              },
+              {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            ],
+            "type": "array"
+          },
+          "title": "Defenses",
+          "type": "array"
+        }
+      },
+      "required": [
+        "action",
+        "actor_id",
+        "target_id"
+      ],
+      "title": "UnarmedTrace",
+      "type": "object"
+    },
+    "StoredEngineEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "campaign_id": {
+          "type": "string"
+        },
+        "command_id": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "event": {
+          "$ref": "#"
+        }
+      },
+      "required": [
+        "campaign_id",
+        "command_id",
+        "revision",
+        "ordinal",
+        "schema_version",
+        "event"
+      ]
+    }
+  },
+  "discriminator": {
+    "mapping": {
+      "ability.resolved": "#/$defs/AbilityResolved",
+      "action.resolved": "#/$defs/ActionResolved",
+      "combat.resolved": "#/$defs/CombatResolved",
+      "command.applied": "#/$defs/CommandApplied",
+      "fright.resolved": "#/$defs/FrightResolved",
+      "hazard.resolved": "#/$defs/HazardResolved",
+      "injury.resolved": "#/$defs/InjuryResolved",
+      "projection.refresh": "#/$defs/ProjectionRefresh",
+      "resource.changed": "#/$defs/ResourceChanged",
+      "scene.changed": "#/$defs/SceneChanged",
+      "spell.resolved": "#/$defs/SpellResolved",
+      "state.patched": "#/$defs/StatePatched"
+    },
+    "propertyName": "kind"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/StatePatched"
+    },
+    {
+      "$ref": "#/$defs/CommandApplied"
+    },
+    {
+      "$ref": "#/$defs/ProjectionRefresh"
+    },
+    {
+      "$ref": "#/$defs/ActionResolved"
+    },
+    {
+      "$ref": "#/$defs/ResourceChanged"
+    },
+    {
+      "$ref": "#/$defs/SceneChanged"
+    },
+    {
+      "$ref": "#/$defs/SpellResolved"
+    },
+    {
+      "$ref": "#/$defs/AbilityResolved"
+    },
+    {
+      "$ref": "#/$defs/CombatResolved"
+    },
+    {
+      "$ref": "#/$defs/FrightResolved"
+    },
+    {
+      "$ref": "#/$defs/HazardResolved"
+    },
+    {
+      "$ref": "#/$defs/InjuryResolved"
+    }
+  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wayfarer.local/contracts/engine/v1/events.schema.json"
+}

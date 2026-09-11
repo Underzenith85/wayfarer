@@ -33,6 +33,7 @@ from wayfarer.simulation.actions import (
     TypedAction,
 )
 from wayfarer.simulation.adjudication import expire_rulings
+from wayfarer.simulation.events import action_result
 from wayfarer.simulation.resources import Pool, ResourceState
 from wayfarer.simulation.rules_context import RulesContext
 from wayfarer.simulation.scenes import ActorScene, JournalEntry, SceneEvent
@@ -409,7 +410,8 @@ class PlayService:
                 authorize(campaign)
             current = self._load(campaign)
             synchronous(current, command.actor_id)
-            state, result = self.engine.resolve(current, command, rng=self.rng)
+            state, resolved_events = self.engine.resolve(current, command, rng=self.rng)
+            result = action_result(resolved_events)
             if result.status != "committed":
                 raise ValidationError("Action is no longer feasible")
             state = self.checkpoint(state, before=current)
