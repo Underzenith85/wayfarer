@@ -231,6 +231,9 @@ def inventory(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> tuple[TraitEntry, 
             "very-rapid-healing", "Very Rapid Healing", 15, 79, "trait.healing", group="healing"
         ),
         _entry("single-minded", "Single-Minded", 5, 85, "trait.concentration"),
+        _entry(
+            "temperature-tolerance", "Temperature Tolerance", 1, 93, "trait.temperature", levels=100
+        ),
         _entry("versatile", "Versatile", 5, 96, "trait.creativity"),
         _entry("voice", "Voice", 10, 97, "trait.voice"),
         _entry("bad-temper", "Bad Temper", -10, 124, "trait.self_control", control=True),

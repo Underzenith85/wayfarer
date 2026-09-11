@@ -67,6 +67,11 @@ class PhysicalCheckService:
                 raise ValidationError("Physical trigger already resolved")
             spec = self.resolve(play, state, command)
             traits = physical_traits(state.resources, command.actor_id)
+            from wayfarer.simulation.condition_checks import require_hazard_capacity
+
+            require_hazard_capacity(
+                state.resources, command.actor_id, spec.sense if spec.kind == "sense" else spec.kind
+            )
             if spec.kind == "sense":
                 if spec.sense == "vision" and spec.darkness == -10:
                     raise ValidationError("Total darkness prevents ordinary vision")

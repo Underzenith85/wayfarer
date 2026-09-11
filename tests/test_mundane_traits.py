@@ -191,6 +191,7 @@ def test_inventory_package_and_audit_reconcile() -> None:
         "trait:very-fit",
         "trait:high-pain-threshold",
         "trait:night-vision",
+        "trait:temperature-tolerance",
         "trait:rapid-healing",
         "trait:very-rapid-healing",
         "trait:acute-hearing",

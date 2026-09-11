@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import cast
 
 from wayfarer.character.compiler import ValidatedBuild
@@ -38,6 +38,7 @@ class CareEnvironment:
     equipment_quality_modifier: int = 0
     infection_risk: bool = False
     infection_modifier: int = 0
+    resuscitation_first_aid_penalty: int = 4
 
 
 EnvironmentResolver = Callable[[PlayService, PlayState, str], CareEnvironment]
@@ -71,7 +72,8 @@ def care_skill(actor: ValidatedBuild, kind: str, env: CareEnvironment) -> tuple[
         return _value(actor, "skill:first-aid" if kind == "first-aid" else "skill:physician"), 0
     if kind == "resuscitate":
         candidates = [
-            int(v.value) - (4 if v.target == "skill:first-aid" else 0)
+            int(v.value)
+            - (env.resuscitation_first_aid_penalty if v.target == "skill:first-aid" else 0)
             for v in actor.sheet.values
             if v.target in ("skill:first-aid", "skill:physician") and v.value == int(v.value)
         ]
@@ -217,6 +219,18 @@ class MedicalService:
                 if task is not None
                 else self.environment(play, before, target_id)
             )
+            if (
+                kind == "resuscitate"
+                and env.technology_level >= 7
+                and any(
+                    hazard.active
+                    and hazard.actor_id == target_id
+                    and hazard.spec.kind == "drowning"
+                    and hazard.stage == "rescued"
+                    for hazard in before.resources.hazards
+                )
+            ):
+                env = replace(env, resuscitation_first_aid_penalty=2)
             physician = (
                 _value(_build(play, before, env.physician_id), "skill:physician")
                 if env.physician_id

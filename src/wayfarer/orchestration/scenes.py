@@ -96,7 +96,13 @@ class SceneService:
         )
 
     def reduce(
-        self, state: PlayState, command: SceneCommand, *, advance_time: bool = True
+        self,
+        state: PlayState,
+        command: SceneCommand,
+        *,
+        advance_time: bool = True,
+        group_travel: bool = False,
+        commit_revision: int | None = None,
     ) -> PlayState:
         from wayfarer.orchestration.recovery import guard
 
@@ -215,7 +221,9 @@ class SceneService:
             at=resources.game_time,
         )
         events.append(event)
-        revision = state.revision + 1
+        revision = state.revision + 1 if commit_revision is None else commit_revision
+        if revision < state.revision:
+            raise ValidationError("Scene transaction revision cannot move backwards")
         resources = resources.model_copy(update={"revision": revision})
         updated = state.model_copy(
             update={
@@ -246,7 +254,7 @@ class SceneService:
             from wayfarer.simulation.party import group_for
 
             group = group_for(state, command.actor_id)
-            if isinstance(command, TravelScene) and len(group.actor_ids) != 1:
+            if isinstance(command, TravelScene) and len(group.actor_ids) != 1 and not group_travel:
                 raise ConflictError("Split before moving an individual actor")
             updated = updated.model_copy(
                 update={

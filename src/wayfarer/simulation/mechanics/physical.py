@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from decimal import Decimal
 from math import ceil
 from typing import Literal
@@ -19,7 +19,7 @@ from wayfarer.character.statistics import (
 )
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record
-from wayfarer.rules.checks import CheckTrace, RandomSource, draw_dice
+from wayfarer.rules.checks import CheckTrace, Outcome, RandomSource, draw_dice
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.rules.hazard_types import HazardSchedule, HazardSpec, require_hazards_settled
 from wayfarer.rules.location_types import disabled_locations
@@ -27,6 +27,7 @@ from wayfarer.rules.physical import (
     climbing,
     climbing_default,
     falling_damage,
+    falling_injury,
     hiking_miles,
     jump_distance,
     lift_limit,
@@ -37,7 +38,9 @@ from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.fatigue import FatigueCost, apply_fatigue, exertion_cost, fatigue_value
 from wayfarer.simulation.injury import Wound, apply_injury, impaired_movement
 from wayfarer.simulation.mechanics.gurps_melee import exertion, injury_turn
-from wayfarer.simulation.party import synchronous
+from wayfarer.simulation.mechanics.hiking import group_hiking
+from wayfarer.simulation.mechanics.scene_travel import travel_scene
+from wayfarer.simulation.party import migrate, synchronous
 from wayfarer.simulation.physical_traits import physical_traits
 from wayfarer.simulation.resources import Advance, Command, Pool, ResourceEvent
 from wayfarer.simulation.rules_context import RulesContext
@@ -67,6 +70,16 @@ class PhysicalRoute:
     terrain: str = "average"
     bad_weather: bool = False
     hard: bool = True
+    exit_id: str | None = None
+    gravity: Decimal = Decimal(1)
+    pressure: Decimal = Decimal(1)
+    terminal_velocity: int = 60
+    controlled: bool = False
+    slow_swimming: bool = False
+    intentional: bool = True
+    rope_length: Decimal | None = None
+    hiking_day_seconds: int = 28800
+    group_hike: bool = False
 
 
 class PhysicalResult(Record):
@@ -76,6 +89,11 @@ class PhysicalResult(Record):
     checks: tuple[CheckTrace, ...] = ()
     injury: int = 0
     fp_lost: int = 0
+    progress: str = "0"
+    completed: bool = False
+    elapsed: int = 0
+    route_id: str = ""
+    route_binding: str = ""
 
 
 RouteResolver = Callable[[RulesContext, PlayState, str, str], PhysicalRoute]
@@ -90,6 +108,7 @@ class PhysicalContext:
 
 @dataclass(frozen=True)
 class PreparedFeat:
+    runtime: RulesContext
     state: PlayState
     route: PhysicalRoute
     compiled: ValidatedBuild
@@ -99,6 +118,11 @@ class PreparedFeat:
     fp: Pool
     allowed: bool
     move: int
+    armor_dr: int
+    innate_dr: int
+    binding: str
+    progress: Decimal
+    elapsed: int
 
 
 def _prepare(before: PlayState, command: PhysicalCommand, context: PhysicalContext) -> PreparedFeat:
@@ -121,7 +145,20 @@ def _prepare(before: PlayState, command: PhysicalCommand, context: PhysicalConte
     ):
         raise ValidationError("Physical route is not at the actor's location")
     if route.destination_id is not None:
-        raise ValidationError("Cross-scene physical routes require the scene travel integration")
+        rules = runtime.rules.scenes
+        if (
+            rules is None
+            or route.exit_id is None
+            or not any(
+                scene.location_id == route.scene_id
+                and any(
+                    value.id == route.exit_id and value.destination_id == route.destination_id
+                    for value in scene.exits
+                )
+                for scene in rules.scenes
+            )
+        ):
+            raise ValidationError("Travel requires a bound authored scene exit")
     if (
         not route.distance.is_finite()
         or route.distance < 0
@@ -139,17 +176,27 @@ def _prepare(before: PlayState, command: PhysicalCommand, context: PhysicalConte
     ):
         raise ValidationError("Physical load requires a GURPS equipment binding")
     equipment = runtime.rules.combat.gurps_equipment if runtime.rules.combat else None
-    worn_armor = equipment is not None and any(
-        item.owner_id == actor.actor_id
-        and item.equipped
-        and any(
-            entry.definition_id == item.definition_id and entry.armor is not None
-            for entry in equipment.entries
-        )
-        for item in before.resources.items
+    armor_dr = max(
+        (
+            entry.armor.dr
+            for item in before.resources.items
+            if item.owner_id == actor.actor_id
+            and item.equipped
+            and (item.condition is None or not item.condition.disabled)
+            for entry in (equipment.entries if equipment else ())
+            if entry.definition_id == item.definition_id
+            and entry.armor is not None
+            and "torso" in entry.armor.locations
+        ),
+        default=0,
     )
-    if worn_armor and command.kind in ("climb", "fall"):
-        raise ValidationError("Armored falls require the blunt-trauma integration")
+    from wayfarer.simulation.abilities import damage_resistance
+
+    innate_dr = (
+        damage_resistance(before.resources, actor.actor_id, build_revision=compiled.revision)
+        if runtime.rules.abilities is not None
+        else 0
+    )
     load = encumbrance(
         stats.profile_id,
         stats.basic_lift,
@@ -196,7 +243,46 @@ def _prepare(before: PlayState, command: PhysicalCommand, context: PhysicalConte
         if allowed
         else 0
     )
-    return PreparedFeat(state, route, compiled, stats, load, hp, fp, allowed, move)
+    binding = json.dumps(asdict(route), sort_keys=True, default=str)
+    previous = next(
+        (
+            PhysicalResult.model_validate_json(event.kind)
+            for event in reversed(state.resources.events)
+            if event.id.startswith("feat:")
+            and event.target_id == actor.actor_id
+            and json.loads(event.kind).get("route_id") == route.id
+        ),
+        None,
+    )
+    if previous is not None and previous.route_binding != binding:
+        raise ValidationError("In-progress route geometry changed")
+    if previous is not None and previous.completed:
+        raise ValidationError("Route already completed; author a new journey ID")
+    if route.rope_length is not None and (
+        not route.rope_length.is_finite() or route.rope_length < 0
+    ):
+        raise ValidationError("Invalid safety rope")
+    if not 3600 <= route.hiking_day_seconds <= 86400:
+        raise ValidationError("Invalid authored hiking day")
+    if route.group_hike and command.kind != "hike":
+        raise ValidationError("Group pacing is only supported for hiking")
+    return PreparedFeat(
+        runtime,
+        state,
+        route,
+        compiled,
+        stats,
+        load,
+        hp,
+        fp,
+        allowed,
+        move,
+        armor_dr,
+        innate_dr,
+        binding,
+        Decimal(previous.progress) if previous else Decimal(0),
+        previous.elapsed if previous else 0,
+    )
 
 
 def _skill(compiled: ValidatedBuild, key: str, default: int) -> int:
@@ -228,15 +314,18 @@ class FeatOutcome:
     damage: int = 0
     cost: int = 0
     checks: tuple[CheckTrace, ...] = ()
+    progress: Decimal = Decimal(0)
+    elapsed: int = 0
+    state: PlayState | None = None
+    group_costs: tuple[tuple[str, int, int], ...] = ()
 
 
 def _climb(feat: PreparedFeat, command: PhysicalCommand, rng: RandomSource) -> FeatOutcome:
     route, stats, load, hp = feat.route, feat.stats, feat.load, feat.hp
-    if route.distance != int(route.distance) or not 0 < route.distance <= 300:
-        raise ValidationError("Climbs require whole feet and at most five minutes between rolls")
-    modifier, seconds = climbing(route.surface, int(route.distance))
-    if seconds > 300:
-        raise ValidationError("Split long climbs at five-minute checks")
+    if route.distance != int(route.distance) or route.distance <= 0:
+        raise ValidationError("Climbs require positive whole feet")
+    modifier, total_seconds = climbing(route.surface, int(route.distance))
+    seconds = min(300, total_seconds - feat.elapsed)
     check = _roll(
         feat,
         command,
@@ -247,10 +336,33 @@ def _climb(feat: PreparedFeat, command: PhysicalCommand, rng: RandomSource) -> F
         - (hp.injury.shock if hp.injury else 0),
     )
     damage = 0
-    if not check.outcome.succeeded:
-        dice, adds = falling_damage(stats.hp, route.distance / 3)
+    progress = feat.progress
+    elapsed = feat.elapsed
+    if check.outcome.succeeded:
+        progress = min(route.distance, route.distance * (elapsed + seconds) / total_seconds)
+    else:
+        fall_feet = progress
+        if route.rope_length is not None and check.outcome is not Outcome.CRITICAL_FAILURE:
+            fall_feet = min(fall_feet, route.rope_length)
+        dice, adds = falling_damage(
+            stats.hp,
+            fall_feet / 3,
+            gravity=route.gravity,
+            pressure=route.pressure,
+            terminal_velocity=route.terminal_velocity,
+        )
         damage = max(0, sum(draw_dice(rng, dice)) + adds)
-    return FeatOutcome(seconds, route.distance, check.outcome.succeeded, damage, checks=(check,))
+        seconds = 1
+        progress, elapsed = Decimal(0), 0
+    return FeatOutcome(
+        seconds,
+        route.distance,
+        check.outcome.succeeded,
+        damage,
+        checks=(check,),
+        progress=progress,
+        elapsed=elapsed,
+    )
 
 
 def _jump(feat: PreparedFeat, command: PhysicalCommand, rng: RandomSource) -> FeatOutcome:
@@ -262,7 +374,14 @@ def _jump(feat: PreparedFeat, command: PhysicalCommand, rng: RandomSource) -> Fe
         jumping=_skill(feat.compiled, "jumping", stats.basic_move * 2),
         prepared=route.prepared,
     )
-    return FeatOutcome(3 if route.prepared else 1, capacity, route.distance <= capacity)
+    succeeded = route.distance <= capacity
+    return FeatOutcome(
+        3 if route.prepared else 1,
+        capacity,
+        succeeded,
+        progress=route.distance if succeeded else feat.progress,
+        elapsed=feat.elapsed,
+    )
 
 
 def _lift(feat: PreparedFeat, command: PhysicalCommand, rng: RandomSource) -> FeatOutcome:
@@ -274,60 +393,175 @@ def _lift(feat: PreparedFeat, command: PhysicalCommand, rng: RandomSource) -> Fe
     capacity, seconds = lift_limit(
         fatigue_value(feat.fp, feat.stats.st), feat.route.lift_kind, margin=margin
     )
-    return FeatOutcome(seconds, capacity, feat.route.pounds <= capacity, checks=checks)
+    succeeded = feat.route.pounds <= capacity
+    return FeatOutcome(
+        seconds,
+        capacity,
+        succeeded,
+        checks=checks,
+        progress=feat.route.distance if succeeded else feat.progress,
+        elapsed=feat.elapsed,
+    )
 
 
 def _hike(feat: PreparedFeat, command: PhysicalCommand, rng: RandomSource) -> FeatOutcome:
     route, stats = feat.route, feat.stats
-    if route.seconds != 3600:
-        raise ValidationError("Hiking resolves hourly fatigue intervals")
-    check = _roll(feat, command, rng, _skill(feat.compiled, "hiking", stats.ht - 5))
-    capacity = hiking_miles(
-        feat.move,
-        success=check.outcome.succeeded,
-        terrain=route.terrain,
-        bad_weather=route.bad_weather,
+    if route.seconds not in (3600, 86400):
+        raise ValidationError("Hiking resolves hourly exertion or a full travel day")
+    day = feat.state.resources.game_time // 86400
+    daily_id = f"hiking-day:{command.actor_id}:{day}"
+    daily = next((e for e in feat.state.resources.events if e.id == daily_id), None)
+    state = feat.state
+    checks: tuple[CheckTrace, ...] = ()
+    group_costs: tuple[tuple[str, int, int], ...] = ()
+    if route.group_hike:
+        state, capacity, checks, group_costs = group_hiking(
+            feat.runtime,
+            state,
+            command.actor_id,
+            terrain=route.terrain,
+            bad_weather=route.bad_weather,
+        )
+    else:
+        if daily is None:
+            check = _roll(feat, command, rng, _skill(feat.compiled, "hiking", stats.ht - 5))
+            checks = (check,)
+            succeeded = check.outcome.succeeded
+            state = state.model_copy(
+                update={
+                    "resources": state.resources.model_copy(
+                        update={
+                            "events": state.resources.events
+                            + (
+                                ResourceEvent(
+                                    id=daily_id,
+                                    at=state.resources.game_time,
+                                    target_id=command.actor_id,
+                                    kind=json.dumps({"succeeded": succeeded}),
+                                ),
+                            )
+                        }
+                    )
+                }
+            )
+        else:
+            succeeded = bool(json.loads(daily.kind)["succeeded"])
+        capacity = hiking_miles(
+            feat.move,
+            success=succeeded,
+            terrain=route.terrain,
+            bad_weather=route.bad_weather,
+        )
+    progress = min(
+        route.distance,
+        feat.progress
+        + capacity
+        * (
+            Decimal(1)
+            if route.seconds == 86400
+            else Decimal(route.seconds) / route.hiking_day_seconds
+        ),
     )
     return FeatOutcome(
         route.seconds,
         capacity,
-        check.outcome.succeeded,
-        cost=exertion_cost("hiking", seconds=route.seconds, encumbrance=int(feat.load)),
-        checks=(check,),
+        True,
+        cost=(
+            exertion_cost("hiking", seconds=route.seconds, encumbrance=int(feat.load))
+            if route.seconds == 3600
+            else 0
+        ),
+        checks=checks,
+        progress=progress,
+        elapsed=feat.elapsed,
+        state=state,
+        group_costs=group_costs,
     )
 
 
 def _swim(feat: PreparedFeat, command: PhysicalCommand, rng: RandomSource) -> FeatOutcome:
     route, stats, load = feat.route, feat.stats, feat.load
-    if route.seconds > 60:
-        raise ValidationError("Swimming procedures are limited to one-minute fatigue checks")
-    check = _roll(
-        feat, command, rng, _skill(feat.compiled, "swimming", stats.ht - 4) + 3 - 2 * int(load)
+    if not 1 <= route.seconds <= 60:
+        raise ValidationError("Swimming advances at most one fatigue minute")
+    hazards = tuple(
+        h
+        for h in feat.state.resources.hazards
+        if h.active and h.actor_id == command.actor_id and h.spec.kind == "drowning"
     )
-    succeeded = check.outcome.succeeded
-    seconds = route.seconds if succeeded else 1
-    capacity = swimming_yards(stats.basic_move, seconds, int(load)) if succeeded else Decimal(0)
+    if any(h.stage not in ("recovering", "swimming") for h in hazards):
+        raise ValidationError("Resolve swimming distress before route progress")
+    seconds = min(route.seconds, 60 - feat.elapsed % 60)
+    checks: tuple[CheckTrace, ...] = ()
+    succeeded = True
+    if feat.elapsed % 300 == 0 and not hazards:
+        check = _roll(
+            feat,
+            command,
+            rng,
+            _skill(feat.compiled, "swimming", stats.ht - 4)
+            + (3 if route.intentional and feat.elapsed == 0 else 0)
+            - 2 * int(load),
+        )
+        checks = (check,)
+        succeeded = check.outcome.succeeded
+    water_move = fatigue_value(feat.fp, impaired_movement(feat.hp, max(1, stats.basic_move // 5)))
+    capacity = swimming_yards(water_move * 5, seconds, int(load)) if succeeded else Decimal(0)
+    if route.slow_swimming:
+        capacity /= 2
+    progress = min(route.distance, feat.progress + capacity)
     cost = 0 if succeeded else 1
-    checks: tuple[CheckTrace, ...] = (check,)
-    if seconds == 60:
+    if not succeeded:
+        seconds = 1
+    elif (feat.elapsed + seconds) % (1800 if route.slow_swimming else 60) == 0:
         fatigue = _roll(
             feat,
             command,
             rng,
-            stats.ht + physical_traits(feat.state.resources, command.actor_id).fitness,
+            max(
+                stats.ht + physical_traits(feat.state.resources, command.actor_id).fitness,
+                _skill(feat.compiled, "swimming", stats.ht - 4),
+            ),
         )
         checks += (fatigue,)
         if not fatigue.outcome.succeeded:
             cost += 1
-    return FeatOutcome(seconds, capacity, succeeded, cost=cost, checks=checks)
+    return FeatOutcome(
+        seconds,
+        capacity,
+        succeeded,
+        cost=cost,
+        checks=checks,
+        progress=progress,
+        elapsed=feat.elapsed,
+    )
 
 
 def _fall(feat: PreparedFeat, command: PhysicalCommand, rng: RandomSource) -> FeatOutcome:
     route = feat.route
-    dice, adds = falling_damage(feat.stats.hp, route.distance, hard=route.hard)
+    checks: tuple[CheckTrace, ...] = ()
+    controlled = False
+    if route.controlled:
+        check = _roll(feat, command, rng, _skill(feat.compiled, "acrobatics", feat.stats.dx - 6))
+        checks = (check,)
+        controlled = check.outcome.succeeded
+    dice, adds = falling_damage(
+        feat.stats.hp,
+        route.distance,
+        hard=route.hard,
+        controlled=controlled,
+        gravity=route.gravity,
+        pressure=route.pressure,
+        terminal_velocity=route.terminal_velocity,
+    )
     damage = max(0, sum(draw_dice(rng, dice)) + adds)
     return FeatOutcome(
-        max(1, ceil((float(route.distance) / 5.35) ** 0.5)), route.distance, True, damage
+        max(1, ceil((float(route.distance) / 5.35) ** 0.5)),
+        route.distance,
+        True,
+        damage,
+        checks=checks,
+        progress=route.distance,
+        elapsed=feat.elapsed,
     )
 
 
@@ -344,10 +578,13 @@ _FEATS: dict[str, Callable[[PreparedFeat, PhysicalCommand, RandomSource], FeatOu
 def reduce_physical(
     before: PlayState, command: PhysicalCommand, context: PhysicalContext
 ) -> tuple[PlayState, PhysicalResult]:
+    before = migrate(before)
     feat = _prepare(before, command, context)
     outcome = (
         _FEATS[command.kind](feat, command, context.runtime.rng) if feat.allowed else FeatOutcome()
     )
+    if not feat.allowed:
+        outcome = FeatOutcome(progress=feat.progress, elapsed=feat.elapsed)
     return _finish(feat, command, context, outcome)
 
 
@@ -355,7 +592,8 @@ def _finish(
     feat: PreparedFeat, command: PhysicalCommand, context: PhysicalContext, outcome: FeatOutcome
 ) -> tuple[PlayState, PhysicalResult]:
     runtime = context.runtime
-    state, route, stats, load, allowed = feat.state, feat.route, feat.stats, feat.load, feat.allowed
+    state = outcome.state or feat.state
+    route, stats, load, allowed = feat.route, feat.stats, feat.load, feat.allowed
     seconds, capacity, succeeded, damage, cost, checks = (
         outcome.seconds,
         outcome.capacity,
@@ -366,6 +604,8 @@ def _finish(
     )
     resources = state.resources
     internal = hashlib.sha256(command.id.encode()).hexdigest()
+    if command.kind in ("climb", "fall"):
+        damage = falling_injury(damage, feat.armor_dr, feat.innate_dr)
     if damage:
         resources, injury = apply_injury(
             resources,
@@ -397,6 +637,29 @@ def _finish(
             system=True,
         )
         cost = fatigue.fp_lost
+    for member, member_ht, member_load in outcome.group_costs:
+        if member != command.actor_id and seconds == 3600:
+            resources, _ = apply_fatigue(
+                resources,
+                FatigueCost(
+                    id="group-hike-fp:" + internal + ":" + member,
+                    actor_id=member,
+                    expected_revision=resources.revision,
+                    amount=exertion_cost("hiking", seconds=seconds, encumbrance=member_load),
+                ),
+                ht=member_ht,
+                rng=runtime.rng,
+                system=True,
+            )
+    state = injury_turn(
+        runtime,
+        state.model_copy(update={"resources": resources}),
+        command.actor_id,
+        command.id,
+        start=False,
+        do_nothing=False,
+    )
+    resources = state.resources
     resources = runtime.resources.apply(
         resources,
         Advance(
@@ -441,6 +704,11 @@ def _finish(
         checks=tuple(checks),
         injury=damage,
         fp_lost=cost,
+        progress=str(outcome.progress),
+        completed=succeeded and outcome.progress >= route.distance,
+        elapsed=0 if command.kind == "climb" and not succeeded else outcome.elapsed + seconds,
+        route_id=route.id,
+        route_binding=feat.binding,
     )
     resources = resources.model_copy(
         update={
@@ -457,4 +725,30 @@ def _finish(
         }
     )
     updated = state.model_copy(update={"revision": resources.revision, "resources": resources})
+    if result.completed and route.destination_id is not None:
+        assert route.exit_id is not None
+        travelers = tuple(member for member, _, _ in outcome.group_costs) or (command.actor_id,)
+        for traveler in travelers:
+            updated = travel_scene(
+                updated,
+                actor_id=traveler,
+                command_id="feat-travel:" + internal + ":" + traveler,
+                exit_id=route.exit_id,
+                runtime=runtime,
+                group_travel=bool(outcome.group_costs),
+                revision=resources.revision,
+            )
+    if updated.party.groups:
+        updated = updated.model_copy(
+            update={
+                "party": updated.party.model_copy(
+                    update={
+                        "groups": tuple(
+                            group.model_copy(update={"ready_through": resources.game_time})
+                            for group in updated.party.groups
+                        )
+                    }
+                )
+            }
+        )
     return updated, result
