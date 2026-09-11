@@ -10,6 +10,7 @@ from pydantic import Field, model_validator
 from wayfarer.models import Campaign, Event, Record
 from wayfarer.rules.randomness import RNG_ALGORITHM
 from wayfarer.simulation import ENGINE_VERSION
+from wayfarer.simulation.events import EngineEvent
 
 EVENT_SCHEMA_VERSION = 1
 
@@ -56,7 +57,7 @@ class CommandOrigin(Record):
 
 
 @dataclass(frozen=True, slots=True)
-class StoredEvent:
+class CommandRecord:
     campaign_id: str
     command_id: str
     actor_id: str
@@ -81,3 +82,19 @@ class StoredEvent:
             and self.engine_version == ENGINE_VERSION
             and self.rng_algorithm == RNG_ALGORITHM
         )
+
+
+@dataclass(frozen=True, slots=True)
+class StoredEvent:
+    campaign_id: str
+    command_id: str
+    revision: int
+    ordinal: int
+    event: EngineEvent
+    schema_version: int = EVENT_SCHEMA_VERSION
+
+
+@dataclass(frozen=True, slots=True)
+class CommandResolution:
+    transcript: Event
+    events: list[EngineEvent]

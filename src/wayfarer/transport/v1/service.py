@@ -88,7 +88,7 @@ class V1Service:
         self, tx: Transaction, cid: str, principal: str, viewpoint: str | None = None
     ) -> View:
         try:
-            raw = await self.play.store.read(cid)
+            raw = (await self.play.store.stream_states(cid))[-1][0]
         except NotFoundError as exc:
             raise Fault(404, "not_found") from exc
         meta = await tx.get("campaign:" + cid)

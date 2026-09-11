@@ -24,6 +24,7 @@ from wayfarer.persistence.postgres import AsyncPostgresStore
 from wayfarer.simulation.action_engine import ActionEngine
 from wayfarer.simulation.actions import ActionResult, PlayState, Social, Wait
 from wayfarer.simulation.adjudication import Ruling, RulingAlternative, RulingPolicy
+from wayfarer.simulation.events import action_result
 
 
 def configured(*, modifier: int = 2, automatic: bool = False, player: bool = False) -> ActionEngine:
@@ -370,7 +371,8 @@ async def test_execution_revalidates_capability_and_exact_approved_mechanics(
     unable = state.model_copy(
         update={"actors": (state.actors[0].model_copy(update={"conditions": ("stunned",)}),)}
     )
-    unchanged, result = play.engine.resolve(unable, action, ruling_id="ruling", rng=dice)
+    unchanged, resolved_events = play.engine.resolve(unable, action, ruling_id="ruling", rng=dice)
+    result = action_result(resolved_events)
     assert unchanged == unable and result.code == "actor.condition" and dice.calls == 0
     expired = state.model_copy(
         update={"resources": state.resources.model_copy(update={"game_time": 10, "scheduled": ()})}

@@ -28,10 +28,10 @@ effects within a command remain part of that command's receipt and RNG stream.
 `sha256-counter-v1` is a fixed SHA-256 counter stream with rejection sampling for
 arbitrary positive bounds, not Python's version-dependent random implementation.
 Its byte-level contract is frozen by a test vector. `simulation.ENGINE_VERSION`
-starts at `1`; bump it when any input can produce different state, events or draws,
+started at `1`; the event-list contract uses `2`. Bump it when any input can produce different state, events or draws,
 including RNG algorithm changes. #418 adds the comprehensive version/replay gate.
 
-`StoredEvent.reexecutable` requires a seed, a supported RNG algorithm and the
+`CommandRecord.reexecutable` requires a seed, a supported RNG algorithm and the
 running engine version. Additive SQLite/PostgreSQL migrations leave these fields
 null on old rows: no seed is fabricated. Existing explicit scripted RNG injection
 is retained for numeric fixtures, with `rng_algorithm="injected"`; those records
@@ -85,6 +85,52 @@ proposal callers use the same origin shape; authored NPC decisions have none.
 Draft-only provider operations do not commit commands and therefore create no
 command-origin rows. Replay consumes stored commands/state without calling a
 provider. SQLite/PostgreSQL migrations leave legacy origins null.
+
+## Dedicated event stream (#413)
+
+`CommandRecord` describes a receipt; `StoredEvent` describes one ordered row in
+`event_stream` (campaign, revision, ordinal, command ID, schema version, event).
+`ActionEngine.resolve` returns `(state, list[EngineEvent])`; callers extract the
+`ActionResolved` result for existing response contracts. The command boundary
+composes each service reducer with its checkpoints and emits the final event list
+before storage. Mechanical helpers retain their focused result types internally.
+
+The list includes typed action, scene, resource, combat, spell, ability, injury,
+fright and hazard facts. Other encoded procedure records remain resource facts
+for this migration. A private `StatePatched` event records explicit path changes, with base
+and result digests, covering state that is not yet represented by a specialized
+fact. It does not contain a replacement campaign snapshot. Folding applies those
+changes; semantic facts can be consumed independently without applying effects a
+second time. Embedded event fields remain until #419.
+
+Each event declares a campaign, actor-set or GM audience. Scene discoveries and
+action results are private to their observer/actor. Full mechanical traces and
+state patches are GM-only because they can contain hidden target facts. A
+payload-free projection refresh hint asks consumers to check their authorized
+view; unchanged views emit no wire message. The v1 projector and outbox reconstruct
+from the event stream and filter audiences before projecting. Opaque cursor and
+version behavior remains unchanged; internal patches never cross the live wire.
+
+Adapters append the command, all event rows and snapshot in one transaction under
+the existing compare-and-set. Before append, folding must reproduce the candidate
+state. Failure rolls back everything; retries do not append again. Ordinals order
+multiple legacy fixture writes at the same revision. Live engine commands still
+advance the revision. The architecture gate permits event-stream inserts only in
+the two persistence adapters and forbids update/delete statements.
+
+`stream_genesis` retains the earliest available checkpoint. Existing logs are
+converted once under the writer lock using their recorded transitions, without
+fabricating seeds. If an old database retains no revision-zero checkpoint, its
+earliest snapshot is the explicit reconstruction boundary. Subsequent stream
+reads no longer depend on command `state_after` columns or the snapshots table.
+This step retains the existing snapshot-based general load path; #419 demotes
+that cache after the replay gate and upcaster registry land.
+
+`contracts/v1/events.schema.json` defines `EngineEvent` and schema-version-1
+`StoredEngineEvent` alongside the unchanged live messages. The offline validator
+checks the definitions against the runtime models; schema changes require review.
+Run `uv run python -m scripts.update_engine_event_schema` to regenerate the
+engine definitions while preserving the wire definitions.
 
 ## Receipts and recovery
 

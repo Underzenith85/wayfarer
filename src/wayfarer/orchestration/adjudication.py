@@ -25,6 +25,7 @@ from wayfarer.simulation.actions import (
     Social,
 )
 from wayfarer.simulation.adjudication import Ruling, expire_rulings
+from wayfarer.simulation.events import action_result
 
 
 class RequestRuling(ActionCommand):
@@ -209,9 +210,10 @@ class AdjudicationService:
         from wayfarer.simulation.party import synchronous
 
         synchronous(state, command.actor_id)
-        updated, result = self.play.engine.resolve(
+        updated, resolved_events = self.play.engine.resolve(
             state, reframed, rng=self.play.rng, ruling_id=ruling.id
         )
+        result = action_result(resolved_events)
         if result.status != "committed":
             raise ValidationError("Approved action is no longer feasible")
         return updated, result

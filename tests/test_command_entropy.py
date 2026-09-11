@@ -32,6 +32,7 @@ from wayfarer.rules.checks import RecordedDice, draw_dice
 from wayfarer.rules.randomness import RNG_ALGORITHM, SeededRandom
 from wayfarer.simulation import ENGINE_VERSION
 from wayfarer.simulation.actions import Inspect, Wait
+from wayfarer.simulation.events import action_result
 from wayfarer.transport.campaign_api import ACCESS_KEY
 
 
@@ -167,7 +168,8 @@ async def test_seeded_command_retry_race_restart_and_reexecution(
     assert record.recorded_at_us is not None and record.recorded_at_us > 0
     assert record.reexecutable and record.actor_id == "a"
     replay = PlayService(store, reducer, rng=SeededRandom(record.entropy_seed))
-    state, result = reducer.resolve(before, command, rng=replay.rng)
+    state, resolved_events = reducer.resolve(before, command, rng=replay.rng)
+    result = action_result(resolved_events)
     state = replay.checkpoint(state, before=before)
     assert result == results[0] and result.check is not None
     assert state == play._load(record.state_after)
@@ -220,7 +222,8 @@ async def test_reference_adventure_seed_replays_checkpoint_and_is_private(tmp_pa
         record = (await play.store.history(table.cid))[-1]
         assert record.reexecutable and record.entropy_seed
         replay = PlayService(play.store, play.engine, rng=SeededRandom(record.entropy_seed))
-        state, replayed = replay.engine.resolve(before, command, rng=replay.rng)
+        state, resolved_events = replay.engine.resolve(before, command, rng=replay.rng)
+        replayed = action_result(resolved_events)
         state = replay.checkpoint(state, before=before)
         assert replayed == result and state == play._load(record.state_after)
         access = CampaignAccess(play)
