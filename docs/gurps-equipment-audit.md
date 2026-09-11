@@ -25,7 +25,7 @@ integrity checks and their failure cases.
 
 ## Selected-table inventory and omitted rows
 
-`ledger.json` splits B264-289 into fifteen sections. Every registered row
+`ledger.json` splits B264-289 into fourteen sections. Every registered row
 (`BASIC_EQUIPMENT` plus the blocked `ULTRATECH_INDEX`) belongs to exactly one
 section, and the validator rejects a ledger whose sections do not cover the
 pinned catalog exactly. **No section is complete.** Four carry an inspected page
@@ -33,15 +33,15 @@ anchor and record what they leave out:
 
 | Section | Anchor | Rows recorded | Omitted |
 | --- | --- | --- | --- |
-| `melee-weapons-b271` | B271 | 2 | every other melee row, including footnoted, two-handed and unbalanced entries |
+| `melee-weapons-b271` | B271-274 | 45 | non-equipment attacks and rows the typed schema cannot represent without inventing values |
 | `beam-weapons-b280` | B280 | 3 | every other beam row; the three recorded rows are index facts that cannot be equipped or fired |
 | `body-armor-b283` | B283 | 8 | split-DR, single-facing, flexible, layered and footnoted rows, plus the other armor pages |
 | `general-equipment-b288` | B288 | 10 | every other B288 row and the whole B289 continuation |
 
-The remaining eleven sections record **no rows at all**: wealth and legality,
-the melee remainder, muscle-powered ranged weapons, firearms, ammunition,
-shields, heavy weapons, split-DR armor, higher-TL variants, weapon accessories
-and the general equipment remainder. Their anchors are recorded as `range-only`,
+The remaining ten sections record **no rows at all**: wealth and legality,
+muscle-powered ranged weapons, firearms, ammunition, shields, heavy weapons,
+split-DR armor, higher-TL variants, weapon accessories and the general equipment
+remainder. Their anchors are recorded as `range-only`,
 meaning B264-289 as a range that nobody has reconciled item by item. A
 `range-only` anchor is a coverage gap, not a page citation.
 
@@ -53,11 +53,14 @@ row is a shield, and no audited row is a ranged weapon, so the `Shield` and
 
 Every special behaviour is dispositioned as `implemented` or `unsupported`.
 
-An `implemented` behaviour names a declared conformance capability and either an
-executable test binding or the exact evidence it is missing; a missing binding
-keeps an owning issue and stays a blocker. `weapon-parry-modifier` and
-`two-handed-weapon` are in that state today, because no audited row carries a
-nonzero parry modifier or needs two hands.
+An `implemented` behaviour names a declared conformance capability and an
+executable test binding. The inspected B272-274 rows now provide direct cases for
+nonzero parry modifiers and two-handed grips. Special melee behavior that the
+engine cannot yet execute remains explicit and blocks only the affected item:
+alternate thrown modes, stuck picks, flail defense penalties, mounted lance
+damage, variable reach, conditional post-attack readiness, and the cutlass hilt.
+Rows whose values do not fit the schema are explicit omissions: superscience TL,
+extra dice added to ST-based damage, and variable minimum ST.
 
 An `unsupported` behaviour names an owning issue and nothing else. Its identifier
 is the same string an entry lists in `unsupported_mechanics`, and the validator
@@ -81,12 +84,12 @@ Every field of `Provenance`, `Damage`, `Parry`, `MeleeMode`, `RangedMode`,
 source anchor and either its executable coverage or an explicit gap. Adding or
 removing a schema field without updating the ledger fails the audit.
 
-All 64 records are `pending`. Nothing has been reconciled against an inspected
+All 111 records are `pending`. Nothing has been reconciled against an inspected
 printing, so no field, unit or numeric sample is source-verified, and
 `gurps.equipment.weapon_profiles` and `gurps.equipment.armor_profiles` stay
-partial. Seven fields have no executable case at all: `Parry.modifier`,
-`MeleeMode.kind`, `MeleeMode.hands`, `RangedMode.kind`, `RangedMode.bulk`,
-`Shield.skill_id` and `EquipmentProfile.shield`.
+partial. Five fields have no direct case at all: `MeleeMode.kind`,
+`RangedMode.kind`, `RangedMode.bulk`, `Shield.skill_id` and
+`EquipmentProfile.shield`.
 
 Weights are thousandths of a pound throughout, including container capacity;
 prices are dollars. These are the adapter's explicit units, recorded per field so

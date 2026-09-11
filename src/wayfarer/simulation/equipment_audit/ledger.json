@@ -7,20 +7,74 @@
   "sections": [
     {
       "id": "melee-weapons-b271",
-      "reference": "B271",
+      "reference": "B271-274",
       "anchor": "inspected",
       "source_id": "sjg:basic-set-characters-4e-2004",
       "owner_issue": 180,
       "status": "partial",
       "selected": [
         "light-club",
-        "broadsword"
+        "broadsword",
+        "axe",
+        "hatchet",
+        "throwing-axe",
+        "mace",
+        "small-mace",
+        "pick",
+        "blackjack",
+        "thrusting-broadsword",
+        "bastard-sword",
+        "katana",
+        "thrusting-bastard-sword",
+        "cavalry-saber",
+        "morningstar",
+        "nunchaku",
+        "large-knife",
+        "small-knife",
+        "wooden-stake",
+        "dagger",
+        "kusari",
+        "lance",
+        "glaive",
+        "naginata",
+        "halberd",
+        "poleaxe",
+        "rapier",
+        "saber",
+        "baton",
+        "shortsword",
+        "cutlass",
+        "cattle-prod",
+        "short-staff",
+        "smallsword",
+        "spear",
+        "javelin",
+        "long-spear",
+        "quarterstaff",
+        "maul",
+        "great-axe",
+        "scythe",
+        "warhammer",
+        "flail",
+        "greatsword",
+        "thrusting-greatsword"
       ],
-      "omitted_rows": "Every other B271 melee row, including all rows carrying a special footnote, two-handed and unbalanced entries, rows whose quality decides critical breakage, and the remaining melee weapon pages.",
+      "omitted_rows": "Explicit non-catalog rows: Punch, Kick, Kick with Boots, Blunt Teeth, Fangs, Sharp Beak, Sharp Teeth, Striker and the variable Shield Bash rows. Brass Knuckles lacks a table ST value. Stun Gun and Garrote use damage forms the schema cannot encode. Force Sword and Monowire Whip have a superscience TL that the integer TL field cannot encode; Monowire Whip and Chainsaw also add dice to ST-based damage, and Whip has variable ST and purchased reach. These rows remain blocked rather than receiving invented values.",
       "mechanics": [
         "unbalanced-parry",
         "fencing-parry",
-        "weapon-breakage"
+        "weapon-breakage",
+        "alternate-thrown-mode",
+        "pick-stuck",
+        "flail-defense-penalties",
+        "mounted-lance-damage",
+        "variable-reach-ready",
+        "conditional-ready-after-attack",
+        "cutlass-hilt",
+        "linked-affliction",
+        "superscience-technology-level",
+        "extra-die-strength-damage",
+        "variable-minimum-strength"
       ]
     },
     {
@@ -107,21 +161,6 @@
       "mechanics": [
         "starting-wealth",
         "legality-class"
-      ]
-    },
-    {
-      "id": "melee-weapons-remainder",
-      "reference": "B264-289",
-      "anchor": "range-only",
-      "source_id": "sjg:basic-set-characters-4e-2004",
-      "owner_issue": 180,
-      "status": "omitted",
-      "selected": [],
-      "omitted_rows": "The melee weapon tables outside the two audited B271 rows, across every skill heading. No row, mode, reach, parry or minimum ST value is recorded.",
-      "mechanics": [
-        "unbalanced-parry",
-        "fencing-parry",
-        "weapon-breakage"
       ]
     },
     {
@@ -471,25 +510,139 @@
     },
     {
       "id": "weapon-parry-modifier",
-      "reference": "B271-289",
-      "anchor": "range-only",
+      "reference": "B272-274",
+      "anchor": "inspected",
       "behaviour": "A weapon's parry column may add or subtract from the computed parry score.",
       "disposition": "implemented",
       "capability_id": "gurps.combat.active_defense",
-      "owner_issue": 180,
-      "tests": [],
-      "evidence_gap": "No audited row carries a nonzero parry modifier, so the column has no independent source-referenced case."
+      "owner_issue": null,
+      "tests": [
+        "tests/test_basic_equipment.py::test_melee_table_modes_cover_parry_hands_and_footnotes"
+      ],
+      "evidence_gap": null
     },
     {
       "id": "two-handed-weapon",
-      "reference": "B271-289",
-      "anchor": "range-only",
+      "reference": "B272-274",
+      "anchor": "inspected",
       "behaviour": "A two-handed weapon occupies both hands and cannot share them with a shield.",
       "disposition": "implemented",
       "capability_id": "gurps.combat.melee_attack",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_basic_equipment.py::test_melee_table_modes_cover_parry_hands_and_footnotes"
+      ],
+      "evidence_gap": null
+    },
+    {
+      "id": "alternate-thrown-mode",
+      "reference": "B271-273 note 1; B275",
+      "anchor": "inspected",
+      "behaviour": "A melee table row marked as throwable also requires its independently listed muscle-powered ranged mode before the physical item can be selected.",
+      "disposition": "unsupported",
+      "capability_id": null,
       "owner_issue": 180,
       "tests": [],
-      "evidence_gap": "No audited row is two-handed; the hand-count column has no selected-table case."
+      "evidence_gap": null
+    },
+    {
+      "id": "pick-stuck",
+      "reference": "B271-274 note 2; B405",
+      "anchor": "inspected",
+      "behaviour": "An impaling pick can become stuck and requires a separate attempt to free it.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "flail-defense-penalties",
+      "reference": "B274 note 6",
+      "anchor": "inspected",
+      "behaviour": "Flails penalize attempts to parry or block them, with smaller penalties for a nunchaku.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "mounted-lance-damage",
+      "reference": "B274 note 9; B397",
+      "anchor": "inspected",
+      "behaviour": "A lance uses the mounted-charge damage procedure when wielded from a moving mount.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "variable-reach-ready",
+      "reference": "B272-274 starred reach entries",
+      "anchor": "inspected",
+      "behaviour": "A weapon with starred variable reach requires the table's reach-change handling rather than freely selecting any listed reach.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "conditional-ready-after-attack",
+      "reference": "B272-274 double-dagger ST entries",
+      "anchor": "inspected",
+      "behaviour": "A double-dagger weapon becomes unready after attacking unless the wielder has at least 1.5 times its listed ST.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "cutlass-hilt",
+      "reference": "B274 note 10",
+      "anchor": "inspected",
+      "behaviour": "A cutlass hilt acts as brass knuckles in close combat.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "superscience-technology-level",
+      "reference": "B272 melee table superscience rows",
+      "anchor": "inspected",
+      "behaviour": "A caret technology level is a setting-dependent superscience designation, not an integer technology level.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "extra-die-strength-damage",
+      "reference": "B272/B274 Monowire Whip and Chainsaw rows",
+      "anchor": "inspected",
+      "behaviour": "Some melee rows add a die expression to ST-based damage rather than a fixed integer modifier.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "variable-minimum-strength",
+      "reference": "B274 Whip row and note 12",
+      "anchor": "inspected",
+      "behaviour": "Whip minimum ST, cost and weight vary with the purchased maximum reach.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
     },
     {
       "id": "fuel-consumption",
@@ -894,13 +1047,15 @@
     {
       "id": "Parry.modifier",
       "unit": "parry column modifier",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B272-274 parry column",
+      "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
       "evidence": null,
-      "tests": [],
-      "gap": "No audited row carries a nonzero parry modifier."
+      "tests": [
+        "tests/test_basic_equipment.py::test_melee_table_modes_cover_parry_hands_and_footnotes"
+      ],
+      "gap": null
     },
     {
       "id": "Parry.unbalanced",
@@ -981,13 +1136,15 @@
     {
       "id": "MeleeMode.hands",
       "unit": "hand count",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B272-274 dagger-marked ST rows",
+      "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
       "evidence": null,
-      "tests": [],
-      "gap": "No audited melee row is two-handed."
+      "tests": [
+        "tests/test_basic_equipment.py::test_melee_table_modes_cover_parry_hands_and_footnotes"
+      ],
+      "gap": null
     },
     {
       "id": "MeleeMode.damage",
