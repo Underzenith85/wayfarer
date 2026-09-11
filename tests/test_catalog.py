@@ -357,6 +357,14 @@ async def test_guided_generation_keeps_an_earlier_portable_candidate(config: Set
         assert job["status"] == "needs_review"
         assert job["proposal_json"]
         assert job["report"]["status"] == "invalid"
+        # An exhausted budget names what is still unresolved, not just the budget (#365).
+        exhausted = next(
+            f for f in job["report"]["findings"] if f["code"] == "generation.repair_exhausted"
+        )
+        assert exhausted["reference"] == "missing-scene"
+        assert "4 unresolved finding(s)" in exhausted["message"]
+        assert "opening.missing at missing-scene" in exhausted["message"]
+        assert "retry generation with instructions that address them" in exhausted["message"]
 
 
 async def test_guided_generation_cancel_and_restart_recovery(config: Settings) -> None:

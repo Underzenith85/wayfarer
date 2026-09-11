@@ -111,7 +111,10 @@ should land on these seams rather than invent new ones.
 - **Invariants name their node (#363, #365).** `ValidationError` carries a
   `reference` to the offending check, alternative or rule family, and the
   scenario studio reports that locus instead of the scenario id. New
-  `validate_*` functions must raise with a reference whenever one exists.
+  `validate_*` functions must raise with a reference whenever one exists, and
+  every new error-severity `StudioFinding` must reference the node an author has
+  to edit and state in its message what would satisfy the rule. See
+  [scenario authoring](scenario-authoring.md#what-a-validation-finding-owes-the-author).
 - **One owner per spatial fact (#323, #324, #326, #329).** Combat state is
   moving to a discriminated basic, square and hex spatial context. Until it
   lands, keep square and hex vocabularies distinct (`Facing` versus
