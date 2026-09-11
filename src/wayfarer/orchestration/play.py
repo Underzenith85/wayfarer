@@ -15,6 +15,7 @@ from wayfarer.character.physical_traits import physical_traits
 from wayfarer.character.power import Approval
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, Event, Record, Roll
+from wayfarer.orchestration.entropy import CommandRandom, commit_command
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
 from wayfarer.rules.catalog import reference
@@ -51,6 +52,14 @@ class ApproveCharacter(Record):
 
 class PlayService:
     @property
+    def rng(self) -> RandomSource:
+        return self._rng.injected or self._rng
+
+    @rng.setter
+    def rng(self, value: RandomSource) -> None:
+        self._rng = CommandRandom(value)
+
+    @property
     def rules_context(self) -> RulesContext:
         return RulesContext(
             rng=self.rng,
@@ -68,7 +77,7 @@ class PlayService:
         rng: RandomSource = secrets,
         profiles: ProfileRuntime | None = None,
     ) -> None:
-        self.store, self.engine, self.rng = store, engine, rng
+        self.store, self.engine, self.rng = store, engine, CommandRandom(rng)
         # When present, campaigns pinned to another registered profile dispatch to
         # that profile's service. Without a runtime, mismatched pins fail closed.
         self.profiles = profiles
@@ -423,8 +432,15 @@ class PlayService:
                 input=payload, action="typed-action", outcome=result.model_dump_json(), roll=roll
             )
 
-        committed = await self.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+        committed = await commit_command(
+            self.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            resolve,
+            actor_id=command.actor_id,
+            rng=self.rng,
         )
         result = self._load(committed["state"]).last_result
         if result is None:
@@ -486,13 +502,15 @@ class PlayService:
                 roll=None,
             )
 
-        committed = await self.store.commit_turn(
+        committed = await commit_command(
+            self.store,
             cid,
             command.id,
             command.expected_revision,
             payload,
             resolve,
             actor_id=authenticated_gm_id,
+            rng=self.rng,
         )
         state = self._load(committed["state"])
         approval = next(a.approval for a in state.actors if a.actor_id == command.target_actor_id)

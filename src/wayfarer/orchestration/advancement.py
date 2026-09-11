@@ -13,6 +13,7 @@ from wayfarer.character.power import CharacterProposal
 from wayfarer.character.statistics import RuntimePool, carry_over
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, Event, Id, Record
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.catalog import reference
 from wayfarer.rules.physical_traits import PhysicalTraits
@@ -188,8 +189,15 @@ class AdvancementService:
                 input=payload, action="advancement", outcome=entry.model_dump_json(), roll=None
             )
 
-        committed = await self.play.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+        committed = await commit_command(
+            self.play.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            resolve,
+            actor_id=command.actor_id,
+            rng=self.play.rng,
         )
         return PlayState.model_validate_json(committed["state"]["play_json"]).advancement[-1]
 
@@ -299,8 +307,15 @@ class AdvancementService:
                 input=payload, action="advancement", outcome=entry.model_dump_json(), roll=None
             )
 
-        committed = await self.play.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+        committed = await commit_command(
+            self.play.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            resolve,
+            actor_id=command.actor_id,
+            rng=self.play.rng,
         )
         result = PlayState.model_validate_json(committed["state"]["play_json"]).advancement[-1]
         if result.id != command.id:
@@ -488,7 +503,14 @@ class MigrationService:
                 input=payload, action="rules-migration", outcome=entry.model_dump_json(), roll=None
             )
 
-        committed = await self.current.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+        committed = await commit_command(
+            self.current.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            resolve,
+            actor_id=command.actor_id,
+            rng=self.current.rng,
         )
         return PlayState.model_validate_json(committed["state"]["play_json"]).migrations[-1]

@@ -6,6 +6,7 @@ import json
 
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, Event
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.simulation.mechanics.physical import PhysicalCommand as PhysicalCommand
 from wayfarer.simulation.mechanics.physical import PhysicalContext as PhysicalContext
@@ -44,8 +45,15 @@ class PhysicalService:
                 input=payload, action="noncombat", outcome=result.model_dump_json(), roll=None
             )
 
-        committed = await play.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+        committed = await commit_command(
+            play.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            resolve,
+            actor_id=command.actor_id,
+            rng=play.rng,
         )
         state = play._load(committed["state"])
         event = next(e for e in state.resources.events if e.id == "feat:" + command.id)

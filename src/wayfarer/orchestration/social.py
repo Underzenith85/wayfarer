@@ -11,6 +11,7 @@ from pydantic import ValidationError as SchemaError
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, Event
 from wayfarer.orchestration.access import CampaignAccess
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.mundane_traits.runtime import Check
 from wayfarer.simulation.actions import PlayState
@@ -203,13 +204,15 @@ class SocialService:
             # The event stream carries neither trusted modifiers nor fact IDs.
             return Event(input=payload, action="npc", outcome=outcome.model_dump_json(), roll=None)
 
-        result = await play.store.commit_turn(
+        result = await commit_command(
+            play.store,
             cid,
             command.id,
             command.expected_revision,
             payload,
             reduce,
             actor_id=authenticated_gm_id,
+            rng=play.rng,
         )
         committed = play._load(result["state"])
         # Receipt replay must not invoke the resolver again or re-evaluate facts.

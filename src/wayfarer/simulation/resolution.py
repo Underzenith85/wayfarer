@@ -5,7 +5,9 @@ from wayfarer.models import Action, Campaign, Event
 from wayfarer.rules import checks
 
 
-def resolve(s: Campaign, action: Action, text: str) -> Event:
+def resolve(
+    s: Campaign, action: Action, text: str, *, rng: checks.RandomSource = checks.NO_RANDOM
+) -> Event:
     result = None
     if action == "ask":
         outcome = "You can inspect the docks, talk to the ferryman, follow a discovered lead, or rest. Questions do not spend time."
@@ -25,7 +27,7 @@ def resolve(s: Campaign, action: Action, text: str) -> Event:
         if target is None:
             outcome = f"You have not trained {skill}. Untrained checks are outside this prototype ruleset."
         else:
-            result = checks.roll(target)
+            result = checks.roll(target, rng=rng)
             s["minutes"] += 10
             if result["success"]:
                 if action in ("observe", "talk"):

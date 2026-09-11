@@ -10,7 +10,12 @@ import aiosqlite
 from wayfarer import validation
 from wayfarer.errors import ConflictError, NotFoundError, StorageError
 from wayfarer.models import Campaign, Event, TurnResult
-from wayfarer.persistence.events import EVENT_SCHEMA_VERSION, StoredEvent, payload_digest
+from wayfarer.persistence.events import (
+    EVENT_SCHEMA_VERSION,
+    CommandEntropy,
+    StoredEvent,
+    payload_digest,
+)
 
 SNAPSHOT_INTERVAL = 10
 
@@ -53,6 +58,19 @@ class AsyncSQLiteStore:
                 PRIMARY KEY(campaign, revision)
             )"""
         )
+        cursor = await db.execute("PRAGMA table_info(command_log)")
+        columns = {row[1] for row in await cursor.fetchall()}
+        await cursor.close()
+        metadata = ("entropy_seed", "engine_version", "rng_algorithm")
+        if not set(metadata) <= columns:
+            # Recheck under the writer lock; normal reads need no migration lock.
+            await db.execute("BEGIN IMMEDIATE")
+            cursor = await db.execute("PRAGMA table_info(command_log)")
+            columns = {row[1] for row in await cursor.fetchall()}
+            await cursor.close()
+            for column in metadata:
+                if column not in columns:
+                    await db.execute(f"ALTER TABLE command_log ADD COLUMN {column} TEXT")
         await db.commit()
         return db
 
@@ -144,7 +162,8 @@ class AsyncSQLiteStore:
         text: str,
         resolve: Callable[[Campaign], Event],
         *,
-        actor_id: str = "player",
+        actor_id: str = "system",
+        entropy: CommandEntropy | None = None,
     ) -> TurnResult:
         db = await self._connect()
         try:
@@ -166,8 +185,8 @@ class AsyncSQLiteStore:
                 """INSERT INTO command_log (
                     campaign, command_id, actor_id, expected_revision,
                     resulting_revision, payload_hash, rules_version,
-                    schema_version, event, state_after
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    schema_version, event, state_after, entropy_seed, engine_version, rng_algorithm
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     cid,
                     request_id,
@@ -179,6 +198,9 @@ class AsyncSQLiteStore:
                     EVENT_SCHEMA_VERSION,
                     json.dumps(event),
                     json.dumps(state),
+                    entropy.seed if entropy else None,
+                    entropy.engine_version if entropy else None,
+                    entropy.rng_algorithm if entropy else None,
                 ),
             )
             if state["revision"] % SNAPSHOT_INTERVAL == 0:
@@ -202,7 +224,7 @@ class AsyncSQLiteStore:
         try:
             cursor = await db.execute(
                 """SELECT command_id, actor_id, expected_revision, resulting_revision,
-                          payload_hash, rules_version, schema_version, event, state_after
+                          payload_hash, rules_version, schema_version, event, state_after, entropy_seed, engine_version, rng_algorithm
                    FROM command_log WHERE campaign=? ORDER BY resulting_revision""",
                 (cid,),
             )
@@ -220,6 +242,9 @@ class AsyncSQLiteStore:
                     schema_version=row[6],
                     event=self._event(row[7]),
                     state_after=validation.campaign(validation.decode(row[8])),
+                    entropy_seed=row[9],
+                    engine_version=row[10],
+                    rng_algorithm=row[11],
                 )
                 for row in rows
             ]

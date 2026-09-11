@@ -5,6 +5,7 @@ import json
 from wayfarer.errors import AuthorizationError, ValidationError
 from wayfarer.models import Campaign, Event
 from wayfarer.orchestration.access import CampaignAccess
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.simulation.mechanics.spells import (
     SpellExecutionContext as SpellExecutionContext,
@@ -99,13 +100,15 @@ class SpellService:
                 roll=None,
             )
 
-        committed = await play.store.commit_turn(
+        committed = await commit_command(
+            play.store,
             cid,
             command.id,
             command.expected_revision,
             payload,
             reduce,
             actor_id=identity,
+            rng=play.rng,
         )
         saved = play._load(committed["state"])
         recorded = next(e for e in saved.resources.events if e.id == event_id(command.id))

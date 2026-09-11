@@ -21,6 +21,22 @@ REDUCER_MODULES = (
 
 
 class ArchitectureTests(unittest.TestCase):
+    def test_live_commands_use_the_entropy_boundary(self) -> None:
+        package = Path(wayfarer.__file__).parent
+        boundary = package / "orchestration" / "entropy.py"
+        for domain in ("orchestration", "transport"):
+            for source in (package / domain).rglob("*.py"):
+                if source == boundary:
+                    continue
+                for node in ast.walk(ast.parse(source.read_text())):
+                    if not isinstance(node, ast.Call):
+                        continue
+                    if isinstance(node.func, ast.Attribute):
+                        self.assertNotEqual(node.func.attr, "commit_turn", str(source))
+                    if isinstance(node.func, ast.Name) and node.func.id == "commit_command":
+                        self.assertIn("rng", {kw.arg for kw in node.keywords}, str(source))
+                        self.assertIn("actor_id", {kw.arg for kw in node.keywords}, str(source))
+
     def test_orchestration_steps_stay_reviewable(self) -> None:
         """#417's service seams must not grow another giant reducer or callback."""
         package = Path(wayfarer.__file__).parent / "orchestration"
@@ -45,15 +61,17 @@ class ArchitectureTests(unittest.TestCase):
                     node.name: node for node in service.body if isinstance(node, ast.FunctionDef)
                 }
                 for call in ast.walk(service):
-                    if not (
-                        isinstance(call, ast.Call)
-                        and isinstance(call.func, ast.Attribute)
-                        and call.func.attr == "commit_turn"
-                    ):
+                    if not isinstance(call, ast.Call):
+                        continue
+                    seeded = isinstance(call.func, ast.Name) and call.func.id == "commit_command"
+                    legacy = (
+                        isinstance(call.func, ast.Attribute) and call.func.attr == "commit_turn"
+                    )
+                    if not (seeded or legacy):
                         continue
                     with self.subTest(module=module, function=service.name):
-                        self.assertGreaterEqual(len(call.args), 5)
-                        callback = call.args[4]
+                        self.assertGreaterEqual(len(call.args), 6 if seeded else 5)
+                        callback = call.args[5 if seeded else 4]
                         self.assertIsInstance(callback, ast.Name)
                         assert isinstance(callback, ast.Name)
                         self.assertIn(callback.id, callbacks)
@@ -150,6 +168,8 @@ class ArchitectureTests(unittest.TestCase):
                     for module in modules:
                         with self.subTest(source=source, module=module):
                             self.assertNotIn(module.split(".")[0], forbidden)
+                            if domain == "simulation":
+                                self.assertNotIn(module.split(".")[0], {"secrets", "random"})
                             if module.startswith("wayfarer."):
                                 self.assertIn(module.split(".")[1], dependencies)
 

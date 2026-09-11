@@ -7,6 +7,7 @@ from typing import Literal
 
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, Event, Id
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.checks import Modifier, Outcome, success_check
 from wayfarer.simulation.actions import ActionCommand, PlayState
@@ -240,8 +241,15 @@ class NoncombatService:
                 input=payload, action="noncombat", outcome=result.model_dump_json(), roll=None
             )
 
-        committed = await self.play.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+        committed = await commit_command(
+            self.play.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            resolve,
+            actor_id=command.actor_id,
+            rng=self.play.rng,
         )
         return next(
             e for e in self.play._load(committed["state"]).noncombat if e.id == command.encounter_id

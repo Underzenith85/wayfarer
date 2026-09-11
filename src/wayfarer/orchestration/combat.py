@@ -11,6 +11,7 @@ from pydantic import ValidationError as SchemaError
 
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, Event
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.checks import CheckTrace
 from wayfarer.simulation.actions import PlayState
@@ -148,13 +149,15 @@ class CombatService:
                 input=payload, action="combat", outcome=result.model_dump_json(), roll=None
             )
 
-        committed = await self.play.store.commit_turn(
+        committed = await commit_command(
+            self.play.store,
             cid,
             command.id,
             command.expected_revision,
             payload,
             resolve,
             actor_id=command.actor_id,
+            rng=self.play.rng,
         )
         if committed["kind"] == "replayed":
             return await self._recorded_result(cid, command.id)

@@ -8,7 +8,12 @@ import psycopg
 from wayfarer import validation
 from wayfarer.errors import ConflictError, NotFoundError, StorageError
 from wayfarer.models import Campaign, Event, TurnResult
-from wayfarer.persistence.events import EVENT_SCHEMA_VERSION, StoredEvent, payload_digest
+from wayfarer.persistence.events import (
+    EVENT_SCHEMA_VERSION,
+    CommandEntropy,
+    StoredEvent,
+    payload_digest,
+)
 
 SNAPSHOT_INTERVAL = 10
 
@@ -57,6 +62,13 @@ class AsyncPostgresStore:
                 PRIMARY KEY(campaign, revision)
             )"""
         )
+        cursor = await db.execute(
+            "SELECT attname FROM pg_attribute WHERE attrelid = 'command_log'::regclass AND NOT attisdropped"
+        )
+        columns = {row[0] for row in await cursor.fetchall()}
+        for column in ("entropy_seed", "engine_version", "rng_algorithm"):
+            if column not in columns:
+                await db.execute(f"ALTER TABLE command_log ADD COLUMN IF NOT EXISTS {column} TEXT")
         await db.commit()
 
     @staticmethod
@@ -143,7 +155,8 @@ class AsyncPostgresStore:
         text: str,
         resolve: Callable[[Campaign], Event],
         *,
-        actor_id: str = "player",
+        actor_id: str = "system",
+        entropy: CommandEntropy | None = None,
     ) -> TurnResult:
         db = await self._connect()
         try:
@@ -163,8 +176,8 @@ class AsyncPostgresStore:
                     """INSERT INTO command_log (
                         campaign, command_id, actor_id, expected_revision,
                         resulting_revision, payload_hash, rules_version,
-                        schema_version, event, state_after
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s::jsonb)""",
+                        schema_version, event, state_after, entropy_seed, engine_version, rng_algorithm
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s::jsonb, %s, %s, %s)""",
                     (
                         cid,
                         request_id,
@@ -176,6 +189,9 @@ class AsyncPostgresStore:
                         EVENT_SCHEMA_VERSION,
                         json.dumps(event),
                         json.dumps(state),
+                        entropy.seed if entropy else None,
+                        entropy.engine_version if entropy else None,
+                        entropy.rng_algorithm if entropy else None,
                     ),
                 )
                 if state["revision"] % SNAPSHOT_INTERVAL == 0:
@@ -210,7 +226,7 @@ class AsyncPostgresStore:
         try:
             cursor = await db.execute(
                 """SELECT command_id, actor_id, expected_revision, resulting_revision,
-                          payload_hash, rules_version, schema_version, event, state_after
+                          payload_hash, rules_version, schema_version, event, state_after, entropy_seed, engine_version, rng_algorithm
                    FROM command_log WHERE campaign=%s ORDER BY resulting_revision""",
                 (cid,),
             )
@@ -239,6 +255,9 @@ class AsyncPostgresStore:
             schema_version=validation.integer(row[6]),
             event=event,
             state_after=AsyncPostgresStore._campaign(row[8]),
+            entropy_seed=validation.string(row[9]) if row[9] is not None else None,
+            engine_version=validation.string(row[10]) if row[10] is not None else None,
+            rng_algorithm=validation.string(row[11]) if row[11] is not None else None,
         )
 
     async def replay(self, cid: str, revision: int | None = None) -> Campaign:

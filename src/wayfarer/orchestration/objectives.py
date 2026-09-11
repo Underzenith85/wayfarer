@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Literal
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, Event
 from wayfarer.orchestration.advancement import _build
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.simulation.actions import ActionCommand, PlayState
 from wayfarer.simulation.advancement import AdvancementEntry
 from wayfarer.simulation.objectives import ObjectiveState, evaluate
@@ -132,7 +133,14 @@ class ObjectiveService:
                 roll=None,
             )
 
-        committed = await self.play.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+        committed = await commit_command(
+            self.play.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            resolve,
+            actor_id=command.actor_id,
+            rng=self.play.rng,
         )
         return self.play._load(committed["state"]).objectives

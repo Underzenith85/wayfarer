@@ -14,6 +14,16 @@ class RandomSource(Protocol):
     def randbelow(self, exclusive_upper_bound: int, /) -> int: ...
 
 
+class NoRandom:
+    """Allow deterministic-only calls, but fail closed if they need an omitted RNG."""
+
+    def randbelow(self, exclusive_upper_bound: int, /) -> int:
+        raise ValidationError("Resolution requires an explicit random source")
+
+
+NO_RANDOM = NoRandom()
+
+
 class Outcome(StrEnum):
     CRITICAL_SUCCESS = "critical-success"
     SUCCESS = "success"

@@ -9,6 +9,7 @@ from pydantic import Field
 
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, Event, Id
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.noncombat import NoncombatCommand, NoncombatService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.scenes import SceneService, TravelScene
@@ -487,7 +488,14 @@ class PartyService:
             self.play.commit(campaign, state)
             return Event(input=payload, action="party", outcome=command.kind, roll=None)
 
-        committed = await self.play.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+        committed = await commit_command(
+            self.play.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            resolve,
+            actor_id=command.actor_id,
+            rng=self.play.rng,
         )
         return self.play._load(committed["state"])

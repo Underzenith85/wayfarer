@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Literal
 
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, Event
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.rules.mundane_traits.runtime import Audience
 from wayfarer.rules.social_hooks import Reputation, Standing
 from wayfarer.simulation.actions import ActionCommand, PlayState
@@ -453,7 +454,14 @@ class NPCService:
                 input=json.dumps({"command": payload}), action="npc", outcome="proposed", roll=None
             )
 
-        result = await self.play.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+        result = await commit_command(
+            self.play.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            resolve,
+            actor_id=command.actor_id,
+            rng=self.play.rng,
         )
         return self.play._load(result["state"])

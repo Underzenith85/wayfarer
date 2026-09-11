@@ -6,6 +6,7 @@ from pydantic import TypeAdapter
 
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, Event
+from wayfarer.orchestration.entropy import CommandRandom, commit_command
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
 from wayfarer.rules.catalog import reference
@@ -45,6 +46,7 @@ class ResourceService:
         self, cid: str, value: object, *, authenticated_actor_id: str, system: bool = False
     ) -> ResourceState:
         """Authentication/system authority comes from trusted transport, not JSON."""
+        rng = CommandRandom()
         command = COMMAND_ADAPTER.validate_python(value)
         if command.actor_id != authenticated_actor_id or command.actor_id not in self.engine.actors:
             raise ValidationError("Command actor is not authorized")
@@ -61,13 +63,20 @@ class ResourceService:
             resources = ResourceState.model_validate_json(raw)
             if resources.revision != state["revision"]:
                 raise ValidationError("Resource and campaign revisions diverged")
-            updated = self.engine.apply(resources, command, system=system)
+            updated = self.engine.apply(resources, command, system=system, rng=rng)
             state["resources_json"] = updated.model_dump_json()
             state["revision"] = updated.revision
             return Event(input=payload, action="resource", outcome=command.kind, roll=None)
 
-        result = await self.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+        result = await commit_command(
+            self.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            resolve,
+            actor_id="system" if system else authenticated_actor_id,
+            rng=rng,
         )
         return ResourceState.model_validate_json(result["state"]["resources_json"])
 
@@ -81,6 +90,7 @@ class ResourceService:
         rng: RandomSource = secrets,
     ) -> ResourceState:
         """Internal resolved-damage transaction; no player-facing damage payload."""
+        rng = CommandRandom(rng)
         command: ObjectCommand = TypeAdapter(ObjectCommand).validate_python(value)
         if not system or command.actor_id != authenticated_actor_id:
             raise ValidationError("Object commands require authenticated engine authority")
@@ -104,13 +114,15 @@ class ResourceService:
             state["revision"] = updated.revision
             return Event(input=payload, action="resource", outcome=command.kind, roll=None)
 
-        result = await self.store.commit_turn(
+        result = await commit_command(
+            self.store,
             cid,
             command.id,
             command.expected_revision,
             payload,
             resolve,
-            actor_id=command.actor_id,
+            actor_id="system",
+            rng=rng,
         )
         return ResourceState.model_validate_json(result["state"]["resources_json"])
 
@@ -127,6 +139,7 @@ class ResourceService:
         occupied: frozenset[Hex] = frozenset(),
     ) -> ResourceState:
         """Internal resolved-damage transaction; no player-facing damage payload."""
+        rng = CommandRandom(rng)
         command: TransportCommand = TypeAdapter(TransportCommand).validate_python(value)
         if not system or command.actor_id != authenticated_actor_id:
             raise ValidationError("Transport commands require authenticated engine authority")
@@ -159,12 +172,14 @@ class ResourceService:
             state["revision"] = updated.revision
             return Event(input=payload, action="resource", outcome=command.kind, roll=None)
 
-        result = await self.store.commit_turn(
+        result = await commit_command(
+            self.store,
             cid,
             command.id,
             command.expected_revision,
             payload,
             resolve,
-            actor_id=command.actor_id,
+            actor_id="system",
+            rng=rng,
         )
         return ResourceState.model_validate_json(result["state"]["resources_json"])

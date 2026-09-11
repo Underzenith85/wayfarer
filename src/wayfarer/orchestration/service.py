@@ -10,6 +10,7 @@ from wayfarer.character import builder
 from wayfarer.config import Settings
 from wayfarer.errors import ConflictError, ProviderError, ValidationError
 from wayfarer.models import Action, Campaign, PublicCampaign
+from wayfarer.orchestration.entropy import CommandRandom, commit_command
 from wayfarer.orchestration.llm import ACTION_SCHEMA, NARRATION_SCHEMA, LLMClient
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
@@ -104,12 +105,22 @@ class GameService:
             return public(duplicate)
         initial = await self.store.read(cid)
         if initial["revision"] != revision:
+            duplicate = await self.store.duplicate(cid, request_id, text)
+            if duplicate is not None:
+                return public(duplicate)
             raise ConflictError("Campaign changed. Refresh before retrying.")
         if "resources_json" in initial or "play_json" in initial:
             raise ValidationError("Use typed resource commands for this campaign")
         action = await self.interpret(text, initial)
-        committed = await self.store.commit_turn(
-            cid, request_id, revision, text, lambda state: resolve(state, action, text)
+        committed = await commit_command(
+            self.store,
+            cid,
+            request_id,
+            revision,
+            text,
+            lambda state: resolve(state, action, text, rng=CommandRandom()),
+            actor_id="player",
+            rng=CommandRandom(),
         )
         if committed["kind"] == "committed" and self.llm.enabled:
             state, event = committed["state"], committed["event"]

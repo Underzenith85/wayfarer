@@ -5,6 +5,7 @@ import json
 from wayfarer.errors import AuthorizationError
 from wayfarer.models import Campaign, Event
 from wayfarer.orchestration.access import CampaignAccess
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.simulation.mechanics.spell_backfires import (
     ResolveSpellBackfire as ResolveSpellBackfire,
@@ -46,13 +47,15 @@ class SpellBackfireService:
                 input=payload, action="resource", outcome="spell:backfire-resolved", roll=None
             )
 
-        committed = await play.store.commit_turn(
+        committed = await commit_command(
+            play.store,
             cid,
             command.id,
             command.expected_revision,
             payload,
             reduce,
             actor_id=authenticated_gm_id,
+            rng=play.rng,
         )
         state = play._load(committed["state"])
         return next(b for b in backfires(state.resources) if b.id == command.backfire_id)
