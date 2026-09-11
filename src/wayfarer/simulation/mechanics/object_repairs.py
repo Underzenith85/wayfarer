@@ -118,14 +118,14 @@ def repair(
             if part_entry is None or part_entry.price <= 0 or supplies is None:
                 raise ValidationError("Major repair requires priced, owned spare parts")
             # Preflight the maximum cost before RNG; insufficient supplies cannot fish for a cheaper roll.
-            maximum = (entry.price * 6 + part_entry.price * 10 - 1) // (part_entry.price * 10)
+            maximum = int((entry.price * 6 + part_entry.price * 10 - 1) // (part_entry.price * 10))
             if supplies.quantity < maximum:
                 raise ValidationError(
                     "Major repair requires supplies covering the maximum parts cost"
                 )
             parts_die = 6 if preview else draw_dice(runtime.rng, 1)[0]
-            quantity = (entry.price * parts_die + part_entry.price * 10 - 1) // (
-                part_entry.price * 10
+            quantity = int(
+                (entry.price * parts_die + part_entry.price * 10 - 1) // (part_entry.price * 10)
             )
             if quantity:
                 resources = runtime.resources.apply(

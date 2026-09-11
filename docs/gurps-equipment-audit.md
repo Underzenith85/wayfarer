@@ -28,26 +28,27 @@ integrity checks and their failure cases.
 `ledger.json` splits B264-289 into fourteen sections. Every registered row
 (`BASIC_EQUIPMENT` plus the blocked `ULTRATECH_INDEX`) belongs to exactly one
 section, and the validator rejects a ledger whose sections do not cover the
-pinned catalog exactly. **No section is complete.** Four carry an inspected page
+pinned catalog exactly. **No section is complete.** Six carry an inspected page
 anchor and record what they leave out:
 
 | Section | Anchor | Rows recorded | Omitted |
 | --- | --- | --- | --- |
 | `melee-weapons-b271` | B271-274 | 45 | non-equipment attacks and rows the typed schema cannot represent without inventing values |
+| `muscle-powered-ranged` | B275-276 | 18 | duplicated thrown modes, special binding damage, launcher/cocking-aid behavior and remaining material/ammunition variants |
+| `ammunition` | B275-276 | 5 | alternative missiles, firearm ammunition, explosive warheads and power cells |
 | `beam-weapons-b280` | B280 | 3 | every other beam row; the three recorded rows are index facts that cannot be equipped or fired |
 | `body-armor-b283` | B283 | 8 | split-DR, single-facing, flexible, layered and footnoted rows, plus the other armor pages |
 | `general-equipment-b288` | B288 | 10 | every other B288 row and the whole B289 continuation |
 
-The remaining ten sections record **no rows at all**: wealth and legality,
-muscle-powered ranged weapons, firearms, ammunition, shields, heavy weapons,
-split-DR armor, higher-TL variants, weapon accessories and the general equipment
-remainder. Their anchors are recorded as `range-only`,
+The remaining eight sections record **no rows at all**: wealth and legality,
+firearms, shields, heavy weapons, split-DR armor, higher-TL variants, weapon
+accessories and the general equipment remainder. Their anchors are recorded as `range-only`,
 meaning B264-289 as a range that nobody has reconciled item by item. A
 `range-only` anchor is a coverage gap, not a page citation.
 
-Two structural consequences are recorded rather than smoothed over: no audited
-row is a shield, and no audited row is a ranged weapon, so the `Shield` and
-`RangedMode` schemas have no selected-table case behind them at all.
+One structural consequence remains recorded rather than smoothed over: no
+audited row is a shield. B275-276 now provide direct ranged cases for rated ST,
+accuracy, ST-multiplied range, reload timing, bulk and missile references.
 
 ## Footnotes and special gear behaviour
 
@@ -87,13 +88,13 @@ removing a schema field without updating the ledger fails the audit.
 All 111 records are `pending`. Nothing has been reconciled against an inspected
 printing, so no field, unit or numeric sample is source-verified, and
 `gurps.equipment.weapon_profiles` and `gurps.equipment.armor_profiles` stay
-partial. Five fields have no direct case at all: `MeleeMode.kind`,
-`RangedMode.kind`, `RangedMode.bulk`, `Shield.skill_id` and
-`EquipmentProfile.shield`.
+partial. Four fields have no direct case at all: `MeleeMode.kind`,
+`RangedMode.kind`, `Shield.skill_id` and `EquipmentProfile.shield`.
 
 Weights are thousandths of a pound throughout, including container capacity;
-prices are dollars. These are the adapter's explicit units, recorded per field so
-that a reviewer checks them against the source rather than inferring them.
+prices are dollars and retain fractional values for the B276 ten-cent missiles.
+These are the adapter's explicit units, recorded per field so that a reviewer
+checks them against the source rather than inferring them.
 
 ## Package binding
 

@@ -165,15 +165,39 @@
     },
     {
       "id": "muscle-powered-ranged",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B275-276",
+      "anchor": "inspected",
       "source_id": "sjg:basic-set-characters-4e-2004",
       "owner_issue": 180,
-      "status": "omitted",
-      "selected": [],
-      "omitted_rows": "Bows, crossbows, slings and thrown weapon rows. No row is recorded; the ranged schema currently has no audited selected-table entry at all.",
+      "status": "partial",
+      "selected": [
+        "blowpipe",
+        "longbow",
+        "regular-bow",
+        "short-bow",
+        "composite-bow",
+        "crossbow",
+        "pistol-crossbow",
+        "prodd",
+        "sling",
+        "staff-sling",
+        "bolas",
+        "heavy-cloak",
+        "light-cloak",
+        "lariat",
+        "large-net",
+        "melee-net",
+        "atlatl",
+        "goats-foot"
+      ],
+      "omitted_rows": "The B276 thrown-weapon appearances duplicate physical melee items audited on B271-274 and remain on those profiles until alternate modes are integrated. Harpoon and Shuriken have no melee-table profile yet. Special-damage binding rows and launcher/cocking-aid rows are recorded but fail closed. Material, quality, bodkin, poison/drug follow-up, alternative ammunition and rated-ST customization remain unresolved.",
       "mechanics": [
-        "ammunition-variants"
+        "ammunition-variants",
+        "follow-up-poison-or-drug",
+        "entangling-special-damage",
+        "launcher-assisted-throw",
+        "crossbow-cocking-aid",
+        "one-handed-rated-crossbow"
       ]
     },
     {
@@ -193,13 +217,19 @@
     },
     {
       "id": "ammunition",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B275-276",
+      "anchor": "inspected",
       "source_id": "sjg:basic-set-characters-4e-2004",
       "owner_issue": 180,
-      "status": "omitted",
-      "selected": [],
-      "omitted_rows": "Ammunition rows and their per-type damage, armor divisor and cost columns. Power cells are not ammunition and must not be modelled as disposable rounds.",
+      "status": "partial",
+      "selected": [
+        "blowpipe-dart",
+        "arrow",
+        "bolt",
+        "lead-pellet",
+        "sling-stone"
+      ],
+      "omitted_rows": "B275-276 ordinary missile units are recorded with exact fractional dollar and pound values. Alternate stones and lead bullets, bodkin points, material/quality variants, firearm ammunition and every explosive warhead remain unresolved. Power cells are not disposable rounds.",
       "mechanics": [
         "ammunition-variants",
         "power-cell-charges"
@@ -812,6 +842,61 @@
       "evidence_gap": null
     },
     {
+      "id": "follow-up-poison-or-drug",
+      "reference": "B275-276 note 1",
+      "anchor": "inspected",
+      "behaviour": "A penetrating blowpipe hit can carry a selected poison or drug follow-up.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "entangling-special-damage",
+      "reference": "B275-276 note 4",
+      "anchor": "inspected",
+      "behaviour": "A cloak, bolas, lariat or net hit resolves an authored binding instead of ordinary table damage.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "launcher-assisted-throw",
+      "reference": "B276",
+      "anchor": "inspected",
+      "behaviour": "An atlatl changes a dart or javelin throw without becoming the projectile itself.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "crossbow-cocking-aid",
+      "reference": "B276 note 5",
+      "anchor": "inspected",
+      "behaviour": "A goat's-foot lever permits a stronger crossbow to be reloaded with extra Ready maneuvers.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "one-handed-rated-crossbow",
+      "reference": "B276 notes 2-3",
+      "anchor": "inspected",
+      "behaviour": "A pistol crossbow uses two hands to ready but one hand to attack while retaining rated weapon ST.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
       "id": "shield-damage-and-cover",
       "reference": "B264-289",
       "anchor": "range-only",
@@ -1381,13 +1466,15 @@
     {
       "id": "RangedMode.bulk",
       "unit": "bulk penalty",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B275-276 bulk column",
+      "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
       "evidence": null,
-      "tests": [],
-      "gap": "No executable case binds the bulk column; holdout is unsupported."
+      "tests": [
+        "tests/test_basic_equipment.py::test_b275_276_launcher_rows_have_independent_inventory_and_mode_facts"
+      ],
+      "gap": null
     },
     {
       "id": "RangedMode.recoil",

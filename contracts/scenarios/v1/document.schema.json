@@ -1849,9 +1849,20 @@
           "type": "integer"
         },
         "price": {
-          "minimum": 0,
-          "title": "Price",
-          "type": "integer"
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "ge": 0,
+          "title": "Price"
         },
         "technology_level": {
           "minimum": 0,
