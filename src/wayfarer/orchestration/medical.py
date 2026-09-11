@@ -33,6 +33,11 @@ class CareEnvironment:
     surgical_facility: bool = False
     anesthetic: bool = True
     surgical_modifier: int = 0
+    life_support: bool = False
+    sterile: bool = True
+    equipment_quality_modifier: int = 0
+    infection_risk: bool = False
+    infection_modifier: int = 0
 
 
 EnvironmentResolver = Callable[[PlayService, PlayState, str], CareEnvironment]
@@ -78,6 +83,41 @@ def care_skill(actor: ValidatedBuild, kind: str, env: CareEnvironment) -> tuple[
         _value(actor, "skill:physician")
         return skill, env.surgical_modifier - (0 if env.anesthetic else 2)
     return None, 0
+
+
+def care_context(
+    profile: ProfileId,
+    actor: ValidatedBuild,
+    target: ValidatedBuild,
+    kind: str,
+    env: CareEnvironment,
+    physician: int | None,
+) -> CareContext:
+    skill, modifier = care_skill(actor, kind, env)
+    if kind == "trauma-maintenance":
+        physician = _value(actor, "skill:physician")
+    return CareContext(
+        profile,
+        _value(target, "attribute:ht"),
+        skill,
+        env.technology_level,
+        env.food,
+        env.water,
+        env.sleep,
+        physician,
+        env.physician_id,
+        modifier,
+        env.surgical_facility,
+        surgery_skill=_value(actor, "skill:surgery")
+        if kind in ("repair-lasting", "repair-permanent")
+        else None,
+        life_support=env.life_support,
+        sterile=env.sterile,
+        anesthetic=env.anesthetic,
+        equipment_quality_modifier=env.equipment_quality_modifier,
+        infection_risk=env.infection_risk,
+        infection_modifier=env.infection_modifier,
+    )
 
 
 class MedicalService:
@@ -179,7 +219,6 @@ class MedicalService:
                 if task is not None
                 else self.environment(play, before, target_id)
             )
-            skill, treatment_modifier = care_skill(actor, kind, env)
             physician = (
                 _value(_build(play, before, env.physician_id), "skill:physician")
                 if env.physician_id
@@ -211,19 +250,7 @@ class MedicalService:
                     )
                 ):
                     raise ValidationError("Physician must be capable of providing care")
-            context = CareContext(
-                selected,
-                _value(target, "attribute:ht"),
-                skill,
-                env.technology_level,
-                env.food,
-                env.water,
-                env.sleep,
-                physician,
-                env.physician_id,
-                treatment_modifier,
-                env.surgical_facility,
-            )
+            context = care_context(selected, actor, target, kind, env, physician)
             resources, result = apply_recovery(
                 before.resources, command, context, rng=play.rng, system=True
             )
