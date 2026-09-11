@@ -14,17 +14,18 @@ from wayfarer.character.compiler import pool_limits
 from wayfarer.character.physical_traits import physical_traits
 from wayfarer.character.power import Approval
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, Event, Roll
+from wayfarer.models import Campaign, CommandReceipt, Record
+from wayfarer.orchestration.entropy import CommandRandom, commit_command
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
 from wayfarer.rules.catalog import reference
-from wayfarer.rules.checks import Outcome, RandomSource
+from wayfarer.rules.checks import RandomSource
 from wayfarer.rules.injury_types import InjuryStatus
 from wayfarer.rules.recovery_types import FatigueStatus
 from wayfarer.simulation.access import CampaignMember
+from wayfarer.simulation.action_engine import ActionEngine
 from wayfarer.simulation.actions import (
     ACTION_ADAPTER,
-    ActionEngine,
     ActionResult,
     ActorSetup,
     PlayActor,
@@ -32,7 +33,9 @@ from wayfarer.simulation.actions import (
     TypedAction,
 )
 from wayfarer.simulation.adjudication import expire_rulings
-from wayfarer.simulation.resources import Pool, Record, ResourceState
+from wayfarer.simulation.events import action_result
+from wayfarer.simulation.resources import Pool, ResourceState
+from wayfarer.simulation.rules_context import RulesContext
 from wayfarer.simulation.scenes import ActorScene, JournalEntry, SceneEvent
 from wayfarer.world import World
 
@@ -49,6 +52,24 @@ class ApproveCharacter(Record):
 
 
 class PlayService:
+    @property
+    def rng(self) -> RandomSource:
+        return self._rng.injected or self._rng
+
+    @rng.setter
+    def rng(self, value: RandomSource) -> None:
+        self._rng = CommandRandom(value)
+
+    @property
+    def rules_context(self) -> RulesContext:
+        return RulesContext(
+            rng=self.rng,
+            resources=self.engine.resources,
+            reviewer=self.engine.reviewer,
+            rules=self.engine.rules,
+            combat=self.engine.combat,
+        )
+
     def __init__(
         self,
         store: AsyncSQLiteStore | AsyncPostgresStore,
@@ -57,7 +78,7 @@ class PlayService:
         rng: RandomSource = secrets,
         profiles: ProfileRuntime | None = None,
     ) -> None:
-        self.store, self.engine, self.rng = store, engine, rng
+        self.store, self.engine, self.rng = store, engine, CommandRandom(rng)
         # When present, campaigns pinned to another registered profile dispatch to
         # that profile's service. Without a runtime, mismatched pins fail closed.
         self.profiles = profiles
@@ -70,19 +91,51 @@ class PlayService:
             return self.profiles.for_campaign(campaign)
         return self.bind(campaign)
 
-    def bind(self, campaign: Campaign) -> PlayService:
+    def bind(self, campaign: Campaign, *, migration_target: bool = False) -> PlayService:
         """Bind a saved scenario without sharing mutable per-campaign runtime state."""
+        from wayfarer.orchestration.sessions import REGISTRY
         from wayfarer.simulation.social_policy import parse_graph
 
         encoded = campaign.get("scenario_graph_json")
         if encoded is None:
-            return self
+            override = campaign.get("combat_rules_json")
+            if override is None:
+                return self
+            from wayfarer.simulation.combat import CombatRules
+
+            original = self.engine.rules.combat
+            if original is None:
+                raise ValidationError("Map migration requires configured combat rules")
+            saved = CombatRules.model_validate_json(override)
+            engine = REGISTRY.bind(
+                self.store,
+                campaign["id"],
+                self.engine.reviewer,
+                self.engine.resources,
+                self.engine.rules.model_copy(
+                    update={
+                        "combat": original.model_copy(update={"battlefields": saved.battlefields})
+                    }
+                ),
+            )
+            if engine.digest == self.engine.digest:
+                return self
+            return PlayService(self.store, engine, rng=self.rng, profiles=self.profiles)
         graph = parse_graph(encoded)
-        engine = ActionEngine(
+        engine = REGISTRY.bind(
+            self.store,
+            campaign["id"],
             self.engine.reviewer,
             self.engine.resources.for_world(graph.world),
             graph.runtime_rules(),
         )
+        from wayfarer.simulation.scenario_references import verify
+
+        if not migration_target and campaign.get("rules_ref") != reference(
+            self.engine.resources.rules
+        ):
+            raise ValidationError("Campaign rules do not match the play engine")
+        verify(campaign, runtime_digest=None if migration_target else engine.digest)
         if (
             engine.digest == self.engine.digest
             and engine.resources.actors == self.engine.resources.actors
@@ -249,10 +302,9 @@ class PlayService:
             approvals=tuple(approvals),
             members=members,
             actor_scenes=actor_scenes,
-            scene_events=scene_events,
             journal=journal,
             fired_scene_triggers=fired_scene_triggers,
-        )
+        ).model_copy(update={"scene_events": scene_events})
         if self.engine.rules.party is not None:
             from wayfarer.simulation.party import migrate
 
@@ -278,8 +330,11 @@ class PlayService:
         return state
 
     def _load(self, campaign: Campaign) -> PlayState:
+        from wayfarer.simulation.scenario_references import verify
+
         if campaign.get("rules_ref") != reference(self.engine.resources.rules):
             raise ValidationError("Campaign rules do not match the play engine")
+        verify(campaign, runtime_digest=self.engine.digest)
         raw = campaign.get("play_json")
         if raw is None:
             raise ValidationError("Campaign has no typed play state")
@@ -296,31 +351,40 @@ class PlayService:
         self.engine.validate(state)
         return state
 
+    def commit(self, campaign: Campaign, state: PlayState) -> None:
+        """Validate a resolved play state and record it as the campaign's checkpoint.
+
+        This is the only verb that writes play state onto a campaign row; every
+        transaction ends here so the persisted revision and checkpoint agree.
+        """
+        self.engine.validate(state)
+        record_play_state(campaign, state)
+
     def checkpoint(
         self, state: PlayState, *, before: PlayState | None = None, run_npcs: bool = True
     ) -> PlayState:
         from wayfarer.orchestration.npcs import checkpoint as npc_checkpoint
         from wayfarer.orchestration.objectives import checkpoint
-        from wayfarer.orchestration.spell_backfires import perceive, recover_stuns
-        from wayfarer.orchestration.spell_effects import checkpoint as spell_checkpoint
+        from wayfarer.simulation.mechanics.spell_backfires import perceive, recover_stuns
+        from wayfarer.simulation.mechanics.spell_effects import checkpoint as spell_checkpoint
         from wayfarer.simulation.spell_backfires import refund_due
 
         resources = state.resources
         for actor in state.actors:
             resources = refund_due(resources, actor.actor_id)
         state = state.model_copy(update={"resources": resources})
-        from wayfarer.orchestration.held_missiles import checkpoint as held_checkpoint
-        from wayfarer.orchestration.held_missiles import concentration_checkpoint
+        from wayfarer.simulation.mechanics.held_missiles import checkpoint as held_checkpoint
+        from wayfarer.simulation.mechanics.held_missiles import concentration_checkpoint
 
         if before is not None:
-            state = concentration_checkpoint(self, state, before)
-            state = held_checkpoint(self, state, before)
+            state = concentration_checkpoint(self.rules_context, state, before)
+            state = held_checkpoint(self.rules_context, state, before)
         before_fire = state
-        state = spell_checkpoint(self, state)
+        state = spell_checkpoint(self.rules_context, state)
         state = perceive(state)
-        state = recover_stuns(self, state)
-        state = concentration_checkpoint(self, state, before_fire)
-        state = held_checkpoint(self, state, before_fire)
+        state = recover_stuns(self.rules_context, state)
+        state = concentration_checkpoint(self.rules_context, state, before_fire)
+        state = held_checkpoint(self.rules_context, state, before_fire)
         if run_npcs:
             state = npc_checkpoint(self, state)
         return checkpoint(self, state, before=before)
@@ -373,40 +437,30 @@ class PlayService:
         if feasible.status != "feasible":
             return feasible
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             from wayfarer.simulation.party import synchronous
 
             if authorize is not None:
                 authorize(campaign)
             current = self._load(campaign)
             synchronous(current, command.actor_id)
-            state, result = self.engine.resolve(current, command, rng=self.rng)
+            state, resolved_events = self.engine.resolve(current, command, rng=self.rng)
+            result = action_result(resolved_events)
             if result.status != "committed":
                 raise ValidationError("Action is no longer feasible")
             state = self.checkpoint(state, before=current)
-            self.engine.validate(state)
-            campaign["play_json"] = state.model_dump_json()
-            campaign["revision"] = state.revision
-            roll: Roll | None = None
-            if result.check is not None:
-                check = result.check
-                roll = Roll(
-                    dice=list(check.dice),
-                    total=check.total,
-                    target=check.effective_target,
-                    success=check.outcome in (Outcome.SUCCESS, Outcome.CRITICAL_SUCCESS),
-                    critical="success"
-                    if check.outcome is Outcome.CRITICAL_SUCCESS
-                    else "failure"
-                    if check.outcome is Outcome.CRITICAL_FAILURE
-                    else None,
-                )
-            return Event(
-                input=payload, action="typed-action", outcome=result.model_dump_json(), roll=roll
-            )
+            self.commit(campaign, state)
+            return CommandReceipt(action="typed-action", outcome=result.model_dump_json())
 
-        committed = await self.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+        committed = await commit_command(
+            self.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            resolve,
+            actor_id=command.actor_id,
+            rng=self.rng,
         )
         result = self._load(committed["state"]).last_result
         if result is None:
@@ -429,7 +483,7 @@ class PlayService:
             separators=(",", ":"),
         )
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             state = self._load(campaign)
             actor = next((a for a in state.actors if a.actor_id == command.target_actor_id), None)
             if actor is None:
@@ -460,28 +514,27 @@ class PlayService:
                     ),
                 }
             )
-            self.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = (
-                updated.revision,
-                updated.model_dump_json(),
-            )
-            return Event(
-                input=payload,
-                action="power-approval",
-                outcome=approval.model_dump_json(),
-                roll=None,
-            )
+            self.commit(campaign, updated)
+            return CommandReceipt(action="power-approval", outcome=approval.model_dump_json())
 
-        committed = await self.store.commit_turn(
+        committed = await commit_command(
+            self.store,
             cid,
             command.id,
             command.expected_revision,
             payload,
             resolve,
             actor_id=authenticated_gm_id,
+            rng=self.rng,
         )
         state = self._load(committed["state"])
         approval = next(a.approval for a in state.actors if a.actor_id == command.target_actor_id)
         if approval is None:
             raise ValidationError("Missing committed approval")
         return approval
+
+
+def record_play_state(campaign: Campaign, state: PlayState) -> None:
+    """Write an already validated play checkpoint and its revision onto the campaign row."""
+    campaign["revision"] = state.revision
+    campaign["play_json"] = state.model_dump_json()

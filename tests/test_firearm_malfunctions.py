@@ -13,15 +13,15 @@ from test_gurps_melee import setup
 from test_gurps_ranged import load, scene, weapon
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.combat import ChooseDefense, CombatService, TakeCombatTurn
-from wayfarer.orchestration.firearms import ServiceRecord
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.rules.firearm_types import FirearmSpec
 from wayfarer.simulation.firearms import MalfunctionRecord, save_malfunction
 from wayfarer.simulation.gurps_equipment import Damage, EquipmentCatalog, RangedMode
+from wayfarer.simulation.mechanics.firearms import ServiceRecord
 
 
 def firearm(
@@ -115,6 +115,7 @@ async def test_malfunction_precedes_critical_miss_and_retries_once(
     assert len(events) == 1
     record = MalfunctionRecord.model_validate_json(events[0].kind)
     assert record.original_attack.dice == (6, 6, 6)
+    assert record.ammunition_load is not None
     assert record.ammunition_load.rounds == 6 and record.trace == result.injury
     assert save_malfunction(state.resources, record) == state.resources
     with pytest.raises(ConflictError):
@@ -229,7 +230,7 @@ async def test_stoppage_clearing_three_readies_and_interruption(
 def test_firearm_metadata_is_opt_in_and_bounded() -> None:
     assert "firearm" not in weapon().model_dump()
     with pytest.raises(ModelError):
-        FirearmSpec(technology_level=4, action="repeating")
+        FirearmSpec(technology_level=2, action="repeating")
     for changes in (
         dict(thrown=True),
         dict(blockable=True),
@@ -316,7 +317,7 @@ async def test_critical_clearing_failure_becomes_mechanical(tmp_path: Path) -> N
 async def seed_repair_progress(cid: str, play: PlayService) -> None:
     snapshot = await play.store.read(cid)
 
-    def commit(campaign: Campaign) -> Event:
+    def commit(campaign: Campaign) -> CommandReceipt:
         state = play._load(campaign)
         item = next(i for i in state.resources.items if i.id == "sword-a")
         assert item.firearm_failure is not None
@@ -340,9 +341,7 @@ async def seed_repair_progress(cid: str, play: PlayService) -> None:
         updated = state.model_copy(update={"resources": resources, "revision": state.revision + 1})
         play.engine.validate(updated)
         campaign["revision"], campaign["play_json"] = updated.revision, updated.model_dump_json()
-        return Event(
-            input="repair-fixture", action="resource", outcome="elapsed repair work", roll=None
-        )
+        return CommandReceipt(action="resource", outcome="elapsed repair work")
 
     await play.store.commit_turn(
         cid, "repair-fixture", snapshot["revision"], "repair-fixture", commit
@@ -397,7 +396,7 @@ async def test_service_rejects_occupied_hands_before_dice(tmp_path: Path) -> Non
     # Defender owns a ready shield and sword; fail with the hand constraint before a roll.
     cid, play = await malfunction(tmp_path, (3, 3, 3))
     state = play._load(await play.store.read(cid))
-    from wayfarer.orchestration.firearms import service
+    from wayfarer.simulation.mechanics.firearms import service
 
     shield = next(i for i in state.resources.items if i.id == "shield-b").model_copy(
         update={"owner_id": "a"}
@@ -417,7 +416,7 @@ async def test_service_rejects_occupied_hands_before_dice(tmp_path: Path) -> Non
     play.rng = RecordedDice([])
     with pytest.raises(ValidationError, match="two available hands"):
         service(
-            play,
+            play.rules_context,
             state.model_copy(update={"resources": resources}),
             state.encounters[0],
             command,

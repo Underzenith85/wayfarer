@@ -7,7 +7,7 @@ import json
 from dataclasses import dataclass
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import Field
 
 from wayfarer.character.compiler import (
     CharacterCompiler,
@@ -17,13 +17,12 @@ from wayfarer.character.compiler import (
     ValidatedBuild,
 )
 from wayfarer.errors import ValidationError
+from wayfarer.models import Record
 from wayfarer.rules.catalog import DefinitionKind
 
 
-class ReviewRecord(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid", frozen=True, strict=True, revalidate_instances="always"
-    )
+class ReviewRecord(Record):
+    """Base for power-review ledger rows."""
 
 
 class ForbiddenCombination(ReviewRecord):

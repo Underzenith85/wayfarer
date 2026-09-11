@@ -12,12 +12,12 @@ from test_gurps_ranged import load, scene, weapon
 
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import ChooseDefense, CombatService
-from wayfarer.orchestration.critical_limbs import CriticalLimbResult
 from wayfarer.orchestration.play import PlayService
-from wayfarer.orchestration.weapon_flight import position, retrieve
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.simulation.combat import GridPoint, RangedSituation
+from wayfarer.simulation.mechanics.critical_limbs import CriticalLimbResult
+from wayfarer.simulation.mechanics.weapon_flight import position, retrieve
 from wayfarer.simulation.ranged_critical import RangedCritical
 
 

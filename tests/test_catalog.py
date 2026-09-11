@@ -169,6 +169,14 @@ async def test_catalog_restart_revisions_isolation(config: Settings) -> None:
         assert await response.text() == exported
         assert await post(client, "", command) == entry
         for game in (game1, game2):
+            from wayfarer.simulation.scenario_references import boundary, verify
+
+            saved = await client.app[ACCESS_KEY].play.store.read(str(game["id"]))
+            pin = boundary(saved)
+            assert pin is not None and pin.reference.catalog_id == cid
+            assert pin.reference.revision == 1 and pin.published is not None
+            assert pin.published.content_json == exported
+            verify(saved)
             game_id = str(game["id"])
             steps: list[dict[str, object]] = [
                 {"operation": "assign", "principal_id": "alice", "actor_ids": ["mira"]},
@@ -357,6 +365,14 @@ async def test_guided_generation_keeps_an_earlier_portable_candidate(config: Set
         assert job["status"] == "needs_review"
         assert job["proposal_json"]
         assert job["report"]["status"] == "invalid"
+        # An exhausted budget names what is still unresolved, not just the budget (#365).
+        exhausted = next(
+            f for f in job["report"]["findings"] if f["code"] == "generation.repair_exhausted"
+        )
+        assert exhausted["reference"] == "missing-scene"
+        assert "4 unresolved finding(s)" in exhausted["message"]
+        assert "opening.missing at missing-scene" in exhausted["message"]
+        assert "retry generation with instructions that address them" in exhausted["message"]
 
 
 async def test_guided_generation_cancel_and_restart_recovery(config: Settings) -> None:

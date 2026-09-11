@@ -13,12 +13,12 @@ from dataclasses import asdict
 from pydantic import TypeAdapter
 from pydantic import ValidationError as SchemaError
 
-from wayfarer.character.power import PowerReviewer
+from wayfarer.character.power import CharacterProposal, PowerReview, PowerReviewer
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.models import Campaign
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.studio import ScenarioStudio
-from wayfarer.rules.catalog import ImplementationStatus
+from wayfarer.rules.catalog import CampaignRules, ImplementationStatus
 from wayfarer.rules.effects import Effect
 from wayfarer.simulation.access import CampaignMember
 from wayfarer.simulation.actions import ActorSetup
@@ -43,6 +43,39 @@ from wayfarer.simulation.scenario_document import (
     parse_document as parse_document,
 )
 from wayfarer.simulation.studio import ScenarioGraph, StudioFinding
+
+
+def pin_summary(rules: CampaignRules) -> str:
+    """Identify a pinned catalog without dumping full digests into a finding."""
+    return ", ".join(f"{p.id}@{p.version}#{p.digest[:8]}" for p in rules.packages) or "no packages"
+
+
+def slot_faults(
+    party: PartyRequirements,
+    slot: PartySlot,
+    review: PowerReview,
+    proposal: CharacterProposal,
+    *,
+    legality: bool = True,
+) -> tuple[str, ...]:
+    """Name every unmet slot requirement, so the author never has to guess (#365)."""
+    faults: list[str] = []
+    if legality and review.status != "automatic":
+        blocking = ", ".join(f"{f.code} ({f.rule_id})" for f in review.findings)
+        faults.append(
+            f"its review is {review.status}" + (f" because of {blocking}" if blocking else "")
+        )
+    if not party.minimum_points <= review.compilation.spent <= party.maximum_points:
+        faults.append(
+            f"it spends {review.compilation.spent} points, outside the "
+            f"{party.minimum_points}-{party.maximum_points} range this scenario allows"
+        )
+    missing = sorted(
+        set(slot.required_definitions) - {p.definition_id for p in proposal.draft.purchases}
+    )
+    if missing:
+        faults.append(f"it is missing required definitions {', '.join(missing)}")
+    return tuple(faults)
 
 
 def required_capabilities(graph: PortableGraph) -> tuple[Capability, ...]:
@@ -219,22 +252,47 @@ class ScenarioDocuments:
                 findings=tuple(findings),
             )
         content_digest = document.digest
+        engine_rules = self.studio.play.engine.resources.rules
         if (
             document.compatibility.engine_digest != configured
-            or document.compatibility.rules != self.studio.play.engine.resources.rules
+            or document.compatibility.rules != engine_rules
         ):
+            document_rules = document.compatibility.rules
+            mismatch = [
+                f"{name} is {theirs}, not the configured {ours}"
+                for name, theirs, ours in (
+                    ("edition", document_rules.edition, engine_rules.edition),
+                    (
+                        "policy",
+                        f"{document_rules.policy_id}@{document_rules.policy_version}",
+                        f"{engine_rules.policy_id}@{engine_rules.policy_version}",
+                    ),
+                    ("packages", pin_summary(document_rules), pin_summary(engine_rules)),
+                    (
+                        "engine digest",
+                        document.compatibility.engine_digest[:12],
+                        configured[:12],
+                    ),
+                )
+                if theirs != ours
+            ]
             error(
                 "document.rules",
                 "compatibility",
-                "Exact rules, catalog and engine configuration must match",
+                "Exact rules, catalog and engine configuration must match: "
+                + "; ".join(mismatch)
+                + ". Re-export the document against this engine, or run the engine it was "
+                "authored on.",
             )
-        if not set(required_capabilities(document.graph)) <= set(
+        undeclared = set(required_capabilities(document.graph)) - set(
             document.compatibility.capabilities
-        ):
+        )
+        if undeclared:
             error(
                 "document.capabilities",
                 "compatibility",
-                "Used engine capabilities must be declared",
+                f"The graph uses engine capabilities {', '.join(sorted(undeclared))} that "
+                "compatibility.capabilities does not declare; add them or stop using those rules.",
             )
 
         # Check every collection's definition IDs, including world commitments and approaches.
@@ -244,8 +302,14 @@ class ScenarioDocuments:
                     duplicates(child, f"{path}.{key}")
             elif isinstance(value, list):
                 ids = [v["id"] for v in value if isinstance(v, dict) and "id" in v]
-                if len(ids) != len(set(ids)):
-                    error("document.duplicate", path, "Duplicate stable ID in collection")
+                repeated = sorted({str(i) for i in ids if ids.count(i) > 1})
+                if repeated:
+                    error(
+                        "document.duplicate",
+                        path,
+                        f"{path} declares {', '.join(repeated)} more than once; every stable ID in "
+                        f"a collection must be unique",
+                    )
                 for i, child in enumerate(value):
                     duplicates(child, f"{path}[{i}]")
 
@@ -254,7 +318,7 @@ class ScenarioDocuments:
             document.graph.world.validate()
             document.graph.scenes.validate_world(document.graph.world)
         except ValidationError as exc:
-            error("document.references", "graph", str(exc))
+            error("document.references", exc.reference or "graph", str(exc))
         reviewer = self.studio.play.engine.reviewer
         for slot in document.party.slots:
             for definition_id in slot.required_definitions:
@@ -263,24 +327,25 @@ class ScenarioDocuments:
                     error(
                         "party.definition",
                         slot.actor_id,
-                        "Party requirement uses an unavailable catalog definition",
+                        f"Slot {slot.actor_id} requires {definition_id}, which is "
+                        + (
+                            "not in the pinned catalog"
+                            if definition is None
+                            else f"{definition.status.value}, not implemented"
+                        )
+                        + "; require a definition this engine implements",
                     )
         # Optional pregens must be legal even when a different validation party is supplied.
         for pregen in document.pregenerated:
             review = reviewer.review(pregen.proposal)
             slot = next(s for s in document.party.slots if s.actor_id == pregen.slot_id)
-            if (
-                review.status != "automatic"
-                or not document.party.minimum_points
-                <= review.compilation.spent
-                <= document.party.maximum_points
-                or not set(slot.required_definitions)
-                <= {p.definition_id for p in pregen.proposal.draft.purchases}
-            ):
+            faults = slot_faults(document.party, slot, review, pregen.proposal)
+            if faults:
                 error(
                     "party.pregen",
                     pregen.slot_id,
-                    "Pregenerated character is not automatically legal",
+                    f"Pregenerated character for slot {pregen.slot_id} is not automatically "
+                    f"legal: {'; '.join(faults)}",
                 )
         party_digest: str | None = None
         needs_party = party is None and len(document.pregenerated) != len(document.party.slots)
@@ -291,22 +356,24 @@ class ScenarioDocuments:
                 by_id = {a.actor_id: a for a in graph.actors}
                 for slot in document.party.slots:
                     proposal = by_id[slot.actor_id].proposal
-                    compilation = reviewer.review(proposal).compilation
-                    if (
-                        not document.party.minimum_points
-                        <= compilation.spent
-                        <= document.party.maximum_points
-                        or not set(slot.required_definitions)
-                        <= {p.definition_id for p in proposal.draft.purchases}
-                    ):
+                    faults = slot_faults(
+                        document.party, slot, reviewer.review(proposal), proposal, legality=False
+                    )
+                    if faults:
                         error(
                             "party.incompatible",
                             slot.actor_id,
-                            "Character does not meet slot requirements",
+                            f"Character bound to slot {slot.actor_id} does not meet its "
+                            f"requirements: {'; '.join(faults)}",
                         )
                 findings.extend(self.studio.validate(graph).findings)
             except (ValidationError, ValueError, KeyError, StopIteration) as exc:
-                error("document.runtime", "graph", str(exc) or "Unresolved runtime reference")
+                locus = exc.reference if isinstance(exc, ValidationError) else None
+                error(
+                    "document.runtime",
+                    locus or "graph",
+                    str(exc) or "Unresolved runtime reference in the bound graph",
+                )
         return DocumentReport(
             content_digest=content_digest,
             engine_digest=configured,

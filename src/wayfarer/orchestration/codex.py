@@ -40,8 +40,8 @@ from wayfarer.errors import (
     ProviderRequestError,
     ProviderTimeoutError,
 )
+from wayfarer.models import Record
 from wayfarer.orchestration.providers import ProviderReply, ProviderRequest, Usage
-from wayfarer.simulation.resources import Record
 
 
 def strict_schema(schema: dict[str, object]) -> JsonObject:
@@ -487,7 +487,9 @@ class CodexProvider:
                     )
                     await self.sessions.put(request.session_id, thread_id)
                     notify("completed")
-                    return reply
+                    return reply.model_copy(
+                        update={"provider": "codex", "model": self.settings.model}
+                    )
             except asyncio.CancelledError:
                 notify("cancelled")
                 await self.backend.close()

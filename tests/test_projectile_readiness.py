@@ -258,8 +258,8 @@ async def test_crossbow_missing_aid_rejects_before_dice(tmp_path: Path) -> None:
 
 @pytest.mark.parametrize("quantity", [1, 10])
 async def test_fast_draw_respects_shared_reservations(tmp_path: Path, quantity: int) -> None:
-    from wayfarer.orchestration.gurps_ranged import reload_weapon
     from wayfarer.rules.readiness_types import ProjectileProgress
+    from wayfarer.simulation.mechanics.gurps_ranged import reload_weapon
     from wayfarer.simulation.resources import AmmunitionLoad, Item
 
     mode = rated().model_copy(
@@ -313,9 +313,9 @@ async def test_fast_draw_respects_shared_reservations(tmp_path: Path, quantity: 
     play.rng = RecordedDice([6, 6, 6] if quantity > 1 else [])
     if quantity == 1:
         with pytest.raises(ValidationError, match="unreserved"):
-            reload_weapon(play, state, command)
+            reload_weapon(play.rules_context, state, command)
         return
-    updated = reload_weapon(play, state, command)
+    updated = reload_weapon(play.rules_context, state, command)
     play.engine.resources.validate(updated)
     assert updated.ammunition_loads == (shared,)
     assert next(i.quantity for i in updated.items if i.id == "ammo-a") == 1

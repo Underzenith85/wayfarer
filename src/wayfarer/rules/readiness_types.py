@@ -2,11 +2,12 @@
 
 from typing import Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import Field, model_validator
+
+from wayfarer.models import Record
 
 
-class ProjectileReadiness(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
+class ProjectileReadiness(Record):
     kind: Literal["bow", "crossbow", "projectile", "firearm"]
     fast_draw_skill_id: str | None = None
     fast_draw_specialty: Literal["Arrow", "Ammo"] | None = None
@@ -29,8 +30,7 @@ class ProjectileReadiness(BaseModel):
         return self
 
 
-class ProjectileProgress(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
+class ProjectileProgress(Record):
     stage: Literal["prepare", "draw", "cock", "load", "loaded", "unload"] = "prepare"
     elapsed: int = Field(default=0, ge=0)
     required: int = Field(default=0, ge=0)

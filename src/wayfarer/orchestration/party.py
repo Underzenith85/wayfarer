@@ -8,11 +8,13 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt, Id
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.noncombat import NoncombatCommand, NoncombatService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.scenes import SceneService, TravelScene
 from wayfarer.simulation.actions import ActionCommand, Inspect, PlayState, Social, UseItem, Wait
+from wayfarer.simulation.events import action_result
 from wayfarer.simulation.party import (
     ActivityReceipt,
     PendingEffect,
@@ -21,7 +23,7 @@ from wayfarer.simulation.party import (
     group_for,
     migrate,
 )
-from wayfarer.simulation.resources import Advance, Id, Transfer
+from wayfarer.simulation.resources import Advance, Transfer
 
 
 class PartyCommand(ActionCommand):
@@ -234,9 +236,10 @@ class PartyService:
                             update={"revision": revision, "resources": state.resources}
                         )
                         action = action.model_copy(update={"expected_revision": revision})
-                        state, result = self.play.engine.resolve(
+                        state, resolved_events = self.play.engine.resolve(
                             working, action, rng=self.play.rng, advance_time=False
                         )
+                        result = action_result(resolved_events)
                         if result.status != "committed":
                             raise ValidationError("Activity became infeasible")
                         state = state.model_copy(
@@ -482,13 +485,19 @@ class PartyService:
             {"operation": "party", "command": command.model_dump(mode="json")}, sort_keys=True
         )
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             state = self.reduce(self.play._load(campaign), command)
-            self.play.engine.validate(state)
-            campaign["revision"], campaign["play_json"] = state.revision, state.model_dump_json()
-            return Event(input=payload, action="party", outcome=command.kind, roll=None)
+            self.play.commit(campaign, state)
+            return CommandReceipt(action="party", outcome=command.kind)
 
-        committed = await self.play.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+        committed = await commit_command(
+            self.play.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            resolve,
+            actor_id=command.actor_id,
+            rng=self.play.rng,
         )
         return self.play._load(committed["state"])

@@ -149,3 +149,8 @@ def contagion_modifier(contacts: tuple[str, ...]) -> int:
     if not contacts or any(c not in modifiers for c in contacts):
         raise ValidationError("Unknown disease contact")
     return min(modifiers[c] for c in contacts)
+
+
+def climbing_default(dx: int) -> int:
+    """B183/B349: untrained Climbing defaults to DX-5."""
+    return dx - 5

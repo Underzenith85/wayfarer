@@ -6,7 +6,12 @@ from pathlib import Path
 import pytest
 from test_spell_bindings import command, idle, setup, start_fight
 
-from wayfarer.orchestration.combat import ChooseDefense, ResumeInterruptedTurn, TakeCombatTurn
+from wayfarer.orchestration.combat import (
+    ChooseDefense,
+    CombatService,
+    ResumeInterruptedTurn,
+    TakeCombatTurn,
+)
 from wayfarer.orchestration.spells import SpellService
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.simulation.combat import GridPoint
@@ -176,6 +181,8 @@ async def test_hex_fire_crossing_hurts_even_when_endpoint_is_outside(tmp_path: P
         ),
         authenticated_actor_id="gm",
     )
+    play = play.for_campaign(await play.store.read(cid))
+    combat = CombatService(play)
     play.rng = RecordedDice([3, 3, 3])
     await SpellService(play).execute(
         cid,

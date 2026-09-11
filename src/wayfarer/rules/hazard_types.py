@@ -2,15 +2,14 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import Field, model_validator
 
 from wayfarer.errors import ConflictError
+from wayfarer.models import Record
 
 
-class HazardRecord(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid", frozen=True, strict=True, revalidate_instances="always"
-    )
+class HazardRecord(Record):
+    """Base for hazard exposure rows."""
 
 
 class RecoveryRestriction(HazardRecord):

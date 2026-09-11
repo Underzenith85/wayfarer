@@ -6,8 +6,11 @@ import hashlib
 import json
 from typing import TYPE_CHECKING, Literal
 
+from wayfarer import validation
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
+from wayfarer.orchestration.entropy import commit_command
+from wayfarer.persistence.events import CommandOrigin
 from wayfarer.rules.mundane_traits.runtime import Audience
 from wayfarer.rules.social_hooks import Reputation, Standing
 from wayfarer.simulation.actions import ActionCommand, PlayState
@@ -22,6 +25,7 @@ from wayfarer.simulation.resources import Consume
 
 if TYPE_CHECKING:
     from wayfarer.orchestration.play import PlayService
+    from wayfarer.orchestration.providers import Orchestrator
 
 
 class NPCProposal(ActionCommand):
@@ -271,13 +275,13 @@ def social_occurrence(
     trigger: NPCSocialTrigger,
     occurrence_id: str,
 ) -> PlayState:
-    from wayfarer.orchestration.gurps_melee import build
     from wayfarer.orchestration.social import ResolvedInteraction, dispatch
     from wayfarer.rules.gurps_social import (
         InfluenceConditions,
         ReactionModifier,
         influence_procedure,
     )
+    from wayfarer.simulation.mechanics.gurps_melee import build
     from wayfarer.simulation.social import SocialCommand, SocialContext, SocialDisclosure
 
     profile_id = play.engine.reviewer.compiler.statistics_profile
@@ -288,7 +292,7 @@ def social_occurrence(
     if trigger.kind in ("fright", "self-control"):
         if not any(a.actor_id == trigger.subject_id for a in state.actors):
             raise ValidationError("Social trigger subject requires an approved build")
-        compiled = build(play, state, trigger.subject_id)
+        compiled = build(play.rules_context, state, trigger.subject_id)
         assert compiled.statistics is not None
         will, ht = compiled.statistics.will, compiled.statistics.ht
         target = will + trigger.modifier
@@ -314,7 +318,7 @@ def social_occurrence(
     elif trigger.kind == "influence":
         if not any(a.actor_id == actor_id for a in state.actors):
             raise ValidationError("Influence initiator requires an approved build")
-        compiled = build(play, state, actor_id)
+        compiled = build(play.rules_context, state, actor_id)
         value = next((v for v in compiled.sheet.values if v.target == trigger.skill_id), None)
         if value is None:
             raise ValidationError("Influence skill has no approved level")
@@ -325,7 +329,7 @@ def social_occurrence(
         )
         # A built subject's Will is authoritative; npc_will is only for unbuilt NPCs.
         if any(a.actor_id == trigger.subject_id for a in state.actors):
-            subject = build(play, state, trigger.subject_id)
+            subject = build(play.rules_context, state, trigger.subject_id)
             assert subject.statistics is not None
             will = subject.statistics.will
     elif trigger.kind == "skill":
@@ -336,7 +340,7 @@ def social_occurrence(
         procedure = require_procedure(profile_id, trigger.skill_id)
         if not any(a.actor_id == actor_id for a in state.actors):
             raise ValidationError("Social skill initiator requires an approved build")
-        compiled = build(play, state, actor_id)
+        compiled = build(play.rules_context, state, actor_id)
         value = next((v for v in compiled.sheet.values if v.target == procedure.id), None)
         if value is None:
             raise ValidationError("Social skill has no approved level")
@@ -352,7 +356,7 @@ def social_occurrence(
             # B198: the less fluent party decides, so the subject needs the skill too.
             if not any(a.actor_id == trigger.subject_id for a in state.actors):
                 raise ValidationError("A paired social skill needs both approved builds")
-            other = build(play, state, trigger.subject_id)
+            other = build(play.rules_context, state, trigger.subject_id)
             partner = next((v for v in other.sheet.values if v.target == procedure.id), None)
             if partner is None:
                 raise ValidationError("The other party has no approved level for this skill")
@@ -361,7 +365,7 @@ def social_occurrence(
         # NPCs. The trigger carries no modifier: the procedure derives its own.
         will = trigger.npc_will
         if any(a.actor_id == trigger.subject_id for a in state.actors):
-            resisting = build(play, state, trigger.subject_id)
+            resisting = build(play.rules_context, state, trigger.subject_id)
             assert resisting.statistics is not None
             will = resisting.statistics.will
     context.target, context.will, context.ht = target, will, ht
@@ -402,7 +406,74 @@ class NPCService:
     def __init__(self, play: PlayService) -> None:
         self.play = play
 
-    async def propose(self, cid: str, value: object, *, authenticated_gm_id: str) -> PlayState:
+    async def propose_generated(
+        self,
+        cid: str,
+        *,
+        llm: Orchestrator,
+        command_id: str,
+        authenticated_gm_id: str,
+        plan_id: str,
+    ) -> PlayState:
+        """Generate a bounded advisory choice before submitting a typed NPC proposal."""
+        from wayfarer.orchestration.providers import ProviderRequest
+
+        campaign = await self.play.store.read(cid)
+        play = self.play.for_campaign(campaign)
+        if authenticated_gm_id not in play.engine.reviewer.gm_ids:
+            raise ValidationError("NPC proposals require trusted director authority")
+        state = play._load(campaign)
+        rules = play.engine.rules.npcs
+        plan = next((p for p in rules.plans if p.id == plan_id), None) if rules else None
+        if plan is None:
+            raise ValidationError("Unknown bounded NPC plan")
+        reply = await llm.job_reply(
+            ProviderRequest(
+                operation="intent",
+                session_id=f"npc:{cid}:{plan_id}",
+                context_json=plan.model_dump_json(),
+                prompt="Choose one listed action_id for this NPC plan.",
+                output_schema={
+                    "type": "object",
+                    "properties": {
+                        "action_id": {"type": "string", "enum": [a.id for a in plan.actions]}
+                    },
+                    "required": ["action_id"],
+                    "additionalProperties": False,
+                },
+            ),
+            cid=cid,
+            revision=state.revision,
+            principal=authenticated_gm_id,
+            actor=authenticated_gm_id,
+            key=command_id,
+        )
+        choice = validation.mapping(validation.decode(reply.payload_json))
+        action_id = validation.string(choice["action_id"])
+        command = NPCProposal(
+            id=command_id,
+            actor_id=authenticated_gm_id,
+            expected_revision=state.revision,
+            plan_id=plan_id,
+            action_id=action_id,
+        )
+        return await NPCService(play).propose(
+            cid,
+            command,
+            authenticated_gm_id=authenticated_gm_id,
+            origin=CommandOrigin.proposal(
+                "npc", choice, provider=reply.provider, model=reply.model
+            ),
+        )
+
+    async def propose(
+        self,
+        cid: str,
+        value: object,
+        *,
+        authenticated_gm_id: str,
+        origin: CommandOrigin | None = None,
+    ) -> PlayState:
         command = NPCProposal.model_validate(value)
         if (
             command.actor_id != authenticated_gm_id
@@ -413,7 +484,7 @@ class NPCService:
             raise ValidationError("Hypothetical proposal cannot be persisted")
         payload = command.model_dump_json()
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             state = self.play._load(campaign)
             rules = self.play.engine.rules.npcs
             plan = (
@@ -448,13 +519,18 @@ class NPCService:
                     ),
                 }
             )
-            self.play.engine.validate(state)
-            campaign["revision"], campaign["play_json"] = revision, state.model_dump_json()
-            return Event(
-                input=json.dumps({"command": payload}), action="npc", outcome="proposed", roll=None
-            )
+            self.play.commit(campaign, state)
+            return CommandReceipt(action="npc", outcome="proposed")
 
-        result = await self.play.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+        result = await commit_command(
+            self.play.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            resolve,
+            actor_id=command.actor_id,
+            rng=self.play.rng,
+            origin=origin,
         )
         return self.play._load(result["state"])

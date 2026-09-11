@@ -10,7 +10,7 @@ from test_wave11 import graph_fixture
 from test_wave12 import ready, service
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.objectives import checkpoint
 from wayfarer.orchestration.setup import SetupService
 from wayfarer.simulation.actions import PlayState
@@ -29,7 +29,7 @@ async def finish(setup: SetupService, outcome: str = "success") -> str:
     )
 
     # Seed authored outcomes and prior lasting changes through the real transaction store.
-    def resolve(campaign: Campaign) -> Event:
+    def resolve(campaign: Campaign) -> CommandReceipt:
         state = PlayState.model_validate_json(campaign["play_json"])
         graph = graph_fixture()
         rules = graph.objectives.model_copy(
@@ -58,6 +58,27 @@ async def finish(setup: SetupService, outcome: str = "success") -> str:
             )
         graph = graph.model_copy(update={"objectives": rules})
         campaign["scenario_graph_json"] = graph.model_dump_json()
+        # This fixture authors a different rules graph; pin that graph explicitly.
+        from wayfarer.orchestration.studio import ScenarioStudio
+        from wayfarer.simulation.scenario_document import digest_json
+        from wayfarer.simulation.scenario_references import boundary
+
+        pin = boundary(campaign)
+        assert pin is not None
+        graph_digest = digest_json(graph.model_dump(mode="json"))
+        runtime_digest = (
+            ScenarioStudio(setup.play, npc_reviewer=setup.play.engine.reviewer).engine(graph).digest
+        )
+        pin = pin.model_copy(
+            update={
+                "graph_digest": graph_digest,
+                "runtime_digest": runtime_digest,
+                "reference": pin.reference.model_copy(
+                    update={"content_digest": graph_digest, "engine_digest": runtime_digest}
+                ),
+            }
+        )
+        campaign["scenario_reference_json"] = pin.model_dump_json()
         lobby = setup.load(campaign).model_copy(update={"graph": graph})
         campaign["setup_json"] = lobby.model_dump_json()
         world = state.world.learn("a", "clue") if outcome != "failure" else state.world
@@ -89,7 +110,7 @@ async def finish(setup: SetupService, outcome: str = "success") -> str:
         state = checkpoint(runtime, state)
         campaign["revision"] = 5
         campaign["play_json"] = state.model_dump_json()
-        return Event(input="fixture", action="setup", outcome="settled", roll=None)
+        return CommandReceipt(action="setup", outcome="settled")
 
     await setup.play.store.commit_turn(cid, "fixture", 4, "fixture", resolve)
     await setup.execute(

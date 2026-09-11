@@ -16,6 +16,7 @@ from pydantic import Field
 
 from wayfarer.config import Settings
 from wayfarer.errors import AuthenticationError, AuthorizationError, ValidationError, WayfarerError
+from wayfarer.models import Record
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.codex import ProviderStatus
 from wayfarer.orchestration.director import DirectorService
@@ -36,7 +37,6 @@ from wayfarer.orchestration.workshop_options import (
 )
 from wayfarer.rules.catalog import reference
 from wayfarer.rules.profiles import DEFAULT_REGISTRY
-from wayfarer.simulation.resources import Record
 from wayfarer.simulation.studio import ScenarioGraph
 
 # The single-page application's own entry routes. Each view is addressable

@@ -16,7 +16,7 @@ from test_unarmed import setup as unarmed_setup
 
 from scripts.tactical_contracts import contract
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.combat import (
     ChooseDefense,
@@ -34,8 +34,20 @@ from wayfarer.rules.object_types import ObjectProfile
 from wayfarer.simulation.access import CampaignMember
 from wayfarer.simulation.combat import CombatResult, GridPoint, RangedSituation
 from wayfarer.simulation.hex_geometry import Cell, Hex, HexBattlefield, Pose
+from wayfarer.simulation.rules_context import RulesContext
 from wayfarer.transport.campaign_api import create_campaign_app
 from wayfarer.world import Fact
+
+
+def with_board(play: PlayService, board: HexBattlefield) -> RulesContext:
+    rules = play.engine.rules.combat
+    assert rules is not None
+    combat = rules.model_copy(
+        update={"battlefields": tuple(board if b.id == board.id else b for b in rules.battlefields)}
+    )
+    return replace(
+        play.rules_context, rules=play.engine.rules.model_copy(update={"combat": combat})
+    )
 
 
 async def setup(
@@ -58,7 +70,7 @@ async def setup(
             ranged_scene=(RangedSituation(attacker_id="a", defender_id="b", distance_yards=9),),
         )
 
-    def members(campaign: Campaign) -> Event:
+    def members(campaign: Campaign) -> CommandReceipt:
         state = play._load(campaign)
         facts = state.world.facts + (
             Fact("seen-a", "a", "visible", "yes"),
@@ -82,12 +94,12 @@ async def setup(
             }
         )
         campaign["play_json"] = state.model_dump_json()
-        return Event(input="fixture", action="combat", outcome="members", roll=None)
+        return CommandReceipt(action="combat", outcome="members")
 
     await play.store.commit_turn(cid, "members", 1, "members", members)
     if migrate:
         await CombatService(play).execute(cid, migration(), authenticated_actor_id="gm")
-    return cid, play
+    return cid, play.for_campaign(await play.store.read(cid))
 
 
 def migration() -> MigrateEncounterHex:
@@ -187,6 +199,7 @@ async def test_explicit_migration_and_replay_leave_legacy_poses_unchanged(tmp_pa
     command = migration()
     first = await service.execute(cid, command, authenticated_actor_id="gm")
     assert first == await service.execute(cid, command, authenticated_actor_id="gm")
+    play = play.for_campaign(await play.store.read(cid))
     state = play._load(await play.store.read(cid))
     assert state.revision == 2 and state.encounters[0].participants[0].position == Hex(q=0, r=0)
     assert old.encounters[0].participants[0].position == GridPoint(x=0, y=0)
@@ -215,7 +228,13 @@ async def test_axial_movement_range_updates_and_no_duplicate_turn(tmp_path: Path
     assert state.revision == 3
     assert state.encounters[0].participants[0].position == Hex(q=2, r=-1)
     assert state.encounters[0].current_actor_id == "b"
-    assert play._load(await play.store.read(cid)).encounters[0].hex_battlefield is not None
+    assert (
+        play.for_campaign(await play.store.read(cid))
+        ._load(await play.store.read(cid))
+        .encounters[0]
+        .spatial_kind
+        == "hex"
+    )
 
 
 async def test_http_visibility_choices_authority_and_stale_revision(
@@ -419,6 +438,7 @@ async def test_facing_blocks_rear_attack_before_dice(tmp_path: Path) -> None:
         }
     )
     await CombatService(play).execute(cid, command, authenticated_actor_id="gm")
+    play = play.for_campaign(await play.store.read(cid))
     play.rng = RecordedDice(())
     with pytest.raises(ValidationError, match="unavailable"):
         await CombatService(play).execute(
@@ -439,12 +459,12 @@ async def test_facing_blocks_rear_attack_before_dice(tmp_path: Path) -> None:
 
 
 async def test_hex_ranged_distance_is_current_not_the_declared_nine_yards(tmp_path: Path) -> None:
-    from wayfarer.orchestration.gurps_ranged import situation
+    from wayfarer.simulation.mechanics.gurps_ranged import situation
 
     cid, play = await setup(tmp_path)
     encounter = play._load(await play.store.read(cid)).encounters[0]
     assert encounter.ranged_situations[0].distance_yards == 9
-    assert situation(encounter, "a", "b").distance_yards == 1
+    assert situation(play.rules_context, encounter, "a", "b").distance_yards == 1
     play.rng = RecordedDice((3, 3, 3, 3))
     await CombatService(play).execute(
         cid,
@@ -476,13 +496,13 @@ async def test_hex_ranged_distance_is_current_not_the_declared_nine_yards(tmp_pa
 
 
 async def test_nonstanding_melee_and_unarmed_defense_use_level_difference(tmp_path: Path) -> None:
-    from wayfarer.orchestration.unarmed import unarmed_defense
+    from wayfarer.simulation.mechanics.unarmed import unarmed_defense
     from wayfarer.simulation.tactical import height_effect
 
     cid, play = await setup(tmp_path, unarmed=True)
     state = play._load(await play.store.read(cid))
     encounter = state.encounters[0]
-    board = encounter.hex_battlefield
+    board = play.rules_context.hex_map(encounter)
     assert board is not None
     raised = board.model_copy(
         update={
@@ -501,26 +521,29 @@ async def test_nonstanding_melee_and_unarmed_defense_use_level_difference(tmp_pa
         for participant in encounter.participants
     )
     encounter = encounter.model_copy(update={"participants": participants})
-    raised_encounter = encounter.model_copy(update={"hex_battlefield": raised})
+    raised_encounter = encounter
+    raised_runtime = with_board(play, raised)
     actor = next(p for p in raised_encounter.participants if p.actor_id == "a")
     target = next(p for p in raised_encounter.participants if p.actor_id == "b")
 
-    effect = height_effect(raised_encounter, actor, target, reach=1, location="torso")
+    effect = height_effect(raised_encounter, actor, target, reach=1, location="torso", board=raised)
     assert effect.attack_modifier == 0 and effect.defender_modifier == 1
-    flat_defense, _ = unarmed_defense(play, state, encounter, "b", "dodge", None, attacker_id="a")
+    flat_defense, _ = unarmed_defense(
+        play.rules_context, state, encounter, "b", "dodge", None, attacker_id="a"
+    )
     raised_defense, _ = unarmed_defense(
-        play, state, raised_encounter, "b", "dodge", None, attacker_id="a"
+        raised_runtime, state, raised_encounter, "b", "dodge", None, attacker_id="a"
     )
     assert flat_defense is not None and raised_defense == flat_defense + 1
 
 
 async def test_hex_ranged_distance_accounts_for_elevation(tmp_path: Path) -> None:
-    from wayfarer.orchestration.gurps_ranged import situation
+    from wayfarer.simulation.mechanics.gurps_ranged import situation
 
     cid, play = await setup(tmp_path)
     state = play._load(await play.store.read(cid))
     encounter = state.encounters[0]
-    board = encounter.hex_battlefield
+    board = play.rules_context.hex_map(encounter)
     assert board is not None
     raised = board.model_copy(
         update={
@@ -530,8 +553,7 @@ async def test_hex_ranged_distance_accounts_for_elevation(tmp_path: Path) -> Non
             )
         }
     )
-    encounter = encounter.model_copy(update={"hex_battlefield": raised})
-    assert situation(encounter, "a", "b").distance_yards == 3
+    assert situation(with_board(play, raised), encounter, "a", "b").distance_yards == 3
 
 
 async def test_unarmed_v2_options_do_not_change_v1_request_contract(

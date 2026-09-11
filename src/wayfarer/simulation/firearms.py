@@ -4,19 +4,13 @@ import hashlib
 from typing import Literal
 
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Record
 from wayfarer.rules.checks import CheckTrace
 from wayfarer.rules.firearm_types import FirearmFailure
 from wayfarer.rules.readiness_types import ProjectileProgress
 from wayfarer.simulation.combat import Combatant, InjuryTrace, RangedSituation
 from wayfarer.simulation.gurps_equipment import EquipmentCatalog, RangedMode
-from wayfarer.simulation.resources import (
-    AmmunitionLoad,
-    Item,
-    Pool,
-    Record,
-    ResourceEvent,
-    ResourceState,
-)
+from wayfarer.simulation.resources import AmmunitionLoad, Item, Pool, ResourceEvent, ResourceState
 
 
 class MalfunctionRecord(Record):
@@ -31,7 +25,7 @@ class MalfunctionRecord(Record):
     weapon: RangedMode
     scene: RangedSituation
     original_attack: CheckTrace
-    ammunition_load: AmmunitionLoad
+    ammunition_load: AmmunitionLoad | None
     items: tuple[Item, ...]
     pools: tuple[Pool, ...]
     failure: FirearmFailure
@@ -79,11 +73,15 @@ def spend_rounds(state: ResourceState, weapon_id: str, count: int) -> ResourceSt
         for v in state.ammunition_loads
     )
     items = tuple(
-        i.model_copy(update={"quantity": i.quantity - count})
+        i.model_copy(
+            update={"charges": i.charges - count}
+            if i.charges is not None
+            else {"quantity": i.quantity - count}
+        )
         if i.id == load.ammunition_item_id
         else i
         for i in state.items
-        if i.id != load.ammunition_item_id or i.quantity > count
+        if i.id != load.ammunition_item_id or i.charges is not None or i.quantity > count
     )
     return state.model_copy(
         update={

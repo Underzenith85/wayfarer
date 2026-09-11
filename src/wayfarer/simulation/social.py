@@ -8,6 +8,7 @@ from dataclasses import asdict, dataclass
 from typing import Literal
 
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Record
 from wayfarer.rules.checks import Modifier, RandomSource
 from wayfarer.rules.gurps_social import (
     DEFAULT_INFLUENCE_CONDITIONS,
@@ -30,7 +31,7 @@ from wayfarer.rules.mundane_skills.social import (
 from wayfarer.rules.mundane_traits.runtime import DEFAULT_AUDIENCE, Audience
 from wayfarer.rules.social_hooks import Standing, StandingTrace, standing_modifiers
 from wayfarer.rules.traits import TraitOptions, TraitRules
-from wayfarer.simulation.resources import Command, Receipt, Record, ResourceEvent, ResourceState
+from wayfarer.simulation.resources import Command, Receipt, ResourceEvent, ResourceState
 from wayfarer.world import EntityKind, World
 
 REACTIONS: frozenset[str] = frozenset(

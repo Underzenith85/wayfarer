@@ -2,14 +2,14 @@
 
 from typing import Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import Field, model_validator
 
+from wayfarer.models import Record
 from wayfarer.rules.location_types import InjuryTolerance, LastingInjury
 from wayfarer.rules.physical_traits import NO_PHYSICAL_TRAITS, PhysicalTraits, SurpriseState
 
 
-class InjuryStatus(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+class InjuryStatus(Record):
     profile_id: Literal["gurps-lite-4e-2004", "gurps-basic-set-4e-2004"]
     physical_traits: PhysicalTraits = Field(
         default=NO_PHYSICAL_TRAITS, exclude_if=lambda v: v == NO_PHYSICAL_TRAITS

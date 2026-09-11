@@ -1215,5 +1215,6 @@
     {
       "$ref": "#/$defs/ServerMessage"
     }
-  ]
+  ],
+  "$comment": "Durable engine events are versioned separately in ./engine-events.schema.json; they are not ClientMessage or ServerMessage payloads."
 }

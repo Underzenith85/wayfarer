@@ -6,8 +6,9 @@ import json
 from typing import TYPE_CHECKING, Literal
 
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.advancement import _build
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.simulation.actions import ActionCommand, PlayState
 from wayfarer.simulation.advancement import AdvancementEntry
 from wayfarer.simulation.objectives import ObjectiveState, evaluate
@@ -109,7 +110,7 @@ class ObjectiveService:
             {"operation": "objectives", "command": command.model_dump(mode="json")}, sort_keys=True
         )
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             state = self.play._load(campaign)
             if (
                 command.actor_id
@@ -124,16 +125,17 @@ class ObjectiveService:
                 }
             )
             state = checkpoint(self.play, state, abandon=command.kind == "abandon_scenario")
-            self.play.engine.validate(state)
-            campaign["revision"], campaign["play_json"] = revision, state.model_dump_json()
-            return Event(
-                input=payload,
-                action="objectives",
-                outcome=state.objectives.model_dump_json(),
-                roll=None,
-            )
+            self.play.commit(campaign, state)
+            return CommandReceipt(action="objectives", outcome=state.objectives.model_dump_json())
 
-        committed = await self.play.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+        committed = await commit_command(
+            self.play.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            resolve,
+            actor_id=command.actor_id,
+            rng=self.play.rng,
         )
         return self.play._load(committed["state"]).objectives

@@ -10,7 +10,8 @@ from dataclasses import dataclass
 from typing import Literal
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt, Record
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.medical import _build
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.checks import CheckTrace, Outcome
@@ -20,7 +21,7 @@ from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.fatigue import FatigueCost, apply_fatigue
 from wayfarer.simulation.party import synchronous
-from wayfarer.simulation.resources import Command, Consume, Record, ResourceEvent
+from wayfarer.simulation.resources import Command, Consume, ResourceEvent
 
 
 class HazardCareCommand(Command):
@@ -61,7 +62,7 @@ class HazardCareService:
         play = self.play.for_campaign(await self.play.store.read(cid))
         payload = json.dumps({"hazard-care": command.model_dump(mode="json")}, sort_keys=True)
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
             synchronous(before, command.actor_id)
             context = self.resolver(play, before, command.actor_id, command.treatment_id)
@@ -222,6 +223,7 @@ class HazardCareService:
                         quantity=1,
                     ),
                     system=True,
+                    rng=play.rng,
                 )
                 bonus = 3 if schedule.spec.bacterial and not schedule.spec.drug_resistant else 0
                 schedule = schedule.model_copy(update={"treatment_bonus": bonus})
@@ -273,17 +275,18 @@ class HazardCareService:
                 }
             )
             updated = play.checkpoint(updated, before=before)
-            play.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = (
-                updated.revision,
-                updated.model_dump_json(),
-            )
-            return Event(
-                input=payload, action="noncombat", outcome=result.model_dump_json(), roll=None
-            )
+            play.commit(campaign, updated)
+            return CommandReceipt(action="noncombat", outcome=result.model_dump_json())
 
-        committed = await play.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+        committed = await commit_command(
+            play.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            resolve,
+            actor_id=command.actor_id,
+            rng=play.rng,
         )
         state = play._load(committed["state"])
         event = next(e for e in state.resources.events if e.id == "hazard-care:" + command.id)

@@ -11,15 +11,16 @@ from test_spells import command
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
-from wayfarer.orchestration.spell_bindings import SpellEnvironment
 from wayfarer.orchestration.spells import SpellService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.simulation.actions import PlayState, Wait
+from wayfarer.simulation.mechanics.spell_bindings import SpellEnvironment
+from wayfarer.simulation.rules_context import RulesContext
 from wayfarer.simulation.spells import SpellCommand, active_spells
 
 
-def resolve(play: PlayService, state: PlayState, value: SpellCommand) -> SpellEnvironment:
+def resolve(play: RulesContext, state: PlayState, value: SpellCommand) -> SpellEnvironment:
     return SpellEnvironment(target_id="b")
 
 
@@ -43,7 +44,7 @@ async def test_concurrent_completion_restart_and_private_rolls(tmp_path: Path) -
     assert next(p.current for p in state.resources.pools if p.id == "fp:a") == 9
     assert active_spells(state.resources)[0].expires_at == 61
 
-    def forbidden(play: PlayService, state: PlayState, value: SpellCommand) -> SpellEnvironment:
+    def forbidden(play: RulesContext, state: PlayState, value: SpellCommand) -> SpellEnvironment:
         raise AssertionError("A committed retry must not resolve or roll")
 
     restarted = PlayService(
@@ -69,7 +70,7 @@ async def test_player_cannot_inject_context_and_invalid_target_is_atomic(tmp_pat
     with pytest.raises(ValidationError, match="director authority"):
         await SpellService(play, resolve).execute(cid, command(), authenticated_gm_id="a")
 
-    def hidden(play: PlayService, state: PlayState, value: SpellCommand) -> SpellEnvironment:
+    def hidden(play: RulesContext, state: PlayState, value: SpellCommand) -> SpellEnvironment:
         return SpellEnvironment(target_id="b").model_copy(update={"target_id": "unseen"})
 
     with pytest.raises(ValidationError, match="not perceived"):
@@ -78,26 +79,28 @@ async def test_player_cannot_inject_context_and_invalid_target_is_atomic(tmp_pat
 
 
 async def test_missing_catalog_and_unpurchased_spell_reject_before_dice(tmp_path: Path) -> None:
-    from wayfarer.orchestration.spell_bindings import approved_context
+    from wayfarer.simulation.mechanics.spell_bindings import approved_context
 
     cid, play = await setup(tmp_path, spec())
     state = play._load(await play.store.read(cid))
     with pytest.raises(ValidationError, match="pinned learning catalog"):
-        approved_context(play, state, command(), SpellEnvironment(target_id="b"))
+        approved_context(play.rules_context, state, command(), SpellEnvironment(target_id="b"))
     cid, play = await setup(tmp_path / "magic", spec(), magic=True)
     state = play._load(await play.store.read(cid))
     with pytest.raises(ValidationError, match="not purchased and approved"):
-        approved_context(play, state, command(spell="daze"), SpellEnvironment(target_id="b"))
+        approved_context(
+            play.rules_context, state, command(spell="daze"), SpellEnvironment(target_id="b")
+        )
 
 
 async def test_approved_values_cannot_be_supplied_by_environment(tmp_path: Path) -> None:
     from pydantic import ValidationError as SchemaError
 
-    from wayfarer.orchestration.spell_bindings import approved_context
+    from wayfarer.simulation.mechanics.spell_bindings import approved_context
 
     cid, play = await setup(tmp_path, spec(), magic=True)
     state = play._load(await play.store.read(cid))
-    bound = approved_context(play, state, command(), SpellEnvironment(target_id="b"))
+    bound = approved_context(play.rules_context, state, command(), SpellEnvironment(target_id="b"))
     assert bound.skill == 14 and bound.magery == 1 and bound.ht == 10 and bound.will == 10
     assert bound.learned == ("light",)
     assert bound.build_revision != "approved"
@@ -107,4 +110,4 @@ async def test_approved_values_cannot_be_supplied_by_environment(tmp_path: Path)
     changed = actor.model_copy(update={"approval": None})
     state = state.model_copy(update={"actors": (changed,) + state.actors[1:]})
     with pytest.raises(ValidationError, match="approved build"):
-        approved_context(play, state, command(), SpellEnvironment(target_id="b"))
+        approved_context(play.rules_context, state, command(), SpellEnvironment(target_id="b"))

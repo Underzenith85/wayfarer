@@ -9,6 +9,7 @@ from typing import cast
 from pydantic import Field
 
 from wayfarer.errors import ValidationError
+from wayfarer.models import Id, Record
 from wayfarer.rules.object_types import ObjectProfile
 from wayfarer.simulation.gurps_equipment import (
     Armor,
@@ -22,7 +23,6 @@ from wayfarer.simulation.gurps_equipment import (
     Provenance,
 )
 from wayfarer.simulation.objects import object_hp
-from wayfarer.simulation.resources import Id, Record
 
 
 def source(page: int) -> Provenance:

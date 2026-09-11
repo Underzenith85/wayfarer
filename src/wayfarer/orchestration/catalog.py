@@ -244,6 +244,8 @@ class ScenarioCatalog:
             CreateSetup(id=command.id, brief=graph.brief, graph=graph),
             principal_id=principal,
             document_json=source,
+            published=revision.published,
+            catalog_id=cid,
         )
 
     async def create_generation_job(
@@ -424,7 +426,8 @@ class ScenarioCatalog:
                         opening_prompt=proposed.opening_action,
                     ),
                 )
-            except ValidationError, ValueError:
+            except (ValidationError, ValueError) as exc:
+                locus = exc.reference if isinstance(exc, ValidationError) else None
                 proposed_report = proposed_report.model_copy(
                     update={
                         "findings": proposed_report.findings
@@ -432,10 +435,10 @@ class ScenarioCatalog:
                             StudioFinding(
                                 code="generation.not_portable",
                                 severity="error",
-                                reference=proposed.id,
+                                reference=locus or proposed.id,
                                 message=(
                                     "Generated state cannot be converted into a fresh scenario "
-                                    "draft."
+                                    f"draft: {str(exc) or 'an unresolved reference'}"
                                 ),
                             ),
                         )
@@ -473,6 +476,8 @@ class ScenarioCatalog:
         source = document.canonical()
         document_report = self.documents.validate(source)
         if not report.valid:
+            # Name what is still wrong: the budget itself is never the author's defect (#365).
+            unresolved = [f for f in report.findings if f.severity == "error"]
             document_report = document_report.model_copy(
                 update={
                     "findings": document_report.findings
@@ -480,8 +485,19 @@ class ScenarioCatalog:
                         StudioFinding(
                             code="generation.repair_exhausted",
                             severity="error",
-                            reference=graph.id,
-                            message="The bounded repair budget was exhausted; edit or retry the proposal.",
+                            reference=unresolved[0].reference if unresolved else graph.id,
+                            message=(
+                                f"The bounded repair budget of {request.attempts} attempt(s) was "
+                                f"exhausted with {len(unresolved)} unresolved finding(s): "
+                                + "; ".join(f"{f.code} at {f.reference}" for f in unresolved[:5])
+                                + (
+                                    f" and {len(unresolved) - 5} more"
+                                    if len(unresolved) > 5
+                                    else ""
+                                )
+                                + ". Fix those findings in the editor, or retry generation with "
+                                "instructions that address them."
+                            ),
                         ),
                     ),
                     "status": "invalid",

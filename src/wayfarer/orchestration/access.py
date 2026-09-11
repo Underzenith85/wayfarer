@@ -10,11 +10,14 @@ from wayfarer.orchestration.combat import COMBAT_ADAPTER, CombatService
 from wayfarer.orchestration.medical import EnvironmentResolver
 from wayfarer.orchestration.noncombat import NoncombatCommand, NoncombatService
 from wayfarer.orchestration.objectives import ObjectiveCommand, ObjectiveService
+from wayfarer.orchestration.origins import origin_scope
 from wayfarer.orchestration.party import PartyCommand, PartyService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.scenes import SCENE_ADAPTER, SceneService
+from wayfarer.persistence.events import CommandOrigin
 from wayfarer.simulation.access import CampaignMember, StreamEvent
 from wayfarer.simulation.actions import ACTION_ADAPTER, PlayState
+from wayfarer.simulation.combat import CombatRules, hex_template
 
 
 class CampaignAccess:
@@ -39,7 +42,9 @@ class CampaignAccess:
         return member
 
     @staticmethod
-    def _projection(state: PlayState, member: CampaignMember) -> dict[str, object]:
+    def _projection(
+        state: PlayState, member: CampaignMember, rules: CombatRules | None = None
+    ) -> dict[str, object]:
         from wayfarer.orchestration.tactical_view import legacy_encounter
         from wayfarer.simulation.fright import projection as fright_projection
 
@@ -123,7 +128,12 @@ class CampaignAccess:
                 if e.actor_id in member.actor_ids
             ),
             "encounters": tuple(
-                legacy_encounter(state, e, member)
+                legacy_encounter(
+                    state,
+                    e,
+                    member,
+                    board=hex_template(e, rules) if e.spatial_kind == "hex" else None,
+                )
                 for e in state.encounters
                 if set(e.turn_order) & set(member.actor_ids)
             ),
@@ -193,7 +203,7 @@ class CampaignAccess:
             return await runtime.read(cid, principal_id=principal_id)
         state = self.play._load(await self.play.store.read(cid))
         member = self._member(state, principal_id)
-        projection = self._projection(state, member)
+        projection = self._projection(state, member, self.play.engine.rules.combat)
         if member.role != "player":
             return projection
         compiler = self.play.engine.reviewer.compiler
@@ -322,10 +332,16 @@ class CampaignAccess:
         projection["scene_choices"] = scene_choices
         return projection
 
-    async def execute(self, cid: str, value: object, *, principal_id: str) -> dict[str, object]:
+    async def execute(
+        self, cid: str, value: object, *, principal_id: str, origin: CommandOrigin | None = None
+    ) -> dict[str, object]:
+        with origin_scope(origin):
+            return await self._execute(cid, value, principal_id=principal_id)
+
+    async def _execute(self, cid: str, value: object, *, principal_id: str) -> dict[str, object]:
         runtime = await self.runtime(cid)
         if runtime is not self:
-            return await runtime.execute(cid, value, principal_id=principal_id)
+            return await runtime._execute(cid, value, principal_id=principal_id)
         state = self.play._load(await self.play.store.read(cid))
         member = self._member(state, principal_id)
         if not isinstance(value, dict):
@@ -528,7 +544,7 @@ class CampaignAccess:
                         )
                         else ""
                     ),
-                    projection=self._projection(state, member),
+                    projection=self._projection(state, member, self.play.engine.rules.combat),
                 )
             )
             if len(result) == limit:

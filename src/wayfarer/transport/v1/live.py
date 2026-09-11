@@ -11,6 +11,7 @@ from datetime import UTC, datetime
 
 from aiohttp import WSMsgType, web
 
+from . import outbox
 from .common import Fault, Obj, array, encoded, obj, uid, validate
 from .http import NO_ORIGIN, ORIGINS, SERVICE, TOKENS, identity
 from .outbox import sync
@@ -191,8 +192,7 @@ async def live(request: web.Request) -> web.WebSocketResponse:
         status = "failed"
         try:
             if service.narrate is not None:
-                async with asyncio.timeout(20):
-                    text = await service.narrate(context, action)
+                text = await outbox.narrate(service, principal, action, context)
                 if sub.narration["status"] != "active":
                     return
                 if not text or len(text) > 4000:

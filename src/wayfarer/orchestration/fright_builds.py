@@ -14,15 +14,16 @@ from pydantic import Field
 from wayfarer.character.compiler import CharacterDraft, ValidatedBuild, pool_limits
 from wayfarer.character.physical_traits import physical_traits
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.advancement import _refreshed
-from wayfarer.orchestration.gurps_melee import build
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.catalog import DefinitionKind
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.adjudication import expire_rulings
 from wayfarer.simulation.fright import TimedFright, effects, public_id, save
+from wayfarer.simulation.mechanics.gurps_melee import build
 from wayfarer.simulation.resources import Command, ResourceState
 
 
@@ -51,7 +52,7 @@ def validate_change(
 ) -> ValidatedBuild:
     actor = next(a for a in state.actors if a.actor_id == item.actor_id)
     old_draft = actor.proposal.draft
-    old_build = build(play, state, item.actor_id)
+    old_build = build(play.rules_context, state, item.actor_id)
     effect = item.effect
     if item.adjudicated_build_revision is not None:
         raise ConflictError("Fright build consequence is already resolved")
@@ -161,7 +162,7 @@ class FrightBuildService:
             sort_keys=True,
         )
 
-        def reduce(campaign: Campaign) -> Event:
+        def reduce(campaign: Campaign) -> CommandReceipt:
             state = play._load(campaign)
             item = next(
                 (
@@ -173,7 +174,7 @@ class FrightBuildService:
             )
             if item is None:
                 raise ValidationError("Unknown fright consequence")
-            current = build(play, state, command.actor_id)
+            current = build(play.rules_context, state, command.actor_id)
             revision = state.revision + 1
             if isinstance(command, ProposeFrightBuild):
                 if command.expected_build_revision != current.revision:
@@ -271,14 +272,18 @@ class FrightBuildService:
                     "rulings": expire_rulings(state.rulings, revision, resources.game_time),
                 }
             )
-            play.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = revision, updated.model_dump_json()
-            return Event(
-                input=payload, action="npc", outcome="fright build decision recorded", roll=None
-            )
+            play.commit(campaign, updated)
+            return CommandReceipt(action="npc", outcome="fright build decision recorded")
 
-        await play.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, reduce, actor_id=principal_id
+        await commit_command(
+            play.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            reduce,
+            actor_id=principal_id,
+            rng=play.rng,
         )
 
 

@@ -2,18 +2,16 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import Field, model_validator
 
 from wayfarer.errors import ConflictError
+from wayfarer.models import Record
 
 ProfileId = Literal["gurps-lite-4e-2004", "gurps-basic-set-4e-2004"]
 FatigueCause = Literal["ordinary", "starvation", "dehydration", "sleep"]
 
 
-class FatigueStatus(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid", frozen=True, strict=True, revalidate_instances="always"
-    )
+class FatigueStatus(Record):
     profile_id: ProfileId
     collapsed: bool = False
     unconscious: bool = False
@@ -32,10 +30,7 @@ class FatigueStatus(BaseModel):
         return self
 
 
-class RecoveryTask(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid", frozen=True, strict=True, revalidate_instances="always"
-    )
+class RecoveryTask(Record):
     id: str = Field(min_length=1, max_length=200)
     actor_id: str
     target_id: str
@@ -43,6 +38,34 @@ class RecoveryTask(BaseModel):
     kind: Literal[
         "rest", "natural", "bandage", "first-aid", "physician", "resuscitate", "stabilize"
     ]
+    procedure: Literal["trauma-maintenance", "repair-lasting"] | None = Field(
+        default=None, exclude_if=lambda v: v is None
+    )
+    task_schema: Literal[2] = Field(default=2, exclude_if=lambda v: v == 2)
+
+    @model_validator(mode="before")
+    @classmethod
+    def migrate_task(cls, value: object) -> object:
+        """Explicit v1 marker-to-procedure migration; keep markers as procedure parameters."""
+        if not isinstance(value, dict):
+            return value
+        version = value.get("task_schema", 1)
+        if version not in (1, 2):
+            raise ValueError("Unsupported recovery task schema")
+        migrated = dict(value)
+        if version == 1:
+            marker = migrated.get("wound_id") or ""
+            if marker.startswith("variant:trauma:"):
+                if migrated.get("kind") != "physician":
+                    raise ValueError("Trauma task requires physician kind")
+                migrated["procedure"] = "trauma-maintenance"
+            elif marker.startswith("variant:repair-lasting:"):
+                if migrated.get("kind") != "stabilize":
+                    raise ValueError("Repair task requires stabilize kind")
+                migrated["procedure"] = "repair-lasting"
+            migrated["task_schema"] = 2
+        return migrated
+
     start: int = Field(ge=0)
     due: int = Field(ge=0)
     status: Literal["pending", "completed", "interrupted", "cancelled"] = "pending"

@@ -1,0 +1,1536 @@
+{
+  "schema_version": 1,
+  "name": "capture-rescue",
+  "configuration_digest": "65b1e6dd2efc5b9449cc616d76599832166654ffa10843c8dc24c1136516a5f2",
+  "initial_json": "{\"id\": \"c315ab33-28bd-44ea-9b07-5355441122dc\", \"revision\": 0, \"rules\": \"wave7-test\", \"character\": {\"name\": \"Mira Voss\", \"concept\": \"A curious investigator with a debt to repay.\", \"attributes\": {\"ST\": 10, \"DX\": 11, \"IQ\": 12, \"HT\": 11}, \"skills\": {\"Stealth\": 4, \"Observation\": 4, \"Diplomacy\": 4, \"Survival\": 2}, \"traits\": [\"Curious\", \"Keen senses\"]}, \"scenario\": {\"title\": \"The Lantern at Blackwater\", \"premise\": \"A courier vanished before the last ferry. A blue lantern still burns at the abandoned customs house.\", \"location\": \"Blackwater docks\", \"contact\": \"Iven, the ferryman\", \"clue\": \"A torn ferry manifest points to the customs house.\", \"secret\": \"The courier is sheltering a witness inside the customs house.\", \"objective\": \"Find the missing courier\"}, \"hp\": 10, \"fp\": 10, \"minutes\": 0, \"location\": \"dock\", \"inventory\": [], \"discoveries\": [], \"flags\": [], \"complete\": false, \"messages\": [], \"play_json\": \"{\\\"campaign_id\\\":\\\"c315ab33-28bd-44ea-9b07-5355441122dc\\\",\\\"lifecycle\\\":\\\"active\\\",\\\"revision\\\":0,\\\"configuration_digest\\\":\\\"65b1e6dd2efc5b9449cc616d76599832166654ffa10843c8dc24c1136516a5f2\\\",\\\"world\\\":{\\\"entities\\\":[{\\\"id\\\":\\\"dock\\\",\\\"kind\\\":\\\"location\\\",\\\"name\\\":\\\"Dock\\\",\\\"location_id\\\":null,\\\"owner_id\\\":null},{\\\"id\\\":\\\"alley\\\",\\\"kind\\\":\\\"location\\\",\\\"name\\\":\\\"Alley\\\",\\\"location_id\\\":null,\\\"owner_id\\\":null},{\\\"id\\\":\\\"far\\\",\\\"kind\\\":\\\"location\\\",\\\"name\\\":\\\"Far\\\",\\\"location_id\\\":null,\\\"owner_id\\\":null},{\\\"id\\\":\\\"a\\\",\\\"kind\\\":\\\"actor\\\",\\\"name\\\":\\\"Mira\\\",\\\"location_id\\\":\\\"dock\\\",\\\"owner_id\\\":null},{\\\"id\\\":\\\"b\\\",\\\"kind\\\":\\\"actor\\\",\\\"name\\\":\\\"Iven\\\",\\\"location_id\\\":\\\"dock\\\",\\\"owner_id\\\":null},{\\\"id\\\":\\\"chest\\\",\\\"kind\\\":\\\"object\\\",\\\"name\\\":\\\"Chest\\\",\\\"location_id\\\":\\\"dock\\\",\\\"owner_id\\\":null},{\\\"id\\\":\\\"hidden\\\",\\\"kind\\\":\\\"object\\\",\\\"name\\\":\\\"Hidden\\\",\\\"location_id\\\":\\\"dock\\\",\\\"owner_id\\\":null},{\\\"id\\\":\\\"guard\\\",\\\"kind\\\":\\\"actor\\\",\\\"name\\\":\\\"Guard\\\",\\\"location_id\\\":\\\"dock\\\",\\\"owner_id\\\":null}],\\\"connections\\\":[{\\\"source_id\\\":\\\"dock\\\",\\\"destination_id\\\":\\\"alley\\\",\\\"label\\\":\\\"path\\\"},{\\\"source_id\\\":\\\"alley\\\",\\\"destination_id\\\":\\\"dock\\\",\\\"label\\\":\\\"return\\\"}],\\\"facts\\\":[{\\\"id\\\":\\\"clue\\\",\\\"subject_id\\\":\\\"chest\\\",\\\"predicate\\\":\\\"contains\\\",\\\"value\\\":\\\"letter\\\"},{\\\"id\\\":\\\"promise\\\",\\\"subject_id\\\":\\\"b\\\",\\\"predicate\\\":\\\"agreed\\\",\\\"value\\\":\\\"help\\\"},{\\\"id\\\":\\\"dock-seen\\\",\\\"subject_id\\\":\\\"dock\\\",\\\"predicate\\\":\\\"visited\\\",\\\"value\\\":\\\"yes\\\"},{\\\"id\\\":\\\"alley-seen\\\",\\\"subject_id\\\":\\\"alley\\\",\\\"predicate\\\":\\\"visited\\\",\\\"value\\\":\\\"yes\\\"},{\\\"id\\\":\\\"shortcut\\\",\\\"subject_id\\\":\\\"alley\\\",\\\"predicate\\\":\\\"route\\\",\\\"value\\\":\\\"known\\\"},{\\\"id\\\":\\\"captured\\\",\\\"subject_id\\\":\\\"a\\\",\\\"predicate\\\":\\\"detained\\\",\\\"value\\\":\\\"dock\\\"},{\\\"id\\\":\\\"lost\\\",\\\"subject_id\\\":\\\"a\\\",\\\"predicate\\\":\\\"mission\\\",\\\"value\\\":\\\"lost\\\"}],\\\"knowledge\\\":[[\\\"a\\\",\\\"dock-seen\\\"],[\\\"a\\\",\\\"shortcut\\\"],[\\\"b\\\",\\\"dock-seen\\\"],[\\\"guard\\\",\\\"captured\\\"]],\\\"beliefs\\\":[],\\\"commitments\\\":[]},\\\"resources\\\":{\\\"revision\\\":0,\\\"game_time\\\":0,\\\"items\\\":[{\\\"id\\\":\\\"potions\\\",\\\"definition_id\\\":\\\"potion\\\",\\\"owner_id\\\":\\\"a\\\",\\\"quantity\\\":5,\\\"container_id\\\":null,\\\"equipped\\\":false,\\\"ready\\\":false},{\\\"id\\\":\\\"sword\\\",\\\"definition_id\\\":\\\"sword\\\",\\\"owner_id\\\":\\\"a\\\",\\\"quantity\\\":1,\\\"container_id\\\":null,\\\"equipped\\\":true,\\\"ready\\\":true},{\\\"id\\\":\\\"tool\\\",\\\"definition_id\\\":\\\"tool\\\",\\\"owner_id\\\":\\\"a\\\",\\\"quantity\\\":1,\\\"container_id\\\":null,\\\"equipped\\\":false,\\\"ready\\\":false},{\\\"id\\\":\\\"stock\\\",\\\"definition_id\\\":\\\"potion\\\",\\\"owner_id\\\":\\\"guard\\\",\\\"quantity\\\":2,\\\"container_id\\\":null,\\\"equipped\\\":false,\\\"ready\\\":false}],\\\"owners\\\":[{\\\"actor_id\\\":\\\"a\\\",\\\"capacity\\\":100,\\\"definitions\\\":[\\\"attribute:st\\\",\\\"attribute:dx\\\",\\\"attribute:iq\\\",\\\"attribute:ht\\\",\\\"skill:observation\\\",\\\"skill:diplomacy\\\"]},{\\\"actor_id\\\":\\\"b\\\",\\\"capacity\\\":100,\\\"definitions\\\":[\\\"attribute:st\\\",\\\"attribute:dx\\\",\\\"attribute:iq\\\",\\\"attribute:ht\\\",\\\"skill:observation\\\",\\\"skill:diplomacy\\\"]},{\\\"actor_id\\\":\\\"guard\\\",\\\"capacity\\\":100,\\\"definitions\\\":[]}],\\\"pools\\\":[{\\\"id\\\":\\\"hp:a\\\",\\\"current\\\":10,\\\"maximum\\\":10,\\\"injury\\\":null,\\\"fatigue\\\":null},{\\\"id\\\":\\\"fp:a\\\",\\\"current\\\":10,\\\"maximum\\\":10,\\\"injury\\\":null,\\\"fatigue\\\":null},{\\\"id\\\":\\\"hp:b\\\",\\\"current\\\":10,\\\"maximum\\\":10,\\\"injury\\\":null,\\\"fatigue\\\":null},{\\\"id\\\":\\\"fp:b\\\",\\\"current\\\":10,\\\"maximum\\\":10,\\\"injury\\\":null,\\\"fatigue\\\":null}],\\\"active_effect_ids\\\":[\\\"poison\\\"],\\\"scheduled\\\":[{\\\"id\\\":\\\"expiry\\\",\\\"due\\\":2,\\\"kind\\\":\\\"expire\\\",\\\"target_id\\\":\\\"poison\\\",\\\"amount\\\":0}],\\\"fired\\\":[],\\\"receipts\\\":[],\\\"events\\\":[],\\\"ammunition_loads\\\":[],\\\"expended_items\\\":[],\\\"recovery_tasks\\\":[],\\\"hazards\\\":[],\\\"illnesses\\\":[]},\\\"actors\\\":[{\\\"actor_id\\\":\\\"a\\\",\\\"proposal\\\":{\\\"draft\\\":{\\\"name\\\":\\\"Mira\\\",\\\"backstory\\\":\\\"\\\",\\\"purchases\\\":[{\\\"definition_id\\\":\\\"attribute:st\\\",\\\"amount\\\":10},{\\\"definition_id\\\":\\\"attribute:dx\\\",\\\"amount\\\":10},{\\\"definition_id\\\":\\\"attribute:iq\\\",\\\"amount\\\":10},{\\\"definition_id\\\":\\\"attribute:ht\\\",\\\"amount\\\":10},{\\\"definition_id\\\":\\\"skill:observation\\\",\\\"amount\\\":4},{\\\"definition_id\\\":\\\"skill:diplomacy\\\",\\\"amount\\\":4}]},\\\"custom\\\":[]},\\\"aware_of\\\":[\\\"chest\\\",\\\"b\\\",\\\"alley\\\",\\\"far\\\"],\\\"conditions\\\":[],\\\"available_at\\\":0,\\\"body\\\":null,\\\"held_item_hands\\\":[],\\\"approval\\\":{\\\"campaign_id\\\":\\\"c315ab33-28bd-44ea-9b07-5355441122dc\\\",\\\"actor_id\\\":\\\"a\\\",\\\"build_revision\\\":\\\"878f507b1256f54e7ed547049752fd5858b1257f09f56e89711802be208815e9\\\",\\\"review_digest\\\":\\\"dd268b849705ff89daf32c8a078bff41943310b4ca300bd1a67d85809fef542d\\\",\\\"rules_revision\\\":\\\"a529f66a3851e33c795e9676a39901ac09ae7d7b7ee71772e13ac307db4d5b5f\\\",\\\"policy_digest\\\":\\\"0f82993f3d1e0a77a8fb38141770c18b6fd7bd6f298d1810ceb77c49f0cbb882\\\",\\\"approver_id\\\":\\\"engine:auto\\\",\\\"decision\\\":\\\"automatic\\\",\\\"reason\\\":\\\"Within automatic campaign limits\\\",\\\"recorded_revision\\\":0,\\\"findings\\\":[]}},{\\\"actor_id\\\":\\\"b\\\",\\\"proposal\\\":{\\\"draft\\\":{\\\"name\\\":\\\"Mira\\\",\\\"backstory\\\":\\\"\\\",\\\"purchases\\\":[{\\\"definition_id\\\":\\\"attribute:st\\\",\\\"amount\\\":10},{\\\"definition_id\\\":\\\"attribute:dx\\\",\\\"amount\\\":10},{\\\"definition_id\\\":\\\"attribute:iq\\\",\\\"amount\\\":10},{\\\"definition_id\\\":\\\"attribute:ht\\\",\\\"amount\\\":10},{\\\"definition_id\\\":\\\"skill:observation\\\",\\\"amount\\\":4},{\\\"definition_id\\\":\\\"skill:diplomacy\\\",\\\"amount\\\":4}]},\\\"custom\\\":[]},\\\"aware_of\\\":[\\\"chest\\\",\\\"b\\\",\\\"alley\\\",\\\"far\\\"],\\\"conditions\\\":[],\\\"available_at\\\":0,\\\"body\\\":null,\\\"held_item_hands\\\":[],\\\"approval\\\":{\\\"campaign_id\\\":\\\"c315ab33-28bd-44ea-9b07-5355441122dc\\\",\\\"actor_id\\\":\\\"b\\\",\\\"build_revision\\\":\\\"878f507b1256f54e7ed547049752fd5858b1257f09f56e89711802be208815e9\\\",\\\"review_digest\\\":\\\"dd268b849705ff89daf32c8a078bff41943310b4ca300bd1a67d85809fef542d\\\",\\\"rules_revision\\\":\\\"a529f66a3851e33c795e9676a39901ac09ae7d7b7ee71772e13ac307db4d5b5f\\\",\\\"policy_digest\\\":\\\"0f82993f3d1e0a77a8fb38141770c18b6fd7bd6f298d1810ceb77c49f0cbb882\\\",\\\"approver_id\\\":\\\"engine:auto\\\",\\\"decision\\\":\\\"automatic\\\",\\\"reason\\\":\\\"Within automatic campaign limits\\\",\\\"recorded_revision\\\":0,\\\"findings\\\":[]}}],\\\"approvals\\\":[{\\\"campaign_id\\\":\\\"c315ab33-28bd-44ea-9b07-5355441122dc\\\",\\\"actor_id\\\":\\\"a\\\",\\\"build_revision\\\":\\\"878f507b1256f54e7ed547049752fd5858b1257f09f56e89711802be208815e9\\\",\\\"review_digest\\\":\\\"dd268b849705ff89daf32c8a078bff41943310b4ca300bd1a67d85809fef542d\\\",\\\"rules_revision\\\":\\\"a529f66a3851e33c795e9676a39901ac09ae7d7b7ee71772e13ac307db4d5b5f\\\",\\\"policy_digest\\\":\\\"0f82993f3d1e0a77a8fb38141770c18b6fd7bd6f298d1810ceb77c49f0cbb882\\\",\\\"approver_id\\\":\\\"engine:auto\\\",\\\"decision\\\":\\\"automatic\\\",\\\"reason\\\":\\\"Within automatic campaign limits\\\",\\\"recorded_revision\\\":0,\\\"findings\\\":[]},{\\\"campaign_id\\\":\\\"c315ab33-28bd-44ea-9b07-5355441122dc\\\",\\\"actor_id\\\":\\\"b\\\",\\\"build_revision\\\":\\\"878f507b1256f54e7ed547049752fd5858b1257f09f56e89711802be208815e9\\\",\\\"review_digest\\\":\\\"dd268b849705ff89daf32c8a078bff41943310b4ca300bd1a67d85809fef542d\\\",\\\"rules_revision\\\":\\\"a529f66a3851e33c795e9676a39901ac09ae7d7b7ee71772e13ac307db4d5b5f\\\",\\\"policy_digest\\\":\\\"0f82993f3d1e0a77a8fb38141770c18b6fd7bd6f298d1810ceb77c49f0cbb882\\\",\\\"approver_id\\\":\\\"engine:auto\\\",\\\"decision\\\":\\\"automatic\\\",\\\"reason\\\":\\\"Within automatic campaign limits\\\",\\\"recorded_revision\\\":0,\\\"findings\\\":[]}],\\\"last_result\\\":null,\\\"rulings\\\":[],\\\"encounters\\\":[],\\\"last_combat_result\\\":null,\\\"advancement\\\":[],\\\"migrations\\\":[],\\\"members\\\":[{\\\"principal_id\\\":\\\"alice\\\",\\\"role\\\":\\\"player\\\",\\\"actor_ids\\\":[\\\"a\\\"]},{\\\"principal_id\\\":\\\"bob\\\",\\\"role\\\":\\\"player\\\",\\\"actor_ids\\\":[\\\"b\\\"]},{\\\"principal_id\\\":\\\"gm\\\",\\\"role\\\":\\\"gm\\\",\\\"actor_ids\\\":[]}],\\\"actor_scenes\\\":[{\\\"actor_id\\\":\\\"a\\\",\\\"scene_id\\\":\\\"dock-scene\\\"},{\\\"actor_id\\\":\\\"b\\\",\\\"scene_id\\\":\\\"dock-scene\\\"}],\\\"scene_events\\\":[{\\\"id\\\":\\\"initial:a\\\",\\\"actor_id\\\":\\\"a\\\",\\\"scene_id\\\":\\\"dock-scene\\\",\\\"kind\\\":\\\"entered\\\",\\\"fact_id\\\":null,\\\"at\\\":0,\\\"revision\\\":0,\\\"revealed_fact_ids\\\":[]},{\\\"id\\\":\\\"initial:b\\\",\\\"actor_id\\\":\\\"b\\\",\\\"scene_id\\\":\\\"dock-scene\\\",\\\"kind\\\":\\\"entered\\\",\\\"fact_id\\\":null,\\\"at\\\":0,\\\"revision\\\":0,\\\"revealed_fact_ids\\\":[]}],\\\"journal\\\":[{\\\"id\\\":\\\"initial:a:notice-dock\\\",\\\"actor_id\\\":\\\"a\\\",\\\"scene_id\\\":\\\"dock-scene\\\",\\\"fact_id\\\":\\\"dock-seen\\\",\\\"at\\\":0},{\\\"id\\\":\\\"initial:b:notice-dock\\\",\\\"actor_id\\\":\\\"b\\\",\\\"scene_id\\\":\\\"dock-scene\\\",\\\"fact_id\\\":\\\"dock-seen\\\",\\\"at\\\":0}],\\\"fired_scene_triggers\\\":[\\\"enter-dock\\\"],\\\"objectives\\\":{\\\"outcome\\\":\\\"ongoing\\\",\\\"evidence\\\":[],\\\"revision\\\":0,\\\"at\\\":0,\\\"rules_version\\\":0,\\\"settled_reward_ids\\\":[]},\\\"noncombat\\\":[],\\\"party\\\":{\\\"version\\\":1,\\\"groups\\\":[{\\\"id\\\":\\\"group:dock-scene\\\",\\\"scene_id\\\":\\\"dock-scene\\\",\\\"actor_ids\\\":[\\\"a\\\",\\\"b\\\"],\\\"ready_through\\\":0,\\\"generation\\\":0,\\\"paused\\\":false}],\\\"queue\\\":[],\\\"receipts\\\":[],\\\"effects\\\":[],\\\"fired_effect_ids\\\":[]},\\\"npcs\\\":{\\\"version\\\":1,\\\"progress\\\":[{\\\"plan_id\\\":\\\"patrol\\\",\\\"next_due\\\":1,\\\"spent_actions\\\":0,\\\"clock\\\":0}],\\\"decisions\\\":[{\\\"id\\\":\\\"npc:patrol:0\\\",\\\"plan_id\\\":\\\"patrol\\\",\\\"action_id\\\":null,\\\"due\\\":1,\\\"status\\\":\\\"pending\\\",\\\"known_fact_ids\\\":[]}]},\\\"recovery\\\":{\\\"version\\\":1,\\\"setbacks\\\":[],\\\"captivity\\\":[],\\\"decisions\\\":[],\\\"dead_actor_ids\\\":[],\\\"replacements\\\":[],\\\"impossible_objective_ids\\\":[]},\\\"director\\\":[],\\\"drafts\\\":[]}\", \"rules_ref\": {\"edition\": \"wayfarer-lite\", \"packages\": [{\"id\": \"package:wayfarer-lite\", \"version\": \"1.0.0\", \"digest\": \"fd477ce1da27445a6465eef8b72e36da8f3ba234a8c40c38dac5f0c5af68106b\"}], \"policy_id\": \"policy:wayfarer-demo\", \"policy_version\": 1}}",
+  "commands": [
+    {
+      "command_id": "capture:0",
+      "actor_id": "gm",
+      "expected_revision": 0,
+      "resulting_revision": 1,
+      "action": "recovery",
+      "command_input": "{\"id\":\"capture:0\",\"actor_id\":\"gm\",\"expected_revision\":0,\"hypothetical\":false,\"kind\":\"apply_setback\",\"rule_id\":\"capture\",\"target_actor_id\":\"a\"}",
+      "seed": "b68d6dd52bf83350b4c7ba12363f59643c90c28e652e75f010391d3cbaf35b40",
+      "recorded_at_us": 1789105196087119,
+      "state_digest": "a888b81144fe93466392808b56e95b1728b1f4360852fb1f70c247f7ac08f388",
+      "events": [
+        {
+          "kind": "state.patched",
+          "audience": {
+            "kind": "gm"
+          },
+          "scope": "campaign",
+          "before_digest": "b54b4f3e632722606986f8c27489b064709b781382f3cf07b82dba54de02e3e8",
+          "after_digest": "a888b81144fe93466392808b56e95b1728b1f4360852fb1f70c247f7ac08f388",
+          "changes": [
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "objectives",
+                "evidence",
+                0
+              ],
+              "value": {
+                "objective_id": "mission",
+                "satisfied": false,
+                "predicates": [
+                  false
+                ],
+                "visible_to": []
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "objectives",
+                "revision"
+              ],
+              "value": 1
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "objectives",
+                "rules_version"
+              ],
+              "value": 1
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "party",
+                "groups",
+                0,
+                "actor_ids",
+                0
+              ],
+              "value": "b"
+            },
+            {
+              "operation": "remove",
+              "path": [
+                "play_json",
+                "party",
+                "groups",
+                0,
+                "actor_ids",
+                1
+              ],
+              "value": null
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "party",
+                "groups",
+                0,
+                "generation"
+              ],
+              "value": 1
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "party",
+                "groups",
+                1
+              ],
+              "value": {
+                "id": "recovery:a",
+                "scene_id": "dock-scene",
+                "actor_ids": [
+                  "a"
+                ],
+                "ready_through": 0,
+                "generation": 1,
+                "paused": false
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "recovery",
+                "captivity",
+                0
+              ],
+              "value": {
+                "actor_id": "a",
+                "captor_id": "guard",
+                "scene_id": "dock-scene",
+                "custody_owner_id": "guard",
+                "restraints": [
+                  "rope"
+                ],
+                "permitted": [
+                  "observe",
+                  "communicate",
+                  "negotiate",
+                  "escape",
+                  "assist"
+                ],
+                "confiscated_item_ids": [
+                  "potions",
+                  "sword",
+                  "tool"
+                ],
+                "captured_at": 0,
+                "released_at": null
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "recovery",
+                "setbacks",
+                0
+              ],
+              "value": {
+                "id": "capture:0",
+                "actor_id": "a",
+                "rule_id": "capture",
+                "kind": "capture",
+                "at": 0
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "items",
+                0,
+                "owner_id"
+              ],
+              "value": "guard"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "items",
+                1,
+                "definition_id"
+              ],
+              "value": "potion"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "items",
+                1,
+                "equipped"
+              ],
+              "value": false
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "items",
+                1,
+                "id"
+              ],
+              "value": "stock"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "items",
+                1,
+                "owner_id"
+              ],
+              "value": "guard"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "items",
+                1,
+                "quantity"
+              ],
+              "value": 2
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "items",
+                1,
+                "ready"
+              ],
+              "value": false
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "items",
+                2,
+                "definition_id"
+              ],
+              "value": "sword"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "items",
+                2,
+                "id"
+              ],
+              "value": "sword"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "items",
+                2,
+                "owner_id"
+              ],
+              "value": "guard"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "items",
+                3,
+                "definition_id"
+              ],
+              "value": "tool"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "items",
+                3,
+                "id"
+              ],
+              "value": "tool"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "items",
+                3,
+                "quantity"
+              ],
+              "value": 1
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "receipts",
+                0
+              ],
+              "value": {
+                "command_id": "capture:0:custody:potions",
+                "digest": "66df067ab2f531e4e66dfdea67e7c30990bdfd065f640c62b821415d8a299e8b"
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "receipts",
+                1
+              ],
+              "value": {
+                "command_id": "capture:0:unequip:sword",
+                "digest": "f79b63c927fb5a6de686c132d0e2b3ba3741e7fe336ac92d5f49983527ef1c76"
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "receipts",
+                2
+              ],
+              "value": {
+                "command_id": "capture:0:custody:sword",
+                "digest": "78694acc53afb067dfe3abc655ef8a128c3d79b4d37339cd124b1d309ec5674e"
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "receipts",
+                3
+              ],
+              "value": {
+                "command_id": "capture:0:custody:tool",
+                "digest": "55cd5ba8d035157f8d8c5b1026005a0ab9f699b58be91724ab36d26b2be8f68a"
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "receipts",
+                4
+              ],
+              "value": {
+                "command_id": "party:1:0:time",
+                "digest": "5d75f8fdae96c99fd97531e5556366003ad9051e31c95b22dfc1525b9172f7a9"
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "revision"
+              ],
+              "value": 1
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "revision"
+              ],
+              "value": 1
+            },
+            {
+              "operation": "set",
+              "path": [
+                "revision"
+              ],
+              "value": 1
+            }
+          ]
+        },
+        {
+          "kind": "command.applied",
+          "audience": {
+            "kind": "gm"
+          },
+          "actor_id": "gm",
+          "action": "recovery"
+        },
+        {
+          "kind": "projection.refresh",
+          "audience": {
+            "kind": "campaign"
+          }
+        }
+      ]
+    },
+    {
+      "command_id": "observe:1",
+      "actor_id": "a",
+      "expected_revision": 1,
+      "resulting_revision": 2,
+      "action": "recovery",
+      "command_input": "{\"id\":\"observe:1\",\"actor_id\":\"a\",\"expected_revision\":1,\"hypothetical\":false,\"kind\":\"choose_recovery\",\"rule_id\":\"observe\",\"target_actor_id\":\"a\"}",
+      "seed": "56e5c6de30eed70301f124ff83fb5d69d67e56a871533bea82f1b4683aee82a3",
+      "recorded_at_us": 1789105196105778,
+      "state_digest": "38204bcb60b1505209f56912488d681623d9520a328723a60be193e2e2156978",
+      "events": [
+        {
+          "kind": "state.patched",
+          "audience": {
+            "kind": "gm"
+          },
+          "scope": "campaign",
+          "before_digest": "a888b81144fe93466392808b56e95b1728b1f4360852fb1f70c247f7ac08f388",
+          "after_digest": "38204bcb60b1505209f56912488d681623d9520a328723a60be193e2e2156978",
+          "changes": [
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "objectives",
+                "revision"
+              ],
+              "value": 2
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "party",
+                "groups",
+                1,
+                "ready_through"
+              ],
+              "value": 1
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "party",
+                "queue",
+                0
+              ],
+              "value": {
+                "id": "observe:1",
+                "group_id": "recovery:a",
+                "actor_id": "a",
+                "generation": 1,
+                "start": 0,
+                "due": 1,
+                "command_json": "{\"id\":\"observe:1\",\"actor_id\":\"a\",\"expected_revision\":1,\"hypothetical\":false,\"kind\":\"choose_recovery\",\"rule_id\":\"observe\",\"target_actor_id\":\"a\"}",
+                "family": "recovery"
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "recovery",
+                "decisions",
+                0
+              ],
+              "value": {
+                "id": "observe:1",
+                "actor_id": "a",
+                "target_actor_id": "a",
+                "option_id": "observe",
+                "due": 1,
+                "status": "pending",
+                "check_json": null
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "receipts",
+                5
+              ],
+              "value": {
+                "command_id": "party:2:0:time",
+                "digest": "58ffc3f22b612ee178b0b73da0e56153729a209beace81da895a92e5ec558080"
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "revision"
+              ],
+              "value": 2
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "revision"
+              ],
+              "value": 2
+            },
+            {
+              "operation": "set",
+              "path": [
+                "revision"
+              ],
+              "value": 2
+            }
+          ]
+        },
+        {
+          "kind": "command.applied",
+          "audience": {
+            "kind": "actors",
+            "actor_ids": [
+              "a"
+            ]
+          },
+          "actor_id": "a",
+          "action": "recovery"
+        },
+        {
+          "kind": "projection.refresh",
+          "audience": {
+            "kind": "campaign"
+          }
+        }
+      ]
+    },
+    {
+      "command_id": "wait:2",
+      "actor_id": "b",
+      "expected_revision": 2,
+      "resulting_revision": 3,
+      "action": "party",
+      "command_input": "{\"command\": {\"activity_json\": \"{\\\"id\\\":\\\"inner\\\",\\\"actor_id\\\":\\\"b\\\",\\\"expected_revision\\\":2,\\\"hypothetical\\\":false,\\\"kind\\\":\\\"wait\\\",\\\"ticks\\\":1}\", \"actor_id\": \"b\", \"expected_revision\": 2, \"hypothetical\": false, \"id\": \"wait:2\", \"kind\": \"queue_activity\", \"target_id\": null}, \"operation\": \"party\"}",
+      "seed": "930999264e827ccd0900c64dc2659f1066c8a15d0d3732b43e0818f0764afd92",
+      "recorded_at_us": 1789105196129643,
+      "state_digest": "f085277e8e3b23fb7ac5e7f08adf25774d520223a89f1300730aaf48e3736952",
+      "events": [
+        {
+          "kind": "state.patched",
+          "audience": {
+            "kind": "gm"
+          },
+          "scope": "campaign",
+          "before_digest": "38204bcb60b1505209f56912488d681623d9520a328723a60be193e2e2156978",
+          "after_digest": "f085277e8e3b23fb7ac5e7f08adf25774d520223a89f1300730aaf48e3736952",
+          "changes": [
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "last_result"
+              ],
+              "value": {
+                "status": "committed",
+                "revision": 3,
+                "code": "wait.resolved",
+                "command_id": "wait:2:resolve",
+                "check": null,
+                "derived": null,
+                "dependencies": [],
+                "revealed_fact_ids": [],
+                "rules_digest": "65b1e6dd2efc5b9449cc616d76599832166654ffa10843c8dc24c1136516a5f2",
+                "ruling_id": null
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "npcs",
+                "decisions",
+                0,
+                "action_id"
+              ],
+              "value": "patrol"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "npcs",
+                "decisions",
+                0,
+                "known_fact_ids",
+                0
+              ],
+              "value": "captured"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "npcs",
+                "decisions",
+                0,
+                "status"
+              ],
+              "value": "committed"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "npcs",
+                "decisions",
+                1
+              ],
+              "value": {
+                "id": "npc:patrol:1",
+                "plan_id": "patrol",
+                "action_id": null,
+                "due": 2,
+                "status": "pending",
+                "known_fact_ids": []
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "npcs",
+                "progress",
+                0,
+                "clock"
+              ],
+              "value": 1
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "npcs",
+                "progress",
+                0,
+                "next_due"
+              ],
+              "value": 2
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "npcs",
+                "progress",
+                0,
+                "spent_actions"
+              ],
+              "value": 1
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "objectives",
+                "at"
+              ],
+              "value": 1
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "objectives",
+                "revision"
+              ],
+              "value": 3
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "party",
+                "groups",
+                0,
+                "ready_through"
+              ],
+              "value": 1
+            },
+            {
+              "operation": "remove",
+              "path": [
+                "play_json",
+                "party",
+                "queue",
+                0
+              ],
+              "value": null
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "party",
+                "receipts",
+                0
+              ],
+              "value": {
+                "id": "wait:2",
+                "actor_id": "b",
+                "at": 1,
+                "status": "committed",
+                "code": "activity.resolved"
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "party",
+                "receipts",
+                1
+              ],
+              "value": {
+                "id": "observe:1",
+                "actor_id": "a",
+                "at": 1,
+                "status": "committed",
+                "code": "activity.resolved"
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "recovery",
+                "decisions",
+                0,
+                "status"
+              ],
+              "value": "committed"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "game_time"
+              ],
+              "value": 1
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "items",
+                0,
+                "quantity"
+              ],
+              "value": 4
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "receipts",
+                6
+              ],
+              "value": {
+                "command_id": "party:3:1:time",
+                "digest": "a0b63568b9779dbfbadbee655dcd175c0433c3e44e9a3e2acc86df0a9ead5855"
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "receipts",
+                7
+              ],
+              "value": {
+                "command_id": "npc:patrol:0:cost",
+                "digest": "ad3d24b95e2e6838c899acbebf424d9be22940780ef2c91eab880ab8c447052d"
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "revision"
+              ],
+              "value": 3
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "revision"
+              ],
+              "value": 3
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "world",
+                "knowledge",
+                0,
+                1
+              ],
+              "value": "captured"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "world",
+                "knowledge",
+                1,
+                1
+              ],
+              "value": "dock-seen"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "world",
+                "knowledge",
+                2,
+                0
+              ],
+              "value": "a"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "world",
+                "knowledge",
+                2,
+                1
+              ],
+              "value": "shortcut"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "world",
+                "knowledge",
+                3,
+                0
+              ],
+              "value": "b"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "world",
+                "knowledge",
+                4
+              ],
+              "value": [
+                "b",
+                "dock-seen"
+              ]
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "world",
+                "knowledge",
+                5
+              ],
+              "value": [
+                "guard",
+                "captured"
+              ]
+            },
+            {
+              "operation": "set",
+              "path": [
+                "revision"
+              ],
+              "value": 3
+            }
+          ]
+        },
+        {
+          "kind": "action.resolved",
+          "audience": {
+            "kind": "actors",
+            "actor_ids": [
+              "b"
+            ]
+          },
+          "result": {
+            "status": "committed",
+            "revision": 3,
+            "code": "wait.resolved",
+            "command_id": "wait:2:resolve",
+            "check": null,
+            "derived": null,
+            "dependencies": [],
+            "revealed_fact_ids": [],
+            "rules_digest": "65b1e6dd2efc5b9449cc616d76599832166654ffa10843c8dc24c1136516a5f2",
+            "ruling_id": null
+          }
+        },
+        {
+          "kind": "command.applied",
+          "audience": {
+            "kind": "actors",
+            "actor_ids": [
+              "b"
+            ]
+          },
+          "actor_id": "b",
+          "action": "party"
+        },
+        {
+          "kind": "projection.refresh",
+          "audience": {
+            "kind": "campaign"
+          }
+        }
+      ]
+    },
+    {
+      "command_id": "rescue:3",
+      "actor_id": "b",
+      "expected_revision": 3,
+      "resulting_revision": 4,
+      "action": "recovery",
+      "command_input": "{\"id\":\"rescue:3\",\"actor_id\":\"b\",\"expected_revision\":3,\"hypothetical\":false,\"kind\":\"choose_recovery\",\"rule_id\":\"rescue\",\"target_actor_id\":\"a\"}",
+      "seed": "6ec4fc8a6f14afe34e3de484a58bb91609ba93b0f4349943023f3820467dd0c1",
+      "recorded_at_us": 1789105196151726,
+      "state_digest": "5fb3433857cdee04df63fbb5f99a0fd9530e33bc7385bc18e2dea46c2a55ceb8",
+      "events": [
+        {
+          "kind": "state.patched",
+          "audience": {
+            "kind": "gm"
+          },
+          "scope": "campaign",
+          "before_digest": "f085277e8e3b23fb7ac5e7f08adf25774d520223a89f1300730aaf48e3736952",
+          "after_digest": "5fb3433857cdee04df63fbb5f99a0fd9530e33bc7385bc18e2dea46c2a55ceb8",
+          "changes": [
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "objectives",
+                "revision"
+              ],
+              "value": 4
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "party",
+                "groups",
+                0,
+                "ready_through"
+              ],
+              "value": 2
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "party",
+                "queue",
+                0
+              ],
+              "value": {
+                "id": "rescue:3",
+                "group_id": "group:dock-scene",
+                "actor_id": "b",
+                "generation": 1,
+                "start": 1,
+                "due": 2,
+                "command_json": "{\"id\":\"rescue:3\",\"actor_id\":\"b\",\"expected_revision\":3,\"hypothetical\":false,\"kind\":\"choose_recovery\",\"rule_id\":\"rescue\",\"target_actor_id\":\"a\"}",
+                "family": "recovery"
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "recovery",
+                "decisions",
+                1
+              ],
+              "value": {
+                "id": "rescue:3",
+                "actor_id": "b",
+                "target_actor_id": "a",
+                "option_id": "rescue",
+                "due": 2,
+                "status": "pending",
+                "check_json": null
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "receipts",
+                8
+              ],
+              "value": {
+                "command_id": "party:4:1:time",
+                "digest": "8f7caae5a664a08b25eb3275f1d012ec8b434917a94b6414eb28822e871c2d75"
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "revision"
+              ],
+              "value": 4
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "revision"
+              ],
+              "value": 4
+            },
+            {
+              "operation": "set",
+              "path": [
+                "revision"
+              ],
+              "value": 4
+            }
+          ]
+        },
+        {
+          "kind": "command.applied",
+          "audience": {
+            "kind": "actors",
+            "actor_ids": [
+              "b"
+            ]
+          },
+          "actor_id": "b",
+          "action": "recovery"
+        },
+        {
+          "kind": "projection.refresh",
+          "audience": {
+            "kind": "campaign"
+          }
+        }
+      ]
+    },
+    {
+      "command_id": "assist:4",
+      "actor_id": "a",
+      "expected_revision": 4,
+      "resulting_revision": 5,
+      "action": "recovery",
+      "command_input": "{\"id\":\"assist:4\",\"actor_id\":\"a\",\"expected_revision\":4,\"hypothetical\":false,\"kind\":\"choose_recovery\",\"rule_id\":\"assist\",\"target_actor_id\":\"a\"}",
+      "seed": "d1e995e1013d4b3517bb02bdfe9bad86dab610de46753487c5ec6e6a5631edf1",
+      "recorded_at_us": 1789105196170843,
+      "state_digest": "8af3e2e612104f8ad7eb9d4a732b7597c7219ce7366000f67099ba7519cd98e8",
+      "events": [
+        {
+          "kind": "state.patched",
+          "audience": {
+            "kind": "gm"
+          },
+          "scope": "campaign",
+          "before_digest": "5fb3433857cdee04df63fbb5f99a0fd9530e33bc7385bc18e2dea46c2a55ceb8",
+          "after_digest": "8af3e2e612104f8ad7eb9d4a732b7597c7219ce7366000f67099ba7519cd98e8",
+          "changes": [
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "npcs",
+                "decisions",
+                1,
+                "action_id"
+              ],
+              "value": "patrol"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "npcs",
+                "decisions",
+                1,
+                "known_fact_ids",
+                0
+              ],
+              "value": "captured"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "npcs",
+                "decisions",
+                1,
+                "status"
+              ],
+              "value": "committed"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "npcs",
+                "decisions",
+                2
+              ],
+              "value": {
+                "id": "npc:patrol:2",
+                "plan_id": "patrol",
+                "action_id": null,
+                "due": 3,
+                "status": "pending",
+                "known_fact_ids": []
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "npcs",
+                "progress",
+                0,
+                "clock"
+              ],
+              "value": 2
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "npcs",
+                "progress",
+                0,
+                "next_due"
+              ],
+              "value": 3
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "npcs",
+                "progress",
+                0,
+                "spent_actions"
+              ],
+              "value": 2
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "objectives",
+                "at"
+              ],
+              "value": 2
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "objectives",
+                "revision"
+              ],
+              "value": 5
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "party",
+                "groups",
+                1,
+                "ready_through"
+              ],
+              "value": 2
+            },
+            {
+              "operation": "remove",
+              "path": [
+                "play_json",
+                "party",
+                "queue",
+                0
+              ],
+              "value": null
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "party",
+                "receipts",
+                2
+              ],
+              "value": {
+                "id": "rescue:3",
+                "actor_id": "b",
+                "at": 2,
+                "status": "committed",
+                "code": "activity.resolved"
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "party",
+                "receipts",
+                3
+              ],
+              "value": {
+                "id": "assist:4",
+                "actor_id": "a",
+                "at": 2,
+                "status": "committed",
+                "code": "activity.resolved"
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "recovery",
+                "captivity",
+                0,
+                "released_at"
+              ],
+              "value": 2
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "recovery",
+                "decisions",
+                1,
+                "status"
+              ],
+              "value": "committed"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "recovery",
+                "decisions",
+                2
+              ],
+              "value": {
+                "id": "assist:4",
+                "actor_id": "a",
+                "target_actor_id": "a",
+                "option_id": "assist",
+                "due": 2,
+                "status": "committed",
+                "check_json": null
+              }
+            },
+            {
+              "operation": "remove",
+              "path": [
+                "play_json",
+                "resources",
+                "active_effect_ids",
+                0
+              ],
+              "value": null
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "events",
+                0
+              ],
+              "value": {
+                "id": "schedule:expiry",
+                "at": 2,
+                "kind": "expire",
+                "target_id": "poison"
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "fired",
+                0
+              ],
+              "value": "expiry"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "game_time"
+              ],
+              "value": 2
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "items",
+                0,
+                "quantity"
+              ],
+              "value": 3
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "receipts",
+                9
+              ],
+              "value": {
+                "command_id": "party:5:2:time",
+                "digest": "c8c4010a949cdc88a7a1a4dec8d0d6fe17d82de26bb90155e121b6ed565d89d6"
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "receipts",
+                10
+              ],
+              "value": {
+                "command_id": "npc:patrol:1:cost",
+                "digest": "79eb9044c432e5c12796b60761bb723efdeff55058baaf3372caac73bd4b6aea"
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "revision"
+              ],
+              "value": 5
+            },
+            {
+              "operation": "remove",
+              "path": [
+                "play_json",
+                "resources",
+                "scheduled",
+                0
+              ],
+              "value": null
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "revision"
+              ],
+              "value": 5
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "world",
+                "knowledge",
+                1,
+                1
+              ],
+              "value": "clue"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "world",
+                "knowledge",
+                2,
+                1
+              ],
+              "value": "dock-seen"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "world",
+                "knowledge",
+                3,
+                0
+              ],
+              "value": "a"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "world",
+                "knowledge",
+                3,
+                1
+              ],
+              "value": "shortcut"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "world",
+                "knowledge",
+                4,
+                1
+              ],
+              "value": "captured"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "world",
+                "knowledge",
+                5,
+                0
+              ],
+              "value": "b"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "world",
+                "knowledge",
+                5,
+                1
+              ],
+              "value": "dock-seen"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "world",
+                "knowledge",
+                6
+              ],
+              "value": [
+                "guard",
+                "captured"
+              ]
+            },
+            {
+              "operation": "set",
+              "path": [
+                "revision"
+              ],
+              "value": 5
+            }
+          ]
+        },
+        {
+          "kind": "resource.changed",
+          "audience": {
+            "kind": "gm"
+          },
+          "fact": {
+            "id": "schedule:expiry",
+            "at": 2,
+            "kind": "expire",
+            "target_id": "poison"
+          }
+        },
+        {
+          "kind": "command.applied",
+          "audience": {
+            "kind": "actors",
+            "actor_ids": [
+              "a"
+            ]
+          },
+          "actor_id": "a",
+          "action": "recovery"
+        },
+        {
+          "kind": "projection.refresh",
+          "audience": {
+            "kind": "campaign"
+          }
+        }
+      ]
+    }
+  ]
+}

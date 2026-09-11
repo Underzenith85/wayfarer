@@ -21,10 +21,11 @@ from wayfarer.errors import (
     ProviderTimeoutError,
     ValidationError,
 )
+from wayfarer.models import Record
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.llm import LLMClient
+from wayfarer.persistence.events import CommandOrigin
 from wayfarer.simulation.actions import ACTION_ADAPTER
-from wayfarer.simulation.resources import Record
 
 
 class Usage(Record):
@@ -36,6 +37,8 @@ class Usage(Record):
 class ProviderReply(Record):
     payload_json: str = Field(max_length=32000)
     usage: Usage
+    provider: str = Field(default="custom", min_length=1, max_length=100)
+    model: str | None = Field(default=None, max_length=100)
 
 
 class ProviderRequest(Record):
@@ -69,6 +72,8 @@ class ResponsesProvider:
         )
         return ProviderReply(
             payload_json=json.dumps(payload),
+            provider="openai-responses",
+            model=self.client.settings.openai_model,
             usage=Usage(
                 input_tokens=input_tokens or 0,
                 output_tokens=output_tokens or 0,
@@ -203,13 +208,68 @@ class Orchestrator:
     ) -> None:
         if not 0 < timeout <= 300 or not 1 <= attempts <= 3:
             raise ValueError("Invalid provider bounds")
+        from wayfarer.orchestration.jobs import jobs_for
+
         self.access, self.provider = access, provider
+        self.jobs = jobs_for(access.play.store)
         self.timeout, self.attempts = timeout, attempts
         self.telemetry: list[ProviderTelemetry] = []
         # Usage is telemetry, not a lifetime cutoff for this long-running service.
         self.tokens_used = 0
 
+    async def job_reply(
+        self,
+        request: ProviderRequest,
+        *,
+        cid: str,
+        revision: int,
+        principal: str,
+        actor: str,
+        key: str,
+    ) -> ProviderReply:
+        async def run() -> str:
+            return (await self._reply(request)).model_dump_json()
+
+        job = await self.jobs.submit(
+            cid=cid,
+            revision=revision,
+            principal=principal,
+            actor=actor,
+            kind="proposal",
+            key=key,
+            request_json=request.model_dump_json(),
+            run=run,
+        )
+        return ProviderReply.model_validate_json(await self.jobs.result(job))
+
+    async def queue_narration(
+        self,
+        request: ProviderRequest,
+        *,
+        cid: str,
+        revision: int,
+        principal: str,
+        actor: str,
+        key: str,
+    ) -> None:
+        async def run() -> str:
+            return Narration.model_validate_json(await self._call(request)).model_dump_json()
+
+        await self.jobs.submit(
+            cid=cid,
+            revision=revision,
+            principal=principal,
+            actor=actor,
+            kind="narration",
+            key=key,
+            request_json=request.model_dump_json(),
+            run=run,
+        )
+
     async def _call(self, request: ProviderRequest) -> str:
+        return (await self._reply(request)).payload_json
+
+    async def _reply(self, request: ProviderRequest) -> ProviderReply:
         for attempt in range(self.attempts):
             try:
                 async with asyncio.timeout(self.timeout):
@@ -219,7 +279,7 @@ class Orchestrator:
                 self.telemetry.append(
                     ProviderTelemetry(operation=request.operation, status="ok", usage=reply.usage)
                 )
-                return reply.payload_json
+                return reply
             except TimeoutError as exc:
                 self.telemetry.append(
                     ProviderTelemetry(operation=request.operation, status="timeout")
@@ -252,7 +312,7 @@ class Orchestrator:
         if actor_id not in member.actor_ids:
             raise ValidationError("Context actor is not controlled by principal")
         member = member.model_copy(update={"actor_ids": (actor_id,)})
-        projection = self.access._projection(state, member)
+        projection = self.access._projection(state, member, self.access.play.engine.rules.combat)
         # Durable turn history is UI data, not recursively nested model context.
         projection.pop("director", None)
         known = {f.id for f in state.world.perspective(actor_id).facts}
@@ -318,7 +378,15 @@ class Orchestrator:
             output_schema=Intent.model_json_schema(),
         )
         try:
-            intent = Intent.model_validate_json(await self._call(request))
+            reply = await self.job_reply(
+                request,
+                cid=cid,
+                revision=revision,
+                principal=principal_id,
+                actor=actor_id,
+                key=command_id,
+            )
+            intent = Intent.model_validate_json(reply.payload_json)
             command = intent.command(command_id, actor_id, revision)
         except ValueError:
             raise ProviderOutputError("Invalid structured intent") from None
@@ -343,7 +411,12 @@ class Orchestrator:
                 expected_revision=revision,
                 activity_json=json.dumps(command),
             ).model_dump(mode="json")
-        projection = await self.access.execute(cid, command, principal_id=principal_id)
+        origin = CommandOrigin.proposal(
+            "Intent", intent.model_dump(mode="json"), provider=reply.provider, model=reply.model
+        )
+        projection = await self.access.execute(
+            cid, command, principal_id=principal_id, origin=origin
+        )
         history = await self.access.play.store.history(cid)
         committed_event = next(
             (e for e in history if e.command_id == command_id and e.actor_id == actor_id), None
@@ -356,31 +429,27 @@ class Orchestrator:
                 if committed_event.event["action"] == "party"
                 else json.loads(committed_event.event["outcome"])
             )
-        # Narration gets the committed perspective only. A provider error never rolls it back.
-        try:
-            narration = Narration.model_validate_json(
-                await self._call(
-                    ProviderRequest(
-                        operation="narration",
-                        session_id=session,
-                        context_json=json.dumps(projection),
-                        prompt="Describe only this committed outcome and visible state.",
-                        output_schema=Narration.model_json_schema(),
-                    )
-                )
-            )
-        except ProviderError, ValueError:
-            return TurnResponse(
-                committed=committed,
-                projection=projection,
-                narration="Action processed. The authoritative state is available.",
-                narration_available=False,
+        # Queue only the committed perspective; provider latency cannot hold the projection.
+        if committed_event is not None:
+            await self.queue_narration(
+                ProviderRequest(
+                    operation="narration",
+                    session_id=session,
+                    context_json=json.dumps(projection),
+                    prompt="Describe only this committed outcome and visible state.",
+                    output_schema=Narration.model_json_schema(),
+                ),
+                cid=cid,
+                revision=committed_event.resulting_revision,
+                principal=principal_id,
+                actor=actor_id,
+                key=command_id,
             )
         return TurnResponse(
             committed=committed,
             projection=projection,
-            narration=narration.text,
-            narration_available=True,
+            narration="Action processed. The authoritative state is available.",
+            narration_available=False,
         )
 
     async def draft(

@@ -1,0 +1,208 @@
+"""Transactional adapter for the explicit combat encounter state machine."""
+
+from __future__ import annotations
+
+from typing import Annotated, Literal
+
+from pydantic import Field, TypeAdapter
+
+from wayfarer.models import Id, Record
+from wayfarer.rules.explosion_types import BlastResponse
+from wayfarer.rules.location_types import Hand, HitLocation
+from wayfarer.rules.object_types import GroundPosition
+from wayfarer.simulation.combat import (
+    Defense,
+    Facing,
+    GridPoint,
+    Maneuver,
+    Placement,
+    Posture,
+    RangedSituation,
+)
+from wayfarer.simulation.hex_geometry import Hex, HexBattlefield, HexFacing, Pose
+from wayfarer.simulation.maneuvers import AttackOption, DefenseOption, WaitTrigger
+from wayfarer.simulation.unarmed import GrappleLocation, UnarmedAction, UnarmedSkill
+
+
+class CombatCommand(Record):
+    id: Id
+    actor_id: Id
+    expected_revision: int = Field(ge=0)
+
+
+class StartEncounter(CombatCommand):
+    kind: Literal["start_encounter"] = "start_encounter"
+    encounter_id: Id
+    battlefield_id: Id
+    scene_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
+    placements: tuple[Placement, ...] = Field(min_length=2)
+    ranged_situations: tuple[RangedSituation, ...] = ()
+
+
+class TakeCombatTurn(CombatCommand):
+    kind: Literal["take_combat_turn"] = "take_combat_turn"
+    encounter_id: Id
+    maneuver: Maneuver
+    destination: GridPoint | None = None
+    facing: Facing | None = None
+    posture: Posture | None = None
+    item_id: str | None = None
+    target_id: str | None = None
+    mode_id: str | None = None
+    shots: int = Field(default=1, ge=1, le=100)
+    reload_ammunition_id: str | None = None
+    unload_ammunition: bool = Field(default=False, exclude_if=lambda v: not v)
+    fast_draw: bool = Field(default=False, exclude_if=lambda v: not v)
+    cocking_aid_id: str | None = Field(default=None, exclude_if=lambda v: v is None)
+    let_down_bow: bool = Field(default=False, exclude_if=lambda v: not v)
+    recover_thrown_item: bool = Field(default=False, exclude_if=lambda v: not v)
+    escape_entanglement: bool = Field(default=False, exclude_if=lambda v: not v)
+    mount_crew: tuple[Id, ...] = Field(default=(), exclude_if=lambda v: not v)
+    firearm_service: Literal["diagnose", "clear", "repair"] | None = Field(
+        default=None, exclude_if=lambda v: v is None
+    )
+    firearm_service_skill: Literal["weapon", "armoury"] = Field(
+        default="weapon", exclude_if=lambda v: v == "weapon"
+    )
+    hit_location: HitLocation | None = None
+    target_item_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
+    ready_hand: Hand | Literal["both"] | None = None
+    attack_option: AttackOption | None = None
+    defense_option: DefenseOption | None = None
+    wait_trigger: WaitTrigger | None = None
+    step_timing: Literal["before", "after"] = "before"
+    second_item_id: str | None = None
+    second_target_id: str | None = None
+    second_mode_id: str | None = None
+    braced: bool = Field(default=False, exclude_if=lambda value: not value)
+    hex_path: tuple[Hex, ...] = Field(default=(), max_length=100)
+    hex_facing: HexFacing | None = None
+
+
+class TakeUnarmedTurn(CombatCommand):
+    kind: Literal["take_unarmed_turn"] = "take_unarmed_turn"
+    encounter_id: Id
+    action: UnarmedAction
+    foot: Literal["left-foot", "right-foot"] = "right-foot"
+    target_id: Id
+    skill: UnarmedSkill = "attribute:dx"
+    hands: tuple[Hand, ...] = ()
+    location: GrappleLocation = "torso"
+    grip_id: Id | None = None
+    enter_close_combat: bool = False
+    maneuver: Literal["attack", "all_out_attack", "move_and_attack"] = Field(
+        default="attack", exclude_if=lambda value: value == "attack"
+    )
+    attack_option: AttackOption | None = Field(default=None, exclude_if=lambda value: value is None)
+
+
+class ResolveChokeEffects(CombatCommand):
+    kind: Literal["resolve_choke_effects"] = "resolve_choke_effects"
+    encounter_id: Id
+    grip_id: Id
+
+
+class ResumeInterruptedTurn(CombatCommand):
+    kind: Literal["resume_interrupted_turn"] = "resume_interrupted_turn"
+    encounter_id: Id
+    cancel: bool = False
+
+
+class ChooseDefense(CombatCommand):
+    kind: Literal["choose_defense"] = "choose_defense"
+    encounter_id: Id
+    defense: Defense
+    item_id: str | None = None
+    second_defense: Defense | None = None
+    second_item_id: str | None = None
+    catch_thrown: bool = Field(default=False, exclude_if=lambda v: not v)
+    retreat: Hex | None = None
+    parry_mode_id: str | None = Field(default=None, exclude_if=lambda value: value is None)
+    second_parry_mode_id: str | None = Field(default=None, exclude_if=lambda value: value is None)
+
+
+class ResolveWeaponExplosion(CombatCommand):
+    kind: Literal["resolve_weapon_explosion"] = "resolve_weapon_explosion"
+    encounter_id: Id
+    blast_id: Id
+    responses: tuple[BlastResponse, ...]
+    object_cover: dict[str, int]
+    object_sizes: dict[str, int] = Field(default_factory=dict)
+    center: GroundPosition | None = None
+    environment: Literal["air", "water", "vacuum"]
+
+
+class DeclareThrownLanding(CombatCommand):
+    kind: Literal["declare_thrown_landing"] = "declare_thrown_landing"
+    encounter_id: Id
+    item_id: Id
+    landing: GroundPosition
+
+
+class HexPlacement(Record):
+    actor_id: Id
+    pose: Pose
+
+
+class MigrateEncounterHex(CombatCommand):
+    kind: Literal["migrate_encounter_hex"] = "migrate_encounter_hex"
+    encounter_id: Id
+    battlefield: HexBattlefield
+    placements: tuple[HexPlacement, ...] = Field(min_length=2, max_length=100)
+
+
+class JoinEncounter(CombatCommand):
+    kind: Literal["join_encounter"] = "join_encounter"
+    encounter_id: Id
+    position: GridPoint
+    facing: Facing = "north"
+
+
+class EndEncounter(CombatCommand):
+    kind: Literal["end_encounter"] = "end_encounter"
+    encounter_id: Id
+    reason: str = Field(min_length=1, max_length=1000)
+
+
+class RepairEquipment(CombatCommand):
+    kind: Literal["repair_equipment"] = "repair_equipment"
+    encounter_id: Id
+    item_id: Id
+    stage: Literal["start", "finish", "cancel"]
+    task_id: Id | None = None
+
+
+class RetrieveEquipment(CombatCommand):
+    kind: Literal["retrieve_equipment"] = "retrieve_equipment"
+    encounter_id: Id
+    item_id: Id
+    stage: Literal["start", "finish", "cancel"]
+    task_id: Id | None = None
+
+
+class ContinueCriticalMiss(CombatCommand):
+    kind: Literal["continue_critical_miss"] = "continue_critical_miss"
+    encounter_id: Id
+    critical_id: Id
+    stage: Literal["migrate", "resume"]
+
+
+TypedCombatCommand = Annotated[
+    StartEncounter
+    | TakeCombatTurn
+    | ChooseDefense
+    | JoinEncounter
+    | EndEncounter
+    | ResumeInterruptedTurn
+    | TakeUnarmedTurn
+    | ResolveChokeEffects
+    | RepairEquipment
+    | RetrieveEquipment
+    | ContinueCriticalMiss
+    | DeclareThrownLanding
+    | ResolveWeaponExplosion
+    | MigrateEncounterHex,
+    # Migration is explicit and uses the same receipt and CAS as combat commands.
+    Field(discriminator="kind"),
+]
+COMBAT_ADAPTER: TypeAdapter[TypedCombatCommand] = TypeAdapter(TypedCombatCommand)

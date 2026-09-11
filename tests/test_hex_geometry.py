@@ -17,9 +17,9 @@ from wayfarer.rules.conformance import BASELINE_ID
 from wayfarer.simulation.combat import Battlefield, CombatEngine, GridPoint
 from wayfarer.simulation.hex_geometry import (
     Cell,
-    Facing,
     Hex,
     HexBattlefield,
+    HexFacing,
     Occupant,
     Pose,
     RetreatContext,
@@ -75,7 +75,7 @@ def test_b385_arcs(q: int, r: int, expected: str) -> None:
 
 
 @pytest.mark.parametrize("facing", [0, 1, 2, 3, 4, 5])
-def test_six_facings(facing: Facing) -> None:
+def test_six_facings(facing: HexFacing) -> None:
     pose = Pose(position=h(0, 0), facing=facing)
     assert distance(pose.position, neighbor(pose.position, facing)) == 1
     assert arc(pose, neighbor(pose.position, facing)) == "front"

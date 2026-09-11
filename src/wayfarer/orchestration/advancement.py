@@ -12,7 +12,8 @@ from wayfarer.character.physical_traits import physical_traits
 from wayfarer.character.power import CharacterProposal
 from wayfarer.character.statistics import RuntimePool, carry_over
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt, Id, Record
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.catalog import reference
 from wayfarer.rules.physical_traits import PhysicalTraits
@@ -26,7 +27,7 @@ from wayfarer.simulation.advancement import (
     MigrationPreview,
 )
 from wayfarer.simulation.encounter_context import EncounterSceneBinding, bind_scene, migrate_unique
-from wayfarer.simulation.resources import Id, Pool, Record
+from wayfarer.simulation.resources import Pool
 from wayfarer.simulation.scenes import ActorScene
 
 
@@ -168,7 +169,7 @@ class AdvancementService:
             raise ValidationError("Point grants require GM authority")
         payload = self._payload("grant", command.model_dump(mode="json"))
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             state = self.play._load(campaign)
             build = _build(self.play, state, command.target_actor_id)
             entry = AdvancementEntry(
@@ -183,17 +184,18 @@ class AdvancementService:
             )
             updated = self._revision(state, advancement=state.advancement + (entry,))
             updated = self.play.checkpoint(updated)
-            self.play.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = (
-                updated.revision,
-                updated.model_dump_json(),
-            )
-            return Event(
-                input=payload, action="advancement", outcome=entry.model_dump_json(), roll=None
-            )
+            self.play.commit(campaign, updated)
+            return CommandReceipt(action="advancement", outcome=entry.model_dump_json())
 
-        committed = await self.play.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+        committed = await commit_command(
+            self.play.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            resolve,
+            actor_id=command.actor_id,
+            rng=self.play.rng,
         )
         return PlayState.model_validate_json(committed["state"]["play_json"]).advancement[-1]
 
@@ -293,22 +295,23 @@ class AdvancementService:
         # Validate inside the transaction so a committed retry reaches its receipt first.
         payload = self._payload("advance", command.model_dump(mode="json"))
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             state = self.play._load(campaign)
             updated = self.reduce_purchase(state, command, revision=state.revision + 1)
             entry = updated.advancement[-1]
             updated = self.play.checkpoint(updated)
-            self.play.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = (
-                updated.revision,
-                updated.model_dump_json(),
-            )
-            return Event(
-                input=payload, action="advancement", outcome=entry.model_dump_json(), roll=None
-            )
+            self.play.commit(campaign, updated)
+            return CommandReceipt(action="advancement", outcome=entry.model_dump_json())
 
-        committed = await self.play.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+        committed = await commit_command(
+            self.play.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            resolve,
+            actor_id=command.actor_id,
+            rng=self.play.rng,
         )
         result = PlayState.model_validate_json(committed["state"]["play_json"]).advancement[-1]
         if result.id != command.id:
@@ -406,7 +409,7 @@ class MigrationService:
         # setup host) can only carry characters that stay within automatic limits.
         gm = authenticated_gm_id in self.target.engine.reviewer.gm_ids
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             state = self.current._load(campaign)
             approvals = []
             actors = []
@@ -490,17 +493,27 @@ class MigrationService:
                 from wayfarer.simulation.party import migrate
 
                 updated = migrate(updated)
-            campaign["rules_ref"] = reference(self.target.engine.resources.rules)
-            campaign["revision"], campaign["play_json"] = (
-                updated.revision,
-                updated.model_dump_json(),
-            )
-            self.target.engine.validate(updated)
-            return Event(
-                input=payload, action="rules-migration", outcome=entry.model_dump_json(), roll=None
-            )
+            from wayfarer.simulation.scenario_references import boundary
 
-        committed = await self.current.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+            pin = boundary(campaign)
+            if pin is not None:
+                # The migration ledger records this explicit runtime change; the
+                # immutable published source reference remains the original one.
+                campaign["scenario_reference_json"] = pin.model_copy(
+                    update={"runtime_digest": self.target.engine.digest}
+                ).model_dump_json()
+            campaign["rules_ref"] = reference(self.target.engine.resources.rules)
+            self.target.commit(campaign, updated)
+            return CommandReceipt(action="rules-migration", outcome=entry.model_dump_json())
+
+        committed = await commit_command(
+            self.current.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            resolve,
+            actor_id=command.actor_id,
+            rng=self.current.rng,
         )
         return PlayState.model_validate_json(committed["state"]["play_json"]).migrations[-1]

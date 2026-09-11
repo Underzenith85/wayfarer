@@ -8,18 +8,19 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import Literal
+from typing import TYPE_CHECKING, Annotated, Literal
 
-from pydantic import Field, model_validator
+from pydantic import BeforeValidator, Field, ValidationInfo, model_validator
 
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Id, Record
 from wayfarer.rules.checks import CheckTrace
 from wayfarer.rules.effects import DerivedValue
 from wayfarer.rules.entangle_types import Entanglement
 from wayfarer.rules.location_types import HitLocation, HumanLocation
 from wayfarer.rules.spray_types import Stream
 from wayfarer.simulation.gurps_equipment import EquipmentCatalog
-from wayfarer.simulation.hex_geometry import Hex, HexBattlefield
+from wayfarer.simulation.hex_geometry import Hex, HexBattlefield, HexFacing
 from wayfarer.simulation.maneuvers import (
     ATTACK_MANEUVERS,
     AttackOption,
@@ -28,7 +29,7 @@ from wayfarer.simulation.maneuvers import (
     WaitInterrupt,
     WaitTrigger,
 )
-from wayfarer.simulation.resources import Equip, Id, Record, ResourceEngine, ResourceState
+from wayfarer.simulation.resources import Equip, ResourceEngine, ResourceState
 from wayfarer.simulation.tactical import TacticalTrace
 from wayfarer.simulation.unarmed import Grip, PendingUnarmed, UnarmedTrace
 from wayfarer.world import EntityKind, World
@@ -52,6 +53,9 @@ Maneuver = Literal[
 ]
 Defense = Literal["dodge", "parry", "block", "none"]
 
+if TYPE_CHECKING:
+    from wayfarer.simulation.actions import PlayState
+
 
 class GridPoint(Record):
     x: int = Field(ge=0, le=1000)
@@ -59,6 +63,9 @@ class GridPoint(Record):
 
 
 class Battlefield(Record):
+    coordinate_system: Literal["square-grid-v1"] = Field(
+        default="square-grid-v1", exclude_if=lambda v: True
+    )
     id: Id
     location_id: Id
     width: int = Field(ge=1, le=1000)
@@ -73,6 +80,22 @@ class Battlefield(Record):
         if any(point.x >= self.width or point.y >= self.height for point in self.blocked):
             raise ValueError("Blocked position is outside the battlefield")
         return self
+
+
+def _tag_template(value: object, info: ValidationInfo) -> object:
+    if isinstance(value, dict):
+        value = {"coordinate_system": "square-grid-v1", **value}
+        if info.mode == "json":
+            model = HexBattlefield if value["coordinate_system"] == "hex-axial-v1" else Battlefield
+            return model.model_validate_json(json.dumps(value))
+    return value
+
+
+BattlefieldTemplate = Annotated[
+    Battlefield | HexBattlefield,
+    Field(discriminator="coordinate_system"),
+    BeforeValidator(_tag_template),
+]
 
 
 class AttackProfile(Record):
@@ -148,7 +171,7 @@ class CombatRules(Record):
     prone_movement_allowance: int = Field(default=1, ge=0, le=100)
     default_reach: int = Field(default=1, ge=1, le=20)
     max_combatants: int = Field(default=30, ge=2, le=100)
-    battlefields: tuple[Battlefield, ...] = Field(min_length=1, max_length=100)
+    battlefields: tuple[BattlefieldTemplate, ...] = Field(min_length=1, max_length=100)
 
     consequences: tuple[CombatConsequence, ...] = Field(default=(), exclude=True)
     attacks: tuple[AttackProfile, ...] = Field(default=(), exclude=True)
@@ -157,8 +180,18 @@ class CombatRules(Record):
 
     @model_validator(mode="after")
     def validate_unique(self) -> CombatRules:
+        if any(b.location_id == "unbound" for b in self.battlefields):
+            raise ValueError("Battlefield template requires an authored location")
         if len({b.id for b in self.battlefields}) != len(self.battlefields):
             raise ValueError("Duplicate battlefield ID")
+        templates = {b.id: b for b in self.battlefields}
+        for board in self.battlefields:
+            if isinstance(board, HexBattlefield) and board.source_template_id is not None:
+                source = templates.get(board.source_template_id)
+                if not isinstance(source, Battlefield) or source.location_id != board.location_id:
+                    raise ValueError(
+                        "Migrated template requires its original square template at the same location"
+                    )
         if len({p.definition_id for p in self.attacks}) != len(self.attacks) or len(
             {p.definition_id for p in self.protection}
         ) != len(self.protection):
@@ -168,7 +201,8 @@ class CombatRules(Record):
 
 class Placement(Record):
     actor_id: Id
-    position: GridPoint
+    position: GridPoint | Hex
+    hex_facing: HexFacing | None = None
     facing: Facing = "north"
 
 
@@ -177,7 +211,7 @@ class Combatant(Record):
     initiative: int = Field(ge=0, le=100)
     position: GridPoint | Hex
     facing: Facing
-    hex_facing: Literal[0, 1, 2, 3, 4, 5] | None = None
+    hex_facing: HexFacing | None = None
     retreat_used: bool = False
     retreat_attacker_id: str | None = None
     tactical_defense_bonus: int = 0
@@ -224,7 +258,7 @@ class PendingDefense(Record):
     post_attack_destination: GridPoint | None = None
     post_attack_square_facing: Facing | None = None
     post_attack_hex_path: tuple[Hex, ...] = ()
-    post_attack_facing: Literal[0, 1, 2, 3, 4, 5] | None = None
+    post_attack_facing: HexFacing | None = None
     post_attack_posture: Posture | None = None
 
 
@@ -265,7 +299,7 @@ class Encounter(Record):
     pending_unarmed: PendingUnarmed | None = None
     unarmed_history: tuple[UnarmedTrace, ...] = ()
     ranged_situations: tuple[RangedSituation, ...] = ()
-    hex_battlefield: HexBattlefield | None = None
+    spatial_kind: Literal["square", "hex"] = "square"
     tactical_traces: tuple[TacticalTrace, ...] = ()
 
     @model_validator(mode="after")
@@ -337,12 +371,15 @@ class CombatEngine:
         )
         if encounter.turn_order != expected_order:
             raise ValidationError("Turn order does not match initiative")
-        if encounter.hex_battlefield is not None:
+        if encounter.spatial_kind == "hex":
             from wayfarer.simulation.tactical import validate_hex_encounter
 
-            validate_hex_encounter(encounter, self.rules.gurps_equipment)
+            validate_hex_encounter(
+                encounter, self.rules.gurps_equipment, board=self.hex_map(encounter)
+            )
         occupied: set[GridPoint | Hex] = set()
-        blocked = set(battlefield.blocked)
+        blocked = set(battlefield.blocked) if isinstance(battlefield, Battlefield) else set()
+        self.hex_map(encounter)
         ready = {
             (item.owner_id, item.id) for item in resources.items if item.equipped and item.ready
         }
@@ -358,11 +395,14 @@ class CombatEngine:
                 (
                     isinstance(participant.position, GridPoint)
                     and (
-                        participant.position.x >= battlefield.width
-                        or participant.position.y >= battlefield.height
+                        not isinstance(battlefield, Battlefield)
+                        or (
+                            participant.position.x >= battlefield.width
+                            or participant.position.y >= battlefield.height
+                        )
                     )
                 )
-                or (encounter.hex_battlefield is None and isinstance(participant.position, Hex))
+                or (encounter.spatial_kind != "hex" and isinstance(participant.position, Hex))
                 or participant.position in blocked
                 or (
                     participant.position in occupied
@@ -459,6 +499,15 @@ class CombatEngine:
         if encounter.status == "active" and encounter.completion_reason is not None:
             raise ValidationError("Active encounter cannot have a completion reason")
 
+    def require_hex(self, encounter: Encounter) -> HexBattlefield:
+        board = self.hex_map(encounter)
+        if board is None:
+            raise ValidationError("Encounter requires a hex template")
+        return board
+
+    def hex_map(self, encounter: Encounter) -> HexBattlefield | None:
+        return hex_template(encounter, self.rules)
+
     def start(
         self,
         encounter_id: str,
@@ -475,6 +524,7 @@ class CombatEngine:
                 initiative=initiatives[p.actor_id],
                 position=p.position,
                 facing=p.facing,
+                hex_facing=p.hex_facing,
                 reach=self.rules.default_reach,
                 movement_allowance=self.rules.movement_allowance,
                 ready_item_ids=tuple(
@@ -494,6 +544,9 @@ class CombatEngine:
             darkness_penalty=self.battlefields[battlefield_id].darkness_penalty,
             id=encounter_id,
             battlefield_id=battlefield_id,
+            spatial_kind="hex"
+            if isinstance(self.battlefields[battlefield_id], HexBattlefield)
+            else "square",
             participants=participants,
             turn_order=order,
         )
@@ -549,12 +602,14 @@ class CombatEngine:
 
     @staticmethod
     def _reachable(
-        battlefield: Battlefield,
+        battlefield: Battlefield | HexBattlefield,
         start: GridPoint,
         destination: GridPoint,
         limit: int,
         occupied: set[GridPoint],
     ) -> bool:
+        if not isinstance(battlefield, Battlefield):
+            raise ValidationError("Square movement requires a square template")
         blocked = set(battlefield.blocked) | occupied
         frontier = {start}
         visited = {start}
@@ -644,7 +699,7 @@ class CombatEngine:
         second_mode_id: str | None = None,
         command_json: str = "",
         hex_path: tuple[Hex, ...] = (),
-        hex_facing: Literal[0, 1, 2, 3, 4, 5] | None = None,
+        hex_facing: HexFacing | None = None,
     ) -> tuple[Encounter, ResourceState, CombatResult]:
         original, original_resources = encounter, resources
         interrupt = encounter.wait_interrupt
@@ -732,10 +787,12 @@ class CombatEngine:
                         )
                     stop_thrust = stop_candidate and waiter.reach > before_actor.reach
                     observable = True
-                    if original.hex_battlefield is not None:
+                    if original.spatial_kind == "hex":
                         from wayfarer.simulation.tactical import sight
 
-                        observable = sight(result[0], waiter, after_actor)
+                        observable = sight(
+                            result[0], waiter, after_actor, board=self.hex_map(result[0])
+                        )
                     matches = (
                         (trigger.actor_id is None or trigger.actor_id == actor_id)
                         and trigger.action == action
@@ -838,7 +895,7 @@ class CombatEngine:
         second_target_id: str | None = None,
         second_mode_id: str | None = None,
         hex_path: tuple[Hex, ...] = (),
-        hex_facing: Literal[0, 1, 2, 3, 4, 5] | None = None,
+        hex_facing: HexFacing | None = None,
     ) -> tuple[Encounter, ResourceState, CombatResult]:
         if self.rules.gurps_equipment is not None:
             command_id = "combat:" + hashlib.sha256(command_id.encode()).hexdigest()
@@ -868,7 +925,7 @@ class CombatEngine:
             destination is not None or hex_path or hex_facing is not None or posture is not None
         ):
             raise ValidationError("A post-attack step requires movement, facing, or posture")
-        if deferred_step and encounter.hex_battlefield is not None:
+        if deferred_step and encounter.spatial_kind == "hex":
             from wayfarer.simulation.tactical import move_hex
 
             if destination is not None or facing is not None:
@@ -881,7 +938,15 @@ class CombatEngine:
             }:
                 raise ValidationError("A posture step only switches standing and kneeling")
             if posture is None:
-                move_hex(encounter, participant, "attack", hex_path, hex_facing, None)
+                move_hex(
+                    encounter,
+                    participant,
+                    "attack",
+                    hex_path,
+                    hex_facing,
+                    None,
+                    board=self.hex_map(encounter),
+                )
         elif deferred_step and destination is not None:
             if not isinstance(participant.position, GridPoint):
                 raise ValidationError("Square step requires square coordinates")
@@ -903,7 +968,7 @@ class CombatEngine:
             != {"standing", "kneeling"}
         ):
             raise ValidationError("A posture step only switches standing and kneeling")
-        if encounter.hex_battlefield is not None and not deferred_step:
+        if encounter.spatial_kind == "hex" and not deferred_step:
             from wayfarer.simulation.tactical import move_hex
 
             if destination is not None or facing is not None:
@@ -911,7 +976,13 @@ class CombatEngine:
             if posture is not None and hex_path:
                 raise ValidationError("A posture step cannot also translate the actor")
             participant = move_hex(
-                encounter, participant, maneuver, hex_path, hex_facing, defense_option
+                encounter,
+                participant,
+                maneuver,
+                hex_path,
+                hex_facing,
+                defense_option,
+                board=self.hex_map(encounter),
             )
             encounter = self._replace(encounter, participant)
         elif (hex_path or hex_facing is not None) and not deferred_step:
@@ -1070,11 +1141,11 @@ class CombatEngine:
                 ):
                     raise ValidationError("Wait All-Out Attack requires its option in advance")
                 if wait_trigger.zone:
-                    if encounter.hex_battlefield is None:
+                    if encounter.spatial_kind != "hex":
                         raise ValidationError("Wait zones require an explicit hex battlefield")
                     cells = {
                         (cell.position.q, cell.position.r)
-                        for cell in encounter.hex_battlefield.cells
+                        for cell in self.require_hex(encounter).cells
                     }
                     if not set(wait_trigger.zone) <= cells:
                         raise ValidationError("Wait zone is outside the battlefield")
@@ -1188,7 +1259,7 @@ class CombatEngine:
                         raise ValidationError("All-Out Attack movement must be forward")
                 participant = participant.model_copy(update={"position": destination})
                 destination = None
-        if maneuver == "move" and encounter.hex_battlefield is not None:
+        if maneuver == "move" and encounter.spatial_kind == "hex":
             if any(value is not None for value in (posture, item_id, target_id)):
                 raise ValidationError("Move accepts only a path and facing")
             participant = participant.model_copy(update={"last_maneuver": maneuver})
@@ -1210,7 +1281,8 @@ class CombatEngine:
                 if p.actor_id != actor_id and isinstance(p.position, GridPoint)
             }
             if (
-                destination.x >= battlefield.width
+                not isinstance(battlefield, Battlefield)
+                or destination.x >= battlefield.width
                 or destination.y >= battlefield.height
                 or destination in battlefield.blocked
                 or destination in occupied
@@ -1482,3 +1554,31 @@ class CombatEngine:
                 available=self.available(encounter, encounter.current_actor_id),
             ),
         )
+
+
+def validate_consequences(rules: CombatRules, state: PlayState) -> None:
+    """Authored consequences must name known battlefields, approved actors and facts."""
+    actor_ids = {a.actor_id for a in state.actors}
+    facts = {f.id for f in state.world.facts}
+    fields = {b.id for b in rules.battlefields}
+    if len({c.id for c in rules.consequences}) != len(rules.consequences):
+        raise ValidationError("Duplicate combat consequence")
+    if any(
+        c.battlefield_id not in fields
+        or c.defeated_actor_id not in actor_ids
+        or not set(c.recipient_actor_ids) <= actor_ids
+        or not set(c.fact_ids) <= facts
+        for c in rules.consequences
+    ):
+        raise ValidationError("Invalid combat consequence references")
+
+
+def hex_template(encounter: Encounter, rules: CombatRules | None) -> HexBattlefield | None:
+    if rules is None:
+        raise ValidationError("Encounter requires combat rules")
+    template = next((b for b in rules.battlefields if b.id == encounter.battlefield_id), None)
+    if template is None:
+        raise ValidationError("Encounter battlefield is not configured")
+    if (encounter.spatial_kind == "hex") != isinstance(template, HexBattlefield):
+        raise ValidationError("Encounter geometry disagrees with its template")
+    return template if isinstance(template, HexBattlefield) else None

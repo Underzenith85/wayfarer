@@ -165,7 +165,17 @@ class Table:
         assert self.client
         campaign = await self.client.app[ACCESS_KEY].play.store.read(self.cid)
         assert SetupService.load(campaign).adventures == (snapshot,)
-        assert await self.client.app[ACCESS_KEY].play.store.replay(self.cid) == campaign
+        store = self.client.app[ACCESS_KEY].play.store
+        assert await store.replay(self.cid) == campaign
+        from wayfarer.simulation.events import document
+
+        folded = await store.stream_states(self.cid)
+        from wayfarer.simulation.scenario_references import verify
+
+        for checkpoint, _ in folded:
+            verify(checkpoint)
+        history = await store.history(self.cid)
+        assert [document(s) for s, _ in folded[1:]] == [document(e.state_after) for e in history]
 
 
 @pytest.mark.parametrize(

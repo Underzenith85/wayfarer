@@ -12,7 +12,6 @@ from test_gurps_melee import choice, setup
 
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat import CombatService, EndEncounter, TakeCombatTurn
-from wayfarer.orchestration.gurps_melee import defense_value, mode, movement
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.rules.checks import RecordedDice
@@ -34,6 +33,7 @@ from wayfarer.simulation.injury import (
     apply_injury,
     apply_location_effect,
 )
+from wayfarer.simulation.mechanics.gurps_melee import defense_value, mode, movement
 from wayfarer.simulation.resources import Item, Owner, Pool, ResourceState
 
 
@@ -325,7 +325,7 @@ async def test_melee_limb_wound_grip_and_duration_survive_sqlite(tmp_path: Path)
     assert not next(i for i in state.resources.items if i.id == "sword-b").ready
     assert next(i for i in state.resources.items if i.id == "shield-b").ready
     with pytest.raises(ValidationError):
-        mode(restarted, state, "b", "sword-b", "swing")
+        mode(restarted.rules_context, state, "b", "sword-b", "swing")
     restarted.rng = RecordedDice([3, 3, 3])
     end = EndEncounter(
         id="end", actor_id="gm", expected_revision=3, encounter_id="fight", reason="disengaged"
@@ -372,9 +372,9 @@ async def test_leg_and_blindness_affect_real_combat_values(tmp_path: Path) -> No
         system=True,
     )
     injured = state.model_copy(update={"resources": resources})
-    assert movement(play, injured, "b") == 0
+    assert movement(play.rules_context, injured, "b") == 0
     participant = state.encounters[0].participants[1]
-    assert defense_value(play, injured, participant, "block")[0] is not None
+    assert defense_value(play.rules_context, injured, participant, "block")[0] is not None
 
 
 def test_timed_shoulder_has_no_hp_cost_and_replays() -> None:
@@ -432,8 +432,8 @@ async def test_random_location_and_shield_arm_effects_are_persisted(tmp_path: Pa
     assert next(i for i in state.resources.items if i.id == "shield-b").ready
     participant = state.encounters[0].participants[1]
     with pytest.raises(ValidationError, match="No available"):
-        defense_value(play, state, participant, "block")
-    value, _ = defense_value(play, state, participant, "dodge")
+        defense_value(play.rules_context, state, participant, "block")
+    value, _ = defense_value(play.rules_context, state, participant, "dodge")
     assert value and value.value == 8  # Basic Dodge 8; shield's DB1 is reduced to zero.
     play.rng = RecordedDice([])
     assert await CombatService(play).execute(cid, choice(), authenticated_actor_id="b") == result
@@ -447,7 +447,7 @@ async def test_critical_head_forces_exactly_one_do_nothing_turn(tmp_path: Path) 
     assert result.injury and result.injury.injury == 0 and not result.injury.adjudication_required
     state = play._load(await play.store.read(cid))
     assert state.encounters[0].participants[1].forced_do_nothing
-    assert defense_value(play, state, state.encounters[0].participants[1], "block")[0]
+    assert defense_value(play.rules_context, state, state.encounters[0].participants[1], "block")[0]
     play.rng = RecordedDice([])
     forced = await CombatService(play).execute(
         cid,

@@ -27,7 +27,8 @@ from wayfarer.rules.catalog import RulesCatalog
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.rules.gurps_magic import definitions
 from wayfarer.rules.spell_catalog import projectile_definition
-from wayfarer.simulation.actions import ActionEngine, ActionRules, ActorSetup, Wait
+from wayfarer.simulation.action_engine import ActionEngine
+from wayfarer.simulation.actions import ActionRules, ActorSetup, Wait
 from wayfarer.simulation.combat import Battlefield, CombatRules, GridPoint, Placement
 from wayfarer.simulation.gurps_equipment import EquipmentCatalog, EquipmentProfile
 from wayfarer.simulation.injury import Wound, apply_injury
@@ -281,7 +282,7 @@ async def test_player_context_is_compiled_and_retries_are_durable(tmp_path: Path
             cid, command().model_copy(update={"channel_id": "unknown"}), principal_id="a"
         )
     assert await play.store.read(cid) == before
-    bound = approved_context(play, play._load(before), command())
+    bound = approved_context(play.rules_context, play._load(before), command())
     assert (bound.skill, bound.magery, bound.ht, bound.will) == (14, 2, 10, 12)
     assert (await service.execute(cid, command(), principal_id="a")).outcome == "casting"
     await play.execute(

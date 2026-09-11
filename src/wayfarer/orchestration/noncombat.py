@@ -6,13 +6,14 @@ import json
 from typing import Literal
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt, Id
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.checks import Modifier, Outcome, success_check
 from wayfarer.simulation.actions import ActionCommand, PlayState
 from wayfarer.simulation.condition_checks import definition_modifiers
 from wayfarer.simulation.noncombat import NoncombatEncounter
-from wayfarer.simulation.resources import Advance, Id
+from wayfarer.simulation.resources import Advance
 
 
 class NoncombatCommand(ActionCommand):
@@ -207,7 +208,7 @@ class NoncombatService:
             {"operation": "noncombat", "command": command.model_dump(mode="json")}, sort_keys=True
         )
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             current = self.play._load(campaign)
             if command.kind == "approach_noncombat":
                 from wayfarer.simulation.party import synchronous
@@ -234,15 +235,19 @@ class NoncombatService:
                     }
                 )
             state = self.play.checkpoint(state, before=current)
-            self.play.engine.validate(state)
+            self.play.commit(campaign, state)
             result = next(e for e in state.noncombat if e.id == command.encounter_id)
-            campaign["revision"], campaign["play_json"] = state.revision, state.model_dump_json()
-            return Event(
-                input=payload, action="noncombat", outcome=result.model_dump_json(), roll=None
-            )
+            return CommandReceipt(action="noncombat", outcome=result.model_dump_json())
 
-        committed = await self.play.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+        committed = await commit_command(
+            self.play.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            resolve,
+            actor_id=command.actor_id,
+            rng=self.play.rng,
         )
         return next(
             e for e in self.play._load(committed["state"]).noncombat if e.id == command.encounter_id

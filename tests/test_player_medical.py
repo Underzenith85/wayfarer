@@ -21,7 +21,8 @@ from wayfarer.rules.checks import RecordedDice
 from wayfarer.rules.injury_types import InjuryStatus
 from wayfarer.rules.recovery_types import FatigueStatus, ProfileId
 from wayfarer.simulation.access import CampaignMember
-from wayfarer.simulation.actions import ActionEngine, ActionRules, ActorSetup, PlayState
+from wayfarer.simulation.action_engine import ActionEngine
+from wayfarer.simulation.actions import ActionRules, ActorSetup, PlayState
 from wayfarer.simulation.resources import Owner, ResourceEngine, ResourceState
 
 PROFILE: ProfileId = "gurps-basic-set-4e-2004"

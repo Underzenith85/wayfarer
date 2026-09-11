@@ -3,22 +3,22 @@
 import hashlib
 
 from wayfarer.errors import WayfarerError
-from wayfarer.orchestration.combat import RepairEquipment, RetrieveEquipment
-from wayfarer.orchestration.equipment_retrieval import RetrievalTask
-from wayfarer.orchestration.equipment_retrieval import tasks as retrievals
+from wayfarer.models import Record
+from wayfarer.orchestration.combat import RepairEquipment, RetrieveEquipment, TakeCombatTurn
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.tactical_view import TacticalSnapshot
 from wayfarer.rules.object_types import GroundPosition, ObjectCondition
 from wayfarer.rules.readiness_types import ProjectileProgress
 from wayfarer.simulation.actions import PlayState
+from wayfarer.simulation.mechanics.equipment_retrieval import RetrievalTask
+from wayfarer.simulation.mechanics.equipment_retrieval import tasks as retrievals
 from wayfarer.simulation.object_repairs import RepairTask
 from wayfarer.simulation.object_repairs import tasks as repairs
-from wayfarer.simulation.resources import Record
 
 
 class EquipmentChoice(Record):
     label: str
-    command: RepairEquipment | RetrieveEquipment
+    command: RepairEquipment | RetrieveEquipment | TakeCombatTurn
 
 
 class EquipmentView(Record):
@@ -31,6 +31,7 @@ class EquipmentView(Record):
     choices: tuple[EquipmentChoice, ...] = ()
     readiness: ProjectileProgress | None = None
     loaded_rounds: int | None = None
+    charges: int | None = None
 
 
 class TacticalSnapshotV2(TacticalSnapshot):
@@ -40,6 +41,9 @@ class TacticalSnapshotV2(TacticalSnapshot):
 
 def equipment_view(play: PlayService, state: PlayState, actor_id: str) -> tuple[EquipmentView, ...]:
     encounter = next((e for e in reversed(state.encounters) if actor_id in e.turn_order), None)
+    from wayfarer.simulation.explosions import blasts
+
+    pending_blasts = tuple(b for b in blasts(state.resources) if not b.resolved)
     result: list[EquipmentView] = []
     work_tasks: tuple[RepairTask | RetrievalTask, ...] = (
         *repairs(state.resources),
@@ -48,8 +52,14 @@ def equipment_view(play: PlayService, state: PlayState, actor_id: str) -> tuple[
     for item in state.resources.items:
         load = next((v for v in state.resources.ammunition_loads if v.weapon_id == item.id), None)
         progress = load.readiness if load else None
+        blast = next((b for b in pending_blasts if b.source_item_id == item.id), None)
         if item.owner_id != actor_id or (
-            item.condition is None and item.ground is None and progress is None
+            item.condition is None
+            and item.ground is None
+            and progress is None
+            and item.charges is None
+            and item.firearm_failure is None
+            and blast is None
         ):
             continue
         work = next(
@@ -88,11 +98,11 @@ def equipment_view(play: PlayService, state: PlayState, actor_id: str) -> tuple[
 
                     guard(state, actor_id, kind)
                     if isinstance(command, RetrieveEquipment):
-                        from wayfarer.orchestration.equipment_retrieval import retrieve
+                        from wayfarer.simulation.mechanics.equipment_retrieval import retrieve
 
                         original = next(e for e in state.encounters if e.id == command.encounter_id)
                         retrieve(
-                            play,
+                            play.rules_context,
                             state,
                             original,
                             actor_id=actor_id,
@@ -102,10 +112,10 @@ def equipment_view(play: PlayService, state: PlayState, actor_id: str) -> tuple[
                             task_id=command.task_id,
                         )
                     else:
-                        from wayfarer.orchestration.object_repairs import repair
+                        from wayfarer.simulation.mechanics.object_repairs import repair
 
                         repair(
-                            play,
+                            play.rules_context,
                             state,
                             actor_id=actor_id,
                             item_id=item.id,
@@ -128,11 +138,76 @@ def equipment_view(play: PlayService, state: PlayState, actor_id: str) -> tuple[
                 name=item.definition_id,
                 condition=item.condition,
                 ground=item.ground,
-                work=("Retrieval" if item.ground else "Repair") if work else None,
-                due_in=max(0, work.due - state.resources.game_time) if work else None,
+                work="Explosion pending"
+                if blast
+                else ("Retrieval" if item.ground else "Repair")
+                if work
+                else item.firearm_failure.kind
+                if item.firearm_failure
+                else None,
+                due_in=max(0, blast.due - state.resources.game_time)
+                if blast
+                else max(0, work.due - state.resources.game_time)
+                if work
+                else None,
                 choices=tuple(choices),
                 readiness=progress,
                 loaded_rounds=load.rounds if load else None,
+                charges=item.charges,
             )
         )
+    if encounter is not None:
+        from wayfarer.simulation.mechanics.thrown_items import record, recover
+        from wayfarer.simulation.mechanics.unarmed import free_hands
+
+        for item in state.resources.expended_items:
+            landing = record(state.resources, item.id)
+            if (
+                landing is None
+                or landing.encounter_id != encounter.id
+                or actor_id not in landing.observed_by
+            ):
+                continue
+            blast = next((b for b in pending_blasts if b.source_item_id == item.id), None)
+            options: list[EquipmentChoice] = []
+            if encounter.current_actor_id == actor_id and encounter.status == "active":
+                for hand in free_hands(state, encounter, actor_id):
+                    command_id = (
+                        "recover:"
+                        + hashlib.sha256(
+                            f"{state.campaign_id}:{state.revision}:{item.id}:{actor_id}:{hand}".encode()
+                        ).hexdigest()
+                    )
+                    recovery = TakeCombatTurn(
+                        id=command_id,
+                        actor_id=actor_id,
+                        expected_revision=state.revision,
+                        encounter_id=encounter.id,
+                        maneuver="ready",
+                        item_id=item.id,
+                        ready_hand=hand,
+                        recover_thrown_item=True,
+                    )
+                    try:
+                        recover(play.rules_context, state, encounter, recovery)
+                    except WayfarerError, ValueError:
+                        continue
+                    options.append(EquipmentChoice(label=f"Recover with {hand}", command=recovery))
+            result.append(
+                EquipmentView(
+                    id=item.id,
+                    name=item.definition_id,
+                    condition=item.condition if item.owner_id == actor_id else None,
+                    ground=landing.landing,
+                    work="Explosion pending"
+                    if blast
+                    else item.firearm_failure.kind
+                    if item.firearm_failure
+                    else "Thrown item"
+                    if landing.landing
+                    else "Landing unresolved",
+                    due_in=max(0, blast.due - state.resources.game_time) if blast else None,
+                    choices=tuple(options),
+                )
+            )
     return tuple(result)

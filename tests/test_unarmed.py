@@ -10,7 +10,7 @@ from test_gurps_melee import setup as melee_setup
 from test_statistics import BASIC, LITE
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.combat import (
     ChooseDefense,
     CombatService,
@@ -18,13 +18,13 @@ from wayfarer.orchestration.combat import (
     TakeUnarmedTurn,
 )
 from wayfarer.orchestration.play import PlayService
-from wayfarer.orchestration.unarmed import settle_control
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.rules.gurps_checks import replay_success
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import Encounter
 from wayfarer.simulation.gurps_equipment import MeleeMode
+from wayfarer.simulation.mechanics.unarmed import settle_control
 from wayfarer.simulation.unarmed import Grip, contest, striking_bonus, wrestling_bonus
 
 
@@ -40,7 +40,7 @@ async def setup(
         melee_modes=melee_modes,
     )
 
-    def disarm(campaign: Campaign) -> Event:
+    def disarm(campaign: Campaign) -> CommandReceipt:
         state = play._load(campaign)
         resources = state.resources.model_copy(
             update={
@@ -69,7 +69,7 @@ async def setup(
         )
         play.engine.validate(state)
         campaign["play_json"] = state.model_dump_json()
-        return Event(input="fixture", action="combat", outcome="disarmed", roll=None)
+        return CommandReceipt(action="combat", outcome="disarmed")
 
     await play.store.commit_turn(cid, "disarm-fixture", 1, "fixture", disarm)
     return cid, play
@@ -489,7 +489,7 @@ def test_shared_independent_unarmed_ledger() -> None:
 
 
 async def test_grappled_arm_cannot_parry_with_held_weapon(tmp_path: Path) -> None:
-    from wayfarer.orchestration.gurps_melee import defense_value
+    from wayfarer.simulation.mechanics.gurps_melee import defense_value
 
     cid, play = await setup(tmp_path)
     await action(cid, play, "a", "grapple", hands=("left-hand",), enter=True, location="left-arm")
@@ -525,5 +525,5 @@ async def test_grappled_arm_cannot_parry_with_held_weapon(tmp_path: Path) -> Non
         )
     )
     with pytest.raises(ValidationError):
-        defense_value(play, state, participant, "parry", "sword-b")
+        defense_value(play.rules_context, state, participant, "parry", "sword-b")
     assert play.rng.exhausted()

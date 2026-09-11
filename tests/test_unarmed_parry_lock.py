@@ -10,10 +10,10 @@ from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import ChooseDefense, CombatService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.tactical_view import choices
-from wayfarer.orchestration.unarmed import fighter
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.simulation.combat import CombatEngine
+from wayfarer.simulation.mechanics.unarmed import fighter
 
 
 async def parry(cid: str, play: PlayService) -> None:

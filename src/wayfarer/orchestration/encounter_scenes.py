@@ -8,11 +8,11 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt, Id, Record
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.encounter_context import EncounterSceneBinding, bind_scene
-from wayfarer.simulation.resources import Id, Record
 
 
 class MigrateEncounterScenes(Record):
@@ -45,7 +45,7 @@ class EncounterSceneService:
             sort_keys=True,
         )
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             state = self.play._load(campaign)
             bindings = {b.encounter_id: b.scene_id for b in command.bindings}
             if len(bindings) != len(command.bindings) or not set(bindings) <= {
@@ -70,21 +70,17 @@ class EncounterSceneService:
                 }
             )
             # Structural only: no checkpoint, clocks, dice, discovery or effects.
-            self.play.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = revision, updated.model_dump_json()
-            return Event(
-                input=payload,
-                action="encounter-scenes",
-                outcome=command.model_dump_json(),
-                roll=None,
-            )
+            self.play.commit(campaign, updated)
+            return CommandReceipt(action="encounter-scenes", outcome=command.model_dump_json())
 
-        committed = await self.play.store.commit_turn(
+        committed = await commit_command(
+            self.play.store,
             cid,
             command.id,
             command.expected_revision,
             payload,
             resolve,
             actor_id=authenticated_gm_id,
+            rng=self.play.rng,
         )
         return self.play._load(committed["state"])

@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import Field
 
 from wayfarer.character.compiler import CharacterDraft
-from wayfarer.simulation.resources import Id, Record
+from wayfarer.errors import ValidationError
+from wayfarer.models import Id, Record
+
+if TYPE_CHECKING:
+    from wayfarer.simulation.actions import PlayState
 
 
 class AdvancementEntry(Record):
@@ -56,3 +60,15 @@ class MigrationPreview(Record):
     from_digest: str
     to_digest: str
     actor_diffs: tuple[BuildDiff, ...]
+
+
+def validate_ledgers(state: PlayState) -> None:
+    """Advancement and migration ledgers carry unique IDs and never lead the checkpoint."""
+    if len({entry.id for entry in state.advancement}) != len(state.advancement):
+        raise ValidationError("Duplicate advancement ledger ID")
+    if len({entry.id for entry in state.migrations}) != len(state.migrations):
+        raise ValidationError("Duplicate migration ledger ID")
+    if any(entry.revision > state.revision for entry in state.advancement) or any(
+        entry.revision > state.revision for entry in state.migrations
+    ):
+        raise ValidationError("Ledger entry is ahead of campaign state")

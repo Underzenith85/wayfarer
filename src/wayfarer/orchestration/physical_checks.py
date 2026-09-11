@@ -11,13 +11,14 @@ from dataclasses import asdict, dataclass
 from typing import Literal
 
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, Event
-from wayfarer.orchestration.gurps_melee import build
+from wayfarer.models import Campaign, CommandReceipt
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.rules.physical_traits import Sense
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.condition_checks import check_modifiers, definition_modifiers
+from wayfarer.simulation.mechanics.gurps_melee import build
 from wayfarer.simulation.physical_traits import physical_traits
 from wayfarer.simulation.resources import Command, ResourceEvent
 
@@ -51,13 +52,13 @@ class PhysicalCheckService:
             {"physical-check": command.model_dump(mode="json"), "gm": gm_id}, sort_keys=True
         )
 
-        def reduce(campaign: Campaign) -> Event:
+        def reduce(campaign: Campaign) -> CommandReceipt:
             state = play._load(campaign)
             if gm_id not in play.engine.reviewer.gm_ids or not any(
                 m.principal_id == gm_id and m.role == "gm" for m in state.members
             ):
                 raise ValidationError("Physical checks require director authority")
-            compiled = build(play, state, command.actor_id)
+            compiled = build(play.rules_context, state, command.actor_id)
             stats = compiled.statistics
             if stats is None or stats.profile_id != "gurps-basic-set-4e-2004":
                 raise ValidationError("Physical trait checks require the exact Basic Set profile")
@@ -145,20 +146,18 @@ class PhysicalCheckService:
                 state.model_copy(update={"revision": resources.revision, "resources": resources}),
                 before=state,
             )
-            play.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = (
-                updated.revision,
-                updated.model_dump_json(),
-            )
-            return Event(
-                input=payload,
-                action="noncombat",
-                outcome=json.dumps(trace.outcome.succeeded),
-                roll=None,
-            )
+            play.commit(campaign, updated)
+            return CommandReceipt(action="noncombat", outcome=json.dumps(trace.outcome.succeeded))
 
-        committed = await play.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, reduce, actor_id=gm_id
+        committed = await commit_command(
+            play.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            reduce,
+            actor_id=gm_id,
+            rng=play.rng,
         )
         # The committed event is returned on retries; the resolver is never rerun.
         stored = play._load(committed["state"])

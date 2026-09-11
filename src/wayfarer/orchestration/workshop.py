@@ -10,14 +10,14 @@ from pydantic import Field, TypeAdapter
 
 from wayfarer.character.power import Approval, CharacterProposal
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt, Id, Record
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.advancement import _refreshed
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.providers import Orchestrator, ProviderRequest
 from wayfarer.rules.catalog import CampaignPolicy
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.director import AuthorDraft
-from wayfarer.simulation.resources import Id, Record
 
 
 class DraftCommand(Record):
@@ -121,7 +121,7 @@ class WorkshopService:
             sort_keys=True,
         )
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             current = self.play._load(campaign)
             old = next((d for d in current.drafts if d.id == command.draft_id), None)
             if old is not None:
@@ -275,12 +275,18 @@ class WorkshopService:
                     "drafts": tuple(d for d in current.drafts if d.id != draft.id) + (draft,),
                 }
             )
-            self.play.engine.validate(current)
-            campaign["revision"], campaign["play_json"] = revision, current.model_dump_json()
-            return Event(input=payload, action="workshop", outcome=command.operation, roll=None)
+            self.play.commit(campaign, current)
+            return CommandReceipt(action="workshop", outcome=command.operation)
 
-        await self.play.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+        await commit_command(
+            self.play.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            resolve,
+            actor_id=command.actor_id,
+            rng=self.play.rng,
         )
         return await self.read(cid, command.draft_id, principal_id=principal_id)
 

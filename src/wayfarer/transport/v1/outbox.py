@@ -1,16 +1,18 @@
 """Recoverable projected history, derived from atomic engine checkpoints.
 
-The engine's committed state_after log is the source outbox. Projection aliases
+The folded, audience-declared event stream is the source outbox. Projection aliases
 are persisted before delivery; a crash before materialization resumes the scan.
 No global revision or source event identity crosses the wire.
 """
 
 from __future__ import annotations
 
+import json
 import secrets
-import time
 
-from .common import Fault, Obj, array, encoded, now, obj, uid
+from wayfarer.simulation.events import visible
+
+from .common import Fault, Obj, array, encoded, obj, uid
 from .ledger import Transaction
 from .projection import View
 from .service import V1Service
@@ -41,21 +43,23 @@ async def sync(service: V1Service, tx: Transaction, principal: str, scope: Obj) 
             "revision": view.state.revision,
             "resources": resources,
             "events": [],
-            "at": time.time(),
+            "at": tx.instant.seconds,
         }
     else:
         events = [obj(e) for e in array(previous["events"])]
         old_resources = [obj(r) for r in array(previous["resources"])]
         # Scan all commits after the last pinned boundary, including commits made
         # through other engine adapters. Compare only this authorized projection.
-        history = await service.play.store.history(cid)
+        history = await service.play.store.stream_states(cid, through=view.state.revision)
         candidates: list[list[Obj]] = []
-        for event in history:
-            if not int(str(previous["revision"])) < event.resulting_revision <= view.state.revision:
+        for state, stream_events in history:
+            if not int(str(previous["revision"])) < state["revision"] <= view.state.revision:
+                continue
+            if not any(visible(event.event, view.member) for event in stream_events):
                 continue
             try:
                 historical = service.projector.make(
-                    event.state_after, principal, str(view.campaign["updated_at"]), viewpoint=aid
+                    state, principal, str(view.campaign["updated_at"]), viewpoint=aid
                 )
             except Fault:
                 previous["policy"] = ""
@@ -79,7 +83,7 @@ async def sync(service: V1Service, tx: Transaction, principal: str, scope: Obj) 
                 "revision": view.state.revision,
                 "resources": resources,
                 "events": [],
-                "at": time.time(),
+                "at": tx.instant.seconds,
             }
         else:
             candidates.append(resources)
@@ -134,10 +138,10 @@ async def sync(service: V1Service, tx: Transaction, principal: str, scope: Obj) 
                             "event_id": uid(),
                             "previous_cursor": previous["cursor"],
                             "cursor": cursor,
-                            "occurred_at": now(),
+                            "occurred_at": tx.instant.isoformat(),
                             "correlation_id": uid(),
                             "causation_id": None,
-                            "_at": time.time(),
+                            "_at": tx.instant.seconds,
                         }
                     )
                     previous["cursor"] = cursor
@@ -145,7 +149,9 @@ async def sync(service: V1Service, tx: Transaction, principal: str, scope: Obj) 
             previous.update(
                 revision=view.state.revision,
                 resources=resources,
-                events=[e for e in events if float(str(e["_at"])) >= time.time() - 1200][-10000:],
+                events=[e for e in events if float(str(e["_at"])) >= tx.instant.seconds - 1200][
+                    -10000:
+                ],
             )
     await tx.put(key, previous)
     # Cursor ownership survives eviction, so wrong-scope tokens never become a
@@ -160,6 +166,52 @@ async def sync(service: V1Service, tx: Transaction, principal: str, scope: Obj) 
     if await tx.get(cursor_key) is None:
         await tx.put(
             cursor_key,
-            {"binding": encoded([principal, scope]), "epoch": previous["epoch"], "at": time.time()},
+            {
+                "binding": encoded([principal, scope]),
+                "epoch": previous["epoch"],
+                "at": tx.instant.seconds,
+            },
         )
     return view, previous
+
+
+async def narrate(service: V1Service, principal: str, action: Obj, context: Obj) -> str:
+    """Publish only the submitting audience's durable narration result."""
+    async with service.ledger.transaction() as tx:
+        record = await tx.get("action:" + str(action["id"]))
+        if record is None or record["principal"] != principal:
+            raise Fault(404, "not_found")
+        cid = str(record["campaign"])
+        request = obj(record["request"])
+        revision = int(
+            str(
+                record.get(
+                    "result_revision", int(str(obj(record["engine"])["expected_revision"])) + 1
+                )
+            )
+        )
+    narrator = service.narrate
+    if narrator is None:
+        raise ValueError("Narration is unavailable")
+
+    async def run() -> str:
+        text = await narrator(context, action)
+        if not text or len(text) > 4000:
+            raise ValueError("Invalid narration")
+        return json.dumps({"text": text})
+
+    job = await service.jobs.submit(
+        cid=cid,
+        revision=revision,
+        principal=principal,
+        actor=str(request["actor_id"]),
+        kind="narration",
+        key=str(action["id"]),
+        request_json=json.dumps(context),
+        run=run,
+    )
+    await service.jobs.result(job)
+    for published in await service.jobs.store.outbox(cid, principal, str(request["actor_id"])):
+        if published.id == job.id and published.result_json:
+            return str(obj(json.loads(published.result_json))["text"])
+    raise ValueError("Narration is not published")

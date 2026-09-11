@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import Field, model_validator
 
 from wayfarer.errors import ValidationError
-from wayfarer.simulation.resources import Id, Record
+from wayfarer.models import Id, Record
 from wayfarer.world import EntityKind, World
+
+if TYPE_CHECKING:
+    from wayfarer.simulation.actions import PlayState
 
 
 class SceneExit(Record):
@@ -133,3 +136,46 @@ class JournalEntry(Record):
     scene_id: Id
     fact_id: Id
     at: int = Field(ge=0)
+
+
+def validate_state(rules: SceneRules | None, state: PlayState) -> None:
+    """Scene cursors, events, journal and fired triggers must all resolve to the scene rules."""
+    if rules is None:
+        if state.actor_scenes or state.scene_events or state.journal or state.fired_scene_triggers:
+            raise ValidationError("Campaign has scene state without scene rules")
+        return
+    rules.validate_world(state.world)
+    scenes = {scene.id for scene in rules.scenes}
+    actor_ids = {actor.actor_id for actor in state.actors}
+    if len({value.actor_id for value in state.actor_scenes}) != len(state.actor_scenes):
+        raise ValidationError("Duplicate actor scene cursor")
+    if {value.actor_id for value in state.actor_scenes} != actor_ids:
+        raise ValidationError("Every actor requires one scene cursor")
+    if any(value.scene_id not in scenes for value in state.actor_scenes):
+        raise ValidationError("Unknown actor scene")
+    if len({value.id for value in state.scene_events}) != len(state.scene_events):
+        raise ValidationError("Duplicate scene event")
+    if any(
+        value.actor_id not in actor_ids
+        or value.scene_id not in scenes
+        or value.revision > state.revision
+        for value in state.scene_events
+    ):
+        raise ValidationError("Invalid scene event")
+    if len({value.id for value in state.journal}) != len(state.journal):
+        raise ValidationError("Duplicate journal entry")
+    facts = {fact.id for fact in state.world.facts}
+    if any(
+        value.actor_id not in actor_ids
+        or value.scene_id not in scenes
+        or value.fact_id not in facts
+        or (value.actor_id, value.fact_id) not in state.world.knowledge
+        for value in state.journal
+    ):
+        raise ValidationError("Invalid perspective journal entry")
+    trigger_ids = {value.id for value in rules.triggers}
+    if (
+        len(set(state.fired_scene_triggers)) != len(state.fired_scene_triggers)
+        or not set(state.fired_scene_triggers) <= trigger_ids
+    ):
+        raise ValidationError("Invalid fired scene trigger")

@@ -15,7 +15,6 @@ from test_gurps_melee import setup
 
 from wayfarer.character.compiler import Purchase
 from wayfarer.errors import ValidationError
-from wayfarer.orchestration.gurps_melee import movement
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.rules.entangle_types import Entanglement, EntangleSpec
@@ -23,6 +22,7 @@ from wayfarer.rules.mundane_skills.ranged import definitions, require_mode
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import Combatant, RangedSituation
 from wayfarer.simulation.gurps_equipment import Damage, RangedMode
+from wayfarer.simulation.mechanics.gurps_melee import movement
 
 BASIC = "gurps-basic-set-4e-2004"
 # A test-only binding: ST 12, -4 to the victim's attacks, -3 to its defenses,
@@ -107,8 +107,8 @@ async def test_landed_net_binds_the_target_and_stops_its_movement(tmp_path: Path
     assert (binding.binding_st, binding.attack_penalty, binding.defense_penalty) == (12, -4, -3)
     assert binding.attached and binding.immobilizes and binding.attempts == 0
     # A binding that pins the legs stops movement outright.
-    assert movement(play, state, "b") == 0
-    assert movement(play, state, "a") > 0
+    assert movement(play.rules_context, state, "b") == 0
+    assert movement(play.rules_context, state, "a") > 0
     # The thrown net still leaves inventory like any other thrown projectile.
     assert "sword-a" not in {i.id for i in state.resources.items}
     assert state.resources.expended_items[0].id == "sword-a"
@@ -142,10 +142,10 @@ async def test_binding_penalises_the_victims_attacks_and_defenses(tmp_path: Path
     assert result.injury is not None
     assert result.injury.attack.effective_target == 13 - 4 - 2
     # b's own Dodge carries the binding's -3 through the shared defense service.
-    from wayfarer.orchestration.gurps_melee import defense_value
+    from wayfarer.simulation.mechanics.gurps_melee import defense_value
 
     state = play._load(await play.store.read(cid))
-    dodge, _ = defense_value(play, state, participant(state), "dodge")
+    dodge, _ = defense_value(play.rules_context, state, participant(state), "dodge")
     # Dodge 8, +1 from b's shield, and the binding's -3.
     assert dodge is not None and int(dodge.value) == 8 + 1 - 3
     assert bound(play, state) is not None

@@ -29,7 +29,8 @@ from wayfarer.orchestration.providers import Orchestrator, ProviderReply, Provid
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
 from wayfarer.simulation.access import CampaignMember
-from wayfarer.simulation.actions import ActionEngine, Inspect, Wait
+from wayfarer.simulation.action_engine import ActionEngine
+from wayfarer.simulation.actions import Inspect, Wait
 from wayfarer.simulation.combat import AttackProfile, GridPoint, Placement, ProtectionProfile
 from wayfarer.simulation.noncombat import Approach, NoncombatRule, NoncombatRules
 from wayfarer.simulation.objectives import Objective, ObjectiveRules, Predicate, Reward

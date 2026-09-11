@@ -10,7 +10,8 @@ from decimal import Decimal
 
 from wayfarer.character.statistics import encumbrance
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.medical import _build, _value
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.hazard_types import HazardSchedule, HazardSpec
@@ -59,7 +60,7 @@ class HazardService:
             sort_keys=True,
         )
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
             schedule_id = (
                 "exposure:"
@@ -220,17 +221,18 @@ class HazardService:
                 update={"revision": resources.revision, "resources": resources}
             )
             updated = play.checkpoint(updated, before=before)
-            play.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = (
-                updated.revision,
-                updated.model_dump_json(),
-            )
-            return Event(
-                input=payload, action="noncombat", outcome=result.model_dump_json(), roll=None
-            )
+            play.commit(campaign, updated)
+            return CommandReceipt(action="noncombat", outcome=result.model_dump_json())
 
-        committed = await play.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+        committed = await commit_command(
+            play.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            resolve,
+            actor_id=command.actor_id,
+            rng=play.rng,
         )
         state = play._load(committed["state"])
         event = next(e for e in state.resources.events if e.id == "hazard:" + command.id)

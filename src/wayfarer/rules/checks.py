@@ -4,7 +4,7 @@ import secrets
 from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Literal, Protocol
+from typing import Literal, Protocol, overload
 
 from wayfarer.errors import ValidationError
 from wayfarer.models import Roll
@@ -12,6 +12,16 @@ from wayfarer.models import Roll
 
 class RandomSource(Protocol):
     def randbelow(self, exclusive_upper_bound: int, /) -> int: ...
+
+
+class NoRandom:
+    """Allow deterministic-only calls, but fail closed if they need an omitted RNG."""
+
+    def randbelow(self, exclusive_upper_bound: int, /) -> int:
+        raise ValidationError("Resolution requires an explicit random source")
+
+
+NO_RANDOM = NoRandom()
 
 
 class Outcome(StrEnum):
@@ -68,11 +78,26 @@ def _outcome(total: int, target: int) -> Outcome:
     return Outcome.SUCCESS if total <= target and total != 17 else Outcome.FAILURE
 
 
-def draw_dice(rng: RandomSource) -> tuple[int, int, int]:
-    """Consume exactly three six-sided dice from the server-owned random source."""
-    dice = tuple(rng.randbelow(6) + 1 for _ in range(3))
-    assert len(dice) == 3
-    return (dice[0], dice[1], dice[2])
+@overload
+def draw_dice(rng: RandomSource) -> tuple[int, int, int]: ...
+
+
+@overload
+def draw_dice(rng: RandomSource, count: int) -> tuple[int, ...]: ...
+
+
+def draw_dice(rng: RandomSource, count: int = 3) -> tuple[int, ...]:
+    """Consume six-sided dice in order; checks default to three, damage names its count."""
+    if count < 0:
+        raise ValidationError("Dice count must be nonnegative")
+    return tuple(rng.randbelow(6) + 1 for _ in range(count))
+
+
+def draw_index(rng: RandomSource, count: int) -> int:
+    """Select an index without turning a non-d6 choice into a dice roll."""
+    if count < 1:
+        raise ValidationError("Random selection requires at least one candidate")
+    return rng.randbelow(count)
 
 
 def evaluate_success(

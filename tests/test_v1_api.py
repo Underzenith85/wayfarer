@@ -14,12 +14,13 @@ import pytest_asyncio
 from aiohttp import web
 from test_actions import Dice, actor_setup, campaign, engine, resource_seed, world
 
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.simulation.access import CampaignMember
-from wayfarer.simulation.actions import ActionEngine, ActionRules
+from wayfarer.simulation.action_engine import ActionEngine
+from wayfarer.simulation.actions import ActionRules
 from wayfarer.simulation.resources import Owner
 from wayfarer.transport.campaign_api import create_campaign_app
 from wayfarer.transport.v1.common import Fault, Obj, array, obj, uid, validate
@@ -309,7 +310,7 @@ async def test_revocation_barrier_clears_stream_and_receipt_access(
         ws, _ = await connect(client, base, cid)
         raw = await service.play.store.read(cid)
 
-        def revoke(campaign: Campaign) -> Event:
+        def revoke(campaign: Campaign) -> CommandReceipt:
             state = service.play._load(campaign)
             state = state.model_copy(
                 update={
@@ -321,7 +322,7 @@ async def test_revocation_barrier_clears_stream_and_receipt_access(
                 }
             )
             campaign["play_json"], campaign["revision"] = state.model_dump_json(), state.revision
-            return Event(input="revoke", action="v1-membership", outcome="revoked", roll=None)
+            return CommandReceipt(action="v1-membership", outcome="revoked")
 
         await service.play.store.commit_turn(cid, uid(), raw["revision"], "revoke", revoke)
         async with asyncio.timeout(5):
@@ -335,7 +336,7 @@ async def test_revocation_barrier_clears_stream_and_receipt_access(
 
 async def test_runtime_schema_copies_match_frozen_sources() -> None:
     root = Path(__file__).resolve().parents[1]
-    for name in ("openapi.json", "schemas.json", "events.schema.json"):
+    for name in ("openapi.json", "schemas.json", "events.schema.json", "engine-events.schema.json"):
         assert json.loads((root / "contracts/v1" / name).read_text()) == json.loads(
             (root / "src/wayfarer/transport/v1" / name).read_text()
         )
@@ -444,7 +445,7 @@ async def test_recover_after_engine_commit_before_receipt_finalization(
         async with service.ledger.transaction() as tx:
             record = await tx.get("action:" + aid)
             assert record is not None
-            service.transition(record, "resolving")
+            service.transition(record, "resolving", at=tx.instant.isoformat())
             await tx.put("action:" + aid, record)
         restarted = V1Service(service.play, service.ledger.path)
         await restarted.start()
@@ -586,7 +587,12 @@ async def test_provider_bridge_uses_only_scoped_context(api: tuple[str, str, V1S
         "character": view.characters["a"],
     }
     assert service.interpret is not None and service.narrate is not None
-    assert await service.interpret(context, "Wait") == {"kind": "wait", "ticks": 1}
+    from wayfarer.transport.v1.service import Interpretation
+
+    interpreted = await service.interpret(context, "Wait")
+    assert isinstance(interpreted, Interpretation)
+    assert interpreted.intent == {"kind": "wait", "ticks": 1}
+    assert interpreted.origin.proposal_type == "v1.Intent"
     assert (
         await service.narrate(
             context, {"actor_id": "a", "resolution": {"summary": "Wait complete"}}

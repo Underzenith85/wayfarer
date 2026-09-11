@@ -9,9 +9,8 @@ from test_gurps_melee import setup
 from test_social_completion import with_aftermath
 
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.combat import ChooseDefense, CombatService, TakeCombatTurn
-from wayfarer.orchestration.gurps_melee import defense_value
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.rules.checks import RecordedDice
@@ -21,17 +20,18 @@ from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.fatigue import ContinueExertion, apply_fatigue
 from wayfarer.simulation.fright import effects
 from wayfarer.simulation.injury import Wound, apply_injury
+from wayfarer.simulation.mechanics.gurps_melee import defense_value
 
 
 async def aftermath(cid: str, play: PlayService) -> None:
     state = play._load(await play.store.read(cid))
 
-    def reduce(campaign: Campaign) -> Event:
+    def reduce(campaign: Campaign) -> CommandReceipt:
         revision = state.revision + 1
         resources = with_aftermath(state.resources).model_copy(update={"revision": revision})
         updated = state.model_copy(update={"revision": revision, "resources": resources})
         campaign["revision"], campaign["play_json"] = revision, updated.model_dump_json()
-        return Event(input="aftermath", action="npc", outcome="recovered", roll=None)
+        return CommandReceipt(action="npc", outcome="recovered")
 
     await play.store.commit_turn(
         cid, "aftermath", state.revision, "aftermath", reduce, actor_id="gm"
@@ -59,7 +59,7 @@ async def test_live_attack_penalty_without_defense_or_build_changes(
         )
     state = play._load(await play.store.read(cid))
     actor = state.encounters[0].participants[0]
-    value, _ = defense_value(play, state, actor, "dodge")
+    value, _ = defense_value(play.rules_context, state, actor, "dodge")
     assert value is not None and value.value == 8
     assert state.actors == before.actors
     await CombatService(play).execute(

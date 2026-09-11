@@ -12,19 +12,13 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Record
 from wayfarer.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.rules.recovery_types import FatigueCause, interrupt_tasks, require_settled
 from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.injury import InjuryResult, Wound, apply_injury
-from wayfarer.simulation.resources import (
-    Command,
-    Pool,
-    Receipt,
-    Record,
-    ResourceEvent,
-    ResourceState,
-)
+from wayfarer.simulation.resources import Command, Pool, Receipt, ResourceEvent, ResourceState
 
 
 class FatigueCost(Command):

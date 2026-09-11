@@ -1293,6 +1293,12 @@
       "Battlefield": {
         "additionalProperties": false,
         "properties": {
+          "coordinate_system": {
+            "const": "square-grid-v1",
+            "default": "square-grid-v1",
+            "title": "Coordinate System",
+            "type": "string"
+          },
           "id": {
             "maxLength": 200,
             "minLength": 1,
@@ -1394,6 +1400,55 @@
           "policy_version"
         ],
         "title": "CampaignRules",
+        "type": "object"
+      },
+      "Cell": {
+        "additionalProperties": false,
+        "properties": {
+          "position": {
+            "$ref": "#/$defs/Hex"
+          },
+          "elevation": {
+            "default": 0,
+            "description": "Yards above map datum",
+            "maximum": 1000,
+            "minimum": -1000,
+            "title": "Elevation",
+            "type": "integer"
+          },
+          "blocked": {
+            "default": false,
+            "title": "Blocked",
+            "type": "boolean"
+          },
+          "extra_cost": {
+            "default": 0,
+            "description": "Authored terrain MP surcharge",
+            "maximum": 100,
+            "minimum": 0,
+            "title": "Extra Cost",
+            "type": "integer"
+          },
+          "opaque_height": {
+            "default": 0,
+            "description": "Yards above ground",
+            "maximum": 1000,
+            "minimum": 0,
+            "title": "Opaque Height",
+            "type": "integer"
+          },
+          "elevation_inches": {
+            "description": "Additional inches above elevation datum",
+            "exclusiveMaximum": 36,
+            "minimum": 0,
+            "title": "Elevation Inches",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "position"
+        ],
+        "title": "Cell",
         "type": "object"
       },
       "CharacterDraft": {
@@ -1643,7 +1698,21 @@
           },
           "battlefields": {
             "items": {
-              "$ref": "#/$defs/Battlefield"
+              "discriminator": {
+                "mapping": {
+                  "hex-axial-v1": "#/$defs/HexBattlefield",
+                  "square-grid-v1": "#/$defs/Battlefield"
+                },
+                "propertyName": "coordinate_system"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/Battlefield"
+                },
+                {
+                  "$ref": "#/$defs/HexBattlefield"
+                }
+              ]
             },
             "maxItems": 100,
             "minItems": 1,
@@ -2326,6 +2395,30 @@
             "default": null,
             "title": "Parry Quality"
           },
+          "warhead": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ExplosionSpec"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "power_cell_capacity": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Power Cell Capacity"
+          },
           "container_capacity_millipounds": {
             "anyOf": [
               {
@@ -2348,6 +2441,66 @@
           "technology_level"
         ],
         "title": "EquipmentProfile",
+        "type": "object"
+      },
+      "ExplosionSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "dice": {
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Dice",
+            "type": "integer"
+          },
+          "adds": {
+            "default": 0,
+            "maximum": 100,
+            "minimum": -100,
+            "title": "Adds",
+            "type": "integer"
+          },
+          "multiplier": {
+            "default": 1,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Multiplier",
+            "type": "integer"
+          },
+          "damage_type": {
+            "default": "cr",
+            "enum": [
+              "cr",
+              "burn"
+            ],
+            "title": "Damage Type",
+            "type": "string"
+          },
+          "armor_divisor": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ],
+            "default": "1",
+            "title": "Armor Divisor"
+          },
+          "fragmentation_dice": {
+            "default": 0,
+            "maximum": 100,
+            "minimum": 0,
+            "title": "Fragmentation Dice",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "dice"
+        ],
+        "title": "ExplosionSpec",
         "type": "object"
       },
       "Fact": {
@@ -2471,7 +2624,10 @@
               "misfire",
               "stoppage",
               "mechanical",
-              "destroyed"
+              "destroyed",
+              "dud",
+              "delayed",
+              "explosion"
             ],
             "title": "Kind",
             "type": "string"
@@ -2551,17 +2707,36 @@
         "properties": {
           "technology_level": {
             "maximum": 12,
-            "minimum": 5,
+            "minimum": 3,
             "title": "Technology Level",
             "type": "integer"
           },
           "action": {
             "enum": [
               "repeating",
-              "revolver"
+              "revolver",
+              "muzzleloader",
+              "breechloader",
+              "beam",
+              "single-use",
+              "grenade"
             ],
             "title": "Action",
             "type": "string"
+          },
+          "fuse_seconds": {
+            "anyOf": [
+              {
+                "maximum": 60,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Fuse Seconds"
           },
           "quality": {
             "default": "ordinary",
@@ -3048,6 +3223,109 @@
         "title": "HazardSpec",
         "type": "object"
       },
+      "Hex": {
+        "additionalProperties": false,
+        "properties": {
+          "q": {
+            "maximum": 1000,
+            "minimum": -1000,
+            "title": "Q",
+            "type": "integer"
+          },
+          "r": {
+            "maximum": 1000,
+            "minimum": -1000,
+            "title": "R",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "q",
+          "r"
+        ],
+        "title": "Hex",
+        "type": "object"
+      },
+      "HexBattlefield": {
+        "additionalProperties": false,
+        "description": "New tagged contract. Legacy square maps cannot validate as hex maps.",
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "location_id": {
+            "default": "unbound",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Location Id",
+            "type": "string"
+          },
+          "source_template_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Source Template Id"
+          },
+          "darkness_penalty": {
+            "default": 0,
+            "maximum": 0,
+            "minimum": -10,
+            "title": "Darkness Penalty",
+            "type": "integer"
+          },
+          "coordinate_system": {
+            "const": "hex-axial-v1",
+            "title": "Coordinate System",
+            "type": "string"
+          },
+          "profile_id": {
+            "const": "gurps-basic-set-4e-2004",
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "baseline_id": {
+            "const": "gurps-4e-2004-first-printing+errata-2007-01-26",
+            "title": "Baseline Id",
+            "type": "string"
+          },
+          "cells": {
+            "items": {
+              "$ref": "#/$defs/Cell"
+            },
+            "maxItems": 10000,
+            "minItems": 1,
+            "title": "Cells",
+            "type": "array"
+          },
+          "stairs": {
+            "items": {
+              "$ref": "#/$defs/Stairway"
+            },
+            "title": "Stairs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "coordinate_system",
+          "profile_id",
+          "baseline_id",
+          "cells"
+        ],
+        "title": "HexBattlefield",
+        "type": "object"
+      },
       "HumanBody": {
         "additionalProperties": false,
         "description": "Trusted scenario anatomy; absence never selects a human implicitly.",
@@ -3489,6 +3767,19 @@
               }
             ],
             "default": null
+          },
+          "charges": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Charges"
           },
           "mount_crew": {
             "default": [],
@@ -5620,6 +5911,11 @@
             "title": "Thrown",
             "type": "boolean"
           },
+          "catchable": {
+            "default": false,
+            "title": "Catchable",
+            "type": "boolean"
+          },
           "blockable": {
             "default": false,
             "title": "Blockable",
@@ -6113,6 +6409,28 @@
             ],
             "title": "Kind",
             "type": "string"
+          },
+          "procedure": {
+            "anyOf": [
+              {
+                "enum": [
+                  "trauma-maintenance",
+                  "repair-lasting"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Procedure"
+          },
+          "task_schema": {
+            "const": 2,
+            "default": 2,
+            "title": "Task Schema",
+            "type": "integer"
           },
           "start": {
             "minimum": 0,
@@ -7455,6 +7773,24 @@
           "rounds_per_second"
         ],
         "title": "SprayerSpec",
+        "type": "object"
+      },
+      "Stairway": {
+        "additionalProperties": false,
+        "description": "Authored traversable edge, not permission to climb or jump a cliff.",
+        "properties": {
+          "start": {
+            "$ref": "#/$defs/Hex"
+          },
+          "end": {
+            "$ref": "#/$defs/Hex"
+          }
+        },
+        "required": [
+          "start",
+          "end"
+        ],
+        "title": "Stairway",
         "type": "object"
       },
       "SurpriseState": {

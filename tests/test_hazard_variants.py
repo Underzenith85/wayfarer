@@ -306,7 +306,8 @@ async def travel_setup(tmp_path: Path, *, group: bool = False) -> tuple[str, Pla
 
     from wayfarer.character.power import CharacterProposal
     from wayfarer.orchestration.play import PlayService
-    from wayfarer.simulation.actions import ActionEngine, ActorSetup
+    from wayfarer.simulation.action_engine import ActionEngine
+    from wayfarer.simulation.actions import ActorSetup
     from wayfarer.simulation.resources import Owner, ResourceState
     from wayfarer.simulation.scenes import Scene, SceneExit, SceneRules
 
@@ -481,7 +482,8 @@ async def test_antibiotics_consume_one_bound_dose_and_never_stack(
         RuleDefinition,
         RulesCatalog,
     )
-    from wayfarer.simulation.actions import ActionEngine, ActionRules, ActorSetup
+    from wayfarer.simulation.action_engine import ActionEngine
+    from wayfarer.simulation.actions import ActionRules, ActorSetup
     from wayfarer.simulation.resources import (
         EquipmentSpec,
         Item,
@@ -582,7 +584,8 @@ async def test_temperature_and_survival_are_consumed_by_hazard_service(tmp_path:
     from wayfarer.rules.catalog import RulesCatalog
     from wayfarer.rules.gurps_skills import definitions
     from wayfarer.rules.mundane_traits.runtime import SUPPORTED_HOOKS
-    from wayfarer.simulation.actions import ActionEngine, ActionRules, ActorSetup
+    from wayfarer.simulation.action_engine import ActionEngine
+    from wayfarer.simulation.actions import ActionRules, ActorSetup
     from wayfarer.simulation.resources import Owner, ResourceEngine, ResourceState
 
     profile = "gurps-basic-set-4e-2004"

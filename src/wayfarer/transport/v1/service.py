@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import secrets
 from collections.abc import Awaitable, Callable
+from dataclasses import dataclass
 from pathlib import Path
 
 from wayfarer.errors import (
@@ -15,15 +17,25 @@ from wayfarer.errors import (
     provider_diagnostic,
 )
 from wayfarer.models import Campaign
+from wayfarer.orchestration.jobs import jobs_for
+from wayfarer.orchestration.origins import origin_scope
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.scenes import SceneService
+from wayfarer.persistence.events import CommandOrigin
 from wayfarer.simulation.actions import ActionResult
 
-from .common import Fault, Obj, array, encoded, now, obj, uid, validate
+from .common import Fault, Obj, array, encoded, obj, uid, validate
 from .ledger import Ledger, Transaction
 from .projection import Projector, View
 
-Interpreter = Callable[[Obj, str], Awaitable[Obj]]
+
+@dataclass(frozen=True)
+class Interpretation:
+    intent: Obj
+    origin: CommandOrigin
+
+
+Interpreter = Callable[[Obj, str], Awaitable[Obj | Interpretation]]
 Narrator = Callable[[Obj, Obj], Awaitable[str]]
 
 
@@ -32,6 +44,7 @@ class V1Service:
         self, play: PlayService, path: Path, *, tick_ms: int = 1000, weight_grams: int = 1
     ) -> None:
         self.play, self.ledger = play, Ledger(path)
+        self.jobs = jobs_for(play.store)
         self.tick_ms, self.weight_grams = tick_ms, weight_grams
         self.projector: Projector
         self.interpret: Interpreter | None = None
@@ -39,6 +52,7 @@ class V1Service:
         self.tasks: set[asyncio.Task[None]] = set()
 
     async def start(self) -> None:
+        await self.jobs.start()
         async with self.ledger.transaction() as tx:
             config = await tx.get("config")
             if config is None:
@@ -62,6 +76,7 @@ class V1Service:
         for task in self.tasks:
             task.cancel()
         await asyncio.gather(*self.tasks, return_exceptions=True)
+        await self.jobs.close()
 
     def schedule(self, aid: str) -> None:
         task = asyncio.create_task(self.resolve(aid))
@@ -78,12 +93,12 @@ class V1Service:
         self, tx: Transaction, cid: str, principal: str, viewpoint: str | None = None
     ) -> View:
         try:
-            raw = await self.play.store.read(cid)
+            raw = (await self.play.store.stream_states(cid))[-1][0]
         except NotFoundError as exc:
             raise Fault(404, "not_found") from exc
         meta = await tx.get("campaign:" + cid)
         if meta is None:
-            meta = {"stamp": now()}
+            meta = {"stamp": tx.instant.isoformat()}
             await tx.put("campaign:" + cid, meta)
         self.projector.text_enabled = self.interpret is not None
         return self.projector.make(raw, principal, str(meta["stamp"]), viewpoint=viewpoint)
@@ -208,7 +223,7 @@ class V1Service:
                     raise Fault(404, "not_found")
             if intent["kind"] == "move":
                 self.movement(view, str(request["actor_id"]), str(intent["destination_id"]))
-            aid, stamp = uid(), now()
+            aid, stamp = uid(), tx.instant.isoformat()
             wire: Obj = {
                 "id": aid,
                 "command_id": command_id,
@@ -281,11 +296,39 @@ class V1Service:
                     "inventory": view.inventories[str(request["actor_id"])],
                 }
                 intent = obj(request["intent"])
-            if intent["kind"] in ("text", "question"):
+            origin = None
+            if record["engine"] is None and intent["kind"] in ("text", "question"):
                 if self.interpret is None:
                     raise Fault(422, "unsupported_action")
-                async with asyncio.timeout(20):
-                    intent = await self.interpret(context, str(intent["text"]))
+                interpreter, prompt = self.interpret, str(intent["text"])
+
+                async def propose() -> str:
+                    async with asyncio.timeout(20):
+                        interpreted = await interpreter(context, prompt)
+                    if isinstance(interpreted, Interpretation):
+                        return json.dumps(
+                            {
+                                "intent": interpreted.intent,
+                                "origin": interpreted.origin.model_dump(mode="json"),
+                            }
+                        )
+                    return json.dumps({"intent": interpreted, "origin": None})
+
+                job = await self.jobs.submit(
+                    cid=cid,
+                    revision=view.state.revision,
+                    principal=principal,
+                    actor=str(request["actor_id"]),
+                    kind="proposal",
+                    key=f"{aid}:{generation}",
+                    request_json=json.dumps({"context": context, "prompt": prompt}),
+                    run=propose,
+                )
+                proposal = obj(json.loads(await self.jobs.result(job)))
+                intent = obj(proposal["intent"])
+                origin = (
+                    CommandOrigin.model_validate(proposal["origin"]) if proposal["origin"] else None
+                )
                 if "clarification" in intent:
                     clarification = validate("Clarification", intent["clarification"])
                     async with self.ledger.transaction() as tx:
@@ -295,7 +338,12 @@ class V1Service:
                             or obj(current["wire"])["version"] != generation
                         ):
                             return
-                        self.transition(current, "needs_clarification", clarification=clarification)
+                        self.transition(
+                            current,
+                            "needs_clarification",
+                            clarification=clarification,
+                            at=tx.instant.isoformat(),
+                        )
                         await tx.put("action:" + aid, current)
                     return
                 validate("Intent", intent)
@@ -316,13 +364,14 @@ class V1Service:
                         intent = self.movement(
                             view, str(request["actor_id"]), str(intent["destination_id"])
                         )
+                    record["origin"] = origin.model_dump(mode="json") if origin else None
                     record["engine"] = {
                         **intent,
                         "id": aid,
                         "actor_id": request["actor_id"],
                         "expected_revision": view.state.revision,
                     }
-                self.transition(record, "resolving")
+                self.transition(record, "resolving", at=tx.instant.isoformat())
                 await tx.put("action:" + aid, record)
             async with self.ledger.transaction() as tx:
                 record = await self.recovery_action(tx, aid, cid, principal)
@@ -343,27 +392,31 @@ class V1Service:
 
                 # Hidden-only revision races may be retried under the same visible
                 # versions; never overwrite the saved attempt after an uncertain commit.
+                origin = (
+                    CommandOrigin.model_validate(record["origin"]) if record.get("origin") else None
+                )
                 try:
-                    if command["kind"] == "travel_scene":
-                        event = await SceneService(view.runtime).execute(
-                            cid,
-                            command,
-                            authenticated_actor_id=str(request["actor_id"]),
-                            authorize=authorize,
-                        )
-                        result = ActionResult(
-                            status="committed",
-                            revision=event.revision,
-                            code="scene.travelled",
-                            command_id=aid,
-                        )
-                    else:
-                        result = await view.runtime.execute(
-                            cid,
-                            command,
-                            authenticated_actor_id=str(request["actor_id"]),
-                            authorize=authorize,
-                        )
+                    with origin_scope(origin):
+                        if command["kind"] == "travel_scene":
+                            event = await SceneService(view.runtime).execute(
+                                cid,
+                                command,
+                                authenticated_actor_id=str(request["actor_id"]),
+                                authorize=authorize,
+                            )
+                            result = ActionResult(
+                                status="committed",
+                                revision=event.revision,
+                                code="scene.travelled",
+                                command_id=aid,
+                            )
+                        else:
+                            result = await view.runtime.execute(
+                                cid,
+                                command,
+                                authenticated_actor_id=str(request["actor_id"]),
+                                authorize=authorize,
+                            )
                 except ConflictError:
                     current_view = await self.view(tx, cid, principal)
                     self.versions(current_view, obj(record["request"]))
@@ -375,7 +428,7 @@ class V1Service:
                     record["engine"] = command
                     await tx.put("action:" + aid, record)
                     # Persist the replacement attempt before a future dispatch.
-                    self.transition(record, "submitted")
+                    self.transition(record, "submitted", at=tx.instant.isoformat())
                     await tx.put("action:" + aid, record)
                     self.schedule(aid)
                     return
@@ -410,9 +463,11 @@ class V1Service:
                         "changed_resources": changed,
                         "game_time": after.campaign["game_time"],
                     },
+                    at=tx.instant.isoformat(),
                 )
                 # Knowledge-changing actions remain readable to their submitting
                 # principal under the new view, but no other principal inherits them.
+                record["result_revision"] = after.state.revision
                 record["policy"] = after.policy
                 record["receipt_scene_id"] = after.actor_scenes[str(request["actor_id"])]
                 await tx.put("action:" + aid, record)
@@ -435,14 +490,14 @@ class V1Service:
                     if isinstance(exc, ProviderError):
                         diagnostic = provider_diagnostic(exc)
                         error.update(message=diagnostic.message, retryable=diagnostic.retryable)
-                    self.transition(failed, "rejected", error=error)
+                    self.transition(failed, "rejected", error=error, at=tx.instant.isoformat())
                     await tx.put("action:" + aid, failed)
 
     @staticmethod
-    def transition(record: Obj, status: str, **extra: object) -> None:
+    def transition(record: Obj, status: str, *, at: str, **extra: object) -> None:
         old = obj(record["wire"])
         wire = {k: v for k, v in old.items() if k not in ("resolution", "error", "clarification")}
-        wire.update(status=status, version=uid(), updated_at=now(), **extra)
+        wire.update(status=status, version=uid(), updated_at=at, **extra)
         record["wire"] = validate("Action", wire)
         record["history"] = [*array(record.get("history", [])), wire][-10000:]
 
@@ -482,7 +537,7 @@ class V1Service:
             ):
                 raise Fault(409, "invalid_transition")
             if cancel:
-                self.transition(record, "cancelled")
+                self.transition(record, "cancelled", at=tx.instant.isoformat())
             else:
                 clarification = obj(wire["clarification"])
                 answer = obj(request["answer"])
@@ -512,7 +567,7 @@ class V1Service:
                 view = await self.view(tx, cid, principal)
                 self.versions(view, obj(record["request"]))
                 record["engine"] = None
-                self.transition(record, "submitted")
+                self.transition(record, "submitted", at=tx.instant.isoformat())
             await tx.put("action:" + aid, record)
             await tx.put(key, {"fingerprint": fingerprint, "action": aid})
         if not cancel:

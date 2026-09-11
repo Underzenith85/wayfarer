@@ -9,8 +9,9 @@ from dataclasses import dataclass
 from pydantic import ValidationError as SchemaError
 
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.mundane_traits.runtime import Check
 from wayfarer.simulation.actions import PlayState
@@ -49,9 +50,9 @@ def bind_trait_modifiers(
     if actor is None or actor.approval is None:
         context.bind_trait_modifiers(())
         return
-    from wayfarer.orchestration.gurps_melee import build
+    from wayfarer.simulation.mechanics.gurps_melee import build
 
-    approved = build(play, state, command.actor_id)
+    approved = build(play.rules_context, state, command.actor_id)
     definitions = play.engine.reviewer.compiler.definitions
     context.standing = bind_standing(approved, definitions, context.standing, context.modifiers)
     context.bind_trait_modifiers(
@@ -83,9 +84,9 @@ def bind_skill_conditions(
         context.bind_trait_modifiers(())
         return
     from wayfarer.character.social_traits import skill_conditions
-    from wayfarer.orchestration.gurps_melee import build
+    from wayfarer.simulation.mechanics.gurps_melee import build
 
-    approved = build(play, state, command.actor_id)
+    approved = build(play.rules_context, state, command.actor_id)
     definitions = play.engine.reviewer.compiler.definitions
     context.conditions = context.conditions | skill_conditions(
         approved, definitions, procedure.id, context.audience
@@ -112,11 +113,11 @@ def dispatch(
         from wayfarer.simulation.fright import validate_subject
 
         validate_subject(before.resources, command.subject_id, profile_id)
-        from wayfarer.orchestration.gurps_melee import build
+        from wayfarer.simulation.mechanics.gurps_melee import build
 
         if not any(a.actor_id == command.subject_id for a in before.actors):
             raise ValidationError("Fright requires an approved character")
-        statistics = build(play, before, command.subject_id).statistics
+        statistics = build(play.rules_context, before, command.subject_id).statistics
         assert statistics is not None
         if interaction.context.ht != statistics.ht or interaction.context.will != statistics.will:
             raise ValidationError("Fright context must match approved HT and Will")
@@ -195,25 +196,23 @@ class SocialService:
             sort_keys=True,
         )
 
-        def reduce(campaign: Campaign) -> Event:
+        def reduce(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
             updated, outcome = dispatch(play, before, command, self.resolve(play, before, command))
             updated = play.checkpoint(updated, before=before)
-            play.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = (
-                updated.revision,
-                updated.model_dump_json(),
-            )
+            play.commit(campaign, updated)
             # The event stream carries neither trusted modifiers nor fact IDs.
-            return Event(input=payload, action="npc", outcome=outcome.model_dump_json(), roll=None)
+            return CommandReceipt(action="npc", outcome=outcome.model_dump_json())
 
-        result = await play.store.commit_turn(
+        result = await commit_command(
+            play.store,
             cid,
             command.id,
             command.expected_revision,
             payload,
             reduce,
             actor_id=authenticated_gm_id,
+            rng=play.rng,
         )
         committed = play._load(result["state"])
         # Receipt replay must not invoke the resolver again or re-evaluate facts.

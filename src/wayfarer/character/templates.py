@@ -10,26 +10,21 @@ import json
 from dataclasses import asdict, dataclass
 from typing import Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import Field, model_validator
 
 from wayfarer.character.compiler import CharacterCompiler, CharacterDraft, Compilation, Purchase
 from wayfarer.errors import ValidationError
+from wayfarer.models import Record
 from wayfarer.rules.mundane_traits import PROFILE
 from wayfarer.rules.traits import TraitOptions
 
 
-class TemplateOption(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid", frozen=True, strict=True, revalidate_instances="always"
-    )
+class TemplateOption(Record):
     id: str = Field(min_length=1, max_length=100)
     purchases: tuple[Purchase, ...] = Field(strict=False, min_length=1, max_length=100)
 
 
-class TemplateChoice(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid", frozen=True, strict=True, revalidate_instances="always"
-    )
+class TemplateChoice(Record):
     id: str = Field(min_length=1, max_length=100)
     count: int = Field(default=1, ge=1, le=100)
     options: tuple[TemplateOption, ...] = Field(strict=False, min_length=1, max_length=100)
@@ -43,10 +38,7 @@ class TemplateChoice(BaseModel):
         return self
 
 
-class Template(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid", frozen=True, strict=True, revalidate_instances="always"
-    )
+class Template(Record):
     id: str = Field(min_length=1, max_length=100)
     kind: Literal["racial", "occupational"]
     profile_id: Literal["gurps-basic-set-4e-2004"] = PROFILE
@@ -67,10 +59,7 @@ class Template(BaseModel):
         return self
 
 
-class Selection(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid", frozen=True, strict=True, revalidate_instances="always"
-    )
+class Selection(Record):
     template_id: str
     choice_id: str
     option_ids: tuple[str, ...] = Field(strict=False, min_length=1, max_length=100)

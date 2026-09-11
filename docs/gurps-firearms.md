@@ -2,8 +2,8 @@
 
 The optional B407 procedure is enabled only by an explicit `RangedMode.firearm`
 in a newly selected Basic Set equipment catalog. Legacy modes omit the field and
-retain their existing critical handling. The metadata supplies conventional
-TL5+ firearm construction, repeating/revolver action, quality, an optional
+retain their existing critical handling. The original conventional protocol supplies
+TL5+ repeating/revolver construction, quality, an optional
 authored malfunction threshold, and an optional pinned Armoury skill reference.
 The enclosing equipment entry must agree on TL. Catalogs must be explicitly
 republished and selected; saved weapons are not inferred from names or skills.
@@ -50,10 +50,8 @@ single-shot stoppages, mechanical/misfire ammunition retention, cylinder advance
 interrupted clearing, diagnosis, hourly repair boundaries, failed/critical
 repairs, restart/retry receipts, replay, and schema/profile guards.
 
-Coverage remains partial. TL3/4 explosion consequences, beam/single-use/grenade
-failure procedures and explosive ammunition remain #371; production catalog
-auditing remains #180. These cannot be enabled by the conventional-firearm metadata.
-Fast-Draw, bow hold/readiness and individual-round unloading remain #286; thrown
-item recovery/catching remain #287. Shotgun pellets, automatic-only bursts,
-suppression and spraying are still rejected. None of this promotes the overall
-Basic Set or Lite profile to certified support.
+Coverage remains partial. [Low-TL and exotic constructions](gurps-exotic-malfunctions.md)
+now provide explicit explosion, grenade, single-use and power-cell protocols.
+Production catalog auditing remains #180. [Projectile readiness](gurps-projectile-readiness.md)
+and [thrown recovery/catching](gurps-thrown-recovery.md) are also explicit protocols.
+None of these changes certify the overall Basic Set or Lite profile.

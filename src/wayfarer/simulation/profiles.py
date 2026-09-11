@@ -6,8 +6,8 @@ from typing import Literal
 
 from pydantic import Field
 
+from wayfarer.models import Id, Record
 from wayfarer.simulation.advancement import BuildDiff
-from wayfarer.simulation.resources import Id, Record
 
 
 class ProfileSelection(Record):

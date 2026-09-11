@@ -2,7 +2,9 @@
 
 from typing import Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import Field, model_validator
+
+from wayfarer.models import Record
 
 HumanLocation = Literal[
     "torso",
@@ -26,10 +28,9 @@ HitLocation = HumanLocation | Literal["random"]
 Hand = Literal["left-hand", "right-hand"]
 
 
-class InjuryTolerance(BaseModel):
+class InjuryTolerance(Record):
     """Trusted anatomy facts; never accepted as player-authored damage modifiers."""
 
-    model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
     structure: Literal["living", "unliving", "homogenous", "diffuse"] = "living"
     no_brain: bool = False
     no_eyes: bool = False
@@ -38,17 +39,15 @@ class InjuryTolerance(BaseModel):
     no_vitals: bool = False
 
 
-class HumanBody(BaseModel):
+class HumanBody(Record):
     """Trusted scenario anatomy; absence never selects a human implicitly."""
 
-    model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
     anatomy: Literal["human"]
     male_groin: bool = False
     tolerance: InjuryTolerance | None = Field(default=None, exclude_if=lambda v: v is None)
 
 
-class LastingInjury(BaseModel):
-    model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
+class LastingInjury(Record):
     id: str = Field(min_length=1)
     location: HumanLocation
     kind: Literal["crippled", "destroyed", "severed", "disabled", "deafened", "scarred"]

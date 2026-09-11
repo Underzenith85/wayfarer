@@ -1,6 +1,7 @@
 """Typed-action boundary, no-op, trace and durable concurrency contracts."""
 
 import asyncio
+import json
 import os
 import uuid
 from dataclasses import replace
@@ -32,8 +33,8 @@ from wayfarer.rules.catalog import (
     RulesCatalog,
     reference,
 )
+from wayfarer.simulation.action_engine import ActionEngine
 from wayfarer.simulation.actions import (
-    ActionEngine,
     ActionResult,
     ActionRules,
     ActorSetup,
@@ -48,6 +49,7 @@ from wayfarer.simulation.actions import (
     UseItem,
     Wait,
 )
+from wayfarer.simulation.events import action_result
 from wayfarer.simulation.resources import (
     EquipmentSpec,
     Item,
@@ -256,12 +258,67 @@ def test_questions_hypotheticals_clarifications_and_abandoned_preview_spend_noth
         UseItem(id="item", actor_id="a", expected_revision=0),
     )
     for command in commands:
-        updated, result = reducer.resolve(state, command, rng=dice)
+        updated, resolved_events = reducer.resolve(state, command, rng=dice)
+        result = action_result(resolved_events)
         assert result.status in {"question", "clarification"} and updated == state
     planned = reducer.assess(
         state, Move(id="plan", actor_id="a", expected_revision=0, destination_id="alley")
     )
     assert planned.status == "feasible" and state.resources.game_time == 0 and dice.calls == 0
+
+
+def test_check_rule_failures_name_the_offending_check() -> None:
+    """Engine invariants localise the fault so authors need not read the engine (#365)."""
+    base = engine()
+    package_id, package_version = base.reviewer.compiler.definition_packages["skill:observation"]
+
+    def check(check_id: str, target: str, definition_id: str) -> CheckRule:
+        return CheckRule(
+            id=check_id,
+            action="inspect",
+            target_id=target,
+            definition_id=definition_id,
+            package_id=package_id,
+            package_version=package_version,
+            reveal_fact_ids=("clue",),
+        )
+
+    with pytest.raises(ValidationError, match="check-vault requires an implemented catalog") as e:
+        ActionEngine(
+            base.reviewer,
+            base.resources,
+            ActionRules(id="a", version=1, checks=(check("check-vault", "chest", "attribute:dx"),)),
+        )
+    assert e.value.reference == "check-vault"
+    assert "attribute:dx is attribute, not a skill" in str(e.value)
+    with pytest.raises(ValidationError, match="check-a and check-b both inspect chest") as e:
+        ActionEngine(
+            base.reviewer,
+            base.resources,
+            ActionRules(
+                id="a",
+                version=1,
+                checks=(
+                    check("check-a", "chest", "skill:observation"),
+                    check("check-b", "chest", "skill:observation"),
+                ),
+            ),
+        )
+    assert e.value.reference == "check-b"
+    with pytest.raises(ValidationError, match="check-a is declared twice") as e:
+        ActionEngine(
+            base.reviewer,
+            base.resources,
+            ActionRules(
+                id="a",
+                version=1,
+                checks=(
+                    check("check-a", "chest", "skill:observation"),
+                    check("check-a", "b", "skill:observation"),
+                ),
+            ),
+        )
+    assert e.value.reference == "check-a"
 
 
 def test_movement_range_awareness_and_unsupported_combat() -> None:
@@ -281,15 +338,17 @@ def test_movement_range_awareness_and_unsupported_combat() -> None:
     attack = Attack(
         id="attack", actor_id="a", expected_revision=0, target_id="b", weapon_id="sword"
     )
-    updated, result = reducer.resolve(state, attack, rng=dice)
+    updated, resolved_events = reducer.resolve(state, attack, rng=dice)
+    result = action_result(resolved_events)
     assert updated == state and result.status == "unsupported" and dice.calls == 0
     assert (
         reducer.assess(state, attack.model_copy(update={"weapon_id": "tool"})).code
         == "attack.weapon_not_ready"
     )
-    moved, result = reducer.resolve(
+    moved, resolved_events = reducer.resolve(
         state, Move(id="move", actor_id="a", expected_revision=0, destination_id="alley")
     )
+    result = action_result(resolved_events)
     assert result.status == "committed" and moved.resources.game_time == 1
     assert next(e.location_id for e in moved.world.entities if e.id == "a") == "alley"
     assert (
@@ -303,11 +362,12 @@ def test_movement_range_awareness_and_unsupported_combat() -> None:
 def test_supported_checks_record_actual_rolls_and_reveal_only_on_success() -> None:
     reducer, dice = engine(), Dice()
     initial = seed(reducer)
-    inspected, result = reducer.resolve(
+    inspected, resolved_events = reducer.resolve(
         initial,
         Inspect(id="inspect", actor_id="a", expected_revision=0, target_id="chest"),
         rng=dice,
     )
+    result = action_result(resolved_events)
     assert dice.calls == 3 and result.check is not None and result.check.dice == (1, 1, 1)
     assert (
         result.check.modifiers[0].reason == "inspect"
@@ -316,15 +376,17 @@ def test_supported_checks_record_actual_rolls_and_reveal_only_on_success() -> No
     assert result.derived is not None and result.rules_digest == reducer.digest
     assert inspected.world.knowledge == (("a", "clue"),)
     assert inspected.resources.game_time == 2 and inspected.resources.fired == ("expiry",)
-    social, result = reducer.resolve(
+    social, resolved_events = reducer.resolve(
         inspected, Social(id="social", actor_id="a", expected_revision=1, target_id="b"), rng=dice
     )
+    result = action_result(resolved_events)
     assert result.check is not None and ("a", "promise") in social.world.knowledge
-    failed, result = reducer.resolve(
+    failed, resolved_events = reducer.resolve(
         initial,
         Inspect(id="failed", actor_id="a", expected_revision=0, target_id="chest"),
         rng=Dice(5),
     )
+    result = action_result(resolved_events)
     assert result.status == "committed" and result.revealed_fact_ids == ()
     assert failed.world.knowledge == () and failed.resources.game_time == 2
     restored = PlayState.model_validate_json(social.model_dump_json())
@@ -365,10 +427,11 @@ def test_conditions_equipment_timing_approval_and_adjudication_gates() -> None:
 def test_item_use_conservation_and_invalid_actions_are_atomic(amount: int) -> None:
     reducer = engine()
     state = seed(reducer)
-    updated, result = reducer.resolve(
+    updated, resolved_events = reducer.resolve(
         state,
         UseItem(id="use", actor_id="a", expected_revision=0, item_id="potions", quantity=amount),
     )
+    result = action_result(resolved_events)
     remaining = sum(i.quantity for i in updated.resources.items if i.definition_id == "potion")
     if amount > 5:
         assert updated == state and result.status == "rejected" and remaining == 5
@@ -493,7 +556,9 @@ async def test_action_transactions_retry_concurrency_restart_and_snapshot(
     assert await store.replay(initial["id"]) == await store.read(initial["id"])
     history = await store.history(initial["id"])
     assert (
-        len(history) == 12 and history[0].actor_id == "a" and history[0].event["roll"] is not None
+        len(history) == 12
+        and history[0].actor_id == "a"
+        and json.loads(history[0].event["outcome"])["check"] is not None
     )
     state = PlayState.model_validate_json((await store.read(initial["id"]))["play_json"])
     assert state.resources.fired == ("expiry",) and len(state.resources.events) == 1
@@ -557,8 +622,7 @@ async def test_legacy_turns_cannot_mutate_typed_campaigns(service: GameService) 
     await PlayService(service.store, reducer).create(
         initial, world(), resource_seed(), (actor_setup(),)
     )
-    with pytest.raises(ValidationError, match="typed"):
-        await service.turn(initial["id"], "legacy", 0, "Rest")
+    assert not hasattr(service, "turn")
     assert (await service.read(initial["id"]))["revision"] == 0
 
 
@@ -583,9 +647,11 @@ def test_compiled_resources_cannot_be_forged_and_fatigue_is_charged_once() -> No
             )
         }
     )
-    updated, result = reducer.resolve(depleted, command)
+    updated, resolved_events = reducer.resolve(depleted, command)
+    result = action_result(resolved_events)
     assert updated == depleted and result.code == "resource.fatigue"
-    moved, result = reducer.resolve(state, command)
+    moved, resolved_events = reducer.resolve(state, command)
+    result = action_result(resolved_events)
     assert (
         result.status == "committed"
         and next(p.current for p in moved.resources.pools if p.id == "fp:a") == 8
@@ -636,11 +702,12 @@ def test_equipment_attribute_effects_feed_skill_target_with_provenance() -> None
         }
     )
     state = state.model_copy(update={"resources": resources})
-    _, result = reducer.resolve(
+    _, resolved_events = reducer.resolve(
         state,
         Inspect(id="inspect", actor_id="a", expected_revision=0, target_id="chest"),
         rng=Dice(),
     )
+    result = action_result(resolved_events)
     assert result.check is not None and result.check.base_target == 13
     assert result.dependencies[0].value == 12
     assert result.dependencies[0].explanations[0].source_id == "tool"

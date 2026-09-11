@@ -11,7 +11,8 @@ from pydantic import Field, TypeAdapter
 from pydantic import ValidationError as SchemaError
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.simulation.actions import ActionCommand, PlayState
 from wayfarer.simulation.adjudication import expire_rulings
@@ -67,7 +68,7 @@ class SceneService:
             result = self._result(PlayState.model_validate_json(duplicate["play_json"]), command.id)
             return result
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             if authorize is not None:
                 authorize(campaign)
             state = self.play._load(campaign)
@@ -76,16 +77,19 @@ class SceneService:
 
                 synchronous(state, command.actor_id)
             updated = self.play.checkpoint(self.reduce(state, command), before=state)
-            self.play.engine.validate(updated)
-            campaign["revision"], campaign["play_json"] = (
-                updated.revision,
-                updated.model_dump_json(),
-            )
+            self.play.commit(campaign, updated)
             result = self._result(updated, command.id)
-            return Event(input=payload, action="scene", outcome=result.model_dump_json(), roll=None)
+            return CommandReceipt(action="scene", outcome=result.model_dump_json())
 
-        committed = await self.play.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+        committed = await commit_command(
+            self.play.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            resolve,
+            actor_id=command.actor_id,
+            rng=self.play.rng,
         )
         return self._result(
             PlayState.model_validate_json(committed["state"]["play_json"]), command.id
@@ -121,7 +125,7 @@ class SceneService:
         destination = scene
         event_kind: Literal["entered", "exited", "discovered", "observed"] = "observed"
         if isinstance(command, TravelScene):
-            from wayfarer.orchestration.location_combat import disabled
+            from wayfarer.simulation.mechanics.location_combat import disabled
 
             if disabled(state, command.actor_id) & {
                 "left-leg",

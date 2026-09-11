@@ -6,14 +6,17 @@ from aiohttp import web
 from pydantic import Field
 
 from wayfarer.errors import ValidationError, WayfarerError
+from wayfarer.models import Record
 from wayfarer.orchestration.combat import (
     COMBAT_ADAPTER,
     ChooseDefense,
     CombatService,
     ContinueCriticalMiss,
+    DeclareThrownLanding,
     MigrateEncounterHex,
     RepairEquipment,
     ResolveChokeEffects,
+    ResolveWeaponExplosion,
     ResumeInterruptedTurn,
     RetrieveEquipment,
     TakeCombatTurn,
@@ -21,11 +24,16 @@ from wayfarer.orchestration.combat import (
 )
 from wayfarer.orchestration.equipment_view import TacticalSnapshotV2, equipment_view
 from wayfarer.orchestration.play import PlayService
-from wayfarer.orchestration.tactical_view import TacticalSnapshot, project, snapshot, visible_actors
+from wayfarer.orchestration.tactical_view import (
+    TacticalSnapshot,
+    project,
+    snapshot,
+    visible_actors,
+)
 from wayfarer.simulation.actions import PlayState
-from wayfarer.simulation.resources import Record
 from wayfarer.transport.campaign_api import ACCESS_KEY, _identity, _json
 from wayfarer.transport.tactical_v1_commands import ChooseDefense as ChooseDefenseV1
+from wayfarer.transport.tactical_v1_commands import MigrateEncounterHex as MigrateEncounterHexV1
 from wayfarer.transport.tactical_v1_commands import TakeCombatTurn as TakeCombatTurnV1
 from wayfarer.transport.tactical_v1_commands import TakeUnarmedTurn as TakeUnarmedTurnV1
 
@@ -35,7 +43,7 @@ class TacticalRequest(Record):
         TakeCombatTurnV1
         | TakeUnarmedTurnV1
         | ChooseDefenseV1
-        | MigrateEncounterHex
+        | MigrateEncounterHexV1
         | ResumeInterruptedTurn
         | ResolveChokeEffects
     ) = Field(discriminator="kind")
@@ -52,6 +60,8 @@ class TacticalRequestV2(Record):
         | RepairEquipment
         | RetrieveEquipment
         | ContinueCriticalMiss
+        | DeclareThrownLanding
+        | ResolveWeaponExplosion
     ) = Field(discriminator="kind")
 
 
@@ -125,13 +135,18 @@ async def execute(request: web.Request) -> web.Response:
     if state.lifecycle != "active":
         raise ValidationError("Resume the campaign before acting")
     encounter = CombatService._encounter(state, command.encounter_id)
-    if isinstance(command, (MigrateEncounterHex, ContinueCriticalMiss)):
+    if isinstance(
+        command,
+        (MigrateEncounterHex, ContinueCriticalMiss, DeclareThrownLanding, ResolveWeaponExplosion),
+    ):
         if member.role != "gm":
             raise ValidationError("Migration requires GM authority")
     else:
-        if encounter.hex_battlefield is None or command.actor_id not in encounter.turn_order:
+        if encounter.spatial_kind != "hex" or command.actor_id not in encounter.turn_order:
             raise ValidationError("Tactical encounter is unavailable")
-        visible = visible_actors(state, encounter, command.actor_id)
+        visible = visible_actors(
+            state, encounter, command.actor_id, board=access.play.rules_context.hex_map(encounter)
+        )
         if isinstance(command, (TakeCombatTurn, TakeUnarmedTurn)):
             if command.target_id is not None and command.target_id not in visible:
                 raise ValidationError("Target is unavailable")

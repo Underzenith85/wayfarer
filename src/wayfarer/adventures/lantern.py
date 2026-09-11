@@ -18,7 +18,8 @@ from wayfarer.rules.catalog import (
     RuleDefinition,
     RulesCatalog,
 )
-from wayfarer.simulation.actions import ActionEngine, ActionRules, ActorSetup, CheckRule
+from wayfarer.simulation.action_engine import ActionEngine
+from wayfarer.simulation.actions import ActionRules, ActorSetup, CheckRule
 from wayfarer.simulation.combat import AttackProfile, Battlefield, CombatConsequence, CombatRules
 from wayfarer.simulation.noncombat import Approach, NoncombatRule, NoncombatRules
 from wayfarer.simulation.npcs import NPCAction, NPCPlan, NPCRules

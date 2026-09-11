@@ -10,10 +10,11 @@ from pydantic import Field, model_validator
 from pydantic.json_schema import SkipJsonSchema
 
 from wayfarer.character.power import CharacterProposal
+from wayfarer.models import Id, Record
 from wayfarer.rules.catalog import CampaignRules
 from wayfarer.rules.transport_types import Transport
 from wayfarer.simulation.actions import ActorSetup
-from wayfarer.simulation.resources import Id, Record, ResourceState
+from wayfarer.simulation.resources import ResourceState
 from wayfarer.simulation.studio import GenerationBrief, ScenarioContent, StudioFinding
 
 Digest = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
@@ -267,3 +268,25 @@ def parse_document(source: str) -> ScenarioDocumentBase:
 
         return SocialScenarioDocument.model_validate_json(source)
     return ScenarioDocument.model_validate_json(source)
+
+
+class ScenarioReference(Record):
+    """Immutable source identity; uncatalogued scenarios have a synthetic reference."""
+
+    catalog_id: Id | None = None
+    revision: int = Field(ge=1)
+    content_digest: Digest
+    engine_digest: Digest
+
+
+class ScenarioBoundary(Record):
+    """Adventure-local revision zero on a monotonic campaign stream."""
+
+    reference: ScenarioReference
+    graph_digest: Digest
+    runtime_digest: Digest
+    command_id: str
+    campaign_revision: int = Field(ge=0)
+    revision: Literal[0] = 0
+    segment: int = Field(ge=0)
+    published: PublishedRevision | None = None

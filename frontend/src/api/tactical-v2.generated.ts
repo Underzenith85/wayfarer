@@ -107,6 +107,11 @@ export interface components {
        * @default null
        */
       second_item_id: string | null;
+      /**
+       * Catch Thrown
+       * @default false
+       */
+      catch_thrown: boolean;
       /** @default null */
       retreat: components["schemas"]["Hex"] | null;
       /**
@@ -127,7 +132,8 @@ export interface components {
       /** Command */
       command:
         | components["schemas"]["RepairEquipment"]
-        | components["schemas"]["RetrieveEquipment"];
+        | components["schemas"]["RetrieveEquipment"]
+        | components["schemas"]["TakeCombatTurn"];
     };
     /** EquipmentView */
     EquipmentView: {
@@ -159,6 +165,11 @@ export interface components {
        * @default null
        */
       loaded_rounds: number | null;
+      /**
+       * Charges
+       * @default null
+       */
+      charges: number | null;
     };
     /** GridPoint */
     GridPoint: {
@@ -525,6 +536,11 @@ export interface components {
        */
       let_down_bow: boolean;
       /**
+       * Recover Thrown Item
+       * @default false
+       */
+      recover_thrown_item: boolean;
+      /**
        * Escape Entanglement
        * @default false
        */
@@ -842,6 +858,69 @@ export interface components {
        */
       equipment: components["schemas"]["EquipmentView"][];
     };
+    /**
+     * BlastResponse
+     * @description GM declares chosen defenses and scene cover before any blast dice.
+     */
+    BlastResponse: {
+      /** Actor Id */
+      actor_id: string;
+      /** Cover Dr */
+      cover_dr: number;
+      /**
+       * Covered Locations
+       * @default []
+       */
+      covered_locations: (
+        | "torso"
+        | "vitals"
+        | "skull"
+        | "face"
+        | "neck"
+        | "groin"
+        | "left-arm"
+        | "right-arm"
+        | "left-leg"
+        | "right-leg"
+        | "left-hand"
+        | "right-hand"
+        | "left-foot"
+        | "right-foot"
+        | "left-eye"
+        | "right-eye"
+      )[];
+      /**
+       * Dive Covered Locations
+       * @default []
+       */
+      dive_covered_locations: (
+        | "torso"
+        | "vitals"
+        | "skull"
+        | "face"
+        | "neck"
+        | "groin"
+        | "left-arm"
+        | "right-arm"
+        | "left-leg"
+        | "right-leg"
+        | "left-hand"
+        | "right-hand"
+        | "left-foot"
+        | "right-foot"
+        | "left-eye"
+        | "right-eye"
+      )[];
+      /** Size Modifier */
+      size_modifier: number;
+      /** @default null */
+      dive_to: components["schemas"]["GroundPosition"] | null;
+      /**
+       * Dive Cover Dr
+       * @default 0
+       */
+      dive_cover_dr: number;
+    };
     /** ContinueCriticalMiss */
     ContinueCriticalMiss: {
       /** Id */
@@ -865,6 +944,25 @@ export interface components {
        */
       stage: "migrate" | "resume";
     };
+    /** DeclareThrownLanding */
+    DeclareThrownLanding: {
+      /** Id */
+      id: string;
+      /** Actor Id */
+      actor_id: string;
+      /** Expected Revision */
+      expected_revision: number;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: "declare_thrown_landing";
+      /** Encounter Id */
+      encounter_id: string;
+      /** Item Id */
+      item_id: string;
+      landing: components["schemas"]["GroundPosition"];
+    };
     /**
      * HexBattlefield
      * @description New tagged contract. Legacy square maps cannot validate as hex maps.
@@ -872,6 +970,21 @@ export interface components {
     HexBattlefield: {
       /** Id */
       id: string;
+      /**
+       * Location Id
+       * @default unbound
+       */
+      location_id: string;
+      /**
+       * Source Template Id
+       * @default null
+       */
+      source_template_id: string | null;
+      /**
+       * Darkness Penalty
+       * @default 0
+       */
+      darkness_penalty: number;
       /**
        * Coordinate System
        * @constant
@@ -956,6 +1069,41 @@ export interface components {
       /** Grip Id */
       grip_id: string;
     };
+    /** ResolveWeaponExplosion */
+    ResolveWeaponExplosion: {
+      /** Id */
+      id: string;
+      /** Actor Id */
+      actor_id: string;
+      /** Expected Revision */
+      expected_revision: number;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: "resolve_weapon_explosion";
+      /** Encounter Id */
+      encounter_id: string;
+      /** Blast Id */
+      blast_id: string;
+      /** Responses */
+      responses: components["schemas"]["BlastResponse"][];
+      /** Object Cover */
+      object_cover: {
+        [key: string]: number;
+      };
+      /** Object Sizes */
+      object_sizes?: {
+        [key: string]: number;
+      };
+      /** @default null */
+      center: components["schemas"]["GroundPosition"] | null;
+      /**
+       * Environment
+       * @enum {string}
+       */
+      environment: "air" | "water" | "vacuum";
+    };
     /**
      * Stairway
      * @description Authored traversable edge, not permission to climb or jump a cliff.
@@ -976,7 +1124,9 @@ export interface components {
         | components["schemas"]["ResolveChokeEffects"]
         | components["schemas"]["RepairEquipment"]
         | components["schemas"]["RetrieveEquipment"]
-        | components["schemas"]["ContinueCriticalMiss"];
+        | components["schemas"]["ContinueCriticalMiss"]
+        | components["schemas"]["DeclareThrownLanding"]
+        | components["schemas"]["ResolveWeaponExplosion"];
     };
     TacticalError: {
       code: string;

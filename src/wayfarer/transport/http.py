@@ -89,15 +89,9 @@ async def create_campaign(request: web.Request) -> web.Response:
 
 
 async def turn(request: web.Request) -> web.Response:
-    data = await body(request)
-    service: GameService = request.app[SERVICE_KEY]
+    """The retired prototype endpoint is outside the frozen /api/v1 contract."""
     return json_response(
-        await service.turn(
-            request.match_info["cid"],
-            data.get("request_id"),
-            data.get("revision"),
-            data.get("text"),
-        )
+        {"code": "prototype_retired", "message": "Use the typed campaign actions API."}, 410
     )
 
 

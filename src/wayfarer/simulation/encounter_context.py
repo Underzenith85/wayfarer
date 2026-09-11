@@ -6,11 +6,11 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal
 
 from wayfarer.errors import ValidationError
+from wayfarer.models import Id, Record
 from wayfarer.simulation.combat import Battlefield, CombatRules, Encounter
 from wayfarer.simulation.hex_geometry import HexBattlefield
 from wayfarer.simulation.noncombat import NoncombatEncounter
 from wayfarer.simulation.party import QueuedActivity, Subgroup
-from wayfarer.simulation.resources import Id, Record
 from wayfarer.simulation.scenes import SceneRules
 
 if TYPE_CHECKING:
@@ -37,13 +37,11 @@ class ActorActivity:
     def spatial_kind(self) -> Literal["square", "hex"] | None:
         if self.encounter is None:
             return None
-        return "hex" if self.encounter.hex_battlefield is not None else "square"
+        return "hex" if self.encounter.spatial_kind == "hex" else "square"
 
     def battlefield(self, rules: CombatRules) -> Battlefield | HexBattlefield | None:
         if self.encounter is None:
             return None
-        if self.encounter.hex_battlefield is not None:
-            return self.encounter.hex_battlefield
         return next(b for b in rules.battlefields if b.id == self.encounter.battlefield_id)
 
 

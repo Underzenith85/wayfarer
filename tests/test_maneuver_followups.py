@@ -7,7 +7,7 @@ from test_gurps_ranged import scene, weapon
 from test_tactical import migration
 from test_tactical import setup as tactical_setup
 
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.combat import CombatService, TakeCombatTurn
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.rules.checks import RecordedDice
@@ -157,6 +157,7 @@ async def test_stop_thrust_interrupts_charge_and_adds_one_per_two_yards(tmp_path
         }
     )
     await CombatService(play).execute(cid, moved_migration, authenticated_actor_id="gm")
+    play = play.for_campaign(await play.store.read(cid))
     await turn(
         cid,
         play,
@@ -173,7 +174,7 @@ async def test_stop_thrust_interrupts_charge_and_adds_one_per_two_yards(tmp_path
         },
     )
 
-    def set_declared_reach(campaign: Campaign) -> Event:
+    def set_declared_reach(campaign: Campaign) -> CommandReceipt:
         state = play._load(campaign)
         encounter = state.encounters[0]
         encounter = encounter.model_copy(
@@ -189,7 +190,7 @@ async def test_stop_thrust_interrupts_charge_and_adds_one_per_two_yards(tmp_path
         campaign["play_json"] = state.model_copy(
             update={"encounters": (encounter,)}
         ).model_dump_json()
-        return Event(input="fixture", action="combat", outcome="declared reach", roll=None)
+        return CommandReceipt(action="combat", outcome="declared reach")
 
     await play.store.commit_turn(cid, "declared-reach", 3, "declared-reach", set_declared_reach)
     prepared = play._load(await play.store.read(cid)).encounters[0]
@@ -219,7 +220,7 @@ async def test_two_weapon_double_uses_declared_off_hand_with_minus_four(tmp_path
 
     cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004", human=True)
 
-    def add_left_weapon(campaign: Campaign) -> Event:
+    def add_left_weapon(campaign: Campaign) -> CommandReceipt:
         state = play._load(campaign)
         item = Item(
             id="sword-a-left",
@@ -264,7 +265,7 @@ async def test_two_weapon_double_uses_declared_off_hand_with_minus_four(tmp_path
             }
         )
         campaign["play_json"] = state.model_dump_json()
-        return Event(input="fixture", action="combat", outcome="left weapon", roll=None)
+        return CommandReceipt(action="combat", outcome="left weapon")
 
     await play.store.commit_turn(cid, "left-weapon", 1, "left-weapon", add_left_weapon)
     await turn(

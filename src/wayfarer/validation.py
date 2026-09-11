@@ -7,7 +7,6 @@ builder owns costs and campaign policy. JSON decoding itself returns object.
 import json
 
 from wayfarer.models import (
-    Action,
     Campaign,
     Character,
     EventAction,
@@ -90,14 +89,6 @@ def scenario(value: object) -> dict[str, str]:
     return result
 
 
-def action(value: object) -> Action:
-    match value:
-        case "observe" | "talk" | "sneak" | "rest" | "ask":
-            return value
-        case _:
-            raise ValueError("Unsupported action proposal")
-
-
 def roll(value: object) -> Roll:
     d = mapping(value)
     fields(d, {"dice", "total", "target", "success", "critical"})
@@ -142,7 +133,7 @@ def message(value: object) -> Message:
     if "roll" in d:
         result["roll"] = None if d["roll"] is None else roll(d["roll"])
     if "action" in d:
-        result["action"] = action(d["action"])
+        result["action"] = string(d["action"])
     if "flavor" in d:
         result["flavor"] = string(d["flavor"])
     return result
@@ -172,7 +163,9 @@ def campaign(value: object) -> Campaign:
             "rules_ref",
             "resources_json",
             "play_json",
+            "scenario_reference_json",
             "scenario_graph_json",
+            "combat_rules_json",
             "scenario_document_json",
             "setup_json",
         },
@@ -197,6 +190,10 @@ def campaign(value: object) -> Campaign:
         result["setup_json"] = string(d["setup_json"])
     if "scenario_document_json" in d:
         result["scenario_document_json"] = string(d["scenario_document_json"])
+    if "scenario_reference_json" in d:
+        result["scenario_reference_json"] = string(d["scenario_reference_json"])
+    if "combat_rules_json" in d:
+        result["combat_rules_json"] = string(d["combat_rules_json"])
     if "scenario_graph_json" in d:
         result["scenario_graph_json"] = string(d["scenario_graph_json"])
     if "play_json" in d:
@@ -254,5 +251,7 @@ def event_action(value: object) -> EventAction:
             | "setup"
         ):
             return value
+        case "observe" | "talk" | "sneak" | "rest" | "ask" | "legacy":
+            return "legacy"  # Read-only normalization of retained prototype receipts.
         case _:
-            return action(value)
+            raise ValueError("Unsupported command family")

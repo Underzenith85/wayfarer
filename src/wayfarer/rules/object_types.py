@@ -2,11 +2,12 @@
 
 from typing import Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import Field, model_validator
+
+from wayfarer.models import Record
 
 
-class ObjectProfile(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+class ObjectProfile(Record):
     profile_id: Literal["gurps-basic-set-4e-2004"] = "gurps-basic-set-4e-2004"
     construction: Literal["unliving", "homogenous", "diffuse"]
     hp: int = Field(gt=0)
@@ -27,16 +28,14 @@ class ObjectProfile(BaseModel):
         return self
 
 
-class GroundPosition(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+class GroundPosition(Record):
     encounter_id: str = Field(min_length=1, max_length=200)
     geometry: Literal["grid", "hex"]
     x: int
     y: int
 
 
-class ObjectCondition(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+class ObjectCondition(Record):
     hp: int
     disabled: bool = False
     destroyed: bool = False
@@ -52,8 +51,7 @@ class ObjectCondition(BaseModel):
         return self
 
 
-class ObjectResult(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+class ObjectResult(Record):
     command_id: str = Field(min_length=1, max_length=200)
     item_id: str = Field(min_length=1, max_length=200)
     injury: int = Field(default=0, ge=0)

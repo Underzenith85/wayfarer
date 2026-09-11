@@ -14,11 +14,11 @@ from pydantic import Field, model_validator
 from pydantic.config import JsonDict
 
 from wayfarer.errors import ValidationError
+from wayfarer.models import Id, Record
 from wayfarer.rules.conformance import BASELINE_ID
-from wayfarer.simulation.resources import Id, Record
 
-Facing = Literal[0, 1, 2, 3, 4, 5]
-Posture = Literal["standing", "crouching", "kneeling", "crawling", "sitting", "lying"]
+HexFacing = Literal[0, 1, 2, 3, 4, 5]
+HexPosture = Literal["standing", "crouching", "kneeling", "crawling", "sitting", "lying"]
 Arc = Literal["front", "right", "rear", "left", "close"]
 DIRECTIONS = ((1, 0), (0, 1), (-1, 1), (-1, 0), (0, -1), (1, -1))
 
@@ -50,8 +50,8 @@ def neighbor(origin: Hex, facing: int) -> Hex:
 
 class Pose(Record):
     position: Hex
-    facing: Facing
-    posture: Posture = "standing"
+    facing: HexFacing
+    posture: HexPosture = "standing"
 
     @model_validator(mode="before")
     @classmethod
@@ -106,6 +106,9 @@ class HexBattlefield(Record):
     """New tagged contract. Legacy square maps cannot validate as hex maps."""
 
     id: Id
+    location_id: Id = "unbound"
+    source_template_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
+    darkness_penalty: int = Field(default=0, ge=-10, le=0, exclude_if=lambda v: v == 0)
     coordinate_system: Literal["hex-axial-v1"]
     profile_id: Literal["gurps-basic-set-4e-2004"]
     baseline_id: Literal["gurps-4e-2004-first-printing+errata-2007-01-26"]
@@ -158,7 +161,7 @@ def step_allowance(move: int) -> int:
     return max(1, (move + 9) // 10)
 
 
-def posture_move(move: int, posture: Posture) -> int:
+def posture_move(move: int, posture: HexPosture) -> int:
     """B367/B387: crouching 2/3 Move; crawling 1/3; kneeling 1/3."""
     step_allowance(move)  # shared validation
     if posture == "standing":
@@ -190,8 +193,8 @@ def movement(
     actor_id: str | None = None,
     step: bool = False,
     enter_close_combat: bool = False,
-    final_facing: Facing | None = None,
-    turns: tuple[Facing, ...] = (),
+    final_facing: HexFacing | None = None,
+    turns: tuple[HexFacing, ...] = (),
     final_turn_policy: Literal["move", "one", "any"] = "move",
 ) -> Movement:
     """Validate a supplied path and return a receipt, never search or mutate.
