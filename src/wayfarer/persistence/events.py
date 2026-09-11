@@ -38,6 +38,7 @@ class StoredEvent:
     entropy_seed: str | None = field(default=None, repr=False)
     engine_version: str | None = None
     rng_algorithm: str | None = None
+    recorded_at_us: int | None = None
 
     @property
     def reexecutable(self) -> bool:

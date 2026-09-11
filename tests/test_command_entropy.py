@@ -104,6 +104,7 @@ async def test_legacy_command_metadata_migrates_without_inventing_a_seed(tmp_pat
     record = histories[0][0]
     assert record.entropy_seed is None and record.engine_version is None
     assert record.rng_algorithm is None and not record.reexecutable
+    assert record.recorded_at_us is None
     assert record.state_after == initial
 
 
@@ -163,6 +164,7 @@ async def test_seeded_command_retry_race_restart_and_reexecution(
     record = history[0]
     assert record.entropy_seed and len(record.entropy_seed) == 64
     assert record.engine_version == ENGINE_VERSION and record.rng_algorithm == RNG_ALGORITHM
+    assert record.recorded_at_us is not None and record.recorded_at_us > 0
     assert record.reexecutable and record.actor_id == "a"
     replay = PlayService(store, reducer, rng=SeededRandom(record.entropy_seed))
     state, result = reducer.resolve(before, command, rng=replay.rng)

@@ -298,6 +298,13 @@ imports in simulation. See [command entropy](persistence.md#command-entropy-411)
 for retry, migration and explicit test-source semantics. The comprehensive
 re-execution/version-bump release gate remains #418.
 
+The #414 implementation also records an orchestration-captured UTC instant on
+each live command. Invitation claims persist and reuse that instant across
+recovery; ledger consumers receive one timestamp captured before the transaction.
+Simulation clock imports and resolver clock reads are prohibited by architecture
+tests. See [command time](persistence.md#command-time-414) for deadline boundaries,
+legacy receipts and operational clocks that remain outside simulation.
+
 **Events declare their audience.** Knowledge isolation is a release invariant
 (#1, #45): reunion does not share secrets and captives learn nothing of their
 rescuers. Every event carries an audience, the whole campaign, a set of actor

@@ -61,7 +61,7 @@ class AsyncSQLiteStore:
         cursor = await db.execute("PRAGMA table_info(command_log)")
         columns = {row[1] for row in await cursor.fetchall()}
         await cursor.close()
-        metadata = ("entropy_seed", "engine_version", "rng_algorithm")
+        metadata = ("entropy_seed", "engine_version", "rng_algorithm", "recorded_at_us")
         if not set(metadata) <= columns:
             # Recheck under the writer lock; normal reads need no migration lock.
             await db.execute("BEGIN IMMEDIATE")
@@ -70,7 +70,8 @@ class AsyncSQLiteStore:
             await cursor.close()
             for column in metadata:
                 if column not in columns:
-                    await db.execute(f"ALTER TABLE command_log ADD COLUMN {column} TEXT")
+                    kind = "INTEGER" if column == "recorded_at_us" else "TEXT"
+                    await db.execute(f"ALTER TABLE command_log ADD COLUMN {column} {kind}")
         await db.commit()
         return db
 
@@ -164,6 +165,7 @@ class AsyncSQLiteStore:
         *,
         actor_id: str = "system",
         entropy: CommandEntropy | None = None,
+        recorded_at_us: int | None = None,
     ) -> TurnResult:
         db = await self._connect()
         try:
@@ -185,8 +187,8 @@ class AsyncSQLiteStore:
                 """INSERT INTO command_log (
                     campaign, command_id, actor_id, expected_revision,
                     resulting_revision, payload_hash, rules_version,
-                    schema_version, event, state_after, entropy_seed, engine_version, rng_algorithm
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    schema_version, event, state_after, entropy_seed, engine_version, rng_algorithm, recorded_at_us
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     cid,
                     request_id,
@@ -201,6 +203,7 @@ class AsyncSQLiteStore:
                     entropy.seed if entropy else None,
                     entropy.engine_version if entropy else None,
                     entropy.rng_algorithm if entropy else None,
+                    recorded_at_us,
                 ),
             )
             if state["revision"] % SNAPSHOT_INTERVAL == 0:
@@ -224,7 +227,7 @@ class AsyncSQLiteStore:
         try:
             cursor = await db.execute(
                 """SELECT command_id, actor_id, expected_revision, resulting_revision,
-                          payload_hash, rules_version, schema_version, event, state_after, entropy_seed, engine_version, rng_algorithm
+                          payload_hash, rules_version, schema_version, event, state_after, entropy_seed, engine_version, rng_algorithm, recorded_at_us
                    FROM command_log WHERE campaign=? ORDER BY resulting_revision""",
                 (cid,),
             )
@@ -245,6 +248,7 @@ class AsyncSQLiteStore:
                     entropy_seed=row[9],
                     engine_version=row[10],
                     rng_algorithm=row[11],
+                    recorded_at_us=row[12],
                 )
                 for row in rows
             ]

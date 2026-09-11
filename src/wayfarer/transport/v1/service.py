@@ -19,7 +19,7 @@ from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.scenes import SceneService
 from wayfarer.simulation.actions import ActionResult
 
-from .common import Fault, Obj, array, encoded, now, obj, uid, validate
+from .common import Fault, Obj, array, encoded, obj, uid, validate
 from .ledger import Ledger, Transaction
 from .projection import Projector, View
 
@@ -83,7 +83,7 @@ class V1Service:
             raise Fault(404, "not_found") from exc
         meta = await tx.get("campaign:" + cid)
         if meta is None:
-            meta = {"stamp": now()}
+            meta = {"stamp": tx.instant.isoformat()}
             await tx.put("campaign:" + cid, meta)
         self.projector.text_enabled = self.interpret is not None
         return self.projector.make(raw, principal, str(meta["stamp"]), viewpoint=viewpoint)
@@ -208,7 +208,7 @@ class V1Service:
                     raise Fault(404, "not_found")
             if intent["kind"] == "move":
                 self.movement(view, str(request["actor_id"]), str(intent["destination_id"]))
-            aid, stamp = uid(), now()
+            aid, stamp = uid(), tx.instant.isoformat()
             wire: Obj = {
                 "id": aid,
                 "command_id": command_id,
@@ -295,7 +295,12 @@ class V1Service:
                             or obj(current["wire"])["version"] != generation
                         ):
                             return
-                        self.transition(current, "needs_clarification", clarification=clarification)
+                        self.transition(
+                            current,
+                            "needs_clarification",
+                            clarification=clarification,
+                            at=tx.instant.isoformat(),
+                        )
                         await tx.put("action:" + aid, current)
                     return
                 validate("Intent", intent)
@@ -322,7 +327,7 @@ class V1Service:
                         "actor_id": request["actor_id"],
                         "expected_revision": view.state.revision,
                     }
-                self.transition(record, "resolving")
+                self.transition(record, "resolving", at=tx.instant.isoformat())
                 await tx.put("action:" + aid, record)
             async with self.ledger.transaction() as tx:
                 record = await self.recovery_action(tx, aid, cid, principal)
@@ -375,7 +380,7 @@ class V1Service:
                     record["engine"] = command
                     await tx.put("action:" + aid, record)
                     # Persist the replacement attempt before a future dispatch.
-                    self.transition(record, "submitted")
+                    self.transition(record, "submitted", at=tx.instant.isoformat())
                     await tx.put("action:" + aid, record)
                     self.schedule(aid)
                     return
@@ -410,6 +415,7 @@ class V1Service:
                         "changed_resources": changed,
                         "game_time": after.campaign["game_time"],
                     },
+                    at=tx.instant.isoformat(),
                 )
                 # Knowledge-changing actions remain readable to their submitting
                 # principal under the new view, but no other principal inherits them.
@@ -435,14 +441,14 @@ class V1Service:
                     if isinstance(exc, ProviderError):
                         diagnostic = provider_diagnostic(exc)
                         error.update(message=diagnostic.message, retryable=diagnostic.retryable)
-                    self.transition(failed, "rejected", error=error)
+                    self.transition(failed, "rejected", error=error, at=tx.instant.isoformat())
                     await tx.put("action:" + aid, failed)
 
     @staticmethod
-    def transition(record: Obj, status: str, **extra: object) -> None:
+    def transition(record: Obj, status: str, *, at: str, **extra: object) -> None:
         old = obj(record["wire"])
         wire = {k: v for k, v in old.items() if k not in ("resolution", "error", "clarification")}
-        wire.update(status=status, version=uid(), updated_at=now(), **extra)
+        wire.update(status=status, version=uid(), updated_at=at, **extra)
         record["wire"] = validate("Action", wire)
         record["history"] = [*array(record.get("history", [])), wire][-10000:]
 
@@ -482,7 +488,7 @@ class V1Service:
             ):
                 raise Fault(409, "invalid_transition")
             if cancel:
-                self.transition(record, "cancelled")
+                self.transition(record, "cancelled", at=tx.instant.isoformat())
             else:
                 clarification = obj(wire["clarification"])
                 answer = obj(request["answer"])
@@ -512,7 +518,7 @@ class V1Service:
                 view = await self.view(tx, cid, principal)
                 self.versions(view, obj(record["request"]))
                 record["engine"] = None
-                self.transition(record, "submitted")
+                self.transition(record, "submitted", at=tx.instant.isoformat())
             await tx.put("action:" + aid, record)
             await tx.put(key, {"fingerprint": fingerprint, "action": aid})
         if not cancel:

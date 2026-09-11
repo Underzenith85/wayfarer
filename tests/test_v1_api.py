@@ -445,7 +445,7 @@ async def test_recover_after_engine_commit_before_receipt_finalization(
         async with service.ledger.transaction() as tx:
             record = await tx.get("action:" + aid)
             assert record is not None
-            service.transition(record, "resolving")
+            service.transition(record, "resolving", at=tx.instant.isoformat())
             await tx.put("action:" + aid, record)
         restarted = V1Service(service.play, service.ledger.path)
         await restarted.start()
