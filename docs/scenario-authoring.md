@@ -18,6 +18,28 @@ objectives are checked together for incompatible terminal states, including
 contradictions split across separate objectives. These are activation errors;
 challenge estimates remain warnings, not guarantees of fairness or solvability.
 
+## What a validation finding owes the author
+
+Every error-severity finding must be actionable without reading engine source.
+
+- `reference` names the node to edit - the check rule, discovery, scene, clue,
+  objective, approach, setback or actor - and never the scenario ID when a
+  narrower locus exists. Engine invariants carry that locus on `ValidationError`;
+  the studio reports it and falls back to the scenario only when there is none.
+- The message states the conclusion and the remedy. Collisions name both
+  colliding nodes and the key they share. `clue.missing` reports what the
+  reachability closure concluded for each candidate revelation: an unreachable
+  discovery scene, a check no player character can run and why, an exit trigger
+  that fires on the wrong phase, or that nothing reveals the fact at all.
+  `graph.unreachable` names each exit that leads to the scene and the facts or
+  unbypassed obstacles that keep it shut. `approach.unsupported` lists every
+  condition that failed. `generation.repair_exhausted` lists the findings the
+  budget did not resolve instead of only reporting the budget.
+- Unsupported checks are diagnosed once: either no player character holds the
+  catalog definition, or the characters who do are not carrying the required
+  equipment. Downstream clue, approach, encounter and recovery findings quote
+  that reason rather than restating the rule.
+
 The direct scenario graph generator includes the configured NPC policy and NPC
 catalog IDs in its context. Schema-invalid responses consume the same bounded
 repair budget as structurally invalid candidates; they never become active state.

@@ -343,3 +343,73 @@ async def test_existing_graph_activation_ignores_json_key_order(tmp_path: Path) 
         initial, graph.world, graph.resources, graph.actors, members
     )
     await service.studio.activate(graph, initial, members, principal_id="gm")
+
+
+@pytest.mark.parametrize(
+    ("mutation", "code", "reference", "expected"),
+    [
+        (
+            "undeclared-capability",
+            "document.capabilities",
+            "compatibility",
+            "engine capabilities noncombat-v1 that compatibility.capabilities does not declare",
+        ),
+        (
+            "rules",
+            "document.rules",
+            "compatibility",
+            "engine digest",
+        ),
+        (
+            "unavailable-catalog",
+            "party.definition",
+            "a",
+            "Slot a requires magic:invented, which is not in the pinned catalog",
+        ),
+        (
+            "incompatible-party",
+            "party.pregen",
+            "a",
+            "points, outside the 0-0 range this scenario allows",
+        ),
+        (
+            "duplicate-entity",
+            "document.duplicate",
+            "document.graph.world.entities",
+            "declares dock more than once",
+        ),
+    ],
+)
+def test_document_findings_name_the_node_and_the_remedy(
+    tmp_path: Path, mutation: str, code: str, reference: str, expected: str
+) -> None:
+    """A document finding an author cannot act on is a defect of the validator (#365)."""
+    service, document = setup(tmp_path)
+    data = json.loads(document.canonical())
+    if mutation == "undeclared-capability":
+        data["graph"]["noncombat"] = {
+            "id": "case",
+            "version": 1,
+            "encounters": [
+                {
+                    "id": "search",
+                    "scene_id": "dock-scene",
+                    "category": "investigation",
+                    "stakes": "Find evidence",
+                    "required_progress": 2,
+                    "approaches": [{"id": "look", "check_rule_id": "inspect"}],
+                }
+            ],
+        }
+    elif mutation == "rules":
+        data["compatibility"]["engine_digest"] = "0" * 64
+    elif mutation == "unavailable-catalog":
+        data["party"]["slots"][0]["required_definitions"] = ["magic:invented"]
+    elif mutation == "incompatible-party":
+        data["party"]["maximum_points"] = 0
+    else:
+        data["graph"]["world"]["entities"] += data["graph"]["world"]["entities"][:1]
+    report = service.validate(json.dumps(data))
+    finding = next(f for f in report.findings if f.code == code)
+    assert finding.reference == reference, report
+    assert expected in finding.message, finding.message
