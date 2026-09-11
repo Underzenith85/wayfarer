@@ -93,6 +93,7 @@ class PlayService:
 
     def bind(self, campaign: Campaign, *, migration_target: bool = False) -> PlayService:
         """Bind a saved scenario without sharing mutable per-campaign runtime state."""
+        from wayfarer.orchestration.sessions import REGISTRY
         from wayfarer.simulation.social_policy import parse_graph
 
         encoded = campaign.get("scenario_graph_json")
@@ -106,7 +107,9 @@ class PlayService:
             if original is None:
                 raise ValidationError("Map migration requires configured combat rules")
             saved = CombatRules.model_validate_json(override)
-            engine = ActionEngine(
+            engine = REGISTRY.bind(
+                self.store,
+                campaign["id"],
                 self.engine.reviewer,
                 self.engine.resources,
                 self.engine.rules.model_copy(
@@ -119,7 +122,9 @@ class PlayService:
                 return self
             return PlayService(self.store, engine, rng=self.rng, profiles=self.profiles)
         graph = parse_graph(encoded)
-        engine = ActionEngine(
+        engine = REGISTRY.bind(
+            self.store,
+            campaign["id"],
             self.engine.reviewer,
             self.engine.resources.for_world(graph.world),
             graph.runtime_rules(),

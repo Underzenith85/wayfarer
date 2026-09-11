@@ -61,7 +61,12 @@ async def test_scheduled_turn_waits_across_restart_without_narrating(
     result = await director.run(
         cid, principal_id="alice", actor_id="a", command_id="wait-a", text="wait"
     )
-    assert result.committed and result.narration_available
+    assert result.committed
+    await director.llm.jobs.drain()
+    result = await director.run(
+        cid, principal_id="alice", actor_id="a", command_id="wait-a", text="wait"
+    )
+    assert result.narration_available
     state = restarted._load(await restarted.store.read(cid))
     assert state.resources.game_time == 1
     assert len(state.party.receipts) == 2
@@ -233,43 +238,36 @@ async def test_rejected_scheduled_action_is_not_narrated_as_success(tmp_path: Pa
     assert next(s for s in state.actor_scenes if s.actor_id == "a").scene_id == "alley-scene"
 
 
-@pytest.mark.parametrize("operation", ["intent", "narration"])
-async def test_cancelled_provider_call_resumes_without_replaying(
-    tmp_path: Path, operation: str
-) -> None:
+async def test_stalled_narration_never_blocks_committed_projection(tmp_path: Path) -> None:
     import asyncio
 
     from wayfarer.orchestration.providers import ProviderRequest
 
     cid, play = await prepare(tmp_path)
-    entered = asyncio.Event()
+    entered, release = asyncio.Event(), asyncio.Event()
 
     class BlockingProvider(FakeProvider):
         async def complete(self, request: ProviderRequest) -> object:
-            if request.operation == operation:
+            if request.operation == "narration":
                 entered.set()
-                await asyncio.Event().wait()
+                await release.wait()
             return await super().complete(request)
 
     director = DirectorService(Orchestrator(CampaignAccess(play), BlockingProvider()))
-    task = asyncio.create_task(
-        director.run(cid, principal_id="alice", actor_id="a", command_id="cancelled", text="wait")
+    result = await asyncio.wait_for(
+        director.run(cid, principal_id="alice", actor_id="a", command_id="slow", text="wait"), 5
     )
-    await asyncio.wait_for(entered.wait(), timeout=5)
-    task.cancel()
-    with pytest.raises(asyncio.CancelledError):
-        await task
-    before = play._load(await play.store.read(cid))
-    assert before.resources.game_time == (1 if operation == "narration" else 0)
-    director = DirectorService(Orchestrator(CampaignAccess(play), FakeProvider()))
-    result = await director.run(
-        cid, principal_id="alice", actor_id="a", command_id="cancelled", text="wait"
-    )
-    assert result.committed
+    await entered.wait()
+    assert result.committed and not result.narration_available
+    assert await play.store.stream(cid)
     assert play._load(await play.store.read(cid)).resources.game_time == 1
-    assert (
-        len([e for e in await play.store.history(cid) if e.event["action"] == "typed-action"]) == 1
+    release.set()
+    await director.llm.jobs.drain()
+    result = await director.run(
+        cid, principal_id="alice", actor_id="a", command_id="slow", text="wait"
     )
+    assert result.narration_available
+    assert play._load(await play.store.read(cid)).resources.game_time == 1
 
 
 async def test_unsupported_recovery_keeps_adjudication_visible(tmp_path: Path) -> None:

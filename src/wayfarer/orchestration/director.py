@@ -234,14 +234,19 @@ class DirectorService:
             await self._save(cid, turn, revision)
             return None
         try:
-            reply = await self.llm._reply(
+            reply = await self.llm.job_reply(
                 ProviderRequest(
                     operation="intent",
                     session_id=session,
                     context_json=context,
                     prompt=text,
                     output_schema=Intent.model_json_schema(),
-                )
+                ),
+                cid=cid,
+                revision=revision,
+                principal=principal_id,
+                actor=actor_id,
+                key=command_id,
             )
             intent = Intent.model_validate_json(reply.payload_json)
             command = intent.command(
@@ -447,28 +452,27 @@ class DirectorService:
             False,
         )
         if session == turn.session_id:
-            try:
-                narration = Narration.model_validate_json(
-                    await self.llm._call(
-                        ProviderRequest(
-                            operation="narration",
-                            session_id=session,
-                            context_json=json.dumps(
-                                {
-                                    "visible_state": json.loads(context),
-                                    "committed": json.loads(turn.outcome_json or "{}"),
-                                }
-                            ),
-                            prompt="Describe only the committed outcome and visible facts."
-                            if turn.committed
-                            else f"Answer using only visible facts, without proposing mutations: {turn.text}",
-                            output_schema=Narration.model_json_schema(),
-                        )
-                    )
-                ).text
-                available = True
-            except ProviderError, ValueError:
-                pass
+            await self.llm.queue_narration(
+                ProviderRequest(
+                    operation="narration",
+                    session_id=session,
+                    context_json=json.dumps(
+                        {
+                            "visible_state": json.loads(context),
+                            "committed": json.loads(turn.outcome_json or "{}"),
+                        }
+                    ),
+                    prompt="Describe only the committed outcome and visible facts."
+                    if turn.committed
+                    else f"Answer using only visible facts, without proposing mutations: {turn.text}",
+                    output_schema=Narration.model_json_schema(),
+                ),
+                cid=cid,
+                revision=revision,
+                principal=principal_id,
+                actor=actor_id,
+                key=request.command_id,
+            )
         turn = turn.model_copy(
             update={
                 "phase": "complete",
@@ -486,9 +490,14 @@ class DirectorService:
     ) -> TurnResponse | None:
         cid = request.cid
         principal_id = request.principal_id
+        narration, available = turn.narration, turn.narration_available
+        await self.llm.jobs.start()
+        for job in await self.llm.jobs.store.outbox(cid, principal_id, request.actor_id):
+            if job.kind == "narration" and job.key == request.command_id and job.result_json:
+                narration, available = Narration.model_validate_json(job.result_json).text, True
         return TurnResponse(
             committed=turn.committed,
             projection=await self.access.read(cid, principal_id=principal_id),
-            narration=turn.narration,
-            narration_available=turn.narration_available,
+            narration=narration,
+            narration_available=available,
         )
