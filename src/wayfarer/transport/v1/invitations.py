@@ -6,7 +6,7 @@ import hashlib
 import secrets
 from datetime import UTC, datetime
 
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.clock import CommandInstant, capture_instant
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import record_play_state
@@ -96,7 +96,7 @@ async def invitation(
         )
         internal_id = service.projector.token(principal, cid, "invitation", data["command_id"])
 
-        def grant(campaign: Campaign) -> Event:
+        def grant(campaign: Campaign) -> CommandReceipt:
             state = service.play.for_campaign(campaign)._load(campaign)
             if not any(m.principal_id == principal for m in state.members):
                 member = CampaignMember.model_validate(
@@ -112,9 +112,7 @@ async def invitation(
                 }
             )
             record_play_state(campaign, state)
-            return Event(
-                input=payload, action="v1-membership", outcome="Membership granted", roll=None
-            )
+            return CommandReceipt(action="v1-membership", outcome="Membership granted")
 
         await commit_command(
             service.play.store,

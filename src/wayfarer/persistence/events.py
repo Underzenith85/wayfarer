@@ -8,7 +8,7 @@ from typing import Literal
 from pydantic import Field, TypeAdapter, model_validator
 
 from wayfarer import validation
-from wayfarer.models import Campaign, Event, Record
+from wayfarer.models import Campaign, CommandReceipt, Record
 from wayfarer.persistence.upcasters import UpcasterRegistry
 from wayfarer.rules.randomness import RNG_ALGORITHM
 from wayfarer.simulation.events import EngineEvent
@@ -16,6 +16,7 @@ from wayfarer.simulation.scenario_document import ScenarioBoundary
 from wayfarer.simulation.scenario_references import boundary
 
 EVENT_SCHEMA_VERSION = 1
+COMMAND_SCHEMA_VERSION = 2
 
 
 @dataclass(frozen=True, slots=True)
@@ -67,9 +68,9 @@ class CommandRecord:
     resulting_revision: int
     payload_hash: str
     rules_version: str
-    event: Event
+    event: CommandReceipt
     state_after: Campaign
-    schema_version: int = EVENT_SCHEMA_VERSION
+    schema_version: int = COMMAND_SCHEMA_VERSION
     entropy_seed: str | None = field(default=None, repr=False)
     rng_algorithm: str | None = None
     recorded_at_us: int | None = None
@@ -95,11 +96,25 @@ class StoredEvent:
 
 @dataclass(frozen=True, slots=True)
 class CommandResolution:
-    transcript: Event
+    receipt: CommandReceipt
     events: list[EngineEvent]
 
 
-COMMAND_UPCASTERS = UpcasterRegistry({"command": 1}, {})
+def retire_transcript(row: dict[str, object]) -> dict[str, object]:
+    """Read the retained v1 receipt without making a second source of input/dice."""
+    event = validation.mapping(row["event"])
+    if row.get("command_input") is None and "input" in event:
+        row["command_input"] = event["input"]
+    row["event"] = {
+        "action": validation.event_action(event["action"]),
+        "outcome": validation.string(event["outcome"]),
+    }
+    return row
+
+
+COMMAND_UPCASTERS = UpcasterRegistry(
+    {"command": COMMAND_SCHEMA_VERSION}, {("command", 1): retire_transcript}
+)
 _COMMAND_ADAPTER = TypeAdapter(CommandRecord)
 
 

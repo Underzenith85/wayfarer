@@ -1,6 +1,7 @@
 """Typed-action boundary, no-op, trace and durable concurrency contracts."""
 
 import asyncio
+import json
 import os
 import uuid
 from dataclasses import replace
@@ -555,7 +556,9 @@ async def test_action_transactions_retry_concurrency_restart_and_snapshot(
     assert await store.replay(initial["id"]) == await store.read(initial["id"])
     history = await store.history(initial["id"])
     assert (
-        len(history) == 12 and history[0].actor_id == "a" and history[0].event["roll"] is not None
+        len(history) == 12
+        and history[0].actor_id == "a"
+        and json.loads(history[0].event["outcome"])["check"] is not None
     )
     state = PlayState.model_validate_json((await store.read(initial["id"]))["play_json"])
     assert state.resources.fired == ("expiry",) and len(state.resources.events) == 1
@@ -619,8 +622,7 @@ async def test_legacy_turns_cannot_mutate_typed_campaigns(service: GameService) 
     await PlayService(service.store, reducer).create(
         initial, world(), resource_seed(), (actor_setup(),)
     )
-    with pytest.raises(ValidationError, match="typed"):
-        await service.turn(initial["id"], "legacy", 0, "Rest")
+    assert not hasattr(service, "turn")
     assert (await service.read(initial["id"]))["revision"] == 0
 
 

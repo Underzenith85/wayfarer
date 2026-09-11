@@ -9,7 +9,7 @@ from typing import cast
 
 from wayfarer.character.compiler import ValidatedBuild
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.recovery_types import ProfileId
@@ -146,7 +146,7 @@ class MedicalService:
             sort_keys=True,
         )
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
             task = next(
                 (
@@ -184,11 +184,9 @@ class MedicalService:
                 )
                 updated = play.checkpoint(updated, before=before)
                 play.commit(campaign, updated)
-                return Event(
-                    input=payload,
+                return CommandReceipt(
                     action="recovery",
                     outcome=json.dumps({"task_id": result.task_id, "status": result.status}),
-                    roll=None,
                 )
             actor = _build(play, before, command.actor_id)
             target = _build(play, before, target_id)
@@ -259,11 +257,9 @@ class MedicalService:
             )
             updated = play.checkpoint(updated, before=before)
             play.commit(campaign, updated)
-            return Event(
-                input=payload,
+            return CommandReceipt(
                 action="recovery",
                 outcome=json.dumps({"task_id": result.task_id, "status": result.status}),
-                roll=None,
             )
 
         committed = await commit_command(

@@ -10,7 +10,7 @@ from test_wave11 import graph_fixture
 from test_wave12 import ready, service
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.objectives import checkpoint
 from wayfarer.orchestration.setup import SetupService
 from wayfarer.simulation.actions import PlayState
@@ -29,7 +29,7 @@ async def finish(setup: SetupService, outcome: str = "success") -> str:
     )
 
     # Seed authored outcomes and prior lasting changes through the real transaction store.
-    def resolve(campaign: Campaign) -> Event:
+    def resolve(campaign: Campaign) -> CommandReceipt:
         state = PlayState.model_validate_json(campaign["play_json"])
         graph = graph_fixture()
         rules = graph.objectives.model_copy(
@@ -110,7 +110,7 @@ async def finish(setup: SetupService, outcome: str = "success") -> str:
         state = checkpoint(runtime, state)
         campaign["revision"] = 5
         campaign["play_json"] = state.model_dump_json()
-        return Event(input="fixture", action="setup", outcome="settled", roll=None)
+        return CommandReceipt(action="setup", outcome="settled")
 
     await setup.play.store.commit_turn(cid, "fixture", 4, "fixture", resolve)
     await setup.execute(

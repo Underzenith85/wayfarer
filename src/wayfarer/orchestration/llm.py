@@ -114,7 +114,4 @@ CHARACTER_SCHEMA = obj(
 SCENARIO_SCHEMA = obj(
     {k: STRING for k in ["title", "premise", "location", "contact", "clue", "secret", "objective"]}
 )
-ACTION_SCHEMA = obj(
-    {"action": {"type": "string", "enum": ["observe", "talk", "sneak", "rest", "ask"]}}
-)
 NARRATION_SCHEMA = obj({"text": STRING})

@@ -10,7 +10,7 @@ from decimal import Decimal
 
 from wayfarer.character.statistics import encumbrance
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.medical import _build, _value
 from wayfarer.orchestration.play import PlayService
@@ -53,7 +53,7 @@ class HazardService:
             sort_keys=True,
         )
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
             schedule_id = (
                 "exposure:"
@@ -135,9 +135,7 @@ class HazardService:
             )
             updated = play.checkpoint(updated, before=before)
             play.commit(campaign, updated)
-            return Event(
-                input=payload, action="noncombat", outcome=result.model_dump_json(), roll=None
-            )
+            return CommandReceipt(action="noncombat", outcome=result.model_dump_json())
 
         committed = await commit_command(
             play.store,

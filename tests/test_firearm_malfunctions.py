@@ -13,7 +13,7 @@ from test_gurps_melee import setup
 from test_gurps_ranged import load, scene, weapon
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.combat import ChooseDefense, CombatService, TakeCombatTurn
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
@@ -317,7 +317,7 @@ async def test_critical_clearing_failure_becomes_mechanical(tmp_path: Path) -> N
 async def seed_repair_progress(cid: str, play: PlayService) -> None:
     snapshot = await play.store.read(cid)
 
-    def commit(campaign: Campaign) -> Event:
+    def commit(campaign: Campaign) -> CommandReceipt:
         state = play._load(campaign)
         item = next(i for i in state.resources.items if i.id == "sword-a")
         assert item.firearm_failure is not None
@@ -341,9 +341,7 @@ async def seed_repair_progress(cid: str, play: PlayService) -> None:
         updated = state.model_copy(update={"resources": resources, "revision": state.revision + 1})
         play.engine.validate(updated)
         campaign["revision"], campaign["play_json"] = updated.revision, updated.model_dump_json()
-        return Event(
-            input="repair-fixture", action="resource", outcome="elapsed repair work", roll=None
-        )
+        return CommandReceipt(action="resource", outcome="elapsed repair work")
 
     await play.store.commit_turn(
         cid, "repair-fixture", snapshot["revision"], "repair-fixture", commit

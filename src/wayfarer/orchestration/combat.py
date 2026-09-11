@@ -10,7 +10,7 @@ from dataclasses import dataclass, replace
 from pydantic import ValidationError as SchemaError
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.checks import CheckTrace
@@ -140,14 +140,12 @@ class CombatService:
         if duplicate is not None:
             return await self._recorded_result(cid, command.id)
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             play, before, effective_command = _bind_combat_command(campaign, command, self.play)
             updated, result = reduce_combat(before, effective_command, CombatContext(play, before))
             updated = play.checkpoint(updated, before=before)
             play.commit(campaign, updated)
-            return Event(
-                input=payload, action="combat", outcome=result.model_dump_json(), roll=None
-            )
+            return CommandReceipt(action="combat", outcome=result.model_dump_json())
 
         committed = await commit_command(
             self.play.store,

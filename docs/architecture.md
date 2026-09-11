@@ -147,8 +147,8 @@ folder. Database paths remain caller-owned, never inside the installed package.
 
 ## Compatibility and scope
 
-The HTTP routes, JSON payloads, SQLite schema, rules version and demo game behavior
-are preserved. `uv run server.py` remains a compatibility launcher after syncing.
+The frozen v1 routes and payloads are preserved. The obsolete prototype turn
+endpoint returns 410 after retirement in #426. `uv run server.py` remains a compatibility launcher after syncing.
 The old root-level Python modules are internal implementation details and are
 replaced with explicit package imports. No full GURPS implementation is implied.
 
@@ -160,10 +160,10 @@ fallback. This wave introduces no authentication or production deployment.
 
 # ADR 002: Layers, streams and where non-determinism enters
 
-Status: accepted. The stream, replay, schema-retention and snapshot-cache contract
-is implemented through #419. Remaining roadmap tasks (including session jobs,
-map ownership and prototype retirement) remain tracked separately in #420; this
-status accepts the architecture, not a claim that every roadmap item has shipped.
+Status: accepted and implemented through #420. The stream, replay, retained-schema,
+snapshot-cache, scenario/map ownership, session/job and prototype-retirement work
+is complete. Engine code versioning is deferred during prerelease.
+
 
 ## Layers
 
@@ -295,7 +295,7 @@ same stream without putting mutable entropy on cached engines. The architecture
 gate forbids live services from bypassing this boundary and forbids entropy
 imports in simulation. See [command entropy](persistence.md#command-entropy-411)
 for retry, migration and explicit test-source semantics. The #418 release gate verifies fold and re-execution equality for the five
-reviewed fixture families and requires regenerated fixtures after a version bump.
+reviewed fixture families and requires reviewed fixtures for deliberate behavior changes.
 
 The #414 implementation also records an orchestration-captured UTC instant on
 each live command. Invitation claims persist and reuse that instant across
@@ -309,8 +309,8 @@ command receipts from stream rows, and makes the action resolver return an event
 list. The composed command reducer emits typed facts and private, digest-checked
 state changes; persistence verifies fold equality before the atomic append. V1
 projections and outbox history read folded stream states. See
-[the event stream](persistence.md#dedicated-event-stream-413). Engine version `2`
-marks the changed event contract. Snapshot-cache demotion remains #419. The #418 replay module now verifies each
+[the event stream](persistence.md#dedicated-event-stream-413). Snapshots are derived
+caches under #419. The #418 replay module verifies each
 fixture revision against its event fold and repeats typed commands with recorded
 seeds and time, refusing mismatched rules pins and reporting legacy limitations.
 
@@ -326,14 +326,17 @@ writer of play state today, and the event store gets the same single-writer
 test. Command record, event append and snapshot commit in one transaction.
 System-issued commands such as clock advances carry a system principal.
 
-**One engine.** The wave-1 prototype (`models.Campaign` as a mutable dict,
-`simulation/resolution.py`, `GameService.turn`) is a second resolver and is
-fenced behind the existing typed-campaign guard until it is retired.
+**One engine.** The wave-1 resolver and `GameService.turn`/`interpret` are retired.
+`GameService` only creates and reads seed rows. All playable commands use the typed
+engine. Command receipts contain family and result; the transcript-shaped
+`Event` and legacy `Action` type are gone. New writes reject transcript fields.
+Retained v1 command receipts upcast to schema 2, preserving exact input separately.
+The obsolete prototype turn endpoint returns 410; frozen v1 operations are unchanged.
 
 **The orchestrator is real work.** A session registry holds one session per
 active campaign, with the engine compiled for its digest, a per-campaign lock
 ahead of compare-and-set and idle eviction; `PlayService.bind` becomes a
-lookup. Narration and NPC proposals run as jobs behind the outbox, so a slow
+lookup. See [sessions and provider jobs](orchestrator-jobs.md). Narration and NPC proposals run as jobs behind the outbox, so a slow
 provider never holds a committed turn's projection.
 
 **Event schemas evolve by upcasting.** An upcaster registry keyed by event

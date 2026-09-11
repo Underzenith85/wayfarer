@@ -166,3 +166,14 @@ async def test_generated_npc_choice_is_durable_and_keeps_origin(tmp_path: Path) 
     jobs = await llm.jobs.store.outbox(cid, "gm", "gm")
     assert len(jobs) == 1 and jobs[0].status == "succeeded"
     assert await llm.jobs.store.outbox(cid, "alice", "a") == ()
+
+
+async def test_migrated_configuration_reuses_its_compiled_engine(tmp_path: Path) -> None:
+    from wayfarer.orchestration.battlefield_templates import install_rules
+
+    cid, play = await prepare(tmp_path)
+    campaign = await play.store.read(cid)
+    combat = play.engine.rules.combat
+    assert combat is not None
+    migrated = install_rules(campaign, play, combat)
+    assert migrated.for_campaign(campaign).engine is migrated.engine

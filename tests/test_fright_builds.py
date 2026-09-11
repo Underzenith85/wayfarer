@@ -8,7 +8,7 @@ from test_social_dispatch import prepare
 
 from wayfarer.character.compiler import Purchase
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
@@ -34,7 +34,7 @@ async def install(cid: str, play: PlayService, effect: FrightEffect) -> TimedFri
         recovery_target=10,
     )
 
-    def reduce(campaign: Campaign) -> Event:
+    def reduce(campaign: Campaign) -> CommandReceipt:
         revision = state.revision + 1
         updated = state.model_copy(
             update={
@@ -45,7 +45,7 @@ async def install(cid: str, play: PlayService, effect: FrightEffect) -> TimedFri
             }
         )
         campaign["revision"], campaign["play_json"] = revision, updated.model_dump_json()
-        return Event(input="fixture", action="npc", outcome="consequence", roll=None)
+        return CommandReceipt(action="npc", outcome="consequence")
 
     await play.store.commit_turn(cid, "fixture", state.revision, "fixture", reduce, actor_id="gm")
     return item

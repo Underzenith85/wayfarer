@@ -3,7 +3,7 @@
 import json
 
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
@@ -35,11 +35,11 @@ class FrightService:
             sort_keys=True,
         )
 
-        def reduce(campaign: Campaign) -> Event:
+        def reduce(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
             updated = apply_decision(before, command, play.rng)
             play.commit(campaign, updated)
-            return Event(input=payload, action="npc", outcome="fright decision recorded", roll=None)
+            return CommandReceipt(action="npc", outcome="fright decision recorded")
 
         await commit_command(
             play.store,

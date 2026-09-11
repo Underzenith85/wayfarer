@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from pydantic import ValidationError as SchemaError
 
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
@@ -196,13 +196,13 @@ class SocialService:
             sort_keys=True,
         )
 
-        def reduce(campaign: Campaign) -> Event:
+        def reduce(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
             updated, outcome = dispatch(play, before, command, self.resolve(play, before, command))
             updated = play.checkpoint(updated, before=before)
             play.commit(campaign, updated)
             # The event stream carries neither trusted modifiers nor fact IDs.
-            return Event(input=payload, action="npc", outcome=outcome.model_dump_json(), roll=None)
+            return CommandReceipt(action="npc", outcome=outcome.model_dump_json())
 
         result = await commit_command(
             play.store,

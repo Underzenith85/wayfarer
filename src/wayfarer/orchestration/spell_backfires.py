@@ -3,7 +3,7 @@
 import json
 
 from wayfarer.errors import AuthorizationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
@@ -38,14 +38,12 @@ class SpellBackfireService:
             sort_keys=True,
         )
 
-        def reduce(campaign: Campaign) -> Event:
+        def reduce(campaign: Campaign) -> CommandReceipt:
             before = play._load(campaign)
             updated, item = resolve(play.rules_context, before, command)
             updated = play.checkpoint(updated, before=before)
             play.commit(campaign, updated)
-            return Event(
-                input=payload, action="resource", outcome="spell:backfire-resolved", roll=None
-            )
+            return CommandReceipt(action="resource", outcome="spell:backfire-resolved")
 
         committed = await commit_command(
             play.store,

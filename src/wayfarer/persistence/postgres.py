@@ -8,10 +8,10 @@ import psycopg
 
 from wayfarer import validation
 from wayfarer.errors import ConflictError, NotFoundError, StorageError, ValidationError
-from wayfarer.models import Campaign, Event, TurnResult
+from wayfarer.models import Campaign, CommandReceipt, TurnResult
 from wayfarer.persistence import snapshots
 from wayfarer.persistence.events import (
-    EVENT_SCHEMA_VERSION,
+    COMMAND_SCHEMA_VERSION,
     CommandEntropy,
     CommandOrigin,
     CommandRecord,
@@ -328,7 +328,7 @@ class AsyncPostgresStore:
         request_id: str,
         revision: int,
         text: str,
-        resolve: Callable[[Campaign], Event | CommandResolution],
+        resolve: Callable[[Campaign], CommandReceipt | CommandResolution],
         *,
         actor_id: str = "system",
         entropy: CommandEntropy | None = None,
@@ -348,7 +348,8 @@ class AsyncPostgresStore:
                 await self._ensure_stream(db, cid)
                 before = deepcopy(state)
                 resolved = resolve(state)
-                event = resolved.transcript if isinstance(resolved, CommandResolution) else resolved
+                event = resolved.receipt if isinstance(resolved, CommandResolution) else resolved
+                validation.fields(validation.mapping(event), {"action", "outcome"})
                 emitted = (
                     resolved.events
                     if isinstance(resolved, CommandResolution)
@@ -375,7 +376,7 @@ class AsyncPostgresStore:
                         state["revision"],
                         payload_digest({"input": text}),
                         state["rules"],
-                        EVENT_SCHEMA_VERSION,
+                        COMMAND_SCHEMA_VERSION,
                         json.dumps(event),
                         "{}",
                         entropy.seed if entropy else None,
@@ -438,11 +439,9 @@ class AsyncPostgresStore:
     @staticmethod
     def _stored(cid: str, row: tuple[object, ...], state: Campaign) -> CommandRecord:
         event_data = validation.mapping(row[7])
-        event = Event(
-            input=validation.string(event_data["input"]),
+        event = CommandReceipt(
             action=validation.event_action(event_data["action"]),
             outcome=validation.string(event_data["outcome"]),
-            roll=None if event_data["roll"] is None else validation.roll(event_data["roll"]),
         )
         return CommandRecord(
             campaign_id=cid,
@@ -458,7 +457,9 @@ class AsyncPostgresStore:
             entropy_seed=validation.string(row[9]) if row[9] is not None else None,
             rng_algorithm=validation.string(row[11]) if row[11] is not None else None,
             recorded_at_us=validation.integer(row[12]) if row[12] is not None else None,
-            command_input=validation.string(row[14]) if row[14] is not None else None,
+            command_input=validation.string(row[14])
+            if row[14] is not None
+            else (validation.string(event_data["input"]) if "input" in event_data else None),
             scenario_boundary=ScenarioBoundary.model_validate_json(validation.string(row[15]))
             if row[15] is not None
             else None,
@@ -644,11 +645,9 @@ class AsyncPostgresStore:
         ]
 
     @staticmethod
-    def _stream_transcript(raw: object) -> Event:
+    def _stream_transcript(raw: object) -> CommandReceipt:
         data = validation.mapping(raw)
-        return Event(
-            input=validation.string(data["input"]),
+        return CommandReceipt(
             action=validation.event_action(data["action"]),
             outcome=validation.string(data["outcome"]),
-            roll=None if data["roll"] is None else validation.roll(data["roll"]),
         )

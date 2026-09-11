@@ -321,7 +321,7 @@ class ArchitectureTests(unittest.TestCase):
                 "-c",
                 """
 import sys
-import wayfarer.simulation.resolution
+import wayfarer.simulation.action_engine
 import importlib
 import pkgutil
 import wayfarer.simulation.mechanics
@@ -392,3 +392,13 @@ assert 'wayfarer.simulation.action_engine' not in sys.modules
             "transport",
         ):
             importlib.import_module(f"wayfarer.{name}")
+
+
+def test_prototype_resolver_and_transcript_writers_are_retired() -> None:
+    from wayfarer import models
+    from wayfarer.orchestration.service import GameService
+
+    assert not (Path(wayfarer.__file__).parent / "simulation/resolution.py").exists()
+    assert not hasattr(GameService, "turn") and not hasattr(GameService, "interpret")
+    assert not hasattr(models, "Action") and not hasattr(models, "Event")
+    assert set(models.CommandReceipt.__annotations__) == {"action", "outcome"}

@@ -2,6 +2,7 @@
 
 import asyncio
 import hashlib
+import json
 import os
 from pathlib import Path
 
@@ -193,7 +194,7 @@ async def test_request_approval_execution_are_atomic_durable_and_auditable(
     history = await play.store.history(cid)
     assert len(history) == 12
     assert [h.actor_id for h in history[:3]] == ["a", "gm", "a"]
-    assert history[2].event["roll"] is not None
+    assert json.loads(history[2].event["outcome"])["check"] is not None
     assert history[0].event["action"] == "request_ruling"
     assert await play.store.replay(cid, 1) == history[0].state_after
 

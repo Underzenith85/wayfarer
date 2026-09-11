@@ -7,7 +7,7 @@ from pathlib import Path
 
 import aiosqlite
 
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 
 
@@ -22,10 +22,10 @@ class CrashStore(AsyncSQLiteStore):
         return db
 
 
-def resolve(state: Campaign) -> Event:
+def resolve(state: Campaign) -> CommandReceipt:
     state["revision"] += 1
     state["hp"] = 1
-    return Event(input="fault", action="rest", outcome="fault", roll=None)
+    return CommandReceipt(action="legacy", outcome="fault")
 
 
 async def main() -> None:

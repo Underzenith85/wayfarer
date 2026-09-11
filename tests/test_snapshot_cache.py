@@ -124,7 +124,13 @@ async def test_narration_survives_cache_rebuild_without_becoming_state(
     game = service
     created = await game.create(builder.character(), scenario())
     cid = str(created["id"])
-    await game.turn(cid, "one", 0, "Rest")
+    from wayfarer.models import Campaign, CommandReceipt
+
+    def retained(state: Campaign) -> CommandReceipt:
+        state["revision"] += 1
+        return CommandReceipt(action="setup", outcome="retained fixture")
+
+    await game.store.commit_turn(cid, "one", 0, "fixture", retained)
     state = await game.store.read(cid)
     await game.store.save_narration(cid, state["revision"], "The lantern burns blue.")
     await sql(game.store, "DELETE FROM snapshots WHERE campaign=?", (cid,))
@@ -160,7 +166,13 @@ async def test_legacy_narration_is_imported_before_replacing_cache(service: Game
 
     created = await service.create(builder.character(), scenario())
     cid = created["id"]
-    await service.turn(cid, "old", 0, "Rest")
+    from wayfarer.models import Campaign, CommandReceipt
+
+    def retained(state: Campaign) -> CommandReceipt:
+        state["revision"] += 1
+        return CommandReceipt(action="setup", outcome="retained fixture")
+
+    await service.store.commit_turn(cid, "old", 0, "fixture", retained)
     cached = await service.store.read(cid)
     cached["messages"][-1]["flavor"] = "Previously displayed narration"
     await sql(service.store, "UPDATE campaigns SET state=? WHERE id=?", (json.dumps(cached), cid))

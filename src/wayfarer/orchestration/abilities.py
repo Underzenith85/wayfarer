@@ -3,7 +3,7 @@
 from dataclasses import dataclass, replace
 
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
@@ -309,12 +309,12 @@ class AbilityService:
             raise AuthorizationError("Ability actor is not controlled by principal")
         payload = principal_id + ":" + command.model_dump_json()
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             current = play._load(campaign)
             updated = service.reduce(current, command)
             updated = play.checkpoint(updated, before=current)
             play.commit(campaign, updated)
-            return Event(input=payload, action="resource", outcome="ability", roll=None)
+            return CommandReceipt(action="resource", outcome="ability")
 
         committed = await commit_command(
             play.store,

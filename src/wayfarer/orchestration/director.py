@@ -13,7 +13,7 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 
 from wayfarer.errors import AuthorizationError, ConflictError, ProviderError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.providers import (
     Intent,
@@ -69,11 +69,11 @@ class DirectorService:
         payload = turn.model_dump_json()
         key = "director:" + hashlib.sha256(payload.encode()).hexdigest()[:64]
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             state = self.play._load(campaign)
             state = reduce_director(state, turn)
             self.play.commit(campaign, state)
-            return Event(input=payload, action="director", outcome=turn.phase, roll=None)
+            return CommandReceipt(action="director", outcome=turn.phase)
 
         await commit_command(
             self.play.store,

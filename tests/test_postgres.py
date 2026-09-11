@@ -3,6 +3,7 @@
 import asyncio
 import os
 from collections.abc import AsyncIterator
+from pathlib import Path
 
 import aiohttp
 import pytest
@@ -11,7 +12,7 @@ from pydantic import SecretStr
 
 from wayfarer.character import builder
 from wayfarer.config import Settings
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.llm import LLMClient
 from wayfarer.orchestration.service import GameService
 from wayfarer.persistence.postgres import AsyncPostgresStore
@@ -30,17 +31,19 @@ async def postgres_service() -> AsyncIterator[GameService]:
         yield GameService(settings, LLMClient(settings, session))
 
 
-async def test_postgres_concurrent_retry_and_replay(postgres_service: GameService) -> None:
-    created = await postgres_service.create(builder.character(), scenario())
+async def test_postgres_concurrent_retry_and_replay(tmp_path: Path) -> None:
+    from test_wave9 import prepare
+
+    from wayfarer.simulation.actions import Wait
+
+    cid, play = await prepare(tmp_path, backend="postgres")
+    command = Wait(id="same", actor_id="a", expected_revision=0, ticks=1)
     results = await asyncio.gather(
-        *(postgres_service.turn(created["id"], "same", 0, "Rest") for _ in range(6))
+        *(play.execute(cid, command, authenticated_actor_id="a") for _ in range(6))
     )
-    assert {result["revision"] for result in results} == {1}
-    assert isinstance(postgres_service.store, AsyncPostgresStore)
-    assert await postgres_service.store.replay(created["id"]) == await postgres_service.read(
-        created["id"]
-    )
-    assert len(await postgres_service.store.history(created["id"])) == 1
+    assert all(result == results[0] for result in results)
+    assert await play.store.replay(cid) == await play.store.read(cid)
+    assert len(await play.store.history(cid)) == 1
 
 
 async def test_postgres_rolls_back_projection_and_event_together(
@@ -49,7 +52,7 @@ async def test_postgres_rolls_back_projection_and_event_together(
     created = await postgres_service.create(builder.character(), scenario())
     assert isinstance(postgres_service.store, AsyncPostgresStore)
 
-    def crash(state: Campaign) -> Event:
+    def crash(state: Campaign) -> CommandReceipt:
         state["revision"] = 99
         raise RuntimeError("simulated crash")
 

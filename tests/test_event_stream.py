@@ -174,3 +174,34 @@ async def test_action_engine_event_list_folds_without_a_persistence_callback(
     )
     assert isinstance(events, list) and events
     assert fold_play(before, events) == after
+
+
+@pytest.mark.parametrize("backend", ["sqlite", "postgres"])
+async def test_new_receipts_never_write_transcript_fields(tmp_path: Path, backend: str) -> None:
+    from test_snapshot_cache import sql
+
+    cid, play = await prepare(tmp_path, backend=backend)
+    await play.execute(
+        cid,
+        Wait(id="receipt", actor_id="a", expected_revision=0, ticks=1),
+        authenticated_actor_id="a",
+    )
+    from wayfarer.persistence.catalog import CatalogStore
+
+    async with CatalogStore(play.store).transaction() as db:
+        rows = await db.query(
+            "SELECT event, schema_version, command_input FROM command_log WHERE campaign=?", (cid,)
+        )
+    payload = rows[0][0]
+    saved = json.loads(payload) if isinstance(payload, str) else payload
+    assert isinstance(saved, dict) and set(saved) == {"action", "outcome"}
+    assert rows[0][1] == 2 and rows[0][2]
+    legacy = {**saved, "input": str(rows[0][2]), "roll": None}
+    await sql(
+        play.store,
+        "UPDATE command_log SET event=?, schema_version=1, command_input=NULL WHERE campaign=?",
+        (json.dumps(legacy), cid),
+    )
+    record = (await play.store.history(cid))[0]
+    assert record.schema_version == 2 and record.command_input == rows[0][2]
+    assert set(record.event) == {"action", "outcome"}

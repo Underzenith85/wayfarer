@@ -6,7 +6,7 @@ from contextvars import ContextVar
 from copy import deepcopy
 
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, Event, TurnResult
+from wayfarer.models import Campaign, CommandReceipt, TurnResult
 from wayfarer.orchestration.clock import CommandInstant, capture_instant
 from wayfarer.orchestration.origins import current_origin
 from wayfarer.orchestration.replay_inputs import recorded_command
@@ -51,7 +51,7 @@ async def commit_command(
     request_id: str,
     revision: int,
     text: str,
-    resolve: Callable[[Campaign], Event],
+    resolve: Callable[[Campaign], CommandReceipt],
     *,
     actor_id: str = "system",
     rng: RandomSource | None = None,
@@ -81,7 +81,7 @@ async def _commit_serialized(
     request_id: str,
     revision: int,
     text: str,
-    resolve: Callable[[Campaign], Event],
+    resolve: Callable[[Campaign], CommandReceipt],
     *,
     actor_id: str = "system",
     rng: RandomSource | None = None,

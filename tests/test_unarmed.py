@@ -10,7 +10,7 @@ from test_gurps_melee import setup as melee_setup
 from test_statistics import BASIC, LITE
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.combat import (
     ChooseDefense,
     CombatService,
@@ -40,7 +40,7 @@ async def setup(
         melee_modes=melee_modes,
     )
 
-    def disarm(campaign: Campaign) -> Event:
+    def disarm(campaign: Campaign) -> CommandReceipt:
         state = play._load(campaign)
         resources = state.resources.model_copy(
             update={
@@ -69,7 +69,7 @@ async def setup(
         )
         play.engine.validate(state)
         campaign["play_json"] = state.model_dump_json()
-        return Event(input="fixture", action="combat", outcome="disarmed", roll=None)
+        return CommandReceipt(action="combat", outcome="disarmed")
 
     await play.store.commit_turn(cid, "disarm-fixture", 1, "fixture", disarm)
     return cid, play

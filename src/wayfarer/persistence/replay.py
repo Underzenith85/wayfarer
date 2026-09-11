@@ -34,7 +34,9 @@ def require_configuration(state: Campaign, expected: str) -> None:
 def command_text(record: CommandRecord) -> str:
     # Some pre-418 receipts retained their complete input in the transcript. Only
     # recover it when its original digest proves that these are exactly the bytes.
-    value = record.command_input if record.command_input is not None else record.event["input"]
+    if record.command_input is None:
+        raise ValidationError("Legacy command has no recoverable input")
+    value = record.command_input
     if payload_digest({"input": value}) != record.payload_hash:
         raise ValidationError("Recorded command input does not match its digest")
     return value

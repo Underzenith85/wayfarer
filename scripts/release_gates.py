@@ -23,7 +23,7 @@ MECHANICS: dict[str, tuple[str, ...]] = {
     "Resources, clocks and conservation": ("test_resources", "test_release_invariants"),
     "Deterministic actions and adjudication": ("test_actions", "test_adjudication"),
     "Combat and injury": ("test_combat", "test_wave9"),
-    "Event fold and versioned command re-execution": ("test_replay", "test_release_invariants"),
+    "Event fold and deterministic command re-execution": ("test_replay", "test_release_invariants"),
     "Replay, concurrency and crash recovery": (
         "test_postgres",
         "test_release_invariants",

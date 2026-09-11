@@ -14,7 +14,7 @@ from test_statistics import BASIC, LITE, gurps_draft, profile_package
 from wayfarer.character.compiler import CharacterCompiler, Purchase
 from wayfarer.character.power import CharacterProposal, PowerPolicy, PowerReviewer
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.combat import (
     ChooseDefense,
     CombatService,
@@ -985,7 +985,7 @@ async def spend_fp(
 ) -> None:
     snapshot = await play.store.read(cid)
 
-    def commit(campaign: Campaign) -> Event:
+    def commit(campaign: Campaign) -> CommandReceipt:
         state = play._load(campaign)
         resources, _ = apply_fatigue(
             state.resources,
@@ -1016,7 +1016,7 @@ async def spend_fp(
         updated = state.model_copy(update={"revision": resources.revision, "resources": resources})
         play.engine.validate(updated)
         campaign["revision"], campaign["play_json"] = updated.revision, updated.model_dump_json()
-        return Event(input="fixture-fp", action="resource", outcome="exertion", roll=None)
+        return CommandReceipt(action="resource", outcome="exertion")
 
     await play.store.commit_turn(cid, "fixture-fp", snapshot["revision"], "fixture-fp", commit)
 

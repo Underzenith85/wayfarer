@@ -14,12 +14,12 @@ from wayfarer.character.compiler import pool_limits
 from wayfarer.character.physical_traits import physical_traits
 from wayfarer.character.power import Approval
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, Event, Record, Roll
+from wayfarer.models import Campaign, CommandReceipt, Record
 from wayfarer.orchestration.entropy import CommandRandom, commit_command
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
 from wayfarer.rules.catalog import reference
-from wayfarer.rules.checks import Outcome, RandomSource
+from wayfarer.rules.checks import RandomSource
 from wayfarer.rules.injury_types import InjuryStatus
 from wayfarer.rules.recovery_types import FatigueStatus
 from wayfarer.simulation.access import CampaignMember
@@ -437,7 +437,7 @@ class PlayService:
         if feasible.status != "feasible":
             return feasible
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             from wayfarer.simulation.party import synchronous
 
             if authorize is not None:
@@ -450,23 +450,7 @@ class PlayService:
                 raise ValidationError("Action is no longer feasible")
             state = self.checkpoint(state, before=current)
             self.commit(campaign, state)
-            roll: Roll | None = None
-            if result.check is not None:
-                check = result.check
-                roll = Roll(
-                    dice=list(check.dice),
-                    total=check.total,
-                    target=check.effective_target,
-                    success=check.outcome in (Outcome.SUCCESS, Outcome.CRITICAL_SUCCESS),
-                    critical="success"
-                    if check.outcome is Outcome.CRITICAL_SUCCESS
-                    else "failure"
-                    if check.outcome is Outcome.CRITICAL_FAILURE
-                    else None,
-                )
-            return Event(
-                input=payload, action="typed-action", outcome=result.model_dump_json(), roll=roll
-            )
+            return CommandReceipt(action="typed-action", outcome=result.model_dump_json())
 
         committed = await commit_command(
             self.store,
@@ -499,7 +483,7 @@ class PlayService:
             separators=(",", ":"),
         )
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             state = self._load(campaign)
             actor = next((a for a in state.actors if a.actor_id == command.target_actor_id), None)
             if actor is None:
@@ -531,12 +515,7 @@ class PlayService:
                 }
             )
             self.commit(campaign, updated)
-            return Event(
-                input=payload,
-                action="power-approval",
-                outcome=approval.model_dump_json(),
-                roll=None,
-            )
+            return CommandReceipt(action="power-approval", outcome=approval.model_dump_json())
 
         committed = await commit_command(
             self.store,

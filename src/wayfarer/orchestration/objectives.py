@@ -6,7 +6,7 @@ import json
 from typing import TYPE_CHECKING, Literal
 
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.advancement import _build
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.simulation.actions import ActionCommand, PlayState
@@ -110,7 +110,7 @@ class ObjectiveService:
             {"operation": "objectives", "command": command.model_dump(mode="json")}, sort_keys=True
         )
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             state = self.play._load(campaign)
             if (
                 command.actor_id
@@ -126,12 +126,7 @@ class ObjectiveService:
             )
             state = checkpoint(self.play, state, abandon=command.kind == "abandon_scenario")
             self.play.commit(campaign, state)
-            return Event(
-                input=payload,
-                action="objectives",
-                outcome=state.objectives.model_dump_json(),
-                roll=None,
-            )
+            return CommandReceipt(action="objectives", outcome=state.objectives.model_dump_json())
 
         committed = await commit_command(
             self.play.store,

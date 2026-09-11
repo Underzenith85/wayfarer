@@ -46,7 +46,9 @@ async def test_http_flow_and_correlation_id(server: str) -> None:
             json={"request_id": "one", "revision": 0, "text": "Rest"},
         ) as response:
             result = await response.json()
-            assert result["minutes"] == 30
+            assert response.status == 410 and result["code"] == "prototype_retired"
+        async with client.get(server + f"/api/campaigns/{campaign['id']}") as response:
+            assert (await response.json())["revision"] == 0
 
 
 async def test_http_error_mapping_and_body_limit(server: str) -> None:

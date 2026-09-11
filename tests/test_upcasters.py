@@ -110,6 +110,24 @@ async def test_adapters_share_upcaster_registry(
     monkeypatch.delitem(EVENT_UPCASTERS.steps, ("state.patched", 1))
     with pytest.raises(StorageError, match="Missing upcaster"):
         await play.store.stream_states(cid)
-    monkeypatch.setitem(COMMAND_UPCASTERS.current, "command", 2)
+    monkeypatch.setitem(COMMAND_UPCASTERS.current, "command", 3)
     with pytest.raises(StorageError, match="Missing upcaster"):
         await play.store.history(cid)
+
+
+def test_retired_transcript_upcasts_to_receipt_without_losing_exact_input() -> None:
+    original: dict[str, object] = {
+        "event": {
+            "input": '{"kind":"wait"}',
+            "action": "typed-action",
+            "outcome": '{"status":"committed"}',
+            "roll": None,
+        },
+        "command_input": None,
+    }
+    migrated = COMMAND_UPCASTERS.read("command", 1, original)
+    assert migrated["command_input"] == '{"kind":"wait"}'
+    assert migrated["event"] == {"action": "typed-action", "outcome": '{"status":"committed"}'}
+    assert "input" in validation.mapping(
+        original["event"]
+    )  # Registry migrations do not mutate retained bytes.

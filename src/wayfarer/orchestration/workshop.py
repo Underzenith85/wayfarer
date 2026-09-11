@@ -10,7 +10,7 @@ from pydantic import Field, TypeAdapter
 
 from wayfarer.character.power import Approval, CharacterProposal
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
-from wayfarer.models import Campaign, Event, Id, Record
+from wayfarer.models import Campaign, CommandReceipt, Id, Record
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.advancement import _refreshed
 from wayfarer.orchestration.entropy import commit_command
@@ -121,7 +121,7 @@ class WorkshopService:
             sort_keys=True,
         )
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             current = self.play._load(campaign)
             old = next((d for d in current.drafts if d.id == command.draft_id), None)
             if old is not None:
@@ -276,7 +276,7 @@ class WorkshopService:
                 }
             )
             self.play.commit(campaign, current)
-            return Event(input=payload, action="workshop", outcome=command.operation, roll=None)
+            return CommandReceipt(action="workshop", outcome=command.operation)
 
         await commit_command(
             self.play.store,

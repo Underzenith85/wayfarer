@@ -3,7 +3,7 @@
 import json
 
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.simulation.mechanics.surprise import Resolver as Resolver
@@ -25,12 +25,12 @@ class SurpriseService:
             {"surprise": command.model_dump(mode="json"), "gm": gm_id}, sort_keys=True
         )
 
-        def reduce(campaign: Campaign) -> Event:
+        def reduce(campaign: Campaign) -> CommandReceipt:
             state = play._load(campaign)
             updated = apply_surprise(state, command, play.rules_context, self.resolve, gm_id)
             updated = play.checkpoint(updated, before=state)
             play.commit(campaign, updated)
-            return Event(input=payload, action="combat", outcome="resolved", roll=None)
+            return CommandReceipt(action="combat", outcome="resolved")
 
         await commit_command(
             play.store,

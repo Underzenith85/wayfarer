@@ -11,7 +11,7 @@ from pydantic import Field, TypeAdapter
 from pydantic import ValidationError as SchemaError
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.simulation.actions import ActionCommand, PlayState
@@ -68,7 +68,7 @@ class SceneService:
             result = self._result(PlayState.model_validate_json(duplicate["play_json"]), command.id)
             return result
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             if authorize is not None:
                 authorize(campaign)
             state = self.play._load(campaign)
@@ -79,7 +79,7 @@ class SceneService:
             updated = self.play.checkpoint(self.reduce(state, command), before=state)
             self.play.commit(campaign, updated)
             result = self._result(updated, command.id)
-            return Event(input=payload, action="scene", outcome=result.model_dump_json(), roll=None)
+            return CommandReceipt(action="scene", outcome=result.model_dump_json())
 
         committed = await commit_command(
             self.play.store,

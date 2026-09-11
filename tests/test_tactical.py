@@ -16,7 +16,7 @@ from test_unarmed import setup as unarmed_setup
 
 from scripts.tactical_contracts import contract
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.combat import (
     ChooseDefense,
@@ -70,7 +70,7 @@ async def setup(
             ranged_scene=(RangedSituation(attacker_id="a", defender_id="b", distance_yards=9),),
         )
 
-    def members(campaign: Campaign) -> Event:
+    def members(campaign: Campaign) -> CommandReceipt:
         state = play._load(campaign)
         facts = state.world.facts + (
             Fact("seen-a", "a", "visible", "yes"),
@@ -94,7 +94,7 @@ async def setup(
             }
         )
         campaign["play_json"] = state.model_dump_json()
-        return Event(input="fixture", action="combat", outcome="members", roll=None)
+        return CommandReceipt(action="combat", outcome="members")
 
     await play.store.commit_turn(cid, "members", 1, "members", members)
     if migrate:

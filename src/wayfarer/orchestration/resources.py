@@ -5,7 +5,7 @@ import secrets
 from pydantic import TypeAdapter
 
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.entropy import CommandRandom, commit_command
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
@@ -54,7 +54,7 @@ class ResourceService:
             raise ValidationError("Clock commands require engine authority")
         payload = command.model_dump_json()
 
-        def resolve(state: Campaign) -> Event:
+        def resolve(state: Campaign) -> CommandReceipt:
             if state.get("rules_ref") != reference(self.engine.rules):
                 raise ValidationError("Campaign rules do not match the resource engine")
             raw = state.get("resources_json")
@@ -66,7 +66,7 @@ class ResourceService:
             updated = self.engine.apply(resources, command, system=system, rng=rng)
             state["resources_json"] = updated.model_dump_json()
             state["revision"] = updated.revision
-            return Event(input=payload, action="resource", outcome=command.kind, roll=None)
+            return CommandReceipt(action="resource", outcome=command.kind)
 
         result = await commit_command(
             self.store,
@@ -98,7 +98,7 @@ class ResourceService:
             raise ValidationError("Object command actor is not authorized")
         payload = command.model_dump_json()
 
-        def resolve(state: Campaign) -> Event:
+        def resolve(state: Campaign) -> CommandReceipt:
             if "play_json" in state:
                 raise ValidationError("Live play object damage requires the combat transaction")
             if state.get("rules_ref") != reference(self.engine.rules):
@@ -112,7 +112,7 @@ class ResourceService:
             updated, _ = apply_object(self.engine, resources, command, system=True, rng=rng)
             state["resources_json"] = updated.model_dump_json()
             state["revision"] = updated.revision
-            return Event(input=payload, action="resource", outcome=command.kind, roll=None)
+            return CommandReceipt(action="resource", outcome=command.kind)
 
         result = await commit_command(
             self.store,
@@ -147,7 +147,7 @@ class ResourceService:
             raise ValidationError("Transport command actor is not authorized")
         payload = command.model_dump_json()
 
-        def resolve(state: Campaign) -> Event:
+        def resolve(state: Campaign) -> CommandReceipt:
             if "play_json" in state:
                 raise ValidationError("Live play transport requires the combat transaction")
             if state.get("rules_ref") != reference(self.engine.rules):
@@ -170,7 +170,7 @@ class ResourceService:
             )
             state["resources_json"] = updated.model_dump_json()
             state["revision"] = updated.revision
-            return Event(input=payload, action="resource", outcome=command.kind, roll=None)
+            return CommandReceipt(action="resource", outcome=command.kind)
 
         result = await commit_command(
             self.store,

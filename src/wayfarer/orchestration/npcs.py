@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Literal
 
 from wayfarer import validation
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, Event
+from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.persistence.events import CommandOrigin
 from wayfarer.rules.mundane_traits.runtime import Audience
@@ -484,7 +484,7 @@ class NPCService:
             raise ValidationError("Hypothetical proposal cannot be persisted")
         payload = command.model_dump_json()
 
-        def resolve(campaign: Campaign) -> Event:
+        def resolve(campaign: Campaign) -> CommandReceipt:
             state = self.play._load(campaign)
             rules = self.play.engine.rules.npcs
             plan = (
@@ -520,9 +520,7 @@ class NPCService:
                 }
             )
             self.play.commit(campaign, state)
-            return Event(
-                input=json.dumps({"command": payload}), action="npc", outcome="proposed", roll=None
-            )
+            return CommandReceipt(action="npc", outcome="proposed")
 
         result = await commit_command(
             self.play.store,

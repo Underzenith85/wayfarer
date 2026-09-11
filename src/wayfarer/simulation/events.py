@@ -16,7 +16,7 @@ from pydantic import Field, JsonValue, TypeAdapter
 
 from wayfarer import validation
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, Event, Record
+from wayfarer.models import Campaign, CommandReceipt, Record
 from wayfarer.simulation.ability_types import AbilityEvent
 from wayfarer.simulation.access import CampaignMember
 from wayfarer.simulation.actions import ActionResult, PlayState
@@ -316,7 +316,7 @@ def play_facts(before: PlayState, after: PlayState, actor_id: str) -> list[Engin
 
 
 def command_events(
-    before: Campaign, after: Campaign, event: Event, actor_id: str
+    before: Campaign, after: Campaign, event: CommandReceipt, actor_id: str
 ) -> list[EngineEvent]:
     old, new = document(before), document(after)
     result: list[EngineEvent] = [
