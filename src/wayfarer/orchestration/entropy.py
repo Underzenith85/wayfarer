@@ -7,8 +7,9 @@ from contextvars import ContextVar
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, Event, TurnResult
 from wayfarer.orchestration.clock import CommandInstant, capture_instant
+from wayfarer.orchestration.origins import current_origin
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.persistence.events import CommandEntropy
+from wayfarer.persistence.events import CommandEntropy, CommandOrigin
 from wayfarer.persistence.postgres import AsyncPostgresStore
 from wayfarer.rules.checks import RandomSource, draw_index
 from wayfarer.rules.randomness import RNG_ALGORITHM, SeededRandom
@@ -47,6 +48,7 @@ async def commit_command(
     actor_id: str = "system",
     rng: RandomSource | None = None,
     instant: CommandInstant | None = None,
+    origin: CommandOrigin | None = None,
 ) -> TurnResult:
     """Capture entropy and time before storage; retries return the winning receipt.
 
@@ -79,4 +81,5 @@ async def commit_command(
         actor_id=actor_id,
         entropy=entropy,
         recorded_at_us=instant.unix_microseconds,
+        origin=origin if origin is not None else current_origin.get(),
     )

@@ -24,6 +24,7 @@ from wayfarer.errors import (
 from wayfarer.models import Record
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.llm import LLMClient
+from wayfarer.persistence.events import CommandOrigin
 from wayfarer.simulation.actions import ACTION_ADAPTER
 
 
@@ -36,6 +37,8 @@ class Usage(Record):
 class ProviderReply(Record):
     payload_json: str = Field(max_length=32000)
     usage: Usage
+    provider: str = Field(default="custom", min_length=1, max_length=100)
+    model: str | None = Field(default=None, max_length=100)
 
 
 class ProviderRequest(Record):
@@ -69,6 +72,8 @@ class ResponsesProvider:
         )
         return ProviderReply(
             payload_json=json.dumps(payload),
+            provider="openai-responses",
+            model=self.client.settings.openai_model,
             usage=Usage(
                 input_tokens=input_tokens or 0,
                 output_tokens=output_tokens or 0,
@@ -210,6 +215,9 @@ class Orchestrator:
         self.tokens_used = 0
 
     async def _call(self, request: ProviderRequest) -> str:
+        return (await self._reply(request)).payload_json
+
+    async def _reply(self, request: ProviderRequest) -> ProviderReply:
         for attempt in range(self.attempts):
             try:
                 async with asyncio.timeout(self.timeout):
@@ -219,7 +227,7 @@ class Orchestrator:
                 self.telemetry.append(
                     ProviderTelemetry(operation=request.operation, status="ok", usage=reply.usage)
                 )
-                return reply.payload_json
+                return reply
             except TimeoutError as exc:
                 self.telemetry.append(
                     ProviderTelemetry(operation=request.operation, status="timeout")
@@ -318,7 +326,8 @@ class Orchestrator:
             output_schema=Intent.model_json_schema(),
         )
         try:
-            intent = Intent.model_validate_json(await self._call(request))
+            reply = await self._reply(request)
+            intent = Intent.model_validate_json(reply.payload_json)
             command = intent.command(command_id, actor_id, revision)
         except ValueError:
             raise ProviderOutputError("Invalid structured intent") from None
@@ -343,7 +352,12 @@ class Orchestrator:
                 expected_revision=revision,
                 activity_json=json.dumps(command),
             ).model_dump(mode="json")
-        projection = await self.access.execute(cid, command, principal_id=principal_id)
+        origin = CommandOrigin.proposal(
+            "Intent", intent.model_dump(mode="json"), provider=reply.provider, model=reply.model
+        )
+        projection = await self.access.execute(
+            cid, command, principal_id=principal_id, origin=origin
+        )
         history = await self.access.play.store.history(cid)
         committed_event = next(
             (e for e in history if e.command_id == command_id and e.actor_id == actor_id), None

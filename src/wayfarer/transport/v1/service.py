@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import secrets
 from collections.abc import Awaitable, Callable
+from dataclasses import dataclass
 from pathlib import Path
 
 from wayfarer.errors import (
@@ -15,15 +16,24 @@ from wayfarer.errors import (
     provider_diagnostic,
 )
 from wayfarer.models import Campaign
+from wayfarer.orchestration.origins import origin_scope
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.scenes import SceneService
+from wayfarer.persistence.events import CommandOrigin
 from wayfarer.simulation.actions import ActionResult
 
 from .common import Fault, Obj, array, encoded, obj, uid, validate
 from .ledger import Ledger, Transaction
 from .projection import Projector, View
 
-Interpreter = Callable[[Obj, str], Awaitable[Obj]]
+
+@dataclass(frozen=True)
+class Interpretation:
+    intent: Obj
+    origin: CommandOrigin
+
+
+Interpreter = Callable[[Obj, str], Awaitable[Obj | Interpretation]]
 Narrator = Callable[[Obj, Obj], Awaitable[str]]
 
 
@@ -281,11 +291,16 @@ class V1Service:
                     "inventory": view.inventories[str(request["actor_id"])],
                 }
                 intent = obj(request["intent"])
-            if intent["kind"] in ("text", "question"):
+            origin = None
+            if record["engine"] is None and intent["kind"] in ("text", "question"):
                 if self.interpret is None:
                     raise Fault(422, "unsupported_action")
                 async with asyncio.timeout(20):
-                    intent = await self.interpret(context, str(intent["text"]))
+                    interpreted = await self.interpret(context, str(intent["text"]))
+                    if isinstance(interpreted, Interpretation):
+                        intent, origin = interpreted.intent, interpreted.origin
+                    else:
+                        intent = interpreted
                 if "clarification" in intent:
                     clarification = validate("Clarification", intent["clarification"])
                     async with self.ledger.transaction() as tx:
@@ -321,6 +336,7 @@ class V1Service:
                         intent = self.movement(
                             view, str(request["actor_id"]), str(intent["destination_id"])
                         )
+                    record["origin"] = origin.model_dump(mode="json") if origin else None
                     record["engine"] = {
                         **intent,
                         "id": aid,
@@ -348,27 +364,31 @@ class V1Service:
 
                 # Hidden-only revision races may be retried under the same visible
                 # versions; never overwrite the saved attempt after an uncertain commit.
+                origin = (
+                    CommandOrigin.model_validate(record["origin"]) if record.get("origin") else None
+                )
                 try:
-                    if command["kind"] == "travel_scene":
-                        event = await SceneService(view.runtime).execute(
-                            cid,
-                            command,
-                            authenticated_actor_id=str(request["actor_id"]),
-                            authorize=authorize,
-                        )
-                        result = ActionResult(
-                            status="committed",
-                            revision=event.revision,
-                            code="scene.travelled",
-                            command_id=aid,
-                        )
-                    else:
-                        result = await view.runtime.execute(
-                            cid,
-                            command,
-                            authenticated_actor_id=str(request["actor_id"]),
-                            authorize=authorize,
-                        )
+                    with origin_scope(origin):
+                        if command["kind"] == "travel_scene":
+                            event = await SceneService(view.runtime).execute(
+                                cid,
+                                command,
+                                authenticated_actor_id=str(request["actor_id"]),
+                                authorize=authorize,
+                            )
+                            result = ActionResult(
+                                status="committed",
+                                revision=event.revision,
+                                code="scene.travelled",
+                                command_id=aid,
+                            )
+                        else:
+                            result = await view.runtime.execute(
+                                cid,
+                                command,
+                                authenticated_actor_id=str(request["actor_id"]),
+                                authorize=authorize,
+                            )
                 except ConflictError:
                     current_view = await self.view(tx, cid, principal)
                     self.versions(current_view, obj(record["request"]))

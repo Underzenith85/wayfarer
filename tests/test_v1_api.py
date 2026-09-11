@@ -587,7 +587,12 @@ async def test_provider_bridge_uses_only_scoped_context(api: tuple[str, str, V1S
         "character": view.characters["a"],
     }
     assert service.interpret is not None and service.narrate is not None
-    assert await service.interpret(context, "Wait") == {"kind": "wait", "ticks": 1}
+    from wayfarer.transport.v1.service import Interpretation
+
+    interpreted = await service.interpret(context, "Wait")
+    assert isinstance(interpreted, Interpretation)
+    assert interpreted.intent == {"kind": "wait", "ticks": 1}
+    assert interpreted.origin.proposal_type == "v1.Intent"
     assert (
         await service.narrate(
             context, {"actor_id": "a", "resolution": {"summary": "Wait complete"}}

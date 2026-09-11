@@ -5,9 +5,10 @@ from __future__ import annotations
 import json
 
 from wayfarer.orchestration.providers import Narration, Orchestrator, ProviderRequest
+from wayfarer.persistence.events import CommandOrigin
 
 from .common import HTTP, Obj, encoded, obj, validate
-from .service import V1Service
+from .service import Interpretation, V1Service
 
 
 def interpretation_schema() -> Obj:
@@ -27,8 +28,8 @@ def interpretation_schema() -> Obj:
 
 
 def bind_provider(service: V1Service, orchestrator: Orchestrator) -> None:
-    async def interpret(context: Obj, text: str) -> Obj:
-        raw = await orchestrator._call(
+    async def interpret(context: Obj, text: str) -> Interpretation:
+        reply = await orchestrator._reply(
             ProviderRequest(
                 operation="intent",
                 session_id=service.projector.token(
@@ -42,12 +43,15 @@ def bind_provider(service: V1Service, orchestrator: Orchestrator) -> None:
                 output_schema=interpretation_schema(),
             )
         )
-        value = obj(json.loads(raw))
+        value = obj(json.loads(reply.payload_json))
         if "clarification" in value:
             validate("Clarification", value["clarification"])
         else:
             validate("Intent", value)
-        return value
+        return Interpretation(
+            value,
+            CommandOrigin.proposal("v1.Intent", value, provider=reply.provider, model=reply.model),
+        )
 
     async def narrate(context: Obj, action: Obj) -> str:
         raw = await orchestrator._call(

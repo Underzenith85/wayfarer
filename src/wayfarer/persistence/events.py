@@ -3,8 +3,11 @@
 import hashlib
 import json
 from dataclasses import dataclass, field
+from typing import Literal
 
-from wayfarer.models import Campaign, Event
+from pydantic import Field, model_validator
+
+from wayfarer.models import Campaign, Event, Record
 from wayfarer.rules.randomness import RNG_ALGORITHM
 from wayfarer.simulation import ENGINE_VERSION
 
@@ -23,6 +26,35 @@ def payload_digest(payload: object) -> str:
     return hashlib.sha256(encoded.encode()).hexdigest()
 
 
+class CommandOrigin(Record):
+    """Private validated proposal annotation, never an engine input."""
+
+    schema_version: Literal[1] = 1
+    proposal_type: str = Field(min_length=1, max_length=100)
+    proposal_json: str = Field(max_length=32000, repr=False)
+    provider: str = Field(min_length=1, max_length=100)
+    model: str | None = Field(default=None, max_length=100)
+    digest: str = Field(pattern=r"^[0-9a-f]{64}$")
+
+    @model_validator(mode="after")
+    def valid_digest(self) -> CommandOrigin:
+        if payload_digest(json.loads(self.proposal_json)) != self.digest:
+            raise ValueError("Origin proposal digest mismatch")
+        return self
+
+    @classmethod
+    def proposal(
+        cls, kind: str, proposal: object, *, provider: str, model: str | None = None
+    ) -> CommandOrigin:
+        return cls(
+            proposal_type=kind,
+            proposal_json=json.dumps(proposal, sort_keys=True, separators=(",", ":")),
+            provider=provider,
+            model=model,
+            digest=payload_digest(proposal),
+        )
+
+
 @dataclass(frozen=True, slots=True)
 class StoredEvent:
     campaign_id: str
@@ -39,6 +71,7 @@ class StoredEvent:
     engine_version: str | None = None
     rng_algorithm: str | None = None
     recorded_at_us: int | None = None
+    origin: CommandOrigin | None = field(default=None, repr=False)
 
     @property
     def reexecutable(self) -> bool:

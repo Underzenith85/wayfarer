@@ -10,9 +10,11 @@ from wayfarer.orchestration.combat import COMBAT_ADAPTER, CombatService
 from wayfarer.orchestration.medical import EnvironmentResolver
 from wayfarer.orchestration.noncombat import NoncombatCommand, NoncombatService
 from wayfarer.orchestration.objectives import ObjectiveCommand, ObjectiveService
+from wayfarer.orchestration.origins import origin_scope
 from wayfarer.orchestration.party import PartyCommand, PartyService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.scenes import SCENE_ADAPTER, SceneService
+from wayfarer.persistence.events import CommandOrigin
 from wayfarer.simulation.access import CampaignMember, StreamEvent
 from wayfarer.simulation.actions import ACTION_ADAPTER, PlayState
 
@@ -322,10 +324,16 @@ class CampaignAccess:
         projection["scene_choices"] = scene_choices
         return projection
 
-    async def execute(self, cid: str, value: object, *, principal_id: str) -> dict[str, object]:
+    async def execute(
+        self, cid: str, value: object, *, principal_id: str, origin: CommandOrigin | None = None
+    ) -> dict[str, object]:
+        with origin_scope(origin):
+            return await self._execute(cid, value, principal_id=principal_id)
+
+    async def _execute(self, cid: str, value: object, *, principal_id: str) -> dict[str, object]:
         runtime = await self.runtime(cid)
         if runtime is not self:
-            return await runtime.execute(cid, value, principal_id=principal_id)
+            return await runtime._execute(cid, value, principal_id=principal_id)
         state = self.play._load(await self.play.store.read(cid))
         member = self._member(state, principal_id)
         if not isinstance(value, dict):

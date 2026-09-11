@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Literal
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, Event
 from wayfarer.orchestration.entropy import commit_command
+from wayfarer.persistence.events import CommandOrigin
 from wayfarer.rules.mundane_traits.runtime import Audience
 from wayfarer.rules.social_hooks import Reputation, Standing
 from wayfarer.simulation.actions import ActionCommand, PlayState
@@ -403,7 +404,14 @@ class NPCService:
     def __init__(self, play: PlayService) -> None:
         self.play = play
 
-    async def propose(self, cid: str, value: object, *, authenticated_gm_id: str) -> PlayState:
+    async def propose(
+        self,
+        cid: str,
+        value: object,
+        *,
+        authenticated_gm_id: str,
+        origin: CommandOrigin | None = None,
+    ) -> PlayState:
         command = NPCProposal.model_validate(value)
         if (
             command.actor_id != authenticated_gm_id
@@ -463,5 +471,6 @@ class NPCService:
             resolve,
             actor_id=command.actor_id,
             rng=self.play.rng,
+            origin=origin,
         )
         return self.play._load(result["state"])
