@@ -72,6 +72,52 @@ class ArchitectureTests(unittest.TestCase):
                             "A transaction callback must not define another closure",
                         )
 
+    def test_orchestration_does_not_draw_random_values(self) -> None:
+        """#415: all draws use the domain dice/selection API."""
+        package = Path(wayfarer.__file__).parent / "orchestration"
+        for source in package.rglob("*.py"):
+            tree = ast.parse(source.read_text())
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Call):
+                    name = (
+                        node.func.attr
+                        if isinstance(node.func, ast.Attribute)
+                        else node.func.id
+                        if isinstance(node.func, ast.Name)
+                        else None
+                    )
+                    self.assertNotEqual(name, "randbelow", f"{source}:{node.lineno}")
+
+    def test_rng_and_resource_helpers_do_not_require_play_service(self) -> None:
+        """#415: a service handle cannot be used only as a source of rule dependencies."""
+        package = Path(wayfarer.__file__).parent / "orchestration"
+        for source in package.rglob("*.py"):
+            for function in ast.parse(source.read_text()).body:
+                if not isinstance(function, ast.FunctionDef):
+                    continue
+                for argument in function.args.args:
+                    if not (
+                        isinstance(argument.annotation, ast.Name)
+                        and argument.annotation.id == "PlayService"
+                    ):
+                        continue
+                    paths: set[str] = set()
+                    for node in ast.walk(function):
+                        if not isinstance(node, ast.Attribute):
+                            continue
+                        parts: list[str] = []
+                        value: ast.expr = node
+                        while isinstance(value, ast.Attribute):
+                            parts.insert(0, value.attr)
+                            value = value.value
+                        if isinstance(value, ast.Name) and value.id == argument.arg:
+                            paths.add(".".join(parts))
+                    rule_only = {"rng", "engine", "engine.resources", "engine.resources.apply"}
+                    self.assertFalse(
+                        paths and paths <= rule_only,
+                        f"{source}:{function.lineno} needs RulesContext",
+                    )
+
     def test_domain_imports_are_independent(self) -> None:
         package = Path(wayfarer.__file__).parent
         allowed = {
@@ -115,6 +161,11 @@ class ArchitectureTests(unittest.TestCase):
                 """
 import sys
 import wayfarer.simulation.resolution
+import importlib
+import pkgutil
+import wayfarer.simulation.mechanics
+for module in pkgutil.iter_modules(wayfarer.simulation.mechanics.__path__):
+    importlib.import_module("wayfarer.simulation.mechanics." + module.name)
 assert not any(m.startswith(('wayfarer.persistence', 'wayfarer.orchestration', 'wayfarer.transport')) for m in sys.modules)
 assert 'sqlite3' not in sys.modules
 """,

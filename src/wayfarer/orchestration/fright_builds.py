@@ -17,12 +17,12 @@ from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, Event
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.advancement import _refreshed
-from wayfarer.orchestration.gurps_melee import build
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.catalog import DefinitionKind
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.adjudication import expire_rulings
 from wayfarer.simulation.fright import TimedFright, effects, public_id, save
+from wayfarer.simulation.mechanics.gurps_melee import build
 from wayfarer.simulation.resources import Command, ResourceState
 
 
@@ -51,7 +51,7 @@ def validate_change(
 ) -> ValidatedBuild:
     actor = next(a for a in state.actors if a.actor_id == item.actor_id)
     old_draft = actor.proposal.draft
-    old_build = build(play, state, item.actor_id)
+    old_build = build(play.rules_context, state, item.actor_id)
     effect = item.effect
     if item.adjudicated_build_revision is not None:
         raise ConflictError("Fright build consequence is already resolved")
@@ -173,7 +173,7 @@ class FrightBuildService:
             )
             if item is None:
                 raise ValidationError("Unknown fright consequence")
-            current = build(play, state, command.actor_id)
+            current = build(play.rules_context, state, command.actor_id)
             revision = state.revision + 1
             if isinstance(command, ProposeFrightBuild):
                 if command.expected_build_revision != current.revision:

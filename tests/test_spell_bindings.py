@@ -282,7 +282,7 @@ async def test_player_context_is_compiled_and_retries_are_durable(tmp_path: Path
             cid, command().model_copy(update={"channel_id": "unknown"}), principal_id="a"
         )
     assert await play.store.read(cid) == before
-    bound = approved_context(play, play._load(before), command())
+    bound = approved_context(play.rules_context, play._load(before), command())
     assert (bound.skill, bound.magery, bound.ht, bound.will) == (14, 2, 10, 12)
     assert (await service.execute(cid, command(), principal_id="a")).outcome == "casting"
     await play.execute(

@@ -105,3 +105,8 @@ def falling_damage(
     if dice < 1:
         return 1, -3 if dice <= Decimal("0.25") else -2 if dice <= Decimal("0.5") else -1
     return int(dice.to_integral_value(rounding=ROUND_HALF_UP)), 0
+
+
+def climbing_default(dx: int) -> int:
+    """B183/B349: untrained Climbing defaults to DX-5."""
+    return dx - 5

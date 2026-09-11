@@ -39,7 +39,7 @@ async def test_physical_step_preserves_check_order_without_committing(tmp_path: 
     )
     dice = RecordedDice([1, 2, 3, 4, 3, 2])
     play.rng = dice
-    context = PhysicalContext(play, lambda *_: route, dice)
+    context = PhysicalContext(play.rules_context, lambda *_: route, dice)
     with (
         patch.object(play, "checkpoint", side_effect=AssertionError("reducer checkpointed")),
         patch.object(play, "commit", side_effect=AssertionError("reducer committed")),
@@ -102,7 +102,9 @@ async def test_spell_step_returns_the_completed_maneuver_result(tmp_path: Path) 
     before = play._load(campaign)
     dice = RecordedDice([3, 3, 3])
     play.rng = dice
-    updated, result = reduce_spell(before, spell_command(1), SpellExecutionContext(play))
+    updated, result = reduce_spell(
+        before, spell_command(1), SpellExecutionContext(play.rules_context)
+    )
     assert result.outcome == "active"
     assert updated.encounters[0].current_actor_id == "b"
     assert dice.exhausted()

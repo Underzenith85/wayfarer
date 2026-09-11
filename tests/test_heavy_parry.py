@@ -9,12 +9,12 @@ from test_gurps_melee import attack, choice, setup
 
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import CombatService
-from wayfarer.orchestration.gurps_melee import defense_value
-from wayfarer.orchestration.heavy_parry import HeavyParryResult
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.rules.object_types import ObjectProfile
+from wayfarer.simulation.mechanics.gurps_melee import defense_value
+from wayfarer.simulation.mechanics.heavy_parry import HeavyParryResult
 
 
 @pytest.mark.parametrize(
@@ -123,11 +123,11 @@ async def test_basic_lift_limit(tmp_path: Path, weight: int, available: bool) ->
     state = play._load(await play.store.read(cid))
     defender = state.encounters[0].participants[1]
     if available:
-        value, item = defense_value(play, state, defender, "parry")
+        value, item = defense_value(play.rules_context, state, defender, "parry")
         assert value and value.value == 10 and item == "sword-b"
     else:
         with pytest.raises(ValidationError, match="No available"):
-            defense_value(play, state, defender, "parry")
+            defense_value(play.rules_context, state, defender, "parry")
 
 
 @pytest.mark.parametrize("first", ["dodge", "parry", "critical-parry"])
@@ -239,11 +239,11 @@ async def test_two_handed_basic_lift_limit(tmp_path: Path, weight: int, availabl
     )
     defender = state.encounters[0].participants[1]
     if available:
-        value, item = defense_value(play, state, defender, "parry")
+        value, item = defense_value(play.rules_context, state, defender, "parry")
         assert value and value.value == 9 and item == "sword-b"
     else:
         with pytest.raises(ValidationError, match="No available"):
-            defense_value(play, state, defender, "parry")
+            defense_value(play.rules_context, state, defender, "parry")
 
 
 async def test_shield_db_contact_does_not_break_the_weapon(tmp_path: Path) -> None:

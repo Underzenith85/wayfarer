@@ -24,7 +24,12 @@ from wayfarer.orchestration.combat import (
 )
 from wayfarer.orchestration.equipment_view import TacticalSnapshotV2, equipment_view
 from wayfarer.orchestration.play import PlayService
-from wayfarer.orchestration.tactical_view import TacticalSnapshot, project, snapshot, visible_actors
+from wayfarer.orchestration.tactical_view import (
+    TacticalSnapshot,
+    project,
+    snapshot,
+    visible_actors,
+)
 from wayfarer.simulation.actions import PlayState
 from wayfarer.transport.campaign_api import ACCESS_KEY, _identity, _json
 from wayfarer.transport.tactical_v1_commands import ChooseDefense as ChooseDefenseV1

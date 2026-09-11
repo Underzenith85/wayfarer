@@ -8,13 +8,13 @@ from test_gurps_melee import attack, choice, setup
 
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import CombatService
-from wayfarer.orchestration.critical_limbs import CriticalLimbResult, resolve_limb
-from wayfarer.orchestration.gurps_melee import mode
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.simulation.critical import CriticalMiss
 from wayfarer.simulation.gurps_equipment import MeleeMode
+from wayfarer.simulation.mechanics.critical_limbs import CriticalLimbResult, resolve_limb
+from wayfarer.simulation.mechanics.gurps_melee import mode
 
 
 @pytest.mark.parametrize("table,injury", [((2, 2, 1), 6), ((2, 2, 2), 3)])
@@ -58,7 +58,7 @@ async def test_shoulder_uses_wielding_arm_without_dropping_weapon(tmp_path: Path
     assert next(i for i in state.resources.items if i.id == "sword-a").ready
     assert result.injury is not None and result.injury.adjudication_required is None
     with pytest.raises(ValidationError, match="crippled"):
-        mode(play, state, "a", "sword-a", "swing")
+        mode(play.rules_context, state, "a", "sword-a", "swing")
 
 
 async def test_double_defense_second_critical_parry_is_deferred_once(tmp_path: Path) -> None:
@@ -129,7 +129,7 @@ async def test_impaling_exception_rolls_table_once_then_replays(
     )
     play.rng = RecordedDice([*second, 1, 1, 5, *([3] * 12)])
     updated, encounter, result = resolve_limb(
-        play,
+        play.rules_context,
         state,
         state.encounters[0],
         table=(2, 2, 1),
@@ -139,7 +139,7 @@ async def test_impaling_exception_rolls_table_once_then_replays(
     assert result.table_rolls == ((2, 2, 1), second) and result.resolved is resolved
     play.rng = RecordedDice([])
     assert resolve_limb(
-        play,
+        play.rules_context,
         updated,
         encounter,
         table=(2, 2, 1),

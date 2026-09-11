@@ -21,7 +21,6 @@ from wayfarer.orchestration.combat import (
     StartEncounter,
     TakeCombatTurn,
 )
-from wayfarer.orchestration.gurps_melee import defense_value, movement
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.rules.catalog import (
@@ -61,6 +60,7 @@ from wayfarer.simulation.gurps_equipment import (
     RangedMode,
     Shield,
 )
+from wayfarer.simulation.mechanics.gurps_melee import defense_value, movement
 from wayfarer.simulation.resources import Item, Owner, ResourceEngine, ResourceState
 from wayfarer.simulation.studio import ScenarioGraph
 
@@ -769,20 +769,20 @@ async def test_dodge_parry_block_and_repeats(
     defender = state.encounters[0].participants[1]
     expectations: tuple[tuple[Defense, int], ...] = (("dodge", 9), ("parry", 10), ("block", 10))
     for defense, expected in expectations:
-        value, _ = defense_value(play, state, defender, defense)
+        value, _ = defense_value(play.rules_context, state, defender, defense)
         assert value is not None and value.value == expected
     spent = defender.model_copy(
         update={"reaction_available": False, "parries": ("sword-b",), "block_used": True}
     )
-    value, _ = defense_value(play, state, spent, "dodge")
+    value, _ = defense_value(play.rules_context, state, spent, "dodge")
     assert value is not None and value.value == 9
     with pytest.raises(ValidationError):
-        defense_value(play, state, spent, "block")
+        defense_value(play.rules_context, state, spent, "block")
     if profile == LITE:
         with pytest.raises(ValidationError):
-            defense_value(play, state, spent, "parry")
+            defense_value(play.rules_context, state, spent, "parry")
     else:
-        value, _ = defense_value(play, state, spent, "parry")
+        value, _ = defense_value(play.rules_context, state, spent, "parry")
         assert value is not None and value.value == 6
 
 
@@ -808,10 +808,10 @@ async def test_heavy_weapon_requires_explicit_breakage_metadata(tmp_path: Path) 
     state = play._load(await play.store.read(cid))
     defender = state.encounters[0].participants[1]
     with pytest.raises(ValidationError):
-        defense_value(play, state, defender, "parry")
+        defense_value(play.rules_context, state, defender, "parry")
     unaffected: tuple[tuple[Defense, int], ...] = (("dodge", 9), ("block", 10))
     for defense, expected in unaffected:
-        value, _ = defense_value(play, state, defender, defense)
+        value, _ = defense_value(play.rules_context, state, defender, defense)
         assert value is not None and value.value == expected
     before = await play.store.read(cid)
     with pytest.raises(ValidationError):
@@ -822,14 +822,14 @@ async def test_heavy_weapon_requires_explicit_breakage_metadata(tmp_path: Path) 
     await attack(cid, play)
     state = play._load(await play.store.read(cid))
     defender = state.encounters[0].participants[1]
-    value, item = defense_value(play, state, defender, "parry")
+    value, item = defense_value(play.rules_context, state, defender, "parry")
     assert value is not None and value.value == 10 and item == "sword-b"
 
     cid, play = await setup(tmp_path / "lite", attacker_weight=9000)
     await attack(cid, play)
     state = play._load(await play.store.read(cid))
     defender = state.encounters[0].participants[1]
-    value, _ = defense_value(play, state, defender, "parry")
+    value, _ = defense_value(play.rules_context, state, defender, "parry")
     assert value is not None and value.value == 10
 
 
@@ -840,19 +840,19 @@ async def test_unbalanced_and_fencing_parry_columns(tmp_path: Path) -> None:
     state = play._load(await play.store.read(cid))
     defender = state.encounters[0].participants[1]
     repeated = defender.model_copy(update={"parries": ("sword-b",)})
-    value, _ = defense_value(play, state, repeated, "parry")
+    value, _ = defense_value(play.rules_context, state, repeated, "parry")
     assert value is not None and value.value == 8  # 10 - 2, not the ordinary -4.
 
     cid, play = await setup(tmp_path / "unbalanced", basic, parry=Parry(unbalanced=True))
     state = play._load(await play.store.read(cid))
     defender = state.encounters[0].participants[1]
-    value, _ = defense_value(play, state, defender, "parry")
+    value, _ = defense_value(play.rules_context, state, defender, "parry")
     assert value is not None and value.value == 10
     attacked = defender.model_copy(
         update={"last_maneuver": "attack", "last_attack_item_id": "sword-b"}
     )
     with pytest.raises(ValidationError):
-        defense_value(play, state, attacked, "parry")
+        defense_value(play.rules_context, state, attacked, "parry")
 
 
 async def test_lite_critical_bypasses_defense_and_uses_maximum(tmp_path: Path) -> None:
@@ -1025,9 +1025,11 @@ async def test_low_fp_reduces_dodge_and_move_from_authoritative_pools(tmp_path: 
     cid, play = await setup(tmp_path)
     await spend_fp(play, cid, "b", 7)
     state = play._load(await play.store.read(cid))
-    value, _ = defense_value(play, state, state.encounters[0].participants[1], "dodge")
+    value, _ = defense_value(
+        play.rules_context, state, state.encounters[0].participants[1], "dodge"
+    )
     assert value is not None and value.value == 5
-    assert movement(play, state, "b") == 3
+    assert movement(play.rules_context, state, "b") == 3
 
 
 async def test_target_due_care_blocks_attack_before_any_dice_or_state_change(

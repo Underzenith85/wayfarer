@@ -5,13 +5,13 @@ import hashlib
 from wayfarer.errors import WayfarerError
 from wayfarer.models import Record
 from wayfarer.orchestration.combat import RepairEquipment, RetrieveEquipment, TakeCombatTurn
-from wayfarer.orchestration.equipment_retrieval import RetrievalTask
-from wayfarer.orchestration.equipment_retrieval import tasks as retrievals
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.tactical_view import TacticalSnapshot
 from wayfarer.rules.object_types import GroundPosition, ObjectCondition
 from wayfarer.rules.readiness_types import ProjectileProgress
 from wayfarer.simulation.actions import PlayState
+from wayfarer.simulation.mechanics.equipment_retrieval import RetrievalTask
+from wayfarer.simulation.mechanics.equipment_retrieval import tasks as retrievals
 from wayfarer.simulation.object_repairs import RepairTask
 from wayfarer.simulation.object_repairs import tasks as repairs
 
@@ -98,11 +98,11 @@ def equipment_view(play: PlayService, state: PlayState, actor_id: str) -> tuple[
 
                     guard(state, actor_id, kind)
                     if isinstance(command, RetrieveEquipment):
-                        from wayfarer.orchestration.equipment_retrieval import retrieve
+                        from wayfarer.simulation.mechanics.equipment_retrieval import retrieve
 
                         original = next(e for e in state.encounters if e.id == command.encounter_id)
                         retrieve(
-                            play,
+                            play.rules_context,
                             state,
                             original,
                             actor_id=actor_id,
@@ -112,10 +112,10 @@ def equipment_view(play: PlayService, state: PlayState, actor_id: str) -> tuple[
                             task_id=command.task_id,
                         )
                     else:
-                        from wayfarer.orchestration.object_repairs import repair
+                        from wayfarer.simulation.mechanics.object_repairs import repair
 
                         repair(
-                            play,
+                            play.rules_context,
                             state,
                             actor_id=actor_id,
                             item_id=item.id,
@@ -157,8 +157,8 @@ def equipment_view(play: PlayService, state: PlayState, actor_id: str) -> tuple[
             )
         )
     if encounter is not None:
-        from wayfarer.orchestration.thrown_items import record, recover
-        from wayfarer.orchestration.unarmed import free_hands
+        from wayfarer.simulation.mechanics.thrown_items import record, recover
+        from wayfarer.simulation.mechanics.unarmed import free_hands
 
         for item in state.resources.expended_items:
             landing = record(state.resources, item.id)
@@ -189,7 +189,7 @@ def equipment_view(play: PlayService, state: PlayState, actor_id: str) -> tuple[
                         recover_thrown_item=True,
                     )
                     try:
-                        recover(play, state, encounter, recovery)
+                        recover(play.rules_context, state, encounter, recovery)
                     except WayfarerError, ValueError:
                         continue
                     options.append(EquipmentChoice(label=f"Recover with {hand}", command=recovery))

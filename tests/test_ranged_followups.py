@@ -333,8 +333,8 @@ async def test_critical_parry_stores_context_without_melee_fallback(tmp_path: Pa
 async def test_one_eye_aim_removes_ranged_penalty_even_with_zero_acc(
     tmp_path: Path, aim_first: bool, target: int
 ) -> None:
-    from wayfarer.orchestration.gurps_ranged import resolve
     from wayfarer.rules.location_types import LastingInjury
+    from wayfarer.simulation.mechanics.gurps_ranged import resolve
 
     ranged = weapon(thrown=True).model_copy(update={"accuracy": 0})
     cid, play = await setup(
@@ -374,7 +374,7 @@ async def test_one_eye_aim_removes_ranged_penalty_even_with_zero_acc(
     )
     play.rng = RecordedDice([4, 4, 5])  # ordinary miss in both cases; no damage dice
     _, _, trace = resolve(
-        play,
+        play.rules_context,
         state,
         state.encounters[0],
         ranged,

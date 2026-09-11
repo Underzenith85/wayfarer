@@ -12,12 +12,12 @@ from typing import Literal
 
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, Event
-from wayfarer.orchestration.gurps_melee import build
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.rules.physical_traits import Sense
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.condition_checks import check_modifiers, definition_modifiers
+from wayfarer.simulation.mechanics.gurps_melee import build
 from wayfarer.simulation.physical_traits import physical_traits
 from wayfarer.simulation.resources import Command, ResourceEvent
 
@@ -57,7 +57,7 @@ class PhysicalCheckService:
                 m.principal_id == gm_id and m.role == "gm" for m in state.members
             ):
                 raise ValidationError("Physical checks require director authority")
-            compiled = build(play, state, command.actor_id)
+            compiled = build(play.rules_context, state, command.actor_id)
             stats = compiled.statistics
             if stats is None or stats.profile_id != "gurps-basic-set-4e-2004":
                 raise ValidationError("Physical trait checks require the exact Basic Set profile")

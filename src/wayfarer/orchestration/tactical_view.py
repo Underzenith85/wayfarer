@@ -18,17 +18,18 @@ from wayfarer.orchestration.combat import (
     TakeCombatTurn,
     TakeUnarmedTurn,
 )
-from wayfarer.orchestration.gurps_melee import movement, prepare_attack
-from wayfarer.orchestration.gurps_ranged import validate_command
 from wayfarer.orchestration.play import PlayService
-from wayfarer.orchestration.tactical import prepare_defense
-from wayfarer.orchestration.unarmed import guard_control, unarmed_defense, validate_action
 from wayfarer.simulation.access import CampaignMember
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import Encounter, Maneuver
 from wayfarer.simulation.gurps_equipment import MeleeMode, RangedMode
 from wayfarer.simulation.hex_geometry import Cell, Hex, neighbor
-from wayfarer.simulation.tactical import TacticalTrace, pose, sight
+from wayfarer.simulation.mechanics.gurps_melee import movement, prepare_attack
+from wayfarer.simulation.mechanics.gurps_ranged import validate_command
+from wayfarer.simulation.mechanics.tactical import prepare_defense
+from wayfarer.simulation.mechanics.unarmed import guard_control, unarmed_defense, validate_action
+from wayfarer.simulation.tactical import TacticalTrace, pose
+from wayfarer.simulation.visibility import visible_actors as visible_actors
 
 
 class TacticalActor(Record):
@@ -75,25 +76,6 @@ class TacticalSnapshot(Record):
     actor_id: str
     revision: int = Field(ge=0)
     encounters: tuple[TacticalEncounter, ...]
-
-
-def visible_actors(state: PlayState, encounter: Encounter, actor_id: str) -> frozenset[str]:
-    own = next((p for p in encounter.participants if p.actor_id == actor_id), None)
-    if own is None:
-        return frozenset()
-    entities = {e.id: e for e in state.world.perspective(actor_id).entities}
-    own_entity = entities.get(actor_id)
-    return frozenset(
-        p.actor_id
-        for p in encounter.participants
-        if p.actor_id == actor_id
-        or (
-            p.actor_id in entities
-            and own_entity is not None
-            and entities[p.actor_id].location_id == own_entity.location_id
-            and sight(encounter, own, p)
-        )
-    )
 
 
 def legacy_encounter(
@@ -153,16 +135,21 @@ def preview(
     guard_control(encounter, command, state)
     if isinstance(command, ChooseDefense):
         if command.catch_thrown:
-            from wayfarer.orchestration.thrown_items import validate_catch
+            from wayfarer.simulation.mechanics.thrown_items import validate_catch
 
-            validate_catch(play, state, encounter, command)
-        prepared = prepare_defense(play, state, encounter, command)
+            validate_catch(play.rules_context, state, encounter, command)
+        prepared = prepare_defense(play.rules_context, state, encounter, command)
         if prepared.pending_unarmed is not None:
             unarmed_defense(
-                play, state, prepared, command.actor_id, command.defense, command.item_id
+                play.rules_context,
+                state,
+                prepared,
+                command.actor_id,
+                command.defense,
+                command.item_id,
             )
         else:
-            from wayfarer.orchestration.gurps_melee import validate_defense_choices
+            from wayfarer.simulation.mechanics.gurps_melee import validate_defense_choices
 
             if (
                 prepared.pending_defense is None
@@ -170,7 +157,7 @@ def preview(
             ):
                 raise ValidationError("Defense is unavailable")
             validate_defense_choices(
-                play,
+                play.rules_context,
                 state,
                 prepared,
                 command.defense,
@@ -180,7 +167,7 @@ def preview(
             )
         return
     if isinstance(command, TakeUnarmedTurn):
-        validate_action(play, state, encounter, command)
+        validate_action(play.rules_context, state, encounter, command)
         return
     hp = next(p for p in state.resources.pools if p.id == f"hp:{command.actor_id}")
     actor = next(a for a in state.actors if a.actor_id == command.actor_id)
@@ -188,14 +175,14 @@ def preview(
         raise ValidationError("Actor is unavailable")
     if (hp.injury and hp.injury.stunned) and command.maneuver != "do_nothing":
         raise ValidationError("Actor must recover from stun")
-    validate_command(play, state, encounter, command)
+    validate_command(play.rules_context, state, encounter, command)
     actor_state = next(p for p in encounter.participants if p.actor_id == command.actor_id)
     if actor_state.forced_do_nothing and command.maneuver != "do_nothing":
         raise ValidationError("Actor must do nothing")
     encounter = engine._replace(
         encounter,
         actor_state.model_copy(
-            update={"movement_allowance": movement(play, state, command.actor_id)}
+            update={"movement_allowance": movement(play.rules_context, state, command.actor_id)}
         ),
     )
     if command.item_id and command.maneuver in (
@@ -204,9 +191,11 @@ def preview(
         "move_and_attack",
         "feint",
     ):
-        from wayfarer.orchestration.gurps_melee import mode
+        from wayfarer.simulation.mechanics.gurps_melee import mode
 
-        selected = mode(play, state, command.actor_id, command.item_id, command.mode_id)
+        selected = mode(
+            play.rules_context, state, command.actor_id, command.item_id, command.mode_id
+        )
         if isinstance(selected, MeleeMode):
             encounter = engine._replace(
                 encounter,
@@ -235,7 +224,7 @@ def preview(
     )
     if result.pending_defense is not None:
         prepare_attack(
-            play,
+            play.rules_context,
             state,
             result,
             command.mode_id,
@@ -244,9 +233,9 @@ def preview(
             shots=command.shots,
         )
     if command.maneuver == "aim":
-        from wayfarer.orchestration.gurps_maneuvers import observe
+        from wayfarer.simulation.mechanics.gurps_maneuvers import observe
 
-        observe(play, state, result, command)
+        observe(play.rules_context, state, result, command)
 
 
 def choices(
@@ -318,11 +307,17 @@ def choices(
             return ()
         allowed = pending.allowed if pending else unarmed.allowed if unarmed else ()
         if pending:
-            from wayfarer.orchestration.gurps_melee import mode as weapon_mode
-            from wayfarer.orchestration.unarmed import free_hands
+            from wayfarer.simulation.mechanics.gurps_melee import mode as weapon_mode
+            from wayfarer.simulation.mechanics.unarmed import free_hands
 
             incoming = (
-                weapon_mode(play, state, pending.attacker_id, pending.weapon_id, pending.mode_id)
+                weapon_mode(
+                    play.rules_context,
+                    state,
+                    pending.attacker_id,
+                    pending.weapon_id,
+                    pending.mode_id,
+                )
                 if pending.spell_cast_id is None
                 else None
             )
@@ -413,8 +408,8 @@ def choices(
         rules = engine.rules.gurps_equipment
         assert rules is not None
         entries = {e.definition_id: e for e in rules.entries}
-        from wayfarer.orchestration.object_combat import effective_entry
         from wayfarer.rules.object_types import residual_definition
+        from wayfarer.simulation.mechanics.object_combat import effective_entry
 
         weapons = [
             (item, mode)
@@ -424,7 +419,7 @@ def choices(
             if item.condition is None
             or not item.condition.disabled
             or residual_definition(entries[item.definition_id].durability, item.condition)
-            for mode in effective_entry(play, item).modes
+            for mode in effective_entry(play.rules_context, item).modes
         ]
         for item, mode in weapons:
             item_name = play.engine.reviewer.compiler.definitions[item.definition_id].name

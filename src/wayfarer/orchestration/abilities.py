@@ -5,7 +5,6 @@ from dataclasses import dataclass, replace
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.models import Campaign, Event
 from wayfarer.orchestration.access import CampaignAccess
-from wayfarer.orchestration.gurps_melee import injury_turn
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.recovery import guard
 from wayfarer.rules.abilities import fatigue_cost, validate_binding
@@ -24,6 +23,7 @@ from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import Encounter
 from wayfarer.simulation.concentration import require_idle_concentration
 from wayfarer.simulation.maneuvers import ManeuverState
+from wayfarer.simulation.mechanics.gurps_melee import injury_turn
 from wayfarer.simulation.party import synchronous
 from wayfarer.simulation.resources import Advance
 
@@ -155,7 +155,9 @@ def _prepare_ability(
         fp = next(p for p in state.resources.pools if p.id == f"fp:{actor.actor_id}")
         if command.kind == "activate" and fatigue_cost(spec) > fp.current and fatigue_cost(spec):
             raise ValidationError("Insufficient fatigue for ability")
-        state = injury_turn(play, state, actor.actor_id, command.id, start=True, do_nothing=False)
+        state = injury_turn(
+            play.rules_context, state, actor.actor_id, command.id, start=True, do_nothing=False
+        )
         hp = next(p for p in state.resources.pools if p.id == f"hp:{actor.actor_id}")
         context = replace(context, unavailable=bool(hp.injury and hp.injury.incapacitated))
         state = state.model_copy(
@@ -243,7 +245,7 @@ def reduce_ability(
         )
     if taking_turn:
         updated = injury_turn(
-            play, updated, command.actor_id, command.id, start=False, do_nothing=False
+            play.rules_context, updated, command.actor_id, command.id, start=False, do_nothing=False
         )
         updated = updated.model_copy(
             update={

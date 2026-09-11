@@ -7,11 +7,11 @@ from test_gurps_melee import setup
 
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat import CombatService, ResumeInterruptedTurn, TakeCombatTurn
-from wayfarer.orchestration.gurps_melee import defense_value
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.simulation.combat import CombatResult
+from wayfarer.simulation.mechanics.gurps_melee import defense_value
 
 
 async def turn(
@@ -76,7 +76,7 @@ async def test_all_out_attack_bonus_and_forbidden_defense(
     actor = state.encounters[0].participants[0]
     for defense in ("dodge", "parry", "block"):
         with pytest.raises(ValidationError, match="forbids"):
-            defense_value(play, state, actor, defense)
+            defense_value(play.rules_context, state, actor, defense)
 
 
 async def test_evaluate_stacks_expires_and_survives_defense(tmp_path: Path) -> None:
@@ -103,8 +103,8 @@ async def test_move_attack_cap_and_no_parry(tmp_path: Path) -> None:
     state = play._load(await play.store.read(cid))
     actor = state.encounters[0].participants[0]
     with pytest.raises(ValidationError, match="forbids"):
-        defense_value(play, state, actor, "parry")
-    assert defense_value(play, state, actor, "dodge")[0] is not None
+        defense_value(play.rules_context, state, actor, "parry")
+    assert defense_value(play.rules_context, state, actor, "dodge")[0] is not None
 
 
 async def test_feint_independent_margins(tmp_path: Path) -> None:
@@ -269,11 +269,15 @@ async def test_enhanced_defense_persists_until_new_selection(tmp_path: Path) -> 
     await turn(cid, play, "a", "all_out_defense", defense_option="parry")
     await turn(cid, play, "b", "do_nothing")
     state = play._load(await play.store.read(cid))
-    value, _ = defense_value(play, state, state.encounters[0].participants[0], "parry")
+    value, _ = defense_value(
+        play.rules_context, state, state.encounters[0].participants[0], "parry"
+    )
     assert value is not None and value.value == 11
     await turn(cid, play, "a", "do_nothing")
     state = play._load(await play.store.read(cid))
-    value, _ = defense_value(play, state, state.encounters[0].participants[0], "parry")
+    value, _ = defense_value(
+        play.rules_context, state, state.encounters[0].participants[0], "parry"
+    )
     assert value is not None and value.value == 9
 
 

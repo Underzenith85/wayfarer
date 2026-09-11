@@ -7,12 +7,12 @@ from test_gurps_melee import attack, choice, setup
 
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat import CombatService
-from wayfarer.orchestration.critical_limbs import CriticalLimbResult
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.simulation.critical import CriticalMiss
 from wayfarer.simulation.gurps_equipment import Damage, MeleeMode, Parry
+from wayfarer.simulation.mechanics.critical_limbs import CriticalLimbResult
 
 MODES = (
     MeleeMode(
