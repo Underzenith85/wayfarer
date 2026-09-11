@@ -121,7 +121,8 @@ the two persistence adapters and forbids update/delete statements.
 `stream_genesis` retains the earliest available checkpoint. Existing logs are
 converted once under the writer lock using their recorded transitions, without
 fabricating seeds. If an old database retains no revision-zero checkpoint, its
-earliest snapshot is the explicit reconstruction boundary. Subsequent stream
+earliest snapshot is the explicit reconstruction boundary. Pre-event-store
+databases without any snapshots use their current campaign row as that boundary. Subsequent stream
 reads no longer depend on command `state_after` columns or the snapshots table.
 This step retains the existing snapshot-based general load path; #419 demotes
 that cache after the replay gate and upcaster registry land.

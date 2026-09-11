@@ -386,9 +386,13 @@ class AsyncSQLiteStore:
         )
         initial = await cursor.fetchone()
         if initial is None:
-            raise NotFoundError("Campaign genesis not found")
-        revision = int(str(initial[0]))
-        before = validation.campaign(validation.decode(initial[1]))
+            # Pre-event-store databases may have only their current campaign row.
+            # Preserve that explicit boundary; earlier state cannot be invented.
+            before = await self._read(db, cid)
+            revision = before["revision"]
+        else:
+            revision = int(str(initial[0]))
+            before = validation.campaign(validation.decode(initial[1]))
         await db.execute(
             "INSERT INTO stream_genesis (campaign, revision, state) VALUES (?, ?, ?)",
             (cid, revision, json.dumps(before)),
