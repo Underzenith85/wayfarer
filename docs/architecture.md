@@ -166,9 +166,10 @@ orchestrator is the only layer that knows more than one campaign exists.
   and revision. Rebuilding state ignores it; players keep the text they read.
 
 Snapshots of `PlayState` per revision remain, as a cache:
-`state(n) = fold(snapshot(k), events[k+1:n])`. Character state is a projection
-of the campaign stream, not a second aggregate; the workshop draft is the one
-separate aggregate, because it exists before a character enters a campaign.
+`state(n) = fold(snapshot(k), events[k+1:n])`. Character state, workshop
+drafts and director turns are projections of the campaign stream, not second
+aggregates; `PlayState.drafts` already lives inside it. The one separate
+aggregate is the scenario catalog, which exists before any campaign does.
 
 ## Where randomness, judgement and narration enter
 
@@ -188,20 +189,110 @@ separate aggregate, because it exists before a character enters a campaign.
    is written to its own stream. A failed narration logs and leaves the turn
    committed.
 
+## Scenarios
+
+A scenario is configuration plus genesis state. It is never executed and it is
+never mutated by play.
+
+- **Authoring is its own aggregate.** A `ScenarioDocument` is edited, imported
+  or generated in the catalog; each change is a receipt in `scenario_receipts`,
+  and model generation is a proposal into this aggregate, not into a campaign.
+  `ScenarioStudio.validate` checks playability by instantiating the real
+  `ActionEngine` and calling `initial_state`, so authoring is judged by the
+  engine that will play it, never by a second rules implementation. A
+  `PublishedRevision` is immutable and carries its content digest, the engine
+  digest it was validated against and the party digest.
+- **Activation is the genesis command.** Setup's seat, readiness and activate
+  operations are commands in the pre-play segment of the campaign stream, and
+  `activate` is the one that produces revision 0 by folding the published
+  graph's world, initial resources and pregenerated actors into `PlayState`.
+  The genesis command carries the authoritative scenario reference: catalog
+  id, revision and content digest, checked against the published revision on
+  load. The graph copied onto the campaign row is a cache of that revision.
+- **The graph becomes rules and world, not mechanics.**
+  `ScenarioContent.runtime_rules()` folds scenes, objectives, checks, NPC
+  plans, recovery, party, spells and combat equipment into `ActionRules`, which
+  `PlayService.bind` compiles into the engine for that campaign. The result is
+  part of `configuration_digest`, so replay pins a scenario revision exactly as
+  it pins a rulebook. Mechanics come only from the rules profile in
+  `rules_ref`; `single_mechanics_source` rejects a document that supplies its
+  own. During play the scenario is inert: learned facts, scene cursors,
+  objective progress and NPC clocks live in `PlayState`, and scenario prose
+  reaches only the narrator's context.
+- **Continuation is a migration command.** `continuation.prepare` merges a next
+  graph with the old world under fixed rules: existing records win, builds are
+  preserved, settled rewards cannot recur, captives cannot be relocated. It
+  changes the digest, which is a replay boundary.
+
+### Maps
+
+There are three maps, and the scenario must own the templates for all of them
+in one place.
+
+- **World graph.** Locations and connections are authored in the scenario's
+  `World`, and every `Scene` binds to a `location_id`. Where each actor stands
+  is state (`Entity.location_id`, `ActorScene`), rewritten by move and travel
+  commands.
+- **Battlefield templates.** Square `Battlefield` templates are authored in
+  `CombatRules.battlefields`, each tied to a location, and are inside the
+  pinned digest. `StartEncounter` names a template and supplies placements;
+  the encounter holds the template id and each combatant's position and
+  facing. `validate_contexts` requires participants to share one scene whose
+  location matches the template's location, which is where the two maps meet.
+- **Hex maps are the exception to fix.** `HexBattlefield` is embedded whole in
+  `Encounter.hex_battlefield`, so a square map is pinned configuration while a
+  hex map is per-encounter state in the snapshot. That is the duplicate owner
+  #323 names. The target is one tagged union of square and hex templates under
+  `CombatRules.battlefields`, an encounter that holds a template reference and
+  a spatial-context instance, and an explicit `MigrationEntry` for legacy
+  snapshots that embed a map. Mapless combat (#324) is a scene with no
+  template, whose spatial facts arrive as `RangedSituation` and GM declaration
+  commands. Which map a client draws is a projection, never a mechanic.
+
 ## Consequences
 
-Replay by re-execution makes the engine's dice consumption order part of its
-contract. A refactor that reorders two checks changes the traces for the same
-seed, so such a change is a rules migration event, exactly like a rulebook
-change. If that proves too strict, record the dice tape instead of the seed.
+**Two replay guarantees, not one.** Events are facts, so folding the event
+stream reproduces state under any engine version; that is the production
+invariant for stored campaigns, and a bug fix never strands a saved game.
+Re-executing the command log through the engine is only claimed to reproduce
+those facts when the recorded engine version equals the running one. It is the
+fixture gate, never a claim about old streams.
 
-Only the command log is authoritative. `PlayService.commit` is the single
+**Engine version.** `wayfarer.simulation.ENGINE_VERSION` is a constant bumped
+by policy whenever `resolve(state, command, seed)` can produce a different
+outcome for any input: a rule fix, a reordered check, a new dice draw. Every
+command record carries the version at commit time. Re-execution of a stream
+recorded under another version is not attempted. The fixture gate is a
+tripwire in both directions: if re-execution diverges and the version did not
+change, CI fails; if the version changed, the fixtures are regenerated in the
+same change. `MigrationEntry` keeps its existing meaning, a rules-data change
+that alters `configuration_digest`, and does not acquire a code-version one.
+
+**Events declare their audience.** Knowledge isolation is a release invariant
+(#1, #45): reunion does not share secrets and captives learn nothing of their
+rescuers. Every event carries an audience, the whole campaign, a set of actor
+ids, or the GM, set by the reducer that produced it, because only the reducer
+knows who witnessed what. The outbox filters on it before anything reaches a
+live stream, and projections keep their per-principal scoping on top.
+
+**Only the command log is authoritative.** `PlayService.commit` is the single
 writer of play state today, and the event store gets the same single-writer
-test.
+test. Command record, event append and snapshot commit in one transaction.
+System-issued commands such as clock advances carry a system principal.
 
-Replay is valid only under the pinned rules digest. `configuration_digest`
-and `MigrationEntry` already exist; the gate is that a stream's digest must
-match the engine that replays it.
+**One engine.** The wave-1 prototype (`models.Campaign` as a mutable dict,
+`simulation/resolution.py`, `GameService.turn`) is a second resolver and is
+fenced behind the existing typed-campaign guard until it is retired.
+
+**The orchestrator is real work.** A session registry holds one session per
+active campaign, with the engine compiled for its digest, a per-campaign lock
+ahead of compare-and-set and idle eviction; `PlayService.bind` becomes a
+lookup. Narration and NPC proposals run as jobs behind the outbox, so a slow
+provider never holds a committed turn's projection.
+
+**Event schemas evolve by upcasting.** An upcaster registry keyed by event
+kind and schema version runs on read before the fold; a version is retained
+until every stored campaign has been snapshotted past it.
 
 ## Migration order
 
@@ -211,3 +302,14 @@ match the engine that replays it.
 4. Add the replay gate: rebuild every fixture campaign from its command log and
    compare to its snapshot.
 5. Move snapshots to cache status.
+6. Carry the scenario reference (catalog id, revision, content digest) on the
+   genesis and continuation commands and verify it on load; treat setup's
+   writes as pre-play commands of the same stream.
+7. Give map templates one owner: square and hex templates under
+   `CombatRules.battlefields`, a template reference plus spatial-context
+   instance on the encounter, and a migration for snapshots that embed a hex
+   map (with #323).
+8. Stand up the session registry and move narration and NPC proposals behind
+   the outbox as jobs.
+9. Fence, then retire, the wave-1 prototype resolver.
+10. Add the event upcaster registry before snapshots become a cache.
