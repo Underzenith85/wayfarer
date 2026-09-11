@@ -13,6 +13,8 @@ from wayfarer.persistence.upcasters import UpcasterRegistry
 from wayfarer.rules.randomness import RNG_ALGORITHM
 from wayfarer.simulation import ENGINE_VERSION
 from wayfarer.simulation.events import EngineEvent
+from wayfarer.simulation.scenario_document import ScenarioBoundary
+from wayfarer.simulation.scenario_references import boundary
 
 EVENT_SCHEMA_VERSION = 1
 
@@ -76,6 +78,7 @@ class CommandRecord:
     recorded_at_us: int | None = None
     origin: CommandOrigin | None = field(default=None, repr=False)
     command_input: str | None = field(default=None, repr=False)
+    scenario_boundary: ScenarioBoundary | None = None
 
     @property
     def reexecutable(self) -> bool:
@@ -112,3 +115,8 @@ def upcast_command(record: CommandRecord) -> CommandRecord:
     row = COMMAND_UPCASTERS.read("command", record.schema_version, raw)
     row["schema_version"] = COMMAND_UPCASTERS.current["command"]
     return _COMMAND_ADAPTER.validate_json(json.dumps(row))
+
+
+def command_scenario(campaign: Campaign) -> str | None:
+    pin = boundary(campaign)
+    return pin.model_dump_json(exclude={"published"}) if pin else None

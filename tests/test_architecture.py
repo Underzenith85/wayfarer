@@ -327,9 +327,9 @@ assert 'wayfarer.simulation.action_engine' not in sys.modules
         )
 
     def test_play_checkpoints_are_written_by_one_verb(self) -> None:
-        """Transactions end in PlayService.commit; only play and setup touch play_json."""
+        """Transactions end in PlayService.commit; only play touches play_json."""
         package = Path(wayfarer.__file__).parent
-        allowed = {package / "orchestration" / "play.py", package / "orchestration" / "setup.py"}
+        allowed = {package / "orchestration" / "play.py"}
         for source in (*package.rglob("orchestration/*.py"), *package.rglob("transport/**/*.py")):
             if source in allowed:
                 continue

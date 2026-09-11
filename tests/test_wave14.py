@@ -170,6 +170,10 @@ class Table:
         from wayfarer.simulation.events import document
 
         folded = await store.stream_states(self.cid)
+        from wayfarer.simulation.scenario_references import verify
+
+        for checkpoint, _ in folded:
+            verify(checkpoint)
         history = await store.history(self.cid)
         assert [document(s) for s, _ in folded[1:]] == [document(e.state_after) for e in history]
 

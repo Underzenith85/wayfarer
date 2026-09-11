@@ -33,7 +33,11 @@ MECHANICS: dict[str, tuple[str, ...]] = {
         "test_wave9",
         "test_release_invariants",
     ),
-    "Scenario creation, legal activation and director": ("test_wave11", "test_wave12"),
+    "Scenario creation, legal activation and director": (
+        "test_wave11",
+        "test_wave12",
+        "test_scenario_references",
+    ),
     "Epilogue, rewards and continuation": ("test_wave13",),
     "Reference adventure, all endings, split/capture/rescue and generated contracts": (
         "test_wave14",

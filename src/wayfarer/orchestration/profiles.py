@@ -160,7 +160,7 @@ class ProfileMigrations:
         gm = principal_id in service.engine.reviewer.gm_ids
         bound: PlayService | None
         try:
-            bound = service.bind(campaign)
+            bound = service.bind(campaign, migration_target=True)
         except ValidationError as exc:
             bound = None
             found.append(
@@ -302,7 +302,7 @@ class ProfileMigrations:
         source = self.runtime.registry.resolve(campaign.get("rules_ref"))
         target = self.runtime.registry.get(command.profile.id, command.profile.version)
         current = self.runtime.for_campaign(campaign)
-        bound = self.runtime.service(target).bind(campaign)
+        bound = self.runtime.service(target).bind(campaign, migration_target=True)
         migration = MigrationService(
             current,
             bound,

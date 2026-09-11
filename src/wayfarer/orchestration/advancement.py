@@ -497,6 +497,15 @@ class MigrationService:
                 from wayfarer.simulation.party import migrate
 
                 updated = migrate(updated)
+            from wayfarer.simulation.scenario_references import boundary
+
+            pin = boundary(campaign)
+            if pin is not None:
+                # The migration ledger records this explicit runtime change; the
+                # immutable published source reference remains the original one.
+                campaign["scenario_reference_json"] = pin.model_copy(
+                    update={"runtime_digest": self.target.engine.digest}
+                ).model_dump_json()
             campaign["rules_ref"] = reference(self.target.engine.resources.rules)
             self.target.commit(campaign, updated)
             return Event(

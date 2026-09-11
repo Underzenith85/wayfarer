@@ -18,11 +18,13 @@ from wayfarer.persistence.events import (
     CommandRecord,
     CommandResolution,
     StoredEvent,
+    command_scenario,
     payload_digest,
     upcast_command,
 )
 from wayfarer.persistence.upcasters import EVENT_UPCASTERS, read_event
 from wayfarer.simulation.events import EVENT_ADAPTER, EngineEvent, command_events, document, fold
+from wayfarer.simulation.scenario_document import ScenarioBoundary
 
 SNAPSHOT_INTERVAL = 10
 
@@ -87,6 +89,7 @@ class AsyncSQLiteStore:
             "recorded_at_us",
             "origin_json",
             "command_input",
+            "scenario_boundary_json",
         )
         if not set(metadata) <= columns:
             # Recheck under the writer lock; normal reads need no migration lock.
@@ -225,8 +228,8 @@ class AsyncSQLiteStore:
                 """INSERT INTO command_log (
                     campaign, command_id, actor_id, expected_revision,
                     resulting_revision, payload_hash, rules_version,
-                    schema_version, event, state_after, entropy_seed, engine_version, rng_algorithm, recorded_at_us, origin_json, command_input
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    schema_version, event, state_after, entropy_seed, engine_version, rng_algorithm, recorded_at_us, origin_json, command_input, scenario_boundary_json
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     cid,
                     request_id,
@@ -244,6 +247,7 @@ class AsyncSQLiteStore:
                     recorded_at_us,
                     origin.model_dump_json() if origin else None,
                     text,
+                    command_scenario(state),
                 ),
             )
             if state["revision"] % SNAPSHOT_INTERVAL == 0:
@@ -267,7 +271,7 @@ class AsyncSQLiteStore:
         try:
             cursor = await db.execute(
                 """SELECT command_id, actor_id, expected_revision, resulting_revision,
-                          payload_hash, rules_version, schema_version, event, state_after, entropy_seed, engine_version, rng_algorithm, recorded_at_us, origin_json, command_input
+                          payload_hash, rules_version, schema_version, event, state_after, entropy_seed, engine_version, rng_algorithm, recorded_at_us, origin_json, command_input, scenario_boundary_json
                    FROM command_log WHERE campaign=? ORDER BY resulting_revision""",
                 (cid,),
             )
@@ -291,6 +295,9 @@ class AsyncSQLiteStore:
                         rng_algorithm=row[11],
                         recorded_at_us=row[12],
                         command_input=row[14],
+                        scenario_boundary=ScenarioBoundary.model_validate_json(row[15])
+                        if row[15]
+                        else None,
                         origin=CommandOrigin.model_validate_json(row[13])
                         if row[13] is not None
                         else None,
