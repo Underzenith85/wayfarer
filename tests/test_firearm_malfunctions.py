@@ -1,6 +1,7 @@
-"""Independent Campaigns fourth-printing B382/B407 numeric fixtures.
+"""Independent Characters B278 and Campaigns B382/B407 numeric fixtures.
 
-Catalog fixtures are synthetic; source/printing certification remains #191/#180.
+Most mechanics fixtures are synthetic; one inspected catalog row binds them to
+production data. Frozen source certification remains #191/#180.
 """
 
 from pathlib import Path
@@ -12,6 +13,7 @@ from test_gurps_maneuvers import defend, turn
 from test_gurps_melee import setup
 from test_gurps_ranged import load, scene, weapon
 
+from wayfarer.character.compiler import Purchase
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.combat import ChooseDefense, CombatService, TakeCombatTurn
@@ -19,6 +21,8 @@ from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.rules.firearm_types import FirearmSpec
+from wayfarer.rules.mundane_skills.ranged import definitions
+from wayfarer.simulation.basic_equipment import BASIC_EQUIPMENT
 from wayfarer.simulation.firearms import MalfunctionRecord, save_malfunction
 from wayfarer.simulation.gurps_equipment import Damage, EquipmentCatalog, RangedMode
 from wayfarer.simulation.mechanics.firearms import ServiceRecord
@@ -40,6 +44,12 @@ def firearm(
     return RangedMode.model_validate(data)
 
 
+def production_firearm(definition_id: str) -> RangedMode:
+    entry = next(v for v in BASIC_EQUIPMENT.entries if v.definition_id == definition_id)
+    assert len(entry.modes) == 1 and isinstance(entry.modes[0], RangedMode)
+    return entry.modes[0]
+
+
 @pytest.mark.parametrize(
     ("tl", "quality", "expected"),
     [
@@ -59,6 +69,51 @@ def test_source_malfunction_numbers(tl: int, quality: str, expected: int) -> Non
         ).malfunction_number
         == expected
     )
+
+
+async def test_b278_production_revolver_uses_authoritative_burst_failure(tmp_path: Path) -> None:
+    mode = production_firearm("equipment:snub-revolver-38")
+    cid, play = await setup(
+        tmp_path,
+        "gurps-basic-set-4e-2004",
+        ranged_mode=mode,
+        ranged_scene=scene(),
+        extra_definitions=definitions(),
+        extra_purchases=(Purchase(definition_id="skill:guns-pistol", amount=4),),
+        campaign_technology_level=6,
+    )
+    # B278's 3i protocol takes three Ready maneuvers for each round.
+    for _ in range(9):
+        await turn(
+            cid,
+            play,
+            "a",
+            "ready",
+            item_id="sword-a",
+            mode_id="shot",
+            reload_ammunition_id="ammo-a",
+        )
+        await turn(cid, play, "b", "do_nothing")
+    await turn(cid, play, "a", "attack", item_id="sword-a", target_id="b", mode_id="shot", shots=3)
+    state = play._load(await play.store.read(cid))
+    command = ChooseDefense(
+        id="production-failure",
+        actor_id="b",
+        encounter_id="fight",
+        expected_revision=state.revision,
+        defense="dodge",
+    )
+    play.rng = RecordedDice([6, 6, 6, 3, 3, 3])
+    result = await CombatService(play).execute(cid, command, authenticated_actor_id="b")
+    assert result.injury is not None
+    assert (result.injury.malfunction, result.injury.shots_fired, result.injury.hits) == (
+        "stoppage",
+        1,
+        0,
+    )
+    saved = play._load(await play.store.read(cid))
+    assert saved.resources.ammunition_loads[0].rounds == 2
+    assert await play.store.read(cid) == await play.store.replay(cid)
 
 
 @pytest.mark.parametrize(

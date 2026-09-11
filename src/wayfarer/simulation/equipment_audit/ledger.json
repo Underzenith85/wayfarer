@@ -826,7 +826,8 @@
       "capability_id": "gurps.combat.ranged_attack",
       "owner_issue": null,
       "tests": [
-        "tests/test_firearm_malfunctions.py::test_malfunction_precedes_critical_miss_and_retries_once"
+        "tests/test_firearm_malfunctions.py::test_malfunction_precedes_critical_miss_and_retries_once",
+        "tests/test_firearm_malfunctions.py::test_b278_production_revolver_uses_authoritative_burst_failure"
       ],
       "evidence_gap": null
     },
