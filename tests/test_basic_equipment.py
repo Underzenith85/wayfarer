@@ -1,4 +1,4 @@
-"""Independent selected-row audit: Characters third printing B271-276,280,283,288."""
+"""Independent selected-row audit: Characters third printing B271-278,280,283,288."""
 
 import pytest
 from pydantic import ValidationError as SchemaError
@@ -66,6 +66,14 @@ RANGED_ROWS = (
     ("prodd", 276, 3, 150, 6000, 7, 2, 20, 25, -6),
     ("sling", 276, 0, 20, 500, 6, 0, 6, 10, -4),
     ("staff-sling", 276, 1, 20, 2000, 7, 1, 10, 15, -6),
+)
+
+FIREARM_ROWS = (
+    ("flintlock-pistol-51", 4, 200, 3000, 2, -1, "pi+", 1, 75, 450, 1, 1, 20, 10, -3, 2),
+    ("wheel-lock-pistol-60", 4, 200, 3250, 1, 1, "pi+", 1, 75, 400, 1, 1, 20, 10, -3, 2),
+    ("derringer-41", 5, 100, 500, 1, 0, "pi+", 1, 80, 650, 1, 2, 3, 9, -1, 2),
+    ("revolver-36", 5, 150, 2500, 2, -1, "pi", 1, 120, 1300, 1, 6, 3, 10, -2, 2),
+    ("snub-revolver-38", 6, 250, 1500, 1, 2, "pi", 1, 120, 1250, 3, 5, 3, 8, -1, 3),
 )
 
 
@@ -229,6 +237,91 @@ def test_b276_ammunition_keeps_fractional_prices_and_weights() -> None:
         "bolt": ("2", 60),
         "lead-pellet": ("0.1", 60),
         "sling-stone": ("0", 50),
+    }
+    assert {
+        key: (str(entries[key].price), entries[key].weight_millipounds) for key in expected
+    } == expected
+    assert all(entries[key].ammunition for key in expected)
+
+
+def test_b278_firearms_preserve_independent_table_columns() -> None:
+    entries = {
+        entry.definition_id.removeprefix("equipment:"): entry for entry in BASIC_EQUIPMENT.entries
+    }
+    for row in FIREARM_ROWS:
+        (
+            key,
+            tl,
+            cost,
+            weight,
+            dice,
+            adds,
+            damage_type,
+            acc,
+            half,
+            maximum,
+            rof,
+            shots,
+            reload,
+            st,
+            bulk,
+            recoil,
+        ) = row
+        entry = entries[key]
+        assert (
+            entry.provenance.pages,
+            entry.technology_level,
+            entry.price,
+        ) == (
+            (278,),
+            tl,
+            cost,
+        )
+        assert len(entry.modes) == 1 and isinstance(entry.modes[0], RangedMode)
+        mode = entry.modes[0]
+        assert (mode.damage.dice, mode.damage.adds, mode.damage.damage_type) == (
+            dice,
+            adds,
+            damage_type,
+        )
+        assert (
+            mode.accuracy,
+            mode.half_damage_range,
+            mode.maximum_range,
+            mode.rate_of_fire,
+            mode.shots,
+            mode.reload_seconds,
+            mode.minimum_st,
+            mode.bulk,
+            mode.recoil,
+        ) == (acc, half, maximum, rof, shots, reload, st, bulk, recoil)
+        assert mode.firearm and mode.firearm.technology_level == tl
+        assert mode.ammunition_id is not None
+        ammunition = entries[mode.ammunition_id.removeprefix("equipment:")]
+        # B270 gives unloaded weight only for Shots 1. For Shots 2+, rebuild
+        # the table's loaded figure from the physical weapon and its rounds.
+        reconstructed = entry.weight_millipounds
+        if shots > 1:
+            reconstructed += ammunition.weight_millipounds * shots
+        assert reconstructed == weight
+
+    derringer = entries["derringer-41"].modes[0]
+    revolver = entries["revolver-36"].modes[0]
+    assert isinstance(derringer, RangedMode) and derringer.reload_protocol == "per-round"
+    assert isinstance(revolver, RangedMode) and revolver.firearm is not None
+    assert revolver.firearm.action == "revolver"
+
+
+def test_b278_firearm_ammunition_uses_exact_per_round_units() -> None:
+    entries = {
+        entry.definition_id.removeprefix("equipment:"): entry for entry in BASIC_EQUIPMENT.entries
+    }
+    expected = {
+        "flintlock-pistol-51-round": ("0.2", 10),
+        "wheel-lock-pistol-60-round": ("0.2", 10),
+        "derringer-41-round": ("1", 50),
+        "revolver-36-round": ("0.8", 40),
+        "snub-revolver-38-round": ("0.8", 40),
     }
     assert {
         key: (str(entries[key].price), entries[key].weight_millipounds) for key in expected

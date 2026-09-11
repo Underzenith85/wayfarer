@@ -28,27 +28,29 @@ integrity checks and their failure cases.
 `ledger.json` splits B264-289 into fourteen sections. Every registered row
 (`BASIC_EQUIPMENT` plus the blocked `ULTRATECH_INDEX`) belongs to exactly one
 section, and the validator rejects a ledger whose sections do not cover the
-pinned catalog exactly. **No section is complete.** Six carry an inspected page
+pinned catalog exactly. **No section is complete.** Seven carry an inspected page
 anchor and record what they leave out:
 
 | Section | Anchor | Rows recorded | Omitted |
 | --- | --- | --- | --- |
 | `melee-weapons-b271` | B271-274 | 45 | non-equipment attacks and rows the typed schema cannot represent without inventing values |
 | `muscle-powered-ranged` | B275-276 | 18 | duplicated thrown modes, special binding damage, launcher/cocking-aid behavior and remaining material/ammunition variants |
-| `ammunition` | B275-276 | 5 | alternative missiles, firearm ammunition, explosive warheads and power cells |
+| `firearms` | B278-279 | 5 | chambered capacities, sub-millipound rounds, gyroc acceleration, smartguns, high-cyclic RoF, rifles and shotguns |
+| `ammunition` | B275-278 | 10 | alternative missiles, sub-millipound firearm rounds, ammunition variants, explosive warheads and power cells |
 | `beam-weapons-b280` | B280 | 3 | every other beam row; the three recorded rows are index facts that cannot be equipped or fired |
 | `body-armor-b283` | B283 | 8 | split-DR, single-facing, flexible, layered and footnoted rows, plus the other armor pages |
 | `general-equipment-b288` | B288 | 10 | every other B288 row and the whole B289 continuation |
 
-The remaining eight sections record **no rows at all**: wealth and legality,
-firearms, shields, heavy weapons, split-DR armor, higher-TL variants, weapon
-accessories and the general equipment remainder. Their anchors are recorded as `range-only`,
+The remaining seven sections record **no rows at all**: wealth and legality,
+shields, heavy weapons, split-DR armor, higher-TL variants, weapon accessories
+and the general equipment remainder. Their anchors are recorded as `range-only`,
 meaning B264-289 as a range that nobody has reconciled item by item. A
 `range-only` anchor is a coverage gap, not a page citation.
 
 One structural consequence remains recorded rather than smoothed over: no
-audited row is a shield. B275-276 now provide direct ranged cases for rated ST,
-accuracy, ST-multiplied range, reload timing, bulk and missile references.
+audited row is a shield. B275-278 now provide direct ranged cases for rated ST,
+accuracy, ST-multiplied and absolute range, reload timing, shots, rate of fire,
+recoil, bulk, firearm action and missile references.
 
 ## Footnotes and special gear behaviour
 

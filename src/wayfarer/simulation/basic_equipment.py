@@ -11,6 +11,7 @@ from pydantic import Field
 
 from wayfarer.errors import ValidationError
 from wayfarer.models import Id, Record
+from wayfarer.rules.firearm_types import FirearmSpec
 from wayfarer.rules.object_types import ObjectProfile
 from wayfarer.rules.readiness_types import ProjectileReadiness
 from wayfarer.simulation.gurps_equipment import (
@@ -177,6 +178,58 @@ def ranged_weapon(
         slot="hand",
         modes=modes,
         unsupported_mechanics=unsupported,
+    )
+
+
+def firearm(
+    identifier: str,
+    skill: str,
+    tl: int,
+    damage_dice: int,
+    damage_adds: int,
+    damage_type: DamageType,
+    accuracy: int,
+    half_range: int,
+    maximum_range: int,
+    rate_of_fire: int,
+    shots: int,
+    reload_seconds: int,
+    minimum_st: int,
+    bulk: int,
+    recoil: int,
+    ammunition_id: str,
+    action: Literal["muzzleloader", "breechloader", "revolver", "repeating"],
+    *,
+    reload_protocol: Literal["magazine", "per-round"] = "magazine",
+) -> RangedMode:
+    """Construct one independently transcribed B278 conventional-firearm row."""
+    return RangedMode(
+        id=identifier,
+        skill_id="skill:guns-" + skill,
+        minimum_st=minimum_st,
+        hands=1,
+        damage=Damage(
+            basis="fixed",
+            dice=damage_dice,
+            adds=damage_adds,
+            damage_type=damage_type,
+        ),
+        accuracy=accuracy,
+        range_basis="yards",
+        half_damage_range=half_range,
+        maximum_range=maximum_range,
+        rate_of_fire=rate_of_fire,
+        shots=shots,
+        reload_seconds=reload_seconds,
+        reload_protocol=reload_protocol,
+        bulk=bulk,
+        recoil=recoil,
+        ammunition_id="equipment:" + ammunition_id,
+        firearm=FirearmSpec(
+            technology_level=tl,
+            action=action,
+            armoury_skill_id="skill:armoury-small-arms",
+        ),
     )
 
 
@@ -906,6 +959,163 @@ MUSCLE_POWERED_AMMUNITION = tuple(
     )
 )
 
+# B278: rows whose printed shot capacity and ammunition-load weight can both be
+# represented without rounding. Chambered "+1" capacities and fractional
+# millipounds remain ledgered omissions instead of being flattened.
+FIREARMS = (
+    ranged_weapon(
+        "flintlock-pistol-51",
+        278,
+        4,
+        200,
+        3000,
+        firearm(
+            "shot",
+            "pistol",
+            4,
+            2,
+            -1,
+            "pi+",
+            1,
+            75,
+            450,
+            1,
+            1,
+            20,
+            10,
+            -3,
+            2,
+            "flintlock-pistol-51-round",
+            "muzzleloader",
+        ),
+    ),
+    ranged_weapon(
+        "wheel-lock-pistol-60",
+        278,
+        4,
+        200,
+        3250,
+        firearm(
+            "shot",
+            "pistol",
+            4,
+            1,
+            1,
+            "pi+",
+            1,
+            75,
+            400,
+            1,
+            1,
+            20,
+            10,
+            -3,
+            2,
+            "wheel-lock-pistol-60-round",
+            "muzzleloader",
+        ),
+    ),
+    ranged_weapon(
+        "derringer-41",
+        278,
+        5,
+        100,
+        400,
+        firearm(
+            "shot",
+            "pistol",
+            5,
+            1,
+            0,
+            "pi+",
+            1,
+            80,
+            650,
+            1,
+            2,
+            3,
+            9,
+            -1,
+            2,
+            "derringer-41-round",
+            "breechloader",
+            reload_protocol="per-round",
+        ),
+    ),
+    ranged_weapon(
+        "revolver-36",
+        278,
+        5,
+        150,
+        2260,
+        firearm(
+            "shot",
+            "pistol",
+            5,
+            2,
+            -1,
+            "pi",
+            1,
+            120,
+            1300,
+            1,
+            6,
+            3,
+            10,
+            -2,
+            2,
+            "revolver-36-round",
+            "revolver",
+            reload_protocol="per-round",
+        ),
+    ),
+    ranged_weapon(
+        "snub-revolver-38",
+        278,
+        6,
+        250,
+        1300,
+        firearm(
+            "shot",
+            "pistol",
+            6,
+            1,
+            2,
+            "pi",
+            1,
+            120,
+            1250,
+            3,
+            5,
+            3,
+            8,
+            -1,
+            3,
+            "snub-revolver-38-round",
+            "revolver",
+            reload_protocol="per-round",
+        ),
+    ),
+)
+
+FIREARM_AMMUNITION = tuple(
+    EquipmentProfile(
+        definition_id="equipment:" + identifier,
+        provenance=source(278),
+        weight_millipounds=weight,
+        price=price,
+        technology_level=tl,
+        ammunition=True,
+    )
+    for identifier, tl, price, weight in (
+        ("flintlock-pistol-51-round", 4, Decimal("0.2"), 10),
+        ("wheel-lock-pistol-60-round", 4, Decimal("0.2"), 10),
+        ("derringer-41-round", 5, 1, 50),
+        ("revolver-36-round", 5, Decimal("0.8"), 40),
+        ("snub-revolver-38-round", 6, Decimal("0.8"), 40),
+    )
+)
+
 # B283: complete rigid, unsplit body-armor rows without special footnotes.
 ARMOR = tuple(
     EquipmentProfile(
@@ -957,7 +1167,15 @@ ORDINARY = tuple(
 
 BASIC_EQUIPMENT = EquipmentCatalog(
     profile_id="gurps-basic-set-4e-2004",
-    entries=WEAPONS + MUSCLE_POWERED_RANGED + MUSCLE_POWERED_AMMUNITION + ARMOR + ORDINARY,
+    entries=(
+        WEAPONS
+        + MUSCLE_POWERED_RANGED
+        + MUSCLE_POWERED_AMMUNITION
+        + FIREARMS
+        + FIREARM_AMMUNITION
+        + ARMOR
+        + ORDINARY
+    ),
 )
 
 # B280: ultra-tech index entries carry facts but cannot be activated as ordinary
