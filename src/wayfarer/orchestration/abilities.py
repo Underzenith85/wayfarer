@@ -5,6 +5,7 @@ from dataclasses import dataclass, replace
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.models import Campaign, Event
 from wayfarer.orchestration.access import CampaignAccess
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.recovery import guard
 from wayfarer.rules.abilities import fatigue_cost, validate_binding
@@ -315,8 +316,15 @@ class AbilityService:
             play.commit(campaign, updated)
             return Event(input=payload, action="resource", outcome="ability", roll=None)
 
-        committed = await play.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+        committed = await commit_command(
+            play.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            resolve,
+            actor_id=command.actor_id,
+            rng=play.rng,
         )
         updated = play._load(committed["state"])
         event = next(e for e in updated.resources.events if e.id == internal_id(command.id))

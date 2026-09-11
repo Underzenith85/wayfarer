@@ -8,6 +8,7 @@ import time
 from datetime import UTC, datetime
 
 from wayfarer.models import Campaign, Event
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import record_play_state
 from wayfarer.simulation.access import CampaignMember
 
@@ -93,8 +94,15 @@ async def invitation(
                 input=payload, action="v1-membership", outcome="Membership granted", roll=None
             )
 
-        await service.play.store.commit_turn(
-            cid, internal_id, raw["revision"], payload, grant, actor_id=principal
+        await commit_command(
+            service.play.store,
+            cid,
+            internal_id,
+            raw["revision"],
+            payload,
+            grant,
+            actor_id=principal,
+            rng=service.play.rng,
         )
         membership = obj((await service.view(tx, cid, principal)).campaign["membership"])
         await tx.put(key, {"fingerprint": fingerprint, "complete": True})

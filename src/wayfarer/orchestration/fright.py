@@ -5,6 +5,7 @@ import json
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, Event
 from wayfarer.orchestration.access import CampaignAccess
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.simulation.mechanics.fright import FrightDecision as FrightDecision
 from wayfarer.simulation.mechanics.fright import apply_decision
@@ -40,11 +41,13 @@ class FrightService:
             play.commit(campaign, updated)
             return Event(input=payload, action="npc", outcome="fright decision recorded", roll=None)
 
-        await play.store.commit_turn(
+        await commit_command(
+            play.store,
             cid,
             command.id,
             command.expected_revision,
             payload,
             reduce,
             actor_id=authenticated_gm_id,
+            rng=play.rng,
         )

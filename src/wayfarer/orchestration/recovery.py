@@ -15,6 +15,7 @@ from wayfarer.orchestration.advancement import (
     _balance,
     _build,
 )
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.party import PartyService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.checks import Modifier, Outcome, success_check
@@ -714,7 +715,14 @@ class RecoveryService:
             self.play.commit(campaign, state)
             return Event(input=payload, action="recovery", outcome=command.kind, roll=None)
 
-        result = await self.play.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+        result = await commit_command(
+            self.play.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            resolve,
+            actor_id=command.actor_id,
+            rng=self.play.rng,
         )
         return self.play._load(result["state"])

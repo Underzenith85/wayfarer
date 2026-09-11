@@ -16,6 +16,7 @@ from wayfarer.errors import (
 )
 from wayfarer.models import Campaign, Event
 from wayfarer.orchestration.access import CampaignAccess
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.studio import ScenarioStudio
 from wayfarer.rules.catalog import reference
@@ -488,8 +489,15 @@ class SetupService:
             campaign.update(updated)
             return Event(input=payload, action="setup", outcome=setup.phase, roll=None)
 
-        await self.play.store.commit_turn(
-            cid, key, command.expected_revision, payload, resolve, actor_id=principal_id
+        await commit_command(
+            self.play.store,
+            cid,
+            key,
+            command.expected_revision,
+            payload,
+            resolve,
+            actor_id=principal_id,
+            rng=self.play.rng,
         )
         return await self.read(cid, principal_id=principal_id)
 

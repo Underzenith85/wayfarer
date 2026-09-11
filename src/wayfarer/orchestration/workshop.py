@@ -13,6 +13,7 @@ from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.models import Campaign, Event, Id, Record
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.advancement import _refreshed
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.providers import Orchestrator, ProviderRequest
 from wayfarer.rules.catalog import CampaignPolicy
 from wayfarer.simulation.actions import PlayState
@@ -277,8 +278,15 @@ class WorkshopService:
             self.play.commit(campaign, current)
             return Event(input=payload, action="workshop", outcome=command.operation, roll=None)
 
-        await self.play.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+        await commit_command(
+            self.play.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            resolve,
+            actor_id=command.actor_id,
+            rng=self.play.rng,
         )
         return await self.read(cid, command.draft_id, principal_id=principal_id)
 

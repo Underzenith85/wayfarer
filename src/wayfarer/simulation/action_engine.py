@@ -7,7 +7,6 @@
 from __future__ import annotations
 
 import hashlib
-import secrets
 from dataclasses import replace
 from decimal import Decimal
 from typing import Literal
@@ -16,7 +15,14 @@ from wayfarer.character.compiler import ValidatedBuild, pool_limits
 from wayfarer.character.power import PowerReviewer
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.rules.catalog import SKILLS, DefinitionKind, ImplementationStatus
-from wayfarer.rules.checks import CheckTrace, Modifier, Outcome, RandomSource, success_check
+from wayfarer.rules.checks import (
+    NO_RANDOM,
+    CheckTrace,
+    Modifier,
+    Outcome,
+    RandomSource,
+    success_check,
+)
 from wayfarer.rules.effects import DerivedValue, EffectEvaluator, MechanicalTarget
 from wayfarer.rules.hazard_types import require_hazards_settled
 from wayfarer.rules.location_types import disabled_locations
@@ -760,7 +766,7 @@ class ActionEngine:
         state: PlayState,
         command: TypedAction,
         *,
-        rng: RandomSource = secrets,
+        rng: RandomSource = NO_RANDOM,
         ruling_id: str | None = None,
         advance_time: bool = True,
     ) -> tuple[PlayState, ActionResult]:

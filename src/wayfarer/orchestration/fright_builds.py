@@ -17,6 +17,7 @@ from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, Event
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.advancement import _refreshed
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.catalog import DefinitionKind
 from wayfarer.simulation.actions import PlayState
@@ -276,8 +277,15 @@ class FrightBuildService:
                 input=payload, action="npc", outcome="fright build decision recorded", roll=None
             )
 
-        await play.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, reduce, actor_id=principal_id
+        await commit_command(
+            play.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            reduce,
+            actor_id=principal_id,
+            rng=play.rng,
         )
 
 

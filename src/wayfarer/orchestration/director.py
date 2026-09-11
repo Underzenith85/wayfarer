@@ -14,6 +14,7 @@ from dataclasses import dataclass
 
 from wayfarer.errors import AuthorizationError, ConflictError, ProviderError, ValidationError
 from wayfarer.models import Campaign, Event
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.providers import (
     Intent,
     Narration,
@@ -71,8 +72,15 @@ class DirectorService:
             self.play.commit(campaign, state)
             return Event(input=payload, action="director", outcome=turn.phase, roll=None)
 
-        await self.play.store.commit_turn(
-            cid, key, revision, payload, resolve, actor_id=turn.actor_id
+        await commit_command(
+            self.play.store,
+            cid,
+            key,
+            revision,
+            payload,
+            resolve,
+            actor_id=turn.actor_id,
+            rng=self.play.rng,
         )
 
     async def run(

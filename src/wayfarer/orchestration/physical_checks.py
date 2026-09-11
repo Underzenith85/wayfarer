@@ -12,6 +12,7 @@ from typing import Literal
 
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, Event
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.rules.physical_traits import Sense
@@ -148,8 +149,15 @@ class PhysicalCheckService:
                 roll=None,
             )
 
-        committed = await play.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, reduce, actor_id=gm_id
+        committed = await commit_command(
+            play.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            reduce,
+            actor_id=gm_id,
+            rng=play.rng,
         )
         # The committed event is returned on retries; the resolver is never rerun.
         stored = play._load(committed["state"])

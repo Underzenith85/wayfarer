@@ -9,6 +9,7 @@ from pydantic import Field
 
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, Event, Id, Record
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.encounter_context import EncounterSceneBinding, bind_scene
@@ -77,12 +78,14 @@ class EncounterSceneService:
                 roll=None,
             )
 
-        committed = await self.play.store.commit_turn(
+        committed = await commit_command(
+            self.play.store,
             cid,
             command.id,
             command.expected_revision,
             payload,
             resolve,
             actor_id=authenticated_gm_id,
+            rng=self.play.rng,
         )
         return self.play._load(committed["state"])

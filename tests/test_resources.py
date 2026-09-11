@@ -434,6 +434,11 @@ async def test_durable_concurrency_rollback_replay_and_auth(tmp_path: Path, back
         initial["id"], clock, authenticated_actor_id="a", system=True
     )
     assert expired.active_effect_ids == () and expired.fired == ("poison-expiry",)
+    clock_record = next(
+        row for row in await store.history(initial["id"]) if row.command_id == "clock"
+    )
+    assert clock_record.actor_id == "system" and clock_record.reexecutable
+    assert clock_record.entropy_seed is not None
     assert (
         await restarted.execute(initial["id"], clock, authenticated_actor_id="a", system=True)
         == expired

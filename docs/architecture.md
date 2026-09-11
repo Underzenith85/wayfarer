@@ -289,6 +289,15 @@ change, CI fails; if the version changed, the fixtures are regenerated in the
 same change. `MigrationEntry` keeps its existing meaning, a rules-data change
 that alters `configuration_digest`, and does not acquire a code-version one.
 
+The #411 implementation defines version `1` and persists it with each command's
+private seed and RNG algorithm. `orchestration.entropy.commit_command` owns the
+entropy boundary; task-local command RNG handles keep all checkpoint draws on the
+same stream without putting mutable entropy on cached engines. The architecture
+gate forbids live services from bypassing this boundary and forbids entropy
+imports in simulation. See [command entropy](persistence.md#command-entropy-411)
+for retry, migration and explicit test-source semantics. The comprehensive
+re-execution/version-bump release gate remains #418.
+
 **Events declare their audience.** Knowledge isolation is a release invariant
 (#1, #45): reunion does not share secrets and captives learn nothing of their
 rescuers. Every event carries an audience, the whole campaign, a set of actor

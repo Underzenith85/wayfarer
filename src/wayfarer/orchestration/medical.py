@@ -10,6 +10,7 @@ from typing import cast
 from wayfarer.character.compiler import ValidatedBuild
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, Event
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.recovery_types import ProfileId
 from wayfarer.simulation.actions import PlayState
@@ -238,8 +239,15 @@ class MedicalService:
                 roll=None,
             )
 
-        committed = await play.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, resolve, actor_id=command.actor_id
+        committed = await commit_command(
+            play.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            resolve,
+            actor_id=command.actor_id,
+            rng=play.rng,
         )
         state = play._load(committed["state"])
         # A retry reads the persisted result without re-running skills or conditions.

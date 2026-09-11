@@ -14,6 +14,7 @@ from pydantic import ValidationError as SchemaError
 
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, Event, Id, Roll
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.checks import Outcome
 from wayfarer.simulation.actions import (
@@ -269,13 +270,15 @@ class AdjudicationService:
                 input=payload, action=command.kind, outcome=result.model_dump_json(), roll=roll
             )
 
-        committed = await self.play.store.commit_turn(
+        committed = await commit_command(
+            self.play.store,
             cid,
             command.id,
             command.expected_revision,
             payload,
             resolve,
             actor_id=command.actor_id,
+            rng=self.play.rng,
         )
         state = self.play._load(committed["state"])
         if isinstance(command, ExecuteRuling):

@@ -4,6 +4,7 @@ import json
 
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, Event
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 from wayfarer.simulation.mechanics.surprise import Resolver as Resolver
 from wayfarer.simulation.mechanics.surprise import SurpriseCommand as SurpriseCommand
@@ -31,6 +32,13 @@ class SurpriseService:
             play.commit(campaign, updated)
             return Event(input=payload, action="combat", outcome="resolved", roll=None)
 
-        await play.store.commit_turn(
-            cid, command.id, command.expected_revision, payload, reduce, actor_id=gm_id
+        await commit_command(
+            play.store,
+            cid,
+            command.id,
+            command.expected_revision,
+            payload,
+            reduce,
+            actor_id=gm_id,
+            rng=play.rng,
         )

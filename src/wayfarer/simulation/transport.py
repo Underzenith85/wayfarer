@@ -6,13 +6,12 @@ explicit coverage blockers; this is not a player-authored damage interface.
 """
 
 import hashlib
-import secrets
 from typing import Annotated, Literal
 
 from pydantic import Field
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.rules.checks import Outcome, RandomSource, draw_dice, evaluate_success
+from wayfarer.rules.checks import NO_RANDOM, Outcome, RandomSource, draw_dice, evaluate_success
 from wayfarer.rules.hazard_types import require_hazards_settled
 from wayfarer.rules.recovery_types import require_settled
 from wayfarer.rules.transport_types import Transport
@@ -124,7 +123,7 @@ def apply_transport(
     command: TransportCommand,
     *,
     system: bool = False,
-    rng: RandomSource = secrets,
+    rng: RandomSource = NO_RANDOM,
     board: HexBattlefield | None = None,
     health: dict[str, int] | None = None,
     occupied: frozenset[Hex] = frozenset(),
