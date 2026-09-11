@@ -21,6 +21,13 @@ REDUCER_MODULES = (
 
 
 class ArchitectureTests(unittest.TestCase):
+    def test_encounters_reference_templates_without_embedding_maps(self) -> None:
+        from wayfarer.simulation.combat import Encounter
+
+        self.assertNotIn("hex_battlefield", Encounter.model_fields)
+        self.assertNotIn("HexBattlefield", Encounter.model_json_schema().get("$defs", {}))
+        self.assertIn("battlefield_id", Encounter.model_fields)
+
     def test_simulation_entity_names_have_one_owner(self) -> None:
         owners: dict[str, list[str]] = {}
         package = Path(wayfarer.__file__).parent / "simulation"

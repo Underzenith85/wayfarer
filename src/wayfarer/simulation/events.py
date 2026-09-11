@@ -325,7 +325,14 @@ def command_events(
         )
     ]
     audience: EventAudience = GMAudience()
-    if "play_json" in before and "play_json" in after:
+    legacy_maps = False
+    if "play_json" in before:
+        legacy = validation.mapping(validation.decode(before["play_json"]))
+        legacy_maps = any(
+            isinstance(item, dict) and item.get("hex_battlefield") is not None
+            for item in validation.sequence(legacy.get("encounters", []))
+        )
+    if "play_json" in before and "play_json" in after and not legacy_maps:
         first, last = (
             PlayState.model_validate_json(before["play_json"]),
             PlayState.model_validate_json(after["play_json"]),

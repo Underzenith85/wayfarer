@@ -97,7 +97,27 @@ class PlayService:
 
         encoded = campaign.get("scenario_graph_json")
         if encoded is None:
-            return self
+            override = campaign.get("combat_rules_json")
+            if override is None:
+                return self
+            from wayfarer.simulation.combat import CombatRules
+
+            original = self.engine.rules.combat
+            if original is None:
+                raise ValidationError("Map migration requires configured combat rules")
+            saved = CombatRules.model_validate_json(override)
+            engine = ActionEngine(
+                self.engine.reviewer,
+                self.engine.resources,
+                self.engine.rules.model_copy(
+                    update={
+                        "combat": original.model_copy(update={"battlefields": saved.battlefields})
+                    }
+                ),
+            )
+            if engine.digest == self.engine.digest:
+                return self
+            return PlayService(self.store, engine, rng=self.rng, profiles=self.profiles)
         graph = parse_graph(encoded)
         engine = ActionEngine(
             self.engine.reviewer,

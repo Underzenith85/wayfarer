@@ -12,7 +12,7 @@ from wayfarer.rules.firearm_types import FirearmFailure
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.rules.object_types import GroundPosition
 from wayfarer.simulation.actions import PlayState
-from wayfarer.simulation.combat import CombatEngine, Encounter, GridPoint
+from wayfarer.simulation.combat import Battlefield, CombatEngine, Encounter, GridPoint
 from wayfarer.simulation.explosions import BlastRecord, blasts, save
 from wayfarer.simulation.firearms import spend_rounds
 from wayfarer.simulation.gurps_equipment import RangedMode
@@ -124,16 +124,18 @@ def separation(a: GroundPosition, b: GroundPosition) -> int:
 def validate_position(runtime: RulesContext, encounter: Encounter, point: GroundPosition) -> None:
     if point.encounter_id != encounter.id:
         raise ValidationError("Blast position belongs to another encounter")
-    if encounter.hex_battlefield:
+    if encounter.spatial_kind == "hex":
         if point.geometry != "hex" or not any(
             c.position == Hex(q=point.x, r=point.y) and not c.blocked
-            for c in encounter.hex_battlefield.cells
+            for c in runtime.require_hex(encounter).cells
         ):
             raise ValidationError("Blast position must be a traversable battlefield hex")
     else:
         rules = runtime.rules.combat
         assert rules is not None
         field = next(f for f in rules.battlefields if f.id == encounter.battlefield_id)
+        if not isinstance(field, Battlefield):
+            raise ValidationError("Square encounter requires a square template")
         if point.geometry != "grid" or not (
             0 <= point.x < field.width and 0 <= point.y < field.height
         ):

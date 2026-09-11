@@ -2294,6 +2294,34 @@
             "title": "Id",
             "type": "string"
           },
+          "location_id": {
+            "default": "unbound",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Location Id",
+            "type": "string"
+          },
+          "source_template_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Source Template Id"
+          },
+          "darkness_penalty": {
+            "default": 0,
+            "maximum": 0,
+            "minimum": -10,
+            "title": "Darkness Penalty",
+            "type": "integer"
+          },
           "coordinate_system": {
             "const": "hex-axial-v1",
             "title": "Coordinate System",

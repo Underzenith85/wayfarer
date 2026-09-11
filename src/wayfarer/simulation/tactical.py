@@ -10,6 +10,7 @@ from wayfarer.rules.location_types import HitLocation
 from wayfarer.simulation.combat_height import HeightEffect, melee_height
 from wayfarer.simulation.hex_geometry import (
     Hex,
+    HexBattlefield,
     HexFacing,
     Occupant,
     Pose,
@@ -52,8 +53,11 @@ def occupants(encounter: Encounter) -> tuple[Occupant, ...]:
     )
 
 
-def validate_hex_encounter(encounter: Encounter, catalog: EquipmentCatalog | None) -> None:
-    board = encounter.hex_battlefield
+def validate_hex_encounter(
+    encounter: Encounter, catalog: EquipmentCatalog | None, *, board: HexBattlefield | None
+) -> None:
+    if encounter.spatial_kind == "hex" and board is None:
+        raise ValidationError("Hex encounter requires its configured template")
     assert board is not None
     if (
         catalog is None
@@ -66,8 +70,15 @@ def validate_hex_encounter(encounter: Encounter, catalog: EquipmentCatalog | Non
             raise ValidationError("Combatant occupies blocked terrain")
 
 
-def sight(encounter: Encounter, actor: Combatant, target: Combatant) -> bool:
-    board = encounter.hex_battlefield
+def sight(
+    encounter: Encounter,
+    actor: Combatant,
+    target: Combatant,
+    *,
+    board: HexBattlefield | None = None,
+) -> bool:
+    if encounter.spatial_kind == "hex" and board is None:
+        raise ValidationError("Hex encounter requires its configured template")
     if board is None:
         return True
     return line_of_sight(
@@ -84,13 +95,17 @@ def attack_geometry(
     reaches: frozenset[int] | None = None,
     *,
     location: HitLocation | None = None,
+    board: HexBattlefield | None = None,
 ) -> None:
-    board = encounter.hex_battlefield
+    if encounter.spatial_kind == "hex" and board is None:
+        raise ValidationError("Hex encounter requires its configured template")
     if board is None:
         return
     if reaches is not None:
-        height_effect(encounter, actor, target, reach=max(reaches), location=location)
-    if not sight(encounter, actor, target) or arc(pose(actor), pose(target).position) not in (
+        height_effect(encounter, actor, target, reach=max(reaches), location=location, board=board)
+    if not sight(encounter, actor, target, board=board) or arc(
+        pose(actor), pose(target).position
+    ) not in (
         "front",
         "close",
     ):
@@ -108,8 +123,10 @@ def height_effect(
     *,
     reach: int,
     location: HitLocation | None,
+    board: HexBattlefield | None = None,
 ) -> HeightEffect:
-    board = encounter.hex_battlefield
+    if encounter.spatial_kind == "hex" and board is None:
+        raise ValidationError("Hex encounter requires its configured template")
     if board is None:
         return HeightEffect()
     start = board.cell(pose(actor).position).ground
@@ -118,7 +135,7 @@ def height_effect(
 
 
 def defense_adjustment(encounter: Encounter, actor: Combatant, target: Combatant) -> int:
-    if encounter.hex_battlefield is None:
+    if encounter.spatial_kind != "hex":
         return 0
     direction = arc(pose(target), pose(actor).position)
     if direction == "rear":
@@ -133,8 +150,11 @@ def move_hex(
     path: tuple[Hex, ...],
     facing: HexFacing | None,
     defense_option: DefenseOption | None,
+    *,
+    board: HexBattlefield | None,
 ) -> Combatant:
-    board = encounter.hex_battlefield
+    if encounter.spatial_kind == "hex" and board is None:
+        raise ValidationError("Hex encounter requires its configured template")
     assert board is not None
     if not path and facing is None:
         if maneuver == "move":

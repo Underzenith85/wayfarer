@@ -260,7 +260,7 @@ class Orchestrator:
         if actor_id not in member.actor_ids:
             raise ValidationError("Context actor is not controlled by principal")
         member = member.model_copy(update={"actor_ids": (actor_id,)})
-        projection = self.access._projection(state, member)
+        projection = self.access._projection(state, member, self.access.play.engine.rules.combat)
         # Durable turn history is UI data, not recursively nested model context.
         projection.pop("director", None)
         known = {f.id for f in state.world.perspective(actor_id).facts}

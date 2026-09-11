@@ -2,10 +2,13 @@
 
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import Encounter
+from wayfarer.simulation.hex_geometry import HexBattlefield
 from wayfarer.simulation.tactical import sight
 
 
-def visible_actors(state: PlayState, encounter: Encounter, actor_id: str) -> frozenset[str]:
+def visible_actors(
+    state: PlayState, encounter: Encounter, actor_id: str, *, board: HexBattlefield | None = None
+) -> frozenset[str]:
     own = next((p for p in encounter.participants if p.actor_id == actor_id), None)
     if own is None:
         return frozenset()
@@ -19,6 +22,6 @@ def visible_actors(state: PlayState, encounter: Encounter, actor_id: str) -> fro
             p.actor_id in entities
             and own_entity is not None
             and entities[p.actor_id].location_id == own_entity.location_id
-            and sight(encounter, own, p)
+            and sight(encounter, own, p, board=board)
         )
     )

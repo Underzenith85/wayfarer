@@ -510,7 +510,7 @@ def target_geometry(
         assert isinstance(position, (GridPoint, Hex))
         target = owner.model_copy(update={"position": position})
         try:
-            attack_geometry(encounter, actor, target, reach)
+            attack_geometry(encounter, actor, target, reach, board=runtime.hex_map(encounter))
             if reach is not None and CombatEngine.distance(actor.position, position) not in reach:
                 continue
             return CombatEngine._replace(encounter, target)

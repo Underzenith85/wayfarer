@@ -106,6 +106,9 @@ class HexBattlefield(Record):
     """New tagged contract. Legacy square maps cannot validate as hex maps."""
 
     id: Id
+    location_id: Id = "unbound"
+    source_template_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
+    darkness_penalty: int = Field(default=0, ge=-10, le=0, exclude_if=lambda v: v == 0)
     coordinate_system: Literal["hex-axial-v1"]
     profile_id: Literal["gurps-basic-set-4e-2004"]
     baseline_id: Literal["gurps-4e-2004-first-printing+errata-2007-01-26"]

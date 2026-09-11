@@ -141,10 +141,10 @@ class CombatService:
             return await self._recorded_result(cid, command.id)
 
         def resolve(campaign: Campaign) -> Event:
-            before = self.play._load(campaign)
-            updated, result = reduce_combat(before, command, CombatContext(self.play, before))
-            updated = self.play.checkpoint(updated, before=before)
-            self.play.commit(campaign, updated)
+            play, before, effective_command = _bind_combat_command(campaign, command, self.play)
+            updated, result = reduce_combat(before, effective_command, CombatContext(play, before))
+            updated = play.checkpoint(updated, before=before)
+            play.commit(campaign, updated)
             return Event(
                 input=payload, action="combat", outcome=result.model_dump_json(), roll=None
             )
@@ -161,10 +161,25 @@ class CombatService:
         )
         if committed["kind"] == "replayed":
             return await self._recorded_result(cid, command.id)
-        result = self.play._load(committed["state"]).last_combat_result
+        result = (
+            self.play.for_campaign(committed["state"])._load(committed["state"]).last_combat_result
+        )
         if result is None:
             raise ValidationError("Missing committed combat result")
         return result
+
+
+def _bind_combat_command(
+    campaign: Campaign,
+    command: TypedCombatCommand,
+    play: PlayService,
+) -> tuple[PlayService, PlayState, TypedCombatCommand]:
+    before = play._load(campaign)
+    if isinstance(command, MigrateEncounterHex):
+        from wayfarer.orchestration.battlefield_templates import prepare
+
+        return prepare(campaign, play, before, command)
+    return play, before, command
 
 
 @dataclass(frozen=True)
@@ -430,18 +445,18 @@ def _prepare_encounter(
         from wayfarer.simulation.encounter_context import bind_scene
 
         encounter = bind_scene(encounter, play.engine.rules.scenes, engine.rules)
-    if encounter.hex_battlefield is not None and isinstance(
-        command, (TakeCombatTurn, TakeUnarmedTurn)
-    ):
+    if encounter.spatial_kind == "hex" and isinstance(command, (TakeCombatTurn, TakeUnarmedTurn)):
         from wayfarer.orchestration.tactical_view import visible_actors
 
         if command.target_id is not None and command.target_id not in visible_actors(
-            state, encounter, command.actor_id
+            state, encounter, command.actor_id, board=play.rules_context.hex_map(encounter)
         ):
             raise ValidationError("Target is unavailable")
         if isinstance(command, TakeCombatTurn) and command.wait_trigger is not None:
             trigger = command.wait_trigger
-            visible = visible_actors(state, encounter, command.actor_id)
+            visible = visible_actors(
+                state, encounter, command.actor_id, board=play.rules_context.hex_map(encounter)
+            )
             if any(
                 a is not None and a not in visible
                 for a in (
@@ -672,7 +687,7 @@ def _join(
     engine = context.engine
     resources = state.resources
     assert isinstance(command, JoinEncounter)
-    if encounter.hex_battlefield is not None:
+    if encounter.spatial_kind == "hex":
         raise ValidationError("Hex reinforcements require explicit placement support")
     from wayfarer.simulation.party import group_for
 
@@ -1684,7 +1699,7 @@ def _finish_combat(
         play.rules_context, initial_state, resources, encounter.id, encounter
     )
     revision = state.revision + 1
-    if encounter.hex_battlefield is not None:
+    if encounter.spatial_kind == "hex":
         from wayfarer.simulation.tactical import TacticalTrace
 
         checks: tuple[CheckTrace, ...] = (result.injury.attack,) if result.injury else ()
@@ -1734,7 +1749,13 @@ def _finish_combat(
         world = updated.world
         for consequence in engine.rules.consequences:
             if (
-                consequence.battlefield_id == encounter.battlefield_id
+                consequence.battlefield_id
+                in (
+                    encounter.battlefield_id,
+                    play.rules_context.require_hex(encounter).source_template_id
+                    if encounter.spatial_kind == "hex"
+                    else None,
+                )
                 and previous.pending_defense is not None
                 and consequence.defeated_actor_id == previous.pending_defense.defender_id
                 and injury.incapacitated
@@ -1789,7 +1810,9 @@ def reduce_combat(
         if isinstance(command, ChooseDefense):
             from wayfarer.simulation.mechanics.tactical import finish_defense
 
-            step = replace(step, encounter=finish_defense(step.encounter, command))
+            step = replace(
+                step, encounter=finish_defense(context.play.rules_context, step.encounter, command)
+            )
         encounters = tuple(
             step.encounter if e.id == step.encounter.id else e for e in step.state.encounters
         )

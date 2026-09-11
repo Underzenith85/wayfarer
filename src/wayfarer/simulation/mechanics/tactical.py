@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 def migrate(runtime: RulesContext, encounter: Encounter, command: MigrateEncounterHex) -> Encounter:
     if (
-        encounter.hex_battlefield is not None
+        encounter.spatial_kind == "hex"
         or encounter.status != "active"
         or encounter.pending_defense
         or encounter.pending_unarmed
@@ -41,7 +41,8 @@ def migrate(runtime: RulesContext, encounter: Encounter, command: MigrateEncount
             raise ValidationError("Map migration cannot change posture")
     result = encounter.model_copy(
         update={
-            "hex_battlefield": command.battlefield,
+            "spatial_kind": "hex",
+            "battlefield_id": command.battlefield.id,
             "participants": tuple(
                 p.model_copy(
                     update={
@@ -54,14 +55,16 @@ def migrate(runtime: RulesContext, encounter: Encounter, command: MigrateEncount
         }
     )
     rules = runtime.rules.combat
-    validate_hex_encounter(result, rules.gurps_equipment if rules else None)
+    validate_hex_encounter(
+        result, rules.gurps_equipment if rules else None, board=runtime.hex_map(result)
+    )
     return result
 
 
 def prepare_defense(
     runtime: RulesContext, state: PlayState, encounter: Encounter, command: ChooseDefense
 ) -> Encounter:
-    if encounter.hex_battlefield is None:
+    if encounter.spatial_kind != "hex":
         if command.retreat is not None:
             raise ValidationError("Retreat requires a migrated hex encounter")
         return encounter
@@ -97,7 +100,7 @@ def prepare_defense(
             maneuver_allows_retreat=not target.maneuver_state.defense_forbidden,
         )
         if not can_retreat(
-            encounter.hex_battlefield,
+            runtime.require_hex(encounter),
             pose(target),
             pose(actor).position,
             command.retreat,
@@ -117,8 +120,10 @@ def prepare_defense(
     )
 
 
-def finish_defense(encounter: Encounter, command: ChooseDefense) -> Encounter:
-    if encounter.hex_battlefield is None:
+def finish_defense(
+    runtime: RulesContext, encounter: Encounter, command: ChooseDefense
+) -> Encounter:
+    if encounter.spatial_kind != "hex":
         return encounter
     target = next(p for p in encounter.participants if p.actor_id == command.actor_id)
     target = target.model_copy(update={"tactical_defense_bonus": 0})
@@ -137,6 +142,7 @@ def finish_defense(encounter: Encounter, command: ChooseDefense) -> Encounter:
             pending.post_attack_hex_path,
             pending.post_attack_facing,
             None,
+            board=runtime.hex_map(encounter),
         )
         encounter = CombatEngine._replace(encounter, attacker)
     return encounter

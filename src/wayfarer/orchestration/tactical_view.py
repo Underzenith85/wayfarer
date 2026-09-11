@@ -23,7 +23,7 @@ from wayfarer.simulation.access import CampaignMember
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import Encounter, Maneuver
 from wayfarer.simulation.gurps_equipment import MeleeMode, RangedMode
-from wayfarer.simulation.hex_geometry import Cell, Hex, neighbor
+from wayfarer.simulation.hex_geometry import Cell, Hex, HexBattlefield, neighbor
 from wayfarer.simulation.mechanics.gurps_melee import movement, prepare_attack
 from wayfarer.simulation.mechanics.gurps_ranged import validate_command
 from wayfarer.simulation.mechanics.tactical import prepare_defense
@@ -79,11 +79,17 @@ class TacticalSnapshot(Record):
 
 
 def legacy_encounter(
-    state: PlayState, encounter: Encounter, member: CampaignMember
+    state: PlayState,
+    encounter: Encounter,
+    member: CampaignMember,
+    *,
+    board: HexBattlefield | None = None,
 ) -> dict[str, object]:
     """Legacy consumers need turn/defense controls, never raw engine snapshots."""
     visible = frozenset(
-        a for owner in member.actor_ids for a in visible_actors(state, encounter, owner)
+        a
+        for owner in member.actor_ids
+        for a in visible_actors(state, encounter, owner, board=board)
     )
     order = tuple(a for a in encounter.turn_order if a in visible)
     pending = encounter.pending_defense
@@ -748,10 +754,12 @@ def project(
     views: list[TacticalEncounter] = []
     entities = {e.id: e for e in state.world.entities}
     for encounter in state.encounters:
-        board = encounter.hex_battlefield
+        board = play.rules_context.hex_map(encounter)
         if board is None or actor_id not in encounter.turn_order:
             continue
-        visible = visible_actors(state, encounter, actor_id)
+        visible = visible_actors(
+            state, encounter, actor_id, board=play.rules_context.hex_map(encounter)
+        )
         own = next(p for p in encounter.participants if p.actor_id == actor_id)
         from wayfarer.simulation.hex_geometry import SightPoint, line_of_sight
 

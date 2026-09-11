@@ -6,7 +6,14 @@ from dataclasses import dataclass
 
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.simulation.actions import PlayState
-from wayfarer.simulation.combat import CombatEngine, Defense, Encounter, GridPoint, PendingDefense
+from wayfarer.simulation.combat import (
+    Battlefield,
+    CombatEngine,
+    Defense,
+    Encounter,
+    GridPoint,
+    PendingDefense,
+)
 from wayfarer.simulation.maneuvers import ManeuverState
 from wayfarer.simulation.mechanics.recovery_guard import guard
 from wayfarer.simulation.mechanics.spell_bindings import SpellEnvironment
@@ -71,10 +78,12 @@ def approved_context(
     if command.position is not None:
         if command.kind != "focus" or encounter is None:
             raise ValidationError("A manipulation destination requires combat concentration")
-        if encounter.hex_battlefield is not None:
+        if encounter.spatial_kind == "hex":
             from wayfarer.simulation.hex_geometry import Hex
 
-            cell = encounter.hex_battlefield.cell(Hex(q=command.position[0], r=command.position[1]))
+            cell = runtime.require_hex(encounter).cell(
+                Hex(q=command.position[0], r=command.position[1])
+            )
             if cell.blocked:
                 raise ValidationError("Light cannot move inside solid terrain")
         else:
@@ -85,7 +94,7 @@ def approved_context(
                 if runtime.rules.combat
                 else None
             )
-            if field is None or not (
+            if not isinstance(field, Battlefield) or not (
                 0 <= command.position[0] < field.width and 0 <= command.position[1] < field.height
             ):
                 raise ValidationError("Light destination is outside the battlefield")

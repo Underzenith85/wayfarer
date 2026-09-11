@@ -971,6 +971,21 @@ export interface components {
       /** Id */
       id: string;
       /**
+       * Location Id
+       * @default unbound
+       */
+      location_id: string;
+      /**
+       * Source Template Id
+       * @default null
+       */
+      source_template_id: string | null;
+      /**
+       * Darkness Penalty
+       * @default 0
+       */
+      darkness_penalty: number;
+      /**
        * Coordinate System
        * @constant
        */
