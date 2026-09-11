@@ -277,25 +277,19 @@ in one place.
 
 ## Consequences
 
-**Two replay guarantees, not one.** Events are facts, so folding the event
-stream reproduces state under any engine version; that is the production
-invariant for stored campaigns, and a bug fix never strands a saved game.
-Re-executing the command log through the engine is only claimed to reproduce
-those facts when the recorded engine version equals the running one. It is the
-fixture gate, never a claim about old streams.
+**Replay guarantees.** Folding recorded events reproduces stored state. Command
+re-execution compares current engine behavior against reviewed fixtures using the
+original inputs, seeds and instants; it does not promise compatibility with every
+historical engine behavior.
 
-**Engine version.** `wayfarer.simulation.ENGINE_VERSION` is a constant bumped
-by policy whenever `resolve(state, command, seed)` can produce a different
-outcome for any input: a rule fix, a reordered check, a new dice draw. Every
-command record carries the version at commit time. Re-execution of a stream
-recorded under another version is not attempted. The fixture gate is a
-tripwire in both directions: if re-execution diverges and the version did not
-change, CI fails; if the version changed, the fixtures are regenerated in the
-same change. `MigrationEntry` keeps its existing meaning, a rules-data change
-that alters `configuration_digest`, and does not acquire a code-version one.
+**Prerelease engine policy.** Engine code versioning is deferred. Commands and
+replay fixtures carry no engine version, and fixture regeneration requires no
+version bump. CI still rejects state, event or dice divergence. Behavior changes
+require deliberately regenerated and reviewed fixtures. Schema versions, RNG
+algorithm identifiers and rules configuration digests retain their separate
+meanings. `MigrationEntry` continues to record rules-data changes.
 
-The #411 implementation defines version `1` and persists it with each command's
-private seed and RNG algorithm. `orchestration.entropy.commit_command` owns the
+`orchestration.entropy.commit_command` owns the
 entropy boundary; task-local command RNG handles keep all checkpoint draws on the
 same stream without putting mutable entropy on cached engines. The architecture
 gate forbids live services from bypassing this boundary and forbids entropy

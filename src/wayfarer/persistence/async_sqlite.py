@@ -375,7 +375,7 @@ class AsyncSQLiteStore:
                     json.dumps(event),
                     "{}",
                     entropy.seed if entropy else None,
-                    entropy.engine_version if entropy else None,
+                    None,  # Retired engine_version column; retained for existing databases.
                     entropy.rng_algorithm if entropy else None,
                     recorded_at_us,
                     origin.model_dump_json() if origin else None,
@@ -428,7 +428,6 @@ class AsyncSQLiteStore:
                         event=self._event(row[7]),
                         state_after=states[validation.integer(row[3])],
                         entropy_seed=row[9],
-                        engine_version=row[10],
                         rng_algorithm=row[11],
                         recorded_at_us=row[12],
                         command_input=row[14],

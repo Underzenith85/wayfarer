@@ -30,7 +30,6 @@ from wayfarer.persistence.events import CommandEntropy
 from wayfarer.persistence.postgres import AsyncPostgresStore
 from wayfarer.rules.checks import RecordedDice, draw_dice
 from wayfarer.rules.randomness import RNG_ALGORITHM, SeededRandom
-from wayfarer.simulation import ENGINE_VERSION
 from wayfarer.simulation.actions import Inspect, Wait
 from wayfarer.simulation.events import action_result
 from wayfarer.transport.campaign_api import ACCESS_KEY
@@ -103,7 +102,7 @@ async def test_legacy_command_metadata_migrates_without_inventing_a_seed(tmp_pat
     histories = await asyncio.gather(*(store.history(initial["id"]) for _ in range(4)))
     assert all(history == histories[0] for history in histories)
     record = histories[0][0]
-    assert record.entropy_seed is None and record.engine_version is None
+    assert record.entropy_seed is None
     assert record.rng_algorithm is None and not record.reexecutable
     assert record.recorded_at_us is None
     assert record.state_after == initial
@@ -164,7 +163,7 @@ async def test_seeded_command_retry_race_restart_and_reexecution(
     assert len(history) == 1
     record = history[0]
     assert record.entropy_seed and len(record.entropy_seed) == 64
-    assert record.engine_version == ENGINE_VERSION and record.rng_algorithm == RNG_ALGORITHM
+    assert record.rng_algorithm == RNG_ALGORITHM
     assert record.recorded_at_us is not None and record.recorded_at_us > 0
     assert record.reexecutable and record.actor_id == "a"
     replay = PlayService(store, reducer, rng=SeededRandom(record.entropy_seed))
@@ -196,7 +195,6 @@ async def test_seeded_command_retry_race_restart_and_reexecution(
     assert record.entropy_seed not in json.dumps(record.state_after)
     assert record.entropy_seed not in json.dumps(record.event)
     assert record.entropy_seed not in repr(record)
-    assert not replace(record, engine_version="different").reexecutable
     assert not replace(record, entropy_seed=None).reexecutable
     assert not replace(record, rng_algorithm="injected").reexecutable
 

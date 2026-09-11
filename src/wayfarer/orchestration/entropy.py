@@ -78,13 +78,9 @@ async def commit_command(
             replay.payload_hash,
         ):
             raise ValidationError("Replay command identity or payload mismatch")
-        assert (
-            replay.entropy_seed is not None
-            and replay.engine_version is not None
-            and replay.rng_algorithm is not None
-        )
+        assert replay.entropy_seed is not None and replay.rng_algorithm is not None
         instant = CommandInstant(replay.recorded_at_us)
-        entropy = CommandEntropy(replay.entropy_seed, replay.engine_version, replay.rng_algorithm)
+        entropy = CommandEntropy(replay.entropy_seed, replay.rng_algorithm)
         origin = replay.origin
     else:
         instant = instant if instant is not None else capture_instant()

@@ -1,4 +1,4 @@
-"""Independent fold and version-bound re-execution checks for retained commands."""
+"""Independent fold and deterministic re-execution checks for retained commands."""
 
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
@@ -8,7 +8,6 @@ from wayfarer.models import Campaign
 from wayfarer.persistence.events import CommandRecord, StoredEvent, payload_digest
 from wayfarer.persistence.upcasters import EVENT_UPCASTERS
 from wayfarer.rules.randomness import RNG_ALGORITHM
-from wayfarer.simulation import ENGINE_VERSION
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.events import EngineEvent, document, fold
 
@@ -44,8 +43,6 @@ def command_text(record: CommandRecord) -> str:
 def unavailable_reason(record: CommandRecord) -> str | None:
     if record.entropy_seed is None:
         return "legacy command has no entropy seed"
-    if record.engine_version != ENGINE_VERSION:
-        return f"recorded engine version {record.engine_version!r} differs from {ENGINE_VERSION!r}"
     if record.rng_algorithm != RNG_ALGORITHM:
         return f"unsupported RNG algorithm {record.rng_algorithm!r}"
     if record.recorded_at_us is None:
@@ -99,7 +96,7 @@ async def verify_commands(
     configuration_digest: str,
     execute: ExecuteRecorded | None = None,
 ) -> tuple[Campaign, tuple[ReplayCheck, ...]]:
-    """Fold across engine versions; report unrepeatable commands explicitly.
+    """Fold retained events; report unrepeatable commands explicitly.
 
     The executor must build an isolated state from the supplied *before* image.
     Neither its expected snapshot nor provider origins are execution inputs.
@@ -119,9 +116,7 @@ async def verify_commands(
         if reason is None and execute is not None:
             actual, emitted = await execute(before, command)
             if document(actual) != document(state) or emitted != [e.event for e in rows]:
-                raise ValidationError(
-                    "Re-execution events or dice diverge under unchanged ENGINE_VERSION"
-                )
+                raise ValidationError("Re-execution events or dice diverge from recorded facts")
             reexecuted = True
         elif reason is None:
             reason = "fold-only verification requested"

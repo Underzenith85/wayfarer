@@ -11,7 +11,6 @@ from wayfarer import validation
 from wayfarer.models import Campaign, Event, Record
 from wayfarer.persistence.upcasters import UpcasterRegistry
 from wayfarer.rules.randomness import RNG_ALGORITHM
-from wayfarer.simulation import ENGINE_VERSION
 from wayfarer.simulation.events import EngineEvent
 from wayfarer.simulation.scenario_document import ScenarioBoundary
 from wayfarer.simulation.scenario_references import boundary
@@ -22,7 +21,6 @@ EVENT_SCHEMA_VERSION = 1
 @dataclass(frozen=True, slots=True)
 class CommandEntropy:
     seed: str = field(repr=False)
-    engine_version: str = ENGINE_VERSION
     rng_algorithm: str = RNG_ALGORITHM
 
 
@@ -73,7 +71,6 @@ class CommandRecord:
     state_after: Campaign
     schema_version: int = EVENT_SCHEMA_VERSION
     entropy_seed: str | None = field(default=None, repr=False)
-    engine_version: str | None = None
     rng_algorithm: str | None = None
     recorded_at_us: int | None = None
     origin: CommandOrigin | None = field(default=None, repr=False)
@@ -82,12 +79,8 @@ class CommandRecord:
 
     @property
     def reexecutable(self) -> bool:
-        """Legacy, injected-source and different-engine rows are explicitly excluded."""
-        return (
-            self.entropy_seed is not None
-            and self.engine_version == ENGINE_VERSION
-            and self.rng_algorithm == RNG_ALGORITHM
-        )
+        """Legacy and injected-source rows are explicitly excluded."""
+        return self.entropy_seed is not None and self.rng_algorithm == RNG_ALGORITHM
 
 
 @dataclass(frozen=True, slots=True)

@@ -379,7 +379,7 @@ class AsyncPostgresStore:
                         json.dumps(event),
                         "{}",
                         entropy.seed if entropy else None,
-                        entropy.engine_version if entropy else None,
+                        None,  # Retired engine_version column; retained for existing databases.
                         entropy.rng_algorithm if entropy else None,
                         recorded_at_us,
                         origin.model_dump_json() if origin else None,
@@ -456,7 +456,6 @@ class AsyncPostgresStore:
             event=event,
             state_after=state,
             entropy_seed=validation.string(row[9]) if row[9] is not None else None,
-            engine_version=validation.string(row[10]) if row[10] is not None else None,
             rng_algorithm=validation.string(row[11]) if row[11] is not None else None,
             recorded_at_us=validation.integer(row[12]) if row[12] is not None else None,
             command_input=validation.string(row[14]) if row[14] is not None else None,
