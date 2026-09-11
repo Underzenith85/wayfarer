@@ -1,4 +1,4 @@
-"""Regenerate replay goldens after an intentional ENGINE_VERSION change."""
+"""Regenerate replay goldens after an intentional engine behavior change."""
 
 import argparse
 import asyncio

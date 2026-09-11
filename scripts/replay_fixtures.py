@@ -17,7 +17,6 @@ from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.events import CommandRecord, StoredEvent, payload_digest
 from wayfarer.persistence.replay import ReplayCheck, require_configuration, verify_commands
 from wayfarer.rules.randomness import RNG_ALGORITHM
-from wayfarer.simulation import ENGINE_VERSION
 from wayfarer.simulation.action_engine import ActionEngine
 from wayfarer.simulation.events import EngineEvent, campaign_document, digest, document, fold
 
@@ -38,7 +37,7 @@ class FixtureCommand(Record):
     state_digest: str
     events: tuple[EngineEvent, ...]
 
-    def record(self, before: Campaign, after: Campaign, version: str) -> CommandRecord:
+    def record(self, before: Campaign, after: Campaign) -> CommandRecord:
         return CommandRecord(
             campaign_id=before["id"],
             command_id=self.command_id,
@@ -55,7 +54,6 @@ class FixtureCommand(Record):
             ),
             state_after=after,
             entropy_seed=self.seed,
-            engine_version=version,
             rng_algorithm=RNG_ALGORITHM,
             recorded_at_us=self.recorded_at_us,
             command_input=self.command_input,
@@ -65,7 +63,6 @@ class FixtureCommand(Record):
 class ReplayFixture(Record):
     schema_version: Literal[1] = 1
     name: str
-    engine_version: str
     configuration_digest: str
     initial_json: str
     commands: tuple[FixtureCommand, ...] = Field(min_length=1)
@@ -128,8 +125,6 @@ class FixtureExecutor:
 async def verify_fixture(
     fixture: ReplayFixture, engine: ActionEngine, directory: Path
 ) -> tuple[ReplayCheck, ...]:
-    if fixture.engine_version != ENGINE_VERSION:
-        raise ValueError("ENGINE_VERSION changed; regenerate and review replay fixtures")
     initial = validation.campaign(validation.decode(fixture.initial_json))
     # Verify against the actual bound engine, not just the fixture's own pin.
     bound = PlayService(AsyncSQLiteStore(directory / "unused.sqlite"), engine).for_campaign(initial)
@@ -141,7 +136,7 @@ async def verify_fixture(
         after = fold(before, list(command.events))
         if digest(document(after)) != command.state_digest:
             raise ValueError("Fixture snapshot digest diverges from event fold")
-        record = command.record(before, after, fixture.engine_version)
+        record = command.record(before, after)
         records.append(record)
         stream.extend(
             StoredEvent(before["id"], command.command_id, command.resulting_revision, i, event)
@@ -163,14 +158,14 @@ async def verify_fixture(
 async def regenerate(
     fixture: ReplayFixture, engine: ActionEngine, directory: Path
 ) -> ReplayFixture:
-    """Keep original inputs and seeds; update only events, digests and engine version."""
+    """Keep original inputs and seeds; update only events and digests."""
     before = validation.campaign(validation.decode(fixture.initial_json))
     require_configuration(before, fixture.configuration_digest)
     executor = FixtureExecutor(engine, directory)
     commands: list[FixtureCommand] = []
     for command in fixture.commands:
         # The expected snapshot is not an input to execute_recorded.
-        record = command.record(before, before, ENGINE_VERSION)
+        record = command.record(before, before)
         after, events = await executor(before, record)
         require_configuration(after, fixture.configuration_digest)
         commands.append(
@@ -179,14 +174,7 @@ async def regenerate(
             )
         )
         before = after
-    updated = fixture.model_copy(
-        update={"engine_version": ENGINE_VERSION, "commands": tuple(commands)}
-    )
-    if updated != fixture and fixture.engine_version == ENGINE_VERSION:
-        raise ValueError(
-            "Engine behavior changed; bump ENGINE_VERSION before regenerating fixtures"
-        )
-    return updated
+    return fixture.model_copy(update={"commands": tuple(commands)})
 
 
 async def capture(name: str, directory: Path) -> ReplayFixture:
@@ -301,7 +289,6 @@ async def capture(name: str, directory: Path) -> ReplayFixture:
             )
         return ReplayFixture(
             name=name,
-            engine_version=ENGINE_VERSION,
             configuration_digest=play._load(initial).configuration_digest,
             initial_json=json.dumps(campaign_document(document(initial))),
             commands=tuple(commands),

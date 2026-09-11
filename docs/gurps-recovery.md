@@ -88,8 +88,7 @@ migration lifts schema 1 `variant:trauma:` and `variant:repair-lasting:` markers
 into that discriminator, preserving the original timing, skill, injury reference
 and infection parameters. A persisted `finish-recovery-variant` command is
 normalized to `finish-recovery`. Ordinary task kinds retain their saved shape.
-The engine version is 3 for the unified advanced command/result representation;
-older streams still fold, while re-execution uses matching-version fixtures.
+Recorded streams still fold; reviewed fixtures verify current engine re-execution.
 
 Authored setback recovery remains separate: it rejects profile injury/fatigue
 pools and only applies scenario-defined generic pool grants. It cannot bypass

@@ -10,6 +10,7 @@ from test_wave9 import prepare
 
 from wayfarer.errors import StorageError, ValidationError
 from wayfarer.orchestration.access import CampaignAccess
+from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.simulation.actions import Wait
 from wayfarer.simulation.events import (
@@ -74,6 +75,25 @@ async def test_stream_append_failure_rolls_back_everything(tmp_path: Path) -> No
     assert await play.store.read(cid) == before
     assert await play.store.history(cid) == []
     assert await play.store.stream(cid) == []
+
+
+async def test_retired_engine_version_does_not_gate_reexecution(tmp_path: Path) -> None:
+    cid, play = await prepare(tmp_path)
+    play = PlayService(play.store, play.engine)
+    assert isinstance(play.store, AsyncSQLiteStore)
+    await play.execute(
+        cid,
+        Wait(id="unversioned", actor_id="a", expected_revision=0, ticks=1),
+        authenticated_actor_id="a",
+    )
+    with sqlite3.connect(play.store.path) as db:
+        assert db.execute("SELECT engine_version FROM command_log").fetchone() == (None,)
+        db.execute("UPDATE command_log SET engine_version='retired'")
+    record = (await play.store.history(cid))[0]
+    assert record.reexecutable
+    from dataclasses import asdict
+
+    assert "engine_version" not in asdict(record)
 
 
 async def test_old_logs_backfill_once_and_fold_without_command_snapshots(tmp_path: Path) -> None:

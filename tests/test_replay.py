@@ -38,7 +38,7 @@ async def test_durable_replay_reports_legacy_and_detects_tampering(
     )
     assert after == await play.store.read(cid)
     assert checks[0].folded and checks[0].reexecuted
-    legacy = replace(records[0], entropy_seed=None, engine_version=None)
+    legacy = replace(records[0], entropy_seed=None)
     _, checks = await verify_commands(
         initial,
         [legacy],
@@ -49,15 +49,6 @@ async def test_durable_replay_reports_legacy_and_detects_tampering(
     assert (
         checks[0].folded and not checks[0].reexecuted and "no entropy seed" in str(checks[0].reason)
     )
-    older = replace(records[0], engine_version="retired")
-    _, checks = await verify_commands(
-        initial,
-        [older],
-        stream,
-        configuration_digest=configuration,
-        execute=FixtureExecutor(play.engine, tmp_path / "older"),
-    )
-    assert checks[0].folded and not checks[0].reexecuted and "version" in str(checks[0].reason)
     with pytest.raises(ValidationError, match="configuration"):
         await verify_commands(initial, records, stream, configuration_digest="different-rules")
     corrupt = dict(records[0].state_after)

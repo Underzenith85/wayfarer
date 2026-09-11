@@ -233,7 +233,9 @@ async def test_fixture_fold_and_reexecution(
     assert all(check.folded and check.reexecuted and check.reason is None for check in checks)
 
 
-async def test_replay_gate_rejects_snapshot_and_version_drift(tmp_path: Path) -> None:
+async def test_replay_gate_rejects_snapshot_drift_and_allows_reviewed_regeneration(
+    tmp_path: Path,
+) -> None:
     from scripts.replay_fixtures import (
         FIXTURES,
         ReplayFixture,
@@ -249,12 +251,8 @@ async def test_replay_gate_rejects_snapshot_and_version_drift(tmp_path: Path) ->
         await verify_fixture(
             fixture.model_copy(update={"commands": (bad,)}), engine, tmp_path / "bad"
         )
-    with pytest.raises(ValueError, match="ENGINE_VERSION"):
-        await verify_fixture(
-            fixture.model_copy(update={"engine_version": "old"}), engine, tmp_path / "version"
-        )
-
-    with pytest.raises(ValueError, match="bump ENGINE_VERSION"):
-        await regenerate(
-            fixture.model_copy(update={"commands": (bad,)}), engine, tmp_path / "regenerate"
-        )
+    updated = await regenerate(
+        fixture.model_copy(update={"commands": (bad,)}), engine, tmp_path / "regenerate"
+    )
+    assert updated.commands[0] == fixture.commands[0]
+    await verify_fixture(updated, engine, tmp_path / "verified-regeneration")

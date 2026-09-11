@@ -15,8 +15,7 @@ including the main reducer and checkpoint hooks. The scope is reset in `finally`
 shared engines retain no RNG state. Simulation receives only the `RandomSource`
 protocol and rejects random resolution when a caller omitted its source.
 
-The command log stores private `entropy_seed`, `engine_version` and
-`rng_algorithm` columns in the same transaction as the event and resulting state.
+The command log stores private `entropy_seed` and `rng_algorithm` columns in the same transaction as the event and resulting state.
 These fields do not participate in payload hashes and are never copied to the
 campaign, event payload, narration input, projection or live stream. Duplicate
 requests return the winning receipt without executing the callback; any seed
@@ -27,17 +26,17 @@ effects within a command remain part of that command's receipt and RNG stream.
 
 `sha256-counter-v1` is a fixed SHA-256 counter stream with rejection sampling for
 arbitrary positive bounds, not Python's version-dependent random implementation.
-Its byte-level contract is frozen by a test vector. `simulation.ENGINE_VERSION`
-started at `1`; the event-list contract uses `2`. Bump it when any input can produce different state, events or draws,
-including RNG algorithm changes. #418 enforces the fixture version/replay gate described below.
+Its byte-level contract is frozen by a test vector. Engine code versioning is
+deferred during prerelease. The retired nullable database column is ignored on
+reads and written as null; existing databases need no destructive migration.
 
-`CommandRecord.reexecutable` requires a seed, a supported RNG algorithm and the
-running engine version. Additive SQLite/PostgreSQL migrations leave these fields
+`CommandRecord.reexecutable` requires a seed and a supported RNG algorithm.
+Additive SQLite/PostgreSQL migrations leave these fields
 null on old rows: no seed is fabricated. Existing explicit scripted RNG injection
 is retained for numeric fixtures, with `rng_algorithm="injected"`; those records
 are deliberately not claimed to support seed-only re-execution. Production
 services use the seeded source by default. Production reads now fold events under
-#419; command re-execution remains a separately versioned gate.
+#419; command re-execution remains a separate deterministic gate.
 
 ## Command time (#414)
 
@@ -136,7 +135,7 @@ engine definitions while preserving the wire definitions.
 
 `persistence.replay.verify_commands` checks two independent guarantees. Folding
 applies the event stream and compares each result with the command's stored
-snapshot, regardless of `ENGINE_VERSION`. Re-execution dispatches the saved typed
+snapshot. Re-execution dispatches the saved typed
 command through an isolated engine using its original seed and recorded instant,
 and compares the resulting state, event list and embedded dice. Neither providers
 nor origin annotations are execution inputs. The rules configuration digest must
@@ -145,8 +144,7 @@ migration remains a separate `MigrationEntry` concern.
 
 Commands now retain their exact `command_input` alongside the receipt. Old rows
 remain null; a transcript input is recoverable only if its original payload digest
-matches. Missing seeds, missing recorded time, unsupported RNGs and different
-engine versions produce explicit `ReplayCheck` reasons while the fold still runs.
+matches. Missing seeds, missing recorded time, unsupported RNGs produce explicit `ReplayCheck` reasons while the fold still runs.
 Malformed current command inputs fail validation. Unknown command families fail
 explicitly rather than invoking interpretation or trusting a stored outcome.
 The initial replay dispatcher covers typed actions, scenes, parties, combat,
@@ -165,15 +163,14 @@ SQLite/PostgreSQL durable replay and corruption tests.
 
 To review a deliberate engine behavior change:
 
-1. Bump `simulation.ENGINE_VERSION` in the same change as the behavior.
-2. Run `uv run python -m scripts.regenerate_replay_fixtures`.
-3. Review the event/dice diffs and snapshot digests, then run
+1. Run `uv run python -m scripts.regenerate_replay_fixtures`.
+2. Review the event/dice diffs and snapshot digests, then run
    `uv run python -m scripts.regenerate_replay_fixtures --check` and the release tests.
 
-Regeneration preserves inputs, seeds, time and initial state. It refuses to bless
-changed output under an unchanged engine version. The gate rejects a version bump
-without regenerated fixtures as well. Rules-data changes cannot be silently
-accepted by rewriting the pinned configuration digest.
+Regeneration preserves inputs, seeds, time and initial state. The gate still
+rejects changed outputs until fixtures are deliberately regenerated and reviewed.
+Rules-data changes cannot be silently accepted by rewriting the pinned configuration
+digest.
 
 ## Receipts and recovery
 
