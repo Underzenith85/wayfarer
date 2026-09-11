@@ -91,7 +91,7 @@ class PlayService:
             return self.profiles.for_campaign(campaign)
         return self.bind(campaign)
 
-    def bind(self, campaign: Campaign) -> PlayService:
+    def bind(self, campaign: Campaign, *, migration_target: bool = False) -> PlayService:
         """Bind a saved scenario without sharing mutable per-campaign runtime state."""
         from wayfarer.simulation.social_policy import parse_graph
 
@@ -106,7 +106,11 @@ class PlayService:
         )
         from wayfarer.simulation.scenario_references import verify
 
-        verify(campaign, runtime_digest=engine.digest)
+        if not migration_target and campaign.get("rules_ref") != reference(
+            self.engine.resources.rules
+        ):
+            raise ValidationError("Campaign rules do not match the play engine")
+        verify(campaign, runtime_digest=None if migration_target else engine.digest)
         if (
             engine.digest == self.engine.digest
             and engine.resources.actors == self.engine.resources.actors
@@ -304,9 +308,9 @@ class PlayService:
     def _load(self, campaign: Campaign) -> PlayState:
         from wayfarer.simulation.scenario_references import verify
 
-        verify(campaign, runtime_digest=self.engine.digest)
         if campaign.get("rules_ref") != reference(self.engine.resources.rules):
             raise ValidationError("Campaign rules do not match the play engine")
+        verify(campaign, runtime_digest=self.engine.digest)
         raw = campaign.get("play_json")
         if raw is None:
             raise ValidationError("Campaign has no typed play state")
