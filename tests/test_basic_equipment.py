@@ -1,11 +1,11 @@
-"""Independent selected-row audit: Characters third printing B271,280,283,288."""
+"""Independent selected-row audit: Characters third printing B271-276,280,283,288."""
 
 import pytest
 from pydantic import ValidationError as SchemaError
 
 from wayfarer.errors import ValidationError
 from wayfarer.simulation.basic_equipment import BASIC_EQUIPMENT, ULTRATECH_INDEX, VEHICLE_INDEX
-from wayfarer.simulation.gurps_equipment import EquipmentCatalog, MeleeMode
+from wayfarer.simulation.gurps_equipment import EquipmentCatalog, MeleeMode, RangedMode
 
 MELEE_ROWS = (
     ("axe", 271, 0, 50, 4000),
@@ -53,6 +53,19 @@ MELEE_ROWS = (
     ("flail", 274, 2, 100, 8000),
     ("greatsword", 274, 3, 800, 7000),
     ("thrusting-greatsword", 274, 3, 900, 7000),
+)
+
+RANGED_ROWS = (
+    ("blowpipe", 275, 0, 30, 1000, 2, 1, None, 4, -6),
+    ("longbow", 275, 0, 200, 3000, 11, 3, 15, 20, -8),
+    ("regular-bow", 275, 0, 100, 2000, 10, 2, 15, 20, -7),
+    ("short-bow", 275, 0, 50, 2000, 7, 1, 10, 15, -6),
+    ("composite-bow", 275, 1, 900, 4000, 10, 3, 20, 25, -7),
+    ("crossbow", 276, 2, 150, 6000, 7, 4, 20, 25, -6),
+    ("pistol-crossbow", 276, 3, 150, 4000, 7, 1, 15, 20, -4),
+    ("prodd", 276, 3, 150, 6000, 7, 2, 20, 25, -6),
+    ("sling", 276, 0, 20, 500, 6, 0, 6, 10, -4),
+    ("staff-sling", 276, 1, 20, 2000, 7, 1, 10, 15, -6),
 )
 
 
@@ -155,6 +168,72 @@ def test_melee_table_modes_cover_parry_hands_and_footnotes() -> None:
     glaive = entries["equipment:glaive"].modes[0]
     assert isinstance(glaive, MeleeMode) and glaive.ready_after_attack
     assert "conditional-ready-after-attack" in entries["equipment:glaive"].unsupported_mechanics
+
+
+def test_b275_276_launcher_rows_have_independent_inventory_and_mode_facts() -> None:
+    entries = {
+        entry.definition_id.removeprefix("equipment:"): entry for entry in BASIC_EQUIPMENT.entries
+    }
+    actual = []
+    for (
+        key,
+        page,
+        tl,
+        cost,
+        weight,
+        minimum_st,
+        accuracy,
+        half_range,
+        maximum_range,
+        bulk,
+    ) in RANGED_ROWS:
+        entry = entries[key]
+        assert (
+            entry.provenance.pages,
+            entry.technology_level,
+            entry.price,
+            entry.weight_millipounds,
+        ) == (
+            (page,),
+            tl,
+            cost,
+            weight,
+        )
+        assert len(entry.modes) == 1 and isinstance(entry.modes[0], RangedMode)
+        mode = entry.modes[0]
+        assert (
+            mode.minimum_st,
+            mode.accuracy,
+            mode.half_damage_range,
+            mode.maximum_range,
+            mode.bulk,
+        ) == (minimum_st, accuracy, half_range, maximum_range, bulk)
+        actual.append(key)
+    assert actual == [row[0] for row in RANGED_ROWS]
+
+    longbow = entries["longbow"].modes[0]
+    assert isinstance(longbow, RangedMode) and longbow.rated_strength is not None
+    assert longbow.rated_strength.model_dump() == {"kind": "bow", "st": 11}
+    crossbow = entries["crossbow"].modes[0]
+    assert isinstance(crossbow, RangedMode) and crossbow.reload_seconds == 4
+    assert entries["pistol-crossbow"].unsupported_mechanics == ("one-handed-rated-crossbow",)
+
+
+def test_b276_ammunition_keeps_fractional_prices_and_weights() -> None:
+    entries = {
+        entry.definition_id.removeprefix("equipment:"): entry for entry in BASIC_EQUIPMENT.entries
+    }
+    expected = {
+        "blowpipe-dart": ("0.1", 50),
+        "arrow": ("2", 100),
+        "bolt": ("2", 60),
+        "lead-pellet": ("0.1", 60),
+        "sling-stone": ("0", 50),
+    }
+    assert {
+        key: (str(entries[key].price), entries[key].weight_millipounds) for key in expected
+    } == expected
+    assert all(entries[key].ammunition for key in expected)
 
 
 def test_sword_and_armor_independent_combat_facts() -> None:
