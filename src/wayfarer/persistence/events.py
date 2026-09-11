@@ -2,11 +2,12 @@
 
 import hashlib
 import json
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from typing import Literal
 
 from pydantic import Field, TypeAdapter, model_validator
 
+from wayfarer import validation
 from wayfarer.models import Campaign, Event, Record
 from wayfarer.persistence.upcasters import UpcasterRegistry
 from wayfarer.rules.randomness import RNG_ALGORITHM
@@ -107,6 +108,7 @@ _COMMAND_ADAPTER = TypeAdapter(CommandRecord)
 
 
 def upcast_command(record: CommandRecord) -> CommandRecord:
-    row = COMMAND_UPCASTERS.read("command", record.schema_version, asdict(record))
+    raw = validation.mapping(validation.decode(_COMMAND_ADAPTER.dump_json(record).decode()))
+    row = COMMAND_UPCASTERS.read("command", record.schema_version, raw)
     row["schema_version"] = COMMAND_UPCASTERS.current["command"]
     return _COMMAND_ADAPTER.validate_json(json.dumps(row))
