@@ -8,9 +8,8 @@ No global revision or source event identity crosses the wire.
 from __future__ import annotations
 
 import secrets
-import time
 
-from .common import Fault, Obj, array, encoded, now, obj, uid
+from .common import Fault, Obj, array, encoded, obj, uid
 from .ledger import Transaction
 from .projection import View
 from .service import V1Service
@@ -41,7 +40,7 @@ async def sync(service: V1Service, tx: Transaction, principal: str, scope: Obj) 
             "revision": view.state.revision,
             "resources": resources,
             "events": [],
-            "at": time.time(),
+            "at": tx.instant.seconds,
         }
     else:
         events = [obj(e) for e in array(previous["events"])]
@@ -79,7 +78,7 @@ async def sync(service: V1Service, tx: Transaction, principal: str, scope: Obj) 
                 "revision": view.state.revision,
                 "resources": resources,
                 "events": [],
-                "at": time.time(),
+                "at": tx.instant.seconds,
             }
         else:
             candidates.append(resources)
@@ -134,10 +133,10 @@ async def sync(service: V1Service, tx: Transaction, principal: str, scope: Obj) 
                             "event_id": uid(),
                             "previous_cursor": previous["cursor"],
                             "cursor": cursor,
-                            "occurred_at": now(),
+                            "occurred_at": tx.instant.isoformat(),
                             "correlation_id": uid(),
                             "causation_id": None,
-                            "_at": time.time(),
+                            "_at": tx.instant.seconds,
                         }
                     )
                     previous["cursor"] = cursor
@@ -145,7 +144,9 @@ async def sync(service: V1Service, tx: Transaction, principal: str, scope: Obj) 
             previous.update(
                 revision=view.state.revision,
                 resources=resources,
-                events=[e for e in events if float(str(e["_at"])) >= time.time() - 1200][-10000:],
+                events=[e for e in events if float(str(e["_at"])) >= tx.instant.seconds - 1200][
+                    -10000:
+                ],
             )
     await tx.put(key, previous)
     # Cursor ownership survives eviction, so wrong-scope tokens never become a
@@ -160,6 +161,10 @@ async def sync(service: V1Service, tx: Transaction, principal: str, scope: Obj) 
     if await tx.get(cursor_key) is None:
         await tx.put(
             cursor_key,
-            {"binding": encoded([principal, scope]), "epoch": previous["epoch"], "at": time.time()},
+            {
+                "binding": encoded([principal, scope]),
+                "epoch": previous["epoch"],
+                "at": tx.instant.seconds,
+            },
         )
     return view, previous

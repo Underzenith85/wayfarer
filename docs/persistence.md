@@ -37,7 +37,35 @@ null on old rows: no seed is fabricated. Existing explicit scripted RNG injectio
 is retained for numeric fixtures, with `rng_algorithm="injected"`; those records
 are deliberately not claimed to support seed-only re-execution. Production
 services use the seeded source by default. This step does not replace snapshot
-replay with event folding (#413/#418/#419) or capture wall-clock inputs (#414).
+replay with event folding (#413/#418/#419).
+
+## Command time (#414)
+
+`commit_command` captures one `CommandInstant` before entering persistence, or
+accepts an explicitly supplied instant for recovery and replay. The command log
+stores its UTC Unix microseconds in `recorded_at_us` alongside the event and
+resulting state. Retries retain the winning command's timestamp. This private
+metadata does not change payload hashes or public event and campaign schemas.
+SQLite and PostgreSQL migrations leave historical timestamps null rather than
+inventing an original execution time.
+
+Invitation handling captures time at entry. Creation computes the deadline from
+that value; redemption checks the deadline against the supplied instant, accepting
+the exact deadline. The saved claim receipt carries the instant into the domain
+command and completion receipt. A restart after saving a claim reuses its original
+instant even after expiry. Legacy claims without a recorded instant retain their
+existing retry authorization, but their original acceptance time is unknown.
+
+Ledger transactions capture an instant before acquiring the write lock, or accept
+one from the caller. Action timestamps, projection metadata and outbox timestamps
+and retention checks consume that value throughout the transaction. Provider
+telemetry already has no wall-clock reads. Operational provider timeouts, HTTP rate
+limits, cursor lifetimes and socket heartbeats remain outside simulation. An
+architecture gate rejects clock imports in simulation and clock reads in command
+resolver callbacks and their local helpers. The comprehensive command re-execution
+gate remains part of #418.
+
+## Receipts and recovery
 
 Command IDs are unique per campaign. An exact retry returns the original result,
 even if later commands have committed. Reusing the ID with a different payload is

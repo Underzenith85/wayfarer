@@ -13,12 +13,15 @@ from pathlib import Path
 
 import aiosqlite
 
+from wayfarer.orchestration.clock import CommandInstant, capture_instant
+
 from .common import Obj, encoded, obj
 
 
 class Transaction:
-    def __init__(self, db: aiosqlite.Connection) -> None:
+    def __init__(self, db: aiosqlite.Connection, instant: CommandInstant) -> None:
         self.db = db
+        self.instant = instant
 
     async def get(self, key: str) -> Obj | None:
         async with self.db.execute("SELECT value FROM v1_records WHERE key=?", (key,)) as c:
@@ -45,7 +48,10 @@ class Ledger:
         self.path = path
 
     @asynccontextmanager
-    async def transaction(self) -> AsyncIterator[Transaction]:
+    async def transaction(
+        self, *, instant: CommandInstant | None = None
+    ) -> AsyncIterator[Transaction]:
+        instant = instant if instant is not None else capture_instant()
         self.path.parent.mkdir(parents=True, exist_ok=True)
         async with aiosqlite.connect(self.path, timeout=30) as db:
             await db.execute(
@@ -54,7 +60,7 @@ class Ledger:
             await db.commit()
             await db.execute("BEGIN IMMEDIATE")
             try:
-                yield Transaction(db)
+                yield Transaction(db, instant)
                 await db.commit()
             except BaseException:
                 await db.rollback()

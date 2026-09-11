@@ -21,6 +21,81 @@ REDUCER_MODULES = (
 
 
 class ArchitectureTests(unittest.TestCase):
+    def test_resolver_callbacks_do_not_read_clocks(self) -> None:
+        package = Path(wayfarer.__file__).parent
+        reads = {
+            "time",
+            "time_ns",
+            "monotonic",
+            "monotonic_ns",
+            "perf_counter",
+            "perf_counter_ns",
+            "now",
+            "utcnow",
+            "today",
+            "capture_instant",
+        }
+        for source in package.rglob("*.py"):
+            tree = ast.parse(source.read_text())
+            aliases = {
+                alias.asname or alias.name: alias.name
+                for node in ast.walk(tree)
+                if isinstance(node, ast.ImportFrom)
+                for alias in node.names
+            }
+            functions = {
+                node.name: node
+                for node in ast.walk(tree)
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+            }
+            for call in ast.walk(tree):
+                if not isinstance(call, ast.Call):
+                    continue
+                name = (
+                    call.func.attr
+                    if isinstance(call.func, ast.Attribute)
+                    else call.func.id
+                    if isinstance(call.func, ast.Name)
+                    else ""
+                )
+                if name not in ("commit_turn", "commit_command"):
+                    continue
+                index = 5 if name == "commit_command" else 4
+                if len(call.args) <= index:
+                    continue
+                target = call.args[index]
+                pending: list[ast.AST] = (
+                    [target]
+                    if isinstance(target, ast.Lambda)
+                    else (
+                        [functions[target.id]]
+                        if isinstance(target, ast.Name) and target.id in functions
+                        else []
+                    )
+                )
+                visited: set[str] = set()
+                while pending:
+                    for node in ast.walk(pending.pop()):
+                        if not isinstance(node, ast.Call):
+                            continue
+                        called = (
+                            node.func.attr
+                            if isinstance(node.func, ast.Attribute)
+                            else node.func.id
+                            if isinstance(node.func, ast.Name)
+                            else ""
+                        )
+                        self.assertNotIn(
+                            aliases.get(called, called), reads, f"{source}:{node.lineno}"
+                        )
+                        if (
+                            isinstance(node.func, ast.Name)
+                            and called in functions
+                            and called not in visited
+                        ):
+                            visited.add(called)
+                            pending.append(functions[called])
+
     def test_live_commands_use_the_entropy_boundary(self) -> None:
         package = Path(wayfarer.__file__).parent
         boundary = package / "orchestration" / "entropy.py"
@@ -169,7 +244,9 @@ class ArchitectureTests(unittest.TestCase):
                         with self.subTest(source=source, module=module):
                             self.assertNotIn(module.split(".")[0], forbidden)
                             if domain == "simulation":
-                                self.assertNotIn(module.split(".")[0], {"secrets", "random"})
+                                self.assertNotIn(
+                                    module.split(".")[0], {"secrets", "random", "time", "datetime"}
+                                )
                             if module.startswith("wayfarer."):
                                 self.assertIn(module.split(".")[1], dependencies)
 

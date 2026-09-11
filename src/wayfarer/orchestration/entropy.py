@@ -6,6 +6,7 @@ from contextvars import ContextVar
 
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, Event, TurnResult
+from wayfarer.orchestration.clock import CommandInstant, capture_instant
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.events import CommandEntropy
 from wayfarer.persistence.postgres import AsyncPostgresStore
@@ -45,14 +46,16 @@ async def commit_command(
     *,
     actor_id: str = "system",
     rng: RandomSource | None = None,
+    instant: CommandInstant | None = None,
 ) -> TurnResult:
-    """Capture entropy before storage; retries return the winning durable receipt.
+    """Capture entropy and time before storage; retries return the winning receipt.
 
     Explicit scripted sources remain useful for rule fixtures. Such records carry
     an injected algorithm marker and never claim seed-only re-executability.
     """
     if not actor_id:
         raise ValidationError("Command requires a principal")
+    instant = instant if instant is not None else capture_instant()
     handle = CommandRandom(rng)
     entropy = CommandEntropy(
         seed=secrets.token_hex(32),
@@ -68,5 +71,12 @@ async def commit_command(
             _active.reset(token)
 
     return await store.commit_turn(
-        cid, request_id, revision, text, run, actor_id=actor_id, entropy=entropy
+        cid,
+        request_id,
+        revision,
+        text,
+        run,
+        actor_id=actor_id,
+        entropy=entropy,
+        recorded_at_us=instant.unix_microseconds,
     )
