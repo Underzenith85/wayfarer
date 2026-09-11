@@ -195,3 +195,28 @@ databases in place by adding the new log and snapshot tables.
 Reusable scenarios use separate catalog and command-receipt tables in the same configured database.
 See [scenario catalog storage, export and restore](scenario-catalog.md) for authoring semantics and
 consistent-backup requirements.
+
+
+### Retained schema readers (#427)
+
+Both adapters pass raw event JSON through `persistence/upcasters.py` before folding.
+The registry is keyed by event kind and the row's schema version; it rejects future
+versions and missing intermediate migrations. Each pure migration takes and returns
+a JSON mapping, operates on a defensive copy, and belongs beside the event definition
+it migrates. Defaulted additions need no migration. Writers use each kind's current
+version; stream consumers receive its normalized current version. Command receipts
+use the same registry mechanism before being returned by `history`.
+
+Version 1 is the first persisted event and command shape; no fictional historical
+shape is introduced. `tests/fixtures/retained_schemas.json` freezes the retained
+versions and a real fold checkpoint. Release evidence lists those versions and
+rejects any missing reader. Structural migration tests exercise ordered rename and
+restructure steps and both adapters through the shared registry.
+
+Before retiring a reader, collect `await store.schema_usage()` from every deployed
+store and supply the combined JSON to `scripts/release_gates.py --schema-usage`.
+The inventory reports each campaign/kind/version's last event revision and latest
+snapshot. Retirement is blocked while any campaign lacks a snapshot at or past that
+last revision. Coverage is necessary, not permission to discard historical replay:
+retained fixture promises must also be explicitly reviewed before removal. Schema
+migration happens on read; stored stream rows are never rewritten.

@@ -19,7 +19,9 @@ from wayfarer.persistence.events import (
     CommandResolution,
     StoredEvent,
     payload_digest,
+    upcast_command,
 )
+from wayfarer.persistence.upcasters import EVENT_UPCASTERS, read_event
 from wayfarer.simulation.events import EVENT_ADAPTER, EngineEvent, command_events, document, fold
 
 SNAPSHOT_INTERVAL = 10
@@ -272,25 +274,27 @@ class AsyncSQLiteStore:
             rows = await cursor.fetchall()
             await cursor.close()
             return [
-                CommandRecord(
-                    campaign_id=cid,
-                    command_id=row[0],
-                    actor_id=row[1],
-                    expected_revision=row[2],
-                    resulting_revision=row[3],
-                    payload_hash=row[4],
-                    rules_version=row[5],
-                    schema_version=row[6],
-                    event=self._event(row[7]),
-                    state_after=validation.campaign(validation.decode(row[8])),
-                    entropy_seed=row[9],
-                    engine_version=row[10],
-                    rng_algorithm=row[11],
-                    recorded_at_us=row[12],
-                    command_input=row[14],
-                    origin=CommandOrigin.model_validate_json(row[13])
-                    if row[13] is not None
-                    else None,
+                upcast_command(
+                    CommandRecord(
+                        campaign_id=cid,
+                        command_id=row[0],
+                        actor_id=row[1],
+                        expected_revision=row[2],
+                        resulting_revision=row[3],
+                        payload_hash=row[4],
+                        rules_version=row[5],
+                        schema_version=row[6],
+                        event=self._event(row[7]),
+                        state_after=validation.campaign(validation.decode(row[8])),
+                        entropy_seed=row[9],
+                        engine_version=row[10],
+                        rng_algorithm=row[11],
+                        recorded_at_us=row[12],
+                        command_input=row[14],
+                        origin=CommandOrigin.model_validate_json(row[13])
+                        if row[13] is not None
+                        else None,
+                    )
                 )
                 for row in rows
             ]
@@ -374,7 +378,7 @@ class AsyncSQLiteStore:
                     revision,
                     ordinal,
                     command_id,
-                    EVENT_SCHEMA_VERSION,
+                    EVENT_UPCASTERS.current[event.kind],
                     EVENT_ADAPTER.dump_json(event).decode(),
                 ),
             )
@@ -432,15 +436,14 @@ class AsyncSQLiteStore:
             result: list[tuple[Campaign, tuple[StoredEvent, ...]]] = [(state, ())]
             grouped: list[StoredEvent] = []
             for row in rows:
-                if int(str(row[3])) != EVENT_SCHEMA_VERSION:
-                    raise StorageError("Unsupported event schema version")
+                decoded = read_event(validation.string(row[4]), int(str(row[3])))
                 event = StoredEvent(
                     cid,
                     str(row[0]),
                     int(str(row[1])),
                     int(str(row[2])),
-                    EVENT_ADAPTER.validate_json(row[4]),
-                    int(str(row[3])),
+                    decoded,
+                    EVENT_UPCASTERS.current[decoded.kind],
                 )
                 if grouped and event.revision != grouped[0].revision:
                     state = fold(state, [e.event for e in grouped])
@@ -451,6 +454,33 @@ class AsyncSQLiteStore:
                 state = fold(state, [e.event for e in grouped])
                 result.append((state, tuple(grouped)))
             return result
+        finally:
+            await db.close()
+
+    async def schema_usage(self) -> list[dict[str, object]]:
+        """Raw retained versions and per-campaign snapshot coverage for retirement audits."""
+        db = await self._connect()
+        try:
+            cursor = await db.execute(
+                "SELECT e.campaign, e.schema_version, e.event, e.revision, "
+                "(SELECT MAX(s.revision) FROM snapshots s WHERE s.campaign=e.campaign) "
+                "FROM event_stream e ORDER BY e.campaign, e.revision, e.ordinal"
+            )
+            rows = await cursor.fetchall()
+            usage: dict[tuple[str, str, int], dict[str, object]] = {}
+            for row in rows:
+                kind = validation.string(
+                    validation.mapping(validation.decode(validation.string(row[2])))["kind"]
+                )
+                key = (validation.string(row[0]), kind, validation.integer(row[1]))
+                usage[key] = {
+                    "campaign": key[0],
+                    "kind": kind,
+                    "version": key[2],
+                    "last_revision": validation.integer(row[3]),
+                    "snapshot_revision": row[4],
+                }
+            return list(usage.values())
         finally:
             await db.close()
 

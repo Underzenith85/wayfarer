@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign
 from wayfarer.persistence.events import CommandRecord, StoredEvent, payload_digest
+from wayfarer.persistence.upcasters import EVENT_UPCASTERS
 from wayfarer.rules.randomness import RNG_ALGORITHM
 from wayfarer.simulation import ENGINE_VERSION
 from wayfarer.simulation.actions import PlayState
@@ -73,7 +74,7 @@ def fold_command(
         e.campaign_id != record.campaign_id
         or e.command_id != record.command_id
         or e.revision != record.resulting_revision
-        or e.schema_version != 1
+        or e.schema_version != EVENT_UPCASTERS.current[e.event.kind]
         for e in events
     ):
         raise ValidationError("Missing or inconsistent command events")
