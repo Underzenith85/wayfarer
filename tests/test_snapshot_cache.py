@@ -110,6 +110,8 @@ async def test_cache_loss_restart_retry_and_concurrent_writers(
         (cid, 12, encode(corrupt)),
     )
     assert document(await reopened.read(cid)) == document(final)
+    usage = [row for row in await reopened.schema_usage() if row["campaign"] == cid]
+    assert usage and all(row["snapshot_revision"] is None for row in usage)
 
 
 async def test_narration_survives_cache_rebuild_without_becoming_state(

@@ -604,6 +604,34 @@ class AsyncPostgresStore:
                     "last_revision": validation.integer(row[3]),
                     "snapshot_revision": row[4],
                 }
+            coverage: dict[str, int | None] = {}
+            for cid, _, _ in usage:
+                if cid in coverage:
+                    continue
+                # Validate coverage before declaring an old schema retireable.
+                await self._read(db, cid)
+                cursor = await db.execute(
+                    "SELECT state FROM stream_genesis WHERE campaign=%s", (cid,)
+                )
+                initial = await cursor.fetchone()
+                assert initial is not None
+                cursor = await db.execute(
+                    "SELECT revision, state FROM snapshots WHERE campaign=%s", (cid,)
+                )
+                caches = [(validation.integer(row[0]), row[1]) for row in await cursor.fetchall()]
+                cursor = await db.execute(
+                    "SELECT revision, digest FROM checkpoint_digests WHERE campaign=%s", (cid,)
+                )
+                digests = {
+                    validation.integer(row[0]): validation.string(row[1])
+                    for row in await cursor.fetchall()
+                }
+                _, coverage[cid] = snapshots.select_checkpoint(
+                    snapshots.decode(initial[0]), caches, digests, 2**63 - 1
+                )
+            for key, item in usage.items():
+                item["snapshot_revision"] = coverage[key[0]]
+            await db.commit()
             return list(usage.values())
         finally:
             await db.close()
