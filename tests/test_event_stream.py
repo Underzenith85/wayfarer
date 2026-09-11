@@ -84,6 +84,8 @@ async def test_old_logs_backfill_once_and_fold_without_command_snapshots(tmp_pat
     )
     expected = await play.store.read(cid)
     with sqlite3.connect(play.store.path) as db:
+        # Model a real pre-stream receipt: only legacy writers stored state_after.
+        db.execute("UPDATE command_log SET state_after=?", (json.dumps(expected),))
         db.execute("DROP TABLE event_stream")
         db.execute("DROP TABLE stream_genesis")
         db.execute(

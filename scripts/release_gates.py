@@ -24,7 +24,11 @@ MECHANICS: dict[str, tuple[str, ...]] = {
     "Deterministic actions and adjudication": ("test_actions", "test_adjudication"),
     "Combat and injury": ("test_combat", "test_wave9"),
     "Event fold and versioned command re-execution": ("test_replay", "test_release_invariants"),
-    "Replay, concurrency and crash recovery": ("test_postgres", "test_release_invariants"),
+    "Replay, concurrency and crash recovery": (
+        "test_postgres",
+        "test_release_invariants",
+        "test_snapshot_cache",
+    ),
     "Advancement and explicit migration": ("test_advancement", "test_profiles"),
     "Authorization and knowledge isolation": ("test_campaign_api", "test_v1_api", "test_wave9"),
     "Provider attacks, degradation and narration authority": (

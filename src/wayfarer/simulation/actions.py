@@ -6,10 +6,22 @@ These are the nouns of play. The verb that assesses and resolves them lives in
 
 from __future__ import annotations
 
-from typing import Annotated, Literal
+import json
+from collections.abc import Mapping
+from typing import Annotated, Literal, Self
 
-from pydantic import Field, TypeAdapter
+from pydantic import (
+    Field,
+    ModelWrapValidatorHandler,
+    PrivateAttr,
+    SerializerFunctionWrapHandler,
+    TypeAdapter,
+    ValidationInfo,
+    model_serializer,
+    model_validator,
+)
 
+from wayfarer import validation
 from wayfarer.character.power import Approval, CharacterProposal
 from wayfarer.models import Record
 from wayfarer.rules.checks import CheckTrace
@@ -160,7 +172,15 @@ class ActionResult(Record):
     ruling_id: str | None = None
 
 
-class PlayState(Record):
+class PlayEventProjection(Record):
+    """Derived event view, not a field of canonical play state."""
+
+    last_result: ActionResult | None = None
+    last_combat_result: CombatResult | None = None
+    scene_events: tuple[SceneEvent, ...] = ()
+
+
+class PlayCheckpoint(Record):
     campaign_id: str
     lifecycle: Literal["active", "paused", "completed", "archived"] = "active"
     revision: int = Field(default=0, ge=0)
@@ -169,15 +189,12 @@ class PlayState(Record):
     resources: ResourceState
     actors: tuple[PlayActor, ...]
     approvals: tuple[Approval, ...] = ()
-    last_result: ActionResult | None = None
     rulings: tuple[Ruling, ...] = ()
     encounters: tuple[Encounter, ...] = ()
-    last_combat_result: CombatResult | None = None
     advancement: tuple[AdvancementEntry, ...] = ()
     migrations: tuple[MigrationEntry, ...] = ()
     members: tuple[CampaignMember, ...] = ()
     actor_scenes: tuple[ActorScene, ...] = ()
-    scene_events: tuple[SceneEvent, ...] = ()
     journal: tuple[JournalEntry, ...] = ()
     fired_scene_triggers: tuple[str, ...] = ()
     objectives: ObjectiveState = ObjectiveState()
@@ -187,3 +204,81 @@ class PlayState(Record):
     recovery: RecoveryState = RecoveryState()
     director: tuple[DirectorTurn, ...] = ()
     drafts: tuple[AuthorDraft, ...] = ()
+
+
+class PlayState(PlayCheckpoint):
+    """Play checkpoint with a separately derived compatibility event view."""
+
+    _event_projection: PlayEventProjection = PrivateAttr(default_factory=PlayEventProjection)
+
+    @property
+    def last_result(self) -> ActionResult | None:
+        return self._event_projection.last_result
+
+    @property
+    def last_combat_result(self) -> CombatResult | None:
+        return self._event_projection.last_combat_result
+
+    @property
+    def scene_events(self) -> tuple[SceneEvent, ...]:
+        return self._event_projection.scene_events
+
+    @model_validator(mode="wrap")
+    @classmethod
+    def read_event_projection(
+        cls, value: object, handler: ModelWrapValidatorHandler[Self], info: ValidationInfo
+    ) -> Self:
+        if not isinstance(value, dict):
+            result = handler(value)
+            if isinstance(value, PlayState):
+                assert result.__pydantic_private__ is not None
+                result.__pydantic_private__["_event_projection"] = value._event_projection
+            return result
+        fields = validation.mapping(value).copy()
+        projection = {
+            key: fields.pop(key) for key in PlayEventProjection.model_fields if key in fields
+        }
+        events = (
+            PlayEventProjection.model_validate_json(json.dumps(projection))
+            if info.mode == "json"
+            else PlayEventProjection.model_validate(projection)
+        )
+        if info.mode == "json":
+            # Keep JSON's tuple/dataclass decoding semantics when the wrapper
+            # removes legacy projection keys before canonical validation.
+            checkpoint = PlayCheckpoint.model_validate_json(json.dumps(fields))
+            fields = {name: getattr(checkpoint, name) for name in PlayCheckpoint.model_fields}
+        result = handler(fields)
+        assert result.__pydantic_private__ is not None
+        result.__pydantic_private__["_event_projection"] = events
+        return result
+
+    @model_serializer(mode="wrap")
+    def with_event_projection(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        # Compatibility JSON still carries the separate projection at API/replay
+        # boundaries. Snapshot schema 2 splits it out of the play checkpoint.
+        result: dict[str, object] = {}
+        events = self._event_projection.model_dump(mode="python")
+        positions = {
+            "approvals": "last_result",
+            "encounters": "last_combat_result",
+            "actor_scenes": "scene_events",
+        }
+        for key, value in validation.mapping(handler(self)).items():
+            result[key] = value
+            if key in positions:
+                result[positions[key]] = events[positions[key]]
+        return result
+
+    def model_copy(self, *, update: Mapping[str, object] | None = None, deep: bool = False) -> Self:
+        fields = dict(update or {})
+        projection = {
+            key: fields.pop(key) for key in PlayEventProjection.model_fields if key in fields
+        }
+        result = super().model_copy(update=fields, deep=deep)
+        if projection:
+            assert result.__pydantic_private__ is not None
+            result.__pydantic_private__["_event_projection"] = self._event_projection.model_copy(
+                update=projection, deep=deep
+            )
+        return result

@@ -50,6 +50,23 @@ class ArchitectureTests(unittest.TestCase):
         boundary = (package / "orchestration/entropy.py").read_text()
         self.assertIn("CommandResolution(event, command_events(", boundary)
 
+    def test_snapshot_loads_and_retries_use_stream_materialisation(self) -> None:
+        package = Path(wayfarer.__file__).parent
+        for adapter in ("async_sqlite", "postgres"):
+            tree = ast.parse((package / "persistence" / f"{adapter}.py").read_text())
+            methods = {n.name: n for n in ast.walk(tree) if isinstance(n, ast.AsyncFunctionDef)}
+            for name in ("read", "replay", "_duplicate", "commit_turn"):
+                calls = {
+                    n.func.attr
+                    for n in ast.walk(methods[name])
+                    if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+                }
+                self.assertIn("_read", calls, f"{adapter}.{name}")
+            rendered = ast.unparse(methods["_read"])
+            self.assertIn("snapshots.select_checkpoint", rendered)
+            self.assertIn("snapshots.materialize", rendered)
+            self.assertNotIn("state_after", rendered)
+
     def test_resolver_callbacks_do_not_read_clocks(self) -> None:
         package = Path(wayfarer.__file__).parent
         reads = {
