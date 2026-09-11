@@ -20,8 +20,8 @@ class SprayerSpec(Record):
     sustained_seconds: int = Field(ge=1, le=60)
     # Rounds the stream consumes for every second it is held, the first included.
     rounds_per_second: int = Field(ge=1, le=20)
-    # Whether the stream sets its target alight. The fire that keeps burning
-    # after the stream stops is #398's; this flag is what that will bind to.
+    # Whether the stream can set its target alight under B433. The encounter
+    # resolver binds a qualifying hit to an authoritative scene hazard.
     ignites: bool = False
 
 

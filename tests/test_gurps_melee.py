@@ -62,6 +62,7 @@ from wayfarer.simulation.gurps_equipment import (
 )
 from wayfarer.simulation.mechanics.gurps_melee import defense_value, movement
 from wayfarer.simulation.resources import Item, Owner, ResourceEngine, ResourceState
+from wayfarer.simulation.scenes import Scene, SceneRules
 from wayfarer.simulation.studio import ScenarioGraph
 
 
@@ -95,6 +96,7 @@ async def setup(
     warhead: ExplosionSpec | None = None,
     power_cell_capacity: int | None = None,
     extra_items: tuple[Item, ...] = (),
+    scene_bound: bool = False,
 ) -> tuple[str, PlayService]:
     equipment = EquipmentCatalog(
         profile_id=profile,
@@ -476,6 +478,13 @@ async def setup(
             version=1,
             maximum_wait=1800 if durability and durability.repair_skill_id else 100,
             combat=combat,
+            scenes=SceneRules(
+                id="melee-scenes",
+                version=1,
+                scenes=(Scene(id="dock-scene", version=1, location_id="dock", title="Dock"),),
+            )
+            if scene_bound
+            else None,
             abilities=AbilityRules(id="defense", version=1, abilities=(ability,))
             if ability_defense
             else None,
