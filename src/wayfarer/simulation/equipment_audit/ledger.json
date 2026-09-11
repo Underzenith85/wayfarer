@@ -202,13 +202,19 @@
     },
     {
       "id": "firearms",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B278-279",
+      "anchor": "inspected",
       "source_id": "sjg:basic-set-characters-4e-2004",
       "owner_issue": 180,
-      "status": "omitted",
-      "selected": [],
-      "omitted_rows": "Firearm rows and their rate-of-fire, recoil, bulk, shots and malfunction columns. No row is recorded and no firearm can be selected.",
+      "status": "partial",
+      "selected": [
+        "flintlock-pistol-51",
+        "wheel-lock-pistol-60",
+        "derringer-41",
+        "revolver-36",
+        "snub-revolver-38"
+      ],
+      "omitted_rows": "Five B278 pistol rows whose printed capacities and per-round ammunition weights are exactly representable are recorded. Chambered +1 capacities, rows whose load weight cannot be divided into integral millipounds, gyroc acceleration, smartguns, high-cyclic RoF, two-handed bracing and every B279 rifle/shotgun row remain unresolved.",
       "mechanics": [
         "malfunction",
         "shotgun-multiple-projectiles",
@@ -217,7 +223,7 @@
     },
     {
       "id": "ammunition",
-      "reference": "B275-276",
+      "reference": "B275-278",
       "anchor": "inspected",
       "source_id": "sjg:basic-set-characters-4e-2004",
       "owner_issue": 180,
@@ -227,9 +233,14 @@
         "arrow",
         "bolt",
         "lead-pellet",
-        "sling-stone"
+        "sling-stone",
+        "flintlock-pistol-51-round",
+        "wheel-lock-pistol-60-round",
+        "derringer-41-round",
+        "revolver-36-round",
+        "snub-revolver-38-round"
       ],
-      "omitted_rows": "B275-276 ordinary missile units are recorded with exact fractional dollar and pound values. Alternate stones and lead bullets, bodkin points, material/quality variants, firearm ammunition and every explosive warhead remain unresolved. Power cells are not disposable rounds.",
+      "omitted_rows": "B275-276 ordinary missiles and five B278 firearm rounds are recorded with exact fractional dollar and pound values. Alternate missiles, ammunition whose load weight cannot be divided into integral millipounds, ammunition variants, explosive warheads and power cells remain unresolved.",
       "mechanics": [
         "ammunition-variants",
         "power-cell-charges"
@@ -436,8 +447,8 @@
     },
     {
       "id": "rate-of-fire-and-recoil",
-      "reference": "B271-289",
-      "anchor": "range-only",
+      "reference": "B278",
+      "anchor": "inspected",
       "behaviour": "Rate of fire and recoil together bound how many shots of a burst can hit.",
       "disposition": "implemented",
       "capability_id": "gurps.combat.rapid_fire",
@@ -821,8 +832,8 @@
     },
     {
       "id": "shotgun-multiple-projectiles",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B279",
+      "anchor": "inspected",
       "behaviour": "One shot that throws several projectiles resolves as multiple hits.",
       "disposition": "unsupported",
       "capability_id": null,
@@ -832,8 +843,8 @@
     },
     {
       "id": "ammunition-variants",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B279-280",
+      "anchor": "inspected",
       "behaviour": "Ammunition types change damage, damage type, armor divisor and cost per round.",
       "disposition": "unsupported",
       "capability_id": null,
@@ -953,8 +964,8 @@
     },
     {
       "id": "holdout-and-concealment",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B278-279",
+      "anchor": "inspected",
       "behaviour": "A weapon's bulk determines how easily it can be carried concealed.",
       "disposition": "unsupported",
       "capability_id": null,
