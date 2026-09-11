@@ -6857,6 +6857,28 @@
             "title": "Kind",
             "type": "string"
           },
+          "procedure": {
+            "anyOf": [
+              {
+                "enum": [
+                  "trauma-maintenance",
+                  "repair-lasting"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Procedure"
+          },
+          "task_schema": {
+            "const": 2,
+            "default": 2,
+            "title": "Task Schema",
+            "type": "integer"
+          },
           "start": {
             "minimum": 0,
             "title": "Start",

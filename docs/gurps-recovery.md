@@ -75,3 +75,22 @@ Physician commands require an available approved skill definition; the separate
 catalog coverage gates are not bypassed. Exact Lite-specific source certification,
 complete combat exertion dispatch, and player-facing GURPS recovery controls are
 not claimed by this PR. No coverage row is marked verified by these additions.
+
+### One medical procedure API
+
+`simulation.medical` owns `CareContext`, `BeginRecovery`, `FinishRecovery`,
+`RecoveryResult`, and the procedure dispatcher. Trauma maintenance and lasting
+injury surgery use the same API as first aid and rest. The former
+`recovery_variants` imports are compatibility aliases.
+
+Recovery task schema 2 records an advanced `procedure` explicitly. Its read
+migration lifts schema 1 `variant:trauma:` and `variant:repair-lasting:` markers
+into that discriminator, preserving the original timing, skill, injury reference
+and infection parameters. A persisted `finish-recovery-variant` command is
+normalized to `finish-recovery`. Ordinary task kinds retain their saved shape.
+The engine version is 3 for the unified advanced command/result representation;
+older streams still fold, while re-execution uses matching-version fixtures.
+
+Authored setback recovery remains separate: it rejects profile injury/fatigue
+pools and only applies scenario-defined generic pool grants. It cannot bypass
+timed medical treatment or perform GURPS injury math.

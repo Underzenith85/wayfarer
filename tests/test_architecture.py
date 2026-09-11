@@ -21,6 +21,17 @@ REDUCER_MODULES = (
 
 
 class ArchitectureTests(unittest.TestCase):
+    def test_simulation_entity_names_have_one_owner(self) -> None:
+        owners: dict[str, list[str]] = {}
+        package = Path(wayfarer.__file__).parent / "simulation"
+        for source in package.rglob("*.py"):
+            for node in ast.walk(ast.parse(source.read_text())):
+                if isinstance(node, ast.ClassDef):
+                    owners.setdefault(node.name, []).append(source.name)
+        duplicates = {name: sorted(paths) for name, paths in owners.items() if len(paths) > 1}
+        # Existing, unrelated equipment/source provenance records have distinct semantics.
+        self.assertEqual(duplicates, {"Provenance": ["gurps_equipment.py", "scenario_document.py"]})
+
     def test_event_stream_has_only_atomic_persistence_writers(self) -> None:
         package = Path(wayfarer.__file__).parent
         writers = set()
