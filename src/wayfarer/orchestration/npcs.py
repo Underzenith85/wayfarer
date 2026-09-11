@@ -6,6 +6,7 @@ import hashlib
 import json
 from typing import TYPE_CHECKING, Literal
 
+from wayfarer import validation
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, Event
 from wayfarer.orchestration.entropy import commit_command
@@ -24,6 +25,7 @@ from wayfarer.simulation.resources import Consume
 
 if TYPE_CHECKING:
     from wayfarer.orchestration.play import PlayService
+    from wayfarer.orchestration.providers import Orchestrator
 
 
 class NPCProposal(ActionCommand):
@@ -403,6 +405,66 @@ def social_occurrence(
 class NPCService:
     def __init__(self, play: PlayService) -> None:
         self.play = play
+
+    async def propose_generated(
+        self,
+        cid: str,
+        *,
+        llm: Orchestrator,
+        command_id: str,
+        authenticated_gm_id: str,
+        plan_id: str,
+    ) -> PlayState:
+        """Generate a bounded advisory choice before submitting a typed NPC proposal."""
+        from wayfarer.orchestration.providers import ProviderRequest
+
+        campaign = await self.play.store.read(cid)
+        play = self.play.for_campaign(campaign)
+        if authenticated_gm_id not in play.engine.reviewer.gm_ids:
+            raise ValidationError("NPC proposals require trusted director authority")
+        state = play._load(campaign)
+        rules = play.engine.rules.npcs
+        plan = next((p for p in rules.plans if p.id == plan_id), None) if rules else None
+        if plan is None:
+            raise ValidationError("Unknown bounded NPC plan")
+        reply = await llm.job_reply(
+            ProviderRequest(
+                operation="intent",
+                session_id=f"npc:{cid}:{plan_id}",
+                context_json=plan.model_dump_json(),
+                prompt="Choose one listed action_id for this NPC plan.",
+                output_schema={
+                    "type": "object",
+                    "properties": {
+                        "action_id": {"type": "string", "enum": [a.id for a in plan.actions]}
+                    },
+                    "required": ["action_id"],
+                    "additionalProperties": False,
+                },
+            ),
+            cid=cid,
+            revision=state.revision,
+            principal=authenticated_gm_id,
+            actor=authenticated_gm_id,
+            key=command_id,
+        )
+        choice = validation.mapping(validation.decode(reply.payload_json))
+        action_id = validation.string(choice["action_id"])
+        command = NPCProposal(
+            id=command_id,
+            actor_id=authenticated_gm_id,
+            expected_revision=state.revision,
+            plan_id=plan_id,
+            action_id=action_id,
+        )
+        return await NPCService(play).propose(
+            cid,
+            command,
+            authenticated_gm_id=authenticated_gm_id,
+            origin=CommandOrigin.proposal(
+                "npc", choice, provider=reply.provider, model=reply.model
+            ),
+        )
 
     async def propose(
         self,

@@ -176,6 +176,7 @@ def create_app(settings: Settings) -> web.Application:
         async with aiohttp.ClientSession() as session:
             application[SERVICE_KEY] = GameService(settings, LLMClient(settings, session))
             yield
+            await application[SERVICE_KEY].jobs.close()
 
     app.cleanup_ctx.append(context)
     app.add_routes(

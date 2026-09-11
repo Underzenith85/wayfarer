@@ -7,6 +7,7 @@ No global revision or source event identity crosses the wire.
 
 from __future__ import annotations
 
+import json
 import secrets
 
 from wayfarer.simulation.events import visible
@@ -172,3 +173,45 @@ async def sync(service: V1Service, tx: Transaction, principal: str, scope: Obj) 
             },
         )
     return view, previous
+
+
+async def narrate(service: V1Service, principal: str, action: Obj, context: Obj) -> str:
+    """Publish only the submitting audience's durable narration result."""
+    async with service.ledger.transaction() as tx:
+        record = await tx.get("action:" + str(action["id"]))
+        if record is None or record["principal"] != principal:
+            raise Fault(404, "not_found")
+        cid = str(record["campaign"])
+        request = obj(record["request"])
+        revision = int(
+            str(
+                record.get(
+                    "result_revision", int(str(obj(record["engine"])["expected_revision"])) + 1
+                )
+            )
+        )
+    narrator = service.narrate
+    if narrator is None:
+        raise ValueError("Narration is unavailable")
+
+    async def run() -> str:
+        text = await narrator(context, action)
+        if not text or len(text) > 4000:
+            raise ValueError("Invalid narration")
+        return json.dumps({"text": text})
+
+    job = await service.jobs.submit(
+        cid=cid,
+        revision=revision,
+        principal=principal,
+        actor=str(request["actor_id"]),
+        kind="narration",
+        key=str(action["id"]),
+        request_json=json.dumps(context),
+        run=run,
+    )
+    await service.jobs.result(job)
+    for published in await service.jobs.store.outbox(cid, principal, str(request["actor_id"])):
+        if published.id == job.id and published.result_json:
+            return str(obj(json.loads(published.result_json))["text"])
+    raise ValueError("Narration is not published")

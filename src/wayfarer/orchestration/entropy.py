@@ -58,6 +58,36 @@ async def commit_command(
     instant: CommandInstant | None = None,
     origin: CommandOrigin | None = None,
 ) -> TurnResult:
+    from wayfarer.orchestration.sessions import REGISTRY
+
+    async with REGISTRY.serialized(store, cid):
+        return await _commit_serialized(
+            store,
+            cid,
+            request_id,
+            revision,
+            text,
+            resolve,
+            actor_id=actor_id,
+            rng=rng,
+            instant=instant,
+            origin=origin,
+        )
+
+
+async def _commit_serialized(
+    store: AsyncSQLiteStore | AsyncPostgresStore,
+    cid: str,
+    request_id: str,
+    revision: int,
+    text: str,
+    resolve: Callable[[Campaign], Event],
+    *,
+    actor_id: str = "system",
+    rng: RandomSource | None = None,
+    instant: CommandInstant | None = None,
+    origin: CommandOrigin | None = None,
+) -> TurnResult:
     """Capture entropy and time before storage; retries return the winning receipt.
 
     Explicit scripted sources remain useful for rule fixtures. Such records carry

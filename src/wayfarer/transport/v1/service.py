@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import secrets
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
@@ -16,6 +17,7 @@ from wayfarer.errors import (
     provider_diagnostic,
 )
 from wayfarer.models import Campaign
+from wayfarer.orchestration.jobs import jobs_for
 from wayfarer.orchestration.origins import origin_scope
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.scenes import SceneService
@@ -42,6 +44,7 @@ class V1Service:
         self, play: PlayService, path: Path, *, tick_ms: int = 1000, weight_grams: int = 1
     ) -> None:
         self.play, self.ledger = play, Ledger(path)
+        self.jobs = jobs_for(play.store)
         self.tick_ms, self.weight_grams = tick_ms, weight_grams
         self.projector: Projector
         self.interpret: Interpreter | None = None
@@ -49,6 +52,7 @@ class V1Service:
         self.tasks: set[asyncio.Task[None]] = set()
 
     async def start(self) -> None:
+        await self.jobs.start()
         async with self.ledger.transaction() as tx:
             config = await tx.get("config")
             if config is None:
@@ -72,6 +76,7 @@ class V1Service:
         for task in self.tasks:
             task.cancel()
         await asyncio.gather(*self.tasks, return_exceptions=True)
+        await self.jobs.close()
 
     def schedule(self, aid: str) -> None:
         task = asyncio.create_task(self.resolve(aid))
@@ -295,12 +300,35 @@ class V1Service:
             if record["engine"] is None and intent["kind"] in ("text", "question"):
                 if self.interpret is None:
                     raise Fault(422, "unsupported_action")
-                async with asyncio.timeout(20):
-                    interpreted = await self.interpret(context, str(intent["text"]))
+                interpreter, prompt = self.interpret, str(intent["text"])
+
+                async def propose() -> str:
+                    async with asyncio.timeout(20):
+                        interpreted = await interpreter(context, prompt)
                     if isinstance(interpreted, Interpretation):
-                        intent, origin = interpreted.intent, interpreted.origin
-                    else:
-                        intent = interpreted
+                        return json.dumps(
+                            {
+                                "intent": interpreted.intent,
+                                "origin": interpreted.origin.model_dump(mode="json"),
+                            }
+                        )
+                    return json.dumps({"intent": interpreted, "origin": None})
+
+                job = await self.jobs.submit(
+                    cid=cid,
+                    revision=view.state.revision,
+                    principal=principal,
+                    actor=str(request["actor_id"]),
+                    kind="proposal",
+                    key=f"{aid}:{generation}",
+                    request_json=json.dumps({"context": context, "prompt": prompt}),
+                    run=propose,
+                )
+                proposal = obj(json.loads(await self.jobs.result(job)))
+                intent = obj(proposal["intent"])
+                origin = (
+                    CommandOrigin.model_validate(proposal["origin"]) if proposal["origin"] else None
+                )
                 if "clarification" in intent:
                     clarification = validate("Clarification", intent["clarification"])
                     async with self.ledger.transaction() as tx:
@@ -439,6 +467,7 @@ class V1Service:
                 )
                 # Knowledge-changing actions remain readable to their submitting
                 # principal under the new view, but no other principal inherits them.
+                record["result_revision"] = after.state.revision
                 record["policy"] = after.policy
                 record["receipt_scene_id"] = after.actor_scenes[str(request["actor_id"])]
                 await tx.put("action:" + aid, record)

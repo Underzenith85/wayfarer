@@ -1,6 +1,7 @@
 """Async application orchestration: validate, interpret, commit, then narrate."""
 
 import copy
+import json
 import uuid
 
 import structlog
@@ -8,9 +9,10 @@ import structlog
 from wayfarer import validation
 from wayfarer.character import builder
 from wayfarer.config import Settings
-from wayfarer.errors import ConflictError, ProviderError, ValidationError
+from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Action, Campaign, PublicCampaign
 from wayfarer.orchestration.entropy import CommandRandom, commit_command
+from wayfarer.orchestration.jobs import jobs_for
 from wayfarer.orchestration.llm import ACTION_SCHEMA, NARRATION_SCHEMA, LLMClient
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
@@ -31,6 +33,7 @@ class GameService:
                 settings.database_url.get_secret_value(), settings.db_timeout_seconds
             )
         self.llm = llm
+        self.jobs = jobs_for(self.store)
 
     async def create(self, character: object, scenario: object) -> PublicCampaign:
         verdict = builder.validate(character)
@@ -124,7 +127,8 @@ class GameService:
         )
         if committed["kind"] == "committed" and self.llm.enabled:
             state, event = committed["state"], committed["event"]
-            try:
+
+            async def narrate() -> str:
                 narration = await self.llm.generate(
                     "Narrate only the committed outcome in 2 short atmospheric sentences. Do not add facts or rewards.",
                     {"outcome": event["outcome"], "location": state["location"], "player": text},
@@ -134,8 +138,18 @@ class GameService:
                 if len(value) > 4000:
                     raise ValidationError("Narration is too long")
                 await self.store.save_narration(cid, state["revision"], value)
-            except ProviderError as exc:
-                await log.awarning("narration_failed", campaign_id=cid, error_code=exc.code)
+                return json.dumps({"text": value})
+
+            await self.jobs.submit(
+                cid=cid,
+                revision=state["revision"],
+                principal="player",
+                actor="player",
+                kind="narration",
+                key=str(request_id),
+                request_json=json.dumps(event),
+                run=narrate,
+            )
         return public(await self.store.read(cid))
 
 

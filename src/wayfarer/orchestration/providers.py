@@ -208,11 +208,63 @@ class Orchestrator:
     ) -> None:
         if not 0 < timeout <= 300 or not 1 <= attempts <= 3:
             raise ValueError("Invalid provider bounds")
+        from wayfarer.orchestration.jobs import jobs_for
+
         self.access, self.provider = access, provider
+        self.jobs = jobs_for(access.play.store)
         self.timeout, self.attempts = timeout, attempts
         self.telemetry: list[ProviderTelemetry] = []
         # Usage is telemetry, not a lifetime cutoff for this long-running service.
         self.tokens_used = 0
+
+    async def job_reply(
+        self,
+        request: ProviderRequest,
+        *,
+        cid: str,
+        revision: int,
+        principal: str,
+        actor: str,
+        key: str,
+    ) -> ProviderReply:
+        async def run() -> str:
+            return (await self._reply(request)).model_dump_json()
+
+        job = await self.jobs.submit(
+            cid=cid,
+            revision=revision,
+            principal=principal,
+            actor=actor,
+            kind="proposal",
+            key=key,
+            request_json=request.model_dump_json(),
+            run=run,
+        )
+        return ProviderReply.model_validate_json(await self.jobs.result(job))
+
+    async def queue_narration(
+        self,
+        request: ProviderRequest,
+        *,
+        cid: str,
+        revision: int,
+        principal: str,
+        actor: str,
+        key: str,
+    ) -> None:
+        async def run() -> str:
+            return Narration.model_validate_json(await self._call(request)).model_dump_json()
+
+        await self.jobs.submit(
+            cid=cid,
+            revision=revision,
+            principal=principal,
+            actor=actor,
+            kind="narration",
+            key=key,
+            request_json=request.model_dump_json(),
+            run=run,
+        )
 
     async def _call(self, request: ProviderRequest) -> str:
         return (await self._reply(request)).payload_json
@@ -326,7 +378,14 @@ class Orchestrator:
             output_schema=Intent.model_json_schema(),
         )
         try:
-            reply = await self._reply(request)
+            reply = await self.job_reply(
+                request,
+                cid=cid,
+                revision=revision,
+                principal=principal_id,
+                actor=actor_id,
+                key=command_id,
+            )
             intent = Intent.model_validate_json(reply.payload_json)
             command = intent.command(command_id, actor_id, revision)
         except ValueError:
@@ -370,31 +429,27 @@ class Orchestrator:
                 if committed_event.event["action"] == "party"
                 else json.loads(committed_event.event["outcome"])
             )
-        # Narration gets the committed perspective only. A provider error never rolls it back.
-        try:
-            narration = Narration.model_validate_json(
-                await self._call(
-                    ProviderRequest(
-                        operation="narration",
-                        session_id=session,
-                        context_json=json.dumps(projection),
-                        prompt="Describe only this committed outcome and visible state.",
-                        output_schema=Narration.model_json_schema(),
-                    )
-                )
-            )
-        except ProviderError, ValueError:
-            return TurnResponse(
-                committed=committed,
-                projection=projection,
-                narration="Action processed. The authoritative state is available.",
-                narration_available=False,
+        # Queue only the committed perspective; provider latency cannot hold the projection.
+        if committed_event is not None:
+            await self.queue_narration(
+                ProviderRequest(
+                    operation="narration",
+                    session_id=session,
+                    context_json=json.dumps(projection),
+                    prompt="Describe only this committed outcome and visible state.",
+                    output_schema=Narration.model_json_schema(),
+                ),
+                cid=cid,
+                revision=committed_event.resulting_revision,
+                principal=principal_id,
+                actor=actor_id,
+                key=command_id,
             )
         return TurnResponse(
             committed=committed,
             projection=projection,
-            narration=narration.text,
-            narration_available=True,
+            narration="Action processed. The authoritative state is available.",
+            narration_available=False,
         )
 
     async def draft(
