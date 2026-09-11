@@ -5,10 +5,10 @@ from typing import Literal
 from pydantic import Field
 
 from wayfarer.models import Id, Record
-from wayfarer.orchestration.combat import CombatCommand
+from wayfarer.orchestration.combat import CombatCommand, HexPlacement
 from wayfarer.rules.location_types import Hand, HitLocation
 from wayfarer.simulation.combat import Defense, Facing, GridPoint, Maneuver, Posture
-from wayfarer.simulation.hex_geometry import Hex
+from wayfarer.simulation.hex_geometry import Cell, Hex, Stairway, _omitted_default
 from wayfarer.simulation.maneuvers import AttackOption, DefenseOption
 from wayfarer.simulation.unarmed import GrappleLocation, UnarmedAction, UnarmedSkill
 
@@ -76,3 +76,23 @@ class TakeCombatTurn(CombatCommand):
     braced: bool = Field(default=False, exclude_if=lambda value: not value)
     hex_path: tuple[Hex, ...] = Field(default=(), max_length=100)
     hex_facing: Literal[0, 1, 2, 3, 4, 5] | None = None
+
+
+class HexBattlefield(Record):
+    """New tagged contract. Legacy square maps cannot validate as hex maps."""
+
+    id: Id
+    coordinate_system: Literal["hex-axial-v1"]
+    profile_id: Literal["gurps-basic-set-4e-2004"]
+    baseline_id: Literal["gurps-4e-2004-first-printing+errata-2007-01-26"]
+    cells: tuple[Cell, ...] = Field(min_length=1, max_length=10000)
+    stairs: tuple[Stairway, ...] = Field(
+        default=(), exclude_if=lambda v: not v, json_schema_extra=_omitted_default
+    )
+
+
+class MigrateEncounterHex(CombatCommand):
+    kind: Literal["migrate_encounter_hex"] = "migrate_encounter_hex"
+    encounter_id: Id
+    battlefield: HexBattlefield
+    placements: tuple[HexPlacement, ...] = Field(min_length=2, max_length=100)

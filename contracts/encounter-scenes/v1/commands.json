@@ -24,6 +24,29 @@
         "title": "GridPoint",
         "type": "object"
       },
+      "Hex": {
+        "additionalProperties": false,
+        "properties": {
+          "q": {
+            "maximum": 1000,
+            "minimum": -1000,
+            "title": "Q",
+            "type": "integer"
+          },
+          "r": {
+            "maximum": 1000,
+            "minimum": -1000,
+            "title": "R",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "q",
+          "r"
+        ],
+        "title": "Hex",
+        "type": "object"
+      },
       "Placement": {
         "additionalProperties": false,
         "properties": {
@@ -34,7 +57,35 @@
             "type": "string"
           },
           "position": {
-            "$ref": "#/$defs/GridPoint"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/GridPoint"
+              },
+              {
+                "$ref": "#/$defs/Hex"
+              }
+            ],
+            "title": "Position"
+          },
+          "hex_facing": {
+            "anyOf": [
+              {
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3,
+                  4,
+                  5
+                ],
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Hex Facing"
           },
           "facing": {
             "default": "north",

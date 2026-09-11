@@ -10,7 +10,7 @@ from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id
 from wayfarer.rules.checks import draw_dice, draw_index
 from wayfarer.simulation.actions import PlayState
-from wayfarer.simulation.combat import Combatant, Encounter, GridPoint
+from wayfarer.simulation.combat import Battlefield, Combatant, Encounter, GridPoint
 from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.hex_geometry import Hex
 from wayfarer.simulation.injury import Wound, apply_injury
@@ -120,13 +120,13 @@ def _select_backfire(
                 )
             point = (
                 Hex(q=choice.position[0], r=choice.position[1])
-                if encounter.hex_battlefield
+                if encounter.spatial_kind == "hex"
                 else GridPoint(x=choice.position[0], y=choice.position[1])
             )
             if any(p.position == point for p in encounter.participants):
                 raise ValidationError("Summoned combatant placement is occupied")
-            if encounter.hex_battlefield:
-                if encounter.hex_battlefield.cell(point).blocked:  # type: ignore[arg-type]
+            if encounter.spatial_kind == "hex":
+                if runtime.require_hex(encounter).cell(point).blocked:  # type: ignore[arg-type]
                     raise ValidationError("Summoned combatant placement is blocked")
             else:
                 board = (
@@ -140,7 +140,7 @@ def _select_backfire(
                 )
                 assert isinstance(point, GridPoint)
                 if (
-                    board is None
+                    not isinstance(board, Battlefield)
                     or point.x >= board.width
                     or point.y >= board.height
                     or point in board.blocked
@@ -200,7 +200,7 @@ def _summon(
     assert encounter and choice.position
     point = (
         Hex(q=choice.position[0], r=choice.position[1])
-        if encounter.hex_battlefield
+        if encounter.spatial_kind == "hex"
         else GridPoint(x=choice.position[0], y=choice.position[1])
     )
     actor = next(a for a in state.actors if a.actor_id == target_id)
@@ -211,7 +211,7 @@ def _summon(
         reach=1,
         movement_allowance=compiled.statistics.basic_move,
         position=point,
-        hex_facing=0 if encounter.hex_battlefield else None,
+        hex_facing=0 if encounter.spatial_kind == "hex" else None,
         hand_bindings=tuple(
             (i, h)
             for i, h in actor.held_item_hands

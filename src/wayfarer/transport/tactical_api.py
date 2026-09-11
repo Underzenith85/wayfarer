@@ -33,6 +33,7 @@ from wayfarer.orchestration.tactical_view import (
 from wayfarer.simulation.actions import PlayState
 from wayfarer.transport.campaign_api import ACCESS_KEY, _identity, _json
 from wayfarer.transport.tactical_v1_commands import ChooseDefense as ChooseDefenseV1
+from wayfarer.transport.tactical_v1_commands import MigrateEncounterHex as MigrateEncounterHexV1
 from wayfarer.transport.tactical_v1_commands import TakeCombatTurn as TakeCombatTurnV1
 from wayfarer.transport.tactical_v1_commands import TakeUnarmedTurn as TakeUnarmedTurnV1
 
@@ -42,7 +43,7 @@ class TacticalRequest(Record):
         TakeCombatTurnV1
         | TakeUnarmedTurnV1
         | ChooseDefenseV1
-        | MigrateEncounterHex
+        | MigrateEncounterHexV1
         | ResumeInterruptedTurn
         | ResolveChokeEffects
     ) = Field(discriminator="kind")
@@ -141,9 +142,11 @@ async def execute(request: web.Request) -> web.Response:
         if member.role != "gm":
             raise ValidationError("Migration requires GM authority")
     else:
-        if encounter.hex_battlefield is None or command.actor_id not in encounter.turn_order:
+        if encounter.spatial_kind != "hex" or command.actor_id not in encounter.turn_order:
             raise ValidationError("Tactical encounter is unavailable")
-        visible = visible_actors(state, encounter, command.actor_id)
+        visible = visible_actors(
+            state, encounter, command.actor_id, board=access.play.rules_context.hex_map(encounter)
+        )
         if isinstance(command, (TakeCombatTurn, TakeUnarmedTurn)):
             if command.target_id is not None and command.target_id not in visible:
                 raise ValidationError("Target is unavailable")

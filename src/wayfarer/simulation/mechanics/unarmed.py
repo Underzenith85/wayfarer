@@ -384,13 +384,14 @@ def validate_action(
             if command.action == "kick" or command.enter_close_combat
             else frozenset({0}),
             location=command.location,
+            board=runtime.hex_map(encounter),
         )
-        if command.enter_close_combat and encounter.hex_battlefield is not None:
+        if command.enter_close_combat and encounter.spatial_kind == "hex":
             from wayfarer.simulation.hex_geometry import movement as hex_movement
             from wayfarer.simulation.tactical import occupants, pose
 
             hex_movement(
-                encounter.hex_battlefield,
+                runtime.require_hex(encounter),
                 pose(actor),
                 (pose(target).position,),
                 move=movement(runtime, state, actor.actor_id),
@@ -559,10 +560,10 @@ def interrupt_wait(
             if command.enter_close_combat:
                 raise ValidationError("A stop thrust against close-combat entry is unsupported")
             continue
-        if encounter.hex_battlefield is not None:
+        if encounter.spatial_kind == "hex":
             from wayfarer.simulation.tactical import sight
 
-            if not sight(moved, waiter, entered):
+            if not sight(moved, waiter, entered, board=runtime.hex_map(moved)):
                 continue
         saved = command.model_copy(update={"enter_close_combat": False})
         paused = CombatEngine._replace(
@@ -844,7 +845,7 @@ def unarmed_defense(
     if not can_defend(state.resources, actor_id):
         raise ValidationError("Fright condition prevents active defense")
     height_bonus = 0
-    if encounter.hex_battlefield is not None:
+    if encounter.spatial_kind == "hex":
         from wayfarer.simulation.tactical import defense_adjustment, height_effect
 
         source_id = (
@@ -856,7 +857,12 @@ def unarmed_defense(
             attacker = fighter(encounter, source_id)
             defense_adjustment(encounter, attacker, actor)
             height_bonus = height_effect(
-                encounter, attacker, actor, reach=1, location=location
+                encounter,
+                attacker,
+                actor,
+                reach=1,
+                location=location,
+                board=runtime.hex_map(encounter),
             ).defender_modifier
     if selected == "dodge":
         if item_id is not None:
@@ -1046,11 +1052,16 @@ def defend(
             )
             for v, h in defenses
         ]
-    if encounter.hex_battlefield is not None:
+    if encounter.spatial_kind == "hex":
         from wayfarer.simulation.tactical import height_effect
 
         value += height_effect(
-            encounter, actor, target, reach=1, location=pending.location
+            encounter,
+            actor,
+            target,
+            reach=1,
+            location=pending.location,
+            board=runtime.hex_map(encounter),
         ).attack_modifier
     if target.unarmed_guard_dropped and actor.maneuver_state.evaluate_target_id == target.actor_id:
         value += actor.maneuver_state.evaluate_bonus

@@ -7,7 +7,8 @@ from wayfarer.character.power import PowerReviewer
 from wayfarer.errors import ValidationError
 from wayfarer.rules.checks import RandomSource
 from wayfarer.simulation.actions import ActionRules, PlayState
-from wayfarer.simulation.combat import CombatEngine
+from wayfarer.simulation.combat import CombatEngine, Encounter, hex_template
+from wayfarer.simulation.hex_geometry import HexBattlefield
 from wayfarer.simulation.resources import ResourceEngine
 
 
@@ -18,6 +19,15 @@ class RulesContext:
     reviewer: PowerReviewer
     rules: ActionRules
     combat: CombatEngine | None
+
+    def require_hex(self, encounter: Encounter) -> HexBattlefield:
+        board = self.hex_map(encounter)
+        if board is None:
+            raise ValidationError("Encounter requires a hex template")
+        return board
+
+    def hex_map(self, encounter: Encounter) -> HexBattlefield | None:
+        return hex_template(encounter, self.rules.combat)
 
     def approved_build(self, state: PlayState, actor_id: str) -> ValidatedBuild:
         actor = next((a for a in state.actors if a.actor_id == actor_id), None)

@@ -357,7 +357,7 @@ def defense_height_bonus(
         ),
         None,
     )
-    if encounter is None or encounter.hex_battlefield is None:
+    if encounter is None or encounter.spatial_kind != "hex":
         return 0
     pending = encounter.pending_defense
     assert pending is not None
@@ -367,7 +367,7 @@ def defense_height_bonus(
     if not isinstance(incoming, MeleeMode):
         return 0
     attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
-    board = encounter.hex_battlefield
+    board = runtime.require_hex(encounter)
     return defense_height(
         board.cell(pose(participant).position).ground,
         board.cell(pose(attacker).position).ground,
@@ -695,7 +695,12 @@ def prepare_attack(
         )
     target_position = next(p for p in geometry.participants if p.actor_id == defender.actor_id)
     attack_geometry(
-        geometry, attacker, target_position, frozenset(selected.reach), location=hit_location
+        geometry,
+        attacker,
+        target_position,
+        frozenset(selected.reach),
+        location=hit_location,
+        board=runtime.hex_map(geometry),
     )
     if CombatEngine.distance(attacker.position, target_position.position) not in selected.reach:
         raise ValidationError("Target is outside selected weapon reach")
@@ -899,7 +904,12 @@ def resolve_melee(
     from wayfarer.simulation.tactical import height_effect
 
     height = height_effect(
-        encounter, attacker, defender, reach=max(weapon.reach), location=pending.hit_location
+        encounter,
+        attacker,
+        defender,
+        reach=max(weapon.reach),
+        location=pending.hit_location,
+        board=runtime.hex_map(encounter),
     )
     attack_target += height.attack_modifier
     if pending.hit_location:
@@ -949,7 +959,14 @@ def resolve_melee(
     near_miss = torso_near_miss(pending.hit_location, attack)
     if near_miss:
         try:
-            height_effect(encounter, attacker, defender, reach=max(weapon.reach), location="torso")
+            height_effect(
+                encounter,
+                attacker,
+                defender,
+                reach=max(weapon.reach),
+                location="torso",
+                board=runtime.hex_map(encounter),
+            )
         except ValidationError:
             near_miss = False
     hit = attack.outcome.succeeded or near_miss

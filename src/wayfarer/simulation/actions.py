@@ -246,6 +246,10 @@ class PlayState(PlayCheckpoint):
         if info.mode == "json":
             # Keep JSON's tuple/dataclass decoding semantics when the wrapper
             # removes legacy projection keys before canonical validation.
+            # Legacy square checkpoints carried a null embedded-map slot.
+            for encounter in validation.sequence(fields.get("encounters", [])):
+                if isinstance(encounter, dict) and encounter.get("hex_battlefield") is None:
+                    encounter.pop("hex_battlefield", None)
             checkpoint = PlayCheckpoint.model_validate_json(json.dumps(fields))
             fields = {name: getattr(checkpoint, name) for name in PlayCheckpoint.model_fields}
         result = handler(fields)

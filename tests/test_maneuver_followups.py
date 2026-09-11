@@ -157,6 +157,7 @@ async def test_stop_thrust_interrupts_charge_and_adds_one_per_two_yards(tmp_path
         }
     )
     await CombatService(play).execute(cid, moved_migration, authenticated_actor_id="gm")
+    play = play.for_campaign(await play.store.read(cid))
     await turn(
         cid,
         play,

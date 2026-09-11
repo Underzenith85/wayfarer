@@ -7,7 +7,7 @@ from wayfarer.errors import ValidationError
 from wayfarer.models import Record
 from wayfarer.rules.object_types import GroundPosition
 from wayfarer.simulation.actions import PlayState
-from wayfarer.simulation.combat import CombatEngine, Encounter
+from wayfarer.simulation.combat import Battlefield, CombatEngine, Encounter
 from wayfarer.simulation.resources import Item, ResourceEvent, ResourceState
 
 if TYPE_CHECKING:
@@ -50,6 +50,7 @@ def save(resources: ResourceState, value: ThrownRecord, cause_id: str) -> Resour
 
 
 def landed(
+    runtime: RulesContext,
     state: PlayState,
     encounter: Encounter,
     item: Item,
@@ -67,7 +68,8 @@ def landed(
     observers = tuple(
         p.actor_id
         for p in encounter.participants
-        if pending.attacker_id in visible_actors(state, encounter, p.actor_id)
+        if pending.attacker_id
+        in visible_actors(state, encounter, p.actor_id, board=runtime.hex_map(encounter))
     )
     target_item = next((i for i in state.resources.items if i.id == pending.target_item_id), None)
     landing = (
@@ -144,17 +146,19 @@ def declare_landing(
         raise ValidationError("No unresolved thrown landing is available")
     if landing.encounter_id != encounter.id:
         raise ValidationError("Landing must belong to the original encounter")
-    if encounter.hex_battlefield:
+    if encounter.spatial_kind == "hex":
         from wayfarer.simulation.hex_geometry import Hex
 
         if landing.geometry != "hex" or Hex(q=landing.x, r=landing.y) not in {
-            c.position for c in encounter.hex_battlefield.cells
+            c.position for c in runtime.require_hex(encounter).cells
         }:
             raise ValidationError("Landing must be a declared battlefield hex")
     else:
         rules = runtime.rules.combat
         assert rules is not None
         field = next(f for f in rules.battlefields if f.id == encounter.battlefield_id)
+        if not isinstance(field, Battlefield):
+            raise ValidationError("Square encounter requires a square template")
         if landing.geometry != "grid" or not (
             0 <= landing.x < field.width and 0 <= landing.y < field.height
         ):

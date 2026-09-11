@@ -259,21 +259,21 @@ in one place.
   `World`, and every `Scene` binds to a `location_id`. Where each actor stands
   is state (`Entity.location_id`, `ActorScene`), rewritten by move and travel
   commands.
-- **Battlefield templates.** Square `Battlefield` templates are authored in
-  `CombatRules.battlefields`, each tied to a location, and are inside the
-  pinned digest. `StartEncounter` names a template and supplies placements;
-  the encounter holds the template id and each combatant's position and
-  facing. `validate_contexts` requires participants to share one scene whose
-  location matches the template's location, which is where the two maps meet.
-- **Hex maps are the exception to fix.** `HexBattlefield` is embedded whole in
-  `Encounter.hex_battlefield`, so a square map is pinned configuration while a
-  hex map is per-encounter state in the snapshot. That is the duplicate owner
-  #323 names. The target is one tagged union of square and hex templates under
-  `CombatRules.battlefields`, an encounter that holds a template reference and
-  a spatial-context instance, and an explicit `MigrationEntry` for legacy
-  snapshots that embed a map. Mapless combat (#324) is a scene with no
-  template, whose spatial facts arrive as `RangedSituation` and GM declaration
-  commands. Which map a client draws is a projection, never a mechanic.
+- **Battlefield templates.** `CombatRules.battlefields` owns a tagged union of
+  square `Battlefield` and `HexBattlefield` templates. Both name an authored
+  location and contribute to `configuration_digest`. `StartEncounter` names a
+  template and supplies positions and facings; an `Encounter` retains only
+  `battlefield_id`, its spatial kind and changing combat state. Geometry helpers
+  receive the selected template explicitly from the rules context.
+- **Migration and projections.** `MigrateEncounterHex` installs a derived template
+  and records a `MigrationEntry` before switching an encounter's placements.
+  `migrate_embedded_maps` lifts retained embedded maps in an atomic, replayable
+  command, preserving geometry and adding no map where none existed. Scenario
+  graphs retain the templates; pre-scenario typed campaigns retain a
+  `combat_rules_json` fragment until their scenario migration. Unknown references
+  fail closed. `validate_contexts` checks the scene-to-template location for both
+  coordinate systems. Mapless combat (#324) continues to use declared spatial
+  facts. Which map a client draws is a projection, never a mechanic.
 
 ## Consequences
 

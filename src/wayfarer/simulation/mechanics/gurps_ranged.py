@@ -62,6 +62,7 @@ def declare(
 
 
 def situation(
+    runtime: RulesContext,
     encounter: Encounter,
     attacker: str,
     defender: str,
@@ -79,15 +80,15 @@ def situation(
     )
     if value is None:
         raise ValidationError("Ranged attack requires declared scene distance, speed and size")
-    if encounter.hex_battlefield is not None:
+    if encounter.spatial_kind == "hex":
         from wayfarer.simulation.hex_geometry import ranged_distance
         from wayfarer.simulation.tactical import attack_geometry, pose
 
         actor = next(p for p in encounter.participants if p.actor_id == attacker)
         target = next(p for p in encounter.participants if p.actor_id == defender)
-        attack_geometry(encounter, actor, target)
+        attack_geometry(encounter, actor, target, board=runtime.hex_map(encounter))
         distance = ranged_distance(
-            encounter.hex_battlefield,
+            runtime.require_hex(encounter),
             pose(actor).position,
             pose(target).position,
             beam=bool(weapon and weapon.damage.tight_beam),
@@ -100,7 +101,7 @@ def situation(
             update={
                 "speed_yards_per_second": 0.0,
                 "distance_yards": value.distance_yards
-                if encounter.hex_battlefield is not None
+                if encounter.spatial_kind == "hex"
                 else float(CombatEngine.distance(actor.position, target.position)),
             }
         )
@@ -147,7 +148,7 @@ def validate_command(
         if not isinstance(selected, MeleeMode) or selected.damage.basis != "thrust":
             raise ValidationError("Stop thrust requires a ready thrusting melee mode")
     if (
-        encounter.hex_battlefield is None
+        encounter.spatial_kind != "hex"
         and encounter.ranged_situations
         and (command.destination is not None or command.maneuver == "move")
     ):
@@ -378,6 +379,7 @@ def prepare(
 
         geometry = target_geometry(runtime, state, encounter, target_item_id)
     scene = situation(
+        runtime,
         geometry,
         actor.actor_id,
         target.actor_id,
@@ -529,7 +531,7 @@ def expend(
             from wayfarer.simulation.mechanics.thrown_items import landed
 
             resources, encounter = landed(
-                state, encounter, item, hit=hit, catcher_id=catcher_id, hand=hand
+                runtime, state, encounter, item, hit=hit, catcher_id=catcher_id, hand=hand
             )
         else:
             resources = resources.model_copy(
@@ -601,6 +603,7 @@ def resolve(
 
         geometry = target_geometry(runtime, state, encounter, pending.target_item_id)
     scene = situation(
+        runtime,
         geometry,
         actor.actor_id,
         target.actor_id,

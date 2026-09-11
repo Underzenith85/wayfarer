@@ -235,6 +235,7 @@ async def test_elevated_melee_uses_height_and_preserves_pending_defense(tmp_path
     await CombatService(play).execute(
         cid, command.model_copy(update={"battlefield": board_}), authenticated_actor_id="gm"
     )
+    play = play.for_campaign(await play.store.read(cid))
     state = play._load(await play.store.read(cid))
     await CombatService(play).execute(
         cid,
@@ -342,6 +343,7 @@ async def test_unreachable_elevated_target_rejects_without_dice_or_revision(tmp_
     await CombatService(play).execute(
         cid, command.model_copy(update={"battlefield": board_}), authenticated_actor_id="gm"
     )
+    play = play.for_campaign(await play.store.read(cid))
     play.rng = RecordedDice([])
     original = play._load(await play.store.read(cid))
     with pytest.raises(ValidationError, match="Height requires"):

@@ -37,13 +37,11 @@ class ActorActivity:
     def spatial_kind(self) -> Literal["square", "hex"] | None:
         if self.encounter is None:
             return None
-        return "hex" if self.encounter.hex_battlefield is not None else "square"
+        return "hex" if self.encounter.spatial_kind == "hex" else "square"
 
     def battlefield(self, rules: CombatRules) -> Battlefield | HexBattlefield | None:
         if self.encounter is None:
             return None
-        if self.encounter.hex_battlefield is not None:
-            return self.encounter.hex_battlefield
         return next(b for b in rules.battlefields if b.id == self.encounter.battlefield_id)
 
 

@@ -1293,6 +1293,12 @@
       "Battlefield": {
         "additionalProperties": false,
         "properties": {
+          "coordinate_system": {
+            "const": "square-grid-v1",
+            "default": "square-grid-v1",
+            "title": "Coordinate System",
+            "type": "string"
+          },
           "id": {
             "maxLength": 200,
             "minLength": 1,
@@ -1394,6 +1400,55 @@
           "policy_version"
         ],
         "title": "CampaignRules",
+        "type": "object"
+      },
+      "Cell": {
+        "additionalProperties": false,
+        "properties": {
+          "position": {
+            "$ref": "#/$defs/Hex"
+          },
+          "elevation": {
+            "default": 0,
+            "description": "Yards above map datum",
+            "maximum": 1000,
+            "minimum": -1000,
+            "title": "Elevation",
+            "type": "integer"
+          },
+          "blocked": {
+            "default": false,
+            "title": "Blocked",
+            "type": "boolean"
+          },
+          "extra_cost": {
+            "default": 0,
+            "description": "Authored terrain MP surcharge",
+            "maximum": 100,
+            "minimum": 0,
+            "title": "Extra Cost",
+            "type": "integer"
+          },
+          "opaque_height": {
+            "default": 0,
+            "description": "Yards above ground",
+            "maximum": 1000,
+            "minimum": 0,
+            "title": "Opaque Height",
+            "type": "integer"
+          },
+          "elevation_inches": {
+            "description": "Additional inches above elevation datum",
+            "exclusiveMaximum": 36,
+            "minimum": 0,
+            "title": "Elevation Inches",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "position"
+        ],
+        "title": "Cell",
         "type": "object"
       },
       "CharacterDraft": {
@@ -1643,7 +1698,21 @@
           },
           "battlefields": {
             "items": {
-              "$ref": "#/$defs/Battlefield"
+              "discriminator": {
+                "mapping": {
+                  "hex-axial-v1": "#/$defs/HexBattlefield",
+                  "square-grid-v1": "#/$defs/Battlefield"
+                },
+                "propertyName": "coordinate_system"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/Battlefield"
+                },
+                {
+                  "$ref": "#/$defs/HexBattlefield"
+                }
+              ]
             },
             "maxItems": 100,
             "minItems": 1,
@@ -3049,6 +3118,109 @@
           "reference"
         ],
         "title": "HazardSpec",
+        "type": "object"
+      },
+      "Hex": {
+        "additionalProperties": false,
+        "properties": {
+          "q": {
+            "maximum": 1000,
+            "minimum": -1000,
+            "title": "Q",
+            "type": "integer"
+          },
+          "r": {
+            "maximum": 1000,
+            "minimum": -1000,
+            "title": "R",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "q",
+          "r"
+        ],
+        "title": "Hex",
+        "type": "object"
+      },
+      "HexBattlefield": {
+        "additionalProperties": false,
+        "description": "New tagged contract. Legacy square maps cannot validate as hex maps.",
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "location_id": {
+            "default": "unbound",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Location Id",
+            "type": "string"
+          },
+          "source_template_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Source Template Id"
+          },
+          "darkness_penalty": {
+            "default": 0,
+            "maximum": 0,
+            "minimum": -10,
+            "title": "Darkness Penalty",
+            "type": "integer"
+          },
+          "coordinate_system": {
+            "const": "hex-axial-v1",
+            "title": "Coordinate System",
+            "type": "string"
+          },
+          "profile_id": {
+            "const": "gurps-basic-set-4e-2004",
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "baseline_id": {
+            "const": "gurps-4e-2004-first-printing+errata-2007-01-26",
+            "title": "Baseline Id",
+            "type": "string"
+          },
+          "cells": {
+            "items": {
+              "$ref": "#/$defs/Cell"
+            },
+            "maxItems": 10000,
+            "minItems": 1,
+            "title": "Cells",
+            "type": "array"
+          },
+          "stairs": {
+            "items": {
+              "$ref": "#/$defs/Stairway"
+            },
+            "title": "Stairs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "coordinate_system",
+          "profile_id",
+          "baseline_id",
+          "cells"
+        ],
+        "title": "HexBattlefield",
         "type": "object"
       },
       "HumanBody": {
@@ -7490,6 +7662,24 @@
           "rounds_per_second"
         ],
         "title": "SprayerSpec",
+        "type": "object"
+      },
+      "Stairway": {
+        "additionalProperties": false,
+        "description": "Authored traversable edge, not permission to climb or jump a cliff.",
+        "properties": {
+          "start": {
+            "$ref": "#/$defs/Hex"
+          },
+          "end": {
+            "$ref": "#/$defs/Hex"
+          }
+        },
+        "required": [
+          "start",
+          "end"
+        ],
+        "title": "Stairway",
         "type": "object"
       },
       "SurpriseState": {

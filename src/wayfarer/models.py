@@ -62,6 +62,7 @@ class Campaign(TypedDict):
     scenario_document_json: NotRequired[str]
     scenario_reference_json: NotRequired[str]
     scenario_graph_json: NotRequired[str]
+    combat_rules_json: NotRequired[str]
     character: Character
     scenario: dict[str, str]
     hp: int
