@@ -13,6 +13,7 @@ from wayfarer.source_audit import report as source_audit_report
 ROOT = Path(__file__).resolve().parents[1]
 # All cases in each required module must pass, including every parametrized backend/route.
 MECHANICS: dict[str, tuple[str, ...]] = {
+    "Retained event and command schema versions": ("test_upcasters",),
     "Pinned sources and rules": ("test_rules",),
     "GURPS profile checks, contests and resistance": (
         "test_gurps_conformance",
@@ -77,6 +78,25 @@ def evaluate(report: Path) -> tuple[list[dict[str, object]], list[str]]:
                 "status": "missing" if missing else "reported",
             }
         )
+    from wayfarer.errors import StorageError
+    from wayfarer.persistence.events import COMMAND_UPCASTERS
+    from wayfarer.persistence.upcasters import EVENT_UPCASTERS
+
+    retained = json.loads((ROOT / "tests/fixtures/retained_schemas.json").read_text())
+    for group, registry in [("events", EVENT_UPCASTERS), ("commands", COMMAND_UPCASTERS)]:
+        for schema in retained[group]:
+            try:
+                registry.check(schema["kind"], schema["version"])
+            except StorageError as exc:
+                errors.append(str(exc))
+        rows.append(
+            {
+                "retained_schemas": group,
+                "versions": retained[group],
+                "mechanic": f"Retained {group}",
+                "cases": len(retained[group]),
+            }
+        )
     return rows, errors
 
 
@@ -87,6 +107,11 @@ def main() -> None:
     scope = parser.add_mutually_exclusive_group()
     scope.add_argument("--product", action="store_true")
     scope.add_argument("--gurps-lite", action="store_true")
+    parser.add_argument(
+        "--schema-usage",
+        type=Path,
+        help="JSON inventory from store.schema_usage() for retirement validation",
+    )
     parser.add_argument("--gurps-source-audit", action="store_true")
     parser.add_argument("--gurps-basic-set", action="store_true")
     args = parser.parse_args()
@@ -102,6 +127,16 @@ def main() -> None:
         print("Required Lite certification evidence passed; report published.")
         return
     rows, errors = evaluate(args.report)
+    if args.schema_usage:
+        from wayfarer import validation
+        from wayfarer.errors import StorageError
+        from wayfarer.persistence.upcasters import EVENT_UPCASTERS, check_retention
+
+        usage = [validation.mapping(row) for row in json.loads(args.schema_usage.read_text())]
+        try:
+            check_retention(EVENT_UPCASTERS, usage)
+        except StorageError as exc:
+            errors.append(str(exc))
     approved = json.loads((ROOT / "tests/fixtures/approved_rules.json").read_text())
     current = {
         "package": json.loads(PROTOTYPE_PACKAGE.canonical_json()),
