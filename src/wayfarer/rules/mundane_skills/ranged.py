@@ -164,21 +164,10 @@ def defaults_gap(family: str | None) -> UnsupportedScope:
     )
 
 
-# B205 streams: what #359 binds, and what it leaves to #398.
-STREAM_RESIDUALS: Final = (
-    UnsupportedScope(
-        "lingering-fire",
-        "A stream that sets a target alight keeps burning after the stream ends;"
-        " scheduling that hazard needs authoritative scenario context.",
-        398,
-    ),
-    UnsupportedScope(
-        "simultaneous-area-coverage",
-        "One second of stream covering several combatants needs an attack that"
-        " resolves against more than one defender; a stream is walked instead.",
-        398,
-    ),
-)
+# B205 liquid projectors are held streams laid on one target per second. They are
+# not area attacks: walking the stream changes its one target on a later second.
+# Lingering ignition is scheduled by the encounter resolver (#398), so this
+# family has no remaining stream-specific published scope.
 
 
 @dataclass(frozen=True, slots=True)
@@ -718,7 +707,6 @@ _ROWS: Final = (
             for key in ("flamethrower", "sprayer", "squirt-gun", "water-cannon")
         ),
         resolved=(RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL),
-        unsupported=STREAM_RESIDUALS,
     ),
     RangedProcedure(
         "skill:liquid-projector-flamethrower",
@@ -731,7 +719,6 @@ _ROWS: Final = (
         Specialty("liquid-projector", "flamethrower"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
         transferred={CONDITIONAL_DEFAULTS: (362,)},
-        unsupported=STREAM_RESIDUALS,
     ),
     RangedProcedure(
         "skill:liquid-projector-sprayer",
@@ -744,7 +731,6 @@ _ROWS: Final = (
         Specialty("liquid-projector", "sprayer"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
         transferred={CONDITIONAL_DEFAULTS: (362,)},
-        unsupported=STREAM_RESIDUALS,
     ),
     RangedProcedure(
         "skill:liquid-projector-squirt-gun",
@@ -757,7 +743,6 @@ _ROWS: Final = (
         Specialty("liquid-projector", "squirt-gun"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
         transferred={CONDITIONAL_DEFAULTS: (362,)},
-        unsupported=STREAM_RESIDUALS,
     ),
     RangedProcedure(
         "skill:liquid-projector-water-cannon",
@@ -770,7 +755,6 @@ _ROWS: Final = (
         Specialty("liquid-projector", "water-cannon"),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
         transferred={CONDITIONAL_DEFAULTS: (362,)},
-        unsupported=STREAM_RESIDUALS,
     ),
     # B201: the attack comes from the creature, so each specialty is a delivery
     # rather than a weapon class (#361).

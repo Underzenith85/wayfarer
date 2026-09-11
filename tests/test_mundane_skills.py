@@ -385,10 +385,6 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         "skill:performance",
         "skill:public-speaking",
         "skill:teaching",
-        # #359 binds the liquid projector rows and publishes the two named parts
-        # of the entry it leaves to #398.
-        "skill:liquid-projector",
-        "skill:liquid-projector-flamethrower",
         # #362 publishes every ranged row whose recorded default is incomplete.
         "skill:thrown-weapon-knife",
         "skill:net",

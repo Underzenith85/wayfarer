@@ -15,7 +15,9 @@ from test_gurps_melee import setup
 
 from wayfarer.character.compiler import Purchase
 from wayfarer.errors import ValidationError
+from wayfarer.orchestration.combat import CombatService
 from wayfarer.orchestration.play import PlayService
+from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.rules.mundane_skills import audit_report, inventory
 from wayfarer.rules.mundane_skills.ranged import PROCEDURES, definitions, ranged_scope, require_mode
@@ -30,7 +32,8 @@ SPECIALTIES = tuple(
     for key in ("flamethrower", "sprayer", "squirt-gun", "water-cannon")
 )
 # A projector that runs for three seconds and burns two rounds a second.
-SPEC = SprayerSpec(sustained_seconds=3, rounds_per_second=2, ignites=True)
+SPEC = SprayerSpec(sustained_seconds=3, rounds_per_second=2)
+FIRE_SPEC = SPEC.model_copy(update={"ignites": True})
 
 
 def projector(skill_id: str, spec: SprayerSpec = SPEC, **changes: object) -> RangedMode:
@@ -64,7 +67,11 @@ def actor(state: PlayState, who: str = "a") -> Combatant:
 
 
 async def loaded(
-    tmp_path: Path, skill_id: str, spec: SprayerSpec = SPEC
+    tmp_path: Path,
+    skill_id: str,
+    spec: SprayerSpec = SPEC,
+    *,
+    scene_bound: bool | None = None,
 ) -> tuple[str, PlayService]:
     cid, play = await setup(
         tmp_path,
@@ -74,6 +81,7 @@ async def loaded(
         extra_definitions=definitions(),
         extra_purchases=(Purchase(definition_id=skill_id, amount=4),),
         campaign_technology_level=2,
+        scene_bound=spec.ignites if scene_bound is None else scene_bound,
     )
     for _ in range(3):
         await turn(
@@ -91,11 +99,11 @@ async def loaded(
 
 async def pour(cid: str, play: PlayService, target: str = "b") -> None:
     await turn(cid, play, "a", "attack", item_id="sword-a", target_id=target, mode_id="stream")
-    play.rng = RecordedDice([3, 3, 4, 2])
+    play.rng = RecordedDice([3, 3, 4, 4])
     await defend(cid, play, target)
 
 
-def test_the_family_expands_and_publishes_what_it_does_not_carry() -> None:
+def test_the_family_expands_without_stream_residuals() -> None:
     entries = {e.id: e for e in inventory()}
     family = PROCEDURES["skill:liquid-projector"]
     assert family.implemented and not family.dispatchable
@@ -108,18 +116,76 @@ def test_the_family_expands_and_publishes_what_it_does_not_carry() -> None:
         assert [(d.target, d.modifier) for d in entry.definition.skill.defaults] == [
             ("attribute:dx", -4)
         ]
-    # A bound row can still leave named scope to another issue; it is published,
-    # not folded back into a blocker.
     report = audit_report()["transferred_procedure_scope"]
     assert isinstance(report, list)
-    published = {
-        (row["skill"], row["id"], row["owner_issue"])
-        for row in report
-        if str(row["skill"]).startswith("skill:liquid-projector")
+    assert not {
+        row["id"] for row in report if str(row["skill"]).startswith("skill:liquid-projector")
+    } & {"lingering-fire", "simultaneous-area-coverage"}
+    assert all(scope.owner_issue == 362 for _, scope in ranged_scope())
+
+
+async def test_qualifying_hit_schedules_scene_bound_lingering_fire(tmp_path: Path) -> None:
+    cid, play = await loaded(tmp_path, "skill:liquid-projector-flamethrower", FIRE_SPEC)
+    await turn(cid, play, "a", "attack", item_id="sword-a", target_id="b", mode_id="stream")
+    before = play._load(await play.store.read(cid))
+    command = {
+        "kind": "choose_defense",
+        "id": f"defend-{before.revision}",
+        "expected_revision": before.revision,
+        "actor_id": "b",
+        "encounter_id": "fight",
+        "defense": "none",
     }
-    assert ("skill:liquid-projector", "lingering-fire", 398) in published
-    assert ("skill:liquid-projector", "simultaneous-area-coverage", 398) in published
-    assert all(scope.owner_issue in (362, 398) for _, scope in ranged_scope())
+    assert isinstance(play.store, AsyncSQLiteStore)
+    restarted = PlayService(
+        AsyncSQLiteStore(play.store.path), play.engine, rng=RecordedDice([3, 3, 4, 4])
+    )
+    result = await CombatService(restarted).execute(cid, command, authenticated_actor_id="b")
+    state = restarted._load(await restarted.store.read(cid))
+    hazard = state.resources.hazards[0]
+    assert hazard.actor_id == "b" and hazard.active
+    assert hazard.spec.kind == "fire" and hazard.spec.scene_id == "dock-scene"
+    assert (hazard.due, hazard.spec.interval, hazard.spec.damage_dice, hazard.spec.damage_add) == (
+        hazard.started + 1,
+        1,
+        1,
+        -4,
+    )
+    assert hazard.spec.reference == "Basic Set B433/B400"
+    assert any(r.command_id == hazard.id + ":enter" for r in state.resources.receipts)
+    restarted.rng = RecordedDice([])
+    assert (
+        await CombatService(restarted).execute(cid, command, authenticated_actor_id="b") == result
+    )
+    assert await restarted.store.read(cid) == await restarted.store.replay(cid)
+
+
+async def test_igniting_stream_requires_authoritative_scene_before_dice(tmp_path: Path) -> None:
+    cid, play = await loaded(
+        tmp_path,
+        "skill:liquid-projector-flamethrower",
+        FIRE_SPEC,
+        scene_bound=False,
+    )
+    with pytest.raises(ValidationError, match="authoritative encounter scene"):
+        await turn(
+            cid,
+            play,
+            "a",
+            "attack",
+            item_id="sword-a",
+            target_id="b",
+            mode_id="stream",
+        )
+
+
+async def test_missed_igniting_stream_does_not_schedule_fire(tmp_path: Path) -> None:
+    cid, play = await loaded(tmp_path, "skill:liquid-projector-flamethrower", FIRE_SPEC)
+    await turn(cid, play, "a", "attack", item_id="sword-a", target_id="b", mode_id="stream")
+    play.rng = RecordedDice([4, 5, 6])
+    await defend(cid, play, "b")
+    state = play._load(await play.store.read(cid))
+    assert not state.resources.hazards
 
 
 @pytest.mark.parametrize("identifier", SPECIALTIES)
@@ -130,7 +196,7 @@ async def test_every_specialty_opens_a_stream(tmp_path: Path, identifier: str) -
     stream = actor(state).stream
     assert stream is not None
     assert (stream.mode_id, stream.target_id, stream.seconds) == ("stream", "b", 1)
-    assert stream.sustained_seconds == 3 and stream.ignites
+    assert stream.sustained_seconds == 3 and not stream.ignites
     # One second of stream costs its pinned rounds, not one shot.
     assert next(i.quantity for i in state.resources.items if i.id == "ammo-a") == 8
     assert await play.store.read(cid) == await play.store.replay(cid)
