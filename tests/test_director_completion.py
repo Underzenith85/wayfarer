@@ -226,12 +226,14 @@ async def test_rejected_scheduled_action_is_not_narrated_as_success(tmp_path: Pa
         text="wait",
         proposal={"kind": "wait", "ticks": 1},
     )
+    await director.llm.jobs.drain()
     calls = len(provider.requests)
     result = await director.run(
         cid, principal_id="alice", actor_id="a", command_id="shortcut", text="shortcut"
     )
     assert not result.committed and not result.narration_available
     assert result.narration == "activity.no_longer_feasible"
+    await director.llm.jobs.drain()
     assert len(provider.requests) == calls
     state = play._load(await play.store.read(cid))
     assert next(t for t in state.director if t.id == "shortcut").phase == "clarification"
