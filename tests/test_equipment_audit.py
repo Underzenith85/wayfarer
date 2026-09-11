@@ -35,18 +35,20 @@ LITE = "gurps-lite-4e-2004"
 def test_selected_row_provenance_anchors() -> None:
     """Every audited row carries the same third-printing provenance and a page in scope."""
     entries = catalog_entries()
-    assert len(entries) == len(BASIC_EQUIPMENT.entries) + len(ULTRATECH_INDEX) == 66
+    assert len(entries) == len(BASIC_EQUIPMENT.entries) + len(ULTRATECH_INDEX) == 89
     for entry in entries.values():
         provenance = entry.provenance
         assert provenance.source_id == "sjg:gurps-basic-set-4e-2004"
         assert provenance.edition == "Fourth Edition, third printing (2008)"
         assert provenance.errata.startswith("Third-printing text")
-        assert set(provenance.pages) <= {271, 272, 273, 274, 280, 283, 288}
+        assert set(provenance.pages) <= {271, 272, 273, 274, 275, 276, 280, 283, 288}
     pages = {entry.definition_id: entry.provenance.pages for entry in entries.values()}
     assert pages["equipment:broadsword"] == (271,)
     assert pages["equipment:leather-armor"] == (283,)
     assert pages["equipment:laptop"] == (288,)
     assert pages["equipment:laser-pistol"] == (280,)
+    assert pages["equipment:longbow"] == (275,)
+    assert pages["equipment:bolt"] == (276,)
 
 
 def test_tight_beam_burning_reaches_eyes_and_vitals() -> None:
@@ -96,12 +98,11 @@ def test_field_provenance_tracks_the_whole_equipment_schema() -> None:
         "thousandths of a pound"
     )
     assert records["EquipmentProfile.price"].unit == "dollars"
-    # No audited row is a shield or a ranged weapon, so those fields stay uncovered or
-    # are only exercised by synthetic combat fixtures. Melee parry and hand-count rows
-    # now have direct table cases.
+    # No audited row is a shield. Melee parry/hand-count and ranged bulk now
+    # have direct selected-table cases.
     assert records["Shield.skill_id"].gap is not None
     assert records["EquipmentProfile.shield"].gap is not None
-    assert records["RangedMode.bulk"].gap is not None
+    assert records["RangedMode.bulk"].gap is None
     assert records["Parry.modifier"].gap is None
     assert records["MeleeMode.hands"].gap is None
 
@@ -153,8 +154,8 @@ def test_audited_catalogs_do_not_bind_to_pinned_packages() -> None:
 def test_audit_report_names_blockers_without_claiming_completeness() -> None:
     report = audit_report(ROOT)
     assert report["audit_complete"] is False
-    assert report["selected_rows"] == 66
-    assert report["supported_rows"] == 33
+    assert report["selected_rows"] == 89
+    assert report["supported_rows"] == 46
     assert report["sections_audited"] == 0
     assert isinstance(report["blockers"], list) and report["blockers"]
     assert report["footnotes_without_evidence"] == []
