@@ -84,6 +84,7 @@ class AsyncSQLiteStore:
             "rng_algorithm",
             "recorded_at_us",
             "origin_json",
+            "command_input",
         )
         if not set(metadata) <= columns:
             # Recheck under the writer lock; normal reads need no migration lock.
@@ -222,8 +223,8 @@ class AsyncSQLiteStore:
                 """INSERT INTO command_log (
                     campaign, command_id, actor_id, expected_revision,
                     resulting_revision, payload_hash, rules_version,
-                    schema_version, event, state_after, entropy_seed, engine_version, rng_algorithm, recorded_at_us, origin_json
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    schema_version, event, state_after, entropy_seed, engine_version, rng_algorithm, recorded_at_us, origin_json, command_input
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     cid,
                     request_id,
@@ -240,6 +241,7 @@ class AsyncSQLiteStore:
                     entropy.rng_algorithm if entropy else None,
                     recorded_at_us,
                     origin.model_dump_json() if origin else None,
+                    text,
                 ),
             )
             if state["revision"] % SNAPSHOT_INTERVAL == 0:
@@ -263,7 +265,7 @@ class AsyncSQLiteStore:
         try:
             cursor = await db.execute(
                 """SELECT command_id, actor_id, expected_revision, resulting_revision,
-                          payload_hash, rules_version, schema_version, event, state_after, entropy_seed, engine_version, rng_algorithm, recorded_at_us, origin_json
+                          payload_hash, rules_version, schema_version, event, state_after, entropy_seed, engine_version, rng_algorithm, recorded_at_us, origin_json, command_input
                    FROM command_log WHERE campaign=? ORDER BY resulting_revision""",
                 (cid,),
             )
@@ -285,6 +287,7 @@ class AsyncSQLiteStore:
                     engine_version=row[10],
                     rng_algorithm=row[11],
                     recorded_at_us=row[12],
+                    command_input=row[14],
                     origin=CommandOrigin.model_validate_json(row[13])
                     if row[13] is not None
                     else None,

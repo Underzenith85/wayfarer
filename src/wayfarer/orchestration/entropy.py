@@ -9,8 +9,14 @@ from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, Event, TurnResult
 from wayfarer.orchestration.clock import CommandInstant, capture_instant
 from wayfarer.orchestration.origins import current_origin
+from wayfarer.orchestration.replay_inputs import recorded_command
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.persistence.events import CommandEntropy, CommandOrigin, CommandResolution
+from wayfarer.persistence.events import (
+    CommandEntropy,
+    CommandOrigin,
+    CommandResolution,
+    payload_digest,
+)
 from wayfarer.persistence.postgres import AsyncPostgresStore
 from wayfarer.rules.checks import RandomSource, draw_index
 from wayfarer.rules.randomness import RNG_ALGORITHM, SeededRandom
@@ -59,12 +65,33 @@ async def commit_command(
     """
     if not actor_id:
         raise ValidationError("Command requires a principal")
-    instant = instant if instant is not None else capture_instant()
+    replay = recorded_command.get()
     handle = CommandRandom(rng)
-    entropy = CommandEntropy(
-        seed=secrets.token_hex(32),
-        rng_algorithm="injected" if handle.injected is not None else RNG_ALGORITHM,
-    )
+    if replay is not None:
+        if not replay.reexecutable or replay.recorded_at_us is None or handle.injected is not None:
+            raise ValidationError("Command lacks compatible replay inputs")
+        if (cid, request_id, revision, actor_id, payload_digest({"input": text})) != (
+            replay.campaign_id,
+            replay.command_id,
+            replay.expected_revision,
+            replay.actor_id,
+            replay.payload_hash,
+        ):
+            raise ValidationError("Replay command identity or payload mismatch")
+        assert (
+            replay.entropy_seed is not None
+            and replay.engine_version is not None
+            and replay.rng_algorithm is not None
+        )
+        instant = CommandInstant(replay.recorded_at_us)
+        entropy = CommandEntropy(replay.entropy_seed, replay.engine_version, replay.rng_algorithm)
+        origin = replay.origin
+    else:
+        instant = instant if instant is not None else capture_instant()
+        entropy = CommandEntropy(
+            seed=secrets.token_hex(32),
+            rng_algorithm="injected" if handle.injected is not None else RNG_ALGORITHM,
+        )
     source = handle.injected or SeededRandom(entropy.seed)
 
     def run(state: Campaign) -> CommandResolution:

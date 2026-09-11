@@ -1,0 +1,274 @@
+{
+  "schema_version": 1,
+  "name": "spell",
+  "engine_version": "2",
+  "configuration_digest": "5d07ab5fa1d39098a68f9bce0d83d5fd8df921d9c6d41e2b6e2d09ee307fd33d",
+  "initial_json": "{\"id\": \"7606892e-d78a-4ac1-8d9f-6cdfc324711a\", \"revision\": 0, \"rules\": \"wave7-test\", \"character\": {\"name\": \"Mira Voss\", \"concept\": \"A curious investigator with a debt to repay.\", \"attributes\": {\"ST\": 10, \"DX\": 11, \"IQ\": 12, \"HT\": 11}, \"skills\": {\"Stealth\": 4, \"Observation\": 4, \"Diplomacy\": 4, \"Survival\": 2}, \"traits\": [\"Curious\", \"Keen senses\"]}, \"scenario\": {\"title\": \"The Lantern at Blackwater\", \"premise\": \"A courier vanished before the last ferry. A blue lantern still burns at the abandoned customs house.\", \"location\": \"Blackwater docks\", \"contact\": \"Iven, the ferryman\", \"clue\": \"A torn ferry manifest points to the customs house.\", \"secret\": \"The courier is sheltering a witness inside the customs house.\", \"objective\": \"Find the missing courier\"}, \"hp\": 10, \"fp\": 10, \"minutes\": 0, \"location\": \"dock\", \"inventory\": [], \"discoveries\": [], \"flags\": [], \"complete\": false, \"messages\": [], \"play_json\": \"{\\\"campaign_id\\\":\\\"7606892e-d78a-4ac1-8d9f-6cdfc324711a\\\",\\\"lifecycle\\\":\\\"active\\\",\\\"revision\\\":0,\\\"configuration_digest\\\":\\\"5d07ab5fa1d39098a68f9bce0d83d5fd8df921d9c6d41e2b6e2d09ee307fd33d\\\",\\\"world\\\":{\\\"entities\\\":[{\\\"id\\\":\\\"room\\\",\\\"kind\\\":\\\"location\\\",\\\"name\\\":\\\"Room\\\",\\\"location_id\\\":null,\\\"owner_id\\\":null},{\\\"id\\\":\\\"a\\\",\\\"kind\\\":\\\"actor\\\",\\\"name\\\":\\\"Reader\\\",\\\"location_id\\\":\\\"room\\\",\\\"owner_id\\\":null},{\\\"id\\\":\\\"b\\\",\\\"kind\\\":\\\"actor\\\",\\\"name\\\":\\\"Subject\\\",\\\"location_id\\\":\\\"room\\\",\\\"owner_id\\\":null}],\\\"connections\\\":[],\\\"facts\\\":[{\\\"id\\\":\\\"visible\\\",\\\"subject_id\\\":\\\"b\\\",\\\"predicate\\\":\\\"visible\\\",\\\"value\\\":\\\"person\\\"},{\\\"id\\\":\\\"presence\\\",\\\"subject_id\\\":\\\"b\\\",\\\"predicate\\\":\\\"detected\\\",\\\"value\\\":\\\"present\\\"},{\\\"id\\\":\\\"direction\\\",\\\"subject_id\\\":\\\"b\\\",\\\"predicate\\\":\\\"direction\\\",\\\"value\\\":\\\"north\\\"},{\\\"id\\\":\\\"distance\\\",\\\"subject_id\\\":\\\"b\\\",\\\"predicate\\\":\\\"distance\\\",\\\"value\\\":\\\"one yard\\\"},{\\\"id\\\":\\\"analysis\\\",\\\"subject_id\\\":\\\"b\\\",\\\"predicate\\\":\\\"analysis\\\",\\\"value\\\":\\\"gold\\\"},{\\\"id\\\":\\\"thought\\\",\\\"subject_id\\\":\\\"b\\\",\\\"predicate\\\":\\\"surface-thought\\\",\\\"value\\\":\\\"I am hungry\\\"},{\\\"id\\\":\\\"secret\\\",\\\"subject_id\\\":\\\"b\\\",\\\"predicate\\\":\\\"password\\\",\\\"value\\\":\\\"never revealed\\\"}],\\\"knowledge\\\":[[\\\"a\\\",\\\"visible\\\"],[\\\"b\\\",\\\"secret\\\"]],\\\"beliefs\\\":[],\\\"commitments\\\":[]},\\\"resources\\\":{\\\"revision\\\":0,\\\"game_time\\\":0,\\\"items\\\":[],\\\"owners\\\":[{\\\"actor_id\\\":\\\"a\\\",\\\"capacity\\\":100,\\\"definitions\\\":[\\\"attribute:st\\\",\\\"attribute:dx\\\",\\\"attribute:iq\\\",\\\"attribute:ht\\\",\\\"trait:magery-0\\\",\\\"trait:magery\\\",\\\"spell:light\\\",\\\"spell:foolishness\\\",\\\"spell:daze\\\",\\\"spell:ignite-fire\\\",\\\"spell:create-fire\\\",\\\"spell:shape-fire\\\",\\\"spell:fireball\\\"]},{\\\"actor_id\\\":\\\"b\\\",\\\"capacity\\\":100,\\\"definitions\\\":[\\\"attribute:st\\\",\\\"attribute:dx\\\",\\\"attribute:iq\\\",\\\"attribute:ht\\\"]}],\\\"pools\\\":[{\\\"id\\\":\\\"hp:a\\\",\\\"current\\\":10,\\\"maximum\\\":10,\\\"injury\\\":{\\\"profile_id\\\":\\\"gurps-basic-set-4e-2004\\\",\\\"shock\\\":0,\\\"stunned\\\":false,\\\"prone\\\":false,\\\"unconscious\\\":false,\\\"mortal_wound\\\":false,\\\"mortal_wound_due\\\":null,\\\"mortal_wound_started\\\":0,\\\"dead\\\":false,\\\"turn\\\":0,\\\"phase\\\":\\\"between\\\",\\\"shock_expires\\\":0,\\\"anatomy\\\":null,\\\"male_groin\\\":false,\\\"lasting_injuries\\\":[]},\\\"fatigue\\\":null},{\\\"id\\\":\\\"hp:b\\\",\\\"current\\\":10,\\\"maximum\\\":10,\\\"injury\\\":{\\\"profile_id\\\":\\\"gurps-basic-set-4e-2004\\\",\\\"shock\\\":0,\\\"stunned\\\":false,\\\"prone\\\":false,\\\"unconscious\\\":false,\\\"mortal_wound\\\":false,\\\"mortal_wound_due\\\":null,\\\"mortal_wound_started\\\":0,\\\"dead\\\":false,\\\"turn\\\":0,\\\"phase\\\":\\\"between\\\",\\\"shock_expires\\\":0,\\\"anatomy\\\":null,\\\"male_groin\\\":false,\\\"lasting_injuries\\\":[]},\\\"fatigue\\\":null},{\\\"id\\\":\\\"fp:a\\\",\\\"current\\\":10,\\\"maximum\\\":10,\\\"injury\\\":null,\\\"fatigue\\\":{\\\"profile_id\\\":\\\"gurps-basic-set-4e-2004\\\",\\\"collapsed\\\":false,\\\"unconscious\\\":false,\\\"heart_attack\\\":false,\\\"heart_attack_deadline\\\":null,\\\"starvation\\\":0,\\\"dehydration\\\":0,\\\"sleep\\\":0}},{\\\"id\\\":\\\"fp:b\\\",\\\"current\\\":10,\\\"maximum\\\":10,\\\"injury\\\":null,\\\"fatigue\\\":{\\\"profile_id\\\":\\\"gurps-basic-set-4e-2004\\\",\\\"collapsed\\\":false,\\\"unconscious\\\":false,\\\"heart_attack\\\":false,\\\"heart_attack_deadline\\\":null,\\\"starvation\\\":0,\\\"dehydration\\\":0,\\\"sleep\\\":0}}],\\\"active_effect_ids\\\":[],\\\"scheduled\\\":[],\\\"fired\\\":[],\\\"receipts\\\":[],\\\"events\\\":[],\\\"ammunition_loads\\\":[],\\\"expended_items\\\":[],\\\"recovery_tasks\\\":[],\\\"hazards\\\":[],\\\"illnesses\\\":[]},\\\"actors\\\":[{\\\"actor_id\\\":\\\"a\\\",\\\"proposal\\\":{\\\"draft\\\":{\\\"name\\\":\\\"Mira\\\",\\\"backstory\\\":\\\"\\\",\\\"purchases\\\":[{\\\"definition_id\\\":\\\"attribute:st\\\",\\\"amount\\\":10},{\\\"definition_id\\\":\\\"attribute:dx\\\",\\\"amount\\\":10},{\\\"definition_id\\\":\\\"attribute:iq\\\",\\\"amount\\\":12},{\\\"definition_id\\\":\\\"attribute:ht\\\",\\\"amount\\\":10},{\\\"definition_id\\\":\\\"trait:magery-0\\\",\\\"amount\\\":1},{\\\"definition_id\\\":\\\"trait:magery\\\",\\\"amount\\\":2},{\\\"definition_id\\\":\\\"spell:light\\\",\\\"amount\\\":4},{\\\"definition_id\\\":\\\"spell:foolishness\\\",\\\"amount\\\":4},{\\\"definition_id\\\":\\\"spell:daze\\\",\\\"amount\\\":4},{\\\"definition_id\\\":\\\"spell:ignite-fire\\\",\\\"amount\\\":4},{\\\"definition_id\\\":\\\"spell:create-fire\\\",\\\"amount\\\":4},{\\\"definition_id\\\":\\\"spell:shape-fire\\\",\\\"amount\\\":4},{\\\"definition_id\\\":\\\"spell:fireball\\\",\\\"amount\\\":4}]},\\\"custom\\\":[]},\\\"aware_of\\\":[],\\\"conditions\\\":[],\\\"available_at\\\":0,\\\"body\\\":null,\\\"held_item_hands\\\":[],\\\"approval\\\":{\\\"campaign_id\\\":\\\"7606892e-d78a-4ac1-8d9f-6cdfc324711a\\\",\\\"actor_id\\\":\\\"a\\\",\\\"build_revision\\\":\\\"54e662ba838309062b7bd2d2beafba583f522bb9f74fb555f3138691e34c2ce9\\\",\\\"review_digest\\\":\\\"552baf224ad5ab4403d3df9aa9e339d652687fb89bcf6d151ede32e7c8561773\\\",\\\"rules_revision\\\":\\\"56ce0642a069d6a7c44a948c427b230edf50aba26563d0c24667cae90d0be4bf\\\",\\\"policy_digest\\\":\\\"0f82993f3d1e0a77a8fb38141770c18b6fd7bd6f298d1810ceb77c49f0cbb882\\\",\\\"approver_id\\\":\\\"engine:auto\\\",\\\"decision\\\":\\\"automatic\\\",\\\"reason\\\":\\\"Within automatic campaign limits\\\",\\\"recorded_revision\\\":0,\\\"findings\\\":[]}},{\\\"actor_id\\\":\\\"b\\\",\\\"proposal\\\":{\\\"draft\\\":{\\\"name\\\":\\\"Mira\\\",\\\"backstory\\\":\\\"\\\",\\\"purchases\\\":[{\\\"definition_id\\\":\\\"attribute:st\\\",\\\"amount\\\":10},{\\\"definition_id\\\":\\\"attribute:dx\\\",\\\"amount\\\":10},{\\\"definition_id\\\":\\\"attribute:iq\\\",\\\"amount\\\":10},{\\\"definition_id\\\":\\\"attribute:ht\\\",\\\"amount\\\":10}]},\\\"custom\\\":[]},\\\"aware_of\\\":[],\\\"conditions\\\":[],\\\"available_at\\\":0,\\\"body\\\":null,\\\"held_item_hands\\\":[],\\\"approval\\\":{\\\"campaign_id\\\":\\\"7606892e-d78a-4ac1-8d9f-6cdfc324711a\\\",\\\"actor_id\\\":\\\"b\\\",\\\"build_revision\\\":\\\"f6503e0b2cff350de3e0ce999e6a7e51d3336774cd418c28835a069e31ac8648\\\",\\\"review_digest\\\":\\\"0027187b24a966a649088fa45e34c5a15839b69124140b2e91b359bd148951ee\\\",\\\"rules_revision\\\":\\\"56ce0642a069d6a7c44a948c427b230edf50aba26563d0c24667cae90d0be4bf\\\",\\\"policy_digest\\\":\\\"0f82993f3d1e0a77a8fb38141770c18b6fd7bd6f298d1810ceb77c49f0cbb882\\\",\\\"approver_id\\\":\\\"engine:auto\\\",\\\"decision\\\":\\\"automatic\\\",\\\"reason\\\":\\\"Within automatic campaign limits\\\",\\\"recorded_revision\\\":0,\\\"findings\\\":[]}}],\\\"approvals\\\":[{\\\"campaign_id\\\":\\\"7606892e-d78a-4ac1-8d9f-6cdfc324711a\\\",\\\"actor_id\\\":\\\"a\\\",\\\"build_revision\\\":\\\"54e662ba838309062b7bd2d2beafba583f522bb9f74fb555f3138691e34c2ce9\\\",\\\"review_digest\\\":\\\"552baf224ad5ab4403d3df9aa9e339d652687fb89bcf6d151ede32e7c8561773\\\",\\\"rules_revision\\\":\\\"56ce0642a069d6a7c44a948c427b230edf50aba26563d0c24667cae90d0be4bf\\\",\\\"policy_digest\\\":\\\"0f82993f3d1e0a77a8fb38141770c18b6fd7bd6f298d1810ceb77c49f0cbb882\\\",\\\"approver_id\\\":\\\"engine:auto\\\",\\\"decision\\\":\\\"automatic\\\",\\\"reason\\\":\\\"Within automatic campaign limits\\\",\\\"recorded_revision\\\":0,\\\"findings\\\":[]},{\\\"campaign_id\\\":\\\"7606892e-d78a-4ac1-8d9f-6cdfc324711a\\\",\\\"actor_id\\\":\\\"b\\\",\\\"build_revision\\\":\\\"f6503e0b2cff350de3e0ce999e6a7e51d3336774cd418c28835a069e31ac8648\\\",\\\"review_digest\\\":\\\"0027187b24a966a649088fa45e34c5a15839b69124140b2e91b359bd148951ee\\\",\\\"rules_revision\\\":\\\"56ce0642a069d6a7c44a948c427b230edf50aba26563d0c24667cae90d0be4bf\\\",\\\"policy_digest\\\":\\\"0f82993f3d1e0a77a8fb38141770c18b6fd7bd6f298d1810ceb77c49f0cbb882\\\",\\\"approver_id\\\":\\\"engine:auto\\\",\\\"decision\\\":\\\"automatic\\\",\\\"reason\\\":\\\"Within automatic campaign limits\\\",\\\"recorded_revision\\\":0,\\\"findings\\\":[]}],\\\"last_result\\\":null,\\\"rulings\\\":[],\\\"encounters\\\":[],\\\"last_combat_result\\\":null,\\\"advancement\\\":[],\\\"migrations\\\":[],\\\"members\\\":[{\\\"principal_id\\\":\\\"a\\\",\\\"role\\\":\\\"player\\\",\\\"actor_ids\\\":[\\\"a\\\"]},{\\\"principal_id\\\":\\\"b\\\",\\\"role\\\":\\\"player\\\",\\\"actor_ids\\\":[\\\"b\\\"]},{\\\"principal_id\\\":\\\"gm\\\",\\\"role\\\":\\\"gm\\\",\\\"actor_ids\\\":[]}],\\\"actor_scenes\\\":[],\\\"scene_events\\\":[],\\\"journal\\\":[],\\\"fired_scene_triggers\\\":[],\\\"objectives\\\":{\\\"outcome\\\":\\\"ongoing\\\",\\\"evidence\\\":[],\\\"revision\\\":0,\\\"at\\\":0,\\\"rules_version\\\":0,\\\"settled_reward_ids\\\":[]},\\\"noncombat\\\":[],\\\"party\\\":{\\\"version\\\":1,\\\"groups\\\":[],\\\"queue\\\":[],\\\"receipts\\\":[],\\\"effects\\\":[],\\\"fired_effect_ids\\\":[]},\\\"npcs\\\":{\\\"version\\\":1,\\\"progress\\\":[],\\\"decisions\\\":[]},\\\"recovery\\\":{\\\"version\\\":1,\\\"setbacks\\\":[],\\\"captivity\\\":[],\\\"decisions\\\":[],\\\"dead_actor_ids\\\":[],\\\"replacements\\\":[],\\\"impossible_objective_ids\\\":[]},\\\"director\\\":[],\\\"drafts\\\":[]}\", \"rules_ref\": {\"edition\": \"gurps-4e\", \"packages\": [{\"id\": \"package:gurps-basic-set-4e-2004-characters\", \"version\": \"1.0.0\", \"digest\": \"4d4b4e8ee5b8dc7c8e3cbd4880dbfe9224a4f1da7c2c3bd3f6bea1bd988386ca\"}], \"policy_id\": \"policy:gurps-test\", \"policy_version\": 1}}",
+  "commands": [
+    {
+      "command_id": "spell-0",
+      "actor_id": "a",
+      "expected_revision": 0,
+      "resulting_revision": 1,
+      "action": "resource",
+      "command_input": "{\"command\": {\"actor_id\": \"a\", \"cast_id\": \"cast\", \"channel_id\": \"light\", \"expected_revision\": 0, \"id\": \"spell-0\", \"kind\": \"start\", \"spell_id\": \"light\"}, \"operation\": \"spell-lifecycle\", \"principal_id\": \"a\"}",
+      "seed": "55e44e89e407b3fa04fccbeac7cd2d8e9925ac6b11d60c2573bddb28e922f261",
+      "recorded_at_us": 1789105256171413,
+      "state_digest": "050824d91a9076369db62e048e2b397394ad346c745b8c809e9f5926a713824b",
+      "events": [
+        {
+          "kind": "state.patched",
+          "audience": {
+            "kind": "gm"
+          },
+          "scope": "campaign",
+          "before_digest": "e54c16d6612317454e75dbe8be0a3317fdfce600080b5c60b233f28a9ac1b802",
+          "after_digest": "050824d91a9076369db62e048e2b397394ad346c745b8c809e9f5926a713824b",
+          "changes": [
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "events",
+                0
+              ],
+              "value": {
+                "id": "spell:d8a72ce98b418a43927910d18a2d36352dcae3c3fba07cbb073ee65e177c6084",
+                "at": 0,
+                "kind": "{\"effect\":{\"cast_id\":\"cast\",\"actor_id\":\"a\",\"target_id\":\"b\",\"spell_id\":\"light\",\"build_revision\":\"54e662ba838309062b7bd2d2beafba583f522bb9f74fb555f3138691e34c2ce9\",\"phase\":\"casting\",\"started_at\":0,\"ready_at\":1,\"expires_at\":null,\"skill\":14,\"cost\":1,\"maintenance\":1,\"hp_at_start\":10,\"radius\":1,\"energy\":1,\"distracted\":false,\"execute_effects\":true,\"location_id\":\"room\",\"encounter_id\":null,\"position\":null,\"geometry\":\"square\",\"light_radius\":2,\"light_penalty\":-3,\"concentration_seconds\":1,\"missile_seconds\":1,\"hp_energy\":0,\"execution_version\":2,\"required_turns\":null,\"concentrating\":false,\"reversed\":false},\"result\":{\"outcome\":\"casting\",\"energy_spent\":0,\"checks\":[]}}",
+                "target_id": "a"
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "receipts",
+                0
+              ],
+              "value": {
+                "command_id": "spell-0",
+                "digest": "af322982a417ac5f1e833a919cfd5c59aa512fc2d1540515c7a91ac3cf84ec65"
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "revision"
+              ],
+              "value": 1
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "revision"
+              ],
+              "value": 1
+            },
+            {
+              "operation": "set",
+              "path": [
+                "revision"
+              ],
+              "value": 1
+            }
+          ]
+        },
+        {
+          "kind": "spell.resolved",
+          "audience": {
+            "kind": "gm"
+          },
+          "fact": {
+            "effect": {
+              "cast_id": "cast",
+              "actor_id": "a",
+              "target_id": "b",
+              "spell_id": "light",
+              "build_revision": "54e662ba838309062b7bd2d2beafba583f522bb9f74fb555f3138691e34c2ce9",
+              "phase": "casting",
+              "started_at": 0,
+              "ready_at": 1,
+              "expires_at": null,
+              "skill": 14,
+              "cost": 1,
+              "maintenance": 1,
+              "hp_at_start": 10,
+              "radius": 1,
+              "energy": 1,
+              "distracted": false,
+              "execute_effects": true,
+              "location_id": "room",
+              "encounter_id": null,
+              "position": null,
+              "geometry": "square",
+              "light_radius": 2,
+              "light_penalty": -3,
+              "concentration_seconds": 1,
+              "missile_seconds": 1,
+              "hp_energy": 0,
+              "execution_version": 2,
+              "required_turns": null,
+              "concentrating": false,
+              "reversed": false
+            },
+            "result": {
+              "outcome": "casting",
+              "energy_spent": 0,
+              "checks": []
+            }
+          }
+        },
+        {
+          "kind": "command.applied",
+          "audience": {
+            "kind": "actors",
+            "actor_ids": [
+              "a"
+            ]
+          },
+          "actor_id": "a",
+          "action": "resource"
+        },
+        {
+          "kind": "projection.refresh",
+          "audience": {
+            "kind": "campaign"
+          }
+        }
+      ]
+    },
+    {
+      "command_id": "spell-wait",
+      "actor_id": "a",
+      "expected_revision": 1,
+      "resulting_revision": 2,
+      "action": "typed-action",
+      "command_input": "{\"command\":{\"actor_id\":\"a\",\"expected_revision\":1,\"hypothetical\":false,\"id\":\"spell-wait\",\"kind\":\"wait\",\"ticks\":1},\"operation\":\"typed-action\"}",
+      "seed": "340fe151cc59c3aa55b14424f4e0b49ed253bbc9169980107f81efebb6865349",
+      "recorded_at_us": 1789105256212178,
+      "state_digest": "6c6f7bb5d12758b36193165bedfc439d47e81e321e01772c53bc20375187bfa0",
+      "events": [
+        {
+          "kind": "state.patched",
+          "audience": {
+            "kind": "gm"
+          },
+          "scope": "campaign",
+          "before_digest": "050824d91a9076369db62e048e2b397394ad346c745b8c809e9f5926a713824b",
+          "after_digest": "6c6f7bb5d12758b36193165bedfc439d47e81e321e01772c53bc20375187bfa0",
+          "changes": [
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "last_result"
+              ],
+              "value": {
+                "status": "committed",
+                "revision": 2,
+                "code": "wait.resolved",
+                "command_id": "spell-wait",
+                "check": null,
+                "derived": null,
+                "dependencies": [],
+                "revealed_fact_ids": [],
+                "rules_digest": "5d07ab5fa1d39098a68f9bce0d83d5fd8df921d9c6d41e2b6e2d09ee307fd33d",
+                "ruling_id": null
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "game_time"
+              ],
+              "value": 1
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "receipts",
+                1
+              ],
+              "value": {
+                "command_id": "spell-wait:time",
+                "digest": "736d9861cbff6ae01b27233dc3525a9b2f1e8711823ce609e4467618d6157735"
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "revision"
+              ],
+              "value": 2
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "revision"
+              ],
+              "value": 2
+            },
+            {
+              "operation": "set",
+              "path": [
+                "revision"
+              ],
+              "value": 2
+            }
+          ]
+        },
+        {
+          "kind": "action.resolved",
+          "audience": {
+            "kind": "actors",
+            "actor_ids": [
+              "a"
+            ]
+          },
+          "result": {
+            "status": "committed",
+            "revision": 2,
+            "code": "wait.resolved",
+            "command_id": "spell-wait",
+            "check": null,
+            "derived": null,
+            "dependencies": [],
+            "revealed_fact_ids": [],
+            "rules_digest": "5d07ab5fa1d39098a68f9bce0d83d5fd8df921d9c6d41e2b6e2d09ee307fd33d",
+            "ruling_id": null
+          }
+        },
+        {
+          "kind": "command.applied",
+          "audience": {
+            "kind": "actors",
+            "actor_ids": [
+              "a"
+            ]
+          },
+          "actor_id": "a",
+          "action": "typed-action"
+        },
+        {
+          "kind": "projection.refresh",
+          "audience": {
+            "kind": "campaign"
+          }
+        }
+      ]
+    }
+  ]
+}
