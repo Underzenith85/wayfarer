@@ -2,8 +2,8 @@
 
 Each committed command records a campaign ID, command ID, actor ID, expected and
 resulting revisions, canonical payload hash, rules version, event schema version,
-mechanical event, and complete resulting projection. The event and projection are
-written in one transaction. Dice results are part of the mechanical event and are
+mechanical event, entropy/time/proposal inputs, and scenario boundary. Command
+receipts, engine events, and checkpoint digests commit atomically; snapshots are caches. Dice results are part of the mechanical event and are
 therefore replayed rather than rerolled.
 
 ## Command entropy (#411)
@@ -36,8 +36,8 @@ running engine version. Additive SQLite/PostgreSQL migrations leave these fields
 null on old rows: no seed is fabricated. Existing explicit scripted RNG injection
 is retained for numeric fixtures, with `rng_algorithm="injected"`; those records
 are deliberately not claimed to support seed-only re-execution. Production
-services use the seeded source by default. This step does not replace snapshot
-replay with event folding (#413/#418/#419).
+services use the seeded source by default. Production reads now fold events under
+#419; command re-execution remains a separately versioned gate.
 
 ## Command time (#414)
 
@@ -110,7 +110,7 @@ view; unchanged views emit no wire message. The v1 projector and outbox reconstr
 from the event stream and filter audiences before projecting. Opaque cursor and
 version behavior remains unchanged; internal patches never cross the live wire.
 
-Adapters append the command, all event rows and snapshot in one transaction under
+Adapters append the command, all event rows, checkpoint digest and any due snapshot in one transaction under
 the existing compare-and-set. Before append, folding must reproduce the candidate
 state. Failure rolls back everything; retries do not append again. Ordinals order
 multiple legacy fixture writes at the same revision. Live engine commands still
@@ -123,8 +123,7 @@ fabricating seeds. If an old database retains no revision-zero checkpoint, its
 earliest snapshot is the explicit reconstruction boundary. Pre-event-store
 databases without any snapshots use their current campaign row as that boundary. Subsequent stream
 reads no longer depend on command `state_after` columns or the snapshots table.
-This step retains the existing snapshot-based general load path; #419 demotes
-that cache after the replay gate and upcaster registry land.
+General loads, history and retries now use stream materialisation under #419.
 
 `contracts/v1/events.schema.json` links to the separately versioned
 `engine-events.schema.json`, defining the engine event union and schema-version-1
@@ -183,10 +182,46 @@ even if later commands have committed. Reusing the ID with a different payload i
 a conflict. PostgreSQL locks the campaign row and SQLite uses `BEGIN IMMEDIATE`;
 both recheck the revision while holding the write lock.
 
-Revision-zero and periodic snapshots bound recovery work. Replay starts at the
-latest applicable snapshot and applies immutable `state_after` projections in
-revision order. Event schema versions allow future upcasters without rewriting
-history. Model calls and narration remain outside write transactions.
+Production reads select the newest snapshot whose digest matches its committed
+stream checkpoint, then fold only the events after it, using the shared upcasters.
+Missing, malformed or incorrect caches fall back to genesis. Scenario references
+are verified before returning rebuilt state. Retries reconstruct the receipt's
+original revision; history returns derived state images. Neither trusts the legacy
+`command_log.state_after` column. New commands leave that obsolete column empty;
+it exists solely to bootstrap databases that predate the event stream.
+
+Both adapter constructors accept `snapshot_interval` (default 10, zero disables
+snapshotting). Periodic snapshot and campaign-row caches are written only when due.
+Genesis is persisted at creation even when snapshotting is disabled. Snapshot format
+2 splits `last_result`, `last_combat_result`, and `scene_events` into a separate cached
+event projection. `PlayCheckpoint` has no event-carrier fields; `PlayState` provides
+compatibility accessors over `PlayEventProjection` and reads legacy serialized views.
+The old bare-Campaign snapshot format remains readable. All cache formats must match
+a committed digest, so deleting their contents cannot remove authoritative history.
+
+Legacy flavor text migrates once to `narration_stream`; subsequent narration writes
+only that table. Ordinary reads overlay it for display. `replay` and mechanical
+rebuilds never fetch or regenerate narration. Existing V1 narration storage remains
+separate. Character state, workshop drafts and director turns are projections of
+campaign events; the scenario catalog remains a separate aggregate.
+
+| Table | Authority and role |
+| --- | --- |
+| `stream_genesis` | Retained initial state / explicit legacy reconstruction boundary |
+| `command_log` | Command identity, inputs, entropy, time, origins and scenario boundary |
+| `event_stream` | Ordered typed engine events, upcast before folding |
+| `checkpoint_digests` | Atomic state hashes authenticating cached revisions |
+| `snapshots` | Optional format-2 checkpoint and event-projection caches |
+| `campaigns` | Stable identity/lock row and replaceable periodic cache |
+| `events` | Legacy transcript receipts retained for compatibility |
+| `narration_stream` | Non-authoritative legacy-service narration keyed by message |
+| `narration_migrations` | One-time import markers for old flavor text |
+
+Checkpoint digests are backfilled from retained stream events on first use. They
+allow reads to avoid decoding a covered prefix, so retirement of old readers obeys
+#427's snapshot-coverage policy. Losing a covering cache after a reader is retired
+requires restoring that cache or reader; retained fixtures continue to prevent
+accidental reader removal. Model calls remain outside write transactions.
 
 Set `WAYFARER_DATABASE_URL` to a PostgreSQL connection URL for the production
 adapter. Without it, Wayfarer retains the local SQLite adapter and migrates legacy

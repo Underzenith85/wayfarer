@@ -277,10 +277,9 @@ class PlayService:
             approvals=tuple(approvals),
             members=members,
             actor_scenes=actor_scenes,
-            scene_events=scene_events,
             journal=journal,
             fired_scene_triggers=fired_scene_triggers,
-        )
+        ).model_copy(update={"scene_events": scene_events})
         if self.engine.rules.party is not None:
             from wayfarer.simulation.party import migrate
 

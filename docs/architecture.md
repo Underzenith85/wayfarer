@@ -157,8 +157,10 @@ fallback. This wave introduces no authentication or production deployment.
 
 # ADR 002: Layers, streams and where non-determinism enters
 
-Status: proposed. Records the target shape agreed while refactoring entities
-and verbs; each step below is additive and lands behind the existing gates.
+Status: accepted. The stream, replay, schema-retention and snapshot-cache contract
+is implemented through #419. Remaining roadmap tasks (including session jobs,
+map ownership and prototype retirement) remain tracked separately in #420; this
+status accepts the architecture, not a claim that every roadmap item has shipped.
 
 ## Layers
 
@@ -367,3 +369,12 @@ receipt/event stream. Activation and continuation record scenario references and
 adventure-local revision-zero boundary; the campaign CAS revision stays monotonic.
 Scenario graph and published-document caches are checked against that boundary on
 load. Setup no longer has an exception to the play checkpoint writer rule.
+
+
+Snapshot implementation (#419): `stream_genesis`, `command_log`, `event_stream`
+and atomic `checkpoint_digests` are the durable reconstruction inputs. `campaigns`
+and `snapshots` are optional periodic caches; reads, retries and history never trust
+`state_after`. `PlayCheckpoint` excludes event-carrier fields; compatibility views
+use a separate `PlayEventProjection`, split from the format-2 snapshot checkpoint.
+Narration is overlaid only for presentation and is never a rebuild input. See
+`docs/persistence.md` for the final table layout and retention conditions.
