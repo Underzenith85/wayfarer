@@ -12,6 +12,7 @@ from pydantic import Field
 from wayfarer.errors import ValidationError
 from wayfarer.models import Id, Record
 from wayfarer.rules.object_types import ObjectProfile
+from wayfarer.rules.readiness_types import ProjectileReadiness
 from wayfarer.simulation.gurps_equipment import (
     Armor,
     Damage,
@@ -22,6 +23,8 @@ from wayfarer.simulation.gurps_equipment import (
     MeleeMode,
     Parry,
     Provenance,
+    RangedMode,
+    RatedStrength,
 )
 from wayfarer.simulation.objects import object_hp
 
@@ -98,6 +101,80 @@ def weapon(
         technology_level=tl,
         slot="hand",
         durability=None if durability_dr is None else solid(weight, durability_dr),
+        modes=modes,
+        unsupported_mechanics=unsupported,
+    )
+
+
+def ranged(
+    identifier: str,
+    skill: str,
+    minimum_st: int,
+    basis: Literal["thrust", "swing", "fixed"],
+    adds: int,
+    damage_type: DamageType,
+    accuracy: int,
+    half_range: Decimal | int | None,
+    maximum_range: Decimal | int,
+    bulk: int,
+    ammunition_id: str,
+    *,
+    dice: int | None = None,
+    hands: Literal[1, 2] = 2,
+    reload_seconds: int = 2,
+    rated_kind: Literal["bow", "crossbow"] | None = None,
+) -> RangedMode:
+    """Construct one B275-276 muscle-powered launcher mode."""
+    return RangedMode(
+        id=identifier,
+        skill_id="skill:" + skill,
+        minimum_st=minimum_st,
+        hands=hands,
+        damage=Damage(
+            basis=basis,
+            dice=dice,
+            adds=adds,
+            damage_type=damage_type,
+        ),
+        accuracy=accuracy,
+        range_basis="st",
+        half_damage_range=half_range,
+        maximum_range=maximum_range,
+        shots=1,
+        reload_seconds=reload_seconds,
+        bulk=bulk,
+        ammunition_id="equipment:" + ammunition_id,
+        rated_strength=(
+            None if rated_kind is None else RatedStrength(kind=rated_kind, st=minimum_st)
+        ),
+        readiness=(
+            None
+            if rated_kind is None
+            else ProjectileReadiness(
+                kind=rated_kind,
+                fast_draw_skill_id="skill:fast-draw-arrow",
+                fast_draw_specialty="Arrow",
+            )
+        ),
+    )
+
+
+def ranged_weapon(
+    identifier: str,
+    page: int,
+    tl: int,
+    price: Decimal | int,
+    weight: int,
+    *modes: RangedMode,
+    unsupported: tuple[str, ...] = (),
+) -> EquipmentProfile:
+    return EquipmentProfile(
+        definition_id="equipment:" + identifier,
+        provenance=source(page),
+        weight_millipounds=weight,
+        price=price,
+        technology_level=tl,
+        slot="hand",
         modes=modes,
         unsupported_mechanics=unsupported,
     )
@@ -672,6 +749,163 @@ WEAPONS = (
     ),
 )
 
+# B275-276. The table's slash-separated weights are split into the reusable
+# launcher and one separately inventoried missile. Rows whose damage is
+# ``spec.`` remain indexed and unavailable until their binding procedure can be
+# stated without inventing a damage value.
+MUSCLE_POWERED_RANGED = (
+    ranged_weapon(
+        "blowpipe",
+        275,
+        0,
+        30,
+        1000,
+        ranged("shot", "blowpipe", 2, "fixed", -3, "pi-", 1, None, 4, -6, "blowpipe-dart", dice=1),
+        unsupported=("follow-up-poison-or-drug",),
+    ),
+    ranged_weapon(
+        "longbow",
+        275,
+        0,
+        200,
+        3000,
+        ranged("shot", "bow", 11, "thrust", 2, "imp", 3, 15, 20, -8, "arrow", rated_kind="bow"),
+    ),
+    ranged_weapon(
+        "regular-bow",
+        275,
+        0,
+        100,
+        2000,
+        ranged("shot", "bow", 10, "thrust", 1, "imp", 2, 15, 20, -7, "arrow", rated_kind="bow"),
+    ),
+    ranged_weapon(
+        "short-bow",
+        275,
+        0,
+        50,
+        2000,
+        ranged("shot", "bow", 7, "thrust", 0, "imp", 1, 10, 15, -6, "arrow", rated_kind="bow"),
+    ),
+    ranged_weapon(
+        "composite-bow",
+        275,
+        1,
+        900,
+        4000,
+        ranged("shot", "bow", 10, "thrust", 3, "imp", 3, 20, 25, -7, "arrow", rated_kind="bow"),
+    ),
+    ranged_weapon(
+        "crossbow",
+        276,
+        2,
+        150,
+        6000,
+        ranged(
+            "shot",
+            "crossbow",
+            7,
+            "thrust",
+            4,
+            "imp",
+            4,
+            20,
+            25,
+            -6,
+            "bolt",
+            reload_seconds=4,
+            rated_kind="crossbow",
+        ),
+    ),
+    ranged_weapon(
+        "pistol-crossbow",
+        276,
+        3,
+        150,
+        4000,
+        ranged(
+            "shot",
+            "crossbow",
+            7,
+            "thrust",
+            2,
+            "imp",
+            1,
+            15,
+            20,
+            -4,
+            "bolt",
+            reload_seconds=4,
+            rated_kind="crossbow",
+        ),
+        unsupported=("one-handed-rated-crossbow",),
+    ),
+    ranged_weapon(
+        "prodd",
+        276,
+        3,
+        150,
+        6000,
+        ranged(
+            "shot",
+            "crossbow",
+            7,
+            "thrust",
+            4,
+            "pi",
+            2,
+            20,
+            25,
+            -6,
+            "lead-pellet",
+            reload_seconds=4,
+            rated_kind="crossbow",
+        ),
+    ),
+    ranged_weapon(
+        "sling",
+        276,
+        0,
+        20,
+        500,
+        ranged("shot", "sling", 6, "swing", 0, "pi", 0, 6, 10, -4, "sling-stone"),
+    ),
+    ranged_weapon(
+        "staff-sling",
+        276,
+        1,
+        20,
+        2000,
+        ranged("shot", "sling", 7, "swing", 1, "pi", 1, 10, 15, -6, "sling-stone"),
+    ),
+    ranged_weapon("bolas", 275, 0, 20, 2000, unsupported=("entangling-special-damage",)),
+    ranged_weapon("heavy-cloak", 275, 1, 50, 5000, unsupported=("entangling-special-damage",)),
+    ranged_weapon("light-cloak", 275, 1, 20, 2000, unsupported=("entangling-special-damage",)),
+    ranged_weapon("lariat", 276, 1, 40, 3000, unsupported=("entangling-special-damage",)),
+    ranged_weapon("large-net", 276, 0, 40, 20000, unsupported=("entangling-special-damage",)),
+    ranged_weapon("melee-net", 276, 2, 20, 5000, unsupported=("entangling-special-damage",)),
+    ranged_weapon("atlatl", 276, 0, 20, 1000, unsupported=("launcher-assisted-throw",)),
+    ranged_weapon("goats-foot", 276, 3, 50, 2000, unsupported=("crossbow-cocking-aid",)),
+)
+
+MUSCLE_POWERED_AMMUNITION = tuple(
+    EquipmentProfile(
+        definition_id="equipment:" + identifier,
+        provenance=source(276),
+        weight_millipounds=weight,
+        price=price,
+        technology_level=tl,
+        ammunition=True,
+    )
+    for identifier, tl, price, weight in (
+        ("blowpipe-dart", 0, Decimal("0.1"), 50),
+        ("arrow", 0, 2, 100),
+        ("bolt", 2, 2, 60),
+        ("lead-pellet", 2, Decimal("0.1"), 60),
+        ("sling-stone", 0, 0, 50),
+    )
+)
+
 # B283: complete rigid, unsplit body-armor rows without special footnotes.
 ARMOR = tuple(
     EquipmentProfile(
@@ -723,7 +957,7 @@ ORDINARY = tuple(
 
 BASIC_EQUIPMENT = EquipmentCatalog(
     profile_id="gurps-basic-set-4e-2004",
-    entries=WEAPONS + ARMOR + ORDINARY,
+    entries=WEAPONS + MUSCLE_POWERED_RANGED + MUSCLE_POWERED_AMMUNITION + ARMOR + ORDINARY,
 )
 
 # B280: ultra-tech index entries carry facts but cannot be activated as ordinary
