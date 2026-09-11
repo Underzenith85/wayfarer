@@ -7,6 +7,54 @@ from wayfarer.errors import ValidationError
 from wayfarer.simulation.basic_equipment import BASIC_EQUIPMENT, ULTRATECH_INDEX, VEHICLE_INDEX
 from wayfarer.simulation.gurps_equipment import EquipmentCatalog, MeleeMode
 
+MELEE_ROWS = (
+    ("axe", 271, 0, 50, 4000),
+    ("hatchet", 271, 0, 40, 2000),
+    ("throwing-axe", 271, 0, 60, 4000),
+    ("mace", 271, 2, 50, 5000),
+    ("small-mace", 271, 2, 35, 3000),
+    ("pick", 271, 3, 70, 3000),
+    ("blackjack", 271, 1, 20, 1000),
+    ("light-club", 271, 0, 5, 3000),
+    ("broadsword", 271, 2, 500, 3000),
+    ("thrusting-broadsword", 271, 2, 600, 3000),
+    ("bastard-sword", 271, 3, 650, 5000),
+    ("katana", 271, 3, 650, 5000),
+    ("thrusting-bastard-sword", 271, 3, 750, 5000),
+    ("cavalry-saber", 271, 4, 500, 3000),
+    ("morningstar", 272, 3, 80, 6000),
+    ("nunchaku", 272, 3, 20, 2000),
+    ("large-knife", 272, 0, 40, 1000),
+    ("small-knife", 272, 0, 30, 500),
+    ("wooden-stake", 272, 0, 4, 500),
+    ("dagger", 272, 1, 20, 250),
+    ("kusari", 272, 3, 70, 5000),
+    ("lance", 272, 2, 60, 6000),
+    ("glaive", 272, 1, 100, 8000),
+    ("naginata", 272, 2, 100, 6000),
+    ("halberd", 272, 3, 150, 12000),
+    ("poleaxe", 272, 3, 120, 10000),
+    ("rapier", 273, 4, 500, 2750),
+    ("saber", 273, 4, 700, 2000),
+    ("baton", 273, 0, 20, 1000),
+    ("shortsword", 273, 2, 400, 2000),
+    ("cutlass", 273, 4, 300, 2000),
+    ("cattle-prod", 273, 7, 50, 2000),
+    ("short-staff", 273, 0, 20, 1000),
+    ("smallsword", 273, 4, 400, 1500),
+    ("spear", 273, 0, 40, 4000),
+    ("javelin", 273, 1, 30, 2000),
+    ("long-spear", 273, 2, 60, 5000),
+    ("quarterstaff", 273, 0, 10, 4000),
+    ("maul", 274, 0, 80, 12000),
+    ("great-axe", 274, 1, 100, 8000),
+    ("scythe", 274, 1, 15, 5000),
+    ("warhammer", 274, 3, 100, 7000),
+    ("flail", 274, 2, 100, 8000),
+    ("greatsword", 274, 3, 800, 7000),
+    ("thrusting-greatsword", 274, 3, 900, 7000),
+)
+
 
 @pytest.mark.parametrize(
     "key,tl,cost,weight",
@@ -44,6 +92,69 @@ def test_selected_source_rows(key: str, tl: int, cost: int, weight: int) -> None
     )
     assert (entry.technology_level, entry.price, entry.weight_millipounds) == (tl, cost, weight)
     assert entry.provenance.edition == "Fourth Edition, third printing (2008)"
+
+
+def test_b271_274_melee_rows_have_independent_inventory_facts() -> None:
+    actual = {
+        (
+            entry.definition_id.removeprefix("equipment:"),
+            entry.provenance.pages[0],
+            entry.technology_level,
+            entry.price,
+            entry.weight_millipounds,
+        )
+        for entry in BASIC_EQUIPMENT.entries
+        if entry.provenance.pages[0] in (271, 272, 273, 274)
+    }
+    assert actual == set(MELEE_ROWS)
+    pages = {
+        entry.definition_id: entry.provenance.pages
+        for entry in BASIC_EQUIPMENT.entries
+        if entry.provenance.pages[0] in (271, 272, 273, 274)
+    }
+    assert pages["equipment:bastard-sword"] == (271, 274)
+    assert pages["equipment:naginata"] == (272, 273, 274)
+    assert pages["equipment:quarterstaff"] == (273, 274)
+
+
+def test_melee_table_modes_cover_parry_hands_and_footnotes() -> None:
+    entries = {entry.definition_id: entry for entry in BASIC_EQUIPMENT.entries}
+
+    knife = entries["equipment:large-knife"]
+    knife_modes = [mode for mode in knife.modes if isinstance(mode, MeleeMode)]
+    assert len(knife_modes) == len(knife.modes)
+    assert {mode.parry.modifier for mode in knife_modes if mode.parry} == {-1}
+    staff = entries["equipment:quarterstaff"]
+    staff_modes = [mode for mode in staff.modes if isinstance(mode, MeleeMode)]
+    assert len(staff_modes) == len(staff.modes) == 4
+    assert all(mode.hands == 2 for mode in staff_modes)
+    assert [mode.parry.modifier for mode in staff_modes[:2] if mode.parry] == [2, 2]
+
+    bastard = entries["equipment:bastard-sword"]
+    bastard_modes = [mode for mode in bastard.modes if isinstance(mode, MeleeMode)]
+    assert len(bastard_modes) == len(bastard.modes)
+    assert [mode.hands for mode in bastard_modes] == [1, 1, 2, 2]
+    assert [mode.parry.unbalanced for mode in bastard_modes if mode.parry] == [
+        True,
+        True,
+        False,
+        False,
+    ]
+
+    stake = entries["equipment:wooden-stake"].modes[0]
+    assert isinstance(stake, MeleeMode)
+    assert str(stake.damage.armor_divisor) == "0.5"
+    prod = entries["equipment:cattle-prod"].modes[0]
+    assert isinstance(prod, MeleeMode)
+    assert (prod.damage.basis, prod.damage.dice, prod.damage.adds, prod.damage.damage_type) == (
+        "fixed",
+        1,
+        -3,
+        "burn",
+    )
+    glaive = entries["equipment:glaive"].modes[0]
+    assert isinstance(glaive, MeleeMode) and glaive.ready_after_attack
+    assert "conditional-ready-after-attack" in entries["equipment:glaive"].unsupported_mechanics
 
 
 def test_sword_and_armor_independent_combat_facts() -> None:
