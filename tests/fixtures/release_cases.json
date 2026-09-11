@@ -31,5 +31,13 @@
   "tests/test_wave9.py::test_combat_barrier_long_investigation_and_reinforcement_arrival",
   "tests/test_wave9.py::test_independent_noncombat_choices_pause_resume_and_rejected_choice",
   "tests/test_wave9.py::test_partial_success_abandonment_predicates_and_reward_rollback",
-  "tests/test_wave9.py::test_two_bearer_players_concurrent_split_commands"
+  "tests/test_wave9.py::test_two_bearer_players_concurrent_split_commands",
+  "tests/test_release_invariants.py::test_fixture_fold_and_reexecution[reference]",
+  "tests/test_release_invariants.py::test_fixture_fold_and_reexecution[capture-rescue]",
+  "tests/test_release_invariants.py::test_fixture_fold_and_reexecution[hex-combat]",
+  "tests/test_release_invariants.py::test_fixture_fold_and_reexecution[spell]",
+  "tests/test_release_invariants.py::test_fixture_fold_and_reexecution[recovery]",
+  "tests/test_release_invariants.py::test_replay_gate_rejects_snapshot_and_version_drift",
+  "tests/test_replay.py::test_durable_replay_reports_legacy_and_detects_tampering[sqlite]",
+  "tests/test_replay.py::test_durable_replay_reports_legacy_and_detects_tampering[postgres]"
 ]

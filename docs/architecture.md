@@ -295,8 +295,8 @@ entropy boundary; task-local command RNG handles keep all checkpoint draws on th
 same stream without putting mutable entropy on cached engines. The architecture
 gate forbids live services from bypassing this boundary and forbids entropy
 imports in simulation. See [command entropy](persistence.md#command-entropy-411)
-for retry, migration and explicit test-source semantics. The comprehensive
-re-execution/version-bump release gate remains #418.
+for retry, migration and explicit test-source semantics. The #418 release gate verifies fold and re-execution equality for the five
+reviewed fixture families and requires regenerated fixtures after a version bump.
 
 The #414 implementation also records an orchestration-captured UTC instant on
 each live command. Invitation claims persist and reuse that instant across
@@ -311,7 +311,9 @@ list. The composed command reducer emits typed facts and private, digest-checked
 state changes; persistence verifies fold equality before the atomic append. V1
 projections and outbox history read folded stream states. See
 [the event stream](persistence.md#dedicated-event-stream-413). Engine version `2`
-marks the changed event contract. Snapshot-cache demotion remains #419.
+marks the changed event contract. Snapshot-cache demotion remains #419. The #418 replay module now verifies each
+fixture revision against its event fold and repeats typed commands with recorded
+seeds and time, refusing mismatched rules pins and reporting legacy limitations.
 
 **Events declare their audience.** Knowledge isolation is a release invariant
 (#1, #45): reunion does not share secrets and captives learn nothing of their

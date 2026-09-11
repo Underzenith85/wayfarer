@@ -29,7 +29,7 @@ effects within a command remain part of that command's receipt and RNG stream.
 arbitrary positive bounds, not Python's version-dependent random implementation.
 Its byte-level contract is frozen by a test vector. `simulation.ENGINE_VERSION`
 started at `1`; the event-list contract uses `2`. Bump it when any input can produce different state, events or draws,
-including RNG algorithm changes. #418 adds the comprehensive version/replay gate.
+including RNG algorithm changes. #418 enforces the fixture version/replay gate described below.
 
 `CommandRecord.reexecutable` requires a seed, a supported RNG algorithm and the
 running engine version. Additive SQLite/PostgreSQL migrations leave these fields
@@ -62,8 +62,7 @@ and retention checks consume that value throughout the transaction. Provider
 telemetry already has no wall-clock reads. Operational provider timeouts, HTTP rate
 limits, cursor lifetimes and socket heartbeats remain outside simulation. An
 architecture gate rejects clock imports in simulation and clock reads in command
-resolver callbacks and their local helpers. The comprehensive command re-execution
-gate remains part of #418.
+resolver callbacks and their local helpers. The command re-execution gate is described below.
 
 ## Command origins (#412)
 
@@ -133,6 +132,49 @@ that cache after the replay gate and upcaster registry land.
 checks the definitions against the runtime models; schema changes require review.
 Run `uv run python -m scripts.update_engine_event_schema` to regenerate the
 engine definitions while preserving the wire definitions.
+
+## Fold and re-execution gate (#418)
+
+`persistence.replay.verify_commands` checks two independent guarantees. Folding
+applies the event stream and compares each result with the command's stored
+snapshot, regardless of `ENGINE_VERSION`. Re-execution dispatches the saved typed
+command through an isolated engine using its original seed and recorded instant,
+and compares the resulting state, event list and embedded dice. Neither providers
+nor origin annotations are execution inputs. The rules configuration digest must
+match the caller's trusted pin before and after every command; a rules-data
+migration remains a separate `MigrationEntry` concern.
+
+Commands now retain their exact `command_input` alongside the receipt. Old rows
+remain null; a transcript input is recoverable only if its original payload digest
+matches. Missing seeds, missing recorded time, unsupported RNGs and different
+engine versions produce explicit `ReplayCheck` reasons while the fold still runs.
+Malformed current command inputs fail validation. Unknown command families fail
+explicitly rather than invoking interpretation or trusting a stored outcome.
+The initial replay dispatcher covers typed actions, scenes, parties, combat,
+spells and authored recovery; callers can supply another typed executor to the
+verification API. Re-execution is a fixture guarantee, not a claim that every
+historical command family can run under current code.
+
+Five reviewed goldens under `tests/fixtures/replay/` cover the reference adventure,
+capture/rescue, hex combat, a spell and recovery. They retain their initial play
+checkpoint, exact command inputs, seeds, instants, typed events and independent
+snapshot digests. Fixtures begin at their explicit configured play checkpoint;
+setup/genesis migration remains #422. `test_release_invariants.py` verifies both
+checks at every fixture revision, with provider calls and fresh entropy/time
+capture forbidden. `scripts/release_gates.py` requires all five cases plus the
+SQLite/PostgreSQL durable replay and corruption tests.
+
+To review a deliberate engine behavior change:
+
+1. Bump `simulation.ENGINE_VERSION` in the same change as the behavior.
+2. Run `uv run python -m scripts.regenerate_replay_fixtures`.
+3. Review the event/dice diffs and snapshot digests, then run
+   `uv run python -m scripts.regenerate_replay_fixtures --check` and the release tests.
+
+Regeneration preserves inputs, seeds, time and initial state. It refuses to bless
+changed output under an unchanged engine version. The gate rejects a version bump
+without regenerated fixtures as well. Rules-data changes cannot be silently
+accepted by rewriting the pinned configuration digest.
 
 ## Receipts and recovery
 

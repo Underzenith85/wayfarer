@@ -73,6 +73,7 @@ class CommandRecord:
     rng_algorithm: str | None = None
     recorded_at_us: int | None = None
     origin: CommandOrigin | None = field(default=None, repr=False)
+    command_input: str | None = field(default=None, repr=False)
 
     @property
     def reexecutable(self) -> bool:

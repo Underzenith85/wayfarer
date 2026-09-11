@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import secrets
 from pathlib import Path
 
 import pytest
@@ -204,3 +205,56 @@ async def test_process_death_rolls_back_projection_event_and_receipt(tmp_path: P
     )
     assert len(await reopened.history(cid)) == 1
     assert await reopened.replay(cid) == await reopened.read(cid)
+
+
+@pytest.mark.parametrize("case", ["reference", "capture-rescue", "hex-combat", "spell", "recovery"])
+async def test_fixture_fold_and_reexecution(
+    case: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from scripts.replay_fixtures import FIXTURES, ReplayFixture, engine_for, verify_fixture
+
+    fixture = ReplayFixture.model_validate_json((FIXTURES / f"{case}.json").read_text())
+    engine = await engine_for(case, tmp_path / "engine")
+
+    async def forbidden(*args: object, **kwargs: object) -> str:
+        raise AssertionError("Replay must never invoke a provider")
+
+    monkeypatch.setattr(Orchestrator, "_call", forbidden)
+    monkeypatch.setattr(Orchestrator, "_reply", forbidden)
+    from wayfarer.orchestration import entropy
+
+    def no_new_input(*args: object) -> None:
+        raise AssertionError("Replay must use recorded entropy and time")
+
+    monkeypatch.setattr(entropy, "capture_instant", no_new_input)
+    monkeypatch.setattr(secrets, "token_hex", no_new_input)
+    checks = await verify_fixture(fixture, engine, tmp_path / "verify")
+    assert len(checks) == len(fixture.commands)
+    assert all(check.folded and check.reexecuted and check.reason is None for check in checks)
+
+
+async def test_replay_gate_rejects_snapshot_and_version_drift(tmp_path: Path) -> None:
+    from scripts.replay_fixtures import (
+        FIXTURES,
+        ReplayFixture,
+        engine_for,
+        regenerate,
+        verify_fixture,
+    )
+
+    fixture = ReplayFixture.model_validate_json((FIXTURES / "reference.json").read_text())
+    engine = await engine_for("reference", tmp_path / "engine")
+    bad = fixture.commands[0].model_copy(update={"state_digest": "0" * 64})
+    with pytest.raises(ValueError, match="snapshot"):
+        await verify_fixture(
+            fixture.model_copy(update={"commands": (bad,)}), engine, tmp_path / "bad"
+        )
+    with pytest.raises(ValueError, match="ENGINE_VERSION"):
+        await verify_fixture(
+            fixture.model_copy(update={"engine_version": "old"}), engine, tmp_path / "version"
+        )
+
+    with pytest.raises(ValueError, match="bump ENGINE_VERSION"):
+        await regenerate(
+            fixture.model_copy(update={"commands": (bad,)}), engine, tmp_path / "regenerate"
+        )
