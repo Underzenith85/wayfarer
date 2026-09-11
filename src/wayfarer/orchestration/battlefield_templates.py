@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign
-from wayfarer.simulation.action_engine import ActionEngine
+from wayfarer.orchestration.sessions import REGISTRY
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.advancement import MigrationEntry
 from wayfarer.simulation.combat import CombatRules
@@ -25,7 +25,9 @@ def install_rules(campaign: Campaign, play: PlayService, combat: CombatRules) ->
     """Retain immutable source provenance while recording the migrated runtime graph."""
     from wayfarer.orchestration.play import PlayService
 
-    engine = ActionEngine(
+    engine = REGISTRY.bind(
+        play.store,
+        campaign["id"],
         play.engine.reviewer,
         play.engine.resources,
         play.engine.rules.model_copy(update={"combat": combat}),
