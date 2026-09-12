@@ -108,7 +108,7 @@ retained where previously recorded, but they do not replace the active owners.
 | #382 | Reconciled: the supplied Characters third printing is the selected source artifact. |
 | #383 | Conditional skill defaults and the remaining alternative prerequisites. |
 | #384 | Complete. `/TL` purchases record TL explicitly, profiles activating those skills require an explicit campaign TL, and cinematic templates name and enforce their optional-rule selections. |
-| #385 | Seventeen campaign-subject specialty axes are recorded as open families; 14 finite families and one technique template remain. |
+| #385 | Nineteen campaign-subject specialty axes are recorded as open families; 12 finite families and one technique template remain. |
 | #338 | Arts, crafts and trade procedures. |
 | #339 | Melee, defense and tactical skill procedures. |
 | #340 | Combat technique procedures and parent-specific dispatch. |
@@ -481,7 +481,7 @@ specific blockers rather than a share of a general one. **#382** selected the
 supplied printing and is resolved; **#383** owns conditional defaults and the
 remaining alternative prerequisites, **#384** (complete) technology-level
 context and optional-rule selection, and **#385** the remaining specialty
-families. Seventeen of #385's families now explicitly name their campaign-scoped
+families. Nineteen of #385's families now explicitly name their campaign-scoped
 subject rather than treating source examples as an exhaustive list.
 `blocker_owners` names them
 per row, so #336 itself keeps nothing.

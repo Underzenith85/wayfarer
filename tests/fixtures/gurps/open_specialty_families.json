@@ -13,10 +13,12 @@
     "skill:history": ["B200", "one region across eras, or one era and broad subject"],
     "skill:law": ["B204", "one regional field or specialized body of law"],
     "skill:musical-instrument": ["B211", "one musical instrument"],
+    "skill:naturalist": ["B211", "one campaign planet"],
     "skill:philosophy": ["B213", "one school of philosophy"],
     "skill:physiology": ["B213", "one species"],
     "skill:religious-ritual": ["B217", "one religion"],
     "skill:riding": ["B217", "one riding animal"],
+    "skill:savoir-faire": ["B218", "one culture or social group"],
     "skill:teamster": ["B225", "one draft-animal team"],
     "skill:theology": ["B226", "one religion"]
   }

@@ -593,7 +593,6 @@ _ROWS: Final = (
         defaults=(SkillDefault(A.IQ, -4),),
         transferred={
             RUNTIME_PROCEDURE: (SPECIALTIES_ISSUE,),
-            SPECIALTY_EXPANSION: (SPECIALTIES_ISSUE,),
             CONDITIONAL_DEFAULTS: (DEFAULTS_ISSUE,),
         },
     ),
