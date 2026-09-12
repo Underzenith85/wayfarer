@@ -174,24 +174,6 @@ def _defend(
             state, injury = resolve_injury(play.rules_context, state, previous, command.defense)
         resources = state.resources
         encounter = encounter.model_copy(update={"wounds": encounter.wounds + (injury,)})
-        alive = {
-            p.id.removeprefix("hp:")
-            for p in resources.pools
-            if p.id.startswith("hp:")
-            and (not p.injury.incapacitated if p.injury else p.current > 0)
-        }
-        if len(alive.intersection(encounter.turn_order)) < 2:
-            encounter = encounter.model_copy(
-                update={
-                    "status": "completed",
-                    "completion_reason": "incapacitation",
-                    "pending_defense": None,
-                    "wait_interrupt": None,
-                }
-            )
-        else:
-            while encounter.current_actor_id not in alive:
-                encounter = engine._advance(encounter)
         result = result.model_copy(
             update={
                 "code": "combat.resolved",

@@ -1,0 +1,405 @@
+{
+  "schema_version": 1,
+  "name": "fatigue-turn",
+  "configuration_digest": "441065861b755d4c2bda097a00a0cf4c28b30b949a00bba0d30d7ddeead627c0",
+  "initial_json": "{\"id\": \"924fbc0e-93c1-4e81-ae26-04dbc96d7257\", \"revision\": 1, \"rules\": \"wave7-test\", \"character\": {\"name\": \"Mira Voss\", \"concept\": \"A curious investigator with a debt to repay.\", \"attributes\": {\"ST\": 10, \"DX\": 11, \"IQ\": 12, \"HT\": 11}, \"skills\": {\"Stealth\": 4, \"Observation\": 4, \"Diplomacy\": 4, \"Survival\": 2}, \"traits\": [\"Curious\", \"Keen senses\"]}, \"scenario\": {\"title\": \"The Lantern at Blackwater\", \"premise\": \"A courier vanished before the last ferry. A blue lantern still burns at the abandoned customs house.\", \"location\": \"Blackwater docks\", \"contact\": \"Iven, the ferryman\", \"clue\": \"A torn ferry manifest points to the customs house.\", \"secret\": \"The courier is sheltering a witness inside the customs house.\", \"objective\": \"Find the missing courier\"}, \"hp\": 10, \"fp\": 10, \"minutes\": 0, \"location\": \"dock\", \"inventory\": [], \"discoveries\": [], \"flags\": [], \"complete\": false, \"messages\": [], \"play_json\": \"{\\\"campaign_id\\\":\\\"924fbc0e-93c1-4e81-ae26-04dbc96d7257\\\",\\\"lifecycle\\\":\\\"active\\\",\\\"revision\\\":1,\\\"configuration_digest\\\":\\\"441065861b755d4c2bda097a00a0cf4c28b30b949a00bba0d30d7ddeead627c0\\\",\\\"world\\\":{\\\"entities\\\":[{\\\"id\\\":\\\"dock\\\",\\\"kind\\\":\\\"location\\\",\\\"name\\\":\\\"Dock\\\",\\\"location_id\\\":null,\\\"owner_id\\\":null},{\\\"id\\\":\\\"alley\\\",\\\"kind\\\":\\\"location\\\",\\\"name\\\":\\\"Alley\\\",\\\"location_id\\\":null,\\\"owner_id\\\":null},{\\\"id\\\":\\\"far\\\",\\\"kind\\\":\\\"location\\\",\\\"name\\\":\\\"Far\\\",\\\"location_id\\\":null,\\\"owner_id\\\":null},{\\\"id\\\":\\\"a\\\",\\\"kind\\\":\\\"actor\\\",\\\"name\\\":\\\"Mira\\\",\\\"location_id\\\":\\\"dock\\\",\\\"owner_id\\\":null},{\\\"id\\\":\\\"b\\\",\\\"kind\\\":\\\"actor\\\",\\\"name\\\":\\\"Iven\\\",\\\"location_id\\\":\\\"dock\\\",\\\"owner_id\\\":null},{\\\"id\\\":\\\"chest\\\",\\\"kind\\\":\\\"object\\\",\\\"name\\\":\\\"Chest\\\",\\\"location_id\\\":\\\"dock\\\",\\\"owner_id\\\":null},{\\\"id\\\":\\\"hidden\\\",\\\"kind\\\":\\\"object\\\",\\\"name\\\":\\\"Hidden\\\",\\\"location_id\\\":\\\"dock\\\",\\\"owner_id\\\":null}],\\\"connections\\\":[{\\\"source_id\\\":\\\"dock\\\",\\\"destination_id\\\":\\\"alley\\\",\\\"label\\\":\\\"path\\\"},{\\\"source_id\\\":\\\"alley\\\",\\\"destination_id\\\":\\\"dock\\\",\\\"label\\\":\\\"return\\\"}],\\\"facts\\\":[{\\\"id\\\":\\\"clue\\\",\\\"subject_id\\\":\\\"chest\\\",\\\"predicate\\\":\\\"contains\\\",\\\"value\\\":\\\"letter\\\"},{\\\"id\\\":\\\"promise\\\",\\\"subject_id\\\":\\\"b\\\",\\\"predicate\\\":\\\"agreed\\\",\\\"value\\\":\\\"help\\\"}],\\\"knowledge\\\":[],\\\"beliefs\\\":[],\\\"commitments\\\":[]},\\\"resources\\\":{\\\"revision\\\":1,\\\"game_time\\\":0,\\\"items\\\":[{\\\"id\\\":\\\"sword-a\\\",\\\"definition_id\\\":\\\"equipment:broadsword\\\",\\\"owner_id\\\":\\\"a\\\",\\\"quantity\\\":1,\\\"container_id\\\":null,\\\"equipped\\\":true,\\\"ready\\\":true},{\\\"id\\\":\\\"sword-b\\\",\\\"definition_id\\\":\\\"equipment:broadsword\\\",\\\"owner_id\\\":\\\"b\\\",\\\"quantity\\\":1,\\\"container_id\\\":null,\\\"equipped\\\":true,\\\"ready\\\":true},{\\\"id\\\":\\\"shield-b\\\",\\\"definition_id\\\":\\\"equipment:shield\\\",\\\"owner_id\\\":\\\"b\\\",\\\"quantity\\\":1,\\\"container_id\\\":null,\\\"equipped\\\":true,\\\"ready\\\":true}],\\\"owners\\\":[{\\\"actor_id\\\":\\\"a\\\",\\\"capacity\\\":100000,\\\"definitions\\\":[\\\"attribute:st\\\",\\\"attribute:dx\\\",\\\"attribute:iq\\\",\\\"attribute:ht\\\",\\\"skill:broadsword\\\",\\\"skill:shield\\\"]},{\\\"actor_id\\\":\\\"b\\\",\\\"capacity\\\":100000,\\\"definitions\\\":[\\\"attribute:st\\\",\\\"attribute:dx\\\",\\\"attribute:iq\\\",\\\"attribute:ht\\\",\\\"skill:broadsword\\\",\\\"skill:shield\\\"]}],\\\"pools\\\":[{\\\"id\\\":\\\"hp:a\\\",\\\"current\\\":10,\\\"maximum\\\":10,\\\"injury\\\":{\\\"profile_id\\\":\\\"gurps-basic-set-4e-2004\\\",\\\"shock\\\":0,\\\"stunned\\\":false,\\\"prone\\\":false,\\\"unconscious\\\":false,\\\"mortal_wound\\\":false,\\\"mortal_wound_due\\\":null,\\\"mortal_wound_started\\\":0,\\\"dead\\\":false,\\\"turn\\\":0,\\\"phase\\\":\\\"between\\\",\\\"shock_expires\\\":0,\\\"anatomy\\\":null,\\\"male_groin\\\":false,\\\"lasting_injuries\\\":[]},\\\"fatigue\\\":null},{\\\"id\\\":\\\"fp:a\\\",\\\"current\\\":10,\\\"maximum\\\":10,\\\"injury\\\":null,\\\"fatigue\\\":{\\\"profile_id\\\":\\\"gurps-basic-set-4e-2004\\\",\\\"collapsed\\\":false,\\\"unconscious\\\":false,\\\"heart_attack\\\":false,\\\"heart_attack_deadline\\\":null,\\\"starvation\\\":0,\\\"dehydration\\\":0,\\\"sleep\\\":0}},{\\\"id\\\":\\\"hp:b\\\",\\\"current\\\":10,\\\"maximum\\\":10,\\\"injury\\\":{\\\"profile_id\\\":\\\"gurps-basic-set-4e-2004\\\",\\\"shock\\\":0,\\\"stunned\\\":false,\\\"prone\\\":false,\\\"unconscious\\\":false,\\\"mortal_wound\\\":false,\\\"mortal_wound_due\\\":null,\\\"mortal_wound_started\\\":0,\\\"dead\\\":false,\\\"turn\\\":0,\\\"phase\\\":\\\"between\\\",\\\"shock_expires\\\":0,\\\"anatomy\\\":null,\\\"male_groin\\\":false,\\\"lasting_injuries\\\":[]},\\\"fatigue\\\":null},{\\\"id\\\":\\\"fp:b\\\",\\\"current\\\":0,\\\"maximum\\\":10,\\\"injury\\\":null,\\\"fatigue\\\":{\\\"profile_id\\\":\\\"gurps-basic-set-4e-2004\\\",\\\"collapsed\\\":true,\\\"unconscious\\\":false,\\\"heart_attack\\\":false,\\\"heart_attack_deadline\\\":null,\\\"starvation\\\":0,\\\"dehydration\\\":0,\\\"sleep\\\":0}}],\\\"active_effect_ids\\\":[],\\\"scheduled\\\":[],\\\"fired\\\":[],\\\"receipts\\\":[],\\\"events\\\":[],\\\"ammunition_loads\\\":[],\\\"expended_items\\\":[],\\\"recovery_tasks\\\":[],\\\"hazards\\\":[],\\\"illnesses\\\":[]},\\\"actors\\\":[{\\\"actor_id\\\":\\\"a\\\",\\\"proposal\\\":{\\\"draft\\\":{\\\"name\\\":\\\"Mira\\\",\\\"backstory\\\":\\\"\\\",\\\"purchases\\\":[{\\\"definition_id\\\":\\\"attribute:st\\\",\\\"amount\\\":10},{\\\"definition_id\\\":\\\"attribute:dx\\\",\\\"amount\\\":10},{\\\"definition_id\\\":\\\"attribute:iq\\\",\\\"amount\\\":10},{\\\"definition_id\\\":\\\"attribute:ht\\\",\\\"amount\\\":10},{\\\"definition_id\\\":\\\"skill:broadsword\\\",\\\"amount\\\":12},{\\\"definition_id\\\":\\\"skill:shield\\\",\\\"amount\\\":4}]},\\\"custom\\\":[]},\\\"aware_of\\\":[],\\\"conditions\\\":[],\\\"available_at\\\":0,\\\"body\\\":null,\\\"held_item_hands\\\":[],\\\"approval\\\":{\\\"campaign_id\\\":\\\"924fbc0e-93c1-4e81-ae26-04dbc96d7257\\\",\\\"actor_id\\\":\\\"a\\\",\\\"build_revision\\\":\\\"8b378c6e875f840248b8e10d4512ca661c31b03c3f37c85724da8c26d8075282\\\",\\\"review_digest\\\":\\\"1bc3a9d8dd7ef5b6d53fee7c7a1dd3dc74504d72a8d890f1887b83340fdf72aa\\\",\\\"rules_revision\\\":\\\"ce4caf2ad9cb087bf6216f254e6813253872987cbd7d9114023264a5849f1493\\\",\\\"policy_digest\\\":\\\"0f82993f3d1e0a77a8fb38141770c18b6fd7bd6f298d1810ceb77c49f0cbb882\\\",\\\"approver_id\\\":\\\"engine:auto\\\",\\\"decision\\\":\\\"automatic\\\",\\\"reason\\\":\\\"Within automatic campaign limits\\\",\\\"recorded_revision\\\":0,\\\"findings\\\":[]}},{\\\"actor_id\\\":\\\"b\\\",\\\"proposal\\\":{\\\"draft\\\":{\\\"name\\\":\\\"Mira\\\",\\\"backstory\\\":\\\"\\\",\\\"purchases\\\":[{\\\"definition_id\\\":\\\"attribute:st\\\",\\\"amount\\\":10},{\\\"definition_id\\\":\\\"attribute:dx\\\",\\\"amount\\\":10},{\\\"definition_id\\\":\\\"attribute:iq\\\",\\\"amount\\\":10},{\\\"definition_id\\\":\\\"attribute:ht\\\",\\\"amount\\\":10},{\\\"definition_id\\\":\\\"skill:broadsword\\\",\\\"amount\\\":12},{\\\"definition_id\\\":\\\"skill:shield\\\",\\\"amount\\\":4}]},\\\"custom\\\":[]},\\\"aware_of\\\":[],\\\"conditions\\\":[],\\\"available_at\\\":0,\\\"body\\\":null,\\\"held_item_hands\\\":[],\\\"approval\\\":{\\\"campaign_id\\\":\\\"924fbc0e-93c1-4e81-ae26-04dbc96d7257\\\",\\\"actor_id\\\":\\\"b\\\",\\\"build_revision\\\":\\\"8b378c6e875f840248b8e10d4512ca661c31b03c3f37c85724da8c26d8075282\\\",\\\"review_digest\\\":\\\"1bc3a9d8dd7ef5b6d53fee7c7a1dd3dc74504d72a8d890f1887b83340fdf72aa\\\",\\\"rules_revision\\\":\\\"ce4caf2ad9cb087bf6216f254e6813253872987cbd7d9114023264a5849f1493\\\",\\\"policy_digest\\\":\\\"0f82993f3d1e0a77a8fb38141770c18b6fd7bd6f298d1810ceb77c49f0cbb882\\\",\\\"approver_id\\\":\\\"engine:auto\\\",\\\"decision\\\":\\\"automatic\\\",\\\"reason\\\":\\\"Within automatic campaign limits\\\",\\\"recorded_revision\\\":0,\\\"findings\\\":[]}}],\\\"approvals\\\":[{\\\"campaign_id\\\":\\\"924fbc0e-93c1-4e81-ae26-04dbc96d7257\\\",\\\"actor_id\\\":\\\"a\\\",\\\"build_revision\\\":\\\"8b378c6e875f840248b8e10d4512ca661c31b03c3f37c85724da8c26d8075282\\\",\\\"review_digest\\\":\\\"1bc3a9d8dd7ef5b6d53fee7c7a1dd3dc74504d72a8d890f1887b83340fdf72aa\\\",\\\"rules_revision\\\":\\\"ce4caf2ad9cb087bf6216f254e6813253872987cbd7d9114023264a5849f1493\\\",\\\"policy_digest\\\":\\\"0f82993f3d1e0a77a8fb38141770c18b6fd7bd6f298d1810ceb77c49f0cbb882\\\",\\\"approver_id\\\":\\\"engine:auto\\\",\\\"decision\\\":\\\"automatic\\\",\\\"reason\\\":\\\"Within automatic campaign limits\\\",\\\"recorded_revision\\\":0,\\\"findings\\\":[]},{\\\"campaign_id\\\":\\\"924fbc0e-93c1-4e81-ae26-04dbc96d7257\\\",\\\"actor_id\\\":\\\"b\\\",\\\"build_revision\\\":\\\"8b378c6e875f840248b8e10d4512ca661c31b03c3f37c85724da8c26d8075282\\\",\\\"review_digest\\\":\\\"1bc3a9d8dd7ef5b6d53fee7c7a1dd3dc74504d72a8d890f1887b83340fdf72aa\\\",\\\"rules_revision\\\":\\\"ce4caf2ad9cb087bf6216f254e6813253872987cbd7d9114023264a5849f1493\\\",\\\"policy_digest\\\":\\\"0f82993f3d1e0a77a8fb38141770c18b6fd7bd6f298d1810ceb77c49f0cbb882\\\",\\\"approver_id\\\":\\\"engine:auto\\\",\\\"decision\\\":\\\"automatic\\\",\\\"reason\\\":\\\"Within automatic campaign limits\\\",\\\"recorded_revision\\\":0,\\\"findings\\\":[]}],\\\"last_result\\\":null,\\\"rulings\\\":[],\\\"encounters\\\":[{\\\"id\\\":\\\"fight\\\",\\\"spatial_context\\\":{\\\"kind\\\":\\\"square\\\",\\\"battlefield_id\\\":\\\"dock\\\",\\\"placements\\\":[{\\\"actor_id\\\":\\\"a\\\",\\\"position\\\":{\\\"x\\\":0,\\\"y\\\":0},\\\"facing\\\":\\\"east\\\"},{\\\"actor_id\\\":\\\"b\\\",\\\"position\\\":{\\\"x\\\":1,\\\"y\\\":0},\\\"facing\\\":\\\"west\\\"}]},\\\"status\\\":\\\"active\\\",\\\"participants\\\":[{\\\"actor_id\\\":\\\"a\\\",\\\"initiative\\\":10,\\\"retreat_used\\\":false,\\\"retreat_attacker_id\\\":null,\\\"tactical_defense_bonus\\\":0,\\\"posture\\\":\\\"standing\\\",\\\"reach\\\":1,\\\"movement_allowance\\\":5,\\\"ready_item_ids\\\":[\\\"sword-a\\\"],\\\"reaction_available\\\":true,\\\"parries\\\":[],\\\"block_used\\\":false,\\\"defense_penalty\\\":0,\\\"last_maneuver\\\":null,\\\"last_attack_item_id\\\":null,\\\"hand_bindings\\\":[],\\\"arm_locked\\\":false,\\\"grappled\\\":false,\\\"pinned\\\":false,\\\"forced_do_nothing\\\":false,\\\"maneuver_state\\\":{\\\"aim_item_id\\\":null,\\\"aim_target_id\\\":null,\\\"aim_seconds\\\":0,\\\"aim_accuracy\\\":0,\\\"aim_mode_id\\\":null,\\\"aim_braced\\\":false,\\\"aim_sight_bonus\\\":0,\\\"evaluate_target_id\\\":null,\\\"evaluate_bonus\\\":0,\\\"attack_bonus\\\":0,\\\"attack_cap\\\":null,\\\"strong\\\":false,\\\"defense_forbidden\\\":false,\\\"parry_forbidden\\\":false,\\\"enhanced_defense\\\":null,\\\"feint_target_id\\\":null,\\\"feint_penalty\\\":0,\\\"wait\\\":null,\\\"defended\\\":false,\\\"attacks_remaining\\\":0,\\\"second_attack_item_id\\\":null,\\\"second_attack_target_id\\\":null,\\\"second_attack_mode_id\\\":null,\\\"second_attack_penalty\\\":0,\\\"stop_thrust_damage_bonus\\\":0,\\\"concentrating\\\":false,\\\"concentration_seconds\\\":0,\\\"feint_rolls\\\":[]}},{\\\"actor_id\\\":\\\"b\\\",\\\"initiative\\\":10,\\\"retreat_used\\\":false,\\\"retreat_attacker_id\\\":null,\\\"tactical_defense_bonus\\\":0,\\\"posture\\\":\\\"standing\\\",\\\"reach\\\":1,\\\"movement_allowance\\\":5,\\\"ready_item_ids\\\":[\\\"shield-b\\\",\\\"sword-b\\\"],\\\"reaction_available\\\":true,\\\"parries\\\":[],\\\"block_used\\\":false,\\\"defense_penalty\\\":0,\\\"last_maneuver\\\":null,\\\"last_attack_item_id\\\":null,\\\"hand_bindings\\\":[],\\\"arm_locked\\\":false,\\\"grappled\\\":false,\\\"pinned\\\":false,\\\"forced_do_nothing\\\":false,\\\"maneuver_state\\\":{\\\"aim_item_id\\\":null,\\\"aim_target_id\\\":null,\\\"aim_seconds\\\":0,\\\"aim_accuracy\\\":0,\\\"aim_mode_id\\\":null,\\\"aim_braced\\\":false,\\\"aim_sight_bonus\\\":0,\\\"evaluate_target_id\\\":null,\\\"evaluate_bonus\\\":0,\\\"attack_bonus\\\":0,\\\"attack_cap\\\":null,\\\"strong\\\":false,\\\"defense_forbidden\\\":false,\\\"parry_forbidden\\\":false,\\\"enhanced_defense\\\":null,\\\"feint_target_id\\\":null,\\\"feint_penalty\\\":0,\\\"wait\\\":null,\\\"defended\\\":false,\\\"attacks_remaining\\\":0,\\\"second_attack_item_id\\\":null,\\\"second_attack_target_id\\\":null,\\\"second_attack_mode_id\\\":null,\\\"second_attack_penalty\\\":0,\\\"stop_thrust_damage_bonus\\\":0,\\\"concentrating\\\":false,\\\"concentration_seconds\\\":0,\\\"feint_rolls\\\":[]}}],\\\"turn_order\\\":[\\\"a\\\",\\\"b\\\"],\\\"round\\\":1,\\\"turn_index\\\":0,\\\"pending_defense\\\":null,\\\"defense_history\\\":[],\\\"completion_reason\\\":null,\\\"wounds\\\":[],\\\"blocked_reason\\\":null,\\\"wait_interrupt\\\":null,\\\"grips\\\":[],\\\"close_pairs\\\":[],\\\"pending_unarmed\\\":null,\\\"unarmed_history\\\":[],\\\"ranged_situations\\\":[],\\\"tactical_traces\\\":[]}],\\\"last_combat_result\\\":{\\\"encounter_id\\\":\\\"fight\\\",\\\"code\\\":\\\"combat.started\\\",\\\"round\\\":1,\\\"current_actor_id\\\":\\\"a\\\",\\\"pending_defense_id\\\":null,\\\"available\\\":[\\\"do_nothing\\\",\\\"move\\\",\\\"ready\\\",\\\"change_posture\\\",\\\"attack\\\",\\\"wait\\\",\\\"aim\\\",\\\"evaluate\\\",\\\"feint\\\",\\\"all_out_attack\\\",\\\"all_out_defense\\\",\\\"move_and_attack\\\",\\\"concentrate\\\"],\\\"injury\\\":null,\\\"unarmed\\\":null},\\\"advancement\\\":[],\\\"migrations\\\":[],\\\"members\\\":[{\\\"principal_id\\\":\\\"a\\\",\\\"role\\\":\\\"player\\\",\\\"actor_ids\\\":[\\\"a\\\"]},{\\\"principal_id\\\":\\\"b\\\",\\\"role\\\":\\\"player\\\",\\\"actor_ids\\\":[\\\"b\\\"]},{\\\"principal_id\\\":\\\"gm\\\",\\\"role\\\":\\\"gm\\\",\\\"actor_ids\\\":[]}],\\\"actor_scenes\\\":[],\\\"scene_events\\\":[],\\\"journal\\\":[],\\\"fired_scene_triggers\\\":[],\\\"objectives\\\":{\\\"outcome\\\":\\\"ongoing\\\",\\\"evidence\\\":[],\\\"revision\\\":0,\\\"at\\\":0,\\\"rules_version\\\":0,\\\"settled_reward_ids\\\":[]},\\\"noncombat\\\":[],\\\"party\\\":{\\\"version\\\":1,\\\"groups\\\":[],\\\"queue\\\":[],\\\"receipts\\\":[],\\\"effects\\\":[],\\\"fired_effect_ids\\\":[]},\\\"npcs\\\":{\\\"version\\\":1,\\\"progress\\\":[],\\\"decisions\\\":[]},\\\"recovery\\\":{\\\"version\\\":1,\\\"setbacks\\\":[],\\\"captivity\\\":[],\\\"decisions\\\":[],\\\"dead_actor_ids\\\":[],\\\"replacements\\\":[],\\\"impossible_objective_ids\\\":[]},\\\"director\\\":[],\\\"drafts\\\":[]}\", \"rules_ref\": {\"edition\": \"gurps-4e\", \"packages\": [{\"id\": \"package:gurps-basic-set-4e-2004-characters\", \"version\": \"1.0.0\", \"digest\": \"4ed03cadc8fe17b88009c52537d2068f3fc6f36a916b3f2518edd7c32f409559\"}], \"policy_id\": \"melee-test\", \"policy_version\": 1}}",
+  "commands": [
+    {
+      "command_id": "fatigue-rest",
+      "actor_id": "a",
+      "expected_revision": 1,
+      "resulting_revision": 2,
+      "action": "combat",
+      "command_input": "{\"command\":{\"actor_id\":\"a\",\"attack_option\":null,\"defense_option\":null,\"destination\":null,\"encounter_id\":\"fight\",\"expected_revision\":1,\"facing\":null,\"hex_facing\":null,\"hex_path\":[],\"hit_location\":null,\"id\":\"fatigue-rest\",\"item_id\":null,\"kind\":\"take_combat_turn\",\"maneuver\":\"do_nothing\",\"mode_id\":null,\"posture\":null,\"ready_hand\":null,\"reload_ammunition_id\":null,\"second_item_id\":null,\"second_mode_id\":null,\"second_target_id\":null,\"shots\":1,\"step_timing\":\"before\",\"target_id\":null,\"wait_trigger\":null},\"operation\":\"combat\"}",
+      "seed": "e3ee577395409a66357f1d77636e653c7271738dfc7896dbd540ea9c586caf0e",
+      "recorded_at_us": 1789219888744233,
+      "state_digest": "c1e46cf5a4168f38efc1b7634371d737ff10da9a2c4ea54f285dd63cadbfbf6a",
+      "events": [
+        {
+          "kind": "state.patched",
+          "audience": {
+            "kind": "gm"
+          },
+          "scope": "campaign",
+          "before_digest": "8dc8afedb85a3094e65c462f7ace9dc0a3b0efe3f9cca49935ab654e1711e0ee",
+          "after_digest": "c1e46cf5a4168f38efc1b7634371d737ff10da9a2c4ea54f285dd63cadbfbf6a",
+          "changes": [
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "encounters",
+                0,
+                "completion_reason"
+              ],
+              "value": "incapacitation"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "encounters",
+                0,
+                "participants",
+                0,
+                "last_maneuver"
+              ],
+              "value": "do_nothing"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "encounters",
+                0,
+                "status"
+              ],
+              "value": "completed"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "encounters",
+                0,
+                "turn_index"
+              ],
+              "value": 1
+            },
+            {
+              "operation": "remove",
+              "path": [
+                "play_json",
+                "last_combat_result",
+                "available",
+                12
+              ],
+              "value": null
+            },
+            {
+              "operation": "remove",
+              "path": [
+                "play_json",
+                "last_combat_result",
+                "available",
+                11
+              ],
+              "value": null
+            },
+            {
+              "operation": "remove",
+              "path": [
+                "play_json",
+                "last_combat_result",
+                "available",
+                10
+              ],
+              "value": null
+            },
+            {
+              "operation": "remove",
+              "path": [
+                "play_json",
+                "last_combat_result",
+                "available",
+                9
+              ],
+              "value": null
+            },
+            {
+              "operation": "remove",
+              "path": [
+                "play_json",
+                "last_combat_result",
+                "available",
+                8
+              ],
+              "value": null
+            },
+            {
+              "operation": "remove",
+              "path": [
+                "play_json",
+                "last_combat_result",
+                "available",
+                7
+              ],
+              "value": null
+            },
+            {
+              "operation": "remove",
+              "path": [
+                "play_json",
+                "last_combat_result",
+                "available",
+                6
+              ],
+              "value": null
+            },
+            {
+              "operation": "remove",
+              "path": [
+                "play_json",
+                "last_combat_result",
+                "available",
+                5
+              ],
+              "value": null
+            },
+            {
+              "operation": "remove",
+              "path": [
+                "play_json",
+                "last_combat_result",
+                "available",
+                4
+              ],
+              "value": null
+            },
+            {
+              "operation": "remove",
+              "path": [
+                "play_json",
+                "last_combat_result",
+                "available",
+                3
+              ],
+              "value": null
+            },
+            {
+              "operation": "remove",
+              "path": [
+                "play_json",
+                "last_combat_result",
+                "available",
+                2
+              ],
+              "value": null
+            },
+            {
+              "operation": "remove",
+              "path": [
+                "play_json",
+                "last_combat_result",
+                "available",
+                1
+              ],
+              "value": null
+            },
+            {
+              "operation": "remove",
+              "path": [
+                "play_json",
+                "last_combat_result",
+                "available",
+                0
+              ],
+              "value": null
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "last_combat_result",
+                "code"
+              ],
+              "value": "combat.do_nothing"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "last_combat_result",
+                "current_actor_id"
+              ],
+              "value": "b"
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "events",
+                0
+              ],
+              "value": {
+                "id": "injury:injury-start:5f38436e01e047514bbcf425e2461cff1c716bf21ff50fdb408f69553323e2d3",
+                "at": 0,
+                "kind": "{\"penetration\":0,\"injury\":0,\"checks\":[],\"dropped_ready_items\":[],\"location\":null,\"location_dice\":[],\"duration_dice\":[],\"uncapped_injury\":0,\"effective_resistance\":0,\"lasting_injury_ids\":[]}",
+                "target_id": "a"
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "events",
+                1
+              ],
+              "value": {
+                "id": "injury:injury-end:5f38436e01e047514bbcf425e2461cff1c716bf21ff50fdb408f69553323e2d3",
+                "at": 0,
+                "kind": "{\"penetration\":0,\"injury\":0,\"checks\":[],\"dropped_ready_items\":[],\"location\":null,\"location_dice\":[],\"duration_dice\":[],\"uncapped_injury\":0,\"effective_resistance\":0,\"lasting_injury_ids\":[]}",
+                "target_id": "a"
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "game_time"
+              ],
+              "value": 1
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "pools",
+                0,
+                "injury",
+                "turn"
+              ],
+              "value": 1
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "receipts",
+                0
+              ],
+              "value": {
+                "command_id": "injury-start:5f38436e01e047514bbcf425e2461cff1c716bf21ff50fdb408f69553323e2d3",
+                "digest": "c4146926fdc0db07db3da21ab1b184486f22d9d460147f29f2a71f810d961c47"
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "receipts",
+                1
+              ],
+              "value": {
+                "command_id": "injury-end:5f38436e01e047514bbcf425e2461cff1c716bf21ff50fdb408f69553323e2d3",
+                "digest": "b2ba09ce43a46a93b3b3d9c83158fe48d0769dcc847542a7a545764a314cb5ba"
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "receipts",
+                2
+              ],
+              "value": {
+                "command_id": "combat-time:5f38436e01e047514bbcf425e2461cff1c716bf21ff50fdb408f69553323e2d3",
+                "digest": "e872c0b2a42d482736f4675bbd7d49eab4e0639aff24e99b74fb3a22c8acfa85"
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "resources",
+                "revision"
+              ],
+              "value": 2
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "revision"
+              ],
+              "value": 2
+            },
+            {
+              "operation": "set",
+              "path": [
+                "revision"
+              ],
+              "value": 2
+            }
+          ]
+        },
+        {
+          "kind": "combat.resolved",
+          "audience": {
+            "kind": "gm"
+          },
+          "result": {
+            "encounter_id": "fight",
+            "code": "combat.do_nothing",
+            "round": 1,
+            "current_actor_id": "b",
+            "pending_defense_id": null,
+            "available": [],
+            "injury": null,
+            "unarmed": null
+          }
+        },
+        {
+          "kind": "injury.resolved",
+          "audience": {
+            "kind": "gm"
+          },
+          "result": {
+            "penetration": 0,
+            "injury": 0,
+            "checks": [],
+            "dropped_ready_items": [],
+            "location": null,
+            "location_dice": [],
+            "duration_dice": [],
+            "uncapped_injury": 0,
+            "effective_resistance": 0,
+            "lasting_injury_ids": []
+          }
+        },
+        {
+          "kind": "injury.resolved",
+          "audience": {
+            "kind": "gm"
+          },
+          "result": {
+            "penetration": 0,
+            "injury": 0,
+            "checks": [],
+            "dropped_ready_items": [],
+            "location": null,
+            "location_dice": [],
+            "duration_dice": [],
+            "uncapped_injury": 0,
+            "effective_resistance": 0,
+            "lasting_injury_ids": []
+          }
+        },
+        {
+          "kind": "command.applied",
+          "audience": {
+            "kind": "actors",
+            "actor_ids": [
+              "a"
+            ]
+          },
+          "actor_id": "a",
+          "action": "combat"
+        },
+        {
+          "kind": "projection.refresh",
+          "audience": {
+            "kind": "campaign"
+          }
+        }
+      ]
+    }
+  ]
+}

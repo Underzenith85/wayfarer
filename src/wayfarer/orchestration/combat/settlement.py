@@ -14,6 +14,7 @@ from wayfarer.engine.simulation.combat.commands import (
     TypedCombatCommand,
 )
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
+from wayfarer.engine.simulation.combat.settlement import settle_encounter
 from wayfarer.engine.simulation.combat.withdrawal import elapsed_seconds
 from wayfarer.engine.simulation.resources import Advance
 from wayfarer.errors import ConflictError, ValidationError
@@ -33,32 +34,11 @@ def _settle_combat(
     encounter = step.encounter
     resources = step.resources
     result = step.result
-    if (
-        engine.rules.gurps_equipment is not None
-        and encounter.pending_defense is None
-        and encounter.pending_unarmed is None
-        and encounter.status == "active"
-    ):
-        from wayfarer.engine.simulation.actors import fatigue_ready
-
-        conscious = {
-            p.id.removeprefix("hp:")
-            for p in resources.pools
-            if p.id.startswith("hp:")
-            and p.injury is not None
-            and not p.injury.incapacitated
-            and fatigue_ready(
-                state.model_copy(update={"resources": resources}), p.id.removeprefix("hp:")
-            )
-        }
-        if len(conscious.intersection(encounter.turn_order)) < 2:
-            encounter = encounter.model_copy(
-                update={"status": "completed", "completion_reason": "incapacitation"}
-            )
-        else:
-            while encounter.current_actor_id not in conscious:
-                encounter = engine._advance(encounter)
-        encounters = tuple(encounter if e.id == encounter.id else e for e in encounters)
+    encounter = settle_encounter(
+        play.rules_context, state.model_copy(update={"resources": resources}), encounter
+    )
+    encounters = tuple(encounter if e.id == encounter.id else e for e in encounters)
+    if encounter is not step.encounter:
         result = result.model_copy(
             update={
                 "round": encounter.round,

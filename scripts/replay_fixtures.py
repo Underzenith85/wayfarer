@@ -22,7 +22,15 @@ from wayfarer.persistence.replay import ReplayCheck, require_configuration, veri
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "tests/fixtures/replay"
-CASES = ("reference", "capture-rescue", "hex-combat", "spell", "recovery")
+CASES = (
+    "reference",
+    "capture-rescue",
+    "hex-combat",
+    "spell",
+    "recovery",
+    "fatigue-turn",
+    "fatigue-defense",
+)
 
 
 class FixtureCommand(Record):
@@ -88,6 +96,11 @@ async def engine_for(name: str, directory: Path) -> ActionEngine:
         from test_tactical import setup
 
         _, play = await setup(directory)
+        return play.engine
+    if name in ("fatigue-turn", "fatigue-defense"):
+        from test_gurps_melee import setup as melee_setup
+
+        _, play = await melee_setup(directory, "gurps-basic-set-4e-2004")
         return play.engine
     if name == "spell":
         from test_spell_bindings import setup as spell_setup
@@ -202,6 +215,22 @@ async def capture(name: str, directory: Path) -> ReplayFixture:
         from test_tactical import setup
 
         cid, play = await setup(directory)
+    elif name in ("fatigue-turn", "fatigue-defense"):
+        from test_combat_settlement import condition
+        from test_gurps_melee import attack
+        from test_gurps_melee import setup as melee_setup
+
+        cid, play = await melee_setup(directory, "gurps-basic-set-4e-2004")
+        if name == "fatigue-defense":
+            await attack(cid, play)
+        # Reviewed genesis: fatigue collapse with an unaffected injury record.
+        # The defense case retains an attack that still needs resolution.
+        genesis = await play.store.read(cid)
+        state = condition(play._load(genesis), "b", "collapsed")
+        genesis["play_json"] = state.model_dump_json()
+        store = AsyncSQLiteStore(directory / "fatigue-genesis.sqlite")
+        await store.insert(genesis)
+        play = PlayService(store, play.engine)
     elif name == "spell":
         from test_spell_bindings import setup as spell_setup
 
@@ -253,6 +282,24 @@ async def capture(name: str, directory: Path) -> ReplayFixture:
                 ),
                 authenticated_actor_id="a",
             )
+        elif name in ("fatigue-turn", "fatigue-defense"):
+            from test_gurps_melee import choice
+
+            state = play._load(initial)
+            command = (
+                choice()
+                if name == "fatigue-defense"
+                else TakeCombatTurn(
+                    id="fatigue-rest",
+                    actor_id="a",
+                    expected_revision=state.revision,
+                    encounter_id="fight",
+                    maneuver="do_nothing",
+                )
+            )
+            await CombatService(play).execute(cid, command, authenticated_actor_id=command.actor_id)
+            settled = play._load(await play.store.read(cid)).encounters[0]
+            assert settled.status == "completed" and settled.completion_reason == "incapacitation"
         elif name == "spell":
             from test_spell_bindings import command as spell_command
 

@@ -39,5 +39,7 @@
   "tests/test_release_invariants.py::test_fixture_fold_and_reexecution[recovery]",
   "tests/test_release_invariants.py::test_replay_gate_rejects_snapshot_drift_and_allows_reviewed_regeneration",
   "tests/test_replay.py::test_durable_replay_reports_legacy_and_detects_tampering[sqlite]",
-  "tests/test_replay.py::test_durable_replay_reports_legacy_and_detects_tampering[postgres]"
+  "tests/test_replay.py::test_durable_replay_reports_legacy_and_detects_tampering[postgres]",
+  "tests/test_release_invariants.py::test_fixture_fold_and_reexecution[fatigue-turn]",
+  "tests/test_release_invariants.py::test_fixture_fold_and_reexecution[fatigue-defense]"
 ]
