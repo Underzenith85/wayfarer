@@ -58,6 +58,18 @@ export function LiveControls() {
       setBusy(false);
     }
   };
+  const refresh = async () => {
+    setBusy(true);
+    setError("");
+    try {
+      setEngine(await transport.readEngine(new AbortController().signal));
+      await store.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Refresh failed");
+    } finally {
+      setBusy(false);
+    }
+  };
   return (
     <section className="scene-card live-decisions" aria-label="Scene decisions">
       <h2>Scene decisions</h2>
@@ -72,17 +84,7 @@ export function LiveControls() {
               : "Your choices are available."}
       </p>
       <div className="context-actions">
-        <Button
-          disabled={busy}
-          onClick={() =>
-            void transport
-              .readEngine(new AbortController().signal)
-              .then(setEngine)
-              .catch((e: unknown) =>
-                setError(e instanceof Error ? e.message : "Refresh failed"),
-              )
-          }
-        >
+        <Button disabled={busy} onClick={() => void refresh()}>
           Refresh scene decisions
         </Button>
         {engine.scene_choices
