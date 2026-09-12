@@ -1,7 +1,7 @@
 """Independent B367/B377/B384-392 fixtures; no rulebook prose is reproduced.
 
-Baseline: Basic Set: Campaigns, Fourth Edition (2004), first printing,
-errata 2007-01-26. Exact geometric edge conventions are engine policy, not
+Baseline: Basic Set: Campaigns, Fourth Edition, fourth printing (April 2008).
+Exact geometric edge conventions are engine policy, not
 published examples; see docs/tactical-geometry.md for the source-audit boundary.
 """
 

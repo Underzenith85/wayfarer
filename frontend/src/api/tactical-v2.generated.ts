@@ -441,7 +441,7 @@ export interface components {
       injury: number;
       /**
        * Source
-       * @default GURPS Basic Set 4e (2004), B367-377, B384-392; baseline errata 2007-01-26
+       * @default GURPS Basic Set: Campaigns 4e, fourth printing (April 2008), B367-377, B384-392
        */
       source: string;
     };
@@ -999,7 +999,7 @@ export interface components {
        * Baseline Id
        * @constant
        */
-      baseline_id: "gurps-4e-2004-first-printing+errata-2007-01-26";
+      baseline_id: "gurps-4e-characters-3p-2008+campaigns-4p-2008";
       /** Cells */
       cells: components["schemas"]["Cell"][];
       /** Stairs */

@@ -1,7 +1,7 @@
 """Independent construction values, Characters 4e third printing, B23-29/35-165.
 
-Numeric metadata evidence does not certify the frozen first-printing profile or
-runtime effects. Template totals use the real CharacterCompiler, not fixture
+Numeric metadata evidence does not certify runtime effects. Template totals use
+the real CharacterCompiler, not fixture
 values generated from the catalog under test.
 """
 
@@ -172,7 +172,7 @@ def test_inventory_package_and_audit_reconcile() -> None:
         "background",
     }
     assert {e.id for e in entries} == {d.id for d in package.definitions}
-    assert all(e.blockers and e.followup_issues for e in entries)
+    assert all(e.followup_issues for e in entries)
     implemented = {
         d.id for d in package.definitions if d.status is ImplementationStatus.IMPLEMENTED
     }
@@ -216,7 +216,7 @@ def test_inventory_package_and_audit_reconcile() -> None:
     assert isinstance(unbound, tuple)
     assert "trait.rank" in unbound and "trait.voice" not in unbound
     bound = next(e for e in entries if e.id == "trait:voice")
-    assert bound.blockers == ("first-printing-delta-audit", "voice-influence-skill-bonus")
+    assert bound.blockers == ("voice-influence-skill-bonus",)
     assert any(e.obligations for e in entries)
     assert candidate_package().digest == package.digest
     with pytest.raises(ValidationError, match="Duplicate"):

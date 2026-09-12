@@ -1,7 +1,7 @@
 """Independent B16/B270 (Characters third printing) and B378 expectations.
 
 Campaigns fourth printing supplies the half-damage boundary. These fixtures do
-not certify the frozen first-printing/errata baseline. Weapons are test data.
+not certify the selected-printing baseline. Weapons are test data.
 """
 
 from pathlib import Path

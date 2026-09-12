@@ -731,7 +731,7 @@
             "type": "integer"
           },
           "source": {
-            "default": "GURPS Basic Set 4e (2004), B367-377, B384-392; baseline errata 2007-01-26",
+            "default": "GURPS Basic Set: Campaigns 4e, fourth printing (April 2008), B367-377, B384-392",
             "title": "Source",
             "type": "string"
           }
@@ -1510,7 +1510,7 @@
             "type": "string"
           },
           "baseline_id": {
-            "const": "gurps-4e-2004-first-printing+errata-2007-01-26",
+            "const": "gurps-4e-characters-3p-2008+campaigns-4p-2008",
             "title": "Baseline Id",
             "type": "string"
           },

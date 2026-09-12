@@ -4,8 +4,8 @@ Independent expectations: Basic Set Characters, Fourth Edition, B168-233 skill
 chapter with the B301-304 index (attribute, difficulty, recorded default and
 specialty per row) and B170 for the point/level progression. Runtime targets
 follow the existing ranged dispatch documented in `docs/gurps-ranged.md`
-(Lite 27-29; B372-375, B550). Third-printing constructions are not a
-first-printing certification; #191 still blocks every row.
+(Lite 27-29; B372-375, B550). These constructions use the selected Characters
+third-printing baseline; remaining mechanics gaps retain concrete owners.
 """
 
 from decimal import Decimal
@@ -334,9 +334,9 @@ def test_authored_catalogs_fail_closed_before_a_campaign_exists() -> None:
                     definition_id="equipment:test-weapon",
                     provenance=Provenance(
                         source_id="sjg:basic-set-characters-4e-2004",
-                        edition="Fourth Edition, first printing (2004)",
+                        edition="Fourth Edition, third printing (February 2008)",
                         pages=(198,),
-                        errata="errata-2007-01-26",
+                        errata="none-selected",
                     ),
                     weight_millipounds=1000,
                     price=1,
@@ -348,9 +348,9 @@ def test_authored_catalogs_fail_closed_before_a_campaign_exists() -> None:
                     definition_id="equipment:ammo",
                     provenance=Provenance(
                         source_id="sjg:basic-set-characters-4e-2004",
-                        edition="Fourth Edition, first printing (2004)",
+                        edition="Fourth Edition, third printing (February 2008)",
                         pages=(198,),
-                        errata="errata-2007-01-26",
+                        errata="none-selected",
                     ),
                     weight_millipounds=10,
                     price=1,

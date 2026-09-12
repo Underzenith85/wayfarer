@@ -2,17 +2,17 @@
 
 Issue #95 freezes the source boundary and evidence contract for the GURPS mechanics track. It does **not** certify the existing Wayfarer prototype as GURPS-conformant and it does not copy rulebook prose.
 
-## Frozen source artifacts
+## Selected source artifacts
 
-The baseline selects the 2004 Fourth Edition line. Revised editions, later printings, supplements and FAQ interpretations are excluded unless an explicit baseline revision adds them.
+The baseline selects the exact supplied Fourth Edition PDFs. Other printings, supplements, errata overlays, and FAQ interpretations are excluded unless an explicit baseline revision adds them. Existing package and profile identifiers stay stable for prerelease compatibility; the distinct baseline ID records this source revision.
 
-| Source ID | Frozen artifact | Errata revision |
+| Source ID | Selected artifact | Errata revision |
 | --- | --- | --- |
 | `sjg:gurps-lite-4e-2004` | August 2004 electronic edition, Rev. 07/12/04 | No separate errata overlay selected |
-| `sjg:basic-set-characters-4e-2004` | 2004 Fourth Edition, first printing | [First-printing errata](https://www.sjgames.com/errata/gurps/4e/basic-set-characters.html), January 26, 2007 |
-| `sjg:basic-set-campaigns-4e-2004` | 2004 Fourth Edition, first printing | [First-printing errata](https://www.sjgames.com/errata/gurps/4e/basic-set-campaigns.html), January 26, 2007 |
+| `sjg:basic-set-characters-4e-2004` | Fourth Edition, third printing, February 2008; SHA-256 `872b5fece8f4013bf46825b397ef52b52c865fa2879f4544f055d9b6caecf47e` | No separate errata overlay selected |
+| `sjg:basic-set-campaigns-4e-2004` | Fourth Edition, fourth printing, April 2008; SHA-256 `79cff8f75b91b4ba72e7947320bf98e184515e60108bda0f0891d379b3c96e80` | No separate errata overlay selected |
 
-These are deliberate historical targets, not claims about the latest PDFs. Official source entry points: [Lite](https://www.sjgames.com/gurps/lite/) and [Basic Set](https://www.sjgames.com/gurps/books/basic/). Source metadata is recorded in `tests/fixtures/gurps/conformance.json`; no rulebook text is bundled. The full source artifacts and errata contents have not been audited in this change. Exact targets are specified, but source review remains a merge blocker (see below).
+The Characters and Campaigns printing statements and artifact digests were reviewed from the supplied PDFs. The exact Lite artifact remains unavailable. Official source entry points: [Lite](https://www.sjgames.com/gurps/lite/) and [Basic Set](https://www.sjgames.com/gurps/books/basic/). Source metadata is recorded in `tests/fixtures/gurps/conformance.json`; no rulebook text is bundled. Selecting an artifact does not promote individual mechanics or fixtures to verified.
 
 ## Profiles
 
@@ -129,8 +129,8 @@ The new profile remains opt-in and blocked by the existing certification gates.
 Thirty-six independent revision-2 cases in the conformance ledger cover damage,
 unsupported intermediate boundaries, inclusive purchase limits and their first
 out-of-limit values. The #191 source ledger binds each to its executable test.
-They are later-printing comparisons (Characters third printing, B15-17), not
-first-printing certification; selected errata reconciliation remains open in #191.
+They are selected-source comparisons (Characters third printing, B15-17), not
+full conformance certification; item-level review remains open in #191.
 
 ## Independent evidence
 
@@ -237,8 +237,8 @@ make either profile selectable.
 ### Trait compilation (#100)
 
 `tests/test_traits.py` supplies independent representative construction arithmetic
-for Basic Set: Characters, Fourth Edition, 2004 first printing, B101-102 and
-B120-121, with the frozen 2007-01-26 errata baseline. It covers level multiplication,
+for the selected Basic Set: Characters, Fourth Edition, third printing,
+B101-102 and B120-121. It covers level multiplication,
 self-control multipliers (6/9/12/15), additive modifiers, the net -80% discount
 floor, and final rounding toward higher point cost, including negative totals.
 The rules are selected by exact profile; Basic Set modifiers cannot enter Lite.
@@ -364,7 +364,7 @@ inventory for the Basic Set skill chapter. It records skill families, aliases,
 weapon classes and representative expanded specialties/techniques with page
 references, controlling attributes, difficulty and numeric attribute defaults.
 Cinematic/supernatural entries have a separate exclusion inventory. The inspected
-Characters printing is third; the frozen first-printing delta audit is pending.
+Characters printing is third; the frozen source delta audit is pending.
 
 `python -m scripts.audit_mundane_skills` emits coverage directly from this
 inventory, including each entry's explicit blockers and owning issues. Conditional
@@ -595,8 +595,8 @@ remaining Basic critical consequences in #146. Recovery from mortal wounds and e
 medical checks belong to #109; location effects to #107. Fatigue damage rejects
 until #109; corrosion's persistent armor destruction remains unavailable under
 #114. No generic damage multiplier implements those missing runtime effects.
-The intended source is Lite August 2004 pp. 28-30 and Basic Set Campaigns first
-printing B378-381, B419-423 plus the selected 2007-01-26 errata; source audit pending.
+The intended source is Lite August 2004 pp. 28-30 and the selected Basic Set:
+Campaigns fourth printing, B378-381 and B419-423; source audit pending.
 
 ## Character workshop integration (#116)
 
@@ -668,10 +668,10 @@ Energy settlement uses the existing FP receipt and persists atomically with resu
 `tests/test_spells.py` contains hand-entered timing, cost, mana, resistance, area,
 missile, interruption and retry expectations. `tests/test_spell_service.py` adds
 SQLite restart, simultaneous lost-response retries, CAS, authority and private
-trace evidence. Intended provenance is Characters Fourth Edition first printing
-(2004), B235-241, B246-247 and B249-250, with the selected 2007-01-26 errata. These
-references are provisional under the owner-authorized model-knowledge policy;
-the exact frozen source has not been inspected for this implementation.
+trace evidence. Intended provenance is the selected Characters Fourth Edition
+third printing, B235-241, B246-247 and B249-250. These references are provisional
+under the owner-authorized model-knowledge policy; the exact mechanics have not
+been inspected for this implementation.
 
 Coverage remains **partial**: these are lifecycle records, not execution of light
 visibility, daze restrictions, missile impacts or area fire exposure. The catalog,
@@ -698,7 +698,7 @@ This is not a complete table inventory. Remaining rows and special mechanics
 are a completion blocker in #180, which now accounts for them item by item; see
 [the equipment table audit](gurps-equipment-audit.md). The source is Characters
 fourth edition, third printing (February 2008); no separate errata overlay is
-selected. These facts do not certify the frozen first-printing profile. The
+selected. These facts do not certify the frozen source profile. The
 adapter makes no automatic catalog or saved-campaign changes.
 
 Object rules reference Campaigns fourth edition, fourth printing, B380 and
@@ -961,10 +961,9 @@ checkpoints omit the empty field and do not acquire transports automatically.
 No public API/client or active scenario capability is added; partial capabilities
 still fail the full-profile gate. Catalog vehicle listings remain non-operational.
 
-Source: Basic Set Campaigns Fourth Edition, fourth printing, B394-397,
-B430-432, B466-469. Numeric tests are independently entered in
-`tests/test_transport.py`. This printing does not supersede the frozen first
-printing + 2007-01-26 errata baseline: reconciliation remains under #191.
+Source: the selected Basic Set: Campaigns Fourth Edition, fourth printing,
+B394-397, B430-432 and B466-469. Numeric tests are independently entered in
+`tests/test_transport.py`; item-level review remains under #191.
 
 | Implemented internal slice | Evidence and limitations |
 | --- | --- |

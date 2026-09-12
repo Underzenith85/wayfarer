@@ -208,13 +208,13 @@ GURPS_CHARACTERS_SOURCE: Final = SourceReference(
     id="sjg:basic-set-characters-4e-2004",
     title="GURPS Basic Set: Characters",
     rights="user-supplied-reference",
-    citation="Steve Jackson Games, 2004 Fourth Edition, first printing; errata 2007-01-26",
+    citation="Steve Jackson Games, Fourth Edition, third printing, February 2008",
 )
 GURPS_CAMPAIGNS_SOURCE: Final = SourceReference(
     id="sjg:basic-set-campaigns-4e-2004",
     title="GURPS Basic Set: Campaigns",
     rights="user-supplied-reference",
-    citation="Steve Jackson Games, 2004 Fourth Edition, first printing; errata 2007-01-26",
+    citation="Steve Jackson Games, Fourth Edition, fourth printing, April 2008",
 )
 
 # Packages register identity, edition, provenance and dependencies. Definitions
@@ -283,7 +283,7 @@ GURPS_LITE_PROFILE_V2: Final = RegisteredProfile(
 GURPS_BASIC_PROFILE_V2: Final = RegisteredProfile(
     id="profile:gurps-basic-set-4e-2004",
     version=2,
-    title="GURPS Basic Set, Fourth Edition (2004, first printing)",
+    title="GURPS Basic Set, Fourth Edition (Characters 3p / Campaigns 4p)",
     rules=CampaignRules(
         edition=GURPS_EDITION,
         packages=(_pin(GURPS_CHARACTERS_PACKAGE_V2), _pin(GURPS_CAMPAIGNS_PACKAGE_V2)),

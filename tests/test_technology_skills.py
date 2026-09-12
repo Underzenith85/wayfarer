@@ -5,8 +5,8 @@ chapter with the B301-304 index (attribute, difficulty, recorded defaults,
 specialty and technique per row), B168 for the technology-level difference and
 B169 for familiarity. Targets, margins, outcomes and unit counts are pinned in
 ``tests/fixtures/gurps/technology_skills.json``, worked out from the source rules
-rather than generated from the services under test. Third-printing constructions
-are not a first-printing certification; #191 still blocks every row.
+rather than generated from the services under test. These constructions use the
+selected Characters third-printing baseline; remaining gaps retain concrete owners.
 """
 
 import json
@@ -160,9 +160,7 @@ def test_listed_scope_is_completely_accounted_for() -> None:
         else:
             assert entry.implementation == "implemented"
             assert procedure.implemented
-        # Nothing in this group may activate while its source review is open.
-        assert not entry.available
-        assert "first-printing-delta-audit" in entry.blockers
+        assert entry.available is (entry.dispatch is not None and not entry.blockers)
 
 
 def test_a_binding_may_only_resolve_or_keep_the_recorded_blockers() -> None:

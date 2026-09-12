@@ -1,7 +1,7 @@
 """Representative numeric definitions; catalog completeness remains issue #112.
 
 Baseline: Lite August 2004 Rev. 07/12/04, pp. 13-18; Basic Set:
-Characters Fourth Edition first printing (2004), errata 2007-01-26,
+Characters Fourth Edition, third printing (February 2008),
 B168-173, B179, B187, B208, B220, B222, B224, B230-232.
 """
 

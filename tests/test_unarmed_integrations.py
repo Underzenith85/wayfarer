@@ -1,6 +1,6 @@
 """Independent numeric cases: Basic Set B365, B370, B376, B382, B556-557.
 
-The historical first-printing/errata equivalence audit remains outstanding.
+The historical selected-printing equivalence audit remains outstanding.
 """
 
 from pathlib import Path

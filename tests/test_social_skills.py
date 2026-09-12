@@ -336,13 +336,13 @@ def test_inventory_rows_agree_with_the_procedure_registry() -> None:
     for identifier, entry in PROCEDURES.items():
         row = rows[identifier]
         assert row.procedure_owner == 345
-        recorded = set(row.blockers) - {"first-printing-delta-audit"}
+        recorded = set(row.blockers)
         assert set(entry.blockers) == recorded
         assert set(entry.owners) <= set(row.followup_issues), identifier
         assert row.bound is entry.dispatchable
         assert row.implementation == ("implemented" if entry.dispatchable else "unsupported")
         assert row.dispatch == (DISPATCH if entry.dispatchable else None)
-        assert not row.available
+        assert row.available is (entry.dispatchable and not row.blockers)
     # A transferred row keeps its blocker and every blocker still names an owner.
     assert "runtime-procedure" in rows["skill:savoir-faire"].blockers
     assert rows["skill:savoir-faire"].blocker_owners["runtime-procedure"] == (345, 366)

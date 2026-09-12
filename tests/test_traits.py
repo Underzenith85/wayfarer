@@ -1,6 +1,6 @@
-"""Independent arithmetic: Basic Set Characters 4e (2004), B101-102/B120-121.
+"""Independent arithmetic: selected Basic Set Characters 4e third printing, B101-102/B120-121.
 
-Frozen first printing + 2007-01-26 errata; synthetic representative constructions,
+Synthetic representative constructions,
 not a claim that the mundane/supernatural catalogs or runtime are complete.
 """
 

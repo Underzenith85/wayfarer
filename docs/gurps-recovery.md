@@ -57,9 +57,9 @@ unverified healing amounts.
 
 ## Evidence and boundaries
 
-Numeric expectations were checked against Basic Set Campaigns, fourth printing,
-B424-427 and B429. This is not certification against the repository's separately
-declared first-printing plus errata baseline. Tests contain independent numeric
+Numeric expectations were checked against the selected Basic Set: Campaigns
+fourth printing, B424-427 and B429. This is not full conformance certification.
+Tests contain independent numeric
 expectations rather than copied explanatory text.
 
 `tests/test_gurps_recovery.py` covers FP boundaries, restricted fatigue, exhaustion,

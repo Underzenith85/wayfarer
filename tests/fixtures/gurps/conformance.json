@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "baseline_id": "gurps-4e-2004-first-printing+errata-2007-01-26",
+  "baseline_id": "gurps-4e-characters-3p-2008+campaigns-4p-2008",
   "sources": [
     {
       "id": "sjg:gurps-lite-4e-2004",
@@ -17,31 +17,21 @@
       "id": "sjg:basic-set-characters-4e-2004",
       "title": "GURPS Basic Set: Characters",
       "edition": "Fourth Edition",
-      "artifact": "2004 hardcover, first printing",
-      "printing": 1,
-      "publication_year": 2004,
+      "artifact": "February 2008 hardcover/PDF, third printing",
+      "printing": 3,
+      "publication_year": 2008,
       "url": "https://www.sjgames.com/gurps/books/basic/",
-      "errata": [
-        {
-          "url": "https://www.sjgames.com/errata/gurps/4e/basic-set-characters.html",
-          "revision": "2007-01-26"
-        }
-      ]
+      "errata": []
     },
     {
       "id": "sjg:basic-set-campaigns-4e-2004",
       "title": "GURPS Basic Set: Campaigns",
       "edition": "Fourth Edition",
-      "artifact": "2004 hardcover, first printing",
-      "printing": 1,
-      "publication_year": 2004,
+      "artifact": "April 2008 hardcover/PDF, fourth printing",
+      "printing": 4,
+      "publication_year": 2008,
       "url": "https://www.sjgames.com/gurps/books/basic/",
-      "errata": [
-        {
-          "url": "https://www.sjgames.com/errata/gurps/4e/basic-set-campaigns.html",
-          "revision": "2007-01-26"
-        }
-      ]
+      "errata": []
     }
   ],
   "units": {
@@ -4407,7 +4397,7 @@
       "source_id": "sjg:basic-set-characters-4e-2004",
       "reference": "B203, Karate",
       "rounding": "floor",
-      "provenance": "Independent numeric expectations for #108; selected 2004 first-printing/2007-01-26 errata baseline. Exact artifact audit remains outstanding.",
+      "provenance": "Independent numeric expectations for #108; selected Characters third-printing and Campaigns fourth-printing baseline. Mechanics review remains outstanding.",
       "service": "unarmed",
       "input": {
         "operation": "striking_bonus",
@@ -4426,7 +4416,7 @@
       "source_id": "sjg:basic-set-characters-4e-2004",
       "reference": "B228, Wrestling",
       "rounding": "floor",
-      "provenance": "Independent numeric expectations for #108; selected 2004 first-printing/2007-01-26 errata baseline. Exact artifact audit remains outstanding.",
+      "provenance": "Independent numeric expectations for #108; selected Characters third-printing and Campaigns fourth-printing baseline. Mechanics review remains outstanding.",
       "service": "unarmed",
       "input": {
         "operation": "wrestling_bonus",
@@ -4444,7 +4434,7 @@
       "source_id": "sjg:basic-set-campaigns-4e-2004",
       "reference": "B371, Break Free",
       "rounding": "floor",
-      "provenance": "Independent numeric expectations for #108; selected 2004 first-printing/2007-01-26 errata baseline. Exact artifact audit remains outstanding.",
+      "provenance": "Independent numeric expectations for #108; selected Characters third-printing and Campaigns fourth-printing baseline. Mechanics review remains outstanding.",
       "service": "unarmed",
       "input": {
         "operation": "contest",
@@ -4476,7 +4466,7 @@
       "source_id": "sjg:basic-set-campaigns-4e-2004",
       "reference": "B349/B370, Regular Contest and Pin",
       "rounding": "floor",
-      "provenance": "Independent numeric expectations for #108; selected 2004 first-printing/2007-01-26 errata baseline. Exact artifact audit remains outstanding.",
+      "provenance": "Independent numeric expectations for #108; selected Characters third-printing and Campaigns fourth-printing baseline. Mechanics review remains outstanding.",
       "service": "unarmed",
       "input": {
         "operation": "contest",
@@ -4520,7 +4510,7 @@
       "rounding": "none",
       "prototype_divergence": null,
       "evidence_kind": "independent-numeric-case",
-      "provenance": "Independent expectations checked against Campaigns Fourth Edition, fourth printing; frozen first-printing/errata reconciliation remains #191. Not a certification claim.",
+      "provenance": "Independent expectations checked against Campaigns Fourth Edition, fourth printing; selected-printing mechanics review remains #191. Not a certification claim.",
       "operation": "melee_height"
     },
     {
@@ -4542,7 +4532,7 @@
       "rounding": "floor",
       "prototype_divergence": null,
       "evidence_kind": "independent-numeric-case",
-      "provenance": "Independent expectations checked against Campaigns Fourth Edition, fourth printing; frozen first-printing/errata reconciliation remains #191. Not a certification claim.",
+      "provenance": "Independent expectations checked against Campaigns Fourth Edition, fourth printing; selected-printing mechanics review remains #191. Not a certification claim.",
       "operation": "tolerance_wound"
     },
     {
@@ -4562,7 +4552,7 @@
       },
       "rounding": "none",
       "evidence_kind": "independent-numeric-case",
-      "provenance": "Independent expectation checked against Campaigns Fourth Edition, fourth printing; frozen first-printing/errata reconciliation remains #191.",
+      "provenance": "Independent expectation checked against Campaigns Fourth Edition, fourth printing; selected-printing mechanics review remains #191.",
       "test": "tests/test_maneuver_followups.py::test_variable_scope_and_bipod_bracing_add_independent_aim_bonuses"
     },
     {
@@ -4581,7 +4571,7 @@
       },
       "rounding": "floor",
       "evidence_kind": "independent-numeric-case",
-      "provenance": "Independent expectation checked against Campaigns Fourth Edition, fourth printing; frozen first-printing/errata reconciliation remains #191.",
+      "provenance": "Independent expectation checked against Campaigns Fourth Edition, fourth printing; selected-printing mechanics review remains #191.",
       "test": "tests/test_maneuver_followups.py::test_stop_thrust_interrupts_charge_and_adds_one_per_two_yards"
     },
     {
@@ -4600,7 +4590,7 @@
       },
       "rounding": "none",
       "evidence_kind": "independent-numeric-case",
-      "provenance": "Independent expectation checked against Campaigns Fourth Edition, fourth printing; frozen first-printing/errata reconciliation remains #191.",
+      "provenance": "Independent expectation checked against Campaigns Fourth Edition, fourth printing; selected-printing mechanics review remains #191.",
       "test": "tests/test_maneuver_followups.py::test_two_weapon_double_uses_declared_off_hand_with_minus_four"
     },
     {
@@ -4631,7 +4621,7 @@
       },
       "rounding": "none",
       "evidence_kind": "independent-transition-case",
-      "provenance": "Independent expectation checked against Campaigns Fourth Edition, fourth printing; frozen first-printing/errata reconciliation remains #191.",
+      "provenance": "Independent expectation checked against Campaigns Fourth Edition, fourth printing; selected-printing mechanics review remains #191.",
       "test": "tests/test_maneuver_followups.py::test_attack_then_step_is_deferred_until_defense_and_replays_once"
     },
     {

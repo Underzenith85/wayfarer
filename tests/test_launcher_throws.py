@@ -42,7 +42,7 @@ THROWER = EquipmentProfile(
     provenance=LITE_SOURCE.model_copy(
         update={
             "source_id": "sjg:basic-set-characters-4e-2004",
-            "edition": "Fourth Edition, first printing (2004)",
+            "edition": "Fourth Edition, third printing (February 2008)",
             "pages": (222,),
         }
     ),
@@ -120,7 +120,7 @@ def test_the_row_is_bound_and_keeps_only_its_defaults_blocker() -> None:
     assert [(d.target, d.modifier) for d in entry.definition.skill.defaults] == [
         ("attribute:dx", -5)
     ]
-    assert entry.blockers == ("first-printing-delta-audit", "conditional-or-skill-defaults")
+    assert entry.blockers == ("conditional-or-skill-defaults",)
     assert entry.blocker_owners["conditional-or-skill-defaults"] == (383, 362)
 
 

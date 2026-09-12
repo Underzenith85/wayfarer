@@ -69,9 +69,9 @@ saved package pin is changed, and the package remains separate from frozen
 profiles. Campaigns without its explicit runtime hooks cannot activate these
 purchases. Public v1 contracts are unchanged.
 
-Numeric references use Basic Set: Characters, Fourth Edition, third printing,
-B21 and B26-28 for the new constructions. First-printing/2007-01-26 errata delta
-verification remains #191; no profile is promoted to verified.
+Numeric references use the selected Basic Set: Characters, Fourth Edition,
+third printing, B21 and B26-28. Item-level verification remains #191; no profile
+is promoted to verified.
 
 Independent tests cover construction costs, self-control multipliers, identities,
 exclusions, template totals, unavailable effects, modifier values and audiences,

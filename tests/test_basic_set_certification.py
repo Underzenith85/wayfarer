@@ -16,7 +16,7 @@ def test_basic_set_report_binds_exact_profile_and_source_baseline() -> None:
     assert result.profile_id == "profile:gurps-basic-set-4e-2004"
     assert result.profile_version >= 1
     assert len(result.profile_digest) == 64
-    assert result.source_baseline == "gurps-4e-2004-first-printing+errata-2007-01-26"
+    assert result.source_baseline == "gurps-4e-characters-3p-2008+campaigns-4p-2008"
     assert result.required_capabilities == len(PROFILES[PROFILE_ID].required_capabilities)
     assert 0 < result.verified_capabilities <= result.required_capabilities
     assert result.required_inventory_items > 0

@@ -13,8 +13,8 @@ from typing import Final
 
 from wayfarer.errors import ValidationError
 
-BASELINE_ID: Final = "gurps-4e-2004-first-printing+errata-2007-01-26"
-"""Frozen source baseline recorded in tests/fixtures/gurps/conformance.json."""
+BASELINE_ID: Final = "gurps-4e-characters-3p-2008+campaigns-4p-2008"
+"""Selected source baseline recorded in tests/fixtures/gurps/conformance.json."""
 
 
 class CoverageStatus(StrEnum):

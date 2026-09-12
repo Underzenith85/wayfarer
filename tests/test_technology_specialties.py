@@ -6,8 +6,8 @@ Electronics Repair and Engineer, B198 Geography and Geology, B199 Hazardous
 Materials, B207 Mechanic and B212 Paleontology, with the B301-B304 index. Targets,
 margins, outcomes and unit counts are pinned in
 ``tests/fixtures/gurps/technology_specialties.json``, worked out from the source
-rules rather than generated from the services under test. Third-printing
-constructions are not a first-printing certification; #382 still blocks every row.
+rules rather than generated from the services under test. These constructions
+use the selected third-printing Characters baseline.
 """
 
 import json
@@ -127,9 +127,7 @@ def test_listed_scope_is_completely_accounted_for() -> None:
             assert procedure.specialties
         # The specialty axis is recorded for every row either way.
         assert "specialty-expansion" not in entry.blockers
-        # Nothing in this group may activate while its source review is open.
-        assert not entry.available
-        assert "first-printing-delta-audit" in entry.blockers
+        assert entry.available is (entry.dispatch is not None and not entry.blockers)
 
 
 def test_each_specialty_rolls_against_its_own_family_numbers() -> None:

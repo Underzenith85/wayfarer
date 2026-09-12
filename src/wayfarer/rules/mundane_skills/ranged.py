@@ -1,9 +1,8 @@
 """Executable ranged combat skill procedures (#344); unbound rows stay blocked.
 
 Numeric constructions: Basic Set Characters, Fourth Edition, third printing,
-B168-233 skill chapter with the B301-304 index. The frozen
-first-printing/2007-01-26 errata delta stays #191's blocker on every row, so a
-bound procedure is reported as implemented and is still not certified.
+B168-233 skill chapter with the B301-304 index. Selected-printing source identity
+is tracked separately from remaining mechanics gaps.
 
 Recording a skill never makes it playable. A row is implemented only when this
 module binds it to the ranged dispatch that already resolves it

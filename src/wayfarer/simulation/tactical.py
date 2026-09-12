@@ -34,7 +34,7 @@ class TacticalTrace(Record):
     totals: tuple[int, ...] = ()
     targets: tuple[int, ...] = ()
     injury: int = 0
-    source: str = "GURPS Basic Set 4e (2004), B367-377, B384-392; baseline errata 2007-01-26"
+    source: str = "GURPS Basic Set: Campaigns 4e, fourth printing (April 2008), B367-377, B384-392"
 
 
 def pose(actor: Combatant) -> Pose:

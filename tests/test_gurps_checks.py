@@ -251,7 +251,7 @@ def test_traces_name_profile_baseline_and_capability() -> None:
         rng=RecordedDice([2, 2, 2]),
     )
     assert trace.rules_package == BASIC
-    assert trace.rules_version == "gurps-4e-2004-first-printing+errata-2007-01-26"
+    assert trace.rules_version == "gurps-4e-characters-3p-2008+campaigns-4p-2008"
     assert trace.rule_id == "gurps.check.success" and trace.effective_target == 12
     resisted = resistance_roll(
         BASIC,

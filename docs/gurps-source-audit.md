@@ -1,7 +1,7 @@
 # GURPS source audit (#191)
 
 The audit distinguishes implemented mechanics, comparisons against inspected
-printings, and reconciliation with the frozen source baseline. These are separate
+printings, and reconciliation with the selected source baseline. These are separate
 claims. The current audit is **incomplete**; its integrity checks pass without
 claiming source completeness or enabling a profile.
 
@@ -10,15 +10,15 @@ claiming source completeness or enabling a profile.
 Publication metadata identifies Characters as third printing (February 2008) and
 Campaigns as fourth printing. Artifact SHA-256 digests and exact metadata locators
 are in `tests/fixtures/gurps/source-audit.json`. The combined volume begins with
-the same third-printing Characters publication statement; it is not independent
-first-printing evidence. Source contents remain outside the repository.
+the same third-printing Characters publication statement; it is duplicate source
+evidence. Source contents remain outside the repository.
 
 Eighteen Basic statistics fixtures were independently compared against Characters
 third printing B14-17: two primary costs, two Basic Lift cases, ten damage table
 rows, and four secondary-characteristic purchase/advisory cases. Their numbers
 agree. Each comparison names the reviewer, pages and executable test and binds
-the complete fixture with a digest. This is recorded as `compared`, not frozen
-baseline `reviewed`. Other fixture expectations remain explicitly pending.
+the complete fixture with a digest. This remains `compared`, not independently
+`reviewed`. Other fixture expectations remain explicitly pending.
 
 #215 adds 36 independently compared cases for opt-in statistics revision 2:
 high-ST progression, unsupported intermediate rows, lowered Will/Per permission
@@ -27,14 +27,12 @@ advisories and realistic Speed/Move purchase limits. Together with the original
 unlisted intermediate ST rows between 40 and 100; these explicitly remain
 unsupported rather than using invented interpolation. Profile v6 / Characters
 package 0.6.0 implements the supported changes without altering saved pins.
-First-printing and selected-errata reconciliation remains unresolved in #191;
-these comparisons do not claim that the later printing establishes that baseline.
+The supplied Characters third printing and Campaigns fourth printing are now the
+selected baseline. These comparisons still do not claim full mechanics conformance.
 
-Official first-printing errata search metadata matches January 26, 2007, but
-retrieving both correction pages returned HTTP 403 during this review. The exact
-August 2004 Lite revision was not available for direct inspection. No errata
-correction or Lite source identity is asserted verified. Later-printing comparisons
-continue independently; they do not silently change existing profile/package pins.
+The exact August 2004 Lite revision was not available for direct inspection. No
+Lite source identity is asserted verified. The selected-printing baseline does
+not change existing profile/package identifiers or versions.
 
 ## Inventory integration and remaining enumeration
 

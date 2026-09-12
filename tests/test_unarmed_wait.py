@@ -1,6 +1,6 @@
 """Independent Basic Set expectations for unarmed Wait reactions: B366, B370-371.
 
-The 2004 first printing with the 2007-01-26 errata baseline is the declared source.
+The selected Campaigns fourth printing is the declared source.
 Expected values are written from that baseline, never read back from the code here.
 """
 

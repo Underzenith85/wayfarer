@@ -1,7 +1,7 @@
 """Pinned spell learning mechanics, separate from spell execution coverage.
 
 Provisional numeric references: B66-67, B235, B246-247, B249-250.
-The frozen first-printing source audit remains pending under #119/#171.
+The selected-printing source audit remains pending under #119/#171.
 """
 
 from collections.abc import Mapping

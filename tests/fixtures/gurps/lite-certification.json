@@ -3,10 +3,10 @@
   "profile_id": "profile:gurps-lite-4e-2004",
   "profile_version": 3,
   "profile_digest": "bbdf2ef8ea80cf6c158a7e481d0a6d70277da05cde90a1767aaca86ebec49180",
-  "baseline_id": "gurps-4e-2004-first-printing+errata-2007-01-26",
+  "baseline_id": "gurps-4e-characters-3p-2008+campaigns-4p-2008",
   "source_id": "sjg:gurps-lite-4e-2004",
   "source_version": "August 2004 electronic edition, Rev. 07/12/04; no errata overlay",
-  "fixture_digest": "ee11226d0f2fef2b8ef991ae8652a0e0f38799a780cc99e3cf105da74bd305fe",
+  "fixture_digest": "00f6013a9dcd91873e273f91bc6dd43d99f1e3f1826e8385958f343081bcf955",
   "source_audit": "pending",
   "catalog_audit": "pending",
   "pending": [

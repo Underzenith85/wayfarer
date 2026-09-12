@@ -2,7 +2,7 @@
 
 Sources: Basic Set Characters, Fourth Edition, third printing, B121;
 Campaigns, Fourth Edition, fourth printing, B359-361 and B428. These numeric
-examples do not certify the registry's distinct first-printing/errata baseline.
+examples do not certify the registry's distinct selected-printing baseline.
 """
 
 import json

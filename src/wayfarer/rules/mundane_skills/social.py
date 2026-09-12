@@ -3,9 +3,8 @@
 Numeric constructions: Basic Set Characters, Fourth Edition, third printing,
 B174, B183, B187, B195-196, B198, B202, B204-205, B212, B215-216, B218-219,
 B223-224 with the B301-304 index, the Voice advantage on B97, and Campaigns B359
-influence rolls. The frozen first-printing/2007-01-26 errata delta stays #191's
-blocker on every row, so a bound procedure is reported as implemented and is
-still not certified. Every number declared here is pinned in
+influence rolls. Remaining mechanics gaps stay attached to concrete owners.
+Every number declared here is pinned in
 `tests/fixtures/gurps/social_skills.json`. No rulebook prose is bundled.
 
 Recording a skill never makes it playable. A row is implemented only when this

@@ -1,7 +1,7 @@
 """Independent examples: Campaigns fourth printing B373,376,382,399,556.
 
 Characters third printing B147 supplies One Eye. These are numeric regression
-fixtures, not certification against the frozen first-printing/errata baseline.
+fixtures, not certification against the selected-printing baseline.
 """
 
 from pathlib import Path

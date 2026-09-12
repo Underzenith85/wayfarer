@@ -1,7 +1,7 @@
 """Audited numeric equipment selection; no rulebook prose or automatic activation.
 
 Characters third printing (February 2008), B271-274, B283, B288-289. These are
-explicit review data for the first-printing profile, not first-printing proof.
+explicit review data for the selected later-printing profile.
 """
 
 from decimal import Decimal
@@ -35,7 +35,7 @@ def source(page: int | tuple[int, ...]) -> Provenance:
         source_id="sjg:gurps-basic-set-4e-2004",
         edition="Fourth Edition, third printing (2008)",
         pages=(page,) if isinstance(page, int) else page,
-        errata="Third-printing text; no separate errata overlay; first-printing audit pending",
+        errata="Third-printing text; no separate errata overlay selected",
     )
 
 

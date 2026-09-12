@@ -84,7 +84,7 @@ class HexBattlefield(Record):
     id: Id
     coordinate_system: Literal["hex-axial-v1"]
     profile_id: Literal["gurps-basic-set-4e-2004"]
-    baseline_id: Literal["gurps-4e-2004-first-printing+errata-2007-01-26"]
+    baseline_id: Literal["gurps-4e-characters-3p-2008+campaigns-4p-2008"]
     cells: tuple[Cell, ...] = Field(min_length=1, max_length=10000)
     stairs: tuple[Stairway, ...] = Field(
         default=(), exclude_if=lambda v: not v, json_schema_extra=_omitted_default

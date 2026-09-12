@@ -9,7 +9,7 @@ The enclosing equipment entry must agree on TL. Catalogs must be explicitly
 republished and selected; saved weapons are not inferred from names or skills.
 
 Numeric evidence uses Campaigns Fourth Edition, fourth printing, B382/B407.
-The frozen first-printing/2007-errata reconciliation remains #191. Field-level
+The selected-printing reconciliation remains #191. Field-level
 provenance is recorded in the equipment audit ledger. No production firearm row
 is certified by these synthetic runtime fixtures; catalog binding remains #180.
 

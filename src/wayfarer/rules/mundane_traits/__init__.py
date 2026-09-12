@@ -1,7 +1,7 @@
-"""Selected mundane traits and backgrounds, separate from frozen campaign pins.
+"""Selected mundane traits and backgrounds, separate from campaign pins.
 
-Numeric constructions: Basic Set Characters, Fourth Edition, third printing.
-The first-printing/2007-01-26 errata delta remains an explicit audit blocker.
+Numeric constructions: Basic Set Characters, Fourth Edition, third printing,
+the selected source baseline.
 Construction cost and executable effect are separate: an entry is implemented
 only when `runtime.SUPPORTED_HOOKS` binds its effect to a service that already
 resolves it. Every other record stays unsupported and cannot activate.
@@ -36,7 +36,7 @@ SOURCE = SourceReference(
     "sjg:basic-set-characters-4e-third-printing-candidates",
     "Basic Set: Characters, Fourth Edition, third printing",
     "user-supplied-reference",
-    "Numeric construction metadata only; frozen first-printing delta pending",
+    "Numeric construction metadata from the selected third-printing baseline",
 )
 Identifier = Annotated[str, Field(pattern=r"^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$", max_length=60)]
 
@@ -95,7 +95,6 @@ class TraitEntry:
     def blockers(self) -> tuple[str, ...]:
         binding = REACTION_BINDINGS.get(self.id)
         return (
-            "first-printing-delta-audit",
             *(() if self.implemented else (self.effect,)),
             *(binding.blockers if binding is not None else ()),
             *(("disadvantage-consequences",) if self.effect == "trait.self_control" else ()),
@@ -165,7 +164,7 @@ def _entry(
 
 DEFAULT_VOCABULARY = Vocabulary()
 
-# Concrete runtime owners, distinct from the source-reconciliation owner #191.
+# Concrete runtime owners, distinct from the inventory owner #113.
 EFFECT_OWNERS: Final = {
     **dict.fromkeys(
         (
@@ -466,9 +465,9 @@ def inventory(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> tuple[TraitEntry, 
     result = tuple(
         replace(
             e,
-            followup_issues=(191, EFFECT_OWNERS[e.effect])
+            followup_issues=(113, EFFECT_OWNERS[e.effect])
             if e.effect in EFFECT_OWNERS and e.effect not in PHYSICAL_HOOKS
-            else (191,),
+            else (113,),
         )
         for e in entries
     )

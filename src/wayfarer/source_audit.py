@@ -217,9 +217,6 @@ def validate(root: Path, manifest: Manifest) -> None:
         raise ValidationError("Missing required audit scope")
     source_ids = {s.id for s in manifest.sources}
     required_sources = {s for p in PROFILES.values() for s in p.source_ids}
-    required_sources.update(
-        s + ":errata-2007-01-26" for s in tuple(required_sources) if "basic-set" in s
-    )
     if not required_sources <= source_ids:
         raise ValidationError("Missing profile source")
     for source in manifest.sources:
