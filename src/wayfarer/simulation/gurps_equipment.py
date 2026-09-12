@@ -531,19 +531,19 @@ class EquipmentCatalog(Record):
         return self
 
     def bind(self, packages: tuple[RulesPackage, ...]) -> tuple[EquipmentSpec, ...]:
-        """Resolve source, equipment and skill references against pinned packages.
+        """Resolve supported entries against pinned packages.
 
         Skills are references, not equip prerequisites: untrained use and defaults
-        are the skill resolver's responsibility. ResourceEngine enforces policy.
+        are the skill resolver's responsibility. Unsupported rows stay in the
+        audit catalog but cannot produce inventory specs. ResourceEngine enforces
+        policy for the supported subset.
         """
         definitions = {d.id: d for p in packages for d in p.definitions}
         if len(definitions) != sum(len(p.definitions) for p in packages):
             raise ValidationError("Ambiguous equipment catalog references")
         for entry in self.entries:
             if entry.unsupported_mechanics:
-                raise ValidationError(
-                    "Equipment has unsupported mechanics: " + ", ".join(entry.unsupported_mechanics)
-                )
+                continue
             definition = definitions.get(entry.definition_id)
             if definition is None or definition.kind is not DefinitionKind.EQUIPMENT:
                 raise ValidationError("Missing equipment definition")
@@ -559,14 +559,8 @@ class EquipmentCatalog(Record):
                     spec = mode.readiness
                     if spec.fast_draw_skill_id is not None:
                         fast_skill = definitions.get(spec.fast_draw_skill_id)
-                        if (
-                            fast_skill is None
-                            or fast_skill.skill is None
-                            or fast_skill.skill.specialty is None
-                            or fast_skill.skill.specialty.family != "skill:fast-draw"
-                            or fast_skill.skill.specialty.name != spec.fast_draw_specialty
-                        ):
-                            raise ValidationError("Readiness requires an exact Fast-Draw specialty")
+                        if fast_skill is None or fast_skill.kind is not DefinitionKind.SKILL:
+                            raise ValidationError("Readiness requires a pinned Fast-Draw skill")
                         skills.append(spec.fast_draw_skill_id)
                 if isinstance(mode, RangedMode) and mode.firearm is not None:
                     if mode.firearm.armoury_skill_id is not None:
@@ -576,7 +570,9 @@ class EquipmentCatalog(Record):
             for skill in skills:
                 if skill not in definitions or definitions[skill].kind is not DefinitionKind.SKILL:
                     raise ValidationError("Missing weapon/shield skill reference")
-        return tuple(entry.inventory_spec() for entry in self.entries)
+        return tuple(
+            entry.inventory_spec() for entry in self.entries if not entry.unsupported_mechanics
+        )
 
 
 class Load(Record):
