@@ -214,18 +214,23 @@
         "revolver-36",
         "auto-pistol-45-tl6",
         "auto-pistol-9mm-tl6",
-        "snub-revolver-38"
+        "snub-revolver-38",
+        "handgonne-90",
+        "flintlock-musket-75",
+        "rifle-musket-577",
+        "cartridge-rifle-45"
       ],
-      "omitted_rows": "Seven B278 pistol rows are recorded with distinct chamber capacity and exact rational ammunition mass. Other pistol and SMG rows, gyroc acceleration, smartguns, automatic-only and high-cyclic RoF, two-handed bracing and every B279 rifle/shotgun row remain unresolved.",
+      "omitted_rows": "Seven B278 pistol rows and four ordinary single-shot B279 musket/rifle rows are recorded with distinct chamber capacity and exact rational ammunition mass. The long guns fail closed until the ST-conditioned one-hand exception is typed. Other pistol and SMG rows, musket rests, repeating rifles, bipods, gyroc acceleration, smartguns, automatic-only and high-cyclic RoF, and every shotgun row remain unresolved.",
       "mechanics": [
         "malfunction",
         "shotgun-multiple-projectiles",
-        "holdout-and-concealment"
+        "holdout-and-concealment",
+        "conditional-one-handed-firearm"
       ]
     },
     {
       "id": "ammunition",
-      "reference": "B275-278",
+      "reference": "B275-279",
       "anchor": "inspected",
       "source_id": "sjg:basic-set-characters-4e-2004",
       "owner_issue": 180,
@@ -242,9 +247,13 @@
         "revolver-36-round",
         "auto-pistol-45-tl6-round",
         "auto-pistol-9mm-tl6-round",
-        "snub-revolver-38-round"
+        "snub-revolver-38-round",
+        "handgonne-90-round",
+        "flintlock-musket-75-round",
+        "rifle-musket-577-round",
+        "cartridge-rifle-45-round"
       ],
-      "omitted_rows": "B275-276 ordinary missiles and seven B278 firearm rounds are recorded with exact rational dollar and pound values. Alternate missiles, ammunition variants, explosive warheads and power cells remain unresolved.",
+      "omitted_rows": "B275-276 ordinary missiles and eleven B278-279 firearm rounds are recorded with exact rational dollar and pound values. Alternate missiles, remaining firearm rounds, ammunition variants, explosive warheads and power cells remain unresolved.",
       "mechanics": [
         "ammunition-variants",
         "power-cell-charges"
@@ -1015,6 +1024,17 @@
       "reference": "B278-279",
       "anchor": "inspected",
       "behaviour": "A weapon's bulk determines how easily it can be carried concealed.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "conditional-one-handed-firearm",
+      "reference": "B270 dagger footnote, B279",
+      "anchor": "inspected",
+      "behaviour": "A normally two-handed firearm may be fired one-handed at 1.5 times listed ST, but becomes unready unless the wielder has three times listed ST.",
       "disposition": "unsupported",
       "capability_id": null,
       "owner_issue": 180,

@@ -80,6 +80,13 @@ FIREARM_ROWS = (
     ("auto-pistol-9mm-tl6", 6, 350, 2400, 2, 2, "pi", 2, 150, 1850, 3, 9, 3, 9, -2, 2),
 )
 
+LONG_GUN_ROWS = (
+    ("handgonne-90", 3, 300, 15000, 2, 0, "pi++", 0, 100, 600, 60, 10, -6, 4),
+    ("flintlock-musket-75", 4, 200, 13000, 4, 0, "pi++", 2, 100, 1500, 15, 10, -6, 4),
+    ("rifle-musket-577", 5, 150, 8500, 4, 0, "pi+", 4, 700, 2100, 15, 10, -6, 3),
+    ("cartridge-rifle-45", 5, 200, 6000, 5, 0, "pi+", 3, 600, 2000, 4, 10, -6, 3),
+)
+
 SHIELD_ROWS = (
     ("light-shield", 0, 1, 25, 2000, 5, 20),
     ("small-shield", 0, 1, 40, 8000, 6, 30),
@@ -347,6 +354,67 @@ def test_b278_firearm_ammunition_uses_exact_per_round_units() -> None:
         "snub-revolver-38-round": ("0.8", 40),
         "auto-pistol-45-tl6-round": ("1.5", 75),
         "auto-pistol-9mm-tl6-round": ("8/9", Fraction(400, 9)),
+    }
+    assert {
+        key: (str(entries[key].price), entries[key].weight_millipounds) for key in expected
+    } == expected
+    assert all(entries[key].ammunition for key in expected)
+
+
+def test_b279_single_shot_long_guns_preserve_independent_columns() -> None:
+    entries = {
+        entry.definition_id.removeprefix("equipment:"): entry for entry in BASIC_EQUIPMENT.entries
+    }
+    for row in LONG_GUN_ROWS:
+        (
+            key,
+            tl,
+            cost,
+            weight,
+            dice,
+            adds,
+            damage_type,
+            acc,
+            half,
+            maximum,
+            reload,
+            st,
+            bulk,
+            rcl,
+        ) = row
+        entry = entries[key]
+        assert (entry.provenance.pages, entry.technology_level, entry.price) == ((279,), tl, cost)
+        assert entry.weight_millipounds == weight
+        assert entry.unsupported_mechanics == ("conditional-one-handed-firearm",)
+        assert len(entry.modes) == 1 and isinstance(entry.modes[0], RangedMode)
+        mode = entry.modes[0]
+        assert (mode.damage.dice, mode.damage.adds, mode.damage.damage_type) == (
+            dice,
+            adds,
+            damage_type,
+        )
+        assert (
+            mode.accuracy,
+            mode.half_damage_range,
+            mode.maximum_range,
+            mode.shots,
+            mode.reload_seconds,
+            mode.minimum_st,
+            mode.hands,
+            mode.bulk,
+            mode.recoil,
+        ) == (acc, half, maximum, 1, reload, st, 2, bulk, rcl)
+
+
+def test_b279_single_shot_ammunition_uses_exact_load_units() -> None:
+    entries = {
+        entry.definition_id.removeprefix("equipment:"): entry for entry in BASIC_EQUIPMENT.entries
+    }
+    expected = {
+        "handgonne-90-round": ("2", 100),
+        "flintlock-musket-75-round": ("1", 50),
+        "rifle-musket-577-round": ("1", 50),
+        "cartridge-rifle-45-round": ("2", 100),
     }
     assert {
         key: (str(entries[key].price), entries[key].weight_millipounds) for key in expected
