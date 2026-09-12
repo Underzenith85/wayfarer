@@ -352,13 +352,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -396,13 +397,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -553,13 +555,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -597,14 +600,13 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Rare authored category with Precise or Vague; bounded knowledge channels.",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
       "evidence": [
-        "tests/test_abilities.py"
+        "tests/test_sensory_traits.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -621,13 +623,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -643,13 +646,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -665,13 +669,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -687,13 +692,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -1227,13 +1233,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -1271,13 +1278,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -1365,13 +1373,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -1566,13 +1575,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -1588,13 +1598,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -1813,13 +1824,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -1857,13 +1869,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -1902,13 +1915,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2035,13 +2049,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2299,13 +2314,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2343,13 +2359,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2365,13 +2382,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2456,13 +2474,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2523,13 +2542,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2545,13 +2565,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2567,13 +2588,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2722,13 +2744,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2744,13 +2767,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2878,13 +2902,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2923,13 +2948,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3079,13 +3105,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3101,13 +3128,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3123,13 +3151,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3255,13 +3284,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        234,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned sensory construction, approved-build perception modifiers, and authored event-backed observation or communication channels",
+      "evidence": [
+        "tests/test_sensory_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
