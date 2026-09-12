@@ -26,6 +26,7 @@ from wayfarer.simulation.vehicle_collisions import (
     roll_damage,
 )
 from wayfarer.simulation.vehicle_commands import (
+    NavigateSpace,
     ResolveAirAftermath,
     ResolveVehicleEjection,
     ResolveWaterAftermath,
@@ -42,6 +43,7 @@ VehicleCommand = (
     UpgradeVehicle
     | ResolveAirAftermath
     | ResolveWaterAftermath
+    | NavigateSpace
     | VehicleControl
     | VehicleImpact
     | VehicleManeuver
@@ -231,6 +233,97 @@ def resolve_vehicle(
                     }
                 )
         affected = (controlled,)
+    elif isinstance(command, NavigateSpace):
+        if t.locomotion != "space" or t.status not in ("controlled", "drifting"):
+            raise ValidationError("Space navigation requires an operational spacecraft")
+        if t.last_turn == state.game_time:
+            raise ConflictError("Spacecraft already navigated this second")
+        delta_pool = next((p for p in state.pools if p.id == "delta-v:" + t.body_id), None)
+        if (
+            delta_pool is None
+            or delta_pool.injury is not None
+            or delta_pool.fatigue is not None
+            or delta_pool.maximum != t.top_speed
+        ):
+            raise ValidationError("Spacecraft requires a dedicated delta-v resource pool")
+        if command.action == "burn":
+            if command.course or command.miles_per_hex or command.target_speed == t.speed:
+                raise ValidationError("A burn changes velocity without borrowing tactical movement")
+            delta = abs(command.target_speed - t.speed)
+            if delta > delta_pool.current:
+                raise ValidationError("Insufficient delta-v for the declared burn")
+            elapsed = ceil(Fraction(delta, t.space_acceleration_tenths_g))
+            state = state.model_copy(
+                update={
+                    "pools": tuple(
+                        p.model_copy(update={"current": p.current - delta})
+                        if p.id == delta_pool.id
+                        else p
+                        for p in state.pools
+                    )
+                }
+            )
+            affected = (
+                t.model_copy(
+                    update={
+                        "speed": command.target_speed,
+                        "status": "controlled",
+                        "last_turn": state.game_time,
+                        "space_elapsed_seconds": t.space_elapsed_seconds + elapsed,
+                        "traces": (
+                            *t.traces,
+                            VehicleTrace(
+                                command_id=command.id,
+                                reason="space-burn",
+                                actor_id=t.body_id,
+                                resource_spent=delta,
+                                elapsed_seconds=elapsed,
+                                target=command.target_speed,
+                            ),
+                        ),
+                    }
+                ),
+            )
+        else:
+            if (
+                board is None
+                or board.profile_id != t.profile_id
+                or not command.course
+                or not command.miles_per_hex
+                or command.target_speed != t.speed
+                or not t.speed
+            ):
+                raise ValidationError(
+                    "Coasting requires an authored scaled course at current speed"
+                )
+            point = Hex(q=t.q, r=t.r)
+            for direction in command.course:
+                point = neighbor(point, direction)
+                if board.cell(point).blocked or point in occupied:
+                    raise ValidationError("Space course requires collision resolution")
+            distance_miles = len(command.course) * command.miles_per_hex
+            elapsed = ceil(Fraction(1800 * distance_miles, t.speed))
+            affected = (
+                t.model_copy(
+                    update={
+                        "q": point.q,
+                        "r": point.r,
+                        "status": "controlled",
+                        "last_turn": state.game_time,
+                        "space_elapsed_seconds": t.space_elapsed_seconds + elapsed,
+                        "traces": (
+                            *t.traces,
+                            VehicleTrace(
+                                command_id=command.id,
+                                reason="space-coast",
+                                actor_id=t.body_id,
+                                distance_miles=distance_miles,
+                                elapsed_seconds=elapsed,
+                            ),
+                        ),
+                    }
+                ),
+            )
     elif isinstance(command, ResolveAirAftermath):
         if t.locomotion != "air" or t.status not in ("drifting", "diving", "stalled"):
             raise ValidationError("Aircraft has no pending motion aftermath")

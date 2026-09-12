@@ -27,6 +27,8 @@ class Transport(Record):
     submersion: int = Field(default=0, ge=0, le=1000000)
     sink_rate: int = Field(default=1, ge=1, le=1000)
     leak_rate: int = Field(default=0, ge=0, le=1000)
+    space_acceleration_tenths_g: int = Field(default=10, ge=1, le=1000000)
+    space_elapsed_seconds: int = Field(default=0, ge=0)
     open_cabin: bool = False
     unsinkable: bool = False
     straight_yards: int = Field(default=0, ge=0)
@@ -43,11 +45,11 @@ class Transport(Record):
     body_id: str = Field(min_length=1, max_length=200)
     operator_id: str = Field(min_length=1, max_length=200)
     occupants: tuple[str, ...] = ()
-    acceleration: int = Field(gt=0, le=100)
-    top_speed: int = Field(gt=0, le=100)
+    acceleration: int = Field(gt=0, le=1000000000)
+    top_speed: int = Field(gt=0, le=1000000000)
     handling: int = Field(default=0, ge=-10, le=10)
     stability: int = Field(default=1, ge=1, le=10)
-    speed: int = Field(default=0, ge=0, le=100)
+    speed: int = Field(default=0, ge=0, le=1000000000)
     q: int = Field(default=0, ge=-1000, le=1000)
     r: int = Field(default=0, ge=-1000, le=1000)
     facing: Literal[0, 1, 2, 3, 4, 5] = 0
@@ -108,7 +110,7 @@ class Transport(Record):
             )
         if self.minimum_speed > self.top_speed:
             raise ValueError("Minimum speed exceeds top speed")
-        if self.speed > self.top_speed:
+        if self.locomotion != "space" and self.speed > self.top_speed:
             raise ValueError("Transport exceeds top speed")
         if (
             not self.footprint

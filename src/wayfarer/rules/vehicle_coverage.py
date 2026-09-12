@@ -29,7 +29,6 @@ COMBAT: Final = "gurps.vehicles.combat"
 # The issues this audit split its residual scope into. A closed owner cannot
 # hold a blocker, which is why #120 and #207 are superseded rather than cited.
 SUPERSEDED: Final = (120, 207)
-SPACE_MOVEMENT_OWNER: Final = 395
 MOUNTED_OWNER: Final = 396
 VEHICLE_COMBAT_OWNER: Final = 397
 
@@ -109,20 +108,11 @@ _MODES: Final = (
         ALL_CONCERNS,
         {},
     ),
-    # A spacecraft can lose control and can collide, but it cannot travel: there
-    # is no drag to brake against, so `safe_deceleration` rejects it outright.
     ModeCoverage(
         "space",
         "B430-B432, B466-B470",
         ALL_CONCERNS,
-        {
-            "thrust as acceleration, with no borrowed braking envelope": SPACE_MOVEMENT_OWNER,
-            "navigation at the speed and distance scales a spacecraft uses": SPACE_MOVEMENT_OWNER,
-            "fuel and delta-v as a consumed resource": SPACE_MOVEMENT_OWNER,
-            "the very large speed and damage scales a space collision reaches": (
-                SPACE_MOVEMENT_OWNER
-            ),
-        },
+        {},
     ),
     # The B397 spooked-mount check executes, but it belongs to the version-one
     # adapter; every version-two mounted path rejects by name.

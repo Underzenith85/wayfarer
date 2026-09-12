@@ -32,7 +32,7 @@ from wayfarer.rules.vehicle_coverage import (
 )
 
 # The children this audit split its residual scope into, transcribed from #358.
-RESIDUAL_OWNERS = (395, 396, 397)
+RESIDUAL_OWNERS = (396, 397)
 
 
 def test_every_declared_mode_is_audited_against_the_adapter_itself() -> None:
@@ -46,7 +46,7 @@ def test_completed_ground_modes_are_verified_and_residuals_have_live_owners() ->
     """#358 acceptance: verified with evidence, or carrying a concrete open child."""
     for mode, entry in MODES.items():
         assert entry.verified == (
-            mode in ("air", "water", "underwater")
+            mode in ("air", "water", "underwater", "space")
             or mode.startswith("ground-")
             and mode != "ground-mount"
         )
@@ -73,7 +73,7 @@ def test_a_mode_that_carries_no_operation_resolves_no_concern() -> None:
     assert not mount.operations and mount.concerns == ()
     assert set(mount.owners) == {396}
     # A spacecraft can lose control and can collide, but it cannot travel.
-    assert "vehicle-maneuver" not in MODES["space"].operations
+    assert "vehicle-space-navigation" in MODES["space"].operations
     assert Concern.COLLISION in MODES["space"].concerns
 
 
@@ -148,7 +148,7 @@ def test_the_report_publishes_every_residual_and_its_owner() -> None:
     report = audit_report()
     assert report["owner"] == OWNER
     assert report["supersedes"] == [120, 207]
-    assert report["verified_modes"] == 8
+    assert report["verified_modes"] == 9
     assert report["total_modes"] == len(VEHICLE_OPERATIONS)
     assert report["residual_owners"] == list(RESIDUAL_OWNERS)
     assert residual_owners() == RESIDUAL_OWNERS

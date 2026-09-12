@@ -312,21 +312,38 @@ def impact(
     if obstacle is not None:
         obstacle_hp, obstacle_dr = durability(engine, state, obstacle)
         cap = obstacle_hp + obstacle_dr
+    first_dice = collision_dice(hp, t.speed, hard=command.surface == "hard")
+    second_dice: tuple[int, int] | None = None
+    if target is not None:
+        target_hp, _ = durability(engine, state, target.body_id)
+        first_dice, second_dice = collision_exchange(
+            hp, t.speed, target_hp, target.speed, command.angle
+        )
+    prospective = [first_dice]
+    if second_dice is not None:
+        prospective.append(second_dice)
+    prospective.extend(
+        collision_dice(
+            next(p for p in state.pools if p.id == "hp:" + actor).maximum,
+            vehicle.speed
+            - (command.speed_after if vehicle.id == t.id else command.target_speed_after),
+            hard=True,
+        )
+        for vehicle in vehicles
+        for actor in vehicle.occupants
+    )
+    if any(count > 10000 for count, _ in prospective):
+        raise ValidationError("Collision exceeds the bounded exact-dice envelope")
     received: tuple[tuple[Transport, int, tuple[int, ...], int], ...]
     if target is None:
-        first, first_roll = roll_damage(
-            collision_dice(hp, t.speed, hard=command.surface == "hard"), rng
-        )
+        first, first_roll = roll_damage(first_dice, rng)
         if cap is not None:
             first = min(first, cap)
         received = ((t, first, first_roll, command.speed_after),)
         if obstacle is not None:
             state, _ = hurt_body(engine, state, t.operator_id, obstacle, command.id, first, rng)
     else:
-        target_hp, _ = durability(engine, state, target.body_id)
-        first_dice, second_dice = collision_exchange(
-            hp, t.speed, target_hp, target.speed, command.angle
-        )
+        assert second_dice is not None
         first, first_roll = roll_damage(first_dice, rng)
         second, second_roll = roll_damage(second_dice, rng)
         received = (

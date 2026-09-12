@@ -59,6 +59,7 @@ restart. PostgreSQL runs require `WAYFARER_TEST_DATABASE_URL`.
 | Water casualties | Authored currents honor fractional draft; open-deck failures persist overboard occupants and drowning; sinking advances at saved hull/leak rates into shared breathing hazards; underwater leaks damage the hull and schedule pressure exposure; unsinkable craft can spend a turn righting | B435-437, B466, B469 |
 | Water control | Drift, capsize for unsinkable craft, or sinking state | B469 |
 | Space/submarine control | Drift; submarines lose depth on minor failures; severe failures roll object HT and persist stress-failure state | B469 |
+| Space navigation | Reaction-drive burns consume an explicit delta-v pool and use the B466 acceleration time; coasting crosses authored hex courses at a declared miles-per-hex scale and records travel time; collision dice above the exact replay envelope reject before randomness | B430-432, B466-467 |
 | Collision exchange | Head-on/rear-end/side-on relative velocities and faster/striking-body dice caps; each body uses the existing object-damage reducer | B430, B432 |
 | Immovable obstacles | Hard/soft surface factor; optional authoritative breakable object limits both damage amounts to obstacle HP + DR | B431 |
 | Occupants | Damage based on each vehicle's actual speed loss; per-occupant belts/airbags, worn armor blunt trauma and innate DR; existing injury/threshold reducer | B431-432 |
@@ -77,7 +78,6 @@ residual per locomotion mode and splits it into live children;
 
 | Missing consumer or variant | Current behavior | Owner |
 | --- | --- | ---: |
-| Space thrust, navigation, fuel/delta-v and very large speed/damage scales | Navigation rejects; only control/stress and the resolved collision exchange are provided. | #395 |
 | Mounted movement, Riding control against the mounted loss table and rider separation | `ground-mount` carries no version-two operation at all; every path rejects by name. | #396 |
 | Ramming attack/defense, mounted weapons, cover, Aim and penalty consumption, and synchronized encounter poses | Live integration originally assigned to #120 remains missing despite that issue's closure. | #397 |
 | Vehicle hit locations, operator incapacitation, ongoing stress below zero HP and disabled equipment effects | Existing object damage is reused; these live consumers are not distinguished. | #397 |
@@ -95,7 +95,7 @@ status is **derived** from the audit above rather than hand-set: a mode counts a
 verified only once it resolves control loss, collision, occupant injury and
 restart and owes no residual, and the movement row is verified only when every
 mode is. The five non-mounted ground modes and air now qualify. Water, underwater,
-space and mounted movement keep the movement row `partial`; the combat row stays
+mounted movement keeps the movement row `partial`; the combat row stays
 `partial` as well.
 
 `rules/vehicle_coverage.validate_coverage` rejects three drifts: an audit that
