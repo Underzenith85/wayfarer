@@ -5765,13 +5765,14 @@
         "mind-control"
       ],
       "blockers": [
-        229,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned mind control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_mind_control.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5962,14 +5963,13 @@
         "mind-control"
       ],
       "blockers": [
-        229,
         191
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Execution v2: resisted Daze, action restriction and injury/resistance cancellation.",
+      "supported_subset": "Pinned mind control identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
-        "tests/test_spell_bindings.py"
+        "tests/test_spell_mind_control.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6410,14 +6410,13 @@
         "mind-control"
       ],
       "blockers": [
-        229,
         191
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Purchased learning prerequisite only; no Foolishness effect.",
+      "supported_subset": "Pinned mind control identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
-        "tests/test_spell_energy.py"
+        "tests/test_spell_mind_control.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6436,13 +6435,14 @@
         "mind-control"
       ],
       "blockers": [
-        229,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned mind control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_mind_control.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6909,13 +6909,14 @@
         "mind-control"
       ],
       "blockers": [
-        229,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned mind control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_mind_control.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6933,13 +6934,14 @@
         "mind-control"
       ],
       "blockers": [
-        229,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned mind control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_mind_control.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7624,13 +7626,14 @@
         "mind-control"
       ],
       "blockers": [
-        229,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned mind control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_mind_control.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
