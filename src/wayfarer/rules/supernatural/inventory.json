@@ -36,13 +36,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -102,13 +103,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -124,13 +126,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -146,13 +149,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -190,13 +194,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -212,13 +217,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -278,13 +284,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -322,13 +329,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -432,13 +440,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -788,13 +797,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -810,13 +820,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -854,13 +865,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -876,13 +888,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -898,13 +911,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -942,13 +956,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -964,13 +979,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -986,13 +1002,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -1030,13 +1047,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -1074,13 +1092,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -1118,13 +1137,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -1162,13 +1182,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -1321,13 +1342,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -1387,13 +1409,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -1723,13 +1746,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -1855,13 +1879,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -1899,13 +1924,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2361,13 +2387,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2383,13 +2410,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2405,13 +2433,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2449,13 +2478,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2625,13 +2655,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2735,13 +2766,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2757,13 +2789,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2867,13 +2900,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2955,13 +2989,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3021,13 +3056,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3263,13 +3299,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3285,13 +3322,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3417,13 +3455,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3615,13 +3654,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3681,13 +3721,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3747,13 +3788,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3769,13 +3811,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3791,13 +3834,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3901,13 +3945,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3923,13 +3968,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3945,13 +3991,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        233,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement/form construction, approved-build projection, shared movement consequences, and persisted switchable-form lifecycle",
+      "evidence": [
+        "tests/test_movement_forms.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,

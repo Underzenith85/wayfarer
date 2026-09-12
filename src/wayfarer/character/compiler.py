@@ -381,11 +381,22 @@ class CharacterCompiler:
                 elif cost is not None:
                     options = purchase.trait or TraitOptions()
                     try:
-                        cost = trait_cost(cost, amount, options, metadata)
-                        if any(hook.startswith("ability:") for hook in metadata.runtime_hooks):
-                            from wayfarer.rules.abilities import validate_purchase
+                        if any(
+                            hook.startswith("movement-form:") for hook in metadata.runtime_hooks
+                        ):
+                            from wayfarer.rules.movement_forms import (
+                                validate_purchase as validate_movement_form,
+                            )
 
-                            validate_purchase(definition, amount, options)
+                            cost = validate_movement_form(definition, amount, options)
+                        else:
+                            cost = trait_cost(cost, amount, options, metadata)
+                        if any(hook.startswith("ability:") for hook in metadata.runtime_hooks):
+                            from wayfarer.rules.abilities import (
+                                validate_purchase as validate_ability,
+                            )
+
+                            validate_ability(definition, amount, options)
                     except ValidationError as exc:
                         error("trait.invalid", i, str(exc))
                     required_hooks = set(metadata.runtime_hooks)
