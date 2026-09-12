@@ -316,6 +316,14 @@ Evidence is in `tests/test_ranged_skills.py`.
 
 ## Social procedures (#345)
 
+The parent inventory is accounted for: 16 of its 19 headline rows are bound and
+executable. Fortune-Telling and Savoir-Faire explicitly retain #366 as their
+runtime owner, and Propaganda retains #367; those rows remain unavailable until
+their required specialty or technology/media procedure is implemented. This is
+the issue's required fail-closed transfer outcome, not a claim that the child
+mechanics are complete. Seven concrete Fortune-Telling specialties introduced
+by the source reconciliation likewise stay blocked under #366.
+
 A social row is implemented only when `rules/mundane_skills/social.py` binds it to
 a service that already resolves it — `rules.gurps_checks` for success rolls and
 contests, `rules.gurps_social.influence_roll` for the six B359 influence skills —

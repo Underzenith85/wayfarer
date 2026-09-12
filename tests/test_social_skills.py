@@ -156,6 +156,26 @@ def test_every_listed_row_is_accounted_for_and_only_bound_rows_dispatch() -> Non
         require_procedure(PROFILE, "skill:savoir-faire")
 
 
+def test_issue_345_parent_scope_is_complete_or_explicitly_transferred() -> None:
+    """Every headline row executes or names the bounded child that must finish it."""
+    rows = {row.id: row for row in inventory()}
+    transferred = {
+        "skill:fortune-telling": 366,
+        "skill:propaganda": 367,
+        "skill:savoir-faire": 366,
+    }
+    for name in SCOPE:
+        identifier = f"skill:{name}"
+        row = rows[identifier]
+        if identifier in transferred:
+            assert row.blockers == ("runtime-procedure",)
+            assert transferred[identifier] in row.blocker_owners["runtime-procedure"]
+            assert not row.bound and row.implementation == "unsupported"
+        else:
+            assert row.bound and not row.blockers
+            assert row.implementation == "implemented"
+
+
 def test_declared_table_matches_the_independent_fixture() -> None:
     """The source-indexed table is transcribed by hand, not read from the module."""
     declared = {str(row["id"]): row for row in rows()}
