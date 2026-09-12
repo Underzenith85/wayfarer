@@ -188,7 +188,7 @@ test("real API: Basic combat choices, defense reconnect and hidden-actor privacy
       fullPage: true,
     });
     await alice
-      .getByRole("button", { name: "Attack Mira — swing", exact: true })
+      .getByRole("button", { name: "Attack Iven — swing", exact: true })
       .click();
     await bob.reload();
     await bob
@@ -196,11 +196,11 @@ test("real API: Basic combat choices, defense reconnect and hidden-actor privacy
       .click();
     await bob.getByRole("button", { name: "Do Nothing", exact: true }).click();
     await alice
-      .getByRole("button", { name: "Withdraw Mira", exact: true })
+      .getByRole("button", { name: "Withdraw Iven", exact: true })
       .click();
     await expect(alice.getByText("Mira (you): standing")).toBeVisible();
     await expect(
-      alice.getByText("Mira: standing", { exact: true }),
+      alice.getByText("Iven: standing", { exact: true }),
     ).toHaveCount(0);
     await expect(
       alice.getByText(/Spatial clarification is required/),
