@@ -506,7 +506,29 @@ class CharacterCompiler:
                     },
                     skill_attributes,
                     adjust_skill,
-                    DefaultContext(technology_levels, frozenset()),
+                    DefaultContext(
+                        technology_levels,
+                        frozenset(),
+                        frozenset(selected),
+                        frozenset(
+                            ({"flight"} if "advantage:flight" in selected else set())
+                            | (
+                                {"aquatic"}
+                                if selected & {"advantage:amphibious", "disadvantage:aquatic"}
+                                else set()
+                            )
+                            | (
+                                {"literacy"}
+                                if any(
+                                    identifier.startswith("trait:language-")
+                                    and identifier.endswith("-written")
+                                    for identifier in selected
+                                )
+                                else set()
+                            )
+                        ),
+                        self.policy.technology_level,
+                    ),
                 )
                 bases.update(
                     {

@@ -161,6 +161,16 @@
         "title": "PrerequisiteGroup",
         "type": "object"
       },
+      "PrerequisiteKind": {
+        "description": "The authoritative fact that satisfies a skill-acquisition requirement.",
+        "enum": [
+          "trained-skill",
+          "purchased-definition",
+          "capability"
+        ],
+        "title": "PrerequisiteKind",
+        "type": "string"
+      },
       "ProfileOption": {
         "additionalProperties": false,
         "properties": {
@@ -234,6 +244,22 @@
             "default": 1,
             "title": "Minimum",
             "type": "integer"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PrerequisiteKind",
+            "default": "trained-skill"
+          },
+          "minimum_technology_level": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Minimum Technology Level"
           }
         },
         "required": [

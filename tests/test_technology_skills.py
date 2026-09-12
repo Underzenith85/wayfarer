@@ -96,6 +96,8 @@ def situation_for(case: Case) -> tuple[Operator, Situation]:
         cast(int, given["operator_tl"]),
         frozenset(cast(list[str], given.get("trained", []))),
         cast(int, parent) if parent is not None else None,
+        frozenset(cast(list[str], given.get("purchased_definitions", []))),
+        frozenset(cast(list[str], given.get("capabilities", []))),
     )
     return operator, Situation(
         cast(int, given["task_tl"]), cast(bool, given["familiar"]), cast(int, given["handling"])

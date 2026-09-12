@@ -51,11 +51,11 @@ also verifies names, pages and owners against the supernatural catalog.
 
 | Accounting group | Rows | Decision |
 | --- | ---: | --- |
-| Structured candidate definitions | 179 | Unsupported; source/runtime blockers remain. |
-| Bound runtime procedures | 222 | Implemented and dispatched by #344 (12), #345 (16), #346 (83), #356 (83) and the TL-indexed and crew-served ranged rows (#354, #355, #357); still blocked by the printing delta, so still unavailable here. |
+| Structured candidate definitions | 176 | Unsupported; source/runtime blockers remain. |
+| Bound runtime procedures | 233 | Implemented and dispatched by #344 (12), #345 (16), #346 (83), #356 (83) and the TL-indexed and crew-served ranged rows (#354, #355, #357). Of all inventory rows, 92 currently have no remaining blocker. |
 | Contextual records | 28 | 23 B230-233 technique templates and five open families (#336). Not rollable skills, so they record a shape rather than a definition. No row is left recording nothing at all. |
 | Transferred cinematic/supernatural skills | 28 | Owned by #242/#243 and source audit #191. |
-| **Total accounted records** | **457** | **Zero available mundane candidates.** |
+| **Total accounted records** | **465** | **437 inventory rows plus 28 transferred rows; 92 inventory rows are available.** |
 
 This revision fills the previously empty Aerobatics, Aquabatics, crewman, suit
 and weapon entries; records Weather Sense as a TL-dependent Meteorology alias;
@@ -71,18 +71,18 @@ is not converted into an ordinary DX skill.
 
 | Structural class | Rows |
 | --- | ---: |
-| `attribute-default` | 315 |
-| `skill-default` | 44 |
+| `attribute-default` | 323 |
+| `skill-default` | 71 |
 | `no-default` | 62 |
-| `technology-level` | 223 |
-| `required-specialty` | 158 |
+| `technology-level` | 227 |
+| `required-specialty` | 166 |
 | `unexpanded-specialty` | 59 |
 | `listing-only` | 28 |
 | `technique-template` | 24 |
 | `variable-family` | 9 |
-| `alternative-prerequisite` | 1 |
+| `alternative-prerequisite` | 3 |
 | `technique` | 6 |
-| `prerequisite` | 4 |
+| `prerequisite` | 25 |
 | `optional-specialty` | 1 |
 | `alias` | 1 |
 
@@ -383,8 +383,11 @@ this group are all refused before dice by `technology.require_task`.
 Two modifiers belong to the procedure: the B168 technology-level difference (one
 point of effective skill per level, either direction) and the B169 familiarity
 penalty. A caller's situational ruling stays a separate typed modifier in the
-receipt. Conditional defaults and alternative prerequisites are not implemented
-and keep naming #336.
+receipt. Typed acquisition prerequisites now distinguish trained skills,
+purchased definitions, and derived capabilities; technology-level thresholds
+apply only when the campaign reaches the stated TL. Firm requirements and
+alternative groups fail closed both in compilation and direct procedure use.
+Conditional defaults remain owned by #383.
 
 Every bound vehicle row also records `gurps.vehicles.movement`, which is still
 `partial`; #358 must verify it before live play may offer those rows. The
@@ -425,8 +428,10 @@ no second engine exists, and a family row is still refused before dice.
 The mechanics of a specialty are its family's: same attribute, same difficulty,
 same recorded defaults, same page. A specialty that rolled against different
 numbers would be a different skill. Cross-specialty defaults are not implemented
-and keep naming #383, and the Engineer prerequisite — a related science or shop
-skill, which one depending on the specialty — stays with it too.
+and keep naming #383. Engineer's Mathematics (Applied) requirement at TL5+ is
+enforced for the family and every concrete specialty; Engineer (Materials)
+additionally accepts Chemistry or Metallurgy as its source-listed alternative
+group.
 
 Evidence is in `tests/test_technology_specialties.py`, with every effective
 target, margin, outcome and unit count pinned by hand in
@@ -443,8 +448,11 @@ of them makes a skill playable, and every row still carries the printing delta.
 compiler requires every firm prerequisite plus one satisfied member of each set.
 A set of one is rejected, because that is a firm prerequisite in disguise. B223
 Surgery — First Aid, Physician or Veterinary — is the case the audit already
-recorded as unflattenable, and it is the one this issue states; the other rows
-that need an alternative set keep their blocker under #383 rather than a guess.
+recorded as unflattenable. The remaining B174-B223 acquisition requirements are
+now source-backed too: flight and aquatic capabilities, Riding for Lance,
+Mathematics (Applied) for Physics and TL5+ Engineer, literacy plus TL8+ Computer
+Operation for Research, crew/navigation requirements for Shiphandling, and the
+Materials science alternative above.
 
 **Cross-package prerequisites.** B182 Brain Hacking requires Computer Hacking,
 which the #119 supernatural catalog carries. `cross_package_prerequisites()`
@@ -490,15 +498,16 @@ by a request. TL and equipment facts enter through a dedicated resolver context;
 the character and campaign persistence work that supplies TL belongs to #384. Empty
 conditions are omitted from canonical package JSON, preserving existing pins, and
 this prerelease change does not increment an engine or package version. The
-source-backed per-row migration and remaining alternative prerequisite data stay
-open under #383 until separately audited against B168-B233.
+source-backed conditional-default migration remains open under #383; the
+`prerequisite-procedure` blocker class is empty after the B168-B223 audit.
 
 ## Validation and runtime contract
 
-Candidates in this package have unsupported status and no runtime hooks. `require_available`
+Unsupported candidates in this package have no runtime hooks. `require_available`
 rejects unknown IDs, blocked rows and unsupported definitions even if their
-blocker list is mistakenly cleared. Scenario/character/LLM validation therefore
-cannot turn catalog presence into playable mechanics.
+blocker list is mistakenly cleared; the 92 available rows have both a concrete
+implementation and no remaining blocker. Scenario/character/LLM validation
+therefore cannot turn catalog presence alone into playable mechanics.
 
 Reference checks cover defaults, prerequisites, specialty/technique parents,
 aliases and source-index targets. Prerequisite, technique and alias cycles fail;

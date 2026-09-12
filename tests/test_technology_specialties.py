@@ -67,6 +67,7 @@ def test_expanded_specialties_execute_to_hand_entered_expectations(case: Case) -
         cast(str, case["skill_id"]),
         cast(int, given["level"]),
         cast(int, given["operator_tl"]),
+        frozenset(cast(list[str], given.get("trained", []))),
     )
     situation = Situation(
         cast(int, given["task_tl"]), cast(bool, given["familiar"]), cast(int, given["handling"])
@@ -84,6 +85,38 @@ def test_expanded_specialties_execute_to_hand_entered_expectations(case: Case) -
     assert result.unit == expected["unit"]
     assert result.hazard is expected["hazard"]
     assert list(result.activation_blockers) == expected["activation_blockers"]
+
+
+def test_engineer_materials_requires_math_and_one_material_science_at_tl5() -> None:
+    situation = Situation(5)
+    with pytest.raises(ValidationError, match="mathematics-applied"):
+        attempt(
+            Operator("skill:engineer-materials", 12, 5),
+            situation,
+            rng=RecordedDice([3, 3, 4]),
+        )
+    with pytest.raises(ValidationError, match="chemistry.*metallurgy"):
+        attempt(
+            Operator(
+                "skill:engineer-materials",
+                12,
+                5,
+                frozenset({"skill:mathematics-applied"}),
+            ),
+            situation,
+            rng=RecordedDice([3, 3, 4]),
+        )
+    result = attempt(
+        Operator(
+            "skill:engineer-materials",
+            12,
+            5,
+            frozenset({"skill:mathematics-applied", "skill:chemistry"}),
+        ),
+        situation,
+        rng=RecordedDice([3, 3, 4]),
+    )
+    assert result.check.margin == 2
 
 
 def test_every_case_names_a_source_reference_and_a_row_this_issue_expanded() -> None:

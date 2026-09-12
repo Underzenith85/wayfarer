@@ -38,8 +38,8 @@ def test_inventory_and_references() -> None:
         "skill:arm-lock-judo",
     } <= ids
     assert len(entries) > 180
-    # Thirty-six ranged rows become source-complete in the selected baseline.
-    assert audit_report()["available"] == 90
+    # Physics and Research become available once their acquisition context is explicit.
+    assert audit_report()["available"] == 92
     assert all(e.followup_issues for e in entries)
     RulesCatalog((candidate_package(),))
     assert candidate_package().digest == candidate_package().digest
@@ -68,7 +68,7 @@ def test_numeric_metadata_and_structural_classes() -> None:
     assert replace(package, definitions=(changed,)).digest != package.digest
 
 
-@pytest.mark.parametrize("id", ["skill:first-aid", "skill:physics", "skill:invented-skill"])
+@pytest.mark.parametrize("id", ["skill:first-aid", "skill:aerobatics", "skill:invented-skill"])
 def test_model_cannot_turn_inventory_into_available_mechanics(id: str) -> None:
     with pytest.raises(ValidationError):
         require_available(id)
@@ -233,7 +233,12 @@ def test_structural_classes_are_recorded_and_completely_sampled() -> None:
         # B203 Karate: no recorded default of any kind.
         "skill:karate": {"no-default"},
         # B169/B213 optional Physics specialty and its unspecialized parent.
-        "skill:physics-acoustics": {"no-default", "optional-specialty", "technology-level"},
+        "skill:physics-acoustics": {
+            "no-default",
+            "optional-specialty",
+            "prerequisite",
+            "technology-level",
+        },
         # B207 Mathematics is a required specialty with TL context.
         "skill:mathematics-pure": {
             "attribute-default",
