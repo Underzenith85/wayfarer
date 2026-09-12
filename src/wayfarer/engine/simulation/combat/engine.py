@@ -36,6 +36,7 @@ from wayfarer.engine.simulation.combat.spatial import (
     SpatialContext,
     SquareActorPlacement,
     SquareSpatialContext,
+    point_distance,
 )
 from wayfarer.engine.simulation.combat.suppression import (
     ActiveSuppressionZone,
@@ -45,7 +46,7 @@ from wayfarer.engine.simulation.combat.tactical import validate_hex_encounter
 from wayfarer.engine.simulation.combat.turns import apply_turn, take_turn
 from wayfarer.engine.simulation.combat.unarmed.records import validate_control
 from wayfarer.engine.simulation.combat.vocabulary import Defense, Facing, Maneuver, Posture
-from wayfarer.engine.simulation.hex_geometry import Hex, HexBattlefield, HexFacing, distance
+from wayfarer.engine.simulation.hex_geometry import Hex, HexBattlefield, HexFacing
 from wayfarer.engine.simulation.magic.spells import active_spells
 from wayfarer.engine.simulation.resources import ResourceEngine, ResourceState
 from wayfarer.engine.world import EntityKind, World
@@ -68,11 +69,7 @@ class CombatEngine:
 
     @staticmethod
     def distance(left: GridPoint | Hex, right: GridPoint | Hex) -> int:
-        if isinstance(left, Hex) and isinstance(right, Hex):
-            return distance(left, right)
-        if not isinstance(left, GridPoint) or not isinstance(right, GridPoint):
-            raise ValidationError("Coordinate systems require explicit migration")
-        return abs(left.x - right.x) + abs(left.y - right.y)
+        return point_distance(left, right)
 
     @staticmethod
     def _inside_suppression(point: Hex, zone: ActiveSuppressionZone) -> bool:

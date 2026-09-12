@@ -8,8 +8,18 @@ from pydantic import Field, model_validator
 
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.vocabulary import Facing
-from wayfarer.engine.simulation.hex_geometry import Hex, HexFacing
+from wayfarer.engine.simulation.hex_geometry import Hex, HexFacing, distance
+from wayfarer.errors import ValidationError
 from wayfarer.models import Id, Record
+
+
+def point_distance(left: GridPoint | Hex, right: GridPoint | Hex) -> int:
+    """Yards between two placements, in whichever coordinate system they share."""
+    if isinstance(left, Hex) and isinstance(right, Hex):
+        return distance(left, right)
+    if not isinstance(left, GridPoint) or not isinstance(right, GridPoint):
+        raise ValidationError("Coordinate systems require explicit migration")
+    return abs(left.x - right.x) + abs(left.y - right.y)
 
 
 class Placement(Record):

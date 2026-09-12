@@ -32,6 +32,7 @@ from wayfarer.engine.simulation.combat.spatial import (
     SquareActorPlacement,
     SquareSpatialContext,
     VisibilitySpatialFact,
+    point_distance,
 )
 from wayfarer.engine.simulation.combat.suppression import (
     ActiveSuppressionZone,
@@ -402,9 +403,7 @@ def basic_distance(encounter: Encounter, subject_id: str, object_id: str) -> flo
     if not isinstance(context, BasicSpatialContext):
         left = encounter.placement(subject_id).position
         right = encounter.placement(object_id).position
-        from wayfarer.engine.simulation.combat.engine import CombatEngine
-
-        return float(CombatEngine.distance(left, right))
+        return float(point_distance(left, right))
     fact = context.active("distance", subject_id, object_id)
     if not isinstance(fact, DistanceSpatialFact):
         raise ValidationError("Basic combat requires an authoritative distance fact")

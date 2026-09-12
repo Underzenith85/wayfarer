@@ -23,6 +23,7 @@ from wayfarer.engine.rules.magic.protocols import (
 from wayfarer.engine.rules.types.hazard import require_hazards_settled
 from wayfarer.engine.rules.types.recovery import interrupt_tasks, require_settled
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
+from wayfarer.engine.simulation.combat.spatial import point_distance
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers, retching_penalty
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
@@ -558,8 +559,6 @@ def apply_spell(
             ):
                 raise ConflictError("Spell binding changed")
             if command.kind == "focus":
-                from wayfarer.engine.simulation.combat.engine import CombatEngine
-
                 if (
                     effect.phase != "active"
                     or effect.spell_id != "light"
@@ -579,7 +578,7 @@ def apply_spell(
                     if effect.geometry == "hex"
                     else GridPoint(x=context.position[0], y=context.position[1])
                 )
-                if CombatEngine.distance(origin, destination) > 5:
+                if point_distance(origin, destination) > 5:
                     raise ValidationError("Light manipulation exceeds Move 5")
                 effect = effect.model_copy(
                     update={"position": context.position, "concentrating": True}

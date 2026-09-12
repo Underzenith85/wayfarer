@@ -3,6 +3,7 @@
 from typing import TYPE_CHECKING
 
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
+from wayfarer.engine.simulation.combat.spatial import point_distance
 from wayfarer.engine.simulation.hex_geometry import Hex
 from wayfarer.engine.simulation.magic.spells import (
     SpellEffect,
@@ -20,8 +21,6 @@ if TYPE_CHECKING:
 
 def lights(state: PlayState, target_id: str, *, reversed: bool = False) -> tuple[SpellEffect, ...]:
     """Local candle light (B249); illumination does not disclose hidden entities."""
-    from wayfarer.engine.simulation.combat.engine import CombatEngine
-
     entities = {e.id: e for e in state.world.entities}
     target = entities.get(target_id)
     if target is None:
@@ -47,7 +46,7 @@ def lights(state: PlayState, target_id: str, *, reversed: bool = False) -> tuple
         )
         if (
             participant
-            and CombatEngine.distance(
+            and point_distance(
                 Hex(q=effect.position[0], r=effect.position[1])
                 if effect.geometry == "hex"
                 else GridPoint(x=effect.position[0], y=effect.position[1]),
