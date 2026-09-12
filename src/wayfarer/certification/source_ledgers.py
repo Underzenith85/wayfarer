@@ -10,7 +10,7 @@ import json
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Final, Literal, Protocol
+from typing import Final, Literal, Protocol, cast
 
 from pydantic import ConfigDict, Field
 
@@ -68,6 +68,10 @@ class SourceLedgerRow(AuditRecord):
     parent_id: str | None = None
     classification: str | None = None
     listed_value: str | None = None
+    construction_binding: str | None = None
+    cost_owner: str | None = None
+    consequence_owner: int | None = Field(default=None, gt=0)
+    source_review_owner: int | None = Field(default=None, gt=0)
 
 
 class SourceLedger(AuditRecord):
@@ -116,6 +120,129 @@ class InventoryLedgerRow(Protocol):
 
     @property
     def required_profiles(self) -> tuple[str, ...]: ...
+
+    @property
+    def implementation(self) -> str: ...
+
+    @property
+    def owner(self) -> int: ...
+
+
+@dataclass(frozen=True, slots=True)
+class TraitReconciliation:
+    """One exhaustive trait-list disposition, separate from execution state."""
+
+    source_row_id: str
+    trait_kind: Literal["advantage", "disadvantage", "perk", "quirk", "rollup"]
+    classifications: frozenset[Literal["mental", "physical", "social"]]
+    source_class: Literal["mundane", "exotic", "supernatural", "combined", "rollup"]
+    construction: Literal["runtime-definition", "source-value-recorded", "not-applicable"]
+    cost_owner: str | None
+    consequence_owner: int | None
+    runtime_binding: str | None
+    available: bool
+
+
+def _trait_classification(
+    row: SourceLedgerRow,
+) -> tuple[
+    Literal["advantage", "disadvantage", "perk", "quirk", "rollup"],
+    frozenset[Literal["mental", "physical", "social"]],
+    Literal["mundane", "exotic", "supernatural", "combined", "rollup"],
+]:
+    if row.row_kind == "rollup":
+        return "rollup", frozenset(), "rollup"
+    if row.classification is None:
+        raise ValidationError(f"Trait row lacks classification: {row.id}")
+    fields = row.classification.split("|")
+    if len(fields) != 3:
+        raise ValidationError(f"Malformed trait classification: {row.id}")
+    kind_value, attribute_value, source_value = fields
+    kind = cast(
+        Literal["advantage", "disadvantage", "perk", "quirk"],
+        (
+            "perk"
+            if kind_value == "advantage" and row.printed_page >= 100 and row.listed_value == "1"
+            else "quirk"
+            if kind_value == "disadvantage" and row.printed_page >= 162 and row.listed_value == "-1"
+            else kind_value
+        ),
+    )
+    if kind not in {"advantage", "disadvantage", "perk", "quirk"}:
+        raise ValidationError(f"Unknown trait kind: {row.id}")
+    attributes: set[Literal["mental", "physical", "social"]] = set()
+    if "M" in attribute_value:
+        attributes.add("mental")
+    if "P" in attribute_value:
+        attributes.add("physical")
+    if "Soc" in attribute_value:
+        attributes.add("social")
+    if not attributes:
+        raise ValidationError(f"Trait row lacks M/P/Soc classification: {row.id}")
+    source_marker = source_value.split()[0]
+    source_class: Literal["mundane", "exotic", "supernatural", "combined"]
+    if source_marker in {"–", "-"}:
+        source_class = "mundane"
+    elif source_marker == "X":
+        source_class = "exotic"
+    elif source_marker == "Sup":
+        source_class = "supernatural"
+    elif source_marker == "X/Sup":
+        source_class = "combined"
+    else:
+        raise ValidationError(f"Unknown trait source classification: {row.id}")
+    return kind, frozenset(attributes), source_class
+
+
+def reconcile_trait_ledger(
+    rows: tuple[SourceLedgerRow, ...], inventory_rows: tuple[InventoryLedgerRow, ...]
+) -> tuple[TraitReconciliation, ...]:
+    """Reconcile every source list row exactly once without claiming execution.
+
+    An unmatched named row keeps its source-listed construction value, but is
+    unavailable and remains owned by an open mechanics issue.  A runtime match
+    owns cost and consequence validation through its inventory record.  This
+    distinction prevents catalog presence from certifying behavior.
+    """
+    inventory = {row.id: row for row in inventory_rows}
+    reconciled: list[TraitReconciliation] = []
+    for row in rows:
+        kind, classifications, source_class = _trait_classification(row)
+        runtime = None if row.runtime_binding is None else inventory.get(row.runtime_binding)
+        if row.runtime_binding is not None and runtime is None:
+            raise ValidationError(f"Unknown trait runtime binding: {row.id}")
+        is_rollup = row.row_kind == "rollup"
+        catalog_only = row.runtime_binding == row.id
+        available = runtime is not None and runtime.implementation in {"implemented", "verified"}
+        reconciled.append(
+            TraitReconciliation(
+                source_row_id=row.id,
+                trait_kind=kind,
+                classifications=classifications,
+                source_class=source_class,
+                construction=(
+                    "not-applicable"
+                    if is_rollup
+                    else "source-value-recorded"
+                    if catalog_only
+                    else "runtime-definition"
+                    if runtime is not None
+                    else "source-value-recorded"
+                ),
+                cost_owner=None if is_rollup else row.cost_owner or row.runtime_binding or row.id,
+                consequence_owner=(
+                    None
+                    if is_rollup
+                    else row.consequence_owner
+                    or (runtime.owner if runtime is not None else row.completion_owner)
+                ),
+                runtime_binding=row.runtime_binding,
+                available=available,
+            )
+        )
+    if len(reconciled) != len(rows) or len({row.source_row_id for row in reconciled}) != len(rows):
+        raise ValidationError("Every trait source row must reconcile exactly once")
+    return tuple(reconciled)
 
 
 def _read_json(root: Path, filename: str) -> str:
@@ -221,6 +348,15 @@ def validate_source_ledgers(
             raise ValidationError(f"Unknown source-ledger capability: {row.id}")
         if row.parent_id is not None and row.parent_id not in row_ids:
             raise ValidationError(f"Unknown source-ledger parent: {row.id}")
+        if row.row_kind == "catalog-item" and row.id.startswith(("trait:", "modifier:")):
+            if not row.construction_binding or not row.cost_owner or row.consequence_owner is None:
+                raise ValidationError(
+                    f"Catalog row lacks separate construction ownership: {row.id}"
+                )
+            if row.source_review_owner not in open_owners:
+                raise ValidationError(f"Catalog row lacks an open source-review owner: {row.id}")
+            if row.runtime_binding == row.id and row.consequence_owner not in open_owners:
+                raise ValidationError(f"Catalog-only row lacks an open consequence owner: {row.id}")
         if row.runtime_binding is not None:
             if row.runtime_binding not in runtime_ids:
                 raise ValidationError(f"Unknown runtime inventory binding: {row.id}")
@@ -242,6 +378,20 @@ def validate_source_ledgers(
     if len(bindings) != len(set(bindings)):
         duplicates = sorted(key for key, count in Counter(bindings).items() if count > 1)
         raise ValidationError(f"Duplicate runtime inventory ownership: {duplicates[0]}")
+
+    trait_rows = bundle.by_type["traits"]
+    reconciled_traits = reconcile_trait_ledger(trait_rows, inventory_rows)
+    if len(reconciled_traits) != EXPECTED_LEDGER_COUNTS["traits"]:
+        raise ValidationError("Trait reconciliation denominator drift")
+    # Same-name positive/negative and repeated list rows retain distinct source
+    # identities.  They may share prose labels, never a runtime definition.
+    by_title: dict[str, list[TraitReconciliation]] = {}
+    for source_row, reconciliation in zip(trait_rows, reconciled_traits, strict=True):
+        by_title.setdefault(source_row.title.casefold(), []).append(reconciliation)
+    for records in by_title.values():
+        runtime_bindings = [record.runtime_binding for record in records if record.runtime_binding]
+        if len(runtime_bindings) != len(set(runtime_bindings)):
+            raise ValidationError("Trait aliases collapse mechanically distinct source rows")
 
     required_inventory = tuple(
         row for row in inventory_rows if BASIC_PROFILE_ID in row.required_profiles

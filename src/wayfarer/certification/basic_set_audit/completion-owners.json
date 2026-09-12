@@ -3,6 +3,7 @@
   "repository": "Underzenith85/wayfarer",
   "verified_at": "2026-09-12",
   "issues": [
+    {"issue": 191, "state": "open", "title": "Complete selected-source audit"},
     {"issue": 492, "state": "open", "title": "Import exhaustive Basic Set source ledgers"},
     {"issue": 493, "state": "open", "title": "Disposition every named Basic Set optional rule"},
     {"issue": 494, "state": "open", "title": "Decide and enforce the Infinite Worlds boundary"},

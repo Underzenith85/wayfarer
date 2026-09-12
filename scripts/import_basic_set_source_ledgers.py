@@ -270,6 +270,43 @@ def _runtime_candidates(root: Path) -> dict[tuple[str, str, int], list[tuple[str
     return candidates
 
 
+def _runtime_match(
+    candidates: dict[tuple[str, str, int], list[tuple[str, list[str]]]],
+    *,
+    title: str,
+    kind: str,
+    page: int,
+) -> tuple[str | None, list[str]]:
+    """Resolve one source row without silently merging same-name variants.
+
+    The printed trait index contains a handful of malformed page cells in the
+    selected PDF (for example, Spines points to ``3`` instead of B88).  Exact
+    title/kind/page remains the primary identity.  A title/kind-only fallback
+    is safe only when it names exactly one runtime definition; repeated source
+    entries therefore remain separate and unbound until explicitly reconciled.
+    """
+    exact = candidates.get((slug(title), kind, page), ())
+    if len(exact) == 1:
+        return exact[0]
+    same_name = [
+        match
+        for (candidate_title, candidate_kind, _), matches in candidates.items()
+        if candidate_title == slug(title) and candidate_kind == kind
+        for match in matches
+    ]
+    return same_name[0] if len(same_name) == 1 else (None, [])
+
+
+def _unmatched_trait_owner(classification: str, page: int) -> int:
+    """Assign catalog-only consequences to an open, named mechanics owner."""
+    attributes = classification.split("|")[1]
+    if page <= 31 or "Soc" in attributes:
+        return 495
+    if "P" in attributes:
+        return 514
+    return 501
+
+
 def import_traits(characters: Path, root: Path) -> list[LedgerRow]:
     import pdfplumber  # type: ignore[import-not-found]
 
@@ -356,8 +393,9 @@ def import_traits(characters: Path, root: Path) -> list[LedgerRow]:
         base = f"trait:{kind}:{slug(title)}"
         used[base] += 1
         identifier = base if used[base] == 1 else f"{base}:{used[base]}"
-        matches = candidates.get((slug(title), kind, page), [])
-        binding, evidence = matches[0] if len(matches) == 1 else (None, [])
+        binding, evidence = _runtime_match(candidates, title=title, kind=kind, page=page)
+        classification = f"{kind}|{trait_class}|{source_class}"
+        catalog_binding = binding or identifier
         rows.append(
             {
                 "id": identifier,
@@ -374,10 +412,16 @@ def import_traits(characters: Path, root: Path) -> list[LedgerRow]:
                 "historical_owners": [113],
                 "completion_owner": 496,
                 "capability_id": "gurps.character.traits",
-                "runtime_binding": binding,
+                "runtime_binding": catalog_binding,
                 "parent_id": None,
-                "classification": f"{kind}|{trait_class}|{source_class}",
+                "classification": classification,
                 "listed_value": value,
+                "construction_binding": catalog_binding,
+                "cost_owner": catalog_binding,
+                "consequence_owner": 113
+                if binding
+                else _unmatched_trait_owner(classification, page),
+                "source_review_owner": 191,
             }
         )
 
@@ -413,6 +457,10 @@ def import_traits(characters: Path, root: Path) -> list[LedgerRow]:
                 "parent_id": None,
                 "classification": key,
                 "listed_value": None,
+                "construction_binding": None,
+                "cost_owner": None,
+                "consequence_owner": None,
+                "source_review_owner": 191,
             }
         )
     return rows
@@ -502,10 +550,14 @@ def import_modifiers(characters: Path) -> list[LedgerRow]:
                 "historical_owners": [100],
                 "completion_owner": 497,
                 "capability_id": "gurps.character.ability_modifiers",
-                "runtime_binding": None,
+                "runtime_binding": identifier,
                 "parent_id": None,
                 "classification": category,
                 "listed_value": value,
+                "construction_binding": identifier,
+                "cost_owner": "modifier-catalog:" + identifier,
+                "consequence_owner": 497,
+                "source_review_owner": 191,
             }
         )
     return rows

@@ -12,6 +12,7 @@ from wayfarer.certification.source_ledgers import (
     LedgerBundle,
     ledger_blockers,
     load_source_ledgers,
+    reconcile_trait_ledger,
     validate_source_ledgers,
 )
 from wayfarer.engine.rules.conformance import CAPABILITIES
@@ -42,6 +43,32 @@ def test_selected_printing_ledgers_have_the_exhaustive_source_packet_denominator
     armor_divisors = [row for row in modifiers if row.title == "Armor Divisor"]
     assert {row.classification for row in armor_divisors} == {"enhancement", "limitation"}
     assert len({row.id for row in armor_divisors}) == 2
+
+
+def test_every_trait_row_has_separate_construction_consequence_and_review_ownership() -> None:
+    bundle = load_source_ledgers(ROOT)
+    reconciled = reconcile_trait_ledger(bundle.by_type["traits"], inventory())
+    assert len(reconciled) == 487
+    named = [row for row in reconciled if row.trait_kind != "rollup"]
+    assert len(named) == 480
+    assert {row.trait_kind for row in named} == {
+        "advantage",
+        "disadvantage",
+        "perk",
+        "quirk",
+    }
+    assert all(row.cost_owner and row.consequence_owner for row in named)
+    assert all(row.runtime_binding for row in named)
+    assert all(row.source_review_owner == 191 for row in bundle.by_type["traits"])
+
+    spines = next(row for row in named if row.source_row_id == "trait:advantage:spines")
+    assert spines.source_class == "exotic"
+    assert spines.runtime_binding == "supernatural/advantage:spines"
+
+    absent = next(row for row in named if row.source_row_id == "trait:advantage:absolute-direction")
+    assert absent.construction == "source-value-recorded"
+    assert not absent.available
+    assert absent.consequence_owner == 514
 
 
 def test_duplicate_ids_invalid_pages_and_missing_or_closed_owners_are_rejected() -> None:
