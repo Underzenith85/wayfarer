@@ -60,6 +60,7 @@ from wayfarer.simulation.gurps_equipment import (
     RangedMode,
     Shield,
 )
+from wayfarer.simulation.hex_geometry import HexBattlefield
 from wayfarer.simulation.mechanics.gurps_melee import defense_value, movement
 from wayfarer.simulation.resources import Item, Owner, ResourceEngine, ResourceState, Scheduled
 from wayfarer.simulation.scenes import Scene, SceneRules
@@ -104,6 +105,7 @@ async def setup(
     start_encounter: bool = True,
     aware_of: tuple[str, ...] = (),
     placements: tuple[Placement, ...] | None = None,
+    battlefield: Battlefield | HexBattlefield | None = None,
 ) -> tuple[str, PlayService]:
     equipment = EquipmentCatalog(
         profile_id=profile,
@@ -467,14 +469,13 @@ async def setup(
     resources = ResourceEngine(
         test_world, catalog, rules, policy, tuple(e.inventory_spec() for e in equipment.entries)
     )
+    selected_battlefield = battlefield or Battlefield(
+        id="dock", location_id="dock", width=4, height=4, darkness_penalty=darkness_penalty
+    )
     combat = CombatRules(
         id="gurps-melee",
         version=1,
-        battlefields=(
-            Battlefield(
-                id="dock", location_id="dock", width=4, height=4, darkness_penalty=darkness_penalty
-            ),
-        ),
+        battlefields=(selected_battlefield,),
         gurps_equipment=equipment,
     )
     maximum_wait = 1800 if durability and durability.repair_skill_id else 100
@@ -678,7 +679,7 @@ async def setup(
                 actor_id="gm",
                 expected_revision=0,
                 encounter_id="fight",
-                battlefield_id="dock",
+                battlefield_id=selected_battlefield.id,
                 ranged_situations=ranged_scene,
                 placements=placements
                 or (

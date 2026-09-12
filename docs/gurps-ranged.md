@@ -126,7 +126,14 @@ persists an ordered multi-target sweep: every target receives a separate attack,
 successive targets add to effective Recoil, and mapped target separation consumes
 the source-defined traversal shots. The entire sweep is validated before dice,
 and mapless encounters fail closed because they cannot prove the 30-degree arc or
-left-to-right ordering. Suppression fire remains unsupported.
+left-to-right ordering. Campaigns fourth-printing B409-410 suppression fire
+persists paid two-yard zones until the start of the firer's next turn. Exact hex
+movement through a zone or its one-yard firing swath queues a separate automatic
+attack against every entrant, friend or foe. Each zone keeps its declared effective
+RoF and remaining-hit budget; attacks ignore visibility penalties, enforce the
+printed skill caps, and use random hit location. Multiple zones require RoF 10+,
+adjacent centers, and at least five shots per zone. Declarations pay all ammunition
+up front and fail closed without exact hex geometry.
 
 #286 adds [opt-in projectile readiness](gurps-projectile-readiness.md): typed
 preparation/drawing/cocking, exact ammunition Fast-Draw specialties, and authored

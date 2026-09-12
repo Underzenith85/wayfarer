@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import json
 from collections.abc import Mapping
+from math import sqrt
 from typing import TYPE_CHECKING, Annotated, Literal, Self
 
 from pydantic import (
@@ -460,6 +461,40 @@ class PendingSprayTarget(SprayTarget):
     traversal_shots: int = Field(ge=0)
 
 
+class SuppressionZone(Record):
+    """One declared two-yard B409 suppression zone on an exact hex map."""
+
+    center: Hex
+    shots: int = Field(ge=1)
+
+
+class ActiveSuppressionZone(SuppressionZone):
+    """Paid suppression fire that remains live until the firer's next turn."""
+
+    id: Id
+    attacker_id: Id
+    weapon_id: Id
+    mode_id: str
+    origin: Hex
+    remaining_hits: int = Field(ge=0)
+    aim_bonus: int = Field(ge=0)
+    skill_cap: Literal[6, 8]
+    attacked_actor_ids: tuple[Id, ...] = ()
+
+
+class PendingSuppressionAttack(Record):
+    """A deterministic automatic attack queued when movement enters a zone."""
+
+    zone_id: Id
+    attacker_id: Id
+    weapon_id: Id
+    mode_id: str
+    shots: int = Field(ge=1)
+    remaining_hits: int = Field(ge=1)
+    aim_bonus: int = Field(ge=0)
+    skill_cap: Literal[6, 8]
+
+
 class PendingDefense(Record):
     id: Id
     attacker_id: Id
@@ -477,6 +512,16 @@ class PendingDefense(Record):
     )
     spray_recoil_penalty: int = Field(default=0, ge=0, exclude_if=lambda value: value == 0)
     traversal_shots: int = Field(default=0, ge=0, exclude_if=lambda value: value == 0)
+    suppression_zone_id: Id | None = Field(default=None, exclude_if=lambda value: value is None)
+    suppression_attacks: tuple[PendingSuppressionAttack, ...] = Field(
+        default=(), exclude_if=lambda value: not value
+    )
+    suppression_remaining_hits: int = Field(default=0, ge=0, exclude_if=lambda value: value == 0)
+    suppression_aim_bonus: int = Field(default=0, ge=0, exclude_if=lambda value: value == 0)
+    suppression_skill_cap: Literal[6, 8] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+    interrupted_actor_id: Id | None = Field(default=None, exclude_if=lambda value: value is None)
     spell_cast_id: str | None = Field(default=None, exclude_if=lambda value: value is None)
     post_attack_destination: GridPoint | None = None
     post_attack_square_facing: Facing | None = None
@@ -548,6 +593,9 @@ class Encounter(Record):
     ranged_situations: tuple[RangedSituation, ...] = ()
     tactical_traces: tuple[TacticalTrace, ...] = ()
     withdrawals: tuple[CombatWithdrawal, ...] = Field(
+        default=(), exclude_if=lambda value: not value
+    )
+    suppression_zones: tuple[ActiveSuppressionZone, ...] = Field(
         default=(), exclude_if=lambda value: not value
     )
 
@@ -882,6 +930,85 @@ class CombatEngine:
             raise ValidationError("Coordinate systems require explicit migration")
         return abs(left.x - right.x) + abs(left.y - right.y)
 
+    @staticmethod
+    def _inside_suppression(point: Hex, zone: ActiveSuppressionZone) -> bool:
+        """Whether a hex center lies in the two-yard zone or its one-yard swath."""
+
+        def xy(value: Hex) -> tuple[float, float]:
+            return value.q + value.r / 2, value.r * sqrt(3) / 2
+
+        px, py = xy(point)
+        ax, ay = xy(zone.origin)
+        bx, by = xy(zone.center)
+        dx, dy = bx - ax, by - ay
+        if dx == 0 and dy == 0:
+            return (px - bx) ** 2 + (py - by) ** 2 <= 1
+        ratio = max(0.0, min(1.0, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)))
+        closest_x, closest_y = ax + ratio * dx, ay + ratio * dy
+        return (px - closest_x) ** 2 + (py - closest_y) ** 2 <= 1
+
+    def _suppression_attacks(
+        self,
+        encounter: Encounter,
+        *,
+        actor_id: str,
+        before: Hex,
+        path: tuple[Hex, ...],
+        command_id: str,
+    ) -> Encounter:
+        attacks: list[PendingSuppressionAttack] = []
+        zones: list[ActiveSuppressionZone] = []
+        for zone in encounter.suppression_zones:
+            enters = (
+                zone.attacker_id != actor_id
+                and actor_id not in zone.attacked_actor_ids
+                and zone.remaining_hits > 0
+                and not self._inside_suppression(before, zone)
+                and any(self._inside_suppression(point, zone) for point in path)
+            )
+            if enters:
+                attacks.append(
+                    PendingSuppressionAttack(
+                        zone_id=zone.id,
+                        attacker_id=zone.attacker_id,
+                        weapon_id=zone.weapon_id,
+                        mode_id=zone.mode_id,
+                        shots=zone.shots,
+                        remaining_hits=zone.remaining_hits,
+                        aim_bonus=zone.aim_bonus,
+                        skill_cap=zone.skill_cap,
+                    )
+                )
+                zone = zone.model_copy(
+                    update={"attacked_actor_ids": zone.attacked_actor_ids + (actor_id,)}
+                )
+            zones.append(zone)
+        if not attacks:
+            return encounter
+        first, *remaining = attacks
+        target = next(p for p in encounter.participants if p.actor_id == actor_id)
+        pending = PendingDefense(
+            id="suppression:" + hashlib.sha256(command_id.encode()).hexdigest(),
+            attacker_id=first.attacker_id,
+            defender_id=actor_id,
+            weapon_id=first.weapon_id,
+            mode_id=first.mode_id,
+            shots=first.shots,
+            allowed=("dodge", "parry", "none") if target.ready_item_ids else ("dodge", "none"),
+            opened_round=encounter.round,
+            opened_turn=encounter.turn_index,
+            hit_location="random",
+            suppression_zone_id=first.zone_id,
+            suppression_attacks=tuple(remaining),
+            suppression_remaining_hits=first.remaining_hits,
+            suppression_aim_bonus=first.aim_bonus,
+            suppression_skill_cap=first.skill_cap,
+            interrupted_actor_id=actor_id,
+        )
+        return encounter.model_copy(
+            update={"pending_defense": pending, "suppression_zones": tuple(zones)}
+        )
+
     def validate(
         self,
         encounter: Encounter,
@@ -1025,8 +1152,28 @@ class CombatEngine:
                 and self.rules.gurps_equipment.profile_id == "gurps-basic-set-4e-2004"
             ),
         )
+        suppression_ids: set[str] = set()
+        for zone in encounter.suppression_zones:
+            attacker = participants.get(zone.attacker_id)
+            if (
+                encounter.spatial_kind != "hex"
+                or zone.id in suppression_ids
+                or attacker is None
+                or not isinstance(zone.origin, Hex)
+                or zone.weapon_id not in attacker.ready_item_ids
+                or zone.remaining_hits > zone.shots
+                or zone.attacker_id in zone.attacked_actor_ids
+                or len(set(zone.attacked_actor_ids)) != len(zone.attacked_actor_ids)
+                or not set(zone.attacked_actor_ids) <= set(participants)
+            ):
+                raise ValidationError("Invalid active suppression zone")
+            assert isinstance(battlefield, HexBattlefield)
+            if battlefield.cell(zone.origin).blocked or battlefield.cell(zone.center).blocked:
+                raise ValidationError("Invalid active suppression-zone geometry")
+            suppression_ids.add(zone.id)
         pending = encounter.pending_defense
         if pending is not None:
+            suppression_pause = pending.suppression_zone_id is not None
             spell_weapon = False
             if pending.spell_cast_id is not None:
                 from wayfarer.simulation.spells import active_spells
@@ -1044,7 +1191,14 @@ class CombatEngine:
                     raise ValidationError("Pending missile has no held spell")
             if (
                 encounter.status != "active"
-                or pending.attacker_id != encounter.current_actor_id
+                or (
+                    pending.attacker_id != encounter.current_actor_id
+                    and not (
+                        suppression_pause
+                        and pending.interrupted_actor_id == encounter.current_actor_id
+                        and pending.defender_id == encounter.current_actor_id
+                    )
+                )
                 or pending.attacker_id not in participants
                 or pending.defender_id not in participants
                 or pending.attacker_id == pending.defender_id
@@ -1058,6 +1212,24 @@ class CombatEngine:
                 or "none" not in pending.allowed
             ):
                 raise ValidationError("Invalid pending defense pause")
+            queued_suppression_ids = (
+                (pending.suppression_zone_id,) if pending.suppression_zone_id is not None else ()
+            ) + tuple(attack.zone_id for attack in pending.suppression_attacks)
+            if suppression_pause and (
+                pending.interrupted_actor_id != pending.defender_id
+                or pending.suppression_remaining_hits < 1
+                or pending.suppression_skill_cap is None
+                or len(set(queued_suppression_ids)) != len(queued_suppression_ids)
+                or not set(queued_suppression_ids) <= suppression_ids
+            ):
+                raise ValidationError("Invalid pending suppression attack")
+            if not suppression_pause and (
+                pending.suppression_attacks
+                or pending.suppression_remaining_hits
+                or pending.suppression_skill_cap is not None
+                or pending.interrupted_actor_id is not None
+            ):
+                raise ValidationError("Ordinary defense contains suppression state")
         historical_ids: set[str] = set()
         for choice in encounter.defense_history:
             historical = choice.pending
@@ -1320,6 +1492,11 @@ class CombatEngine:
             update={
                 "turn_index": index,
                 "round": round_number,
+                "suppression_zones": tuple(
+                    zone
+                    for zone in encounter.suppression_zones
+                    if zone.attacker_id != encounter.turn_order[index]
+                ),
                 "participants": tuple(
                     p.model_copy(
                         update={
@@ -1367,6 +1544,7 @@ class CombatEngine:
         hex_facing: HexFacing | None = None,
         basic_move: BasicMove | None = None,
         spatial_revision: int | None = None,
+        suppression_fire: bool = False,
     ) -> tuple[Encounter, ResourceState, CombatResult]:
         original, original_resources = encounter, resources
         interrupt = encounter.wait_interrupt
@@ -1421,6 +1599,7 @@ class CombatEngine:
             hex_path=hex_path,
             hex_facing=hex_facing,
             basic_move=basic_move,
+            suppression_fire=suppression_fire,
         )
         if self.rules.gurps_equipment is not None and interrupt is None and command_json:
             action = "attack" if maneuver in ATTACK_MANEUVERS else maneuver
@@ -1580,6 +1759,7 @@ class CombatEngine:
         hex_path: tuple[Hex, ...] = (),
         hex_facing: HexFacing | None = None,
         basic_move: BasicMove | None = None,
+        suppression_fire: bool = False,
     ) -> tuple[Encounter, ResourceState, CombatResult]:
         if self.rules.gurps_equipment is not None:
             command_id = "combat:" + hashlib.sha256(command_id.encode()).hexdigest()
@@ -1594,6 +1774,9 @@ class CombatEngine:
         if maneuver == "concentrate" and self.rules.gurps_equipment is None:
             raise ValidationError("Concentration requires a bound ability command")
         participant = next(p for p in encounter.participants if p.actor_id == actor_id)
+        start_position = (
+            None if isinstance(encounter.spatial, BasicSpatialContext) else participant.position
+        )
         # B205: a stream lasts only while its holder keeps pouring it on the same
         # weapon and mode. Any other maneuver lets go of it (#359).
         if participant.stream is not None and not (
@@ -2088,6 +2271,19 @@ class CombatEngine:
             participant = participant.model_copy(
                 update={"posture": posture, "last_maneuver": maneuver}
             )
+        elif maneuver in ATTACK_MANEUVERS and suppression_fire:
+            if (
+                maneuver != "all_out_attack"
+                or item_id is None
+                or target_id is not None
+                or item_id not in participant.ready_item_ids
+                or deferred_step
+                or any(value is not None for value in (destination, facing, posture))
+            ):
+                raise ValidationError("Suppression fire requires an immobile All-Out Attack")
+            participant = participant.model_copy(
+                update={"last_maneuver": maneuver, "last_attack_item_id": item_id}
+            )
         elif maneuver in ATTACK_MANEUVERS:
             if (
                 target_id is None
@@ -2165,7 +2361,36 @@ class CombatEngine:
             ):
                 raise ValidationError("Maneuver has unexpected parameters")
             participant = participant.model_copy(update={"last_maneuver": maneuver})
-        encounter = self._advance(self._replace(encounter, participant))
+        encounter = self._replace(encounter, participant)
+        movement_path: tuple[Hex, ...] = ()
+        if isinstance(start_position, Hex):
+            after = next(p for p in encounter.participants if p.actor_id == actor_id).position
+            movement_path = hex_path or (
+                (after,) if isinstance(after, Hex) and after != start_position else ()
+            )
+        if isinstance(start_position, Hex) and movement_path:
+            encounter = self._suppression_attacks(
+                encounter,
+                actor_id=actor_id,
+                before=start_position,
+                path=movement_path,
+                command_id=command_id,
+            )
+        if encounter.pending_defense is not None:
+            pending = encounter.pending_defense
+            return (
+                encounter,
+                resources,
+                CombatResult(
+                    encounter_id=encounter.id,
+                    code="combat.defense_required",
+                    round=encounter.round,
+                    current_actor_id=encounter.current_actor_id,
+                    pending_defense_id=pending.id,
+                    available=tuple(pending.allowed),
+                ),
+            )
+        encounter = self._advance(encounter)
         return (
             encounter,
             resources,
@@ -2209,24 +2434,60 @@ class CombatEngine:
             }
         )
         attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
+        suppression_queue = tuple(
+            attack
+            for attack in pending.suppression_attacks
+            if any(
+                zone.id == attack.zone_id and zone.remaining_hits > 0
+                for zone in encounter.suppression_zones
+            )
+        )
         if (
+            self.rules.gurps_equipment is not None
+            and pending.suppression_zone_id is not None
+            and suppression_queue
+            and not encounter.blocked_reason
+        ):
+            suppression_following, *suppression_remaining = suppression_queue
+            encounter = encounter.model_copy(
+                update={
+                    "pending_defense": pending.model_copy(
+                        update={
+                            "id": "suppression:" + hashlib.sha256(pending.id.encode()).hexdigest(),
+                            "attacker_id": suppression_following.attacker_id,
+                            "weapon_id": suppression_following.weapon_id,
+                            "mode_id": suppression_following.mode_id,
+                            "shots": suppression_following.shots,
+                            "spray_targets": (),
+                            "spray_recoil_penalty": 0,
+                            "traversal_shots": 0,
+                            "suppression_zone_id": suppression_following.zone_id,
+                            "suppression_attacks": tuple(suppression_remaining),
+                            "suppression_remaining_hits": suppression_following.remaining_hits,
+                            "suppression_aim_bonus": suppression_following.aim_bonus,
+                            "suppression_skill_cap": suppression_following.skill_cap,
+                        }
+                    )
+                }
+            )
+        elif (
             self.rules.gurps_equipment is not None
             and pending.spray_targets
             and not encounter.blocked_reason
         ):
-            following, *remaining = pending.spray_targets
+            spray_following, *spray_remaining = pending.spray_targets
             encounter = encounter.model_copy(
                 update={
                     "pending_defense": pending.model_copy(
                         update={
                             "id": "spray:" + hashlib.sha256(pending.id.encode()).hexdigest(),
-                            "defender_id": following.target_id,
-                            "shots": following.shots,
-                            "hit_location": following.hit_location,
+                            "defender_id": spray_following.target_id,
+                            "shots": spray_following.shots,
+                            "hit_location": spray_following.hit_location,
                             "target_item_id": None,
-                            "spray_targets": tuple(remaining),
-                            "spray_recoil_penalty": following.recoil_penalty,
-                            "traversal_shots": following.traversal_shots,
+                            "spray_targets": tuple(spray_remaining),
+                            "spray_recoil_penalty": spray_following.recoil_penalty,
+                            "traversal_shots": spray_following.traversal_shots,
                             "post_attack_destination": None,
                             "post_attack_square_facing": None,
                             "post_attack_hex_path": (),

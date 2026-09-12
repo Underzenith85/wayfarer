@@ -24,6 +24,7 @@ from wayfarer.rules.ranged_tables import (
 from wayfarer.rules.spray_types import Stream
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import (
+    ActiveSuppressionZone,
     BasicSpatialContext,
     CombatEngine,
     Defense,
@@ -38,6 +39,7 @@ from wayfarer.simulation.entangle import attack_penalty as entangle_attack_penal
 from wayfarer.simulation.entangle import bind as entangle_bind
 from wayfarer.simulation.fatigue import fatigue_value
 from wayfarer.simulation.gurps_equipment import RangedMode
+from wayfarer.simulation.hex_geometry import Hex, HexBattlefield
 from wayfarer.simulation.hit_locations import (
     attack_penalty,
     missing_location,
@@ -249,6 +251,87 @@ def prepare_spraying_fire(
     )
 
 
+def prepare_suppression_fire(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    command: TakeCombatTurn,
+    board: HexBattlefield | None,
+) -> tuple[PlayState, Encounter]:
+    """Validate, pay for, and persist B409-410 suppression zones."""
+    if not command.suppression_zones:
+        return state, encounter
+    if encounter.spatial_kind != "hex" or board is None:
+        raise ValidationError("Suppression fire requires an exact hex path and battlefield")
+    from wayfarer.simulation.mechanics.gurps_melee import mode
+
+    selected = mode(runtime, state, command.actor_id, command.item_id or "", command.mode_id)
+    if (
+        not isinstance(selected, RangedMode)
+        or selected.rate_of_fire < 5
+        or selected.thrown
+        or selected.sprayer is not None
+    ):
+        raise ValidationError("Suppression fire requires an ordinary weapon with RoF 5+")
+    actor = next(p for p in encounter.participants if p.actor_id == command.actor_id)
+    if not isinstance(actor.position, Hex):
+        raise ValidationError("Suppression fire requires the firer's exact hex")
+    declarations = command.suppression_zones
+    if len(declarations) > 1 and selected.rate_of_fire < 10:
+        raise ValidationError("Multiple suppression zones require RoF 10+")
+    if len({zone.center for zone in declarations}) != len(declarations):
+        raise ValidationError("Suppression zones require distinct centers")
+    for index, zone in enumerate(declarations):
+        cell = board.cell(zone.center)
+        if cell.blocked:
+            raise ValidationError("Suppression-zone center cannot be blocked terrain")
+        if CombatEngine.distance(actor.position, zone.center) > float(selected.maximum_range):
+            raise ValidationError("Suppression zone exceeds maximum weapon range")
+        if zone.shots < selected.minimum_shots_per_attack:
+            raise ValidationError("Suppression zone requires a legal burst")
+        if len(declarations) > 1 and zone.shots < 5:
+            raise ValidationError("Each of multiple suppression zones requires at least five shots")
+        if index and CombatEngine.distance(declarations[index - 1].center, zone.center) > 2:
+            raise ValidationError("Multiple suppression zones must be adjacent")
+    total = sum(zone.shots for zone in declarations)
+    if total > selected.rate_of_fire:
+        raise ValidationError("Suppression-zone shots exceed weapon RoF")
+    load = next(
+        (entry for entry in state.resources.ammunition_loads if entry.weapon_id == command.item_id),
+        None,
+    )
+    if load is None or load.mode_id != selected.id or load.rounds < total:
+        raise ValidationError("Suppression fire requires all declared ammunition")
+    aim = actor.maneuver_state
+    aim_bonus = (
+        aim.aim_bonus if (aim.aim_item_id, aim.aim_mode_id) == (command.item_id, selected.id) else 0
+    )
+    zones = tuple(
+        ActiveSuppressionZone(
+            id=f"suppression:{command.id}:{index}",
+            attacker_id=command.actor_id,
+            weapon_id=command.item_id or "",
+            mode_id=selected.id,
+            origin=actor.position,
+            center=zone.center,
+            shots=zone.shots,
+            remaining_hits=zone.shots,
+            aim_bonus=aim_bonus,
+            skill_cap=8 if selected.mount is not None else 6,
+        )
+        for index, zone in enumerate(declarations)
+    )
+    from wayfarer.simulation.firearms import spend_rounds
+    from wayfarer.simulation.mechanics.firearms import validate_attack
+
+    validate_attack(state.resources, command.item_id or "", selected, total)
+    resources = spend_rounds(state.resources, command.item_id or "", total)
+    runtime.resources.validate(resources)
+    return state.model_copy(update={"resources": resources}), encounter.model_copy(
+        update={"suppression_zones": encounter.suppression_zones + zones}
+    )
+
+
 def validate_command(
     runtime: RulesContext, state: PlayState, encounter: Encounter, command: TakeCombatTurn
 ) -> None:
@@ -262,6 +345,27 @@ def validate_command(
         or command.second_mode_id is not None
     ):
         raise ValidationError("Spraying fire requires one ranged attack and its ordered targets")
+    if command.suppression_zones and (
+        command.maneuver != "all_out_attack"
+        or command.attack_option != "suppression"
+        or command.item_id is None
+        or command.mode_id is None
+        or command.target_id is not None
+        or command.shots != 1
+        or command.spray_targets
+        or command.hit_location is not None
+        or command.target_item_id is not None
+        or command.destination is not None
+        or command.hex_path
+        or command.hex_facing is not None
+        or command.step_timing != "before"
+        or command.second_item_id is not None
+        or command.second_target_id is not None
+        or command.second_mode_id is not None
+    ):
+        raise ValidationError("Suppression fire requires one immobile mapped All-Out Attack")
+    if command.attack_option == "suppression" and not command.suppression_zones:
+        raise ValidationError("Suppression fire requires at least one declared zone")
     if command.recover_thrown_item:
         if (
             command.maneuver != "ready"
@@ -656,7 +760,9 @@ def prepare(
         runtime, state, encounter, actor.actor_id, target.actor_id, weapon, hit_location
     )
     if actor.last_maneuver == "feint" or (
-        actor.last_maneuver == "all_out_attack" and actor.maneuver_state.attack_bonus != 4
+        actor.last_maneuver == "all_out_attack"
+        and actor.maneuver_state.attack_bonus != 4
+        and pending.suppression_zone_id is None
     ):
         raise ValidationError("Ranged All-Out Attack supports Determined only")
     item = next(i for i in state.resources.items if i.id == pending.weapon_id)
@@ -664,10 +770,11 @@ def prepare(
 
     if weapon.firearm is not None and catalog(runtime).profile_id != "gurps-basic-set-4e-2004":
         raise ValidationError("Firearm malfunctions require the exact Basic Set profile")
-    validate_attack(state.resources, item.id, weapon, shots)
+    if pending.suppression_zone_id is None:
+        validate_attack(state.resources, item.id, weapon, shots)
     if item.quantity != 1:
         raise ValidationError("Ranged weapon requires an individual inventory item")
-    if not weapon.thrown:
+    if not weapon.thrown and pending.suppression_zone_id is None:
         load = next(
             (loaded for loaded in state.resources.ammunition_loads if loaded.weapon_id == item.id),
             None,
@@ -878,11 +985,18 @@ def resolve(
         weapon.id,
         target.actor_id,
     ) and aim.aim_seconds > 0
-    bonus = aim.aim_bonus if aimed else 0
-    if actor.last_maneuver == "move_and_attack":
-        bonus = min(-2, weapon.bulk)
-    elif actor.last_maneuver == "all_out_attack":
-        bonus += 1
+    bonus = (
+        pending.suppression_aim_bonus
+        if pending.suppression_zone_id is not None
+        else aim.aim_bonus
+        if aimed
+        else 0
+    )
+    if pending.suppression_zone_id is None:
+        if actor.last_maneuver == "move_and_attack":
+            bonus = min(-2, weapon.bulk)
+        elif actor.last_maneuver == "all_out_attack":
+            bonus += 1
     effective_shots = pending.shots
     close_projectile_multiplier = 1
     if weapon.multiple_projectiles is not None:
@@ -911,7 +1025,7 @@ def resolve(
         )
     attack_target += entangle_attack_penalty(actor)
     attack_target -= actor_hp.injury.shock if actor_hp.injury else 0
-    if actor_hp.injury:
+    if actor_hp.injury and pending.suppression_zone_id is None:
         attack_target += actor_hp.injury.physical_traits.darkness(encounter.darkness_penalty)
     from wayfarer.simulation.mechanics.location_combat import disabled
 
@@ -933,6 +1047,11 @@ def resolve(
             None,
         )
         attack_target += attack_penalty(pending.hit_location, shield_side=shield_side)
+    if pending.suppression_skill_cap is not None:
+        attack_target = min(
+            attack_target,
+            pending.suppression_skill_cap + rapid_fire_bonus(effective_shots),
+        )
     defense_value_, defense_item = defense_value(
         runtime, state, target, selected, item_id, parry_mode_id=parry_mode_id
     )
@@ -999,6 +1118,8 @@ def resolve(
         if attack.outcome.succeeded
         else int(near_miss)
     )
+    if pending.suppression_zone_id is not None:
+        hits = min(hits, pending.suppression_remaining_hits)
     initial_hits = hits
     defense = None
     second_trace = None
@@ -1198,18 +1319,19 @@ def resolve(
             update={"pending_defense": pending.model_copy(update={"spray_targets": ()})}
         )
     encounter = CombatEngine._replace(encounter, target)
-    state, encounter = expend(
-        runtime,
-        state,
-        encounter,
-        weapon,
-        shots=(shots_fired + pending.traversal_shots)
-        if weapon.sprayer is None
-        else weapon.sprayer.rounds_per_second,
-        hit=bool(hits),
-        catcher_id=target.actor_id if caught_hand else None,
-        hand=caught_hand,
-    )
+    if pending.suppression_zone_id is None:
+        state, encounter = expend(
+            runtime,
+            state,
+            encounter,
+            weapon,
+            shots=(shots_fired + pending.traversal_shots)
+            if weapon.sprayer is None
+            else weapon.sprayer.rounds_per_second,
+            hit=bool(hits),
+            catcher_id=target.actor_id if caught_hand else None,
+            hand=caught_hand,
+        )
     target = next(p for p in encounter.participants if p.actor_id == target.actor_id)
     from wayfarer.simulation.mechanics.weapon_explosions import schedule_payload
 
@@ -1228,6 +1350,24 @@ def resolve(
     if payload_attack:
         hits = 0
         impacts = shield_impacts
+    if pending.suppression_zone_id is not None:
+        encounter = encounter.model_copy(
+            update={
+                "suppression_zones": tuple(
+                    zone.model_copy(
+                        update={"remaining_hits": max(0, zone.remaining_hits - impacts)}
+                    )
+                    if zone.id == pending.suppression_zone_id
+                    else zone
+                    for zone in encounter.suppression_zones
+                    if not (
+                        failure is not None
+                        and zone.attacker_id == pending.attacker_id
+                        and zone.weapon_id == pending.weapon_id
+                    )
+                )
+            }
+        )
     location: HumanLocation | None = None
     location_dice: tuple[int, ...] = ()
     if hits and pending.hit_location:

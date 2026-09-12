@@ -556,6 +556,22 @@
       "evidence_gap": null
     },
     {
+      "id": "suppression-fire",
+      "reference": "Campaigns fourth printing B409-410",
+      "anchor": "inspected",
+      "behaviour": "A RoF 5+ weapon prepays fire into exact mapped zones and automatically attacks anyone entering a zone or its firing swath before the firer's next turn.",
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.rapid_fire",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_suppression_fire.py::test_suppression_fire_pays_up_front_attacks_entry_and_expires",
+        "tests/test_suppression_fire.py::test_invalid_multiple_suppression_zones_reject_before_mutation",
+        "tests/test_suppression_fire.py::test_multiple_adjacent_zones_queue_separate_attacks",
+        "tests/test_suppression_fire.py::test_suppression_fire_fails_closed_without_exact_hex_geometry"
+      ],
+      "evidence_gap": null
+    },
+    {
       "id": "variable-power-scope",
       "reference": "B271-289",
       "anchor": "range-only",
