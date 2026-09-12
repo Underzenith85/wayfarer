@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Literal
 
 from pydantic import Field
 
+from wayfarer.engine.simulation.projects.inventions import busy_actor_ids
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id, Record
 
@@ -98,6 +99,8 @@ def group_for(state: PlayState, actor_id: str) -> Subgroup:
 
 def synchronous(state: PlayState, actor_id: str) -> None:
     """Legacy immediate mutations must not bypass scheduled concurrent activity."""
+    if actor_id in busy_actor_ids(state.resources.inventions):
+        raise ConflictError("Actor is committed to full-time invention work")
     if not state.party.groups:
         return
     group = group_for(state, actor_id)

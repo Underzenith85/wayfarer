@@ -57,6 +57,7 @@ def _configuration_digest(
         + (rules.spells.model_dump_json() if rules.spells else "")
         + (rules.administration.model_dump_json() if rules.administration else "")
         + (rules.law.model_dump_json() if rules.law else "")
+        + (rules.inventions.model_dump_json() if rules.inventions else "")
         + reviewer.policy.digest
         + repr(resources.rules)
         + repr(reviewer.compiler.effects)

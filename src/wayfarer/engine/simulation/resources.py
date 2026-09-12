@@ -32,6 +32,7 @@ from wayfarer.engine.rules.types.recovery import (
     RecoveryTask,
 )
 from wayfarer.engine.rules.types.transport import Transport
+from wayfarer.engine.simulation.projects.inventions import InventionProject
 from wayfarer.models import Count, Id, Record, Tick
 
 ExactWeight = Annotated[int | Fraction, Field(ge=0)]
@@ -169,6 +170,7 @@ class ResourceState(Record):
     illnesses: tuple[RecoveryRestriction, ...] = ()
     transports: tuple[Transport, ...] = Field(default=(), exclude_if=lambda v: not v)
     object_results: tuple[ObjectResult, ...] = Field(default=(), exclude_if=lambda v: not v)
+    inventions: tuple[InventionProject, ...] = Field(default=(), exclude_if=lambda v: not v)
 
     @model_validator(mode="after")
     def validate_recovery_tasks(self) -> ResourceState:

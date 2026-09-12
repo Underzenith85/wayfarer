@@ -76,6 +76,7 @@ from wayfarer.engine.simulation.health.condition_checks import definition_modifi
 from wayfarer.engine.simulation.health.fright import blocked, requires_adjudication
 from wayfarer.engine.simulation.magic.bindings import validate_channels as validate_spell_channels
 from wayfarer.engine.simulation.magic.effects import dazed, lighting_penalty
+from wayfarer.engine.simulation.projects.inventions import validate_projects
 from wayfarer.engine.simulation.resources import Advance, Consume
 from wayfarer.engine.simulation.social.noncombat import validate_state as validate_noncombat_state
 from wayfarer.engine.world import Entity, EntityKind
@@ -145,6 +146,7 @@ class ActionEngine:
             rules.administration, state.administration, state.world, state.advancement
         )
         validate_law(rules.law, state.law, frozenset(fact.id for fact in state.world.facts))
+        validate_projects(state.resources.inventions, rules.inventions, state.resources.game_time)
         validate_members(state)
         if len({e.id for e in state.encounters}) != len(state.encounters):
             raise ValidationError("Duplicate encounter ID")

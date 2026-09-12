@@ -1894,6 +1894,79 @@
         "title": "CheckRule",
         "type": "object"
       },
+      "CheckTrace": {
+        "properties": {
+          "rules_package": {
+            "title": "Rules Package",
+            "type": "string"
+          },
+          "rules_version": {
+            "title": "Rules Version",
+            "type": "string"
+          },
+          "rule_id": {
+            "title": "Rule Id",
+            "type": "string"
+          },
+          "base_target": {
+            "title": "Base Target",
+            "type": "integer"
+          },
+          "modifiers": {
+            "items": {
+              "$ref": "#/$defs/Modifier"
+            },
+            "title": "Modifiers",
+            "type": "array"
+          },
+          "effective_target": {
+            "title": "Effective Target",
+            "type": "integer"
+          },
+          "dice": {
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "title": "Dice",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "margin": {
+            "title": "Margin",
+            "type": "integer"
+          },
+          "outcome": {
+            "$ref": "#/$defs/Outcome"
+          }
+        },
+        "required": [
+          "rules_package",
+          "rules_version",
+          "rule_id",
+          "base_target",
+          "modifiers",
+          "effective_target",
+          "dice",
+          "total",
+          "margin",
+          "outcome"
+        ],
+        "title": "CheckTrace",
+        "type": "object"
+      },
       "CombatConsequence": {
         "additionalProperties": false,
         "description": "Authored revelation after recorded incapacitation in a completed encounter.",
@@ -4129,6 +4202,14 @@
             },
             "title": "Object Results",
             "type": "array"
+          },
+          "inventions": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/InventionProject"
+            },
+            "title": "Inventions",
+            "type": "array"
           }
         },
         "title": "InitialResources",
@@ -4330,6 +4411,451 @@
           }
         },
         "title": "InjuryTolerance",
+        "type": "object"
+      },
+      "InventionAttempt": {
+        "additionalProperties": false,
+        "properties": {
+          "command_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Command Id",
+            "type": "string"
+          },
+          "phase": {
+            "enum": [
+              "concept-design",
+              "prototype",
+              "testing",
+              "production",
+              "complete"
+            ],
+            "title": "Phase",
+            "type": "string"
+          },
+          "check": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/CheckTrace"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "at": {
+            "minimum": 0,
+            "title": "At",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "command_id",
+          "phase",
+          "status",
+          "at"
+        ],
+        "title": "InventionAttempt",
+        "type": "object"
+      },
+      "InventionBlueprint": {
+        "additionalProperties": false,
+        "description": "Trusted GM-authored concept, prerequisites, costs and ordinary work schedule.",
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "concept": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Concept",
+            "type": "string"
+          },
+          "invention_skill_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Invention Skill Id",
+            "type": "string"
+          },
+          "related_skill_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Related Skill Ids",
+            "type": "array"
+          },
+          "operation_skill_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Operation Skill Id",
+            "type": "string"
+          },
+          "complexity": {
+            "enum": [
+              "simple",
+              "average",
+              "complex",
+              "amazing"
+            ],
+            "title": "Complexity",
+            "type": "string"
+          },
+          "novelty": {
+            "default": "original",
+            "enum": [
+              "original",
+              "working-model",
+              "known-device",
+              "variant",
+              "new-technology",
+              "reinvention"
+            ],
+            "title": "Novelty",
+            "type": "string"
+          },
+          "novelty_modifier": {
+            "default": 0,
+            "maximum": 10,
+            "minimum": -10,
+            "title": "Novelty Modifier",
+            "type": "integer"
+          },
+          "description_modifier": {
+            "default": 0,
+            "maximum": 2,
+            "minimum": 0,
+            "title": "Description Modifier",
+            "type": "integer"
+          },
+          "facility_definition_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Facility Definition Id",
+            "type": "string"
+          },
+          "funding_pool_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Funding Pool Id",
+            "type": "string"
+          },
+          "facility_cost": {
+            "minimum": 0,
+            "title": "Facility Cost",
+            "type": "integer"
+          },
+          "concept_work_seconds": {
+            "default": 86400,
+            "minimum": 1,
+            "title": "Concept Work Seconds",
+            "type": "integer"
+          },
+          "prototype": {
+            "$ref": "#/$defs/StageRequirement"
+          },
+          "testing": {
+            "$ref": "#/$defs/StageRequirement",
+            "default": {
+              "work_seconds": 604800,
+              "money": 0,
+              "materials": []
+            }
+          },
+          "production": {
+            "$ref": "#/$defs/StageRequirement"
+          },
+          "target_copies": {
+            "default": 1,
+            "maximum": 10000,
+            "minimum": 1,
+            "title": "Target Copies",
+            "type": "integer"
+          },
+          "native_tl": {
+            "maximum": 12,
+            "minimum": 0,
+            "title": "Native Tl",
+            "type": "integer"
+          },
+          "inventor_tl": {
+            "maximum": 12,
+            "minimum": 0,
+            "title": "Inventor Tl",
+            "type": "integer"
+          },
+          "catalog_definition_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Catalog Definition Id"
+          },
+          "runtime_adapter_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Runtime Adapter Id"
+          },
+          "method": {
+            "const": "ordinary",
+            "default": "ordinary",
+            "title": "Method",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "concept",
+          "invention_skill_id",
+          "operation_skill_id",
+          "complexity",
+          "facility_definition_id",
+          "funding_pool_id",
+          "facility_cost",
+          "prototype",
+          "production",
+          "native_tl",
+          "inventor_tl"
+        ],
+        "title": "InventionBlueprint",
+        "type": "object"
+      },
+      "InventionProject": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "owner_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Owner Id",
+            "type": "string"
+          },
+          "blueprint_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Blueprint Id",
+            "type": "string"
+          },
+          "phase": {
+            "default": "concept-design",
+            "enum": [
+              "concept-design",
+              "prototype",
+              "testing",
+              "production",
+              "complete"
+            ],
+            "title": "Phase",
+            "type": "string"
+          },
+          "status": {
+            "default": "active",
+            "enum": [
+              "active",
+              "failed",
+              "abandoned",
+              "completed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "flawed_theory": {
+            "default": false,
+            "title": "Flawed Theory",
+            "type": "boolean"
+          },
+          "facility_paid": {
+            "default": false,
+            "title": "Facility Paid",
+            "type": "boolean"
+          },
+          "facility_destroyed": {
+            "default": false,
+            "title": "Facility Destroyed",
+            "type": "boolean"
+          },
+          "minor_bugs": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Minor Bugs",
+            "type": "integer"
+          },
+          "major_bugs": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Major Bugs",
+            "type": "integer"
+          },
+          "copies": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Copies",
+            "type": "integer"
+          },
+          "active_work": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/InventionWork"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "attempts": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/InventionAttempt"
+            },
+            "title": "Attempts",
+            "type": "array"
+          },
+          "lots": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/ProductionLot"
+            },
+            "title": "Lots",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "owner_id",
+          "blueprint_id"
+        ],
+        "title": "InventionProject",
+        "type": "object"
+      },
+      "InventionRules": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          },
+          "profile_id": {
+            "const": "gurps-basic-set-4e-2004",
+            "default": "gurps-basic-set-4e-2004",
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "blueprints": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/InventionBlueprint"
+            },
+            "title": "Blueprints",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "version"
+        ],
+        "title": "InventionRules",
+        "type": "object"
+      },
+      "InventionWork": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "phase": {
+            "enum": [
+              "concept-design",
+              "prototype",
+              "testing",
+              "production",
+              "complete"
+            ],
+            "title": "Phase",
+            "type": "string"
+          },
+          "start": {
+            "minimum": 0,
+            "title": "Start",
+            "type": "integer"
+          },
+          "due": {
+            "exclusiveMinimum": 0,
+            "title": "Due",
+            "type": "integer"
+          },
+          "money_spent": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Money Spent",
+            "type": "integer"
+          },
+          "materials_spent": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/MaterialRequirement"
+            },
+            "title": "Materials Spent",
+            "type": "array"
+          },
+          "units": {
+            "default": 1,
+            "minimum": 1,
+            "title": "Units",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "phase",
+          "start",
+          "due"
+        ],
+        "title": "InventionWork",
         "type": "object"
       },
       "Item": {
@@ -4797,6 +5323,28 @@
         "title": "MagicItemBinding",
         "type": "object"
       },
+      "MaterialRequirement": {
+        "additionalProperties": false,
+        "properties": {
+          "definition_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Definition Id",
+            "type": "string"
+          },
+          "quantity": {
+            "minimum": 1,
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "definition_id",
+          "quantity"
+        ],
+        "title": "MaterialRequirement",
+        "type": "object"
+      },
       "MeleeMode": {
         "additionalProperties": false,
         "properties": {
@@ -4870,6 +5418,52 @@
         ],
         "title": "MeleeMode",
         "type": "object"
+      },
+      "Modifier": {
+        "properties": {
+          "value": {
+            "title": "Value",
+            "type": "integer"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "string"
+          },
+          "source_version": {
+            "title": "Source Version",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/$defs/ModifierKind",
+            "default": "situational"
+          }
+        },
+        "required": [
+          "value",
+          "reason",
+          "source_id",
+          "source_version"
+        ],
+        "title": "Modifier",
+        "type": "object"
+      },
+      "ModifierKind": {
+        "description": "Why a modifier applies; receipts keep every kind visible and separately auditable.",
+        "enum": [
+          "situational",
+          "equipment",
+          "trait",
+          "time",
+          "repeated-attempt",
+          "contest-adjustment",
+          "rule-of-16"
+        ],
+        "title": "ModifierKind",
+        "type": "string"
       },
       "MountSpec": {
         "additionalProperties": false,
@@ -6035,6 +6629,16 @@
         "title": "Obstacle",
         "type": "object"
       },
+      "Outcome": {
+        "enum": [
+          "critical-success",
+          "success",
+          "failure",
+          "critical-failure"
+        ],
+        "title": "Outcome",
+        "type": "string"
+      },
       "Owner": {
         "additionalProperties": false,
         "properties": {
@@ -6468,6 +7072,57 @@
           "proposal"
         ],
         "title": "PregeneratedCharacter",
+        "type": "object"
+      },
+      "ProductionLot": {
+        "additionalProperties": false,
+        "properties": {
+          "command_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Command Id",
+            "type": "string"
+          },
+          "quantity": {
+            "minimum": 1,
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "catalog_definition_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Catalog Definition Id"
+          },
+          "runtime_adapter_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Runtime Adapter Id"
+          },
+          "behavior_available": {
+            "default": false,
+            "title": "Behavior Available",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "command_id",
+          "quantity"
+        ],
+        "title": "ProductionLot",
         "type": "object"
       },
       "ProjectileProgress": {
@@ -8645,6 +9300,17 @@
               }
             ],
             "default": null
+          },
+          "inventions": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/InventionRules"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           }
         },
         "required": [
@@ -9064,6 +9730,35 @@
           "rounds_per_second"
         ],
         "title": "SprayerSpec",
+        "type": "object"
+      },
+      "StageRequirement": {
+        "additionalProperties": false,
+        "properties": {
+          "work_seconds": {
+            "minimum": 1,
+            "title": "Work Seconds",
+            "type": "integer"
+          },
+          "money": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Money",
+            "type": "integer"
+          },
+          "materials": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/MaterialRequirement"
+            },
+            "title": "Materials",
+            "type": "array"
+          }
+        },
+        "required": [
+          "work_seconds"
+        ],
+        "title": "StageRequirement",
         "type": "object"
       },
       "Stairway": {

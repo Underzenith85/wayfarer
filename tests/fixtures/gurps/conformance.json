@@ -102,6 +102,26 @@
       "provenance": "Independent branch expectation entered from the source's separately authored trap stages."
     },
     {
+      "id": "basic-ordinary-invention-lifecycle",
+      "capability_id": "gurps.projects.invention",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B473-B475, New Inventions",
+      "input": {
+        "phases": ["concept-design", "prototype", "testing", "production"],
+        "funded": false
+      },
+      "expected": {
+        "phase_monotonic": true,
+        "time_advanced": false,
+        "dice_consumed": false
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent phase and preflight boundary entered from the selected fourth printing."
+    },
+    {
       "id": "basic-control-rating-legality",
       "capability_id": "gurps.world.law",
       "profile": "gurps-basic-set-4e-2004",
