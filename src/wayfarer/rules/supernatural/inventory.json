@@ -5514,13 +5514,14 @@
         "knowledge"
       ],
       "blockers": [
-        222,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_knowledge.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5538,13 +5539,14 @@
         "movement"
       ],
       "blockers": [
-        223,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_movement.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5562,13 +5564,14 @@
         "protection-warning"
       ],
       "blockers": [
-        223,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_movement.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5586,13 +5589,14 @@
         "knowledge"
       ],
       "blockers": [
-        222,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_knowledge.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5610,13 +5614,14 @@
         "healing"
       ],
       "blockers": [
-        224,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned healing identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_healing.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5634,13 +5639,14 @@
         "necromantic"
       ],
       "blockers": [
-        225,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned necromantic identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_necromantic.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5658,13 +5664,14 @@
         "light-darkness"
       ],
       "blockers": [
-        222,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_knowledge.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5683,13 +5690,14 @@
         "water"
       ],
       "blockers": [
-        226,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_air.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5707,13 +5715,14 @@
         "body-control"
       ],
       "blockers": [
-        227,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned body control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_body_control.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5731,13 +5740,14 @@
         "fire"
       ],
       "blockers": [
-        228,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_fire.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5755,13 +5765,14 @@
         "mind-control"
       ],
       "blockers": [
-        229,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned mind control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_mind_control.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5779,13 +5790,14 @@
         "light-darkness"
       ],
       "blockers": [
-        222,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_knowledge.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5803,13 +5815,14 @@
         "meta"
       ],
       "blockers": [
-        222,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_knowledge.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5827,13 +5840,14 @@
         "air"
       ],
       "blockers": [
-        226,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_air.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5851,13 +5865,14 @@
         "earth"
       ],
       "blockers": [
-        230,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned earth identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_earth.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5875,14 +5890,13 @@
         "fire"
       ],
       "blockers": [
-        228,
         191
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Execution v2: fixed ground area, full-turn exposure and transient crossings.",
+      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
-        "tests/test_spell_execution.py"
+        "tests/test_spell_fire.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5901,13 +5915,14 @@
         "water"
       ],
       "blockers": [
-        231,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned water identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_water.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5925,13 +5940,14 @@
         "light-darkness"
       ],
       "blockers": [
-        222,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_knowledge.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5949,14 +5965,13 @@
         "mind-control"
       ],
       "blockers": [
-        229,
         191
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Execution v2: resisted Daze, action restriction and injury/resistance cancellation.",
+      "supported_subset": "Pinned mind control identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
-        "tests/test_spell_bindings.py"
+        "tests/test_spell_mind_control.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -5975,13 +5990,14 @@
         "necromantic"
       ],
       "blockers": [
-        225,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned necromantic identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_necromantic.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5999,13 +6015,14 @@
         "body-control"
       ],
       "blockers": [
-        227,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned body control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_body_control.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6048,13 +6065,14 @@
         "fire"
       ],
       "blockers": [
-        228,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_fire.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6072,13 +6090,14 @@
         "movement"
       ],
       "blockers": [
-        223,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_movement.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6096,13 +6115,14 @@
         "water"
       ],
       "blockers": [
-        231,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned water identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_water.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6120,13 +6140,14 @@
         "knowledge"
       ],
       "blockers": [
-        222,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_knowledge.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6144,13 +6165,14 @@
         "meta"
       ],
       "blockers": [
-        222,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_knowledge.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6169,13 +6191,14 @@
         "earth"
       ],
       "blockers": [
-        226,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_air.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6193,13 +6216,14 @@
         "earth"
       ],
       "blockers": [
-        230,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned earth identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_earth.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6242,13 +6266,14 @@
         "earth"
       ],
       "blockers": [
-        230,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned earth identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_earth.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6266,13 +6291,14 @@
         "fire"
       ],
       "blockers": [
-        228,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_fire.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6290,13 +6316,14 @@
         "fire"
       ],
       "blockers": [
-        228,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_fire.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6314,15 +6341,14 @@
         "fire"
       ],
       "blockers": [
-        228,
         191,
         173
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Execution v2: held missile, expansion, Wait, injury and supported body criticals; remaining physical criticals are #173.",
+      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
-        "tests/test_spell_execution.py"
+        "tests/test_spell_fire.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6341,13 +6367,14 @@
         "earth"
       ],
       "blockers": [
-        230,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned earth identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_earth.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6365,13 +6392,14 @@
         "water"
       ],
       "blockers": [
-        231,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned water identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_water.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6389,14 +6417,13 @@
         "mind-control"
       ],
       "blockers": [
-        229,
         191
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Purchased learning prerequisite only; no Foolishness effect.",
+      "supported_subset": "Pinned mind control identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
-        "tests/test_spell_energy.py"
+        "tests/test_spell_mind_control.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6415,13 +6442,14 @@
         "mind-control"
       ],
       "blockers": [
-        229,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned mind control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_mind_control.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6464,13 +6492,14 @@
         "movement"
       ],
       "blockers": [
-        223,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_movement.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6488,13 +6517,14 @@
         "healing"
       ],
       "blockers": [
-        224,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned healing identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_healing.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6512,13 +6542,14 @@
         "movement"
       ],
       "blockers": [
-        223,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_movement.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6536,13 +6567,14 @@
         "fire"
       ],
       "blockers": [
-        228,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_fire.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6560,13 +6592,14 @@
         "communication-empathy"
       ],
       "blockers": [
-        232,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned communication empathy identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_communication_empathy.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6585,13 +6618,14 @@
         "movement"
       ],
       "blockers": [
-        227,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned body control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_body_control.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6609,13 +6643,14 @@
         "water"
       ],
       "blockers": [
-        231,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned water identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_water.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6633,13 +6668,14 @@
         "knowledge"
       ],
       "blockers": [
-        222,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_knowledge.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6657,14 +6693,13 @@
         "fire"
       ],
       "blockers": [
-        228,
         191
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Purchased learning prerequisite only; no Ignite Fire effect.",
+      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
-        "tests/test_spell_energy.py"
+        "tests/test_spell_fire.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6683,13 +6718,14 @@
         "body-control"
       ],
       "blockers": [
-        227,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned body control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_body_control.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6707,13 +6743,14 @@
         "healing"
       ],
       "blockers": [
-        224,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned healing identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_healing.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6731,13 +6768,14 @@
         "healing"
       ],
       "blockers": [
-        224,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned healing identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_healing.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6755,14 +6793,13 @@
         "light-darkness"
       ],
       "blockers": [
-        222,
         191
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Execution v2: candle-sized light; radius and darkness penalty are authored scene conventions.",
+      "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
-        "tests/test_spell_execution.py"
+        "tests/test_spell_knowledge.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -6781,13 +6818,14 @@
         "air"
       ],
       "blockers": [
-        226,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_air.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6805,13 +6843,14 @@
         "movement"
       ],
       "blockers": [
-        223,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_movement.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6829,13 +6868,14 @@
         "protection-warning"
       ],
       "blockers": [
-        223,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_movement.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6853,13 +6893,14 @@
         "healing"
       ],
       "blockers": [
-        224,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned healing identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_healing.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6877,13 +6918,14 @@
         "mind-control"
       ],
       "blockers": [
-        229,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned mind control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_mind_control.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6901,13 +6943,14 @@
         "mind-control"
       ],
       "blockers": [
-        229,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned mind control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_mind_control.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6925,13 +6968,14 @@
         "communication-empathy"
       ],
       "blockers": [
-        232,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned communication empathy identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_communication_empathy.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6949,13 +6993,14 @@
         "healing"
       ],
       "blockers": [
-        224,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned healing identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_healing.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6973,13 +7018,14 @@
         "air"
       ],
       "blockers": [
-        226,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_air.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6997,13 +7043,14 @@
         "body-control"
       ],
       "blockers": [
-        227,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned body control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_body_control.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7021,13 +7068,14 @@
         "body-control"
       ],
       "blockers": [
-        227,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned body control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_body_control.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7045,13 +7093,14 @@
         "gate"
       ],
       "blockers": [
-        225,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned necromantic identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_necromantic.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7069,13 +7118,14 @@
         "gate"
       ],
       "blockers": [
-        225,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned necromantic identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_necromantic.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7118,13 +7168,14 @@
         "air"
       ],
       "blockers": [
-        226,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_air.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7167,13 +7218,14 @@
         "air"
       ],
       "blockers": [
-        226,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_air.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7191,13 +7243,14 @@
         "water"
       ],
       "blockers": [
-        231,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned water identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_water.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7215,13 +7268,14 @@
         "healing"
       ],
       "blockers": [
-        224,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned healing identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_healing.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7239,13 +7293,14 @@
         "fire"
       ],
       "blockers": [
-        228,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_fire.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7263,13 +7318,14 @@
         "fire"
       ],
       "blockers": [
-        228,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_fire.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7287,13 +7343,14 @@
         "body-control"
       ],
       "blockers": [
-        227,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned body control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_body_control.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7311,13 +7368,14 @@
         "earth"
       ],
       "blockers": [
-        230,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned earth identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_earth.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7335,13 +7393,14 @@
         "water"
       ],
       "blockers": [
-        231,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned water identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_water.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7359,13 +7418,14 @@
         "knowledge"
       ],
       "blockers": [
-        222,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_knowledge.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7383,13 +7443,14 @@
         "communication-empathy"
       ],
       "blockers": [
-        232,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned communication empathy identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_communication_empathy.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7407,13 +7468,14 @@
         "communication-empathy"
       ],
       "blockers": [
-        232,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned communication empathy identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_communication_empathy.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7431,13 +7493,14 @@
         "necromantic"
       ],
       "blockers": [
-        225,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned necromantic identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_necromantic.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7455,13 +7518,14 @@
         "air"
       ],
       "blockers": [
-        226,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_air.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7479,13 +7543,14 @@
         "earth"
       ],
       "blockers": [
-        230,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned earth identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_earth.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7503,14 +7568,13 @@
         "fire"
       ],
       "blockers": [
-        228,
         191
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Purchased learning prerequisite only; no Shape Fire effect.",
+      "supported_subset": "Pinned fire identity, page, learning definition, private check, authority, replay and restart semantics.",
       "evidence": [
-        "tests/test_spell_energy.py"
+        "tests/test_spell_fire.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -7529,13 +7593,14 @@
         "water"
       ],
       "blockers": [
-        231,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned water identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_water.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7553,13 +7618,14 @@
         "protection-warning"
       ],
       "blockers": [
-        223,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_movement.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7577,13 +7643,14 @@
         "mind-control"
       ],
       "blockers": [
-        229,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned mind control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_mind_control.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7601,13 +7668,14 @@
         "body-control"
       ],
       "blockers": [
-        227,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned body control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_body_control.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7650,13 +7718,14 @@
         "air"
       ],
       "blockers": [
-        226,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_air.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7674,13 +7743,14 @@
         "earth"
       ],
       "blockers": [
-        230,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned earth identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_earth.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7698,13 +7768,14 @@
         "earth"
       ],
       "blockers": [
-        230,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned earth identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_earth.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7722,13 +7793,14 @@
         "necromantic"
       ],
       "blockers": [
-        225,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned necromantic identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_necromantic.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7746,13 +7818,14 @@
         "necromantic"
       ],
       "blockers": [
-        225,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned necromantic identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_necromantic.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7770,13 +7843,14 @@
         "knowledge"
       ],
       "blockers": [
-        222,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned knowledge-family identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_knowledge.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7794,13 +7868,14 @@
         "communication-empathy"
       ],
       "blockers": [
-        232,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned communication empathy identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_communication_empathy.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7818,13 +7893,14 @@
         "necromantic"
       ],
       "blockers": [
-        225,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned necromantic identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_necromantic.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7842,13 +7918,14 @@
         "air"
       ],
       "blockers": [
-        226,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_air.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7866,13 +7943,14 @@
         "body-control"
       ],
       "blockers": [
-        227,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned body control identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_body_control.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7890,13 +7968,14 @@
         "necromantic"
       ],
       "blockers": [
-        225,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned necromantic identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_necromantic.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
