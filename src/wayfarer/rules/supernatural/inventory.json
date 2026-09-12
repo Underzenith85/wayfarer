@@ -1414,13 +1414,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        238,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned construction plus authored event-backed Jumper, Snatcher, and Warp execution.",
+      "evidence": [
+        "tests/test_world_travel_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2559,13 +2560,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        238,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned construction plus authored event-backed Jumper, Snatcher, and Warp execution.",
+      "evidence": [
+        "tests/test_world_travel_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3432,13 +3434,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        238,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned construction plus authored event-backed Jumper, Snatcher, and Warp execution.",
+      "evidence": [
+        "tests/test_world_travel_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,

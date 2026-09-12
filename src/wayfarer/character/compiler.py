@@ -423,6 +423,15 @@ class CharacterCompiler:
                             )
 
                             cost = validate_attack_defense_trait(definition, amount, options)
+                        elif any(
+                            hook.startswith("world-travel-trait:")
+                            for hook in metadata.runtime_hooks
+                        ):
+                            from wayfarer.rules.world_travel_traits import (
+                                validate_purchase as validate_world_travel_trait,
+                            )
+
+                            cost = validate_world_travel_trait(definition, amount, options)
                         else:
                             cost = trait_cost(cost, amount, options, metadata)
                         if any(hook.startswith("ability:") for hook in metadata.runtime_hooks):
