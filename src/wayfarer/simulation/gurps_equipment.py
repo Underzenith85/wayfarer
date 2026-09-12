@@ -41,6 +41,7 @@ from wayfarer.simulation.resources import (
 Nonnegative = Annotated[int, Field(ge=0)]
 Positive = Annotated[int, Field(ge=1)]
 Money = Annotated[Decimal | int | Fraction, Field(ge=0, allow_inf_nan=False)]
+TechnologyLevel = Nonnegative | Literal["skill-relative", "superscience"]
 DamageType = Literal["cr", "cut", "imp", "pi-", "pi", "pi+", "pi++", "burn", "cor", "tox", "fat"]
 Location = HumanLocation | Literal["arms", "hands", "legs", "feet", "eyes"]
 
@@ -364,7 +365,7 @@ class EquipmentProfile(Record):
     provenance: Provenance
     weight_millipounds: ExactWeight
     price: Money
-    technology_level: Nonnegative
+    technology_level: TechnologyLevel
     slot: Id | None = None
     ammunition: bool = False
     modes: tuple[WeaponMode, ...] = ()
@@ -386,6 +387,8 @@ class EquipmentProfile(Record):
 
     @model_validator(mode="after")
     def valid_modes(self) -> Self:
+        if not isinstance(self.technology_level, int) and not self.unsupported_mechanics:
+            raise ValueError("Non-numeric technology levels must remain explicitly unsupported")
         if self.power_cell_capacity is not None and (not self.ammunition or self.warhead):
             raise ValueError("Power cell requires nonexplosive ammunition metadata")
         if self.warhead is not None and not (
@@ -413,6 +416,8 @@ class EquipmentProfile(Record):
             raise ValidationError(
                 "Equipment has unsupported mechanics: " + ", ".join(self.unsupported_mechanics)
             )
+        if not isinstance(self.technology_level, int):
+            raise ValidationError("Supported equipment requires a concrete technology level")
         return EquipmentSpec(
             definition_id=self.definition_id,
             unit_weight=self.weight_millipounds,

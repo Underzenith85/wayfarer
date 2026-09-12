@@ -31,6 +31,7 @@ from wayfarer.simulation.gurps_equipment import (
     RocketAcceleration,
     Shield,
     SmartgunSpec,
+    TechnologyLevel,
 )
 from wayfarer.simulation.objects import object_hp
 
@@ -91,7 +92,7 @@ def melee(
 def weapon(
     identifier: str,
     page: int | tuple[int, ...],
-    tl: int,
+    tl: TechnologyLevel,
     price: int,
     weight: int,
     *modes: MeleeMode,
@@ -815,6 +816,42 @@ WEAPONS = (
         7000,
         melee("two-handed-sword-swing", "two-handed-sword", 12, "swing", 3, "cut", (1, 2), hands=2),
         melee("two-handed-sword-thrust", "two-handed-sword", 12, "thrust", 3, "imp", (2,), hands=2),
+    ),
+)
+
+# The selected table prints ``^`` instead of an integer TL for superscience.
+# These rows retain their exact inventory facts but remain selection-blocked.
+SUPERSCIENCE_MELEE = (
+    weapon(
+        "force-sword",
+        272,
+        "superscience",
+        10000,
+        2000,
+        melee(
+            "force-sword-swing",
+            "force-sword",
+            3,
+            "fixed",
+            0,
+            "burn",
+            (1, 2),
+            dice=8,
+            divisor="5",
+        ),
+        unsupported=("superscience-technology-level",),
+    ),
+    EquipmentProfile(
+        definition_id="equipment:monowire-whip",
+        provenance=source(272),
+        technology_level="superscience",
+        price=900,
+        weight_millipounds=500,
+        unsupported_mechanics=(
+            "superscience-technology-level",
+            "extra-die-strength-damage",
+            "variable-reach-ready",
+        ),
     ),
 )
 
@@ -2196,6 +2233,20 @@ SHIELDS = tuple(
     )
 )
 
+SUPERSCIENCE_SHIELDS = (
+    EquipmentProfile(
+        definition_id="equipment:force-shield",
+        provenance=source(287),
+        technology_level="superscience",
+        price=1500,
+        weight_millipounds=500,
+        unsupported_mechanics=(
+            "superscience-technology-level",
+            "shield-material-variants",
+        ),
+    ),
+)
+
 # B288-289: fixed-TL inventory facts. Behavioral requirements keep special tools
 # out of active packages until their mechanics are integrated; no invented
 # skill/effect hooks. Rows printed with ``TL Var.`` remain ledger omissions
@@ -2204,7 +2255,7 @@ ORDINARY = tuple(
     EquipmentProfile(
         definition_id=identifier,
         provenance=source(page),
-        technology_level=tl,
+        technology_level=cast(TechnologyLevel, tl),
         price=price,
         weight_millipounds=weight,
         container_capacity_millipounds=capacity,
@@ -2449,6 +2500,115 @@ ORDINARY = tuple(
         ("equipment:spinning-wheel", 289, 3, 100, 40000, None, ("special-tool-effects",)),
         ("equipment:wheelbarrow", 289, 2, 60, 18000, 350000, ("special-tool-effects",)),
         ("equipment:whetstone", 289, 1, 5, 1000, None, ("special-tool-effects",)),
+        # Skill-relative and portable specialist kits, B289.
+        (
+            "equipment:bandages",
+            289,
+            "skill-relative",
+            10,
+            2000,
+            None,
+            ("technology-level-variants", "special-tool-effects"),
+        ),
+        (
+            "equipment:crash-kit",
+            289,
+            "skill-relative",
+            200,
+            10000,
+            None,
+            ("technology-level-variants", "special-tool-effects"),
+        ),
+        (
+            "equipment:first-aid-kit",
+            289,
+            "skill-relative",
+            50,
+            2000,
+            None,
+            ("technology-level-variants", "special-tool-effects"),
+        ),
+        (
+            "equipment:surgical-instruments",
+            289,
+            "skill-relative",
+            300,
+            15000,
+            None,
+            ("technology-level-variants", "special-tool-effects"),
+        ),
+        (
+            "equipment:portable-carpentry-tool-kit",
+            289,
+            1,
+            300,
+            20000,
+            None,
+            ("special-tool-effects",),
+        ),
+        (
+            "equipment:portable-armoury-tool-kit",
+            289,
+            1,
+            600,
+            20000,
+            None,
+            ("special-tool-effects",),
+        ),
+        (
+            "equipment:portable-explosives-tool-kit",
+            289,
+            5,
+            600,
+            20000,
+            None,
+            ("special-tool-effects",),
+        ),
+        (
+            "equipment:portable-machinist-tool-kit",
+            289,
+            5,
+            600,
+            20000,
+            None,
+            ("special-tool-effects",),
+        ),
+        (
+            "equipment:portable-mechanic-tool-kit",
+            289,
+            5,
+            600,
+            20000,
+            None,
+            ("special-tool-effects",),
+        ),
+        (
+            "equipment:portable-electrician-tool-kit",
+            289,
+            6,
+            600,
+            20000,
+            None,
+            ("special-tool-effects",),
+        ),
+        (
+            "equipment:portable-electronics-repair-tool-kit",
+            289,
+            6,
+            1200,
+            10000,
+            None,
+            ("special-tool-effects",),
+        ),
+        (
+            "equipment:suitcase-lab",
+            289,
+            "skill-relative",
+            3000,
+            10000,
+            None,
+            ("technology-level-variants", "special-tool-effects"),
+        ),
         # Weapon and combat accessories, B289.
         ("equipment:ear-muffs", 289, 6, 200, 1000, None, ("weapon-accessories",)),
         ("equipment:hip-quiver", 289, 0, 15, 1000, None, ("weapon-accessories",)),
@@ -2485,6 +2645,7 @@ BASIC_EQUIPMENT = EquipmentCatalog(
     profile_id="gurps-basic-set-4e-2004",
     entries=(
         WEAPONS
+        + SUPERSCIENCE_MELEE
         + MUSCLE_POWERED_RANGED
         + MUSCLE_POWERED_AMMUNITION
         + FIREARMS
@@ -2498,6 +2659,7 @@ BASIC_EQUIPMENT = EquipmentCatalog(
         + HIGHER_TL_AMMUNITION
         + ARMOR
         + SHIELDS
+        + SUPERSCIENCE_SHIELDS
         + ORDINARY
     ),
 )

@@ -2419,9 +2419,20 @@
             "title": "Price"
           },
           "technology_level": {
-            "minimum": 0,
-            "title": "Technology Level",
-            "type": "integer"
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "enum": [
+                  "skill-relative",
+                  "superscience"
+                ],
+                "type": "string"
+              }
+            ],
+            "title": "Technology Level"
           },
           "slot": {
             "anyOf": [

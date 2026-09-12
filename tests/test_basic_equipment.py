@@ -55,6 +55,8 @@ MELEE_ROWS = (
     ("flail", 274, 2, 100, 8000),
     ("greatsword", 274, 3, 800, 7000),
     ("thrusting-greatsword", 274, 3, 900, 7000),
+    ("force-sword", 272, "superscience", 10000, 2000),
+    ("monowire-whip", 272, "superscience", 900, 500),
 )
 
 RANGED_ROWS = (
@@ -834,7 +836,7 @@ def test_container_units_and_unsupported_activation() -> None:
             vehicle.require_operation()
 
 
-def test_b288_289_fixed_tl_inventory_reconciliation() -> None:
+def test_b288_289_inventory_reconciliation() -> None:
     rows = {
         entry.definition_id.removeprefix("equipment:"): (
             entry.provenance.pages[0],
@@ -846,9 +848,9 @@ def test_b288_289_fixed_tl_inventory_reconciliation() -> None:
         for entry in BASIC_EQUIPMENT.entries
         if entry.provenance.pages[0] in (288, 289)
     }
-    assert len(rows) == 116
+    assert len(rows) == 128
     assert sum(page == 288 for page, *_ in rows.values()) == 63
-    assert sum(page == 289 for page, *_ in rows.values()) == 53
+    assert sum(page == 289 for page, *_ in rows.values()) == 65
     assert rows["ceramic-bottle"] == (288, 1, 3, 1000, 2000)
     assert rows["gasoline-gallon"] == (288, 6, Fraction(3, 2), 6000, None)
     assert rows["secure-headset-radio"] == (288, 8, 5000, 500, None)
@@ -858,6 +860,58 @@ def test_b288_289_fixed_tl_inventory_reconciliation() -> None:
     assert rows["cutting-torch-gas-bottle"] == (289, 6, 50, 15000, None)
     assert rows["wheelbarrow"] == (289, 2, 60, 18000, 350000)
     assert rows["thermal-scope-4x"] == (289, 8, 8000, 4000, None)
+
+
+def test_non_numeric_technology_levels_fail_closed() -> None:
+    entries = {entry.definition_id: entry for entry in BASIC_EQUIPMENT.entries}
+    expected = {
+        "equipment:force-sword": "superscience",
+        "equipment:monowire-whip": "superscience",
+        "equipment:force-shield": "superscience",
+        "equipment:bandages": "skill-relative",
+        "equipment:crash-kit": "skill-relative",
+        "equipment:first-aid-kit": "skill-relative",
+        "equipment:surgical-instruments": "skill-relative",
+        "equipment:suitcase-lab": "skill-relative",
+    }
+    assert {identifier: entries[identifier].technology_level for identifier in expected} == expected
+    for identifier in expected:
+        with pytest.raises(ValidationError, match="unsupported"):
+            entries[identifier].inventory_spec()
+
+    force_sword = entries["equipment:force-sword"]
+    assert (force_sword.price, force_sword.weight_millipounds) == (10000, 2000)
+    mode = force_sword.modes[0]
+    assert isinstance(mode, MeleeMode)
+    assert mode.damage.dice == 8
+    assert mode.damage.armor_divisor.as_integer_ratio() == (5, 1)
+    assert mode.reach == (1, 2)
+    assert mode.minimum_st == 3
+    assert (
+        entries["equipment:force-shield"].price,
+        entries["equipment:force-shield"].weight_millipounds,
+    ) == (1500, 500)
+
+
+def test_b289_specialist_tool_kit_rows_are_exact() -> None:
+    entries = {entry.definition_id: entry for entry in BASIC_EQUIPMENT.entries}
+    expected = {
+        "portable-carpentry-tool-kit": (1, 300, 20000),
+        "portable-armoury-tool-kit": (1, 600, 20000),
+        "portable-explosives-tool-kit": (5, 600, 20000),
+        "portable-machinist-tool-kit": (5, 600, 20000),
+        "portable-mechanic-tool-kit": (5, 600, 20000),
+        "portable-electrician-tool-kit": (6, 600, 20000),
+        "portable-electronics-repair-tool-kit": (6, 1200, 10000),
+    }
+    assert {
+        name: (
+            entries["equipment:" + name].technology_level,
+            entries["equipment:" + name].price,
+            entries["equipment:" + name].weight_millipounds,
+        )
+        for name in expected
+    } == expected
 
 
 def test_catalog_roundtrip_and_profile_gate() -> None:

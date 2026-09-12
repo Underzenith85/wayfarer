@@ -292,6 +292,8 @@ def mode(
         # is not consumed, and without it in hand this mode does not exist.
         selected = launched_mode(runtime, state, actor_id, selected)
     require_skill_procedure(catalog(runtime).profile_id, selected)
+    if not isinstance(entry.technology_level, int):
+        raise ValidationError("A usable weapon requires a concrete technology level")
     require_technology(
         selected.skill_id,
         runtime.reviewer.compiler.policy.technology_level,
