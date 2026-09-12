@@ -40,6 +40,16 @@ class PassengerEjection(Record):
     collision_speed: int = Field(gt=0, le=1000)
 
 
+class WaterOccupantCheck(Record):
+    """Compiled open-deck/pressure facts supplied by authoritative scenario code."""
+
+    actor_id: str = Field(min_length=1)
+    hold_skill: int = Field(ge=1, le=50)
+    swimming: int = Field(ge=1, le=50)
+    ht: int = Field(ge=1, le=50)
+    will: int = Field(ge=1, le=50)
+
+
 class VehicleTrace(Record):
     command_id: str
     reason: str

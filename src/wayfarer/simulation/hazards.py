@@ -171,8 +171,12 @@ def apply_hazard(
                         expected_revision=state.revision,
                         basic_damage=damage,
                         resistance=schedule.resistance if spec.kind == "fire" else 0,
-                        damage_type="burn" if spec.kind == "fire" else "tox",
-                        injury_source="area" if spec.kind == "fire" else "internal",
+                        damage_type="burn"
+                        if spec.kind == "fire"
+                        else "cr"
+                        if spec.kind == "pressure"
+                        else "tox",
+                        injury_source="area" if spec.kind in ("fire", "pressure") else "internal",
                     ),
                     ht=schedule.ht,
                     rng=rng,

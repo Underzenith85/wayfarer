@@ -56,6 +56,7 @@ restart. PostgreSQL runs require `WAYFARER_TEST_DATABASE_URL`.
 | Rollovers | Mapped straight roll/skid distance of velocity/3; integer hex position plus saved fractional thirds; body/passenger falling damage | B469, B431-432 |
 | Air control | Minor altitude/speed loss, minimum-speed stall, severe dive/stall state, and Piloting-5 recovery checks | B469 |
 | Air aftermath | Minor blunders displace the aircraft; dives descend at Top Speed each turn; stalls accelerate downward; terrain contact uses the existing collision, object-damage and occupant-injury reducers | B430-432, B469 |
+| Water casualties | Authored currents honor fractional draft; open-deck failures persist overboard occupants and drowning; sinking advances at saved hull/leak rates into shared breathing hazards; underwater leaks damage the hull and schedule pressure exposure; unsinkable craft can spend a turn righting | B435-437, B466, B469 |
 | Water control | Drift, capsize for unsinkable craft, or sinking state | B469 |
 | Space/submarine control | Drift; submarines lose depth on minor failures; severe failures roll object HT and persist stress-failure state | B469 |
 | Collision exchange | Head-on/rear-end/side-on relative velocities and faster/striking-body dice caps; each body uses the existing object-damage reducer | B430, B432 |
@@ -76,7 +77,6 @@ residual per locomotion mode and splits it into live children;
 
 | Missing consumer or variant | Current behavior | Owner |
 | --- | --- | ---: |
-| Sinking, capsizing recovery, underwater stress damage, leaks, decompression, water currents, fractional draft and open-deck overboard checks | Pending states block ordinary operation; open-deck control rejects before dice. | #394 |
 | Space thrust, navigation, fuel/delta-v and very large speed/damage scales | Navigation rejects; only control/stress and the resolved collision exchange are provided. | #395 |
 | Mounted movement, Riding control against the mounted loss table and rider separation | `ground-mount` carries no version-two operation at all; every path rejects by name. | #396 |
 | Ramming attack/defense, mounted weapons, cover, Aim and penalty consumption, and synchronized encounter poses | Live integration originally assigned to #120 remains missing despite that issue's closure. | #397 |

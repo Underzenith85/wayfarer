@@ -29,7 +29,6 @@ COMBAT: Final = "gurps.vehicles.combat"
 # The issues this audit split its residual scope into. A closed owner cannot
 # hold a blocker, which is why #120 and #207 are superseded rather than cited.
 SUPERSEDED: Final = (120, 207)
-WATER_CASUALTY_OWNER: Final = 394
 SPACE_MOVEMENT_OWNER: Final = 395
 MOUNTED_OWNER: Final = 396
 VEHICLE_COMBAT_OWNER: Final = 397
@@ -96,23 +95,13 @@ _MODES: Final = (
         "water",
         "B430-B432, B466, B469",
         ALL_CONCERNS,
-        {
-            "sinking rate and the time it leaves occupants": WATER_CASUALTY_OWNER,
-            "capsizing recovery for an unsinkable craft": WATER_CASUALTY_OWNER,
-            "hull leaks and their progression": WATER_CASUALTY_OWNER,
-            "open-deck overboard checks": WATER_CASUALTY_OWNER,
-            "water currents and fractional draft": WATER_CASUALTY_OWNER,
-        },
+        {},
     ),
     ModeCoverage(
         "underwater",
         "B430-B432, B466, B469",
         ALL_CONCERNS,
-        {
-            "underwater stress damage below the stress-failure threshold": WATER_CASUALTY_OWNER,
-            "hull leaks and their progression": WATER_CASUALTY_OWNER,
-            "occupant decompression": WATER_CASUALTY_OWNER,
-        },
+        {},
     ),
     ModeCoverage(
         "air",

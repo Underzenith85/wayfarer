@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic import Field
 
-from wayfarer.rules.vehicle_types import PassengerProtection
+from wayfarer.rules.vehicle_types import PassengerProtection, WaterOccupantCheck
 from wayfarer.simulation.hex_geometry import HexFacing
 from wayfarer.simulation.resources import Command
 
@@ -26,6 +26,7 @@ class VehicleControl(Command):
     modifier: int = Field(default=0, ge=-30, le=10)
     turning: bool = False
     climbing: bool = False
+    water_occupants: tuple[WaterOccupantCheck, ...] = ()
     # An authored outcome choice for space/submarine stress failure (B469),
     # never a random invented leak/engine-failure mechanic.
 
@@ -77,6 +78,18 @@ class ResolveAirAftermath(Command):
     kind: Literal["vehicle-resolve-air-aftermath"] = "vehicle-resolve-air-aftermath"
     transport_id: str
     protection: tuple[PassengerProtection, ...] = ()
+
+
+class ResolveWaterAftermath(Command):
+    kind: Literal["vehicle-resolve-water-aftermath"] = "vehicle-resolve-water-aftermath"
+    transport_id: str
+    action: Literal["drift", "right", "sink", "stress-leak"]
+    skill: int | None = Field(default=None, ge=1, le=50)
+    direction: HexFacing | None = None
+    distance: int = Field(default=0, ge=0, le=100)
+    waterline: int | None = None
+    leak_damage: int = Field(default=0, ge=0, le=100)
+    occupants: tuple[WaterOccupantCheck, ...] = ()
 
 
 class UpgradeVehicle(Command):

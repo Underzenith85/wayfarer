@@ -180,6 +180,7 @@ class ResourceState(Record):
             for t in self.transports
             for actor in (
                 *t.occupants,
+                *t.overboard,
                 *(e.actor_id for e in t.pending_ejections),
                 t.body_id,
             )
