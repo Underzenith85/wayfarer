@@ -230,6 +230,7 @@ def preview(
         hex_path=command.hex_path,
         hex_facing=command.hex_facing,
         basic_move=command.basic_move,
+        spatial_revision=command.expected_revision + 1 if command.basic_move is not None else None,
     )
     if result.pending_defense is not None:
         prepare_attack(

@@ -1,5 +1,6 @@
 """Additive tactical-v1 API; frozen gameplay-v1 remains untouched."""
 
+import hashlib
 import json
 
 from aiohttp import web
@@ -23,6 +24,8 @@ from wayfarer.orchestration.combat import (
     RetrieveEquipment,
     TakeCombatTurn,
     TakeUnarmedTurn,
+    WithdrawEncounter,
+    preview_withdrawal,
 )
 from wayfarer.orchestration.equipment_view import TacticalSnapshotV2, equipment_view
 from wayfarer.orchestration.play import PlayService
@@ -67,6 +70,7 @@ class TacticalRequestV2(Record):
         | ResolveWeaponExplosion
         | JoinEncounter
         | MigrateEncounterBasic
+        | WithdrawEncounter
     ) = Field(discriminator="kind")
 
 
@@ -130,6 +134,34 @@ def enrich(
         and state.lifecycle == "active"
         else []
     )
+    active = next(
+        (
+            encounter
+            for encounter in state.encounters
+            if encounter.status == "active" and result.actor_id in encounter.turn_order
+        ),
+        None,
+    )
+    withdrawals: list[dict[str, object]] = []
+    if active is not None and state.lifecycle == "active":
+        digest = hashlib.sha256(
+            f"{state.campaign_id}:{state.revision}:{active.id}:{result.actor_id}".encode()
+        ).hexdigest()
+        command = WithdrawEncounter(
+            id=f"withdraw:{digest}",
+            actor_id=result.actor_id,
+            expected_revision=state.revision,
+            encounter_id=active.id,
+            new_group_id=f"withdrawn:{digest}",
+        )
+        try:
+            preview_withdrawal(play, state, active, command)
+        except WayfarerError, ValueError:
+            pass
+        else:
+            withdrawals.append(
+                {"label": "Leave combat", "command": command.model_dump(mode="json")}
+            )
     return TacticalSnapshotV2.model_validate_json(
         json.dumps(
             {
@@ -139,6 +171,7 @@ def enrich(
                     v.model_dump(mode="json") for v in equipment_view(play, state, result.actor_id)
                 ],
                 "migrations": migrations,
+                "withdrawals": withdrawals,
             }
         )
     )
@@ -187,6 +220,9 @@ async def execute(request: web.Request) -> web.Response:
     ):
         if member.role != "gm":
             raise ValidationError("Migration requires GM authority")
+    elif isinstance(command, WithdrawEncounter):
+        if command.actor_id not in encounter.turn_order:
+            raise ValidationError("Combat withdrawal is unavailable")
     elif isinstance(command, JoinEncounter):
         if command.joining_actor_id is not None and member.role != "gm":
             raise ValidationError("GM admission requires GM authority")
