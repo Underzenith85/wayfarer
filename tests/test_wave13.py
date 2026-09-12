@@ -9,13 +9,13 @@ import pytest
 from test_wave11 import graph_fixture
 from test_wave12 import ready, service
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.objectives import Objective, Predicate, Reward
 from wayfarer.engine.simulation.campaign.setup import SetupCommand
 from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
 from wayfarer.engine.world import Commitment, CommitmentKind, Fact
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.objectives import checkpoint
 from wayfarer.orchestration.setup import SetupService
 

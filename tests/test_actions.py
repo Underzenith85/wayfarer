@@ -12,6 +12,7 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
+from wayfarer.contracts import Campaign
 from wayfarer.engine.character import builder
 from wayfarer.engine.character.compiler import CharacterCompiler, CharacterDraft, Purchase
 from wayfarer.engine.character.power import CharacterProposal, PowerPolicy, PowerReviewer
@@ -56,7 +57,6 @@ from wayfarer.engine.simulation.resources import (
 )
 from wayfarer.engine.world import Connection, Entity, EntityKind, Fact, World
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign
 from wayfarer.orchestration.play import ApproveCharacter, PlayService
 from wayfarer.orchestration.service import GameService, public
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore

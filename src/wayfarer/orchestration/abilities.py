@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, replace
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.rules.supernatural.abilities import fatigue_cost, validate_binding
 from wayfarer.engine.rules.supernatural.ability_types import AbilitySpec
 from wayfarer.engine.rules.traits.base import TraitOptions
@@ -22,7 +23,6 @@ from wayfarer.engine.simulation.combat.maneuvers import ManeuverState
 from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
 from wayfarer.engine.simulation.resources import Advance
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService

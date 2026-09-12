@@ -7,10 +7,11 @@ from typing import Literal
 
 from pydantic import Field
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.encounter_context import EncounterSceneBinding, bind_scene
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, CommandReceipt, Id, Record
+from wayfarer.models import Id, Record
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 

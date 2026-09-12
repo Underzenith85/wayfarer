@@ -11,6 +11,7 @@ import pytest
 from test_actions import campaign, world
 from test_statistics import BASIC, LITE, gurps_draft, profile_package
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.character.compiler import CharacterCompiler, Purchase
 from wayfarer.engine.character.power import CharacterProposal, PowerPolicy, PowerReviewer
 from wayfarer.engine.rules.catalog import (
@@ -66,7 +67,6 @@ from wayfarer.engine.simulation.resources import (
 )
 from wayfarer.engine.world import World
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.combat import (
     ChooseDefense,
     CombatService,

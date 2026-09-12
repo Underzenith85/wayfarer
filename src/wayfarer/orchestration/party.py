@@ -7,6 +7,7 @@ from typing import Literal
 
 from pydantic import Field
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.actions import (
     ActionCommand,
     Inspect,
@@ -26,7 +27,7 @@ from wayfarer.engine.simulation.campaign.party import (
 from wayfarer.engine.simulation.events import action_result
 from wayfarer.engine.simulation.resources import Advance, Transfer
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, CommandReceipt, Id
+from wayfarer.models import Id
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.noncombat import NoncombatCommand, NoncombatService
 from wayfarer.orchestration.play import PlayService

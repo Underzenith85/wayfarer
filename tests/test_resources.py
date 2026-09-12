@@ -12,6 +12,7 @@ from hypothesis import given
 from hypothesis import strategies as st
 from pydantic import ValidationError as SchemaError
 
+from wayfarer.contracts import Campaign
 from wayfarer.engine.character import builder
 from wayfarer.engine.rules.catalog import (
     DEFAULT_POLICY,
@@ -45,7 +46,6 @@ from wayfarer.engine.simulation.resources import (
 )
 from wayfarer.engine.world import Entity, EntityKind, World
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign
 from wayfarer.orchestration.resources import ResourceService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore

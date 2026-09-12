@@ -6,11 +6,11 @@ from pathlib import Path
 import pytest
 from test_wave9 import prepare
 
-from wayfarer import validation
+from wayfarer import contracts, validation
 from wayfarer.engine.simulation.actions import Wait
-from wayfarer.engine.simulation.events import digest, document, fold
+from wayfarer.engine.simulation.events import digest, document
 from wayfarer.errors import StorageError
-from wayfarer.persistence.events import COMMAND_UPCASTERS
+from wayfarer.persistence.events import COMMAND_UPCASTERS, fold
 from wayfarer.persistence.upcasters import (
     EVENT_UPCASTERS,
     UpcasterRegistry,
@@ -27,7 +27,7 @@ def test_retained_schema_fixtures() -> None:
         for row in data[key]:
             registry.check(row["kind"], row["version"])
     for case in data["folds"]:
-        initial = validation.campaign(validation.decode(case["initial_json"]))
+        initial = contracts.campaign(validation.decode(case["initial_json"]))
         events = [read_event(json.dumps(event), case["version"]) for event in case["events"]]
         assert digest(document(fold(initial, events))) == case["state_digest"]
 

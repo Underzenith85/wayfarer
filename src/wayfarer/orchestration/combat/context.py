@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from wayfarer.contracts import Campaign
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.combat.commands import MigrateEncounterHex, TypedCombatCommand
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign
 from wayfarer.orchestration.play import PlayService
 
 

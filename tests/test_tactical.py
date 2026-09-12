@@ -15,6 +15,7 @@ from test_gurps_melee import setup as melee_setup
 from test_unarmed import setup as unarmed_setup
 
 from scripts.tactical_contracts import contract
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.conformance import BASELINE_ID
 from wayfarer.engine.rules.types.object import ObjectProfile
@@ -25,7 +26,6 @@ from wayfarer.engine.simulation.hex_geometry import Cell, Hex, HexBattlefield, P
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.engine.world import Fact
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.combat import (
     ChooseDefense,

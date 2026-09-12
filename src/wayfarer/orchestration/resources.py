@@ -4,6 +4,7 @@ import secrets
 
 from pydantic import TypeAdapter
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.rules.catalog import reference
 from wayfarer.engine.rules.checks import RandomSource
 from wayfarer.engine.simulation.equipment.objects import ObjectCommand, apply_object
@@ -22,7 +23,6 @@ from wayfarer.engine.simulation.resources import (
     Schedule,
 )
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.entropy import CommandRandom, commit_command
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore

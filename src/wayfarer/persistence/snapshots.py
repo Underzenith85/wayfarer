@@ -3,12 +3,12 @@
 import json
 from copy import deepcopy
 
-from wayfarer import validation
+from wayfarer import contracts, validation
+from wayfarer.contracts import Campaign
 from wayfarer.engine.simulation.campaign.scenario_references import verify
-from wayfarer.engine.simulation.events import StatePatched, digest, document, fold
+from wayfarer.engine.simulation.events import StatePatched, digest, document
 from wayfarer.errors import NotFoundError, ValidationError
-from wayfarer.models import Campaign
-from wayfarer.persistence.events import StoredEvent
+from wayfarer.persistence.events import StoredEvent, fold
 
 EVENT_PROJECTIONS = ("last_result", "last_combat_result", "scene_events")
 
@@ -35,10 +35,10 @@ def encode(state: Campaign) -> str:
 def decode(raw: object) -> Campaign:
     value = validation.mapping(validation.decode(raw) if isinstance(raw, str | bytes) else raw)
     if "snapshot_schema" not in value:
-        return validation.campaign(value)
+        return contracts.campaign(value)
     if value["snapshot_schema"] != 2:
         raise ValueError("Unknown snapshot cache format")
-    state = validation.campaign(value["campaign"])
+    state = contracts.campaign(value["campaign"])
     if "play_json" in state:
         play = validation.mapping(validation.decode(state["play_json"]))
         play.update(validation.mapping(value["event_projections"]))

@@ -6,8 +6,8 @@ import hashlib
 import secrets
 from datetime import UTC, datetime
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.campaign.access import CampaignMember
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.clock import CommandInstant, capture_instant
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import record_play_state

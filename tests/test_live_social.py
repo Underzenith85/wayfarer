@@ -324,12 +324,12 @@ async def test_coma_failed_roll_reschedules_before_requested_frontier(tmp_path: 
 
 
 async def test_care_decision_is_authorized_and_retry_safe(tmp_path: Path) -> None:
-    from wayfarer.models import CommandReceipt
+    from wayfarer.contracts import CommandReceipt
 
     cid, play = await prepare(tmp_path)
 
     # Install the consequence through an ordinary trusted campaign transaction.
-    from wayfarer.models import Campaign
+    from wayfarer.contracts import Campaign
 
     def apply(campaign: Campaign) -> CommandReceipt:
         before = play._load(campaign)

@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from uuid import NAMESPACE_URL, uuid5
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.rules.catalog import reference
 from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.campaign.scenario_document import PublishedRevision
@@ -18,7 +19,6 @@ from wayfarer.errors import (
     StorageError,
     ValidationError,
 )
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
@@ -454,9 +454,9 @@ class SetupService:
                     catalog_id=catalog_id,
                 )
 
-        from wayfarer import validation
+        from wayfarer import contracts
 
-        validation.campaign(campaign)
+        contracts.campaign(campaign)
         try:
             existing = await self.play.store.read(cid)
         except NotFoundError:

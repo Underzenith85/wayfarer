@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 from test_reinforcements import escalation, setup_profiled_basic
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.rules.types.object import GroundPosition
 from wayfarer.engine.simulation.combat.encounter import PendingDefense
 from wayfarer.engine.simulation.combat.spatial import (
@@ -15,7 +16,6 @@ from wayfarer.engine.simulation.combat.spatial import (
 from wayfarer.engine.simulation.combat.tactical_transitions import migrate_basic
 from wayfarer.engine.simulation.hex_geometry import Hex
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.combat import CombatService, MigrateEncounterBasic
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.tactical_view import project

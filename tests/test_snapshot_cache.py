@@ -124,7 +124,7 @@ async def test_narration_survives_cache_rebuild_without_becoming_state(
     game = service
     created = await game.create(builder.character(), scenario())
     cid = str(created["id"])
-    from wayfarer.models import Campaign, CommandReceipt
+    from wayfarer.contracts import Campaign, CommandReceipt
 
     def retained(state: Campaign) -> CommandReceipt:
         state["revision"] += 1
@@ -166,7 +166,7 @@ async def test_legacy_narration_is_imported_before_replacing_cache(service: Game
 
     created = await service.create(builder.character(), scenario())
     cid = created["id"]
-    from wayfarer.models import Campaign, CommandReceipt
+    from wayfarer.contracts import Campaign, CommandReceipt
 
     def retained(state: Campaign) -> CommandReceipt:
         state["revision"] += 1

@@ -14,11 +14,11 @@ import pytest_asyncio
 from aiohttp import web
 from test_actions import Dice, actor_setup, campaign, engine, resource_seed, world
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules
 from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.resources import Owner
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore

@@ -2,12 +2,12 @@
 
 import json
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.combat.surprise import Resolver as Resolver
 from wayfarer.engine.simulation.combat.surprise import SurpriseCommand as SurpriseCommand
 from wayfarer.engine.simulation.combat.surprise import SurpriseSides as SurpriseSides
 from wayfarer.engine.simulation.combat.surprise import apply_surprise as apply_surprise
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 

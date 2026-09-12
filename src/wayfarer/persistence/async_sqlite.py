@@ -8,7 +8,8 @@ from pathlib import Path
 
 import aiosqlite
 
-from wayfarer import validation
+from wayfarer import contracts, validation
+from wayfarer.contracts import Campaign, CommandReceipt, TurnResult
 from wayfarer.engine.simulation.campaign.scenario_document import ScenarioBoundary
 from wayfarer.engine.simulation.events import (
     EVENT_ADAPTER,
@@ -17,10 +18,8 @@ from wayfarer.engine.simulation.events import (
     command_events,
     digest,
     document,
-    fold,
 )
 from wayfarer.errors import ConflictError, NotFoundError, StorageError, ValidationError
-from wayfarer.models import Campaign, CommandReceipt, TurnResult
 from wayfarer.persistence import snapshots
 from wayfarer.persistence.events import (
     COMMAND_SCHEMA_VERSION,
@@ -30,6 +29,7 @@ from wayfarer.persistence.events import (
     CommandResolution,
     StoredEvent,
     command_scenario,
+    fold,
     payload_digest,
     upcast_command,
 )
@@ -134,7 +134,7 @@ class AsyncSQLiteStore:
         await cursor.close()
         if row is None:
             raise NotFoundError("Campaign not found")
-        return validation.campaign(validation.decode(row[0]))
+        return contracts.campaign(validation.decode(row[0]))
 
     async def insert(self, state: Campaign) -> None:
         db = await self._connect()
@@ -345,7 +345,7 @@ class AsyncSQLiteStore:
             emitted = (
                 resolved.events
                 if isinstance(resolved, CommandResolution)
-                else command_events(before, state, event, actor_id)
+                else command_events(before, state, event["action"], actor_id)
             )
             if not emitted or document(fold(before, emitted)) != document(state):
                 raise StorageError("Command events do not reproduce the committed state")
@@ -457,7 +457,7 @@ class AsyncSQLiteStore:
     def _event(raw: str) -> CommandReceipt:
         data = validation.mapping(validation.decode(raw))
         return CommandReceipt(
-            action=validation.event_action(data["action"]),
+            action=contracts.event_action(data["action"]),
             outcome=validation.string(data["outcome"]),
         )
 
@@ -538,9 +538,9 @@ class AsyncSQLiteStore:
             (cid, revision),
         )
         for row in await cursor.fetchall():
-            after = validation.campaign(validation.decode(row[4]))
+            after = contracts.campaign(validation.decode(row[4]))
             transcript = self._event(row[3])
-            events = command_events(before, after, transcript, str(row[1]))
+            events = command_events(before, after, transcript["action"], str(row[1]))
             await self._append_events(db, cid, str(row[0]), int(str(row[2])), events)
             before = after
 
@@ -555,7 +555,7 @@ class AsyncSQLiteStore:
             cursor = await db.execute("SELECT state FROM stream_genesis WHERE campaign=?", (cid,))
             initial = await cursor.fetchone()
             assert initial is not None
-            state = validation.campaign(validation.decode(initial[0]))
+            state = contracts.campaign(validation.decode(initial[0]))
             cursor = await db.execute(
                 "SELECT command_id, revision, ordinal, schema_version, event FROM event_stream WHERE campaign=? AND revision<=? ORDER BY revision, ordinal",
                 (cid, through if through is not None else 2**63 - 1),

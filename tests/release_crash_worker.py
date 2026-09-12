@@ -7,7 +7,7 @@ from pathlib import Path
 
 import aiosqlite
 
-from wayfarer.models import Campaign, CommandReceipt
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 
 

@@ -12,6 +12,7 @@ from typing import Annotated, Literal
 from pydantic import Field, TypeAdapter
 from pydantic import ValidationError as SchemaError
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.actions import (
     ACTION_ADAPTER,
     ActionCommand,
@@ -22,7 +23,7 @@ from wayfarer.engine.simulation.actions import (
 from wayfarer.engine.simulation.campaign.adjudication import Ruling, expire_rulings
 from wayfarer.engine.simulation.events import action_result
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, CommandReceipt, Id
+from wayfarer.models import Id
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 

@@ -2,10 +2,10 @@
 
 import json
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.health.fright_transitions import FrightDecision as FrightDecision
 from wayfarer.engine.simulation.health.fright_transitions import apply_decision
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService

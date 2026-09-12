@@ -7,11 +7,11 @@ from test_gurps_ranged import scene, weapon
 from test_tactical import migration
 from test_tactical import setup as tactical_setup
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.hex_geometry import Hex
 from wayfarer.engine.simulation.resources import Item
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.combat import CombatService, TakeCombatTurn
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 

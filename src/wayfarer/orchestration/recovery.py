@@ -6,6 +6,7 @@ import json
 from dataclasses import asdict, replace
 from typing import Literal
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.character.compiler import pool_limits
 from wayfarer.engine.rules.checks import Modifier, Outcome, success_check
 from wayfarer.engine.simulation.actions import ActionCommand, PlayState
@@ -23,7 +24,6 @@ from wayfarer.engine.simulation.health.recovery_guard import captive as captive
 from wayfarer.engine.simulation.health.recovery_guard import guard as guard
 from wayfarer.engine.simulation.resources import Consume, Transfer, Unequip
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.advancement import (
     AdvanceCharacter,
     AdvancementService,

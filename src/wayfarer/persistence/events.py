@@ -1,18 +1,20 @@
-"""Versioned command/event records shared by persistence adapters."""
+"""Versioned command/event records shared by persistence adapters, and the stream fold."""
 
 import hashlib
 import json
+from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Literal
 
-from pydantic import Field, TypeAdapter, model_validator
+from pydantic import Field, JsonValue, TypeAdapter, model_validator
 
-from wayfarer import validation
+from wayfarer import contracts, validation
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.rules.randomness import RNG_ALGORITHM
 from wayfarer.engine.simulation.campaign.scenario_document import ScenarioBoundary
 from wayfarer.engine.simulation.campaign.scenario_references import boundary
-from wayfarer.engine.simulation.events import EngineEvent
-from wayfarer.models import Campaign, CommandReceipt, Record
+from wayfarer.engine.simulation.events import EngineEvent, document, fold_document
+from wayfarer.models import Record
 from wayfarer.persistence.upcasters import UpcasterRegistry
 
 EVENT_SCHEMA_VERSION = 1
@@ -106,7 +108,7 @@ def retire_transcript(row: dict[str, object]) -> dict[str, object]:
     if row.get("command_input") is None and "input" in event:
         row["command_input"] = event["input"]
     row["event"] = {
-        "action": validation.event_action(event["action"]),
+        "action": contracts.event_action(event["action"]),
         "outcome": validation.string(event["outcome"]),
     }
     return row
@@ -128,3 +130,17 @@ def upcast_command(record: CommandRecord) -> CommandRecord:
 def command_scenario(campaign: Campaign) -> str | None:
     pin = boundary(campaign)
     return pin.model_dump_json(exclude={"published"}) if pin else None
+
+
+def campaign_document(value: dict[str, JsonValue]) -> Campaign:
+    """Re-encode the checkpoint records the engine unfolded and parse the envelope."""
+    value = deepcopy(value)
+    for key in ("play_json", "resources_json"):
+        if key in value and not isinstance(value[key], str):
+            value[key] = json.dumps(value[key], separators=(",", ":"), ensure_ascii=False)
+    return contracts.campaign(value)
+
+
+def fold(campaign: Campaign, events: list[EngineEvent]) -> Campaign:
+    """Apply the stream's campaign-scoped state changes and return the typed envelope."""
+    return campaign_document(fold_document(document(campaign), events, scope="campaign"))

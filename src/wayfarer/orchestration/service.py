@@ -5,11 +5,11 @@ import uuid
 
 from wayfarer import validation
 from wayfarer.config import Settings
+from wayfarer.contracts import Campaign, PublicCampaign
 from wayfarer.engine.character import builder
 from wayfarer.engine.rules import catalog
 from wayfarer.engine.simulation.campaign.scenario import validate_scenario
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, PublicCampaign
 from wayfarer.orchestration.llm import LLMClient
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore

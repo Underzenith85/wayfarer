@@ -9,6 +9,7 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from pathlib import Path
 
+from wayfarer.contracts import Campaign
 from wayfarer.engine.simulation.actions import ActionResult
 from wayfarer.errors import (
     ConflictError,
@@ -17,7 +18,6 @@ from wayfarer.errors import (
     ValidationError,
     provider_diagnostic,
 )
-from wayfarer.models import Campaign
 from wayfarer.orchestration.jobs import jobs_for
 from wayfarer.orchestration.origins import origin_scope
 from wayfarer.orchestration.play import PlayService
