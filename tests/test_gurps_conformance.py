@@ -83,6 +83,7 @@ def test_verified_capabilities_belong_to_landed_mechanics_issues() -> None:
         "gurps.character.specialties",
         "gurps.character.techniques",
         "gurps.vehicles.movement",
+        "gurps.vehicles.combat",
     }
     assert all(
         CAPABILITIES[identifier].owner_issue in (97, 98, 99, 192, 358) for identifier in verified

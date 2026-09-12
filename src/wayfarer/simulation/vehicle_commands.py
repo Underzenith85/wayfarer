@@ -108,6 +108,30 @@ class ResolveMountSeparation(Command):
     collision_speed: int = Field(default=0, ge=0, le=1000000000)
 
 
+class VehicleRam(Command):
+    kind: Literal["vehicle-ram"] = "vehicle-ram"
+    transport_id: str
+    target_transport_id: str
+    skill: int = Field(ge=1, le=50)
+    defense: Literal["dodge", "none"] = "dodge"
+    defender_skill: int | None = Field(default=None, ge=1, le=50)
+    angle: Literal["head-on", "rear-end", "side-on"] = "head-on"
+    speed_after: int = Field(default=0, ge=0, le=1000000000)
+    target_speed_after: int = Field(default=0, ge=0, le=1000000000)
+    protection: tuple[PassengerProtection, ...] = ()
+
+
+class DamageVehicle(Command):
+    kind: Literal["vehicle-damage"] = "vehicle-damage"
+    transport_id: str
+    basic_damage: int = Field(ge=0, le=1000000)
+    damage_type: Literal["cr", "cut", "imp", "pi-", "pi", "pi+", "pi++", "burn"]
+    hit_location: Literal["hull", "motive", "controls", "weapon"] = "hull"
+    equipment_item_id: str | None = None
+    operator_damage: int = Field(default=0, ge=0, le=1000000)
+    operator_ht: int | None = Field(default=None, ge=1, le=50)
+
+
 class UpgradeVehicle(Command):
     kind: Literal["vehicle-upgrade-v2"] = "vehicle-upgrade-v2"
     transport_id: str

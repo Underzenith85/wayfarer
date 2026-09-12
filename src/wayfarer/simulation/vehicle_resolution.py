@@ -16,9 +16,9 @@ from wayfarer.rules.transport_types import Transport
 from wayfarer.rules.vehicle_capabilities import VEHICLE_OPERATIONS
 from wayfarer.rules.vehicle_types import VehicleTrace, WaterOccupantCheck
 from wayfarer.simulation.condition_checks import check_modifiers
-from wayfarer.simulation.hex_geometry import Hex, HexBattlefield, neighbor
+from wayfarer.simulation.hex_geometry import Hex, HexBattlefield, distance, neighbor
 from wayfarer.simulation.injury import Wound, apply_injury, impaired_movement
-from wayfarer.simulation.objects import DamageObject, apply_object
+from wayfarer.simulation.objects import DamageObject, StressObject, apply_object
 from wayfarer.simulation.resources import ResourceEngine, ResourceState
 from wayfarer.simulation.vehicle_collisions import (
     durability,
@@ -28,6 +28,7 @@ from wayfarer.simulation.vehicle_collisions import (
     roll_damage,
 )
 from wayfarer.simulation.vehicle_commands import (
+    DamageVehicle,
     NavigateSpace,
     ResolveAirAftermath,
     ResolveMountSeparation,
@@ -37,6 +38,7 @@ from wayfarer.simulation.vehicle_commands import (
     VehicleControl,
     VehicleImpact,
     VehicleManeuver,
+    VehicleRam,
     VehicleRollover,
     VehicleSkid,
 )
@@ -48,6 +50,8 @@ VehicleCommand = (
     | ResolveWaterAftermath
     | NavigateSpace
     | ResolveMountSeparation
+    | VehicleRam
+    | DamageVehicle
     | VehicleControl
     | VehicleImpact
     | VehicleManeuver
@@ -130,6 +134,14 @@ def resolve_vehicle(
         raise ValidationError("Vehicle command requires explicit transport version 2 migration")
     if command.kind not in VEHICLE_OPERATIONS[t.locomotion]:
         raise ValidationError("Vehicle operation requires an unsupported navigation adapter")
+    if isinstance(command, (VehicleManeuver, VehicleControl, VehicleRam)) and set(
+        t.disabled_systems
+    ) & {
+        "hull",
+        "motive",
+        "controls",
+    }:
+        raise ValidationError("Vehicle disabled system prevents operation")
     if t.locomotion != "ground-mount":
         durability(engine, state, t.body_id)
     occupied |= frozenset(
@@ -140,9 +152,12 @@ def resolve_vehicle(
     )
     operator = next(p for p in state.pools if p.id == "hp:" + t.operator_id)
     assert operator.injury is not None
-    if isinstance(command, (VehicleManeuver, VehicleControl)) and t.operator_id not in t.occupants:
+    if (
+        isinstance(command, (VehicleManeuver, VehicleControl, VehicleRam))
+        and t.operator_id not in t.occupants
+    ):
         raise ValidationError("Resolve separated-operator consequences before vehicle control")
-    if isinstance(command, (VehicleManeuver, VehicleControl)) and (
+    if isinstance(command, (VehicleManeuver, VehicleControl, VehicleRam)) and (
         operator.injury.incapacitated or operator.injury.stunned
     ):
         raise ValidationError("Incapacitated operator cannot control a vehicle")
@@ -246,6 +261,190 @@ def resolve_vehicle(
                     }
                 )
         affected = (controlled,)
+    elif isinstance(command, VehicleRam):
+        target = next(
+            (vehicle for vehicle in state.transports if vehicle.id == command.target_transport_id),
+            None,
+        )
+        if (
+            t.locomotion == "ground-mount"
+            or target is None
+            or target.id == t.id
+            or target.mechanics_version != 2
+            or target.locomotion == "ground-mount"
+        ):
+            raise ValidationError("Ramming requires two distinct version-two vehicles")
+        durability(engine, state, target.body_id)
+        if (
+            t.speed == 0
+            or t.altitude != target.altitude
+            or distance(Hex(q=t.q, r=t.r), Hex(q=target.q, r=target.r)) > 1
+        ):
+            raise ValidationError("Declared ram requires an adjacent target at the same altitude")
+        if (command.defense == "dodge") != (command.defender_skill is not None):
+            raise ValidationError("Ram Dodge requires exactly one compiled defense value")
+        target_operator = next(p for p in state.pools if p.id == "hp:" + target.operator_id)
+        assert target_operator.injury is not None
+        if command.defender_skill is not None and (
+            target.operator_id not in target.occupants
+            or target_operator.injury.incapacitated
+            or target_operator.injury.stunned
+        ):
+            raise ValidationError("Ram Dodge requires an able target operator")
+        attack = success_roll(
+            t.profile_id,
+            max(1, command.skill + t.handling + t.attack_penalty),
+            check_modifiers(state, t.operator_id, "dx"),
+            rng=rng,
+        )
+        ram_traces = [
+            VehicleTrace(
+                command_id=command.id,
+                reason="declared-ram-attack",
+                actor_id=t.operator_id,
+                dice=attack.dice,
+                target=attack.effective_target,
+                margin=attack.margin,
+            )
+        ]
+        defended = False
+        if attack.outcome.succeeded and command.defender_skill is not None:
+            defense = success_roll(
+                target.profile_id,
+                max(1, command.defender_skill + target.handling),
+                check_modifiers(state, target.operator_id, "dx"),
+                rng=rng,
+            )
+            defended = defense.outcome.succeeded
+            ram_traces.append(
+                VehicleTrace(
+                    command_id=command.id,
+                    reason="declared-ram-defense",
+                    actor_id=target.operator_id,
+                    dice=defense.dice,
+                    target=defense.effective_target,
+                    margin=defense.margin,
+                )
+            )
+        t = t.model_copy(
+            update={
+                "attack_penalty": 0,
+                "aim_lost": False,
+                "traces": (*t.traces, *ram_traces),
+            }
+        )
+        if not attack.outcome.succeeded or defended:
+            affected = (t,)
+        else:
+            if health is None:
+                raise ValidationError("Ram collision requires compiled occupant HT")
+            collision = VehicleImpact(
+                id=command.id,
+                actor_id=command.actor_id,
+                expected_revision=command.expected_revision,
+                transport_id=t.id,
+                target_transport_id=target.id,
+                angle=command.angle,
+                speed_after=command.speed_after,
+                target_speed_after=command.target_speed_after,
+                protection=command.protection,
+            )
+            state, affected = impact(engine, state, collision, t, target, health, rng)
+    elif isinstance(command, DamageVehicle):
+        if t.locomotion == "ground-mount":
+            raise ValidationError("Mounted creatures use the existing injury reducer")
+        if (command.hit_location == "weapon") != (command.equipment_item_id is not None):
+            raise ValidationError("Weapon hits require exactly one vehicle equipment item")
+        operator_facts = command.operator_damage > 0 and command.operator_ht is not None
+        if (command.operator_damage > 0) != (command.operator_ht is not None):
+            raise ValidationError("Control hits require matching compiled operator injury facts")
+        if command.hit_location != "controls" and operator_facts:
+            raise ValidationError("Only control hits may include operator injury")
+        item_id = command.equipment_item_id or t.body_id
+        if command.equipment_item_id is not None:
+            equipment = next((item for item in state.items if item.id == item_id), None)
+            if equipment is None or equipment.owner_id not in t.occupants:
+                raise ValidationError("Vehicle weapon must belong to one of its occupants")
+        state, object_result = apply_object(
+            engine,
+            state,
+            DamageObject(
+                id=internal_id(command.id, "vehicle-hit"),
+                actor_id=command.actor_id,
+                expected_revision=state.revision,
+                item_id=item_id,
+                basic_damage=command.basic_damage,
+                damage_type=command.damage_type,
+            ),
+            system=True,
+            rng=rng,
+        )
+        if (
+            item_id == t.body_id
+            and object_result.condition.hp <= 0
+            and not object_result.condition.disabled
+        ):
+            state, object_result = apply_object(
+                engine,
+                state,
+                StressObject(
+                    id=internal_id(command.id, "vehicle-stress"),
+                    actor_id=command.actor_id,
+                    expected_revision=state.revision,
+                    item_id=item_id,
+                ),
+                system=True,
+                rng=rng,
+            )
+        if command.operator_damage:
+            assert command.operator_ht is not None
+            state, _ = apply_injury(
+                state,
+                Wound(
+                    id=internal_id(command.id, "operator"),
+                    actor_id=t.operator_id,
+                    expected_revision=state.revision,
+                    basic_damage=command.operator_damage,
+                    resistance=0,
+                    damage_type="cr",
+                    injury_source="area",
+                ),
+                ht=command.operator_ht,
+                rng=rng,
+                system=True,
+            )
+        disabled = list(t.disabled_systems)
+        if object_result.injury and command.hit_location != "hull":
+            disabled.append(command.hit_location)
+        if item_id == t.body_id and object_result.condition.disabled:
+            disabled.append("hull")
+        disabled = list(dict.fromkeys(disabled))
+        affected = (
+            t.model_copy(
+                update={
+                    "disabled_systems": tuple(disabled),
+                    "status": "crashed"
+                    if "hull" in disabled
+                    else "control-required"
+                    if command.hit_location in ("motive", "controls") and object_result.injury
+                    else t.status,
+                    "stress_turn": state.game_time
+                    if item_id == t.body_id and object_result.condition.hp <= 0
+                    else t.stress_turn,
+                    "traces": (
+                        *t.traces,
+                        VehicleTrace(
+                            command_id=command.id,
+                            reason="vehicle-hit-" + command.hit_location,
+                            actor_id=item_id,
+                            basic_damage=command.basic_damage,
+                            injury=object_result.injury,
+                            dice=tuple(d for roll in object_result.checks for d in roll),
+                        ),
+                    ),
+                }
+            ),
+        )
     elif isinstance(command, NavigateSpace):
         if t.locomotion != "space" or t.status not in ("controlled", "drifting"):
             raise ValidationError("Space navigation requires an operational spacecraft")

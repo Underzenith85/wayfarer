@@ -5473,6 +5473,23 @@
       "prototype_divergence": null,
       "evidence_kind": "boundary",
       "provenance": "Independent per-mode audit backed by source-entered vehicle fixtures in tests/test_vehicle_modes.py."
+    },
+    {
+      "id": "basic-vehicle-combat-coverage",
+      "capability_id": "gurps.vehicles.combat",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B396-397, B407-408, B430-432, B469, B483-484",
+      "input": {
+        "consumers": ["ramming", "mounted-weapons", "cover", "encounter-pose", "hit-locations", "stress"]
+      },
+      "expected": {
+        "residuals": []
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent source-entered ramming, mounted-ranged, cover, subsystem and stress fixtures."
     }
   ]
 }

@@ -220,6 +220,7 @@ describe("Tactical panel", () => {
       actor_id: "a",
       expected_revision: 4,
       encounter_id: "fight",
+      transport_id: null,
       maneuver: "move",
       destination: null,
       facing: null,

@@ -32,7 +32,7 @@ from wayfarer.rules.vehicle_coverage import (
 )
 
 # The children this audit split its residual scope into, transcribed from #358.
-RESIDUAL_OWNERS = (397,)
+RESIDUAL_OWNERS = ()
 
 
 def test_every_declared_mode_is_audited_against_the_adapter_itself() -> None:
@@ -60,7 +60,7 @@ def test_the_capability_rows_are_owned_by_this_audit_and_derived_from_it() -> No
         assert declared.owner_issue == OWNER
         assert declared.status is derived
     assert capability(MOVEMENT).status is CoverageStatus.VERIFIED
-    assert capability(COMBAT).status is CoverageStatus.PARTIAL
+    assert capability(COMBAT).status is CoverageStatus.VERIFIED
     validate_coverage()
 
 
@@ -76,10 +76,9 @@ def test_ground_mount_carries_movement_control_collision_and_restart() -> None:
     assert Concern.COLLISION in MODES["space"].concerns
 
 
-def test_vehicle_combat_has_no_implementation_behind_its_partial_row() -> None:
-    assert combat_status() is CoverageStatus.PARTIAL
-    assert set(COMBAT_RESIDUALS.values()) == {397}
-    assert any("ramming" in detail for detail in COMBAT_RESIDUALS)
+def test_vehicle_combat_is_verified_without_residuals() -> None:
+    assert combat_status() is CoverageStatus.VERIFIED
+    assert not COMBAT_RESIDUALS
 
 
 def replace(monkeypatch: pytest.MonkeyPatch, entry: ModeCoverage) -> None:

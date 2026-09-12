@@ -1,9 +1,8 @@
 # Basic Set vehicle operation audit (#207, #358)
 
 This adapter extends the #208 transport foundation inside the existing resource
-transaction. It does not supply the live vehicle-combat encounter integration
-originally assigned to #120. Vehicle movement is **verified** and vehicle combat
-remains **partial**. #207 closed without completing them, so #358 owns the two
+transaction. Vehicle movement and combat are **verified** after the bounded
+completion work in #392-#397. #207 closed without completing them, so #358 owns the two
 capability rows and audits what each mode still owes; see
 [the residual blockers](#residual-coverage-blockers-358) below.
 
@@ -61,6 +60,9 @@ restart. PostgreSQL runs require `WAYFARER_TEST_DATABASE_URL`.
 | Space/submarine control | Drift; submarines lose depth on minor failures; severe failures roll object HT and persist stress-failure state | B469 |
 | Space navigation | Reaction-drive burns consume an explicit delta-v pool and use the B466 acceleration time; coasting crosses authored hex courses at a declared miles-per-hex scale and records travel time; collision dice above the exact replay envelope reject before randomness | B430-432, B466-467 |
 | Mounted operation | A mount stays a creature behind the transport adapter; its own Basic Move limits tactical movement, Riding resolves the B397 mount-loss table, consequences persist, and a separate command resolves rider/mount falls or a direct mounted collision through the existing injury reducer | B397, B430-432, B466-470 |
+| Declared ramming | The operator makes a vehicle attack, the target separately chooses Dodge or no defense, and an undefended hit enters the existing two-body collision and occupant-injury reducers | B430-432 |
+| Mounted weapons and cover | A vehicle-mounted ranged mode fires through the existing ranged attack/defense path only when the gunner, crew and authored hex pose match the carrier; saved control penalties and lost Aim are consumed by that attack, while authored occupant cover contributes DR | B396, B407-408, B469 |
+| Vehicle locations and stress | Hull, motive, controls and mounted-weapon hits use existing object durability; penetrating subsystem hits disable their consumer, controls may injure the operator, and nonpositive hull HP invokes the existing per-turn B483 stress check | B483-484 |
 | Collision exchange | Head-on/rear-end/side-on relative velocities and faster/striking-body dice caps; each body uses the existing object-damage reducer | B430, B432 |
 | Immovable obstacles | Hard/soft surface factor; optional authoritative breakable object limits both damage amounts to obstacle HP + DR | B431 |
 | Occupants | Damage based on each vehicle's actual speed loss; per-occupant belts/airbags, worn armor blunt trauma and innate DR; existing injury/threshold reducer | B431-432 |
@@ -77,10 +79,7 @@ residual per locomotion mode and splits it into live children;
 `rules/vehicle_coverage.py` carries that audit as typed data, and
 `vehicle_coverage.audit_report` publishes it. A pending state is not completion.
 
-| Missing consumer or variant | Current behavior | Owner |
-| --- | --- | ---: |
-| Ramming attack/defense, mounted weapons, cover, Aim and penalty consumption, and synchronized encounter poses | Live integration originally assigned to #120 remains missing despite that issue's closure. | #397 |
-| Vehicle hit locations, operator incapacitation, ongoing stress below zero HP and disabled equipment effects | Existing object damage is reused; these live consumers are not distinguished. | #397 |
+There are no remaining vehicle movement or combat residuals in this bounded audit.
 
 No unsupported outcome is replaced with an LLM ruling, default damage, random
 invented malfunction or a full-coverage claim. #105/#107 and #181 remain dependency
@@ -96,7 +95,7 @@ verified only once it resolves control loss, collision, occupant injury and
 restart and owes no residual, and the movement row is verified only when every
 mode is. All ten locomotion modes now qualify, including mounted movement through
 the creature-backed adapter. The movement row is therefore `verified`; the
-combat row stays `partial` under #397.
+combat row is also `verified` after #397.
 
 `rules/vehicle_coverage.validate_coverage` rejects three drifts: an audit that
 declares different modes from `VEHICLE_OPERATIONS`, a mode that claims a concern

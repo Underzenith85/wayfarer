@@ -993,11 +993,16 @@ def resolve(
     st = fatigue_value(fp, stats.st)
     validate_rated_strength(equipment.profile_id, weapon, st)
     aim = actor.maneuver_state
-    aimed = (aim.aim_item_id, aim.aim_mode_id, aim.aim_target_id) == (
-        pending.weapon_id,
-        weapon.id,
-        target.actor_id,
-    ) and aim.aim_seconds > 0
+    aimed = (
+        (aim.aim_item_id, aim.aim_mode_id, aim.aim_target_id)
+        == (
+            pending.weapon_id,
+            weapon.id,
+            target.actor_id,
+        )
+        and aim.aim_seconds > 0
+        and not pending.vehicle_aim_lost
+    )
     bonus = (
         pending.suppression_aim_bonus
         if pending.suppression_zone_id is not None
@@ -1028,6 +1033,7 @@ def resolve(
         + rapid_fire_bonus(effective_shots)
         # A mount bears the weapon, so the firer's own ST is not what limits it.
         - (0 if weapon.mount is not None else minimum_strength_penalty(weapon.minimum_st, st))
+        + pending.vehicle_attack_penalty
     )
     if pending.laser_sight and scene.laser_visible_to_firer:
         attack_target += 1
@@ -1458,7 +1464,21 @@ def resolve(
             state.resources, target.actor_id, build_revision=defender_build.revision
         )
     environmental_dr = scene.beam_environment_dr if weapon.beam_environment_dr else 0
-    dr = (armor_dr() + dr_bonus + environmental_dr) * close_projectile_multiplier
+    from wayfarer.simulation.hex_geometry import Hex
+
+    vehicle_cover = max(
+        (
+            transport.occupant_cover_dr
+            for transport in state.resources.transports
+            if target.actor_id in transport.occupants
+            and encounter.spatial_kind == "hex"
+            and isinstance(target.position, Hex)
+            and target.position == Hex(q=transport.q, r=transport.r)
+            and target.hex_facing == transport.facing
+        ),
+        default=0,
+    )
+    dr = (armor_dr() + dr_bonus + environmental_dr + vehicle_cover) * close_projectile_multiplier
     first_location, first_location_dice, first_dr = location, location_dice, dr
     hit_resistances: list[int] = []
     hit_locations: list[HumanLocation | None] = []
@@ -1503,10 +1523,10 @@ def resolve(
             current_hp = next(p for p in state.resources.pools if p.id == hp.id)
             if current_hp.injury and missing_location(current_hp.injury, location):
                 location = "torso"
-            dr = (armor_dr() + dr_bonus) * close_projectile_multiplier
+            dr = (armor_dr() + dr_bonus + vehicle_cover) * close_projectile_multiplier
         elif index and location != base_location:
             location, location_dice = base_location, base_location_dice
-            dr = (armor_dr() + dr_bonus) * close_projectile_multiplier
+            dr = (armor_dr() + dr_bonus + vehicle_cover) * close_projectile_multiplier
         hit_resistances.append(dr)
         hit_locations.append(location)
         hit_location_dice.append(location_dice)

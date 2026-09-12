@@ -2917,6 +2917,19 @@
         "tests/test_vehicle_modes.py::test_b469_mode_specific_control"
       ],
       "owner": 396
+    },
+    {
+      "id": "basic-vehicle-combat-coverage",
+      "sha256": "7b5c4db39f6fe0318d4d735dd1469f5df8033783eaee6bebb7ed03e1843eb332",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-12",
+      "evidence": "Campaigns fourth printing, February 2008, B396-397, B407-408, B430-432, B469 and B483-484; independently checked the ramming, mounted-weapon, cover, pose, subsystem and stress expectations against the printed procedures.",
+      "tests": [
+        "tests/test_mounted_ranged_skills.py::test_vehicle_mount_uses_vehicle_pose_control_penalty_and_occupant_cover",
+        "tests/test_vehicle_modes.py::test_declared_ram_has_separate_attack_and_dodge_before_collision_exchange",
+        "tests/test_vehicle_modes.py::test_vehicle_hit_locations_disable_systems_and_apply_b483_stress"
+      ],
+      "owner": 397
     }
   ]
 }
