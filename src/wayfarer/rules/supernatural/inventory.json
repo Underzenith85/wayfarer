@@ -5539,13 +5539,14 @@
         "movement"
       ],
       "blockers": [
-        223,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_movement.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5563,13 +5564,14 @@
         "protection-warning"
       ],
       "blockers": [
-        223,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_movement.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6078,13 +6080,14 @@
         "movement"
       ],
       "blockers": [
-        223,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_movement.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6472,13 +6475,14 @@
         "movement"
       ],
       "blockers": [
-        223,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_movement.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6520,13 +6524,14 @@
         "movement"
       ],
       "blockers": [
-        223,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_movement.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6813,13 +6818,14 @@
         "movement"
       ],
       "blockers": [
-        223,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_movement.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6837,13 +6843,14 @@
         "protection-warning"
       ],
       "blockers": [
-        223,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_movement.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7562,13 +7569,14 @@
         "protection-warning"
       ],
       "blockers": [
-        223,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned movement identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_movement.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
