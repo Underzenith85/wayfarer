@@ -2,10 +2,37 @@
 
 from __future__ import annotations
 
+from wayfarer.engine.simulation.abilities import interrupt_concentration
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import exertion, injury_turn, movement
 from wayfarer.engine.simulation.combat.commands import TakeCombatTurn, TypedCombatCommand
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
+from wayfarer.engine.simulation.combat.entangle_transitions import escape_binding
+from wayfarer.engine.simulation.combat.firearm_transitions import service
+from wayfarer.engine.simulation.combat.maneuver_transitions import observe
 from wayfarer.engine.simulation.combat.maneuvers import ATTACK_MANEUVERS
+from wayfarer.engine.simulation.combat.melee.attack import prepare_attack, waive_off_hand_penalty
+from wayfarer.engine.simulation.combat.melee.modes import mode, mode_reach, require_two_weapon_modes
+from wayfarer.engine.simulation.combat.mounts import assign_crew
+from wayfarer.engine.simulation.combat.objects.combat import stress, worn_stress
+from wayfarer.engine.simulation.combat.objects.locations import (
+    bind_ready_hand,
+    validate_posture,
+    validate_target,
+)
+from wayfarer.engine.simulation.combat.ranged.ammunition import reload_weapon, unload_weapon
+from wayfarer.engine.simulation.combat.ranged.readiness import let_down
+from wayfarer.engine.simulation.combat.ranged.situation import validate_command
+from wayfarer.engine.simulation.combat.ranged.spraying import (
+    prepare_spraying_fire,
+    prepare_suppression_fire,
+)
+from wayfarer.engine.simulation.combat.thrown.flight import retrieve
+from wayfarer.engine.simulation.combat.thrown.items import recover, undo_recovery
+from wayfarer.engine.simulation.combat.unarmed.fighters import grapple_ready
+from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode
+from wayfarer.engine.simulation.hex_geometry import Hex
+from wayfarer.engine.simulation.magic.effects import require_not_dazed
 from wayfarer.engine.simulation.resources import Pool, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat.context import CombatContext, CombatStep
@@ -17,22 +44,15 @@ def _validate_turn(
     play = context.play
     engine = context.engine
     resources = state.resources
-    from wayfarer.engine.simulation.magic.effects import require_not_dazed
 
     if command.maneuver != "do_nothing":
         require_not_dazed(resources, command.actor_id)
-    from wayfarer.engine.simulation.abilities import interrupt_concentration
-    from wayfarer.engine.simulation.combat.ranged.situation import validate_command
 
     validate_command(play.rules_context, state, encounter, command)
     resources = interrupt_concentration(resources, command.actor_id, command.id)
     state = state.model_copy(update={"resources": resources})
     if command.maneuver == "ready" and command.item_id:
-        from wayfarer.engine.simulation.combat.thrown.flight import retrieve
-
         if command.recover_thrown_item:
-            from wayfarer.engine.simulation.combat.thrown.items import recover
-
             state = recover(play.rules_context, state, encounter, command)
         else:
             state = retrieve(state, encounter, command.actor_id, command.item_id)
@@ -53,8 +73,6 @@ def _validate_turn(
     ):
         raise ValidationError("Hand selection requires GURPS Ready")
     if engine.rules.gurps_equipment is not None:
-        from wayfarer.engine.simulation.combat.objects.locations import validate_posture
-
         validate_posture(state, command.actor_id, command.posture)
     actor = next(a for a in state.actors if a.actor_id == command.actor_id)
     hp = next(p for p in resources.pools if p.id == f"hp:{actor.actor_id}")
@@ -81,8 +99,6 @@ def _validate_turn(
         or command.maneuver == "aim"
         and command.transport_id is not None
     ) and engine.rules.gurps_equipment is not None:
-        from wayfarer.engine.simulation.combat.melee.modes import mode
-
         selected_mode = mode(
             play.rules_context,
             state,
@@ -91,8 +107,6 @@ def _validate_turn(
             command.mode_id,
         )
         if not command.suppression_zones:
-            from wayfarer.engine.simulation.combat.objects.locations import validate_target
-
             validate_target(
                 play.rules_context,
                 state,
@@ -102,10 +116,6 @@ def _validate_turn(
                 selected_mode,
                 command.hit_location,
             )
-        from wayfarer.engine.simulation.combat.melee.modes import (
-            mode_reach,
-            require_two_weapon_modes,
-        )
 
         if command.second_item_id is not None:
             second_mode = mode(
@@ -124,9 +134,6 @@ def _validate_turn(
             ),
         )
         if command.transport_id is not None:
-            from wayfarer.engine.simulation.equipment.catalog import RangedMode
-            from wayfarer.engine.simulation.hex_geometry import Hex
-
             transport = next(
                 (t for t in resources.transports if t.id == command.transport_id), None
             )
@@ -158,8 +165,6 @@ def _validate_turn(
     ):
         if encounter.spatial_kind == "basic":
             raise ValidationError("Basic stop thrust requires explicit GM adjudication")
-        from wayfarer.engine.simulation.combat.melee.modes import mode, mode_reach
-        from wayfarer.engine.simulation.equipment.catalog import MeleeMode
 
         assert command.wait_trigger.item_id is not None
         trigger_mode = mode(
@@ -217,15 +222,10 @@ def _preview_turn(
             suppression_fire=bool(command.suppression_zones),
         )
         if command.suppression_zones:
-            from wayfarer.engine.simulation.combat.ranged.spraying import prepare_suppression_fire
-
             prepare_suppression_fire(
                 play.rules_context, state, preview, command, engine.hex_map(preview)
             )
         if preview.pending_defense is not None:
-            from wayfarer.engine.simulation.combat.melee.attack import prepare_attack
-            from wayfarer.engine.simulation.combat.ranged.spraying import prepare_spraying_fire
-
             preview = prepare_attack(
                 play.rules_context,
                 state,
@@ -247,8 +247,6 @@ def _preview_turn(
             )
             prepare_spraying_fire(play.rules_context, state, preview, command)
         if command.maneuver == "aim" and preview_result.code != "combat.wait_triggered":
-            from wayfarer.engine.simulation.combat.maneuver_transitions import observe
-
             observe(play.rules_context, state, preview, command)
     return None
 
@@ -263,7 +261,6 @@ def _begin_turn(
     reaction = context.reaction
     resources = state.resources
     hp = next(p for p in state.resources.pools if p.id == "hp:" + command.actor_id)
-    from wayfarer.engine.simulation.actors import exertion, injury_turn, movement
 
     participant = next(p for p in encounter.participants if p.actor_id == command.actor_id)
     encounter = engine._replace(
@@ -289,7 +286,6 @@ def _begin_turn(
     started_hp = next(p for p in resources.pools if p.id == hp.id)
     assert started_hp.injury is not None
     allowed = not (started_hp.injury.incapacitated or started_hp.injury.stunned or forced)
-    from wayfarer.engine.simulation.combat.objects.combat import worn_stress
 
     state, encounter = worn_stress(
         play.rules_context,
@@ -307,8 +303,6 @@ def _begin_turn(
         and command.item_id
         and command.maneuver in ("attack", "all_out_attack", "move_and_attack", "aim", "feint")
     ):
-        from wayfarer.engine.simulation.combat.objects.combat import stress
-
         state, encounter = stress(
             play.rules_context,
             state,
@@ -343,8 +337,6 @@ def _begin_turn(
     )
     if not allowed:
         if command.recover_thrown_item:
-            from wayfarer.engine.simulation.combat.thrown.items import undo_recovery
-
             resources = undo_recovery(initial_state.resources, resources, command.item_id)
             state = state.model_copy(update={"resources": resources})
         elif command.maneuver == "ready" and command.item_id:
@@ -413,8 +405,6 @@ def _prepare_attack_turn(
         return None
     pending = encounter.pending_defense
     if pending is not None and pending.suppression_zone_id is not None:
-        from wayfarer.engine.simulation.combat.melee.attack import prepare_attack
-
         encounter = prepare_attack(
             context.play.rules_context,
             state.model_copy(update={"resources": resources}),
@@ -429,9 +419,6 @@ def _prepare_attack_turn(
     if command_for_turn.maneuver not in ATTACK_MANEUVERS:
         return None
     if command_for_turn.suppression_zones:
-        from wayfarer.engine.simulation.actors import injury_turn
-        from wayfarer.engine.simulation.combat.ranged.spraying import prepare_suppression_fire
-
         state, encounter = prepare_suppression_fire(
             context.play.rules_context,
             state.model_copy(update={"resources": resources}),
@@ -448,8 +435,6 @@ def _prepare_attack_turn(
             do_nothing=False,
         )
         return CombatStep(state, encounter, state.resources, result)
-    from wayfarer.engine.simulation.combat.melee.attack import prepare_attack
-    from wayfarer.engine.simulation.combat.ranged.spraying import prepare_spraying_fire
 
     if command.laser_sight:
         assert encounter.pending_defense is not None
@@ -515,15 +500,12 @@ def _after_turn(
     resources: ResourceState,
     result: CombatResult,
 ) -> CombatStep:
-    from wayfarer.engine.simulation.actors import injury_turn
 
     play = context.play
     engine = context.engine
     initial_state = context.initial_state
     reaction = context.reaction
     if command_for_turn.second_item_id is not None and result.code != "combat.wait_triggered":
-        from wayfarer.engine.simulation.combat.melee.attack import waive_off_hand_penalty
-
         encounter = waive_off_hand_penalty(play.rules_context, state, encounter, command.actor_id)
     if (
         command_for_turn.maneuver == "ready"
@@ -531,26 +513,18 @@ def _after_turn(
         and result.code != "combat.wait_triggered"
     ):
         if command_for_turn.reload_ammunition_id is not None:
-            from wayfarer.engine.simulation.combat.ranged.ammunition import reload_weapon
-
             resources = reload_weapon(
                 play.rules_context,
                 state.model_copy(update={"resources": resources}),
                 command_for_turn,
             )
         if command_for_turn.unload_ammunition:
-            from wayfarer.engine.simulation.combat.ranged.ammunition import unload_weapon
-
             resources = unload_weapon(
                 play.rules_context,
                 state.model_copy(update={"resources": resources}),
                 command_for_turn,
             )
         if command_for_turn.let_down_bow:
-            from wayfarer.engine.simulation.combat.melee.modes import mode
-            from wayfarer.engine.simulation.combat.ranged.readiness import let_down
-            from wayfarer.engine.simulation.equipment.catalog import RangedMode
-
             selected = mode(
                 play.rules_context,
                 state,
@@ -565,8 +539,6 @@ def _after_turn(
                 selected,
             )
         if command_for_turn.mount_crew:
-            from wayfarer.engine.simulation.combat.mounts import assign_crew
-
             resources = assign_crew(
                 play.rules_context,
                 state.model_copy(update={"resources": resources}),
@@ -574,8 +546,6 @@ def _after_turn(
                 command_for_turn,
             )
         if command_for_turn.escape_entanglement:
-            from wayfarer.engine.simulation.combat.entangle_transitions import escape_binding
-
             encounter = escape_binding(
                 play.rules_context,
                 state.model_copy(update={"resources": resources}),
@@ -583,15 +553,12 @@ def _after_turn(
                 command_for_turn.actor_id,
             )
         if command_for_turn.firearm_service is not None:
-            from wayfarer.engine.simulation.combat.firearm_transitions import service
-
             resources = service(
                 play.rules_context,
                 state.model_copy(update={"resources": resources}),
                 encounter,
                 command_for_turn,
             )
-        from wayfarer.engine.simulation.combat.objects.locations import bind_ready_hand
 
         encounter = bind_ready_hand(
             play.rules_context,
@@ -601,7 +568,6 @@ def _after_turn(
             command.item_id or "",
             command.ready_hand,
         )
-        from wayfarer.engine.simulation.combat.unarmed.fighters import grapple_ready
 
         state, encounter = grapple_ready(
             play.rules_context,
@@ -618,8 +584,6 @@ def _after_turn(
     if (
         command_for_turn.maneuver in ("aim", "feint") or command_for_turn.attack_option == "feint"
     ) and result.code != "combat.wait_triggered":
-        from wayfarer.engine.simulation.combat.maneuver_transitions import observe
-
         encounter = observe(play.rules_context, state, encounter, command_for_turn)
     prepared = _prepare_attack_turn(
         state, command, encounter, context, command_for_turn, resources, result
@@ -662,8 +626,6 @@ def _after_turn(
         )
         state = state.model_copy(update={"resources": resources})
     if command.recover_thrown_item and result.code == "combat.wait_triggered":
-        from wayfarer.engine.simulation.combat.thrown.items import undo_recovery
-
         resources = undo_recovery(initial_state.resources, resources, command.item_id)
         state = state.model_copy(update={"resources": resources})
     return CombatStep(state, encounter, resources, result)

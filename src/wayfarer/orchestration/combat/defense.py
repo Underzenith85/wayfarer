@@ -2,10 +2,17 @@
 
 from __future__ import annotations
 
+from wayfarer.engine.simulation.abilities import interrupt_concentration
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import injury_turn
 from wayfarer.engine.simulation.combat.commands import ChooseDefense, TypedCombatCommand
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.lite_resolution import resolve_injury
+from wayfarer.engine.simulation.combat.melee.attack import prepare_attack
+from wayfarer.engine.simulation.combat.melee.defense import exert_defense, validate_defense_choices
+from wayfarer.engine.simulation.combat.melee.resolution import resolve_melee
+from wayfarer.engine.simulation.combat.thrown.items import validate_catch
+from wayfarer.engine.simulation.magic.effects import require_not_dazed
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat.context import CombatContext, CombatStep
 from wayfarer.orchestration.combat.handlers import _unarmed
@@ -21,11 +28,7 @@ def _defend(
     if encounter.pending_unarmed is not None:
         return _unarmed(state, command, encounter, context)
     if command.catch_thrown:
-        from wayfarer.engine.simulation.combat.thrown.items import validate_catch
-
         validate_catch(play.rules_context, state, encounter, command)
-    from wayfarer.engine.simulation.abilities import interrupt_concentration
-    from wayfarer.engine.simulation.magic.effects import require_not_dazed
 
     if command.defense != "none":
         require_not_dazed(resources, command.actor_id)
@@ -36,8 +39,6 @@ def _defend(
     previous = encounter
     selected_defense = command.defense
     if engine.rules.gurps_equipment is not None:
-        from wayfarer.engine.simulation.combat.melee.resolution import resolve_melee
-
         pending = encounter.pending_defense
         if (
             pending is None
@@ -45,10 +46,6 @@ def _defend(
             or command.defense not in pending.allowed
         ):
             raise ValidationError("Defense is not available to this actor")
-        from wayfarer.engine.simulation.combat.melee.defense import (
-            exert_defense,
-            validate_defense_choices,
-        )
 
         validate_defense_choices(
             play.rules_context,
@@ -85,7 +82,6 @@ def _defend(
             else None,
             catch_thrown=command.catch_thrown,
         )
-        from wayfarer.engine.simulation.actors import injury_turn
 
         attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
         if (
@@ -129,8 +125,6 @@ def _defend(
         encounter, actor_id=command.actor_id, selected=selected_defense
     )
     if encounter.pending_defense is not None and engine.rules.gurps_equipment is not None:
-        from wayfarer.engine.simulation.combat.melee.attack import prepare_attack
-
         queued = encounter.pending_defense
         encounter = prepare_attack(
             play.rules_context,

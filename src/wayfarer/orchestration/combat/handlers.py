@@ -14,7 +14,14 @@ from wayfarer.engine.simulation.combat.commands import (
     TakeUnarmedTurn,
     TypedCombatCommand,
 )
+from wayfarer.engine.simulation.combat.criticals.continuation import continue_critical
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
+from wayfarer.engine.simulation.combat.thrown.explosions import resolve_blast
+from wayfarer.engine.simulation.combat.thrown.items import declare_landing
+from wayfarer.engine.simulation.combat.unarmed.attack import execute_unarmed
+from wayfarer.engine.simulation.combat.unarmed.choke import resolve_choke
+from wayfarer.engine.simulation.equipment.repair_transitions import repair
+from wayfarer.engine.simulation.equipment.retrieval import retrieve as retrieve_field
 from wayfarer.orchestration.combat.context import CombatContext, CombatStep
 
 
@@ -24,7 +31,6 @@ def _explosion(
     play = context.play
     resources = state.resources
     assert isinstance(command, ResolveWeaponExplosion)
-    from wayfarer.engine.simulation.combat.thrown.explosions import resolve_blast
 
     state, encounter, blast_deferred_ticks = resolve_blast(
         play.rules_context,
@@ -54,7 +60,6 @@ def _landing(
     play = context.play
     resources = state.resources
     assert isinstance(command, DeclareThrownLanding)
-    from wayfarer.engine.simulation.combat.thrown.items import declare_landing
 
     resources = declare_landing(
         play.rules_context, state, encounter, command.item_id, command.landing, command.id
@@ -75,7 +80,6 @@ def _critical(
     play = context.play
     resources = state.resources
     assert isinstance(command, ContinueCriticalMiss)
-    from wayfarer.engine.simulation.combat.criticals.continuation import continue_critical
 
     state, encounter, continuation = continue_critical(
         play.rules_context,
@@ -101,9 +105,6 @@ def _retrieve(
     play = context.play
     resources = state.resources
     assert isinstance(command, RetrieveEquipment)
-    from wayfarer.engine.simulation.equipment.retrieval import (
-        retrieve as retrieve_field,
-    )
 
     state, retrieval_task = retrieve_field(
         play.rules_context,
@@ -131,7 +132,6 @@ def _repair(
     play = context.play
     resources = state.resources
     assert isinstance(command, RepairEquipment)
-    from wayfarer.engine.simulation.equipment.repair_transitions import repair
 
     state, task = repair(
         play.rules_context,
@@ -158,7 +158,6 @@ def _choke(
     play = context.play
     resources = state.resources
     assert isinstance(command, ResolveChokeEffects)
-    from wayfarer.engine.simulation.combat.unarmed.choke import resolve_choke
 
     state, result = resolve_choke(play.rules_context, state, encounter, command)
     resources = state.resources
@@ -171,7 +170,6 @@ def _unarmed(
     play = context.play
     resources = state.resources
     assert isinstance(command, (TakeUnarmedTurn, ChooseDefense))
-    from wayfarer.engine.simulation.combat.unarmed.attack import execute_unarmed
 
     state, encounter, result = execute_unarmed(play.rules_context, state, encounter, command)
     resources = state.resources

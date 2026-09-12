@@ -14,11 +14,19 @@ from wayfarer.engine.simulation.combat.commands import (
     TypedCombatCommand,
 )
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
+from wayfarer.engine.simulation.combat.explosions import defer_round
+from wayfarer.engine.simulation.combat.objects.locations import settle_crippling
+from wayfarer.engine.simulation.combat.ranged.readiness import interrupted_draws
 from wayfarer.engine.simulation.combat.settlement import settle_encounter
+from wayfarer.engine.simulation.combat.tactical import TacticalTrace
+from wayfarer.engine.simulation.combat.unarmed.choke import retire_chokes
+from wayfarer.engine.simulation.combat.unarmed.fighters import settle_control
 from wayfarer.engine.simulation.combat.withdrawal import elapsed_seconds
+from wayfarer.engine.simulation.magic.area_fire import crossings
 from wayfarer.engine.simulation.resources import Advance
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat.context import CombatContext, CombatStep
+from wayfarer.orchestration.party import PartyService
 
 
 def _settle_combat(
@@ -47,9 +55,6 @@ def _settle_combat(
             }
         )
     if engine.rules.gurps_equipment is not None:
-        from wayfarer.engine.simulation.combat.unarmed.choke import retire_chokes
-        from wayfarer.engine.simulation.combat.unarmed.fighters import settle_control
-
         prior_grips = next((e.grips for e in initial_state.encounters if e.id == encounter.id), ())
         encounter = settle_control(state.model_copy(update={"resources": resources}), encounter)
         state = retire_chokes(
@@ -62,8 +67,6 @@ def _settle_combat(
         resources = state.resources
         encounters = tuple(encounter if e.id == encounter.id else e for e in encounters)
     if encounter.status == "completed" and engine.rules.gurps_equipment is not None:
-        from wayfarer.engine.simulation.combat.objects.locations import settle_crippling
-
         state = settle_crippling(
             play.rules_context,
             state.model_copy(update={"resources": resources}),
@@ -139,7 +142,6 @@ def _finish_combat(
             raise ConflictError("Combat waits at the shared-time barrier")
         prior = next((e for e in state.encounters if e.id == encounter.id), None)
         ticks = elapsed_seconds(prior, encounter) + blast_deferred_ticks
-        from wayfarer.engine.simulation.combat.explosions import defer_round
 
         resources, ticks = defer_round(resources, encounter.id, ticks, command.id)
         party = party.model_copy(
@@ -159,7 +161,6 @@ def _finish_combat(
     ):
         prior = next((e for e in state.encounters if e.id == encounter.id), None)
         ticks = elapsed_seconds(prior, encounter) + blast_deferred_ticks
-        from wayfarer.engine.simulation.combat.explosions import defer_round
 
         resources, ticks = defer_round(resources, encounter.id, ticks, command.id)
         if ticks:
@@ -176,15 +177,12 @@ def _finish_combat(
                 system=True,
                 rng=play.rng,
             )
-    from wayfarer.engine.simulation.combat.ranged.readiness import interrupted_draws
 
     resources = interrupted_draws(
         play.rules_context, initial_state, resources, encounter.id, encounter
     )
     revision = state.revision + 1
     if encounter.spatial_kind == "hex":
-        from wayfarer.engine.simulation.combat.tactical import TacticalTrace
-
         checks: tuple[CheckTrace, ...] = (result.injury.attack,) if result.injury else ()
         if result.injury and result.injury.defense:
             checks += (result.injury.defense,)
@@ -218,8 +216,6 @@ def _finish_combat(
         }
     )
     if updated.party.groups:
-        from wayfarer.orchestration.party import PartyService
-
         updated = PartyService(play).flush(updated)
     if (
         isinstance(command, ChooseDefense)
@@ -249,8 +245,6 @@ def _finish_combat(
                         world = world.learn(recipient, fact)
         updated = updated.model_copy(update={"world": world})
     if isinstance(command, TakeCombatTurn):
-        from wayfarer.engine.simulation.magic.area_fire import crossings
-
         updated = crossings(
             play.rules_context,
             updated,

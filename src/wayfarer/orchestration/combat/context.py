@@ -11,6 +11,7 @@ from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.errors import ValidationError
+from wayfarer.orchestration.battlefield_templates import prepare
 from wayfarer.orchestration.play import PlayService
 
 
@@ -55,7 +56,5 @@ def _bind_combat_command(
 ) -> tuple[PlayService, PlayState, TypedCombatCommand]:
     before = play._load(campaign)
     if isinstance(command, MigrateEncounterHex):
-        from wayfarer.orchestration.battlefield_templates import prepare
-
         return prepare(campaign, play, before, command)
     return play, before, command

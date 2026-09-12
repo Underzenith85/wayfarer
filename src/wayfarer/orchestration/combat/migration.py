@@ -11,6 +11,7 @@ from wayfarer.engine.simulation.combat.commands import (
 )
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext, BasicSpatialFact
+from wayfarer.engine.simulation.combat.tactical_transitions import migrate, migrate_basic
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat.context import CombatContext, CombatStep
 
@@ -21,7 +22,6 @@ def _migrate(
     play = context.play
     resources = state.resources
     assert isinstance(command, MigrateEncounterHex)
-    from wayfarer.engine.simulation.combat.tactical_transitions import migrate
 
     encounter = migrate(play.rules_context, state, encounter, command)
     result = CombatResult(
@@ -37,7 +37,6 @@ def _migrate_basic(
     state: PlayState, command: TypedCombatCommand, encounter: Encounter, context: CombatContext
 ) -> CombatStep:
     assert isinstance(command, MigrateEncounterBasic)
-    from wayfarer.engine.simulation.combat.tactical_transitions import migrate_basic
 
     encounter = migrate_basic(context.play.rules_context, state, encounter, command)
     return CombatStep(

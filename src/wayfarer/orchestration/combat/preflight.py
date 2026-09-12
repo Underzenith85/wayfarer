@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 from dataclasses import replace
 
+from wayfarer.engine.rules.types.hazard import require_hazards_settled
+from wayfarer.engine.rules.types.recovery import require_settled
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.combat.commands import (
     ChooseDefense,
@@ -18,8 +20,11 @@ from wayfarer.engine.simulation.combat.commands import (
     TakeUnarmedTurn,
     TypedCombatCommand,
 )
+from wayfarer.engine.simulation.combat.explosions import blasts
+from wayfarer.engine.simulation.health.fright import can_defend, maneuver_allowed
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat.context import CombatContext, encounter_for
+from wayfarer.orchestration.recovery import guard
 
 
 def _prepare_command(
@@ -29,8 +34,6 @@ def _prepare_command(
     resuming = context.resuming
     reaction = context.reaction
     if isinstance(command, EndEncounter):
-        from wayfarer.engine.simulation.combat.explosions import blasts
-
         if any(
             not b.resolved and b.encounter_id == command.encounter_id
             for b in blasts(state.resources)
@@ -118,8 +121,6 @@ def _prepare_command(
             and command.mode_id != paused.wait_interrupt.declaration.mode_id
         ):
             raise ValidationError("Wait reaction must use the declared weapon mode")
-    from wayfarer.engine.simulation.health.fright import can_defend, maneuver_allowed
-    from wayfarer.orchestration.recovery import guard
 
     if isinstance(command, (TakeCombatTurn, TakeUnarmedTurn)) and not maneuver_allowed(
         state.resources, command.actor_id, command.maneuver
@@ -137,9 +138,6 @@ def _prepare_command(
         ),
     )
     if engine.rules.gurps_equipment is not None:
-        from wayfarer.engine.rules.types.hazard import require_hazards_settled
-        from wayfarer.engine.rules.types.recovery import require_settled
-
         affected = {command.actor_id}
         if isinstance(command, StartEncounter):
             affected.update(p.actor_id for p in command.placements)
