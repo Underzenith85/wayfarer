@@ -6,19 +6,19 @@ import pytest
 from test_mundane_trait_runtime import prepare as prepare_traits
 from test_social_dispatch import prepare
 
-from wayfarer.character.compiler import Purchase
+from wayfarer.engine.character.compiler import Purchase
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.fright import FrightEffect
+from wayfarer.engine.rules.traits import TraitOptions
+from wayfarer.engine.simulation.access import CampaignMember
+from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.fright import TimedFright, effects, public_id, save
+from wayfarer.engine.simulation.mechanics.gurps_melee import build
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.fright import FrightEffect
-from wayfarer.rules.traits import TraitOptions
-from wayfarer.simulation.access import CampaignMember
-from wayfarer.simulation.actions import PlayState
-from wayfarer.simulation.fright import TimedFright, effects, public_id, save
-from wayfarer.simulation.mechanics.gurps_melee import build
 
 
 async def install(cid: str, play: PlayService, effect: FrightEffect) -> TimedFright:
@@ -209,7 +209,7 @@ async def test_new_trait_requires_exact_cost_then_approved_catalog_purchase(
 ) -> None:
     from test_mundane_traits import combined_package
 
-    from wayfarer.rules.catalog import DefinitionKind, ImplementationStatus, RuleDefinition
+    from wayfarer.engine.rules.catalog import DefinitionKind, ImplementationStatus, RuleDefinition
 
     definition = RuleDefinition(
         id="trait:consequence",

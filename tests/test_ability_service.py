@@ -9,25 +9,25 @@ from test_abilities import command, context, resources, spec, world
 from test_actions import campaign
 from test_statistics import gurps_draft, profile_compiler, profile_package
 
-from wayfarer.character.compiler import CharacterCompiler, Purchase
-from wayfarer.character.power import CharacterProposal, PowerPolicy, PowerReviewer
+from wayfarer.engine.character.compiler import CharacterCompiler, Purchase
+from wayfarer.engine.character.power import CharacterProposal, PowerPolicy, PowerReviewer
+from wayfarer.engine.rules.abilities import MODIFIERS, PROFILE, definition
+from wayfarer.engine.rules.catalog import RulesCatalog
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.injury_types import InjuryStatus
+from wayfarer.engine.rules.recovery_types import FatigueStatus, RecoveryTask
+from wayfarer.engine.simulation.abilities import apply_ability, damage_resistance, effects
+from wayfarer.engine.simulation.ability_types import AbilityRules, AbilitySpec
+from wayfarer.engine.simulation.action_engine import ActionEngine
+from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, Wait
+from wayfarer.engine.simulation.combat import Battlefield, CombatRules, GridPoint, Placement
+from wayfarer.engine.simulation.resources import Pool, ResourceEngine
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.orchestration.abilities import AbilityService
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.combat import CombatService, StartEncounter, TakeCombatTurn
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.abilities import MODIFIERS, PROFILE, definition
-from wayfarer.rules.catalog import RulesCatalog
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.injury_types import InjuryStatus
-from wayfarer.rules.recovery_types import FatigueStatus, RecoveryTask
-from wayfarer.simulation.abilities import apply_ability, damage_resistance, effects
-from wayfarer.simulation.ability_types import AbilityRules, AbilitySpec
-from wayfarer.simulation.action_engine import ActionEngine
-from wayfarer.simulation.actions import ActionRules, ActorSetup, Wait
-from wayfarer.simulation.combat import Battlefield, CombatRules, GridPoint, Placement
-from wayfarer.simulation.resources import Pool, ResourceEngine
 
 
 async def setup(
@@ -39,7 +39,7 @@ async def setup(
     hp: int = 10,
     injury: InjuryStatus | None = None,
 ) -> tuple[str, PlayService]:
-    from wayfarer.rules.gurps_magic import definitions
+    from wayfarer.engine.rules.gurps_magic import definitions
 
     package = profile_package(PROFILE, definition(ability), *(definitions() if magic else ()))
     catalog = RulesCatalog((package,))
@@ -442,8 +442,8 @@ async def test_portable_ability_binding_roundtrips_and_rejects_duplicate_source(
     from pydantic import ValidationError as SchemaError
     from test_wave12 import two_player_graph
 
-    from wayfarer.simulation.scenario_document import PortableGraph
-    from wayfarer.simulation.studio import ScenarioGraph
+    from wayfarer.engine.simulation.scenario_document import PortableGraph
+    from wayfarer.engine.simulation.studio import ScenarioGraph
 
     _, play = await setup(tmp_path, spec())
     binding = play.engine.rules.abilities

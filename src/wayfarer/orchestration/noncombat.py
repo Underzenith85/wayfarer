@@ -5,15 +5,15 @@ from __future__ import annotations
 import json
 from typing import Literal
 
+from wayfarer.engine.rules.checks import Modifier, Outcome, success_check
+from wayfarer.engine.simulation.actions import ActionCommand, PlayState
+from wayfarer.engine.simulation.condition_checks import definition_modifiers
+from wayfarer.engine.simulation.noncombat import NoncombatEncounter
+from wayfarer.engine.simulation.resources import Advance
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, CommandReceipt, Id
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
-from wayfarer.rules.checks import Modifier, Outcome, success_check
-from wayfarer.simulation.actions import ActionCommand, PlayState
-from wayfarer.simulation.condition_checks import definition_modifiers
-from wayfarer.simulation.noncombat import NoncombatEncounter
-from wayfarer.simulation.resources import Advance
 
 
 class NoncombatCommand(ActionCommand):
@@ -211,7 +211,7 @@ class NoncombatService:
         def resolve(campaign: Campaign) -> CommandReceipt:
             current = self.play._load(campaign)
             if command.kind == "approach_noncombat":
-                from wayfarer.simulation.party import synchronous
+                from wayfarer.engine.simulation.party import synchronous
 
                 synchronous(current, command.actor_id)
             state = self.reduce(current, command)

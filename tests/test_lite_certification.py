@@ -9,9 +9,9 @@ import pytest
 
 from scripts import lite_certification as gate
 from scripts import release_gates
-from wayfarer.rules.conformance import BASELINE_ID, CAPABILITIES, PROFILES, CoverageStatus
-from wayfarer.rules.profiles import GURPS_LITE_PROFILE
-from wayfarer.simulation.equipment_audit import lite_gaps
+from wayfarer.certification.equipment_audit import lite_gaps
+from wayfarer.engine.rules.conformance import BASELINE_ID, CAPABILITIES, PROFILES, CoverageStatus
+from wayfarer.engine.rules.profiles import GURPS_LITE_PROFILE
 
 
 def test_current_lite_certification_is_explicitly_blocked(tmp_path: Path) -> None:

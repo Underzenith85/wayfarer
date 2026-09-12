@@ -1,14 +1,14 @@
 """Attach immutable scenario identities at activation and continuation boundaries."""
 
-from wayfarer.models import Campaign
-from wayfarer.simulation.scenario_document import (
+from wayfarer.engine.simulation.scenario_document import (
     PublishedRevision,
     ScenarioBoundary,
     ScenarioReference,
     digest_json,
 )
-from wayfarer.simulation.scenario_references import boundary
-from wayfarer.simulation.studio import ScenarioGraph
+from wayfarer.engine.simulation.scenario_references import boundary
+from wayfarer.engine.simulation.studio import ScenarioGraph
+from wayfarer.models import Campaign
 
 
 def pin_scenario(

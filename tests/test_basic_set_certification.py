@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from wayfarer.basic_set_certification import PROFILE_ID, evaluate, require_certified
+from wayfarer.certification.basic_set_certification import PROFILE_ID, evaluate, require_certified
+from wayfarer.engine.rules.conformance import PROFILES
 from wayfarer.errors import ValidationError
-from wayfarer.rules.conformance import PROFILES
 
 ROOT = Path(__file__).resolve().parents[1]
 

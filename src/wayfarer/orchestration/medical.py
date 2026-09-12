@@ -7,20 +7,20 @@ from collections.abc import Callable
 from dataclasses import dataclass, replace
 from typing import cast
 
-from wayfarer.character.compiler import ValidatedBuild
-from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, CommandReceipt
-from wayfarer.orchestration.entropy import commit_command
-from wayfarer.orchestration.play import PlayService
-from wayfarer.rules.recovery_types import ProfileId
-from wayfarer.simulation.actions import PlayState
-from wayfarer.simulation.medical import (
+from wayfarer.engine.character.compiler import ValidatedBuild
+from wayfarer.engine.rules.recovery_types import ProfileId
+from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.medical import (
     BeginRecovery,
     CareContext,
     FinishRecovery,
     RecoveryResult,
     apply_recovery,
 )
+from wayfarer.errors import ValidationError
+from wayfarer.models import Campaign, CommandReceipt
+from wayfarer.orchestration.entropy import commit_command
+from wayfarer.orchestration.play import PlayService
 
 
 @dataclass(frozen=True)

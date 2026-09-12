@@ -12,16 +12,10 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from wayfarer.character import builder
-from wayfarer.character.compiler import CharacterCompiler, CharacterDraft, Purchase
-from wayfarer.character.power import CharacterProposal, PowerPolicy, PowerReviewer
-from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign
-from wayfarer.orchestration.play import ApproveCharacter, PlayService
-from wayfarer.orchestration.service import GameService, public
-from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.persistence.postgres import AsyncPostgresStore
-from wayfarer.rules.catalog import (
+from wayfarer.engine.character import builder
+from wayfarer.engine.character.compiler import CharacterCompiler, CharacterDraft, Purchase
+from wayfarer.engine.character.power import CharacterProposal, PowerPolicy, PowerReviewer
+from wayfarer.engine.rules.catalog import (
     DEFAULT_POLICY,
     DEFAULT_RULES,
     PROTOTYPE_PACKAGE,
@@ -33,8 +27,8 @@ from wayfarer.rules.catalog import (
     RulesCatalog,
     reference,
 )
-from wayfarer.simulation.action_engine import ActionEngine
-from wayfarer.simulation.actions import (
+from wayfarer.engine.simulation.action_engine import ActionEngine
+from wayfarer.engine.simulation.actions import (
     ActionResult,
     ActionRules,
     ActorSetup,
@@ -49,8 +43,8 @@ from wayfarer.simulation.actions import (
     UseItem,
     Wait,
 )
-from wayfarer.simulation.events import action_result
-from wayfarer.simulation.resources import (
+from wayfarer.engine.simulation.events import action_result
+from wayfarer.engine.simulation.resources import (
     EquipmentSpec,
     Item,
     Owner,
@@ -59,8 +53,14 @@ from wayfarer.simulation.resources import (
     ResourceState,
     Scheduled,
 )
-from wayfarer.simulation.scenario import scenario
-from wayfarer.world import Connection, Entity, EntityKind, Fact, World
+from wayfarer.engine.simulation.scenario import scenario
+from wayfarer.engine.world import Connection, Entity, EntityKind, Fact, World
+from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Campaign
+from wayfarer.orchestration.play import ApproveCharacter, PlayService
+from wayfarer.orchestration.service import GameService, public
+from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
+from wayfarer.persistence.postgres import AsyncPostgresStore
 
 
 class Dice:
@@ -672,7 +672,7 @@ def test_compiled_resources_cannot_be_forged_and_fatigue_is_charged_once() -> No
 def test_equipment_attribute_effects_feed_skill_target_with_provenance() -> None:
     from decimal import Decimal
 
-    from wayfarer.rules.effects import Effect, Operation
+    from wayfarer.engine.rules.effects import Effect, Operation
 
     reducer = engine()
     # Trusted equipment binding; construct a new engine digest after configuration.

@@ -6,19 +6,19 @@ import pytest
 from test_actions import campaign, world
 from test_statistics import gurps_draft, profile_compiler
 
-from wayfarer.character.power import CharacterProposal, PowerPolicy, PowerReviewer
+from wayfarer.engine.character.power import CharacterProposal, PowerPolicy, PowerReviewer
+from wayfarer.engine.rules.catalog import RulesCatalog
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.injury_types import InjuryStatus
+from wayfarer.engine.rules.recovery_types import FatigueStatus
+from wayfarer.engine.simulation.action_engine import ActionEngine
+from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, Move, Wait
+from wayfarer.engine.simulation.medical import BeginRecovery, FinishRecovery
+from wayfarer.engine.simulation.resources import Owner, ResourceEngine, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.medical import CareEnvironment, MedicalService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.catalog import RulesCatalog
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.injury_types import InjuryStatus
-from wayfarer.rules.recovery_types import FatigueStatus
-from wayfarer.simulation.action_engine import ActionEngine
-from wayfarer.simulation.actions import ActionRules, ActorSetup, Move, Wait
-from wayfarer.simulation.medical import BeginRecovery, FinishRecovery
-from wayfarer.simulation.resources import Owner, ResourceEngine, ResourceState
 
 PROFILE = "gurps-basic-set-4e-2004"
 
@@ -177,8 +177,8 @@ async def test_stunned_healer_cannot_begin_treatment(tmp_path: Path) -> None:
 
 
 async def test_heart_attack_deadline_uses_shared_clock_once(tmp_path: Path) -> None:
-    from wayfarer.simulation.fatigue import ContinueExertion, apply_fatigue
-    from wayfarer.simulation.resources import Advance
+    from wayfarer.engine.simulation.fatigue import ContinueExertion, apply_fatigue
+    from wayfarer.engine.simulation.resources import Advance
 
     cid, play, _ = await setup(tmp_path)
     state = play._load(await play.store.read(cid))
@@ -216,10 +216,10 @@ async def test_heart_attack_deadline_uses_shared_clock_once(tmp_path: Path) -> N
 
 
 async def test_rest_at_full_fp_cannot_bank_credit_against_future_cost(tmp_path: Path) -> None:
-    from wayfarer.rules.checks import RecordedDice
-    from wayfarer.simulation.fatigue import FatigueCost, apply_fatigue
-    from wayfarer.simulation.medical import CareContext, apply_recovery
-    from wayfarer.simulation.resources import Advance
+    from wayfarer.engine.rules.checks import RecordedDice
+    from wayfarer.engine.simulation.fatigue import FatigueCost, apply_fatigue
+    from wayfarer.engine.simulation.medical import CareContext, apply_recovery
+    from wayfarer.engine.simulation.resources import Advance
 
     cid, play, _ = await setup(tmp_path)
     state = play._load(await play.store.read(cid)).resources
@@ -275,9 +275,9 @@ async def test_rest_at_full_fp_cannot_bank_credit_against_future_cost(tmp_path: 
 
 
 async def test_partial_rest_accrues_before_exhaustion_cost_and_never_twice(tmp_path: Path) -> None:
-    from wayfarer.simulation.fatigue import FatigueCost, apply_fatigue
-    from wayfarer.simulation.medical import CareContext, apply_recovery
-    from wayfarer.simulation.resources import Advance
+    from wayfarer.engine.simulation.fatigue import FatigueCost, apply_fatigue
+    from wayfarer.engine.simulation.medical import CareContext, apply_recovery
+    from wayfarer.engine.simulation.resources import Advance
 
     cid, play, _ = await setup(tmp_path)
     state = play._load(await play.store.read(cid)).resources
@@ -342,8 +342,8 @@ async def test_partial_rest_accrues_before_exhaustion_cost_and_never_twice(tmp_p
 
 
 async def test_restricted_rest_accrual_preserves_continuous_day(tmp_path: Path) -> None:
-    from wayfarer.simulation.medical import CareContext, apply_recovery
-    from wayfarer.simulation.resources import Advance
+    from wayfarer.engine.simulation.medical import CareContext, apply_recovery
+    from wayfarer.engine.simulation.resources import Advance
 
     cid, play, _ = await setup(tmp_path)
     state = play._load(await play.store.read(cid)).resources
@@ -393,9 +393,9 @@ async def test_restricted_rest_accrual_preserves_continuous_day(tmp_path: Path) 
 
 
 async def test_natural_healing_cannot_be_banked_for_future_injury(tmp_path: Path) -> None:
-    from wayfarer.simulation.injury import Wound, apply_injury
-    from wayfarer.simulation.medical import CareContext, apply_recovery
-    from wayfarer.simulation.resources import Advance
+    from wayfarer.engine.simulation.injury import Wound, apply_injury
+    from wayfarer.engine.simulation.medical import CareContext, apply_recovery
+    from wayfarer.engine.simulation.resources import Advance
 
     cid, play, _ = await setup(tmp_path)
     state = play._load(await play.store.read(cid)).resources
@@ -459,9 +459,9 @@ async def test_natural_healing_cannot_be_banked_for_future_injury(tmp_path: Path
 
 
 async def test_exertion_interrupts_rest_and_death_cannot_deadlock_clock(tmp_path: Path) -> None:
-    from wayfarer.simulation.fatigue import ContinueExertion, apply_fatigue
-    from wayfarer.simulation.medical import CareContext, apply_recovery
-    from wayfarer.simulation.resources import Advance
+    from wayfarer.engine.simulation.fatigue import ContinueExertion, apply_fatigue
+    from wayfarer.engine.simulation.medical import CareContext, apply_recovery
+    from wayfarer.engine.simulation.resources import Advance
 
     cid, play, _ = await setup(tmp_path)
     state = play._load(await play.store.read(cid)).resources

@@ -2,14 +2,14 @@
 
 import json
 
+from wayfarer.engine.simulation.mechanics.surprise import Resolver as Resolver
+from wayfarer.engine.simulation.mechanics.surprise import SurpriseCommand as SurpriseCommand
+from wayfarer.engine.simulation.mechanics.surprise import SurpriseSides as SurpriseSides
+from wayfarer.engine.simulation.mechanics.surprise import apply_surprise as apply_surprise
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
-from wayfarer.simulation.mechanics.surprise import Resolver as Resolver
-from wayfarer.simulation.mechanics.surprise import SurpriseCommand as SurpriseCommand
-from wayfarer.simulation.mechanics.surprise import SurpriseSides as SurpriseSides
-from wayfarer.simulation.mechanics.surprise import apply_surprise as apply_surprise
 
 
 class SurpriseService:

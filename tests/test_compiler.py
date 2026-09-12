@@ -7,9 +7,8 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from wayfarer.character.compiler import CharacterCompiler, CharacterDraft, Purchase
-from wayfarer.errors import ValidationError
-from wayfarer.rules.catalog import (
+from wayfarer.engine.character.compiler import CharacterCompiler, CharacterDraft, Purchase
+from wayfarer.engine.rules.catalog import (
     DEFAULT_POLICY,
     DEFAULT_RULES,
     PROTOTYPE_PACKAGE,
@@ -21,7 +20,8 @@ from wayfarer.rules.catalog import (
     RuleDefinition,
     RulesCatalog,
 )
-from wayfarer.rules.effects import Effect, Operation
+from wayfarer.engine.rules.effects import Effect, Operation
+from wayfarer.errors import ValidationError
 
 
 def compiler(

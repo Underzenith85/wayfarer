@@ -4,15 +4,15 @@ import copy
 import uuid
 
 from wayfarer import validation
-from wayfarer.character import builder
 from wayfarer.config import Settings
+from wayfarer.engine.character import builder
+from wayfarer.engine.rules import catalog
+from wayfarer.engine.simulation.scenario import validate_scenario
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, PublicCampaign
 from wayfarer.orchestration.llm import LLMClient
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
-from wayfarer.rules import catalog
-from wayfarer.simulation.scenario import validate_scenario
 
 
 class GameService:

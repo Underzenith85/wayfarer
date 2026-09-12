@@ -2,9 +2,8 @@ from decimal import Decimal
 
 import pytest
 
-from wayfarer.errors import ValidationError
-from wayfarer.rules.checks import Modifier, Outcome, contest, success_check
-from wayfarer.rules.effects import (
+from wayfarer.engine.rules.checks import Modifier, Outcome, contest, success_check
+from wayfarer.engine.rules.effects import (
     Effect,
     EffectEvaluator,
     MechanicalTarget,
@@ -12,7 +11,7 @@ from wayfarer.rules.effects import (
     Predicate,
     PredicateOperator,
 )
-from wayfarer.world import (
+from wayfarer.engine.world import (
     Belief,
     Commitment,
     CommitmentKind,
@@ -24,6 +23,7 @@ from wayfarer.world import (
     World,
     replay,
 )
+from wayfarer.errors import ValidationError
 
 
 class Dice:

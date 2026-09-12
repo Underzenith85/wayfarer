@@ -5,22 +5,22 @@ from dataclasses import replace
 import pytest
 from test_statistics import gurps_draft, profile_package
 
-from wayfarer.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
-from wayfarer.character.physiology_traits import physiology_traits
-from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.rules.catalog import CampaignPolicy, CampaignRules, PackagePin, RulesCatalog
-from wayfarer.rules.injury_types import InjuryStatus
-from wayfarer.rules.physiology_traits import BINDINGS, PROFILE, RUNTIME_HOOKS
-from wayfarer.rules.physiology_traits import package as physiology_package
-from wayfarer.rules.supernatural import inventory
-from wayfarer.rules.traits import TraitOptions
-from wayfarer.simulation.physiology_traits import (
+from wayfarer.engine.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
+from wayfarer.engine.character.physiology_traits import physiology_traits
+from wayfarer.engine.rules.catalog import CampaignPolicy, CampaignRules, PackagePin, RulesCatalog
+from wayfarer.engine.rules.injury_types import InjuryStatus
+from wayfarer.engine.rules.physiology_traits import BINDINGS, PROFILE, RUNTIME_HOOKS
+from wayfarer.engine.rules.physiology_traits import package as physiology_package
+from wayfarer.engine.rules.supernatural import inventory
+from wayfarer.engine.rules.traits import TraitOptions
+from wayfarer.engine.simulation.physiology_traits import (
     PhysiologyCommand,
     PhysiologyInterval,
     apply_physiology_interval,
     history,
 )
-from wayfarer.simulation.resources import Pool, ResourceState
+from wayfarer.engine.simulation.resources import Pool, ResourceState
+from wayfarer.errors import ConflictError, ValidationError
 
 
 def options(**values: str | int | bool) -> TraitOptions:

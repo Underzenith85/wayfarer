@@ -15,6 +15,9 @@ from aiohttp import web
 from pydantic import Field
 
 from wayfarer.config import Settings
+from wayfarer.engine.rules.catalog import reference
+from wayfarer.engine.rules.profiles import DEFAULT_REGISTRY
+from wayfarer.engine.simulation.studio import ScenarioGraph
 from wayfarer.errors import AuthenticationError, AuthorizationError, ValidationError, WayfarerError
 from wayfarer.models import Record
 from wayfarer.orchestration.access import CampaignAccess
@@ -35,9 +38,6 @@ from wayfarer.orchestration.workshop_options import (
     preview_profile,
     profile_option,
 )
-from wayfarer.rules.catalog import reference
-from wayfarer.rules.profiles import DEFAULT_REGISTRY
-from wayfarer.simulation.studio import ScenarioGraph
 
 # The single-page application's own entry routes. Each view is addressable
 # bare and per campaign, so a bookmarked or shared link resolves to the app,
@@ -205,9 +205,9 @@ class GenerateDraftRequest(Record):
 
 
 async def generate_scenario_draft(request: web.Request) -> web.Response:
+    from wayfarer.engine.simulation.actions import ActorSetup
+    from wayfarer.engine.simulation.studio import GenerationBrief
     from wayfarer.orchestration.studio import ScenarioStudio
-    from wayfarer.simulation.actions import ActorSetup
-    from wayfarer.simulation.studio import GenerationBrief
 
     access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
     state = access.play._load(await access.play.store.read(request.match_info["cid"]))
@@ -313,7 +313,7 @@ async def workshop_reviews(request: web.Request) -> web.Response:
     member = access._member(state, _identity(request))
     if member.role != "gm" or member.principal_id not in access.play.engine.reviewer.gm_ids:
         raise AuthorizationError("Workshop review requires campaign GM")
-    from wayfarer.character.power import CharacterProposal
+    from wayfarer.engine.character.power import CharacterProposal
 
     controlled = {a for m in state.members if m.role == "player" for a in m.actor_ids}
     result = WorkshopReviewQueue(
@@ -412,8 +412,8 @@ class ActivateScenarioRequest(Record):
 
 
 async def activate_scenario(request: web.Request) -> web.Response:
+    from wayfarer.engine.simulation.studio import ScenarioGraph
     from wayfarer.orchestration.studio import ScenarioStudio
-    from wayfarer.simulation.studio import ScenarioGraph
 
     access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
     cid = request.match_info["cid"]
@@ -448,8 +448,8 @@ async def activate_scenario(request: web.Request) -> web.Response:
 
 
 async def validate_scenario(request: web.Request) -> web.Response:
+    from wayfarer.engine.simulation.studio import ScenarioGraph
     from wayfarer.orchestration.studio import ScenarioStudio
-    from wayfarer.simulation.studio import ScenarioGraph
 
     access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
     state = access.play._load(await access.play.store.read(request.match_info["cid"]))

@@ -11,12 +11,12 @@ from test_gurps_maneuvers import turn
 from test_gurps_melee import setup
 from test_gurps_ranged import load, scene, weapon
 
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.simulation.gurps_equipment import Damage, RangedMode
+from wayfarer.engine.simulation.ranged_critical import RangedCritical
 from wayfarer.orchestration.combat import ChooseDefense, CombatService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.simulation.gurps_equipment import Damage, RangedMode
-from wayfarer.simulation.ranged_critical import RangedCritical
 
 
 def impaling() -> RangedMode:

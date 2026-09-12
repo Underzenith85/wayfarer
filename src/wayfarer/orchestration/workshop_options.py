@@ -2,13 +2,13 @@
 
 from pydantic import Field
 
-from wayfarer.character.compiler import CharacterCompiler
-from wayfarer.character.power import CharacterProposal, PowerReviewer
+from wayfarer.engine.character.compiler import CharacterCompiler
+from wayfarer.engine.character.power import CharacterProposal, PowerReviewer
+from wayfarer.engine.rules.catalog import DefinitionKind, ImplementationStatus
+from wayfarer.engine.rules.profiles import DEFAULT_REGISTRY, RegisteredProfile
+from wayfarer.engine.rules.skill_types import SkillSpec
+from wayfarer.engine.rules.traits import TraitRules
 from wayfarer.models import Record
-from wayfarer.rules.catalog import DefinitionKind, ImplementationStatus
-from wayfarer.rules.profiles import DEFAULT_REGISTRY, RegisteredProfile
-from wayfarer.rules.skill_types import SkillSpec
-from wayfarer.rules.traits import TraitRules
 
 
 class ProfileOption(Record):

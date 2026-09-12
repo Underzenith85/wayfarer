@@ -6,17 +6,11 @@ from pathlib import Path
 import pytest
 from test_social_dispatch import prepare
 
-from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.orchestration.access import CampaignAccess
-from wayfarer.orchestration.fright import FrightDecision, FrightService
-from wayfarer.orchestration.npcs import checkpoint
-from wayfarer.orchestration.play import PlayService
-from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.fright import FrightEffect
-from wayfarer.simulation.actions import Wait
-from wayfarer.simulation.fright import apply_effect, effects
-from wayfarer.simulation.npcs import (
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.fright import FrightEffect
+from wayfarer.engine.simulation.actions import Wait
+from wayfarer.engine.simulation.fright import apply_effect, effects
+from wayfarer.engine.simulation.npcs import (
     NPCReputation,
     NPCSocialAction,
     NPCSocialPlan,
@@ -24,7 +18,13 @@ from wayfarer.simulation.npcs import (
     NPCSocialStanding,
     NPCSocialTrigger,
 )
-from wayfarer.simulation.resources import Advance
+from wayfarer.engine.simulation.resources import Advance
+from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.orchestration.access import CampaignAccess
+from wayfarer.orchestration.fright import FrightDecision, FrightService
+from wayfarer.orchestration.npcs import checkpoint
+from wayfarer.orchestration.play import PlayService
+from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 
 
 def test_explicit_v2_contract_is_pinned() -> None:
@@ -36,7 +36,7 @@ def test_explicit_v2_contract_is_pinned() -> None:
 async def test_fright_stun_defense_and_unconscious_no_defense(tmp_path: Path) -> None:
     from test_gurps_melee import setup
 
-    from wayfarer.simulation.mechanics.gurps_melee import defense_value
+    from wayfarer.engine.simulation.mechanics.gurps_melee import defense_value
 
     cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004")
     state = play._load(await play.store.read(cid))
@@ -89,9 +89,9 @@ async def test_fright_stun_defense_and_unconscious_no_defense(tmp_path: Path) ->
 async def test_panic_response_records_choice_without_forcing_player_behavior(
     tmp_path: Path,
 ) -> None:
+    from wayfarer.engine.simulation.actions import PlayState
+    from wayfarer.engine.simulation.social import SocialCommand, SocialContext
     from wayfarer.orchestration.social import ResolvedInteraction, SocialService
-    from wayfarer.simulation.actions import PlayState
-    from wayfarer.simulation.social import SocialCommand, SocialContext
 
     cid, play = await prepare(tmp_path)
     before = play._load(await play.store.read(cid))

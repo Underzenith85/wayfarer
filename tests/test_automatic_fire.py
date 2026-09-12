@@ -7,10 +7,10 @@ from test_gurps_maneuvers import defend, turn
 from test_gurps_melee import setup
 from test_gurps_ranged import load, scene, weapon
 
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.firearm_types import FirearmSpec
+from wayfarer.engine.simulation.gurps_equipment import Damage, RangedMode
 from wayfarer.errors import ValidationError
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.firearm_types import FirearmSpec
-from wayfarer.simulation.gurps_equipment import Damage, RangedMode
 
 
 def automatic_only() -> RangedMode:

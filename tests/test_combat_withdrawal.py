@@ -12,6 +12,15 @@ from test_reinforcements import (
     setup_profiled_basic,
 )
 
+from wayfarer.engine.simulation.actions import PlayState, Wait
+from wayfarer.engine.simulation.combat import (
+    BasicSpatialContext,
+    BasicSpatialFact,
+    VisibilitySpatialFact,
+)
+from wayfarer.engine.simulation.combat_commands import BasicMove
+from wayfarer.engine.simulation.hex_geometry import Hex
+from wayfarer.engine.simulation.maneuvers import WaitInterrupt, WaitTrigger
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.combat import (
@@ -26,15 +35,6 @@ from wayfarer.orchestration.combat import (
 from wayfarer.orchestration.party import PartyCommand, PartyService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.tactical_view import project
-from wayfarer.simulation.actions import PlayState, Wait
-from wayfarer.simulation.combat import (
-    BasicSpatialContext,
-    BasicSpatialFact,
-    VisibilitySpatialFact,
-)
-from wayfarer.simulation.combat_commands import BasicMove
-from wayfarer.simulation.hex_geometry import Hex
-from wayfarer.simulation.maneuvers import WaitInterrupt, WaitTrigger
 from wayfarer.transport.campaign_api import create_campaign_app
 from wayfarer.transport.tactical_api import enrich
 

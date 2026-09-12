@@ -8,9 +8,9 @@ import pytest
 from test_wave9 import prepare
 
 from scripts.replay_fixtures import FixtureExecutor
+from wayfarer.engine.simulation.actions import Inspect
 from wayfarer.errors import ValidationError
 from wayfarer.persistence.replay import verify_commands
-from wayfarer.simulation.actions import Inspect
 
 
 @pytest.mark.parametrize("backend", ["sqlite", "postgres"])

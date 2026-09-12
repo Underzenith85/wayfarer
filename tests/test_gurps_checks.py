@@ -6,9 +6,14 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from wayfarer.errors import ValidationError
-from wayfarer.rules.checks import Modifier, ModifierKind, Outcome, RecordedDice, evaluate_success
-from wayfarer.rules.gurps_checks import (
+from wayfarer.engine.rules.checks import (
+    Modifier,
+    ModifierKind,
+    Outcome,
+    RecordedDice,
+    evaluate_success,
+)
+from wayfarer.engine.rules.gurps_checks import (
     Contestant,
     RepeatedAttemptPolicy,
     quick_contest,
@@ -23,6 +28,7 @@ from wayfarer.rules.gurps_checks import (
     rule_of_16_modifier,
     success_roll,
 )
+from wayfarer.errors import ValidationError
 
 BASIC = "gurps-basic-set-4e-2004"
 LITE = "gurps-lite-4e-2004"

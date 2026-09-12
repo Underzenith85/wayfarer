@@ -4,11 +4,11 @@ from pathlib import Path
 
 from test_encounter_context import load, setup
 
+from wayfarer.engine.simulation.combat import Encounter, GridPoint, Placement
+from wayfarer.engine.simulation.encounter_context import bind_scene
+from wayfarer.engine.simulation.party import Subgroup
 from wayfarer.orchestration.combat import CombatService, TakeCombatTurn, _elapsed_combat_ticks
 from wayfarer.orchestration.play import PlayService
-from wayfarer.simulation.combat import Encounter, GridPoint, Placement
-from wayfarer.simulation.encounter_context import bind_scene
-from wayfarer.simulation.party import Subgroup
 
 
 def test_shared_seconds_settle_by_cycle_and_decisive_partial_cycle() -> None:

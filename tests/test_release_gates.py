@@ -9,7 +9,7 @@ import pytest
 
 from scripts import release_gates
 from scripts.release_gates import MECHANICS, ROOT, evaluate
-from wayfarer.rules.catalog import PROTOTYPE_PACKAGE
+from wayfarer.engine.rules.catalog import PROTOTYPE_PACKAGE
 
 
 @pytest.mark.parametrize("defect", ["none", "missing", "skipped", "failure", "error", "empty"])
@@ -85,7 +85,7 @@ def test_release_main_compares_canonical_package_to_unchanged_approved_fixture(
     from dataclasses import replace
 
     from scripts import release_gates
-    from wayfarer.rules.catalog import PROTOTYPE_PACKAGE
+    from wayfarer.engine.rules.catalog import PROTOTYPE_PACKAGE
 
     # Exercise the real source-approval check independently of JUnit validation.
     def passing_evidence(report: Path) -> tuple[list[dict[str, object]], list[str]]:

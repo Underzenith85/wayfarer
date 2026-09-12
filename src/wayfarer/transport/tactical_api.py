@@ -6,6 +6,10 @@ import json
 from aiohttp import web
 from pydantic import Field
 
+from wayfarer.engine.simulation.access import CampaignMember
+from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.combat import BasicSpatialContext, Encounter, basic_visible
+from wayfarer.engine.simulation.encounter_context import activity_for
 from wayfarer.errors import ValidationError, WayfarerError
 from wayfarer.models import Record
 from wayfarer.orchestration.combat import (
@@ -46,10 +50,6 @@ from wayfarer.orchestration.tactical_view import (
 from wayfarer.orchestration.tactical_view import (
     choices as tactical_choices,
 )
-from wayfarer.simulation.access import CampaignMember
-from wayfarer.simulation.actions import PlayState
-from wayfarer.simulation.combat import BasicSpatialContext, Encounter, basic_visible
-from wayfarer.simulation.encounter_context import activity_for
 from wayfarer.transport.campaign_api import ACCESS_KEY, _identity, _json
 from wayfarer.transport.tactical_v1_commands import ChooseDefense as ChooseDefenseV1
 from wayfarer.transport.tactical_v1_commands import MigrateEncounterHex as MigrateEncounterHexV1

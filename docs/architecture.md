@@ -11,14 +11,35 @@ implicit checkout imports, or global pip dependencies are required.
 
 | Package | Owns | Permitted internal dependencies |
 | --- | --- | --- |
-| `models`, `validation` | The `Record` entity contract, shared typed contracts and runtime structural schemas | Models |
-| `rules` | Closed demo catalog and checks | Models, validation, rules |
-| `character` | Character draft validation, preset, and profile-selected attribute/secondary statistics | Models, validation, rules, character |
-| `simulation` | Scenario validation and state transitions | Models, validation, rules, character, simulation |
-| `persistence` | SQLite schema, transactions and storage | Models, validation |
-| `orchestration` | LLM adapter, intent, application use cases | Domain packages, persistence |
-| `transport` | HTTP routes and bundled static UI | Orchestration and read-only domain APIs |
+| `models`, `validation`, `errors` | The `Record` entity contract, shared typed contracts, runtime structural schemas and typed failures | Models |
+| `engine.rules` | Closed demo catalog and checks | Kernel, rules |
+| `engine.character` | Character draft validation, preset, and profile-selected attribute/secondary statistics | Kernel, rules, character |
+| `engine.simulation` | Scenario validation and state transitions | Kernel, rules, character, simulation, world |
+| `certification` | Release accounting over engine evidence; reads the source tree | Kernel, rules, simulation |
+| `persistence` | SQLite schema, transactions and storage | Kernel |
+| `orchestration` | LLM adapter, intent, application use cases | Engine packages, persistence |
+| `transport` | HTTP routes and bundled static UI | Orchestration and read-only engine APIs |
 | `cli` | Configuration and server composition | Orchestration, transport |
+
+The engine lives under one directory, `src/wayfarer/engine/`, holding `rules/`,
+`character/`, `simulation/` and `world.py`. The kernel (`models.py`,
+`validation.py`, `errors.py`) stays beside it because every layer depends on it.
+Certification is deliberately outside the engine: it reads ledgers and source
+files, which the engine never does.
+
+Two rules keep the engine importable in any order.
+
+- **Nouns never import verbs.** A verb is a module that takes a `RulesContext`
+  and resolves mechanics; a noun is the state, contract or pure reducer it reads.
+  Verbs may import nouns from any domain. The reverse is a cycle, and an
+  architecture test rejects it for every module the importer always pays for
+  (a deferred import inside a function body is how the remaining mechanic cycles
+  are broken today).
+- **Package inits do not re-export.** An `__init__.py` under `engine/` either
+  declares the package's own rules, as the three inventory packages do, or holds
+  nothing but its docstring. A facade that imports its siblings would make
+  importing one domain load them all, and a noun would load a verb. Importers
+  name the concrete module.
 
 The simulation resolver mutates the supplied state and returns an event. The
 SQLite adapter invokes it only after locking and checking the expected revision,
@@ -40,15 +61,15 @@ Nouns and verbs are kept apart at three levels.
   frozen, strict, closed to unknown fields and revalidated when nested. No other
   module subclasses `BaseModel` directly or restates that configuration. A state
   transition returns a new record; entities never mutate themselves.
-- **Aggregate modules hold entities and their invariants.** `simulation/scenes.py`,
+- **Aggregate modules hold entities and their invariants.** `engine/simulation/scenes.py`,
   `party.py`, `noncombat.py`, `access.py`, `advancement.py`, `spell_bindings.py`,
   `ability_types.py` and `combat.py` each declare their records and a
   `validate_*` function that checks a checkpoint against those records. Pure
   rule tables that need no state (range penalties, rapid-fire bonuses) live in
-  `rules/`.
-- **Verbs live in engines and services.** `simulation/actions.py` declares the
+  `engine/rules/`.
+- **Verbs live in engines and services.** `engine/simulation/actions.py` declares the
   typed commands, action rules, results and `PlayState`; the resolver that
-  assesses and applies them is `simulation/action_engine.py`, whose `validate`
+  assesses and applies them is `engine/simulation/action_engine.py`, whose `validate`
   is the ordered sequence of aggregate invariants. `CombatEngine` and
   `ResourceEngine` follow the same shape. Orchestration services coordinate
   transactions and end every one with `PlayService.commit`, the only verb that
@@ -85,9 +106,9 @@ recording and typed event streams remain the separate ADR 002 migration steps.
 
 ### Basic Set mechanic boundary (#415)
 
-`simulation/mechanics/` owns the state-aware melee, ranged, unarmed, object,
-physical and spell adapters and their follow-up transitions. `rules/combat_tables.py`
-and `rules/unarmed_tables.py` own the shared numeric formulas, skill permissions
+`engine/simulation/mechanics/` owns the state-aware melee, ranged, unarmed, object,
+physical and spell adapters and their follow-up transitions. `engine/rules/combat_tables.py`
+and `engine/rules/unarmed_tables.py` own the shared numeric formulas, skill permissions
 and critical-miss rows. These modules import independently of orchestration and
 persistence; services supply a campaign-specific `RulesContext` at the boundary.
 
@@ -127,9 +148,9 @@ should land on these seams rather than invent new ones.
   `PlayService.commit` under the existing campaign transaction. A second
   resolver for the same rules is a defect.
 - **Rule math belongs below orchestration (#94 catalog lane, #173, #176).**
-  Tables and formulas with no state dependency go in `rules/`; transitions on
-  `PlayState` go in `simulation/`. The shared combat adapters now live in
-  `simulation/mechanics/` and receive explicit domain dependencies. Extend the
+  Tables and formulas with no state dependency go in `engine/rules/`; transitions on
+  `PlayState` go in `engine/simulation/`. The shared combat adapters now live in
+  `engine/simulation/mechanics/` and receive explicit domain dependencies. Extend the
   existing mechanic reducers rather than adding rule math to a service.
 
 ## Package and dependency workflow
@@ -173,7 +194,7 @@ is complete. Engine code versioning is deferred during prerelease.
 | Clients | Web, mobile and voice front ends against one contract | `frontend/`, generated clients |
 | API | Frozen v1 HTTP and live-event contracts, authentication, projection | `transport/` |
 | Orchestrator | One session per active campaign, per-campaign serialization, entropy, clocks, LLM jobs, the outbox | `orchestration/` |
-| Engine | Pure GURPS rules and state transitions | `rules/`, `character/`, `simulation/` |
+| Engine | Pure GURPS rules and state transitions | `engine/` (`rules/`, `character/`, `simulation/`, `world.py`) |
 | Persistence | Command log, event stream, narration stream, snapshots | `persistence/` |
 
 The engine signature is `resolve(state, command, rng) -> (state, events)` and

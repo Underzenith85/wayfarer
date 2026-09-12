@@ -3,10 +3,9 @@ from hypothesis import given
 from hypothesis import strategies as st
 
 from wayfarer import validation
-from wayfarer.character import builder
-from wayfarer.errors import ValidationError
-from wayfarer.rules import checks
-from wayfarer.rules.catalog import (
+from wayfarer.engine.character import builder
+from wayfarer.engine.rules import checks
+from wayfarer.engine.rules.catalog import (
     DEFAULT_CATALOG,
     DEFAULT_POLICY,
     DEFAULT_RULES,
@@ -18,6 +17,7 @@ from wayfarer.rules.catalog import (
     RulesPackage,
     SourceReference,
 )
+from wayfarer.errors import ValidationError
 
 
 def test_default_character_is_legal() -> None:

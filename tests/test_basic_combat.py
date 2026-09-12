@@ -6,19 +6,7 @@ from typing import Literal
 import pytest
 from test_encounter_context import load, setup
 
-from wayfarer.errors import ValidationError
-from wayfarer.orchestration.access import CampaignAccess
-from wayfarer.orchestration.combat import (
-    BasicMove,
-    ChooseDefense,
-    CombatService,
-    DeclareBasicSpatialFacts,
-    StartBasicEncounter,
-    TakeCombatTurn,
-)
-from wayfarer.orchestration.play import PlayService
-from wayfarer.orchestration.providers import Intent
-from wayfarer.simulation.combat import (
+from wayfarer.engine.simulation.combat import (
     BasicSpatialContext,
     BasicSpatialFact,
     CoverSpatialFact,
@@ -31,7 +19,19 @@ from wayfarer.simulation.combat import (
     VisibilitySpatialFact,
     basic_distance,
 )
-from wayfarer.simulation.mechanics.gurps_ranged import situation
+from wayfarer.engine.simulation.mechanics.gurps_ranged import situation
+from wayfarer.errors import ValidationError
+from wayfarer.orchestration.access import CampaignAccess
+from wayfarer.orchestration.combat import (
+    BasicMove,
+    ChooseDefense,
+    CombatService,
+    DeclareBasicSpatialFacts,
+    StartBasicEncounter,
+    TakeCombatTurn,
+)
+from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.providers import Intent
 
 
 def provenance(

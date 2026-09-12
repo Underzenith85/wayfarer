@@ -7,11 +7,10 @@ from test_injury import state as injured_state
 from test_injury import wound
 from test_spells import state
 
-from wayfarer.errors import ConflictError
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.simulation.injury import InjuryTurn, apply_injury
-from wayfarer.simulation.resources import ResourceState
-from wayfarer.simulation.spell_backfires import (
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.simulation.injury import InjuryTurn, apply_injury
+from wayfarer.engine.simulation.resources import ResourceState
+from wayfarer.engine.simulation.spell_backfires import (
     WEEK,
     apply_backfire,
     backfires,
@@ -21,6 +20,7 @@ from wayfarer.simulation.spell_backfires import (
     remember,
     require_settled,
 )
+from wayfarer.errors import ConflictError
 
 
 def backfire(

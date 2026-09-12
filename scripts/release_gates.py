@@ -6,9 +6,11 @@ import os
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-from wayfarer.basic_set_certification import evaluate as basic_set_certification_report
-from wayfarer.rules.catalog import PROTOTYPE_PACKAGE
-from wayfarer.source_audit import report as source_audit_report
+from wayfarer.certification.basic_set_certification import (
+    evaluate as basic_set_certification_report,
+)
+from wayfarer.certification.source_audit import report as source_audit_report
+from wayfarer.engine.rules.catalog import PROTOTYPE_PACKAGE
 
 ROOT = Path(__file__).resolve().parents[1]
 # All cases in each required module must pass, including every parametrized backend/route.

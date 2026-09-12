@@ -8,16 +8,10 @@ from pathlib import Path
 import pytest
 from aiohttp.test_utils import TestClient, TestServer
 
-from wayfarer.character.compiler import CharacterCompiler, Purchase
-from wayfarer.character.power import PowerPolicy, PowerReviewer
-from wayfarer.errors import AuthorizationError, ConflictError, NotFoundError, ValidationError
-from wayfarer.orchestration.access import CampaignAccess
-from wayfarer.orchestration.play import PlayService
-from wayfarer.orchestration.profiles import ProfileMigrations, ProfileRuntime
-from wayfarer.orchestration.setup import SetupService
-from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules import conformance, gurps_characters, gurps_skills
-from wayfarer.rules.catalog import (
+from wayfarer.engine.character.compiler import CharacterCompiler, Purchase
+from wayfarer.engine.character.power import PowerPolicy, PowerReviewer
+from wayfarer.engine.rules import conformance, gurps_characters, gurps_skills
+from wayfarer.engine.rules.catalog import (
     DEFAULT_POLICY,
     DEFAULT_RULES,
     PROTOTYPE_PACKAGE,
@@ -31,7 +25,7 @@ from wayfarer.rules.catalog import (
     SourceReference,
     reference,
 )
-from wayfarer.rules.profiles import (
+from wayfarer.engine.rules.profiles import (
     DEFAULT_REGISTRY,
     GURPS_BASIC_EQUIPMENT_DEFINITIONS,
     GURPS_BASIC_PROFILE,
@@ -41,13 +35,19 @@ from wayfarer.rules.profiles import (
     ProfileRegistry,
     RegisteredProfile,
 )
+from wayfarer.engine.simulation.action_engine import ActionEngine
+from wayfarer.engine.simulation.actions import ActionRules, CheckRule, PlayState
+from wayfarer.engine.simulation.profiles import MigrateProfile, ProfileSelection
+from wayfarer.engine.simulation.resources import EquipmentSpec, Item, ResourceEngine
+from wayfarer.engine.simulation.setup import CreateSetup, SetupCommand
+from wayfarer.engine.simulation.studio import ScenarioGraph
+from wayfarer.errors import AuthorizationError, ConflictError, NotFoundError, ValidationError
+from wayfarer.orchestration.access import CampaignAccess
+from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.profiles import ProfileMigrations, ProfileRuntime
+from wayfarer.orchestration.setup import SetupService
+from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.runtime import starting_scenario
-from wayfarer.simulation.action_engine import ActionEngine
-from wayfarer.simulation.actions import ActionRules, CheckRule, PlayState
-from wayfarer.simulation.profiles import MigrateProfile, ProfileSelection
-from wayfarer.simulation.resources import EquipmentSpec, Item, ResourceEngine
-from wayfarer.simulation.setup import CreateSetup, SetupCommand
-from wayfarer.simulation.studio import ScenarioGraph
 from wayfarer.transport.campaign_api import create_campaign_app
 from wayfarer.transport.setup_api import SETUP_KEY
 
@@ -780,8 +780,8 @@ async def test_servers_without_a_registry_expose_no_profiles(tmp_path: Path) -> 
 
 
 def test_profile_contract_schema_drift() -> None:
-    from wayfarer.simulation.advancement import MigrationEntry
-    from wayfarer.simulation.profiles import ProfileMigrationPreview, ProfileView
+    from wayfarer.engine.simulation.advancement import MigrationEntry
+    from wayfarer.engine.simulation.profiles import ProfileMigrationPreview, ProfileView
 
     models = (
         ProfileSelection,

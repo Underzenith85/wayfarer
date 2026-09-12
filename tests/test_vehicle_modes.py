@@ -9,23 +9,19 @@ from pydantic import ValidationError as SchemaError
 from test_resources import campaign
 from test_transport import fixture as legacy_fixture
 
-from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.orchestration.resources import ResourceService
-from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.persistence.postgres import AsyncPostgresStore
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.conformance import BASELINE_ID
-from wayfarer.rules.transport_types import Transport
-from wayfarer.rules.vehicle_types import (
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.conformance import BASELINE_ID
+from wayfarer.engine.rules.transport_types import Transport
+from wayfarer.engine.rules.vehicle_types import (
     PassengerEjection,
     PassengerProtection,
     WaterOccupantCheck,
 )
-from wayfarer.simulation.hex_geometry import Cell, Hex, HexBattlefield
-from wayfarer.simulation.resources import Pool, ResourceEngine, ResourceState
-from wayfarer.simulation.transport import apply_transport
-from wayfarer.simulation.vehicle_collisions import collision_exchange, passenger_injury
-from wayfarer.simulation.vehicle_commands import (
+from wayfarer.engine.simulation.hex_geometry import Cell, Hex, HexBattlefield
+from wayfarer.engine.simulation.resources import Pool, ResourceEngine, ResourceState
+from wayfarer.engine.simulation.transport import apply_transport
+from wayfarer.engine.simulation.vehicle_collisions import collision_exchange, passenger_injury
+from wayfarer.engine.simulation.vehicle_commands import (
     DamageVehicle,
     NavigateSpace,
     ResolveAirAftermath,
@@ -39,7 +35,11 @@ from wayfarer.simulation.vehicle_commands import (
     VehicleRollover,
     VehicleSkid,
 )
-from wayfarer.simulation.vehicle_motion import ground_cruising_speed, safe_deceleration
+from wayfarer.engine.simulation.vehicle_motion import ground_cruising_speed, safe_deceleration
+from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.orchestration.resources import ResourceService
+from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
+from wayfarer.persistence.postgres import AsyncPostgresStore
 
 
 def fixture(**changes: object) -> tuple[ResourceEngine, ResourceState]:
@@ -970,7 +970,7 @@ async def test_v2_collision_concurrency_and_restart(tmp_path: Path, backend: str
 
 
 def test_breakable_obstacle_caps_both_damage_amounts() -> None:
-    from wayfarer.rules.object_types import ObjectCondition, ObjectProfile
+    from wayfarer.engine.rules.object_types import ObjectCondition, ObjectProfile
 
     engine, state = fixture(speed=20)
     engine.specs["bag"] = engine.specs["bag"].model_copy(
@@ -1190,7 +1190,7 @@ def test_invalid_protection_and_unmodeled_deck_reject_before_randomness() -> Non
 
 
 def test_upgrade_is_explicit_atomic_and_replayable() -> None:
-    from wayfarer.simulation.vehicle_commands import UpgradeVehicle
+    from wayfarer.engine.simulation.vehicle_commands import UpgradeVehicle
 
     engine, initial = legacy_fixture()
     command = UpgradeVehicle(id="upgrade", actor_id="a", expected_revision=0, transport_id="ride")
@@ -1206,8 +1206,8 @@ def test_upgrade_is_explicit_atomic_and_replayable() -> None:
 
 
 def test_operation_matrix_advertises_completed_movement_and_pending_combat() -> None:
-    from wayfarer.rules.conformance import CoverageStatus, capability
-    from wayfarer.rules.vehicle_capabilities import VEHICLE_OPERATIONS
+    from wayfarer.engine.rules.conformance import CoverageStatus, capability
+    from wayfarer.engine.rules.vehicle_capabilities import VEHICLE_OPERATIONS
 
     assert "vehicle-maneuver" not in VEHICLE_OPERATIONS["space"]
     assert "vehicle-maneuver" in VEHICLE_OPERATIONS["ground-mount"]
@@ -1236,7 +1236,7 @@ def test_failed_air_recovery_cannot_fish_for_another_roll_in_same_second() -> No
 
 
 def test_vehicle_collision_uses_area_injury_for_diffuse_passenger() -> None:
-    from wayfarer.rules.location_types import InjuryTolerance
+    from wayfarer.engine.rules.location_types import InjuryTolerance
 
     engine, state = fixture(speed=5)
     pool = state.pools[0]

@@ -12,8 +12,8 @@ import pytest
 from pydantic import ValidationError as SchemaError
 from test_statistics import gurps_draft, profile_compiler, profile_package
 
-from wayfarer.character.compiler import CharacterCompiler, Purchase
-from wayfarer.character.templates import (
+from wayfarer.engine.character.compiler import CharacterCompiler, Purchase
+from wayfarer.engine.character.templates import (
     Selection,
     Template,
     TemplateCatalog,
@@ -21,9 +21,8 @@ from wayfarer.character.templates import (
     TemplateOption,
     representative_templates,
 )
-from wayfarer.errors import ValidationError
-from wayfarer.rules.catalog import ImplementationStatus, RulesCatalog, RulesPackage
-from wayfarer.rules.mundane_traits import (
+from wayfarer.engine.rules.catalog import ImplementationStatus, RulesCatalog, RulesPackage
+from wayfarer.engine.rules.mundane_traits import (
     PROFILE,
     Vocabulary,
     audit_report,
@@ -31,12 +30,13 @@ from wayfarer.rules.mundane_traits import (
     inventory,
     validate_inventory,
 )
-from wayfarer.rules.mundane_traits.runtime import (
+from wayfarer.engine.rules.mundane_traits.runtime import (
     APPEARANCE_BINDINGS,
     REPUTATION_BINDINGS,
     SUPPORTED_HOOKS,
 )
-from wayfarer.rules.traits import TraitOptions, cost
+from wayfarer.engine.rules.traits import TraitOptions, cost
+from wayfarer.errors import ValidationError
 
 
 def combined_package() -> RulesPackage:

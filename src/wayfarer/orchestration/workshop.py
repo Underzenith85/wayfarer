@@ -8,16 +8,16 @@ from typing import Literal
 
 from pydantic import Field, TypeAdapter
 
-from wayfarer.character.power import Approval, CharacterProposal
+from wayfarer.engine.character.power import Approval, CharacterProposal
+from wayfarer.engine.rules.catalog import CampaignPolicy
+from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.director import AuthorDraft
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.models import Campaign, CommandReceipt, Id, Record
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.advancement import _refreshed
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.providers import Orchestrator, ProviderRequest
-from wayfarer.rules.catalog import CampaignPolicy
-from wayfarer.simulation.actions import PlayState
-from wayfarer.simulation.director import AuthorDraft
 
 
 class DraftCommand(Record):
@@ -143,7 +143,7 @@ class WorkshopService:
                 else:
                     if member.role != "gm":
                         raise AuthorizationError("Scenario authoring requires GM")
-                    from wayfarer.simulation.studio import ScenarioGraph
+                    from wayfarer.engine.simulation.studio import ScenarioGraph
 
                     content = ScenarioGraph.model_validate_json(
                         command.content_json

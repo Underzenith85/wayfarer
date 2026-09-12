@@ -14,6 +14,15 @@ from test_gurps_melee import setup as melee_setup
 from test_reinforcements import escalation
 from test_scenes import configured
 
+from wayfarer.engine.simulation.access import CampaignMember
+from wayfarer.engine.simulation.action_engine import ActionEngine
+from wayfarer.engine.simulation.actions import Inspect, Wait
+from wayfarer.engine.simulation.combat import AttackProfile, GridPoint, Placement, ProtectionProfile
+from wayfarer.engine.simulation.hex_geometry import Hex
+from wayfarer.engine.simulation.noncombat import Approach, NoncombatRule, NoncombatRules
+from wayfarer.engine.simulation.objectives import Objective, ObjectiveRules, Predicate, Reward
+from wayfarer.engine.simulation.party import CrossSceneEffect, PartyRules
+from wayfarer.engine.simulation.resources import Item, Owner, Scheduled
 from wayfarer.errors import (
     AuthorizationError,
     ConflictError,
@@ -36,15 +45,6 @@ from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.providers import Orchestrator, ProviderReply, ProviderRequest, Usage
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
-from wayfarer.simulation.access import CampaignMember
-from wayfarer.simulation.action_engine import ActionEngine
-from wayfarer.simulation.actions import Inspect, Wait
-from wayfarer.simulation.combat import AttackProfile, GridPoint, Placement, ProtectionProfile
-from wayfarer.simulation.hex_geometry import Hex
-from wayfarer.simulation.noncombat import Approach, NoncombatRule, NoncombatRules
-from wayfarer.simulation.objectives import Objective, ObjectiveRules, Predicate, Reward
-from wayfarer.simulation.party import CrossSceneEffect, PartyRules
-from wayfarer.simulation.resources import Item, Owner, Scheduled
 
 
 async def prepare(
@@ -558,10 +558,10 @@ async def test_provider_stale_timeout_and_cancellation(tmp_path: Path) -> None:
 
 
 async def test_combat_barrier_long_investigation_and_reinforcement_arrival(tmp_path: Path) -> None:
+    from wayfarer.engine.rules.catalog import PROTOTYPE_PACKAGE, RulesCatalog
+    from wayfarer.engine.simulation.resources import ResourceEngine, ResourceState
+    from wayfarer.engine.world import Entity, EntityKind
     from wayfarer.orchestration.combat import JoinEncounter
-    from wayfarer.rules.catalog import PROTOTYPE_PACKAGE, RulesCatalog
-    from wayfarer.simulation.resources import ResourceEngine, ResourceState
-    from wayfarer.world import Entity, EntityKind
 
     base, original = configured()
     expanded = replace(
@@ -971,7 +971,7 @@ async def test_authored_basic_hex_investigation_travel_restart_and_arrival(
     assert final.resources.fired.count("mixed-deadline") == 1
     assert ("c", "clue") in final.world.knowledge and ("a", "clue") not in final.world.knowledge
     assert await restarted_play.store.replay(cid) == await restarted_play.store.read(cid)
-    from wayfarer.rules.conformance import CAPABILITIES, CoverageStatus
+    from wayfarer.engine.rules.conformance import CAPABILITIES, CoverageStatus
 
     assert restarted_play.engine.reviewer.compiler.statistics_profile == ("gurps-basic-set-4e-2004")
     assert all(
@@ -1076,7 +1076,7 @@ async def test_independent_noncombat_choices_pause_resume_and_rejected_choice(
 
 
 async def test_partial_success_abandonment_predicates_and_reward_rollback(tmp_path: Path) -> None:
-    from wayfarer.simulation.objectives import evaluate
+    from wayfarer.engine.simulation.objectives import evaluate
 
     cid, play = await prepare(tmp_path)
     initial = play._load(await play.store.read(cid))

@@ -17,14 +17,13 @@ from typing import cast
 
 import pytest
 
-from wayfarer.character.compiler import DerivedSheet, PurchasedEntry, ValidatedBuild
-from wayfarer.character.technology import operator_from_build
-from wayfarer.errors import ValidationError
-from wayfarer.rules.checks import Modifier, ModifierKind, RecordedDice
-from wayfarer.rules.conformance import BASELINE_ID
-from wayfarer.rules.effects import DerivedValue
-from wayfarer.rules.mundane_skills import PROFILE, audit_report, inventory
-from wayfarer.rules.mundane_skills.technology import (
+from wayfarer.engine.character.compiler import DerivedSheet, PurchasedEntry, ValidatedBuild
+from wayfarer.engine.character.technology import operator_from_build
+from wayfarer.engine.rules.checks import Modifier, ModifierKind, RecordedDice
+from wayfarer.engine.rules.conformance import BASELINE_ID
+from wayfarer.engine.rules.effects import DerivedValue
+from wayfarer.engine.rules.mundane_skills import PROFILE, audit_report, inventory
+from wayfarer.engine.rules.mundane_skills.technology import (
     PROCEDURES,
     Operator,
     Situation,
@@ -33,7 +32,8 @@ from wayfarer.rules.mundane_skills.technology import (
     replay,
     require_task,
 )
-from wayfarer.rules.profiles import GURPS_BASIC_PROFILE
+from wayfarer.engine.rules.profiles import GURPS_BASIC_PROFILE
+from wayfarer.errors import ValidationError
 
 FIXTURE = Path("tests/fixtures/gurps/technology_skills.json")
 Case = dict[str, object]
@@ -408,7 +408,7 @@ def test_bound_definitions_are_not_yet_carried_by_a_package_pin() -> None:
     * The recorded Diving Suit default reaches `skill:scuba`, which another group
       owns, so these definitions do not resolve as a standalone catalog.
     """
-    from wayfarer.rules.profiles import GURPS_RANGED_SKILLS_PACKAGE as pinned
+    from wayfarer.engine.rules.profiles import GURPS_RANGED_SKILLS_PACKAGE as pinned
 
     bound = {definition.id: definition for definition in definitions()}
     existing = {definition.id: definition for definition in pinned.definitions}

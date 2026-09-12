@@ -11,9 +11,8 @@ from hypothesis import given
 from hypothesis import strategies as st
 from pydantic import ValidationError as SchemaError
 
-from wayfarer.character.statistics import PrimaryAttributes, compile_statistics
-from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.rules.catalog import (
+from wayfarer.engine.character.statistics import PrimaryAttributes, compile_statistics
+from wayfarer.engine.rules.catalog import (
     DEFAULT_POLICY,
     DEFAULT_RULES,
     DefinitionKind,
@@ -24,7 +23,7 @@ from wayfarer.rules.catalog import (
     RulesPackage,
     SourceReference,
 )
-from wayfarer.simulation.gurps_equipment import (
+from wayfarer.engine.simulation.gurps_equipment import (
     LITE_EQUIPMENT,
     Armor,
     Damage,
@@ -33,7 +32,7 @@ from wayfarer.simulation.gurps_equipment import (
     RangedMode,
     inventory_load,
 )
-from wayfarer.simulation.resources import (
+from wayfarer.engine.simulation.resources import (
     Equip,
     Item,
     Owner,
@@ -41,7 +40,8 @@ from wayfarer.simulation.resources import (
     ResourceState,
     Transfer,
 )
-from wayfarer.world import Entity, EntityKind, World
+from wayfarer.engine.world import Entity, EntityKind, World
+from wayfarer.errors import ConflictError, ValidationError
 
 
 def package() -> RulesPackage:

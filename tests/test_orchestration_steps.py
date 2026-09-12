@@ -12,6 +12,9 @@ from test_spell_bindings import setup as spell_setup
 from test_spell_bindings import start_fight
 from test_wave12 import ready, service
 
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.simulation.combat import GridPoint
+from wayfarer.engine.simulation.setup import SetupCommand
 from wayfarer.orchestration.combat import CombatContext, TakeCombatTurn, reduce_combat
 from wayfarer.orchestration.physical import (
     PhysicalCommand,
@@ -21,9 +24,6 @@ from wayfarer.orchestration.physical import (
 )
 from wayfarer.orchestration.setup import SetupContext, reduce_setup
 from wayfarer.orchestration.spells import SpellExecutionContext, reduce_spell
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.simulation.combat import GridPoint
-from wayfarer.simulation.setup import SetupCommand
 
 
 async def test_physical_step_preserves_check_order_without_committing(tmp_path: Path) -> None:

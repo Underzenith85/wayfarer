@@ -6,14 +6,14 @@ import pytest
 from test_gurps_maneuvers import defend, turn
 from test_gurps_melee import setup
 
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.simulation.combat import Placement, RangedSituation, SuppressionZone
+from wayfarer.engine.simulation.combat_commands import TakeCombatTurn
+from wayfarer.engine.simulation.gurps_equipment import Damage, RangedMode
+from wayfarer.engine.simulation.hex_geometry import Cell, Hex, HexBattlefield
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import CombatService
 from wayfarer.orchestration.play import PlayService
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.simulation.combat import Placement, RangedSituation, SuppressionZone
-from wayfarer.simulation.combat_commands import TakeCombatTurn
-from wayfarer.simulation.gurps_equipment import Damage, RangedMode
-from wayfarer.simulation.hex_geometry import Cell, Hex, HexBattlefield
 
 
 def automatic_weapon() -> RangedMode:

@@ -34,7 +34,7 @@ its publication status or its owner authority.
 
 This API uses `/authoring/v1/scenarios`; it does not alter the frozen `/api/v1` play contract.
 All requests require `Authorization: Bearer <token>`. Writes require JSON. Python request and response
-models live in `simulation/catalog.py`; their generated JSON Schema is in
+models live in `engine/simulation/catalog.py`; their generated JSON Schema is in
 `contracts/authoring/v1/schemas.json`. Errors follow the existing HTTP error envelope: 400 invalid
 input/activation, 401 missing credentials, 403 missing author authority, 404 inaccessible resource,
 409 stale version or reused command identity, 429 rate limit.

@@ -10,13 +10,9 @@ import pytest
 from pydantic import ValidationError as SchemaError
 from test_gurps_melee import choice, setup
 
-from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.orchestration.combat import CombatService, EndEncounter, TakeCombatTurn
-from wayfarer.orchestration.play import PlayService
-from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.injury_types import InjuryStatus
-from wayfarer.rules.location_types import (
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.injury_types import InjuryStatus
+from wayfarer.engine.rules.location_types import (
     HitLocation,
     HumanBody,
     HumanLocation,
@@ -24,17 +20,21 @@ from wayfarer.rules.location_types import (
     deafened,
     disabled_locations,
 )
-from wayfarer.simulation.gurps_equipment import DamageType
-from wayfarer.simulation.hit_locations import attack_penalty, select_location
-from wayfarer.simulation.injury import (
+from wayfarer.engine.simulation.gurps_equipment import DamageType
+from wayfarer.engine.simulation.hit_locations import attack_penalty, select_location
+from wayfarer.engine.simulation.injury import (
     DisableLocation,
     ResolveCrippling,
     Wound,
     apply_injury,
     apply_location_effect,
 )
-from wayfarer.simulation.mechanics.gurps_melee import defense_value, mode, movement
-from wayfarer.simulation.resources import Item, Owner, Pool, ResourceState
+from wayfarer.engine.simulation.mechanics.gurps_melee import defense_value, mode, movement
+from wayfarer.engine.simulation.resources import Item, Owner, Pool, ResourceState
+from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.orchestration.combat import CombatService, EndEncounter, TakeCombatTurn
+from wayfarer.orchestration.play import PlayService
+from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 
 
 def human(hp: int = 10) -> ResourceState:

@@ -6,8 +6,8 @@ from decimal import Decimal
 import pytest
 from pydantic import ValidationError as SchemaError
 
-from wayfarer.character.compiler import CharacterCompiler, CharacterDraft, Purchase
-from wayfarer.character.power import (
+from wayfarer.engine.character.compiler import CharacterCompiler, CharacterDraft, Purchase
+from wayfarer.engine.character.power import (
     Approval,
     CapabilityBenchmark,
     CharacterProposal,
@@ -17,8 +17,7 @@ from wayfarer.character.power import (
     PowerPolicy,
     PowerReviewer,
 )
-from wayfarer.errors import ValidationError
-from wayfarer.rules.catalog import (
+from wayfarer.engine.rules.catalog import (
     DEFAULT_POLICY,
     DEFAULT_RULES,
     PROTOTYPE_PACKAGE,
@@ -29,7 +28,8 @@ from wayfarer.rules.catalog import (
     RuleDefinition,
     RulesCatalog,
 )
-from wayfarer.rules.effects import Effect, Operation
+from wayfarer.engine.rules.effects import Effect, Operation
+from wayfarer.errors import ValidationError
 
 
 def reviewer(policy: PowerPolicy | None = None) -> PowerReviewer:

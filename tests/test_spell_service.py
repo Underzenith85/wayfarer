@@ -8,16 +8,16 @@ from test_abilities import spec
 from test_ability_service import setup
 from test_spells import command
 
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.simulation.actions import PlayState, Wait
+from wayfarer.engine.simulation.mechanics.spell_bindings import SpellEnvironment
+from wayfarer.engine.simulation.rules_context import RulesContext
+from wayfarer.engine.simulation.spells import SpellCommand, active_spells
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.spells import SpellService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.simulation.actions import PlayState, Wait
-from wayfarer.simulation.mechanics.spell_bindings import SpellEnvironment
-from wayfarer.simulation.rules_context import RulesContext
-from wayfarer.simulation.spells import SpellCommand, active_spells
 
 
 def resolve(play: RulesContext, state: PlayState, value: SpellCommand) -> SpellEnvironment:
@@ -79,7 +79,7 @@ async def test_player_cannot_inject_context_and_invalid_target_is_atomic(tmp_pat
 
 
 async def test_missing_catalog_and_unpurchased_spell_reject_before_dice(tmp_path: Path) -> None:
-    from wayfarer.simulation.mechanics.spell_bindings import approved_context
+    from wayfarer.engine.simulation.mechanics.spell_bindings import approved_context
 
     cid, play = await setup(tmp_path, spec())
     state = play._load(await play.store.read(cid))
@@ -96,7 +96,7 @@ async def test_missing_catalog_and_unpurchased_spell_reject_before_dice(tmp_path
 async def test_approved_values_cannot_be_supplied_by_environment(tmp_path: Path) -> None:
     from pydantic import ValidationError as SchemaError
 
-    from wayfarer.simulation.mechanics.spell_bindings import approved_context
+    from wayfarer.engine.simulation.mechanics.spell_bindings import approved_context
 
     cid, play = await setup(tmp_path, spec(), magic=True)
     state = play._load(await play.store.read(cid))

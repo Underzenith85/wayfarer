@@ -13,19 +13,19 @@ from test_mundane_traits import runtime_compiler
 from test_social_dispatch import command
 from test_statistics import gurps_draft
 
-from wayfarer.character.compiler import Purchase
-from wayfarer.character.social_traits import bind_standing
+from wayfarer.engine.character.compiler import Purchase
+from wayfarer.engine.character.social_traits import bind_standing
+from wayfarer.engine.rules.catalog import ImplementationStatus
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.gurps_social import ReactionModifier
+from wayfarer.engine.rules.mundane_traits import PROFILE
+from wayfarer.engine.rules.mundane_traits.runtime import Audience
+from wayfarer.engine.rules.social_hooks import Reputation, Standing, standing_modifiers
+from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.social import SocialCommand, SocialContext
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.social import ResolvedInteraction, SocialService
-from wayfarer.rules.catalog import ImplementationStatus
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.gurps_social import ReactionModifier
-from wayfarer.rules.mundane_traits import PROFILE
-from wayfarer.rules.mundane_traits.runtime import Audience
-from wayfarer.rules.social_hooks import Reputation, Standing, standing_modifiers
-from wayfarer.simulation.actions import PlayState
-from wayfarer.simulation.social import SocialCommand, SocialContext
 
 
 @pytest.mark.parametrize(
@@ -177,7 +177,7 @@ async def test_dispatch_rejects_duplicate_standing_before_rolling(tmp_path: Path
 
 
 def test_composed_template_prices_and_activates_through_the_existing_compiler() -> None:
-    from wayfarer.character.templates import TemplateCatalog, representative_templates
+    from wayfarer.engine.character.templates import TemplateCatalog, representative_templates
 
     compiler = runtime_compiler()
     templates = TemplateCatalog(representative_templates(), compiler)
@@ -197,8 +197,8 @@ def test_composed_template_prices_and_activates_through_the_existing_compiler() 
 
 
 def test_item_audit_retains_inventory_and_concrete_runtime_owners() -> None:
-    from wayfarer.rules.mundane_traits import inventory
-    from wayfarer.source_audit import inventory as source_inventory
+    from wayfarer.certification.source_audit import inventory as source_inventory
+    from wayfarer.engine.rules.mundane_traits import inventory
 
     rows = {row.id: row for row in source_inventory() if row.scope == "mundane-traits"}
     for entry in inventory():

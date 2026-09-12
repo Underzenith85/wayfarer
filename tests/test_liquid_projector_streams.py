@@ -13,18 +13,23 @@ from pydantic import ValidationError as SchemaError
 from test_gurps_maneuvers import defend, turn
 from test_gurps_melee import setup
 
-from wayfarer.character.compiler import Purchase
+from wayfarer.engine.character.compiler import Purchase
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.mundane_skills import audit_report, inventory
+from wayfarer.engine.rules.mundane_skills.ranged import (
+    PROCEDURES,
+    definitions,
+    ranged_scope,
+    require_mode,
+)
+from wayfarer.engine.rules.spray_types import SprayerSpec, Stream
+from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.combat import Combatant, RangedSituation
+from wayfarer.engine.simulation.gurps_equipment import Damage, RangedMode
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import CombatService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.mundane_skills import audit_report, inventory
-from wayfarer.rules.mundane_skills.ranged import PROCEDURES, definitions, ranged_scope, require_mode
-from wayfarer.rules.spray_types import SprayerSpec, Stream
-from wayfarer.simulation.actions import PlayState
-from wayfarer.simulation.combat import Combatant, RangedSituation
-from wayfarer.simulation.gurps_equipment import Damage, RangedMode
 
 BASIC = "gurps-basic-set-4e-2004"
 SPECIALTIES = tuple(

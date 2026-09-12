@@ -6,6 +6,11 @@ from pathlib import Path
 import pytest
 from test_spell_bindings import command, idle, setup, start_fight
 
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.simulation.combat import GridPoint
+from wayfarer.engine.simulation.injury import Wound, apply_injury
+from wayfarer.engine.simulation.maneuvers import WaitTrigger
+from wayfarer.engine.simulation.spells import latest
 from wayfarer.orchestration.combat import (
     ChooseDefense,
     CombatService,
@@ -13,11 +18,6 @@ from wayfarer.orchestration.combat import (
     TakeCombatTurn,
 )
 from wayfarer.orchestration.spells import SpellService
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.simulation.combat import GridPoint
-from wayfarer.simulation.injury import Wound, apply_injury
-from wayfarer.simulation.maneuvers import WaitTrigger
-from wayfarer.simulation.spells import latest
 
 
 async def test_daze_completes_on_second_concentrate_turn(tmp_path: Path) -> None:
@@ -166,7 +166,7 @@ async def test_wait_releases_held_missile_then_resumes_interrupted_move(tmp_path
 async def test_hex_fire_crossing_hurts_even_when_endpoint_is_outside(tmp_path: Path) -> None:
     from test_tactical import migration
 
-    from wayfarer.simulation.hex_geometry import Hex
+    from wayfarer.engine.simulation.hex_geometry import Hex
 
     cid, play = await setup(tmp_path, combat=True, execution_version=2)
     combat = await start_fight(cid, play)
@@ -216,11 +216,11 @@ async def test_gm_backfire_retarget_is_atomic_authorized_and_replayable(
 ) -> None:
     import asyncio
 
+    from wayfarer.engine.simulation.spell_backfires import backfires
+    from wayfarer.engine.simulation.spell_bindings import BackfireAlternative
+    from wayfarer.engine.simulation.spell_effects import dazed
     from wayfarer.errors import AuthorizationError, ConflictError
     from wayfarer.orchestration.spell_backfires import ResolveSpellBackfire, SpellBackfireService
-    from wayfarer.simulation.spell_backfires import backfires
-    from wayfarer.simulation.spell_bindings import BackfireAlternative
-    from wayfarer.simulation.spell_effects import dazed
 
     option = BackfireAlternative(
         id="self-daze",
@@ -348,8 +348,8 @@ async def test_fireball_body_criticals_execute_damage(
 
 
 async def test_noncombat_mental_stun_recovers_at_next_second_with_iq(tmp_path: Path) -> None:
-    from wayfarer.simulation.actions import Wait
-    from wayfarer.simulation.spell_backfires import backfires
+    from wayfarer.engine.simulation.actions import Wait
+    from wayfarer.engine.simulation.spell_backfires import backfires
 
     cid, play = await setup(tmp_path, execution_version=2)
     service = SpellService(play)
@@ -374,7 +374,7 @@ async def test_noncombat_mental_stun_recovers_at_next_second_with_iq(tmp_path: P
 
 
 async def test_backfire_illusion_exposes_only_appearance(tmp_path: Path) -> None:
-    from wayfarer.simulation.actions import Wait
+    from wayfarer.engine.simulation.actions import Wait
 
     cid, play = await setup(tmp_path, execution_version=2)
     service = SpellService(play)
@@ -391,9 +391,9 @@ async def test_backfire_illusion_exposes_only_appearance(tmp_path: Path) -> None
 
 
 async def test_demon_result_adds_only_an_approved_reserve_combatant(tmp_path: Path) -> None:
+    from wayfarer.engine.simulation.spell_backfires import backfires
+    from wayfarer.engine.simulation.spell_bindings import BackfireAlternative
     from wayfarer.orchestration.spell_backfires import ResolveSpellBackfire, SpellBackfireService
-    from wayfarer.simulation.spell_backfires import backfires
-    from wayfarer.simulation.spell_bindings import BackfireAlternative
 
     alternative = BackfireAlternative(
         id="malign-reserve",

@@ -6,11 +6,11 @@ import hashlib
 import secrets
 from datetime import UTC, datetime
 
+from wayfarer.engine.simulation.access import CampaignMember
 from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.clock import CommandInstant, capture_instant
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import record_play_state
-from wayfarer.simulation.access import CampaignMember
 
 from .common import Fault, Obj, encoded, obj, uid
 from .service import V1Service

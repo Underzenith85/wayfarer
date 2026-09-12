@@ -6,11 +6,11 @@ import pytest
 from test_mundane_traits import runtime_compiler
 from test_statistics import gurps_draft
 
-from wayfarer.character.background_traits import BackgroundContext, background_traits
-from wayfarer.character.compiler import Purchase
+from wayfarer.engine.character.background_traits import BackgroundContext, background_traits
+from wayfarer.engine.character.compiler import Purchase
+from wayfarer.engine.rules.background_traits import BackgroundTraits, LanguageAbility, comprehension
+from wayfarer.engine.rules.mundane_traits import Vocabulary, inventory
 from wayfarer.errors import ValidationError
-from wayfarer.rules.background_traits import BackgroundTraits, LanguageAbility, comprehension
-from wayfarer.rules.mundane_traits import Vocabulary, inventory
 
 DEFAULT_CONTEXT = BackgroundContext()
 

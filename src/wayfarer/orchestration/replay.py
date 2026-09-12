@@ -3,6 +3,7 @@
 import json
 
 from wayfarer import validation
+from wayfarer.engine.simulation.spells import SpellCommand
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import COMBAT_ADAPTER, CombatService
 from wayfarer.orchestration.party import PartyCommand, PartyService
@@ -13,7 +14,6 @@ from wayfarer.orchestration.scenes import SCENE_ADAPTER, SceneService
 from wayfarer.orchestration.spells import SpellService
 from wayfarer.persistence.events import CommandRecord
 from wayfarer.persistence.replay import command_text, unavailable_reason
-from wayfarer.simulation.spells import SpellCommand
 
 
 async def execute_recorded(play: PlayService, record: CommandRecord) -> None:

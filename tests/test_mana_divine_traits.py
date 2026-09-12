@@ -5,18 +5,17 @@ from dataclasses import replace
 import pytest
 from test_statistics import gurps_draft, profile_package
 
-from wayfarer.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
-from wayfarer.character.mana_divine_traits import mana_divine_traits
-from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.rules.catalog import CampaignPolicy, CampaignRules, PackagePin, RulesCatalog
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.injury_types import InjuryStatus
-from wayfarer.rules.mana_divine_traits import BINDINGS, PROFILE, RUNTIME_HOOKS
-from wayfarer.rules.mana_divine_traits import package as mana_package
-from wayfarer.rules.recovery_types import FatigueStatus
-from wayfarer.rules.supernatural import inventory
-from wayfarer.rules.traits import TraitOptions
-from wayfarer.simulation.mana_divine_traits import (
+from wayfarer.engine.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
+from wayfarer.engine.character.mana_divine_traits import mana_divine_traits
+from wayfarer.engine.rules.catalog import CampaignPolicy, CampaignRules, PackagePin, RulesCatalog
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.injury_types import InjuryStatus
+from wayfarer.engine.rules.mana_divine_traits import BINDINGS, PROFILE, RUNTIME_HOOKS
+from wayfarer.engine.rules.mana_divine_traits import package as mana_package
+from wayfarer.engine.rules.recovery_types import FatigueStatus
+from wayfarer.engine.rules.supernatural import inventory
+from wayfarer.engine.rules.traits import TraitOptions
+from wayfarer.engine.simulation.mana_divine_traits import (
     ManaField,
     ManaFieldCommand,
     apply_mana_field,
@@ -24,9 +23,10 @@ from wayfarer.simulation.mana_divine_traits import (
     effective_mana,
     history,
 )
-from wayfarer.simulation.resources import Pool, ResourceState
-from wayfarer.simulation.spells import SpellCommand, SpellContext, apply_spell, latest
-from wayfarer.world import Entity, EntityKind, World
+from wayfarer.engine.simulation.resources import Pool, ResourceState
+from wayfarer.engine.simulation.spells import SpellCommand, SpellContext, apply_spell, latest
+from wayfarer.engine.world import Entity, EntityKind, World
+from wayfarer.errors import ConflictError, ValidationError
 
 EXPECTED = {
     "advantage:magery": 10,

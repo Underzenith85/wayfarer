@@ -6,14 +6,14 @@ import pytest
 from test_unarmed import action, defend, setup, state_of, wait
 from test_unarmed_integrations import checkpoint
 
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.simulation.combat import CombatEngine
+from wayfarer.engine.simulation.mechanics.unarmed import fighter
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import ChooseDefense, CombatService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.tactical_view import choices
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.simulation.combat import CombatEngine
-from wayfarer.simulation.mechanics.unarmed import fighter
 
 
 async def parry(cid: str, play: PlayService) -> None:
@@ -88,7 +88,7 @@ async def test_parry_lock_revalidates_hands_before_dice(tmp_path: Path) -> None:
     cid, play = await setup(tmp_path)
     await parry(cid, play)
     # A later grapple now controls one arm, invalidating the free-hand precondition.
-    from wayfarer.simulation.unarmed import Grip
+    from wayfarer.engine.simulation.unarmed import Grip
 
     state = await state_of(cid, play)
     encounter = state.encounters[0]

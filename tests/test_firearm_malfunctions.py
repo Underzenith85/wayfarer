@@ -13,19 +13,19 @@ from test_gurps_maneuvers import defend, turn
 from test_gurps_melee import setup
 from test_gurps_ranged import load, scene, weapon
 
-from wayfarer.character.compiler import Purchase
+from wayfarer.engine.character.compiler import Purchase
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.firearm_types import FirearmSpec
+from wayfarer.engine.rules.mundane_skills.ranged import definitions
+from wayfarer.engine.simulation.basic_equipment import BASIC_EQUIPMENT
+from wayfarer.engine.simulation.firearms import MalfunctionRecord, save_malfunction
+from wayfarer.engine.simulation.gurps_equipment import Damage, EquipmentCatalog, RangedMode
+from wayfarer.engine.simulation.mechanics.firearms import ServiceRecord
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.combat import ChooseDefense, CombatService, TakeCombatTurn
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.firearm_types import FirearmSpec
-from wayfarer.rules.mundane_skills.ranged import definitions
-from wayfarer.simulation.basic_equipment import BASIC_EQUIPMENT
-from wayfarer.simulation.firearms import MalfunctionRecord, save_malfunction
-from wayfarer.simulation.gurps_equipment import Damage, EquipmentCatalog, RangedMode
-from wayfarer.simulation.mechanics.firearms import ServiceRecord
 
 
 def firearm(
@@ -479,7 +479,7 @@ async def test_service_rejects_occupied_hands_before_dice(tmp_path: Path) -> Non
     # Defender owns a ready shield and sword; fail with the hand constraint before a roll.
     cid, play = await malfunction(tmp_path, (3, 3, 3))
     state = play._load(await play.store.read(cid))
-    from wayfarer.simulation.mechanics.firearms import service
+    from wayfarer.engine.simulation.mechanics.firearms import service
 
     shield = next(i for i in state.resources.items if i.id == "shield-b").model_copy(
         update={"owner_id": "a"}

@@ -8,16 +8,16 @@ from collections.abc import Callable
 from dataclasses import dataclass, replace
 from decimal import Decimal
 
-from wayfarer.character.statistics import encumbrance
+from wayfarer.engine.character.statistics import encumbrance
+from wayfarer.engine.rules.hazard_types import HazardSchedule, HazardSpec
+from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.hazards import HazardCommand, HazardResult, apply_hazard
+from wayfarer.engine.simulation.resources import decimal_weight
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.medical import _build, _value
 from wayfarer.orchestration.play import PlayService
-from wayfarer.rules.hazard_types import HazardSchedule, HazardSpec
-from wayfarer.simulation.actions import PlayState
-from wayfarer.simulation.hazards import HazardCommand, HazardResult, apply_hazard
-from wayfarer.simulation.resources import decimal_weight
 
 
 @dataclass(frozen=True)
@@ -88,14 +88,14 @@ class HazardService:
                     survival = None
                     bonus = 0
                     if context.contacts:
-                        from wayfarer.rules.physical import contagion_modifier
+                        from wayfarer.engine.rules.physical import contagion_modifier
 
                         if context.spec.kind != "disease":
                             raise ValidationError("Contact modifiers require a disease")
                         bonus = contagion_modifier(context.contacts)
                     if context.temperature_f is not None:
-                        from wayfarer.character.physical_traits import physical_traits
-                        from wayfarer.rules.environment import ambient_spec
+                        from wayfarer.engine.character.physical_traits import physical_traits
+                        from wayfarer.engine.rules.environment import ambient_spec
 
                         levels = physical_traits(
                             build, play.engine.reviewer.compiler.definitions

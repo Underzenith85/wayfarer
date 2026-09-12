@@ -6,6 +6,13 @@ from collections.abc import AsyncIterator
 from aiohttp import web
 from pydantic import Field
 
+from wayfarer.engine.simulation.catalog import (
+    CatalogCommand,
+    InstantiateRevision,
+    ScenarioGenerationJob,
+    ScenarioGenerationRequest,
+)
+from wayfarer.engine.simulation.scenario_document import PublicBrief
 from wayfarer.errors import (
     ConflictError,
     ProviderError,
@@ -16,13 +23,6 @@ from wayfarer.errors import (
 from wayfarer.models import Record
 from wayfarer.orchestration.catalog import ScenarioCatalog
 from wayfarer.orchestration.scenario_documents import adapt_graph
-from wayfarer.simulation.catalog import (
-    CatalogCommand,
-    InstantiateRevision,
-    ScenarioGenerationJob,
-    ScenarioGenerationRequest,
-)
-from wayfarer.simulation.scenario_document import PublicBrief
 from wayfarer.transport.campaign_api import _identity
 from wayfarer.transport.setup_api import TEMPLATES_KEY
 

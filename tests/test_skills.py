@@ -13,8 +13,8 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from wayfarer.character.compiler import CharacterCompiler, CharacterDraft, Purchase
-from wayfarer.character.skills import (
+from wayfarer.engine.character.compiler import CharacterCompiler, CharacterDraft, Purchase
+from wayfarer.engine.character.skills import (
     BASIC,
     LITE,
     DefaultContext,
@@ -22,8 +22,7 @@ from wayfarer.character.skills import (
     SkillError,
     relative_level,
 )
-from wayfarer.errors import ValidationError
-from wayfarer.rules.catalog import (
+from wayfarer.engine.rules.catalog import (
     DEFAULT_CATALOG,
     DEFAULT_POLICY,
     DEFAULT_RULES,
@@ -33,8 +32,8 @@ from wayfarer.rules.catalog import (
     RuleDefinition,
     RulesCatalog,
 )
-from wayfarer.rules.gurps_skills import definitions
-from wayfarer.rules.profiles import (
+from wayfarer.engine.rules.gurps_skills import definitions
+from wayfarer.engine.rules.profiles import (
     DEFAULT_REGISTRY,
     GURPS_BASIC_PROFILE,
     GURPS_BASIC_PROFILE_V2,
@@ -42,10 +41,10 @@ from wayfarer.rules.profiles import (
     GURPS_LITE_PROFILE_V2,
     RegisteredProfile,
 )
-from wayfarer.rules.skill_types import (
+from wayfarer.engine.rules.skill_types import (
     ControllingAttribute as A,
 )
-from wayfarer.rules.skill_types import (
+from wayfarer.engine.rules.skill_types import (
     DefaultCondition,
     DefaultConditionKind,
     SkillDefault,
@@ -54,10 +53,11 @@ from wayfarer.rules.skill_types import (
     Specialty,
     Technique,
 )
-from wayfarer.rules.skill_types import (
+from wayfarer.engine.rules.skill_types import (
     Difficulty as D,
 )
-from wayfarer.simulation.events import action_result
+from wayfarer.engine.simulation.events import action_result
+from wayfarer.errors import ValidationError
 
 
 def attrs(**overrides: int) -> dict[str, Decimal]:
@@ -450,7 +450,7 @@ def test_prototype_curve_stays_separate() -> None:
 
 
 def test_effects_propagate_to_defaults_and_techniques_without_double_application() -> None:
-    from wayfarer.rules.effects import Effect, Operation
+    from wayfarer.engine.rules.effects import Effect, Operation
 
     profile = GURPS_BASIC_PROFILE
     engine = compiler()
@@ -493,9 +493,9 @@ def test_effects_propagate_to_defaults_and_techniques_without_double_application
 
 
 def test_actual_action_accepts_unpurchased_default_and_uses_per() -> None:
-    from wayfarer.character.power import CharacterProposal, PowerPolicy, PowerReviewer
-    from wayfarer.simulation.action_engine import ActionEngine
-    from wayfarer.simulation.actions import (
+    from wayfarer.engine.character.power import CharacterProposal, PowerPolicy, PowerReviewer
+    from wayfarer.engine.simulation.action_engine import ActionEngine
+    from wayfarer.engine.simulation.actions import (
         ActionRules,
         ActorSetup,
         CheckRule,
@@ -503,8 +503,8 @@ def test_actual_action_accepts_unpurchased_default_and_uses_per() -> None:
         PlayActor,
         PlayState,
     )
-    from wayfarer.simulation.resources import Owner, Pool, ResourceEngine, ResourceState
-    from wayfarer.world import Entity, EntityKind, Fact, World
+    from wayfarer.engine.simulation.resources import Owner, Pool, ResourceEngine, ResourceState
+    from wayfarer.engine.world import Entity, EntityKind, Fact, World
 
     class Dice:
         def randbelow(self, exclusive_upper_bound: int, /) -> int:

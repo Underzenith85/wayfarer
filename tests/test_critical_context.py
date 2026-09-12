@@ -6,12 +6,12 @@ import pytest
 from pydantic import ValidationError as SchemaError
 from test_gurps_melee import attack, choice, setup
 
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.simulation.critical import CriticalMiss, load_critical, save_critical
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat import CombatService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.simulation.critical import CriticalMiss, load_critical, save_critical
 
 
 @pytest.mark.parametrize("table", [(1, 1, 1), (2, 2, 1), (2, 2, 2), (5, 5, 5)])

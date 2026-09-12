@@ -5,7 +5,8 @@ from pathlib import Path
 import pytest
 from test_actions import actor_setup, campaign, engine, resource_seed, world
 
-from wayfarer.character.compiler import Purchase
+from wayfarer.engine.character.compiler import Purchase
+from wayfarer.engine.simulation.action_engine import ActionEngine
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.advancement import (
     AdvanceCharacter,
@@ -16,7 +17,6 @@ from wayfarer.orchestration.advancement import (
 )
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.simulation.action_engine import ActionEngine
 
 
 async def setup(tmp_path: Path) -> tuple[str, PlayService, AdvancementService]:

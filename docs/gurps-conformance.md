@@ -35,7 +35,7 @@ A generic hook, similarly named prototype mechanic, or LLM ruling cannot promote
 
 ## Capability IDs and fail-closed behavior
 
-Capabilities use stable dotted IDs under the `gurps.` namespace. `wayfarer.rules.conformance.capability()` rejects unknown identifiers and `require_verified()` rejects every status except `verified`. `require_capabilities(profile_id, capability_ids)` additionally rejects unknown profiles and capabilities outside the selected profile, including when the requirement list is empty. Scenario validators, character validators, action proposal validation, and future profile APIs must resolve mechanics through this registry (or a generated equivalent) before allowing the LLM to propose them.
+Capabilities use stable dotted IDs under the `gurps.` namespace. `wayfarer.engine.rules.conformance.capability()` rejects unknown identifiers and `require_verified()` rejects every status except `verified`. `require_capabilities(profile_id, capability_ids)` additionally rejects unknown profiles and capabilities outside the selected profile, including when the requirement list is empty. Scenario validators, character validators, action proposal validation, and future profile APIs must resolve mechanics through this registry (or a generated equivalent) before allowing the LLM to propose them.
 
 This means unsupported mechanics cannot be invented simply because a prompt names them. New mechanics first require a reviewed capability entry, source mapping, implementation owner, and independent expected-result fixtures.
 
@@ -76,11 +76,11 @@ Every mechanics PR in #94 must update the inventory and add independent cases fo
 
 No optional rule is enabled by default, and arbitrary optional-rule names are not accepted. Cinematic rules, influencing success rolls, bleeding, accumulated wounds, extra effort in combat and optional magic/psi systems need individually identified capability entries and a reviewed profile revision before activation. Broad family entries below describe future implementation targets, not permission to enable every variant. Tactical hex rules are a Basic target and are outside Lite. A future profile integration (#96) must preserve this distinction and record all enabled options explicitly.
 
-These helpers expose a fail-closed contract for scenario/character validators. #96 wires selection through them: `wayfarer.rules.profiles` registers `profile:gurps-lite-4e-2004@2` and `profile:gurps-basic-set-4e-2004@2` with exactly the required capability sets above, and a profile is selectable only when every required capability is `verified`. Today neither GURPS profile is selectable; new campaigns that name one are rejected with the unverified capability list, existing campaigns keep the prototype pins, and switching a paused campaign requires the explicit migration described in [rules profiles](rules-profiles.md). Mechanics implementation still belongs to the owners in the matrix, and each mechanics PR must move its capabilities to `verified` before its profile can activate.
+These helpers expose a fail-closed contract for scenario/character validators. #96 wires selection through them: `wayfarer.engine.rules.profiles` registers `profile:gurps-lite-4e-2004@2` and `profile:gurps-basic-set-4e-2004@2` with exactly the required capability sets above, and a profile is selectable only when every required capability is `verified`. Today neither GURPS profile is selectable; new campaigns that name one are rejected with the unverified capability list, existing campaigns keep the prototype pins, and switching a paused campaign requires the explicit migration described in [rules profiles](rules-profiles.md). Mechanics implementation still belongs to the owners in the matrix, and each mechanics PR must move its capabilities to `verified` before its profile can activate.
 
 ## Attributes and secondary characteristics (#97)
 
-`wayfarer.character.statistics` owns primary attributes and secondary characteristics for the two profiles. It is selected only by an exact profile ID (`gurps-lite-4e-2004` or `gurps-basic-set-4e-2004`) passed to `CharacterCompiler(statistics_profile=...)`; the prototype `package:wayfarer-lite` is not a profile, compiles exactly as before, and keeps its recorded build revisions (a regression test pins two of them). A compiler without a profile refuses any package that carries `secondary:*` definitions, and a compiler with a profile refuses packages whose attribute and secondary definitions do not match the profile's costs. The compiler also calls `require_capabilities` for both #97 capabilities, so the registry status gates activation. The catalog side (identifiers, per-level costs, table bounds) lives in `wayfarer.rules.gurps_characters`; version 0.2.0 of the registered GURPS Lite and Characters packages carries exactly those definitions, and the runtime engine factory passes each registered profile's conformance target to the compiler. Both GURPS profiles remain unsupported until their other required capabilities are verified, so no campaign can select them yet.
+`wayfarer.engine.character.statistics` owns primary attributes and secondary characteristics for the two profiles. It is selected only by an exact profile ID (`gurps-lite-4e-2004` or `gurps-basic-set-4e-2004`) passed to `CharacterCompiler(statistics_profile=...)`; the prototype `package:wayfarer-lite` is not a profile, compiles exactly as before, and keeps its recorded build revisions (a regression test pins two of them). A compiler without a profile refuses any package that carries `secondary:*` definitions, and a compiler with a profile refuses packages whose attribute and secondary definitions do not match the profile's costs. The compiler also calls `require_capabilities` for both #97 capabilities, so the registry status gates activation. The catalog side (identifiers, per-level costs, table bounds) lives in `wayfarer.engine.rules.gurps_characters`; version 0.2.0 of the registered GURPS Lite and Characters packages carries exactly those definitions, and the runtime engine factory passes each registered profile's conformance target to the compiler. Both GURPS profiles remain unsupported until their other required capabilities are verified, so no campaign can select them yet.
 
 Implemented under both profiles, as catalog purchases whose `amount` is the purchased absolute level:
 
@@ -134,13 +134,13 @@ full conformance certification; item-level review remains open in #191.
 
 ## Independent evidence
 
-`tests/test_gurps_conformance.py` drives every check, contest and resistance case in the fixture ledger through the profile-selected services in `wayfarer.rules.gurps_checks` with recorded dice, and asserts that each service consumed exactly the recorded dice. The both-fail Quick Contest case keeps its `prototype_expected` record: the prototype `package:wayfarer-lite` contest still discards failed rolls, the GURPS profile compares margins of failure, and the test fails if either behaviour drifts. `tests/test_gurps_checks.py` adds Hypothesis invariants (outcome boundaries, contest antisymmetry, levelling bounds, Rule of 16 cap) plus replay and fail-closed negative paths. The unknown-capability and unknown-profile tests are application contract tests, not rulebook-derived mechanics.
+`tests/test_gurps_conformance.py` drives every check, contest and resistance case in the fixture ledger through the profile-selected services in `wayfarer.engine.rules.gurps_checks` with recorded dice, and asserts that each service consumed exactly the recorded dice. The both-fail Quick Contest case keeps its `prototype_expected` record: the prototype `package:wayfarer-lite` contest still discards failed rolls, the GURPS profile compares margins of failure, and the test fails if either behaviour drifts. `tests/test_gurps_checks.py` adds Hypothesis invariants (outcome boundaries, contest antisymmetry, levelling bounds, Rule of 16 cap) plus replay and fail-closed negative paths. The unknown-capability and unknown-profile tests are application contract tests, not rulebook-derived mechanics.
 
 Expected values in the ledger were entered by hand from the frozen sources and then checked against the implementation, never the reverse. Page references name sections without reproducing prose; confirming them against the physical artifacts remains part of the source audit below.
 
 ## Success, contest and resistance services (#99)
 
-`wayfarer.rules.gurps_checks` implements the `gurps.check.*` capabilities on top of the existing authoritative scorer `wayfarer.rules.checks.evaluate_success`; there is no second dice engine. Every entry point takes an exact profile ID and calls `require_capabilities`, so an unknown profile, a capability outside the profile (Regular Contests on the Lite profile) or an unverified capability is rejected before any die is drawn.
+`wayfarer.engine.rules.gurps_checks` implements the `gurps.check.*` capabilities on top of the existing authoritative scorer `wayfarer.engine.rules.checks.evaluate_success`; there is no second dice engine. Every entry point takes an exact profile ID and calls `require_capabilities`, so an unknown profile, a capability outside the profile (Regular Contests on the Lite profile) or an unverified capability is rejected before any die is drawn.
 
 | Service | Behaviour | Receipt |
 | --- | --- | --- |
@@ -266,7 +266,7 @@ remaining advanced ranged and unarmed gaps are tracked by #173 and #176, while
 
 ## Typed equipment profiles (#101)
 
-`wayfarer.simulation.gurps_equipment` defines strict, immutable, JSON-round-trippable
+`wayfarer.engine.simulation.gurps_equipment` defines strict, immutable, JSON-round-trippable
 weapon modes (melee/ranged discriminated union), thrust/swing/fixed d6 damage,
 skill references, minimum ST, hands, reach, parry properties, shields/block,
 armor locations/DR, price, TL and exact mass. Ranged modes carry Acc, ST-scaled
@@ -304,7 +304,7 @@ and #107; these data structures do not authorize those unverified mechanics.
 ## Skill compilation (#98)
 
 `character.skills.SkillCompiler` runs inside the existing `CharacterCompiler` and
-`ActionEngine` in `wayfarer.simulation.action_engine`. Its typed `RuleDefinition.skill` metadata is included in package
+`ActionEngine` in `wayfarer.engine.simulation.action_engine`. Its typed `RuleDefinition.skill` metadata is included in package
 digests. No draft or action can supply a difficulty, default, prerequisite, or cap.
 The prototype four-skill dispatch and point restrictions are unchanged, including
 its package digest and build revision regression cases. A GURPS compiler rejects
@@ -770,7 +770,7 @@ encounters remain forbidden. #106/#107 remain the hard prerequisites of #114.
 
 ## Equipment table audit and special gear behavior (#180)
 
-`wayfarer.simulation.equipment_audit` records the item-level accounting the
+`wayfarer.certification.equipment_audit` records the item-level accounting the
 selected tables need, and nothing else: no rules prose, no invented rows and no
 second mechanics engine. Fifteen sections split B264-289 so that every registered
 row belongs to exactly one of them and every section states what it omits. No
@@ -954,7 +954,7 @@ or whole profile is promoted to certified by these changes.
 
 ### Ground transport foundation (#120; not acceptance-complete)
 
-`simulation/transport.py` adds opt-in persisted transport manifests to the existing
+`engine/simulation/transport.py` adds opt-in persisted transport manifests to the existing
 resource checkpoint. Internal `ResourceService.execute_transport` uses the same
 commit-turn authority, receipt, CAS and retry boundary as object damage. Old
 checkpoints omit the empty field and do not acquire transports automatically.
@@ -985,7 +985,7 @@ blockers for #122. Nothing here certifies full vehicle or Basic Set coverage.
 
 ### Vehicle coverage audit (#358)
 
-`rules/vehicle_coverage.py` audits the declared locomotion modes one at a time:
+`engine/rules/vehicle_coverage.py` audits the declared locomotion modes one at a time:
 what the adapter carries, which of control loss, collision, occupant injury and
 restart it resolves, and every residual with the live issue that owns it. #120
 closed after landing a ground slice and #207 closed after expanding the modes,

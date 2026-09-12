@@ -7,6 +7,20 @@ from test_basic_combat import opening_facts, start_basic
 from test_encounter_context import load, setup
 from test_gurps_melee import setup as melee_setup
 
+from wayfarer.engine.rules.conformance import BASELINE_ID
+from wayfarer.engine.simulation.combat import (
+    BasicSpatialContext,
+    BasicSpatialFact,
+    CoverSpatialFact,
+    DistanceSpatialFact,
+    ObstacleSpatialFact,
+    ReachSpatialFact,
+    RetreatSpatialFact,
+    SpatialProvenance,
+    VisibilitySpatialFact,
+)
+from wayfarer.engine.simulation.hex_geometry import Cell, Hex, HexBattlefield, Pose
+from wayfarer.engine.simulation.party import migrate as migrate_party
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.combat import (
@@ -19,20 +33,6 @@ from wayfarer.orchestration.combat import (
     TakeCombatTurn,
 )
 from wayfarer.orchestration.play import PlayService
-from wayfarer.rules.conformance import BASELINE_ID
-from wayfarer.simulation.combat import (
-    BasicSpatialContext,
-    BasicSpatialFact,
-    CoverSpatialFact,
-    DistanceSpatialFact,
-    ObstacleSpatialFact,
-    ReachSpatialFact,
-    RetreatSpatialFact,
-    SpatialProvenance,
-    VisibilitySpatialFact,
-)
-from wayfarer.simulation.hex_geometry import Cell, Hex, HexBattlefield, Pose
-from wayfarer.simulation.party import migrate as migrate_party
 
 B_POSITION = Hex(q=2, r=0)
 

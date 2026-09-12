@@ -4,15 +4,15 @@ from dataclasses import replace
 
 from test_statistics import gurps_draft, profile_package
 
-from wayfarer.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
-from wayfarer.rules.catalog import (
+from wayfarer.engine.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
+from wayfarer.engine.rules.catalog import (
     CampaignPolicy,
     CampaignRules,
     PackagePin,
     RulesCatalog,
     RulesPackage,
 )
-from wayfarer.rules.spell_colleges import PROFILE
+from wayfarer.engine.rules.spell_colleges import PROFILE
 
 
 def approved_spell(definition: RulesPackage, spell_id: str) -> ValidatedBuild:

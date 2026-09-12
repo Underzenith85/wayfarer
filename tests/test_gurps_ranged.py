@@ -9,15 +9,15 @@ import pytest
 from test_gurps_maneuvers import defend, turn
 from test_gurps_melee import setup
 
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.ranged_tables import range_penalty, rapid_fire_bonus
+from wayfarer.engine.simulation.combat import RangedSituation
+from wayfarer.engine.simulation.gurps_equipment import Damage, RangedMode
+from wayfarer.engine.simulation.resources import Consume, Transfer
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import CombatService, TakeCombatTurn
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.ranged_tables import range_penalty, rapid_fire_bonus
-from wayfarer.simulation.combat import RangedSituation
-from wayfarer.simulation.gurps_equipment import Damage, RangedMode
-from wayfarer.simulation.resources import Consume, Transfer
 
 
 def weapon(*, thrown: bool = False, bow: bool = False) -> RangedMode:
@@ -84,7 +84,7 @@ def test_b373_high_rate_of_fire_bonus_continues_by_doubling(shots: int, expected
 
 
 def test_tactical_v2_accepts_high_cyclic_burst_without_widening_v1() -> None:
-    from wayfarer.simulation.combat_commands import TakeCombatTurn
+    from wayfarer.engine.simulation.combat_commands import TakeCombatTurn
     from wayfarer.transport.tactical_v1_commands import TakeCombatTurn as TakeCombatTurnV1
 
     command = TakeCombatTurn(

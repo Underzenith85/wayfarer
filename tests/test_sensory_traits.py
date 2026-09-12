@@ -5,22 +5,22 @@ from dataclasses import replace
 import pytest
 from test_statistics import gurps_draft, profile_package
 
-from wayfarer.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
-from wayfarer.character.sensory_traits import sensory_traits
-from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.rules.catalog import CampaignPolicy, CampaignRules, PackagePin, RulesCatalog
-from wayfarer.rules.sensory_traits import BINDINGS, PROFILE, RUNTIME_HOOKS
-from wayfarer.rules.sensory_traits import package as sensory_package
-from wayfarer.rules.supernatural import inventory
-from wayfarer.rules.traits import TraitOptions
-from wayfarer.simulation.resources import ResourceState
-from wayfarer.simulation.sensory_traits import (
+from wayfarer.engine.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
+from wayfarer.engine.character.sensory_traits import sensory_traits
+from wayfarer.engine.rules.catalog import CampaignPolicy, CampaignRules, PackagePin, RulesCatalog
+from wayfarer.engine.rules.sensory_traits import BINDINGS, PROFILE, RUNTIME_HOOKS
+from wayfarer.engine.rules.sensory_traits import package as sensory_package
+from wayfarer.engine.rules.supernatural import inventory
+from wayfarer.engine.rules.traits import TraitOptions
+from wayfarer.engine.simulation.resources import ResourceState
+from wayfarer.engine.simulation.sensory_traits import (
     SensoryChannel,
     SensoryCommand,
     apply_sensory_use,
     history,
 )
-from wayfarer.world import Entity, EntityKind, Fact, World
+from wayfarer.engine.world import Entity, EntityKind, Fact, World
+from wayfarer.errors import ConflictError, ValidationError
 
 EXPECTED = {
     "advantage:detect": 10,

@@ -12,13 +12,8 @@ from hypothesis import given
 from hypothesis import strategies as st
 from pydantic import ValidationError as SchemaError
 
-from wayfarer.character import builder
-from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign
-from wayfarer.orchestration.resources import ResourceService
-from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.persistence.postgres import AsyncPostgresStore
-from wayfarer.rules.catalog import (
+from wayfarer.engine.character import builder
+from wayfarer.engine.rules.catalog import (
     DEFAULT_POLICY,
     DEFAULT_RULES,
     PROTOTYPE_PACKAGE,
@@ -30,7 +25,7 @@ from wayfarer.rules.catalog import (
     RulesCatalog,
     reference,
 )
-from wayfarer.simulation.resources import (
+from wayfarer.engine.simulation.resources import (
     COMMAND_ADAPTER,
     Advance,
     AmmunitionLoad,
@@ -47,8 +42,13 @@ from wayfarer.simulation.resources import (
     Transfer,
     Unequip,
 )
-from wayfarer.simulation.scenario import scenario
-from wayfarer.world import Entity, EntityKind, World
+from wayfarer.engine.simulation.scenario import scenario
+from wayfarer.engine.world import Entity, EntityKind, World
+from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.models import Campaign
+from wayfarer.orchestration.resources import ResourceService
+from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
+from wayfarer.persistence.postgres import AsyncPostgresStore
 
 
 def engine() -> ResourceEngine:

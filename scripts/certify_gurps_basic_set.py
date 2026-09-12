@@ -6,7 +6,7 @@ import argparse
 import json
 from pathlib import Path
 
-from wayfarer.basic_set_certification import evaluate
+from wayfarer.certification.basic_set_certification import evaluate
 
 ROOT = Path(__file__).resolve().parents[1]
 

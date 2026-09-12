@@ -5,10 +5,10 @@ from pathlib import Path
 
 import pytest
 
-from wayfarer.character import builder
+from wayfarer.engine.character import builder
+from wayfarer.engine.simulation.scenario import scenario
 from wayfarer.orchestration.service import GameService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.simulation.scenario import scenario
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.integration]
 

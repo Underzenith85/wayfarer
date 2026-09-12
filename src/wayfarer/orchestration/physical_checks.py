@@ -10,17 +10,17 @@ from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from typing import Literal
 
+from wayfarer.engine.rules.gurps_checks import success_roll
+from wayfarer.engine.rules.physical_traits import Sense
+from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.condition_checks import check_modifiers, definition_modifiers
+from wayfarer.engine.simulation.mechanics.gurps_melee import build
+from wayfarer.engine.simulation.physical_traits import physical_traits
+from wayfarer.engine.simulation.resources import Command, ResourceEvent
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
-from wayfarer.rules.gurps_checks import success_roll
-from wayfarer.rules.physical_traits import Sense
-from wayfarer.simulation.actions import PlayState
-from wayfarer.simulation.condition_checks import check_modifiers, definition_modifiers
-from wayfarer.simulation.mechanics.gurps_melee import build
-from wayfarer.simulation.physical_traits import physical_traits
-from wayfarer.simulation.resources import Command, ResourceEvent
 
 
 class PhysicalCheckCommand(Command):
@@ -67,7 +67,7 @@ class PhysicalCheckService:
                 raise ValidationError("Physical trigger already resolved")
             spec = self.resolve(play, state, command)
             traits = physical_traits(state.resources, command.actor_id)
-            from wayfarer.simulation.condition_checks import require_hazard_capacity
+            from wayfarer.engine.simulation.condition_checks import require_hazard_capacity
 
             require_hazard_capacity(
                 state.resources, command.actor_id, spec.sense if spec.kind == "sense" else spec.kind

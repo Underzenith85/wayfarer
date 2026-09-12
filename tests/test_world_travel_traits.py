@@ -5,22 +5,22 @@ from dataclasses import replace
 import pytest
 from test_statistics import gurps_draft, profile_package
 
-from wayfarer.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
-from wayfarer.character.world_travel_traits import world_travel_traits
-from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.rules.catalog import CampaignPolicy, CampaignRules, PackagePin, RulesCatalog
-from wayfarer.rules.supernatural import inventory
-from wayfarer.rules.traits import TraitOptions
-from wayfarer.rules.world_travel_traits import BINDINGS, PROFILE, RUNTIME_HOOKS
-from wayfarer.rules.world_travel_traits import package as world_travel_package
-from wayfarer.simulation.resources import Pool, ResourceState
-from wayfarer.simulation.world_travel_traits import (
+from wayfarer.engine.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
+from wayfarer.engine.character.world_travel_traits import world_travel_traits
+from wayfarer.engine.rules.catalog import CampaignPolicy, CampaignRules, PackagePin, RulesCatalog
+from wayfarer.engine.rules.supernatural import inventory
+from wayfarer.engine.rules.traits import TraitOptions
+from wayfarer.engine.rules.world_travel_traits import BINDINGS, PROFILE, RUNTIME_HOOKS
+from wayfarer.engine.rules.world_travel_traits import package as world_travel_package
+from wayfarer.engine.simulation.resources import Pool, ResourceState
+from wayfarer.engine.simulation.world_travel_traits import (
     TravelCommand,
     TravelRoute,
     apply_world_travel,
     history,
 )
-from wayfarer.world import Entity, EntityKind, World
+from wayfarer.engine.world import Entity, EntityKind, World
+from wayfarer.errors import ConflictError, ValidationError
 
 EXPECTED = {"advantage:jumper": 100, "advantage:snatcher": 80, "advantage:warp": 100}
 

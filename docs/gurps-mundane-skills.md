@@ -286,7 +286,7 @@ selected third printing. A bound
 procedure is available only when no concrete mechanics blocker remains.
 
 The definitions live in a new pin, package `0.7.0` with profile version 7
-(`rules/profiles.py`). Existing v2–v6 campaign pins resolve byte-for-byte
+(`engine/rules/profiles.py`). Existing v2–v6 campaign pins resolve byte-for-byte
 unchanged; switching a campaign still uses the existing explicit migration.
 Evidence is in `tests/test_ranged_skills.py`.
 
@@ -341,7 +341,7 @@ Politics, Public Speaking and Sex Appeal through
 so the build asserts the condition and the procedure owns the +2.
 
 The definitions live in a new pin, package `0.8.0` with profile version 8
-(`rules/profiles.py`). Existing v2–v7 campaign pins resolve byte-for-byte
+(`engine/rules/profiles.py`). Existing v2–v7 campaign pins resolve byte-for-byte
 unchanged; switching a campaign still uses the existing explicit migration.
 Evidence is in `tests/test_social_skills.py`, with the declared table and every
 expected result pinned by hand in `tests/fixtures/gurps/social_skills.json`.

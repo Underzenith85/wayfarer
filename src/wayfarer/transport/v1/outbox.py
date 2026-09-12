@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import secrets
 
-from wayfarer.simulation.events import visible
+from wayfarer.engine.simulation.events import visible
 
 from .common import Fault, Obj, array, encoded, obj, uid
 from .ledger import Transaction

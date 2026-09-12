@@ -6,14 +6,14 @@ import pytest
 from test_gurps_maneuvers import turn
 from test_gurps_melee import attack, choice, setup
 
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.simulation.critical import CriticalMiss
+from wayfarer.engine.simulation.mechanics.critical_limbs import CriticalLimbResult
+from wayfarer.engine.simulation.mechanics.weapon_flight import FlightResult, resolve_flight
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat import ChooseDefense, CombatService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.simulation.critical import CriticalMiss
-from wayfarer.simulation.mechanics.critical_limbs import CriticalLimbResult
-from wayfarer.simulation.mechanics.weapon_flight import FlightResult, resolve_flight
 
 
 async def restart(play: PlayService) -> PlayService:

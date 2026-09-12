@@ -7,14 +7,14 @@ import pytest
 from pydantic import ValidationError as SchemaError
 from test_tactical import migration, setup
 
+from wayfarer.engine.simulation.combat import Encounter
+from wayfarer.engine.simulation.events import document
+from wayfarer.engine.simulation.hex_geometry import HexBattlefield
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.battlefield_templates import migrate_embedded_maps
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.replay import execute_recorded
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.simulation.combat import Encounter
-from wayfarer.simulation.events import document
-from wayfarer.simulation.hex_geometry import HexBattlefield
 
 
 async def test_embedded_map_migrates_then_replays_after_cache_loss(tmp_path: Path) -> None:
@@ -82,7 +82,7 @@ async def test_missing_template_fails_closed_and_geometry_is_pinned(tmp_path: Pa
     rules = play.engine.rules.combat
     assert rules is not None
     board = play.rules_context.require_hex(encounter)
-    from wayfarer.simulation.action_engine import ActionEngine
+    from wayfarer.engine.simulation.action_engine import ActionEngine
 
     modified = board.model_copy(update={"darkness_penalty": -1})
     combat = rules.model_copy(
@@ -100,8 +100,8 @@ async def test_missing_template_fails_closed_and_geometry_is_pinned(tmp_path: Pa
 
 
 async def test_hex_template_scene_location_is_checked(tmp_path: Path) -> None:
-    from wayfarer.simulation.encounter_context import bind_scene
-    from wayfarer.simulation.scenes import Scene, SceneRules
+    from wayfarer.engine.simulation.encounter_context import bind_scene
+    from wayfarer.engine.simulation.scenes import Scene, SceneRules
 
     cid, play = await setup(tmp_path)
     encounter = play._load(await play.store.read(cid)).encounters[0]

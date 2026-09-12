@@ -10,13 +10,13 @@ import pytest
 import pytest_asyncio
 from pydantic import SecretStr
 
-from wayfarer.character import builder
 from wayfarer.config import Settings
+from wayfarer.engine.character import builder
+from wayfarer.engine.simulation.scenario import scenario
 from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.llm import LLMClient
 from wayfarer.orchestration.service import GameService
 from wayfarer.persistence.postgres import AsyncPostgresStore
-from wayfarer.simulation.scenario import scenario
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.integration]
 
@@ -34,7 +34,7 @@ async def postgres_service() -> AsyncIterator[GameService]:
 async def test_postgres_concurrent_retry_and_replay(tmp_path: Path) -> None:
     from test_wave9 import prepare
 
-    from wayfarer.simulation.actions import Wait
+    from wayfarer.engine.simulation.actions import Wait
 
     cid, play = await prepare(tmp_path, backend="postgres")
     command = Wait(id="same", actor_id="a", expected_revision=0, ticks=1)

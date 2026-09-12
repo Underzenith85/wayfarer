@@ -11,11 +11,17 @@ import pytest
 from pydantic import ValidationError as SchemaError
 from test_statistics import BASIC, LITE, gurps_draft, profile_compiler
 
-from wayfarer.character.compiler import Purchase
-from wayfarer.character.power import CharacterProposal, PowerPolicy, PowerReviewer
+from wayfarer.engine.character.compiler import Purchase
+from wayfarer.engine.character.power import CharacterProposal, PowerPolicy, PowerReviewer
+from wayfarer.engine.rules.catalog import DefinitionKind, ImplementationStatus, RuleDefinition
+from wayfarer.engine.rules.traits import (
+    TraitModifier,
+    TraitOptions,
+    TraitParameter,
+    TraitRules,
+    cost,
+)
 from wayfarer.errors import ValidationError
-from wayfarer.rules.catalog import DefinitionKind, ImplementationStatus, RuleDefinition
-from wayfarer.rules.traits import TraitModifier, TraitOptions, TraitParameter, TraitRules, cost
 
 
 def definition() -> RuleDefinition:

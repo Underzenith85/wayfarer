@@ -9,16 +9,16 @@ from pathlib import Path
 
 import pytest
 
-from wayfarer.character.skills import (
+from wayfarer.engine.character.skills import (
     DefaultContext,
     SkillCompiler,
     SkillError,
     SkillLevel,
     materialize_open_specialty,
 )
-from wayfarer.rules.catalog import DefinitionKind, ImplementationStatus, RuleDefinition
-from wayfarer.rules.mundane_skills import inventory
-from wayfarer.rules.skill_types import (
+from wayfarer.engine.rules.catalog import DefinitionKind, ImplementationStatus, RuleDefinition
+from wayfarer.engine.rules.mundane_skills import inventory
+from wayfarer.engine.rules.skill_types import (
     BiographicalDefault,
     CampaignDefaultSelection,
     CampaignSkillSpecialty,
@@ -29,13 +29,13 @@ from wayfarer.rules.skill_types import (
     SkillSpec,
     VariableFamily,
 )
-from wayfarer.rules.skill_types import (
+from wayfarer.engine.rules.skill_types import (
     ControllingAttribute as A,
 )
-from wayfarer.rules.skill_types import (
+from wayfarer.engine.rules.skill_types import (
     DefaultConditionKind as C,
 )
-from wayfarer.rules.skill_types import (
+from wayfarer.engine.rules.skill_types import (
     Difficulty as D,
 )
 

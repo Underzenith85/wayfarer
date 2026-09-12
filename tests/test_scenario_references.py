@@ -7,9 +7,9 @@ import pytest
 from test_wave12 import ready, service
 from test_wave13 import finish, successor
 
+from wayfarer.engine.simulation.scenario_references import boundary, verify
+from wayfarer.engine.simulation.setup import SetupCommand
 from wayfarer.errors import ValidationError
-from wayfarer.simulation.scenario_references import boundary, verify
-from wayfarer.simulation.setup import SetupCommand
 
 
 async def test_setup_receipts_pin_genesis_and_reject_changed_cache(tmp_path: Path) -> None:

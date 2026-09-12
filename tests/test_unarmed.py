@@ -9,6 +9,13 @@ import pytest
 from test_gurps_melee import setup as melee_setup
 from test_statistics import BASIC, LITE
 
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.gurps_checks import replay_success
+from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.combat import Encounter
+from wayfarer.engine.simulation.gurps_equipment import MeleeMode
+from wayfarer.engine.simulation.mechanics.unarmed import settle_control
+from wayfarer.engine.simulation.unarmed import Grip, contest, striking_bonus, wrestling_bonus
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.combat import (
@@ -19,13 +26,6 @@ from wayfarer.orchestration.combat import (
 )
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.gurps_checks import replay_success
-from wayfarer.simulation.actions import PlayState
-from wayfarer.simulation.combat import Encounter
-from wayfarer.simulation.gurps_equipment import MeleeMode
-from wayfarer.simulation.mechanics.unarmed import settle_control
-from wayfarer.simulation.unarmed import Grip, contest, striking_bonus, wrestling_bonus
 
 
 async def setup(
@@ -489,7 +489,7 @@ def test_shared_independent_unarmed_ledger() -> None:
 
 
 async def test_grappled_arm_cannot_parry_with_held_weapon(tmp_path: Path) -> None:
-    from wayfarer.simulation.mechanics.gurps_melee import defense_value
+    from wayfarer.engine.simulation.mechanics.gurps_melee import defense_value
 
     cid, play = await setup(tmp_path)
     await action(cid, play, "a", "grapple", hands=("left-hand",), enter=True, location="left-arm")

@@ -10,17 +10,22 @@ from dataclasses import dataclass
 from pydantic import TypeAdapter
 from pydantic import ValidationError as SchemaError
 
-from wayfarer.character.power import PowerReviewer
+from wayfarer.engine.character.power import PowerReviewer
+from wayfarer.engine.rules.catalog import CampaignPolicy
+from wayfarer.engine.simulation.access import CampaignMember
+from wayfarer.engine.simulation.action_engine import ActionEngine
+from wayfarer.engine.simulation.actions import ActorSetup, CheckRule
+from wayfarer.engine.simulation.scenes import Scene, SceneExit
+from wayfarer.engine.simulation.studio import (
+    GenerationBrief,
+    ScenarioGraph,
+    StudioFinding,
+    StudioReport,
+)
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.providers import Orchestrator, ProviderRequest
-from wayfarer.rules.catalog import CampaignPolicy
-from wayfarer.simulation.access import CampaignMember
-from wayfarer.simulation.action_engine import ActionEngine
-from wayfarer.simulation.actions import ActorSetup, CheckRule
-from wayfarer.simulation.scenes import Scene, SceneExit
-from wayfarer.simulation.studio import GenerationBrief, ScenarioGraph, StudioFinding, StudioReport
 
 
 def _listed(values: Iterable[object]) -> str:
@@ -678,7 +683,7 @@ class ScenarioStudio:
             graph.scenes.validate_world(graph.world)
             engine = self.engine(graph)
             # The activation path is also the validator: identical initial resources and discoveries.
-            from wayfarer.rules.catalog import reference
+            from wayfarer.engine.rules.catalog import reference
 
             seed = Campaign(
                 id="studio-validation",

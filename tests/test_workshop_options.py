@@ -7,8 +7,8 @@ from aiohttp.test_utils import TestClient, TestServer
 from test_wave9 import prepare
 
 from scripts.workshop_contracts import contract
-from wayfarer.character.compiler import CharacterDraft, Purchase
-from wayfarer.character.power import CharacterProposal
+from wayfarer.engine.character.compiler import CharacterDraft, Purchase
+from wayfarer.engine.character.power import CharacterProposal
 from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.workshop import DraftCommand, WorkshopService
@@ -204,8 +204,8 @@ async def test_active_preview_is_read_only_authorized_and_rejects_client_costs(
 async def test_setup_preview_uses_exact_profile_and_host_authority(tmp_path: Path) -> None:
     from test_profiles import ALICE, EXTENDED, TOKENS, extended_graph, runtime
 
+    from wayfarer.engine.simulation.setup import CreateSetup, SetupCommand
     from wayfarer.orchestration.setup import SetupService
-    from wayfarer.simulation.setup import CreateSetup, SetupCommand
 
     profiles = runtime(tmp_path)
     setup = SetupService(CampaignAccess(profiles.play))

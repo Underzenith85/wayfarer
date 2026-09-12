@@ -2,42 +2,42 @@
 
 import json
 
-from wayfarer.errors import AuthorizationError, ValidationError
-from wayfarer.models import Campaign, CommandReceipt
-from wayfarer.orchestration.access import CampaignAccess
-from wayfarer.orchestration.entropy import commit_command
-from wayfarer.orchestration.play import PlayService
-from wayfarer.simulation.mechanics.spells import (
+from wayfarer.engine.simulation.mechanics.spells import (
     SpellExecutionContext as SpellExecutionContext,
 )
-from wayfarer.simulation.mechanics.spells import (
+from wayfarer.engine.simulation.mechanics.spells import (
     SpellResolver as SpellResolver,
 )
-from wayfarer.simulation.mechanics.spells import (
+from wayfarer.engine.simulation.mechanics.spells import (
     _recorded_spell_result as _recorded_spell_result,
 )
-from wayfarer.simulation.mechanics.spells import (
+from wayfarer.engine.simulation.mechanics.spells import (
     advance_cast_turn as advance_cast_turn,
 )
-from wayfarer.simulation.mechanics.spells import (
+from wayfarer.engine.simulation.mechanics.spells import (
     apparent_result as apparent_result,
 )
-from wayfarer.simulation.mechanics.spells import (
+from wayfarer.engine.simulation.mechanics.spells import (
     approved_context as approved_context,
 )
-from wayfarer.simulation.mechanics.spells import (
+from wayfarer.engine.simulation.mechanics.spells import (
     combat_guard as combat_guard,
 )
-from wayfarer.simulation.mechanics.spells import (
+from wayfarer.engine.simulation.mechanics.spells import (
     reduce_spell as reduce_spell,
 )
-from wayfarer.simulation.spells import (
+from wayfarer.engine.simulation.spells import (
     PROFILE,
     SpellCommand,
     SpellEvent,
     SpellResult,
     event_id,
 )
+from wayfarer.errors import AuthorizationError, ValidationError
+from wayfarer.models import Campaign, CommandReceipt
+from wayfarer.orchestration.access import CampaignAccess
+from wayfarer.orchestration.entropy import commit_command
+from wayfarer.orchestration.play import PlayService
 
 
 class SpellService:

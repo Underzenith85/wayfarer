@@ -76,7 +76,7 @@ restart. PostgreSQL runs require `WAYFARER_TEST_DATABASE_URL`.
 #120 closed after landing a ground slice and #207 closed after expanding the
 modes, so neither is available to own what is still missing. #358 audits the
 residual per locomotion mode and splits it into live children;
-`rules/vehicle_coverage.py` carries that audit as typed data, and
+`engine/rules/vehicle_coverage.py` carries that audit as typed data, and
 `vehicle_coverage.audit_report` publishes it. A pending state is not completion.
 
 There are no remaining vehicle movement or combat residuals in this bounded audit.

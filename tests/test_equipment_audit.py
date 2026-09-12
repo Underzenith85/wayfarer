@@ -4,9 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from wayfarer.errors import ValidationError
-from wayfarer.simulation.basic_equipment import BASIC_EQUIPMENT, ULTRATECH_INDEX
-from wayfarer.simulation.equipment_audit import (
+from wayfarer.certification.equipment_audit import (
     AUDITED_MODELS,
     PINNED_PACKAGES,
     FieldProvenance,
@@ -25,8 +23,10 @@ from wayfarer.simulation.equipment_audit import (
     validate,
     validate_selection,
 )
-from wayfarer.simulation.gurps_equipment import LITE_EQUIPMENT
-from wayfarer.simulation.hit_locations import wound_factor
+from wayfarer.engine.simulation.basic_equipment import BASIC_EQUIPMENT, ULTRATECH_INDEX
+from wayfarer.engine.simulation.gurps_equipment import LITE_EQUIPMENT
+from wayfarer.engine.simulation.hit_locations import wound_factor
+from wayfarer.errors import ValidationError
 
 ROOT = Path(__file__).resolve().parents[1]
 BASIC = "gurps-basic-set-4e-2004"

@@ -4,12 +4,12 @@ import json
 
 from aiohttp import web
 
+from wayfarer.engine.simulation.profiles import ProfileSelection
+from wayfarer.engine.simulation.setup import CreateSetup, SetupCommand
+from wayfarer.engine.simulation.studio import ScenarioGraph
 from wayfarer.errors import AuthorizationError, ValidationError
 from wayfarer.orchestration.profiles import ProfileMigrations
 from wayfarer.orchestration.setup import SetupService
-from wayfarer.simulation.profiles import ProfileSelection
-from wayfarer.simulation.setup import CreateSetup, SetupCommand
-from wayfarer.simulation.studio import ScenarioGraph
 
 SETUP_KEY = web.AppKey("setup-service", SetupService)
 MIGRATIONS_KEY = web.AppKey("profile-migrations", ProfileMigrations)

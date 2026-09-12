@@ -5,20 +5,20 @@ from pathlib import Path
 import pytest
 from test_reinforcements import escalation, setup_profiled_basic
 
-from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, CommandReceipt
-from wayfarer.orchestration.combat import CombatService, MigrateEncounterBasic
-from wayfarer.orchestration.play import PlayService
-from wayfarer.orchestration.tactical_view import project
-from wayfarer.rules.object_types import GroundPosition
-from wayfarer.simulation.combat import (
+from wayfarer.engine.rules.object_types import GroundPosition
+from wayfarer.engine.simulation.combat import (
     BasicSpatialContext,
     HexSpatialContext,
     PendingDefense,
     ReachSpatialFact,
 )
-from wayfarer.simulation.hex_geometry import Hex
-from wayfarer.simulation.mechanics.tactical import migrate_basic
+from wayfarer.engine.simulation.hex_geometry import Hex
+from wayfarer.engine.simulation.mechanics.tactical import migrate_basic
+from wayfarer.errors import ValidationError
+from wayfarer.models import Campaign, CommandReceipt
+from wayfarer.orchestration.combat import CombatService, MigrateEncounterBasic
+from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.tactical_view import project
 from wayfarer.transport.tactical_api import enrich
 
 

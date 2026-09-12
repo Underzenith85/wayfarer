@@ -10,9 +10,9 @@ from aiohttp.test_utils import TestClient, TestServer
 
 from wayfarer.adventures.lantern import adventure
 from wayfarer.adventures.runtime import application
+from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.studio import ScenarioGraph
 from wayfarer.orchestration.setup import SetupService
-from wayfarer.simulation.actions import PlayState
-from wayfarer.simulation.studio import ScenarioGraph
 from wayfarer.transport.campaign_api import ACCESS_KEY
 from wayfarer.transport.setup_api import SETUP_KEY
 
@@ -167,10 +167,10 @@ class Table:
         assert SetupService.load(campaign).adventures == (snapshot,)
         store = self.client.app[ACCESS_KEY].play.store
         assert await store.replay(self.cid) == campaign
-        from wayfarer.simulation.events import document
+        from wayfarer.engine.simulation.events import document
 
         folded = await store.stream_states(self.cid)
-        from wayfarer.simulation.scenario_references import verify
+        from wayfarer.engine.simulation.scenario_references import verify
 
         for checkpoint, _ in folded:
             verify(checkpoint)

@@ -4,19 +4,19 @@ from decimal import Decimal
 
 import pytest
 
-from wayfarer.errors import ValidationError
-from wayfarer.rules.checks import draw_dice, draw_index
-from wayfarer.rules.combat_tables import (
+from wayfarer.engine.rules.checks import draw_dice, draw_index
+from wayfarer.engine.rules.combat_tables import (
     minimum_strength_penalty,
     shield_cover_dr,
     shield_defense_bonus,
     strong_damage_bonus,
     weapon_target_penalty,
 )
-from wayfarer.rules.physical import climbing_default
-from wayfarer.rules.unarmed_tables import UNARMED_SKILLS, unarmed_critical_miss
-from wayfarer.simulation.gurps_equipment import Armor
-from wayfarer.simulation.hit_locations import armor_resistance, effective_dr
+from wayfarer.engine.rules.physical import climbing_default
+from wayfarer.engine.rules.unarmed_tables import UNARMED_SKILLS, unarmed_critical_miss
+from wayfarer.engine.simulation.gurps_equipment import Armor
+from wayfarer.engine.simulation.hit_locations import armor_resistance, effective_dr
+from wayfarer.errors import ValidationError
 
 
 @pytest.mark.parametrize("minimum,current,expected", [(10, 8, 2), (10, 10, 0), (10, 13, 0)])

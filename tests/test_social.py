@@ -2,19 +2,19 @@
 
 import pytest
 
-from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.gurps_social import (
+from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.gurps_social import (
     ReactionModifier,
     fright_roll,
     influence_roll,
     reaction_outcome,
     self_control_roll,
 )
-from wayfarer.rules.traits import TraitOptions, TraitRules
-from wayfarer.simulation.resources import ResourceState
-from wayfarer.simulation.social import SocialCommand, SocialContext, apply_social
-from wayfarer.world import Entity, EntityKind, Fact, World
+from wayfarer.engine.rules.traits import TraitOptions, TraitRules
+from wayfarer.engine.simulation.resources import ResourceState
+from wayfarer.engine.simulation.social import SocialCommand, SocialContext, apply_social
+from wayfarer.engine.world import Entity, EntityKind, Fact, World
+from wayfarer.errors import ConflictError, ValidationError
 
 PROFILE = "gurps-basic-set-4e-2004"
 

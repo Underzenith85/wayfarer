@@ -22,7 +22,7 @@ REDUCER_MODULES = (
 
 class ArchitectureTests(unittest.TestCase):
     def test_encounters_reference_templates_without_embedding_maps(self) -> None:
-        from wayfarer.simulation.combat import Encounter
+        from wayfarer.engine.simulation.combat import Encounter
 
         self.assertNotIn("hex_battlefield", Encounter.model_fields)
         self.assertNotIn("HexBattlefield", Encounter.model_json_schema().get("$defs", {}))
@@ -32,14 +32,22 @@ class ArchitectureTests(unittest.TestCase):
 
     def test_simulation_entity_names_have_one_owner(self) -> None:
         owners: dict[str, list[str]] = {}
-        package = Path(wayfarer.__file__).parent / "simulation"
-        for source in package.rglob("*.py"):
+        package = Path(wayfarer.__file__).parent
+        for source in (package / "engine" / "simulation").rglob("*.py"):
             for node in ast.walk(ast.parse(source.read_text())):
                 if isinstance(node, ast.ClassDef):
-                    owners.setdefault(node.name, []).append(source.name)
+                    owners.setdefault(node.name, []).append(source.relative_to(package).as_posix())
         duplicates = {name: sorted(paths) for name, paths in owners.items() if len(paths) > 1}
         # Existing, unrelated equipment/source provenance records have distinct semantics.
-        self.assertEqual(duplicates, {"Provenance": ["gurps_equipment.py", "scenario_document.py"]})
+        self.assertEqual(
+            duplicates,
+            {
+                "Provenance": [
+                    "engine/simulation/gurps_equipment.py",
+                    "engine/simulation/scenario_document.py",
+                ]
+            },
+        )
 
     def test_event_stream_has_only_atomic_persistence_writers(self) -> None:
         package = Path(wayfarer.__file__).parent
@@ -278,23 +286,17 @@ class ArchitectureTests(unittest.TestCase):
                     )
 
     def test_domain_imports_are_independent(self) -> None:
+        """The engine depends inward only: on its own domains and the shared kernel."""
         package = Path(wayfarer.__file__).parent
         allowed = {
-            "rules": {"rules", "models", "validation", "errors"},
-            "character": {"rules", "character", "models", "validation", "errors"},
-            "simulation": {
-                "rules",
-                "character",
-                "simulation",
-                "models",
-                "validation",
-                "errors",
-                "world",
-            },
+            "rules": {"rules"},
+            "character": {"rules", "character"},
+            "simulation": {"rules", "character", "simulation", "world"},
         }
+        kernel = {"models", "validation", "errors"}
         forbidden = {"sqlite3", "http", "urllib", "socket", "requests", "httpx", "openai", "os"}
         for domain, dependencies in allowed.items():
-            for source in (package / domain).rglob("*.py"):
+            for source in (package / "engine" / domain).rglob("*.py"):
                 tree = ast.parse(source.read_text())
                 for node in ast.walk(tree):
                     if isinstance(node, ast.Import):
@@ -304,6 +306,8 @@ class ArchitectureTests(unittest.TestCase):
                         modules = [node.module or ""]
                         if node.module == "wayfarer":
                             modules += [f"wayfarer.{alias.name}" for alias in node.names]
+                        if node.module == "wayfarer.engine":
+                            modules += [f"wayfarer.engine.{alias.name}" for alias in node.names]
                     else:
                         continue
                     for module in modules:
@@ -313,8 +317,80 @@ class ArchitectureTests(unittest.TestCase):
                                 self.assertNotIn(
                                     module.split(".")[0], {"secrets", "random", "time", "datetime"}
                                 )
-                            if module.startswith("wayfarer."):
-                                self.assertIn(module.split(".")[1], dependencies)
+                            if not module.startswith("wayfarer."):
+                                continue
+                            parts = module.split(".")
+                            if parts[1] == "engine":
+                                self.assertIn(parts[2], dependencies)
+                            else:
+                                self.assertIn(parts[1], kernel)
+
+    def test_engine_packages_are_not_facades(self) -> None:
+        """A package init declares the package's own rules or nothing; it never re-exports.
+
+        Importing a domain must not drag in its siblings, or a noun would load a verb.
+        The three inventory packages are themselves the module, so they may import what
+        they are built from; an init that only imports is a facade and is rejected.
+        """
+        package = Path(wayfarer.__file__).parent / "engine"
+        for source in package.rglob("__init__.py"):
+            tree = ast.parse(source.read_text())
+            imports = [n for n in tree.body if isinstance(n, (ast.Import, ast.ImportFrom))]
+            declarations = [
+                n
+                for n in tree.body
+                if isinstance(n, (ast.ClassDef, ast.FunctionDef, ast.Assign, ast.AnnAssign))
+            ]
+            with self.subTest(source=source):
+                self.assertFalse(
+                    imports and not declarations, f"{source} re-exports instead of declaring"
+                )
+
+    def test_simulation_packages_declare_nothing(self) -> None:
+        """Simulation package inits stay empty so no import order can load a verb early."""
+        package = Path(wayfarer.__file__).parent / "engine" / "simulation"
+        for source in package.rglob("__init__.py"):
+            tree = ast.parse(source.read_text())
+            with self.subTest(source=source):
+                self.assertEqual([type(node) for node in tree.body], [ast.Expr])
+
+    def test_engine_nouns_do_not_import_verbs(self) -> None:
+        """A verb resolves mechanics with RulesContext; the nouns it reads never import one.
+
+        Only imports the module always pays for count: a deferred import inside a
+        function body is how the remaining mechanic cycles are broken today.
+        """
+        package = Path(wayfarer.__file__).parent
+        simulation = package / "engine" / "simulation"
+        trees = {source: ast.parse(source.read_text()) for source in simulation.rglob("*.py")}
+
+        def imported(tree: ast.Module) -> set[str]:
+            deferred = {
+                node
+                for parent in ast.walk(tree)
+                if isinstance(parent, (ast.FunctionDef, ast.AsyncFunctionDef))
+                for node in ast.walk(parent)
+            }
+            return {
+                node.module
+                for node in ast.walk(tree)
+                if isinstance(node, ast.ImportFrom)
+                and node.module is not None
+                and node not in deferred
+            }
+
+        def name(source: Path) -> str:
+            relative = source.relative_to(package).with_suffix("")
+            return "wayfarer." + ".".join(relative.parts)
+
+        context = "wayfarer.engine.simulation.rules_context"
+        verbs = {name(source) for source, tree in trees.items() if context in imported(tree)}
+        for source, tree in trees.items():
+            if name(source) in verbs:
+                continue
+            for module in sorted(imported(tree) & verbs):
+                with self.subTest(source=source, module=module):
+                    self.fail(f"{source} imports the verb {module}")
 
     def test_domain_import_does_not_load_adapters(self) -> None:
         subprocess.run(
@@ -323,12 +399,11 @@ class ArchitectureTests(unittest.TestCase):
                 "-c",
                 """
 import sys
-import wayfarer.simulation.action_engine
 import importlib
 import pkgutil
-import wayfarer.simulation.mechanics
-for module in pkgutil.iter_modules(wayfarer.simulation.mechanics.__path__):
-    importlib.import_module("wayfarer.simulation.mechanics." + module.name)
+import wayfarer.engine
+for module in pkgutil.walk_packages(wayfarer.engine.__path__, "wayfarer.engine."):
+    importlib.import_module(module.name)
 assert not any(m.startswith(('wayfarer.persistence', 'wayfarer.orchestration', 'wayfarer.transport')) for m in sys.modules)
 assert 'sqlite3' not in sys.modules
 """,
@@ -356,8 +431,9 @@ assert 'sqlite3' not in sys.modules
                 "-c",
                 """
 import sys
-import wayfarer.simulation.actions
-assert 'wayfarer.simulation.action_engine' not in sys.modules
+import wayfarer.engine.simulation.actions
+assert 'wayfarer.engine.simulation.action_engine' not in sys.modules
+assert 'wayfarer.engine.simulation.rules_context' not in sys.modules
 """,
             ],
             check=True,
@@ -386,9 +462,11 @@ assert 'wayfarer.simulation.action_engine' not in sys.modules
 
     def test_all_packages_import(self) -> None:
         for name in (
-            "rules",
-            "character",
-            "simulation",
+            "engine",
+            "engine.rules",
+            "engine.character",
+            "engine.simulation",
+            "certification",
             "persistence",
             "orchestration",
             "transport",
@@ -400,7 +478,7 @@ def test_prototype_resolver_and_transcript_writers_are_retired() -> None:
     from wayfarer import models
     from wayfarer.orchestration.service import GameService
 
-    assert not (Path(wayfarer.__file__).parent / "simulation/resolution.py").exists()
+    assert not (Path(wayfarer.__file__).parent / "engine/simulation/resolution.py").exists()
     assert not hasattr(GameService, "turn") and not hasattr(GameService, "interpret")
     assert not hasattr(models, "Action") and not hasattr(models, "Event")
     assert set(models.CommandReceipt.__annotations__) == {"action", "outcome"}

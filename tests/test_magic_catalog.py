@@ -6,16 +6,16 @@ from decimal import Decimal
 import pytest
 from test_statistics import gurps_draft
 
-from wayfarer.character.compiler import CharacterCompiler, CharacterDraft, Purchase
-from wayfarer.errors import ValidationError
-from wayfarer.rules.catalog import PackagePin, RulesCatalog
-from wayfarer.rules.effects import Effect, Operation
-from wayfarer.rules.gurps_magic import MAGERY, MAGERY_ZERO, PROFILE
-from wayfarer.rules.profiles import (
+from wayfarer.engine.character.compiler import CharacterCompiler, CharacterDraft, Purchase
+from wayfarer.engine.rules.catalog import PackagePin, RulesCatalog
+from wayfarer.engine.rules.effects import Effect, Operation
+from wayfarer.engine.rules.gurps_magic import MAGERY, MAGERY_ZERO, PROFILE
+from wayfarer.engine.rules.profiles import (
     DEFAULT_REGISTRY,
     GURPS_BASIC_PROFILE,
     GURPS_MAGIC_PROFILE,
 )
+from wayfarer.errors import ValidationError
 
 
 def compiler(

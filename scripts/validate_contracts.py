@@ -143,7 +143,7 @@ def validate_contract(
 
 
 def validate_engine_events() -> None:
-    from wayfarer.simulation.events import EVENT_ADAPTER
+    from wayfarer.engine.simulation.events import EVENT_ADAPTER
 
     schema = mapping(read(ROOT / "engine-events.schema.json"))
     Draft202012Validator.check_schema(schema)
