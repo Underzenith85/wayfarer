@@ -1,6 +1,7 @@
 """Tactical v2 equipment status and pure previews of timed work."""
 
 import hashlib
+from typing import Literal
 
 from wayfarer.errors import WayfarerError
 from wayfarer.models import Record
@@ -12,7 +13,7 @@ from wayfarer.orchestration.combat import (
     WithdrawEncounter,
 )
 from wayfarer.orchestration.play import PlayService
-from wayfarer.orchestration.tactical_view import TacticalSnapshot
+from wayfarer.orchestration.tactical_view import TacticalChoice, TacticalSnapshot
 from wayfarer.rules.object_types import GroundPosition, ObjectCondition
 from wayfarer.rules.readiness_types import ProjectileProgress
 from wayfarer.simulation.actions import PlayState
@@ -50,11 +51,40 @@ class TacticalWithdrawalChoice(Record):
     command: WithdrawEncounter
 
 
+class BasicTacticalActor(Record):
+    id: str
+    name: str
+    controlled: bool
+    posture: str
+    grappled: bool
+    pinned: bool
+
+
+class BasicTacticalEncounter(Record):
+    id: str
+    status: str
+    round: int
+    current_actor_id: str | None
+    actors: tuple[BasicTacticalActor, ...]
+    choices: tuple[TacticalChoice, ...]
+    notice: str | None = None
+
+
+class TacticalActivity(Record):
+    kind: Literal["combat", "waiting", "independent"]
+    representation: Literal["basic", "square", "hex"] | None = None
+    message: str
+    ready_through: int
+    paused: bool
+
+
 class TacticalSnapshotV2(TacticalSnapshot):
     version: str = "tactical-v2"
     equipment: tuple[EquipmentView, ...] = ()
     migrations: tuple[TacticalMigrationChoice, ...] = ()
     withdrawals: tuple[TacticalWithdrawalChoice, ...] = ()
+    basic_encounters: tuple[BasicTacticalEncounter, ...] = ()
+    activity: TacticalActivity
 
 
 def equipment_view(play: PlayService, state: PlayState, actor_id: str) -> tuple[EquipmentView, ...]:

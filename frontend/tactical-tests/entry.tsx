@@ -5,11 +5,12 @@ import { TacticalClient } from "../src/api/tactical";
 import "../src/styles.css";
 const params = new URLSearchParams(location.search);
 const principal = params.get("principal") ?? "alice";
+const actor = { alice: "a", bob: "b", a: "a", b: "b" }[principal] ?? "a";
 createRoot(document.getElementById("root")!).render(
   <TacticalPanel
     client={new TacticalClient("", `${principal}-token`)}
     cid={params.get("cid")!}
-    actor={principal === "alice" ? "a" : "b"}
+    actor={actor}
     onChange={async () => {}}
   />,
 );

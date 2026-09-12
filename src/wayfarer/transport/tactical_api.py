@@ -13,6 +13,7 @@ from wayfarer.orchestration.combat import (
     ChooseDefense,
     CombatService,
     ContinueCriticalMiss,
+    DeclareBasicSpatialFacts,
     DeclareThrownLanding,
     JoinEncounter,
     MigrateEncounterBasic,
@@ -22,12 +23,19 @@ from wayfarer.orchestration.combat import (
     ResolveWeaponExplosion,
     ResumeInterruptedTurn,
     RetrieveEquipment,
+    StartBasicEncounter,
     TakeCombatTurn,
     TakeUnarmedTurn,
     WithdrawEncounter,
     preview_withdrawal,
 )
-from wayfarer.orchestration.equipment_view import TacticalSnapshotV2, equipment_view
+from wayfarer.orchestration.equipment_view import (
+    BasicTacticalActor,
+    BasicTacticalEncounter,
+    TacticalActivity,
+    TacticalSnapshotV2,
+    equipment_view,
+)
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.tactical_view import (
     TacticalSnapshot,
@@ -35,8 +43,13 @@ from wayfarer.orchestration.tactical_view import (
     snapshot,
     visible_actors,
 )
+from wayfarer.orchestration.tactical_view import (
+    choices as tactical_choices,
+)
 from wayfarer.simulation.access import CampaignMember
 from wayfarer.simulation.actions import PlayState
+from wayfarer.simulation.combat import BasicSpatialContext, Encounter, basic_visible
+from wayfarer.simulation.encounter_context import activity_for
 from wayfarer.transport.campaign_api import ACCESS_KEY, _identity, _json
 from wayfarer.transport.tactical_v1_commands import ChooseDefense as ChooseDefenseV1
 from wayfarer.transport.tactical_v1_commands import MigrateEncounterHex as MigrateEncounterHexV1
@@ -71,6 +84,8 @@ class TacticalRequestV2(Record):
         | JoinEncounter
         | MigrateEncounterBasic
         | WithdrawEncounter
+        | StartBasicEncounter
+        | DeclareBasicSpatialFacts
     ) = Field(discriminator="kind")
 
 
@@ -162,6 +177,82 @@ def enrich(
             withdrawals.append(
                 {"label": "Leave combat", "command": command.model_dump(mode="json")}
             )
+    entities = {entity.id: entity.name for entity in state.world.entities}
+    basic_encounters: list[BasicTacticalEncounter] = []
+    for basic in state.encounters:
+        if not isinstance(basic.spatial, BasicSpatialContext):
+            continue
+        if member is None or member.role != "gm":
+            if result.actor_id not in basic.turn_order:
+                continue
+            visible = {result.actor_id}
+            for participant in basic.participants:
+                try:
+                    if basic_visible(basic, result.actor_id, participant.actor_id):
+                        visible.add(participant.actor_id)
+                except ValidationError:
+                    continue
+        else:
+            visible = set(basic.turn_order)
+        basic_encounters.append(
+            BasicTacticalEncounter(
+                id=basic.id,
+                status=basic.status,
+                round=basic.round,
+                current_actor_id=(
+                    basic.current_actor_id if basic.current_actor_id in visible else None
+                ),
+                actors=tuple(
+                    BasicTacticalActor(
+                        id=participant.actor_id,
+                        name=entities[participant.actor_id],
+                        controlled=participant.actor_id == result.actor_id,
+                        posture=participant.posture,
+                        grappled=participant.grappled,
+                        pinned=participant.pinned,
+                    )
+                    for participant in basic.participants
+                    if participant.actor_id in visible
+                ),
+                choices=(
+                    tactical_choices(play, state, basic, result.actor_id, frozenset(visible))
+                    if result.actor_id in basic.turn_order
+                    else ()
+                ),
+                notice=(
+                    "A combat decision is pending."
+                    if basic.pending_defense or basic.pending_unarmed or basic.wait_interrupt
+                    else "Spatial clarification is required for actions not listed."
+                ),
+            )
+        )
+    actor_activity = (
+        activity_for(state, result.actor_id)
+        if any(actor.actor_id == result.actor_id for actor in state.actors)
+        else None
+    )
+    actor_encounter = actor_activity.encounter if actor_activity else None
+    group = actor_activity.group if actor_activity else None
+    queued = actor_activity.queued is not None if actor_activity else False
+    activity = TacticalActivity(
+        kind="combat"
+        if actor_encounter
+        else "waiting"
+        if queued or group and group.paused
+        else "independent",
+        representation=actor_encounter.spatial_kind if actor_encounter else None,
+        message=(
+            f"Active {actor_encounter.spatial_kind} combat."
+            if actor_encounter
+            else "Your group is paused at a shared-time boundary."
+            if group and group.paused
+            else "Independent activity is queued."
+            if queued
+            else "No active combat; independent scene activity is available."
+        ),
+        ready_through=group.ready_through if group else state.resources.game_time,
+        paused=group.paused if group else False,
+    )
     return TacticalSnapshotV2.model_validate_json(
         json.dumps(
             {
@@ -172,6 +263,10 @@ def enrich(
                 ],
                 "migrations": migrations,
                 "withdrawals": withdrawals,
+                "basic_encounters": [
+                    encounter.model_dump(mode="json") for encounter in basic_encounters
+                ],
+                "activity": activity.model_dump(mode="json"),
             }
         )
     )
@@ -207,33 +302,56 @@ async def execute(request: web.Request) -> web.Response:
         return web.json_response(result.model_dump(mode="json"))
     if state.lifecycle != "active":
         raise ValidationError("Resume the campaign before acting")
-    encounter = CombatService._encounter(state, command.encounter_id)
-    if isinstance(
+    encounter = (
+        None
+        if isinstance(command, StartBasicEncounter)
+        else CombatService._encounter(state, command.encounter_id)
+    )
+    if isinstance(command, StartBasicEncounter):
+        if member.role != "gm":
+            raise ValidationError("Combat setup requires GM authority")
+    elif isinstance(
         command,
         (
             MigrateEncounterHex,
             MigrateEncounterBasic,
+            DeclareBasicSpatialFacts,
             ContinueCriticalMiss,
             DeclareThrownLanding,
             ResolveWeaponExplosion,
         ),
     ):
         if member.role != "gm":
-            raise ValidationError("Migration requires GM authority")
+            raise ValidationError("GM combat workflow requires GM authority")
     elif isinstance(command, WithdrawEncounter):
+        assert encounter is not None
         if command.actor_id not in encounter.turn_order:
             raise ValidationError("Combat withdrawal is unavailable")
     elif isinstance(command, JoinEncounter):
+        assert encounter is not None
         if command.joining_actor_id is not None and member.role != "gm":
             raise ValidationError("GM admission requires GM authority")
-        if encounter.spatial_kind != "hex":
-            raise ValidationError("Tactical reinforcement requires a hex encounter")
     else:
-        if encounter.spatial_kind != "hex" or command.actor_id not in encounter.turn_order:
+        assert encounter is not None
+        if (
+            encounter.spatial_kind not in ("basic", "hex")
+            or command.actor_id not in encounter.turn_order
+        ):
             raise ValidationError("Tactical encounter is unavailable")
-        visible = visible_actors(
-            state, encounter, command.actor_id, board=access.play.rules_context.hex_map(encounter)
-        )
+        if encounter.spatial_kind == "basic":
+            visible = frozenset(
+                participant.actor_id
+                for participant in encounter.participants
+                if participant.actor_id == command.actor_id
+                or _basic_visible(encounter, command.actor_id, participant.actor_id)
+            )
+        else:
+            visible = visible_actors(
+                state,
+                encounter,
+                command.actor_id,
+                board=access.play.rules_context.hex_map(encounter),
+            )
         if isinstance(command, (TakeCombatTurn, TakeUnarmedTurn)):
             if command.target_id is not None and command.target_id not in visible:
                 raise ValidationError("Target is unavailable")
@@ -257,6 +375,7 @@ async def execute(request: web.Request) -> web.Response:
             },
             status=exc.status,
         )
+    access = await access.runtime(cid)
     state = access.play._load(await access.play.store.read(cid))
     result = project(
         access.play,
@@ -268,6 +387,13 @@ async def execute(request: web.Request) -> web.Response:
     if request_type is TacticalRequestV2:
         result = enrich(access.play, state, result, member)
     return web.json_response(result.model_dump(mode="json"))
+
+
+def _basic_visible(encounter: Encounter, subject_id: str, object_id: str) -> bool:
+    try:
+        return basic_visible(encounter, subject_id, object_id)
+    except ValidationError:
+        return False
 
 
 def install(app: web.Application) -> None:
