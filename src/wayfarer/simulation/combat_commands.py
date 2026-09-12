@@ -174,10 +174,36 @@ class MigrateEncounterHex(CombatCommand):
     placements: tuple[HexPlacement, ...] = Field(min_length=2, max_length=100)
 
 
+class BasicJoinPlacement(Record):
+    kind: Literal["basic"] = "basic"
+    facts: tuple[BasicSpatialFact, ...] = Field(min_length=1, max_length=1000)
+
+
+class SquareJoinPlacement(Record):
+    kind: Literal["square"] = "square"
+    position: GridPoint
+    facing: Facing = "north"
+
+
+class HexJoinPlacement(Record):
+    kind: Literal["hex"] = "hex"
+    position: Hex
+    facing: HexFacing
+
+
+JoinPlacement = Annotated[
+    BasicJoinPlacement | SquareJoinPlacement | HexJoinPlacement,
+    Field(discriminator="kind"),
+]
+
+
 class JoinEncounter(CombatCommand):
     kind: Literal["join_encounter"] = "join_encounter"
     encounter_id: Id
-    position: GridPoint
+    joining_actor_id: Id | None = Field(default=None, exclude_if=lambda value: value is None)
+    placement: JoinPlacement | None = Field(default=None, exclude_if=lambda value: value is None)
+    # Retained square input for existing callers and the frozen v1 adventure.
+    position: GridPoint | None = Field(default=None, exclude_if=lambda value: value is None)
     facing: Facing = "north"
 
 

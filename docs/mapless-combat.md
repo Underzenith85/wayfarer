@@ -34,10 +34,10 @@ restart and replay paths. GM declarations must identify their command as the
 provenance source and match its committed revision. Basic encounter state remains
 scene- and subgroup-validated.
 
-Representation-specific reinforcement placement and Basic-to-hex migration are
-owned by #326. Tactical controls are owned by #327. Close-combat representation
-transitions and withdrawals are owned by #329 and #330. Until those contracts are
-implemented, the corresponding coordinate-dependent paths reject explicitly.
+[Reinforcement admission and Basic-to-hex escalation](combat-reinforcements.md)
+are implemented by #326. Tactical controls are owned by #327. Hex-to-Basic
+conversion and withdrawals are owned by #329 and #330; those reverse or departure
+paths continue to reject until their separate contracts are implemented.
 
 ## Source boundary
 

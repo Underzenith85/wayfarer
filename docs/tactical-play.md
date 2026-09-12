@@ -11,10 +11,12 @@ outcomes, or chooses which actors are visible.
 `POST /api/tactical/v1/campaigns/{cid}/commands` accepts a `TacticalRequest`
 containing one typed command. A GM can send `migrate_encounter_hex` with the
 existing encounter ID, revision, command ID, a complete tagged `HexBattlefield`,
-and one explicit `HexPlacement` per participant. The battlefield ID and exact
-Basic Set profile/baseline must match. Migration cannot change posture or run
-during a defense, grapple, interrupted Wait or blocked rule. It is one-way for
-that encounter, not an implicit conversion of `(x,y)` into `(q,r)`.
+and one explicit `HexPlacement` per participant. For a square encounter the map
+retains its source-template provenance. For a Basic encounter the new map is
+owned at the encounter's authored location and every active Basic relationship
+must agree with the supplied poses. The battlefield and exact Basic Set
+profile/baseline must match. Migration cannot change posture or run during a
+defense, grapple, interrupted Wait or blocked rule.
 
 The migration and subsequent commands use the existing campaign transaction,
 CAS and durable command receipts. Replaying the same ID/payload neither migrates
@@ -87,8 +89,9 @@ Its existing exact-profile capability gates remain fail-closed. The merged core
 PRs satisfy the implementation dependencies for #115; the parent mechanics issues
 remain open for their independently documented full-coverage gaps.
 
-Unequal-height combat and hex reinforcement placement remain explicitly rejected;
-movement across elevation still requires its physical-feat/combat-height adapter.
+Unequal-height combat remains explicitly rejected; movement across elevation still
+requires its physical-feat/combat-height adapter. Hex reinforcement placement is
+supported by the typed v2 command and its visibility/occupancy checks.
 Unarmed retreat/following-grapple timing, skill-specific retreat Parries, dragging
 and advanced unarmed maneuver/defense variants remain with #176. #152 supplies
 durable Wait zones and stop thrust, attack-then-step timing, two-weapon Double,

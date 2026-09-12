@@ -29,6 +29,7 @@ from wayfarer.simulation.combat import (
 from wayfarer.simulation.combat_commands import (
     COMBAT_ADAPTER as COMBAT_ADAPTER,
 )
+from wayfarer.simulation.combat_commands import BasicJoinPlacement as BasicJoinPlacement
 from wayfarer.simulation.combat_commands import (
     BasicMove as BasicMove,
 )
@@ -50,6 +51,7 @@ from wayfarer.simulation.combat_commands import (
 from wayfarer.simulation.combat_commands import (
     EndEncounter as EndEncounter,
 )
+from wayfarer.simulation.combat_commands import HexJoinPlacement as HexJoinPlacement
 from wayfarer.simulation.combat_commands import (
     HexPlacement as HexPlacement,
 )
@@ -74,6 +76,7 @@ from wayfarer.simulation.combat_commands import (
 from wayfarer.simulation.combat_commands import (
     RetrieveEquipment as RetrieveEquipment,
 )
+from wayfarer.simulation.combat_commands import SquareJoinPlacement as SquareJoinPlacement
 from wayfarer.simulation.combat_commands import (
     StartBasicEncounter as StartBasicEncounter,
 )
@@ -146,6 +149,12 @@ class CombatService:
             ),
         ) and (command.actor_id not in self.play.engine.reviewer.gm_ids):
             raise ValidationError("Encounter lifecycle requires GM authority")
+        if (
+            isinstance(command, JoinEncounter)
+            and command.joining_actor_id is not None
+            and command.actor_id not in self.play.engine.reviewer.gm_ids
+        ):
+            raise ValidationError("GM admission requires GM authority")
         payload = json.dumps(
             {"operation": "combat", "command": command.model_dump(mode="json")},
             sort_keys=True,
@@ -364,6 +373,8 @@ def _prepare_command(
             affected.update(p.actor_id for p in command.placements)
         elif isinstance(command, StartBasicEncounter):
             affected.update(command.participant_ids)
+        elif isinstance(command, JoinEncounter) and command.joining_actor_id is not None:
+            affected.add(command.joining_actor_id)
         elif (
             isinstance(command, (TakeCombatTurn, TakeUnarmedTurn)) and command.target_id is not None
         ):
@@ -655,7 +666,7 @@ def _migrate(
     assert isinstance(command, MigrateEncounterHex)
     from wayfarer.simulation.mechanics.tactical import migrate
 
-    encounter = migrate(play.rules_context, encounter, command)
+    encounter = migrate(play.rules_context, state, encounter, command)
     result = CombatResult(
         encounter_id=encounter.id,
         code="combat.hex_migrated",
@@ -896,15 +907,20 @@ def _join(
     engine = context.engine
     resources = state.resources
     assert isinstance(command, JoinEncounter)
-    if encounter.spatial_kind != "square":
-        raise ValidationError("Reinforcements require representation-specific placement support")
     from wayfarer.simulation.party import group_for
 
-    if encounter.status != "active" or encounter.pending_defense is not None:
+    if (
+        encounter.status != "active"
+        or encounter.pending_defense is not None
+        or encounter.pending_unarmed is not None
+        or encounter.wait_interrupt is not None
+        or encounter.blocked_reason
+    ):
         raise ConflictError("Reinforcements join between resolved combat stages")
-    if command.actor_id in encounter.turn_order:
+    joining_actor_id = command.joining_actor_id or command.actor_id
+    if joining_actor_id in encounter.turn_order:
         raise ConflictError("Actor already participates")
-    joining_actor = next((a for a in state.actors if a.actor_id == command.actor_id), None)
+    joining_actor = next((a for a in state.actors if a.actor_id == joining_actor_id), None)
     if (
         joining_actor is None
         or joining_actor.conditions
@@ -913,21 +929,65 @@ def _join(
         raise ValidationError("Reinforcement joining_actor is unavailable")
     if next(p.current for p in resources.pools if p.id == f"hp:{joining_actor.actor_id}") == 0:
         raise ValidationError("Reinforcement joining_actor is incapacitated")
-    source = group_for(state, command.actor_id)
+    source = group_for(state, joining_actor_id)
     target_group = group_for(state, encounter.current_actor_id)
-    if (
-        source.id == target_group.id
-        or source.scene_id != target_group.scene_id
-        or source.paused
-        or target_group.paused
-    ):
-        raise ValidationError("Reinforcements must arrive from another reachable subgroup")
+    if source.scene_id != target_group.scene_id or source.paused or target_group.paused:
+        raise ValidationError("Reinforcements must be in the encounter scene")
     if (
         source.ready_through != resources.game_time
         or target_group.ready_through != resources.game_time
         or any(q.group_id in (source.id, target_group.id) for q in state.party.queue)
     ):
         raise ConflictError("Reinforcement arrival requires synchronized time")
+    placement = command.placement
+    if placement is None and command.position is not None:
+        placement = SquareJoinPlacement(position=command.position, facing=command.facing)
+    if placement is None or placement.kind != encounter.spatial_kind:
+        raise ValidationError("Reinforcement placement must match the encounter representation")
+    basic_facts: tuple[BasicSpatialFact, ...] = ()
+    if isinstance(placement, BasicJoinPlacement):
+        if command.joining_actor_id is None:
+            raise ValidationError("Basic reinforcement placement requires GM admission")
+        basic_facts = placement.facts
+        if any(
+            fact.provenance.source != "gm-adjudication"
+            or fact.provenance.source_id != command.id
+            or fact.provenance.declared_by != command.actor_id
+            or fact.provenance.declared_revision != command.expected_revision
+            or fact.provenance.invalidated_revision is not None
+            or joining_actor_id not in (fact.subject_id, fact.object_id)
+            or fact.subject_id == fact.object_id
+            or not {fact.subject_id, fact.object_id}
+            <= set(encounter.turn_order + (joining_actor_id,))
+            for fact in basic_facts
+        ):
+            raise ValidationError("Basic reinforcement facts require scoped GM provenance")
+        keys = {
+            (
+                fact.kind,
+                min(fact.subject_id, fact.object_id)
+                if fact.kind == "distance"
+                else fact.subject_id,
+                max(fact.subject_id, fact.object_id) if fact.kind == "distance" else fact.object_id,
+            )
+            for fact in basic_facts
+        }
+        required = {
+            (kind, subject, object_id)
+            for other in encounter.turn_order
+            for kind, subject, object_id in (
+                ("distance", min(joining_actor_id, other), max(joining_actor_id, other)),
+                *(
+                    (kind, left, right)
+                    for kind in ("reach", "visibility", "cover", "obstacle", "retreat")
+                    for left, right in ((joining_actor_id, other), (other, joining_actor_id))
+                ),
+            )
+        }
+        if keys != required or len(keys) != len(basic_facts):
+            raise ValidationError(
+                "Basic reinforcement placement requires one complete fact set per combatant"
+            )
     build, _ = play.engine.reviewer.activate(
         joining_actor.proposal,
         joining_actor.approval,
@@ -938,8 +998,11 @@ def _join(
     participant = Combatant(
         actor_id=joining_actor.actor_id,
         initiative=initiative,
-        position=command.position,
-        facing=command.facing,
+        position=placement.position
+        if isinstance(placement, (SquareJoinPlacement, HexJoinPlacement))
+        else None,
+        facing=placement.facing if isinstance(placement, SquareJoinPlacement) else "north",
+        hex_facing=placement.facing if isinstance(placement, HexJoinPlacement) else None,
         reach=engine.rules.default_reach,
         movement_allowance=engine.rules.movement_allowance,
         ready_item_ids=tuple(
@@ -950,6 +1013,14 @@ def _join(
             )
         ),
     )
+    if isinstance(encounter.spatial, BasicSpatialContext):
+        encounter = encounter.model_copy(
+            update={
+                "spatial_context": encounter.spatial.model_copy(
+                    update={"facts": encounter.spatial.facts + basic_facts}
+                )
+            }
+        )
     encounter = encounter.add_participant(participant)
     joined_participants = encounter.participants
     order = tuple(
@@ -962,22 +1033,40 @@ def _join(
             "turn_index": order.index(current_actor),
         }
     )
-    remaining = tuple(a for a in source.actor_ids if a != joining_actor.actor_id)
-    groups = tuple(
-        g.model_copy(
-            update={
-                "actor_ids": g.actor_ids + (joining_actor.actor_id,),
-                "generation": g.generation + 1,
-            }
+    if source.id != target_group.id:
+        remaining = tuple(a for a in source.actor_ids if a != joining_actor.actor_id)
+        groups = tuple(
+            g.model_copy(
+                update={
+                    "actor_ids": g.actor_ids + (joining_actor.actor_id,),
+                    "generation": g.generation + 1,
+                }
+            )
+            if g.id == target_group.id
+            else g.model_copy(update={"actor_ids": remaining, "generation": g.generation + 1})
+            if g.id == source.id
+            else g
+            for g in state.party.groups
+            if g.id != source.id or remaining
         )
-        if g.id == target_group.id
-        else g.model_copy(update={"actor_ids": remaining, "generation": g.generation + 1})
-        if g.id == source.id
-        else g
-        for g in state.party.groups
-        if g.id != source.id or remaining
-    )
-    state = state.model_copy(update={"party": state.party.model_copy(update={"groups": groups})})
+        state = state.model_copy(
+            update={"party": state.party.model_copy(update={"groups": groups})}
+        )
+    if engine.rules.gurps_equipment is not None:
+        from wayfarer.simulation.mechanics.location_combat import bind_initial_hands
+
+        encounter = bind_initial_hands(play.rules_context, state, encounter)
+    if isinstance(placement, HexJoinPlacement):
+        from wayfarer.simulation.tactical import sight
+
+        joined = next(p for p in encounter.participants if p.actor_id == joining_actor_id)
+        board = play.rules_context.require_hex(encounter)
+        if not any(
+            sight(encounter, observer, joined, board=board)
+            for observer in encounter.participants
+            if observer.actor_id != joining_actor_id
+        ):
+            raise ValidationError("Hex reinforcement must arrive in visible placement")
     result = CombatResult(
         encounter_id=encounter.id,
         code="combat.reinforcement_arrived",

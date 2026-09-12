@@ -8,14 +8,25 @@ from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.simulation.combat import (
     BasicSpatialContext,
     CombatEngine,
+    CoverSpatialFact,
+    DistanceSpatialFact,
     Encounter,
     HexActorPlacement,
     HexSpatialContext,
+    ObstacleSpatialFact,
+    ReachSpatialFact,
     RetreatSpatialFact,
+    VisibilitySpatialFact,
     move_basic,
 )
-from wayfarer.simulation.hex_geometry import RetreatContext, can_retreat
-from wayfarer.simulation.tactical import defense_adjustment, occupants, pose, validate_hex_encounter
+from wayfarer.simulation.hex_geometry import RetreatContext, can_retreat, distance, neighbor
+from wayfarer.simulation.tactical import (
+    defense_adjustment,
+    occupants,
+    pose,
+    sight,
+    validate_hex_encounter,
+)
 
 if TYPE_CHECKING:
     from wayfarer.simulation.actions import PlayState
@@ -23,11 +34,12 @@ if TYPE_CHECKING:
     from wayfarer.simulation.rules_context import RulesContext
 
 
-def migrate(runtime: RulesContext, encounter: Encounter, command: MigrateEncounterHex) -> Encounter:
-    if isinstance(encounter.spatial, BasicSpatialContext):
-        raise ValidationError(
-            "Basic-to-hex migration requires an explicit spatial consistency contract"
-        )
+def migrate(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    command: MigrateEncounterHex,
+) -> Encounter:
     if (
         encounter.spatial_kind == "hex"
         or encounter.status != "active"
@@ -51,6 +63,24 @@ def migrate(runtime: RulesContext, encounter: Encounter, command: MigrateEncount
             "lying" if actor.posture == "prone" else actor.posture
         ):
             raise ValidationError("Map migration cannot change posture")
+    if any(
+        item.ground is not None and item.ground.encounter_id == encounter.id
+        for item in state.resources.items
+    ):
+        raise ValidationError("Map migration cannot reinterpret grounded equipment")
+    from wayfarer.simulation.explosions import blasts
+    from wayfarer.simulation.spells import active_spells
+
+    if any(
+        not blast.resolved and blast.encounter_id == encounter.id
+        for blast in blasts(state.resources)
+    ):
+        raise ValidationError("Resolve spatial explosions before map migration")
+    if any(
+        effect.encounter_id == encounter.id and effect.position is not None
+        for effect in active_spells(state.resources)
+    ):
+        raise ValidationError("Map migration cannot reinterpret positioned spell effects")
     participants = tuple(
         p.model_copy(
             update={
@@ -77,10 +107,77 @@ def migrate(runtime: RulesContext, encounter: Encounter, command: MigrateEncount
         }
     )
     rules = runtime.rules.combat
+    if isinstance(encounter.spatial, BasicSpatialContext):
+        _validate_basic_escalation(state, encounter, result, command)
     validate_hex_encounter(
         result, rules.gurps_equipment if rules else None, board=runtime.hex_map(result)
     )
     return result
+
+
+def _validate_basic_escalation(
+    state: PlayState,
+    basic: Encounter,
+    mapped: Encounter,
+    command: MigrateEncounterHex,
+) -> None:
+    """Reject placements that contradict still-authoritative Basic relationships."""
+    context = basic.spatial
+    assert isinstance(context, BasicSpatialContext)
+    actors = {p.actor_id: p for p in mapped.participants}
+    board = command.battlefield
+    occupied = occupants(mapped)
+    hp = {p.id.removeprefix("hp:"): p for p in state.resources.pools if p.id.startswith("hp:")}
+    for fact in context.facts:
+        if fact.provenance.invalidated_revision is not None:
+            continue
+        subject, object_id = actors[fact.subject_id], actors[fact.object_id]
+        separation = distance(pose(subject).position, pose(object_id).position)
+        if isinstance(fact, DistanceSpatialFact) and fact.yards != separation:
+            raise ValidationError("Hex placement contradicts authoritative Basic distance")
+        if isinstance(fact, ReachSpatialFact):
+            expected = "reachable" if separation <= subject.reach else "separated"
+            if fact.relation != expected:
+                raise ValidationError("Hex placement contradicts authoritative Basic reach")
+        if isinstance(fact, VisibilitySpatialFact) and fact.visible != sight(
+            mapped, subject, object_id, board=board
+        ):
+            raise ValidationError("Hex placement contradicts authoritative Basic visibility")
+        if isinstance(fact, CoverSpatialFact) and fact.cover != "none":
+            raise ValidationError("Basic cover requires explicit resolution before hex escalation")
+        if isinstance(fact, ObstacleSpatialFact) and fact.blocked:
+            raise ValidationError(
+                "A blocking Basic obstacle requires explicit resolution before hex escalation"
+            )
+        if isinstance(fact, RetreatSpatialFact):
+            pool = hp.get(subject.actor_id)
+            retreat_context = RetreatContext(
+                already_retreated=subject.retreat_used,
+                stunned=bool(pool and pool.injury and pool.injury.stunned),
+                grappled=subject.grappled
+                or subject.pinned
+                or any(g.holder_id == subject.actor_id for g in basic.grips),
+                maneuver_allows_retreat=not subject.maneuver_state.defense_forbidden,
+            )
+            feasible = False
+            for direction in range(6):
+                try:
+                    destination = neighbor(pose(subject).position, direction)
+                    board.cell(destination)
+                except ValidationError, ValueError:
+                    continue
+                if can_retreat(
+                    board,
+                    pose(subject),
+                    pose(object_id).position,
+                    destination,
+                    context=retreat_context,
+                    occupants=occupied,
+                ):
+                    feasible = True
+                    break
+            if fact.feasible != feasible:
+                raise ValidationError("Hex placement contradicts authoritative Basic retreat")
 
 
 def prepare_defense(
