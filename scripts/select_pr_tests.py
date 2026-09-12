@@ -61,7 +61,11 @@ def _module_name(path: Path, root: Path) -> str | None:
 def _imports(path: Path, module: str) -> set[str]:
     try:
         tree = ast.parse(path.read_text())
-    except OSError, SyntaxError, UnicodeDecodeError:
+    except OSError:
+        return set()
+    except SyntaxError:
+        return set()
+    except UnicodeDecodeError:
         return set()
     package = module if path.name == "__init__.py" else module.rpartition(".")[0]
     found: set[str] = set()
