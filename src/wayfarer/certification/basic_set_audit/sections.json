@@ -14082,14 +14082,14 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": ["docs/gurps-campaign-administration.md", "tests/test_campaign_administration.py"],
       "historical_owners": [
         191
       ],
       "completion_owner": 501,
-      "capability_id": "gurps.check.success",
+      "capability_id": "gurps.campaign.administration",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b491:running-the-game",
       "classification": null,
@@ -14106,14 +14106,14 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": ["docs/gurps-campaign-administration.md", "tests/test_campaign_administration.py"],
       "historical_owners": [
         191
       ],
       "completion_owner": 501,
-      "capability_id": "gurps.check.success",
+      "capability_id": "gurps.campaign.knowledge",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b491:running-the-game",
       "classification": null,
@@ -14130,14 +14130,14 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": ["docs/gurps-campaign-administration.md", "tests/test_campaign_administration.py"],
       "historical_owners": [
         191
       ],
       "completion_owner": 501,
-      "capability_id": "gurps.check.success",
+      "capability_id": "gurps.campaign.knowledge",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b491:running-the-game",
       "classification": null,
@@ -14178,14 +14178,14 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": ["docs/gurps-campaign-administration.md", "tests/test_campaign_administration.py"],
       "historical_owners": [
         191
       ],
       "completion_owner": 501,
-      "capability_id": "gurps.check.success",
+      "capability_id": "gurps.campaign.time_use",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b491:running-the-game",
       "classification": null,
@@ -14226,14 +14226,14 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": ["docs/gurps-campaign-administration.md", "tests/test_campaign_administration.py"],
       "historical_owners": [
         191
       ],
       "completion_owner": 501,
-      "capability_id": "gurps.check.success",
+      "capability_id": "gurps.campaign.administration",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b485:18-game-mastering",
       "classification": null,
@@ -14250,14 +14250,14 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": ["docs/gurps-campaign-administration.md", "tests/test_campaign_administration.py"],
       "historical_owners": [
         191
       ],
       "completion_owner": 501,
-      "capability_id": "gurps.check.success",
+      "capability_id": "gurps.campaign.administration",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b497:ending-a-play-session",
       "classification": null,
@@ -14274,14 +14274,14 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": ["docs/gurps-campaign-administration.md", "tests/test_campaign_administration.py"],
       "historical_owners": [
         191
       ],
       "completion_owner": 501,
-      "capability_id": "gurps.check.success",
+      "capability_id": "gurps.campaign.time_use",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b497:ending-a-play-session",
       "classification": null,
@@ -14394,14 +14394,14 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": ["docs/gurps-campaign-administration.md", "tests/test_campaign_administration.py"],
       "historical_owners": [
         191
       ],
       "completion_owner": 501,
-      "capability_id": "gurps.check.success",
+      "capability_id": "gurps.campaign.traps",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b499:writing-your-own-adventures",
       "classification": null,
@@ -14538,14 +14538,14 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": ["docs/gurps-law.md", "tests/test_campaign_administration.py"],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
-      "capability_id": "gurps.world.physical_feats",
+      "completion_owner": 502,
+      "capability_id": "gurps.world.law",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b504:19-game-worlds",
       "classification": null,
@@ -14562,14 +14562,14 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": ["docs/gurps-law.md", "tests/test_campaign_administration.py"],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
-      "capability_id": "gurps.world.physical_feats",
+      "completion_owner": 502,
+      "capability_id": "gurps.world.law",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b505:laws-and-customs",
       "classification": null,
@@ -14586,14 +14586,14 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": ["docs/gurps-law.md", "tests/test_campaign_administration.py"],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
-      "capability_id": "gurps.world.physical_feats",
+      "completion_owner": 502,
+      "capability_id": "gurps.world.law",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b505:laws-and-customs",
       "classification": null,
@@ -14610,14 +14610,14 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": ["docs/gurps-law.md", "tests/test_campaign_administration.py"],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
-      "capability_id": "gurps.world.physical_feats",
+      "completion_owner": 502,
+      "capability_id": "gurps.world.law",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b505:laws-and-customs",
       "classification": null,
@@ -14634,14 +14634,14 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": ["docs/gurps-law.md", "tests/test_campaign_administration.py"],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
-      "capability_id": "gurps.world.physical_feats",
+      "completion_owner": 502,
+      "capability_id": "gurps.world.law",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b505:laws-and-customs",
       "classification": null,
@@ -14658,14 +14658,14 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": ["docs/gurps-law.md", "tests/test_campaign_administration.py"],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
-      "capability_id": "gurps.world.physical_feats",
+      "completion_owner": 502,
+      "capability_id": "gurps.world.law",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b505:laws-and-customs",
       "classification": null,
@@ -14682,14 +14682,14 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": ["docs/gurps-law.md", "tests/test_campaign_administration.py"],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
-      "capability_id": "gurps.world.physical_feats",
+      "completion_owner": 502,
+      "capability_id": "gurps.world.law",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b505:laws-and-customs",
       "classification": null,
@@ -14706,14 +14706,14 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": ["docs/gurps-law.md", "tests/test_campaign_administration.py"],
       "historical_owners": [
         191
       ],
-      "completion_owner": 504,
-      "capability_id": "gurps.world.physical_feats",
+      "completion_owner": 502,
+      "capability_id": "gurps.world.law",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b505:laws-and-customs",
       "classification": null,

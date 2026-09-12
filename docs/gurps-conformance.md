@@ -193,6 +193,11 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.social.reaction` | yes | yes | partial | #111 ([standing hooks and golden cases](#provisional-social-procedures-111)); catalog content #113 |
 | `gurps.social.influence` | yes | yes | partial | #111; all six authored procedures and B359 exceptions; catalog/trait binding #112/#113 |
 | `gurps.social.fright` | no | yes | partial | #111; lasting consequences #299 |
+| `gurps.campaign.administration` | no | yes | verified | #501; [authoritative reactions and exact-once awards](gurps-campaign-administration.md) |
+| `gurps.campaign.knowledge` | no | yes | verified | #501; [audience-scoped knowledge](gurps-campaign-administration.md) |
+| `gurps.campaign.time_use` | no | yes | verified | #501; [shared-clock Time Use settlement](gurps-campaign-administration.md) |
+| `gurps.campaign.traps` | no | yes | verified | #501; [authored trap branches](gurps-campaign-administration.md) |
+| `gurps.world.law` | no | yes | verified | #502; [jurisdictions, legality, and enforcement](gurps-law.md) |
 | `gurps.social.skill_procedures` | no | yes | partial | #345; [bound social skill procedures and their transferred rows](gurps-mundane-skills.md); remaining #353, #366, #367, #368, #369, #370 |
 | `gurps.skills.arts_trades` | no | yes | partial | #338; [task-specific arts, crafts and trade procedures](gurps-mundane-skills.md#arts-crafts-and-trade-procedures-338) |
 | `gurps.equipment.weapon_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; source audit pending) |

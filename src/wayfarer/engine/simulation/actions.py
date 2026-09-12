@@ -29,8 +29,13 @@ from wayfarer.engine.rules.types.location import Hand, HumanBody
 from wayfarer.engine.simulation.ability_types import AbilityRules
 from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.campaign.adjudication import Ruling, RulingPolicy
+from wayfarer.engine.simulation.campaign.administration import (
+    AdministrationRules,
+    AdministrationState,
+)
 from wayfarer.engine.simulation.campaign.advancement import AdvancementEntry, MigrationEntry
 from wayfarer.engine.simulation.campaign.director import AuthorDraft, DirectorTurn
+from wayfarer.engine.simulation.campaign.law import LawRules, LawState
 from wayfarer.engine.simulation.campaign.npcs import NPCRules, NPCState
 from wayfarer.engine.simulation.campaign.objectives import ObjectiveRules, ObjectiveState
 from wayfarer.engine.simulation.campaign.party import PartyRules, PartyState
@@ -155,6 +160,8 @@ class ActionRules(Record):
     recovery: RecoveryRules | None = Field(default=None, exclude=True)
     abilities: AbilityRules | None = Field(default=None, exclude=True)
     spells: SpellRules | None = Field(default=None, exclude=True)
+    administration: AdministrationRules | None = Field(default=None, exclude=True)
+    law: LawRules | None = Field(default=None, exclude=True)
 
 
 class ActionResult(Record):
@@ -210,6 +217,10 @@ class PlayCheckpoint(Record):
     recovery: RecoveryState = RecoveryState()
     director: tuple[DirectorTurn, ...] = ()
     drafts: tuple[AuthorDraft, ...] = ()
+    administration: AdministrationState = Field(
+        default=AdministrationState(), exclude_if=lambda value: value == AdministrationState()
+    )
+    law: LawState = Field(default=LawState(), exclude_if=lambda value: value == LawState())
 
 
 class PlayState(PlayCheckpoint):
