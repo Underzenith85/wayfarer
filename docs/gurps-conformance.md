@@ -225,7 +225,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.world.environmental_hazards` | yes | yes | partial | #110; [persistent exposure schedules](gurps-hazards.md) |
 | `gurps.magic.spellcasting` | no | yes | partial | #117/#171; approved builds, representative effects; remaining variants below |
 | `gurps.supernatural.abilities` | no | yes | partial | #118 representative execution complete; exhaustive audit #119 |
-| `gurps.vehicles.movement` | no | yes | partial | #358; [vehicle operation audit](gurps-vehicles.md); ground and air complete in #392-#393, remaining #394-#396 |
+| `gurps.vehicles.movement` | no | yes | partial | #358; [vehicle operation audit](gurps-vehicles.md); ground, air, and water complete in #392-#394, remaining #395-#396 |
 | `gurps.vehicles.combat` | no | yes | partial | #358; [vehicle operation audit](gurps-vehicles.md); remaining #397 |
 
 Profile registration and explicit migration (#96) are infrastructure, not
@@ -991,8 +991,8 @@ restart it resolves, and every residual with the live issue that owns it. #120
 closed after landing a ground slice and #207 closed after expanding the modes,
 so both capability rows are owned by #358 from here, and their status is derived
 from the audit rather than hand-set. The five non-mounted ground modes qualify
-after #392 and air qualifies after #393. Water and underwater owe their casualty
-states (#394), space cannot travel at all (#395), and
+after #392, air qualifies after #393, and water/underwater qualify after #394.
+Space cannot travel at all (#395), and
 `ground-mount` carries no version-two operation (#396). Vehicle combat remains
 partial under #397. The audit rejects a declared status or owner that
 disagrees with it. The #346 vehicle skill procedures publish

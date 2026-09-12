@@ -23,6 +23,10 @@ class Transport(Record):
     aftermath_turn: int = Field(default=-1, ge=-1)
     minimum_speed: int = Field(default=0, ge=0)
     draft: int = Field(default=0, ge=0)
+    draft_inches: int = Field(default=0, ge=0, le=11)
+    submersion: int = Field(default=0, ge=0, le=1000000)
+    sink_rate: int = Field(default=1, ge=1, le=1000)
+    leak_rate: int = Field(default=0, ge=0, le=1000)
     open_cabin: bool = False
     unsinkable: bool = False
     straight_yards: int = Field(default=0, ge=0)
@@ -34,6 +38,7 @@ class Transport(Record):
     pending_ejections: tuple[PassengerEjection, ...] = Field(
         default=(), exclude_if=lambda value: not value
     )
+    overboard: tuple[str, ...] = Field(default=(), exclude_if=lambda value: not value)
     locomotion: Locomotion
     body_id: str = Field(min_length=1, max_length=200)
     operator_id: str = Field(min_length=1, max_length=200)
@@ -76,6 +81,7 @@ class Transport(Record):
         if len(set(self.occupants)) != len(self.occupants) or (
             self.operator_id not in self.occupants
             and not any(e.actor_id == self.operator_id for e in self.pending_ejections)
+            and self.operator_id not in self.overboard
             and self.status != "crashed"
         ):
             raise ValueError("Transport requires a unique manifest including its operator")
@@ -83,6 +89,10 @@ class Transport(Record):
             self.occupants
         ) & {e.actor_id for e in self.pending_ejections}:
             raise ValueError("Pending ejections must be unique and outside the manifest")
+        if len(set(self.overboard)) != len(self.overboard) or set(self.occupants) & set(
+            self.overboard
+        ):
+            raise ValueError("Overboard occupants must be unique and outside the manifest")
         if self.mechanics_version == 1 and self.locomotion not in (
             "ground-wheeled",
             "ground-mount",

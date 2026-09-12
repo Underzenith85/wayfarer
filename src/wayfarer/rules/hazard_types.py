@@ -50,7 +50,9 @@ class HazardSpec(HazardRecord):
 
     id: str = Field(min_length=1, max_length=120)
     profile_id: Literal["gurps-basic-set-4e-2004"] = "gurps-basic-set-4e-2004"
-    kind: Literal["cold", "heat", "fire", "suffocation", "drowning", "poison", "disease"]
+    kind: Literal[
+        "cold", "heat", "fire", "suffocation", "drowning", "pressure", "poison", "disease"
+    ]
     scene_id: str
     delay: int = Field(default=0, ge=0, le=31536000)
     interval: int = Field(default=1, ge=1, le=31536000)

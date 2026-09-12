@@ -177,7 +177,9 @@ def move_vehicle(
                 if command.waterline is None:
                     raise ValidationError("Water movement requires an authored waterline")
                 if t.locomotion == "water":
-                    if command.waterline - terrain.ground < t.draft:
+                    if command.waterline - terrain.ground < Fraction(
+                        t.draft * 12 + t.draft_inches, 12
+                    ):
                         raise ValidationError("Insufficient water depth for vehicle draft")
                 elif not terrain.ground < t.altitude < command.waterline:
                     raise ValidationError("Underwater path intersects surface or bottom")

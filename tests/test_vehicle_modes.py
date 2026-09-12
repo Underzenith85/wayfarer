@@ -16,7 +16,11 @@ from wayfarer.persistence.postgres import AsyncPostgresStore
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.rules.conformance import BASELINE_ID
 from wayfarer.rules.transport_types import Transport
-from wayfarer.rules.vehicle_types import PassengerEjection, PassengerProtection
+from wayfarer.rules.vehicle_types import (
+    PassengerEjection,
+    PassengerProtection,
+    WaterOccupantCheck,
+)
 from wayfarer.simulation.hex_geometry import Cell, Hex, HexBattlefield
 from wayfarer.simulation.resources import ResourceEngine, ResourceState
 from wayfarer.simulation.transport import apply_transport
@@ -24,6 +28,7 @@ from wayfarer.simulation.vehicle_collisions import collision_exchange, passenger
 from wayfarer.simulation.vehicle_commands import (
     ResolveAirAftermath,
     ResolveVehicleEjection,
+    ResolveWaterAftermath,
     VehicleControl,
     VehicleImpact,
     VehicleManeuver,
@@ -219,6 +224,132 @@ def test_stall_fall_reaches_terrain_and_uses_existing_collision_reducers() -> No
     assert crashed.transports[0].status in ("crashed", "ejection-pending")
     body = next(i for i in crashed.items if i.id == state.transports[0].body_id)
     assert body.condition is not None and body.condition.hp < 30
+
+
+def water_facts() -> tuple[WaterOccupantCheck, ...]:
+    return (WaterOccupantCheck(actor_id="a", hold_skill=12, swimming=12, ht=12, will=12),)
+
+
+def test_fractional_draft_and_authored_current_displacement() -> None:
+    engine, state = fixture(
+        locomotion="water", status="drifting", draft=1, draft_inches=6, altitude=0
+    )
+    command = ResolveWaterAftermath(
+        id="current",
+        actor_id="a",
+        expected_revision=0,
+        transport_id="ride",
+        action="drift",
+        direction=0,
+        distance=2,
+        waterline=2,
+    )
+    moved = apply_transport(engine, state, command, system=True, board=map_fixture())
+    assert (moved.transports[0].q, moved.transports[0].status) == (2, "controlled")
+    shoal = map_fixture().model_copy(
+        update={
+            "cells": tuple(
+                c.model_copy(update={"elevation_inches": 19}) if c.position == Hex(q=1, r=0) else c
+                for c in map_fixture().cells
+            )
+        }
+    )
+    with pytest.raises(ValidationError, match="grounds"):
+        apply_transport(engine, state, command, system=True, board=shoal)
+
+
+def test_open_deck_failure_places_occupant_overboard_in_drowning_schedule() -> None:
+    engine, state = fixture(locomotion="water", open_cabin=True, speed=20)
+    command = VehicleControl(
+        id="deck",
+        actor_id="a",
+        expected_revision=0,
+        transport_id="ride",
+        skill=12,
+        water_occupants=water_facts(),
+    )
+    tossed = apply_transport(
+        engine,
+        state,
+        command,
+        system=True,
+        board=map_fixture(),
+        rng=RecordedDice([5, 4, 4, 6, 6, 6]),
+    )
+    assert tossed.transports[0].occupants == ()
+    assert tossed.transports[0].overboard == ("a",)
+    assert tossed.hazards[0].spec.kind == "drowning"
+
+
+def test_capsize_recovery_costs_a_turn_and_sinking_starts_breathing_clock() -> None:
+    engine, capsized = fixture(locomotion="water", status="capsized", unsinkable=True)
+    right = ResolveWaterAftermath(
+        id="right",
+        actor_id="a",
+        expected_revision=0,
+        transport_id="ride",
+        action="right",
+        skill=12,
+    )
+    failed = apply_transport(
+        engine, capsized, right, system=True, board=map_fixture(), rng=RecordedDice([6, 6, 6])
+    )
+    assert failed.transports[0].status == "capsized"
+    with pytest.raises(ConflictError, match="already attempted"):
+        apply_transport(
+            engine,
+            failed,
+            right.model_copy(update={"id": "again", "expected_revision": 1}),
+            system=True,
+            board=map_fixture(),
+            rng=RecordedDice([]),
+        )
+
+    engine, sinking = fixture(locomotion="water", status="sinking", sink_rate=2)
+    sunk = apply_transport(
+        engine,
+        sinking,
+        ResolveWaterAftermath(
+            id="sink",
+            actor_id="a",
+            expected_revision=0,
+            transport_id="ride",
+            action="sink",
+            waterline=10,
+            occupants=water_facts(),
+        ),
+        system=True,
+        board=map_fixture(),
+    )
+    assert sunk.transports[0].submersion == 2
+    assert sunk.hazards[0].spec.kind == "suffocation" and sunk.hazards[0].due == 1
+    assert ResourceState.model_validate_json(sunk.model_dump_json()) == sunk
+
+
+def test_underwater_stress_leak_damages_hull_and_starts_pressure_exposure() -> None:
+    engine, state = fixture(locomotion="underwater", status="stress-failure", altitude=5)
+    before = next(i for i in state.items if i.id == state.transports[0].body_id)
+    assert before.condition is not None
+    leaking = apply_transport(
+        engine,
+        state,
+        ResolveWaterAftermath(
+            id="leak",
+            actor_id="a",
+            expected_revision=0,
+            transport_id="ride",
+            action="stress-leak",
+            leak_damage=5,
+            occupants=water_facts(),
+        ),
+        system=True,
+        board=map_fixture(),
+        rng=RecordedDice([]),
+    )
+    after = next(i for i in leaking.items if i.id == state.transports[0].body_id)
+    assert after.condition is not None and after.condition.hp < before.condition.hp
+    assert (leaking.transports[0].status, leaking.transports[0].leak_rate) == ("sinking", 5)
+    assert leaking.hazards[0].spec.kind == "pressure"
     assert (
         ground_cruising_speed(60, 3, "ground-wheeled", "average", road_bound=True, on_road=False)
         == 6
