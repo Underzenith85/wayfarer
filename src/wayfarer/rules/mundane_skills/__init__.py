@@ -39,6 +39,7 @@ from wayfarer.rules.mundane_skills.technology import unsupported_scope as techno
 from wayfarer.rules.skill_types import ControllingAttribute as A
 from wayfarer.rules.skill_types import (
     DefaultCondition,
+    DefaultConditionKind,
     PrerequisiteGroup,
     PrerequisiteKind,
     SkillDefault,
@@ -70,7 +71,6 @@ CONTEXT_OWNER = 336
 # the one that owns it instead of resolving into the context owner.
 CONTEXT_RESIDUALS = MappingProxyType(
     {
-        "contextual-default-procedure": (476,),
         "technology-level-context": (384,),
         "optional-rule-selection": (384,),
         "specialty-expansion": (385,),
@@ -533,13 +533,27 @@ def validate_inventory(entries: tuple[SkillAudit, ...]) -> None:
             if not implemented and entry.definition.status is not ImplementationStatus.UNSUPPORTED:
                 raise ValidationError(f"Provisional definition must be unsupported: {entry.id}")
             spec = entry.definition.skill
-            allowed_targets = identifiers | cross_package | {a.value for a in A}
-            if any(d.target not in allowed_targets or d.target == entry.id for d in spec.defaults):
+            # ``skill:any`` is a non-rollable selector whose concrete target is
+            # supplied by a campaign-selected edge at compilation time.
+            allowed_targets = identifiers | cross_package | {a.value for a in A} | {"skill:any"}
+            if any(
+                d.target not in allowed_targets
+                or (
+                    d.target == entry.id
+                    and not any(
+                        condition.kind is DefaultConditionKind.CAMPAIGN_SELECTED
+                        for condition in d.conditions
+                    )
+                )
+                for d in spec.defaults
+            ):
                 raise ValidationError(f"Invalid default references for {entry.id}")
             references = tuple(
                 d.target
                 for d in spec.defaults
-                if d.target.startswith("skill:") and d.target not in cross_package
+                if d.target.startswith("skill:")
+                and d.target not in cross_package
+                and d.target != "skill:any"
             )
             # A prerequisite another catalog owns resolves there, not here.
             references += tuple(

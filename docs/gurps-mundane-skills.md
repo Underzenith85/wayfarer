@@ -55,7 +55,7 @@ also verifies names, pages and owners against the supernatural catalog.
 | Bound runtime procedures | 233 | Implemented and dispatched by #344 (12), #345 (16), #346 (83), #356 (83) and the TL-indexed and crew-served ranged rows (#354, #355, #357). Of all inventory rows, 174 currently have no remaining blocker. |
 | Contextual records | 28 | 23 B230-233 technique templates and five open families (#336). Not rollable skills, so they record a shape rather than a definition. No row is left recording nothing at all. |
 | Transferred cinematic/supernatural skills | 28 | Owned by #242/#243 and source audit #191. |
-| **Total accounted records** | **532** | **504 inventory rows plus 28 transferred rows; 174 inventory rows are available.** |
+| **Total accounted records** | **532** | **504 inventory rows plus 28 transferred rows; 209 inventory rows are available.** |
 
 This revision fills the previously empty Aerobatics, Aquabatics, crewman, suit
 and weapon entries; records Weather Sense as a TL-dependent Meteorology alias;
@@ -72,14 +72,14 @@ is not converted into an ordinary DX skill.
 | Structural class | Rows |
 | --- | ---: |
 | `attribute-default` | 377 |
-| `skill-default` | 281 |
-| `no-default` | 43 |
+| `skill-default` | 285 |
+| `no-default` | 42 |
 | `technology-level` | 252 |
 | `required-specialty` | 233 |
 | `unexpanded-specialty` | 24 |
 | `listing-only` | 28 |
 | `technique-template` | 24 |
-| `variable-family` | 28 |
+| `variable-family` | 30 |
 | `alternative-prerequisite` | 3 |
 | `technique` | 6 |
 | `prerequisite` | 25 |
@@ -89,7 +89,7 @@ is not converted into an ordinary DX skill.
 Classes overlap, and a class describes what a row records structurally while
 `implementation` describes its certification state: the 28 `listing-only` rows
 record no rollable definition, and 28 of them are `contextual` because they do
-record a technique template or an open family. Twenty-three of the 28 `variable-family`
+record a technique template or an open family. Twenty-five of the 30 `variable-family`
 rows carry a definition: B180 Biology is IQ/VH whichever planet type it
 covers, so those rows record the numbers and leave only the subject open. `no-default` means the
 selected printing records no default for that row. Fixtures sample every
@@ -107,7 +107,7 @@ retained where previously recorded, but they do not replace the active owners.
 | #336 | Complete. The contextual shapes landed; everything it could not settle without the artifact or campaign state names one of the four children below. |
 | #382 | Reconciled: the supplied Characters third printing is the selected source artifact. |
 | #383 | Complete. Static and typed conditional defaults, remaining alternative prerequisites, and the Force Sword audit are recorded. |
-| #476 | Campaign- and action-scoped default predicates that cannot be represented by matching TL, matching specialty, or required equipment. |
+| #476 | Complete. Biographical, campaign-selected, minimum-TL, vessel, and action-mode predicates fail closed and preserve their facts in the skill receipt. |
 | #384 | Complete. `/TL` purchases record TL explicitly, profiles activating those skills require an explicit campaign TL, and cinematic templates name and enforce their optional-rule selections. |
 | #385 | Complete. All open and finite specialty families are recorded; Motion-Picture Camera is explicitly transferred to its open Photography parent work in #338. |
 | #338 | Arts, crafts and trade procedures. |
@@ -388,7 +388,9 @@ receipt. Typed acquisition prerequisites now distinguish trained skills,
 purchased definitions, and derived capabilities; technology-level thresholds
 apply only when the campaign reaches the stated TL. Firm requirements and
 alternative groups fail closed both in compilation and direct procedure use.
-Defaults needing campaign- or action-specific predicates name #476.
+Campaign- and action-specific defaults use typed server-owned facts. Open-family
+selectors resolve only to concrete specialties selected by the campaign and are
+never themselves rollable definitions.
 
 Every bound vehicle row also records `gurps.vehicles.movement`, which is still
 `partial`; #358 must verify it before live play may offer those rows. The
@@ -507,15 +509,16 @@ facts. Dual-Weapon Attack and Whirlwind Attack name separate optional-rule IDs
 and refuse expansion unless the registered profile selected the matching one.
 Empty conditions are omitted from canonical package JSON, preserving existing
 pins, and this prerelease change does not increment an engine or package version.
-All source-representable defaults are recorded; 76 campaign- or action-scoped
-rows name #476. The `conditional-or-skill-defaults`, `weapon-default-audit`, and
+All source-representable defaults are recorded, including the campaign- and
+action-scoped predicates completed by #476. The `conditional-or-skill-defaults`,
+`contextual-default-procedure`, `weapon-default-audit`, and
 `prerequisite-procedure` blocker classes are empty.
 
 ## Validation and runtime contract
 
 Unsupported candidates in this package have no runtime hooks. `require_available`
 rejects unknown IDs, blocked rows and unsupported definitions even if their
-blocker list is mistakenly cleared; the 174 available rows have both a concrete
+blocker list is mistakenly cleared; the 209 available rows have both a concrete
 implementation and no remaining blocker. Scenario/character/LLM validation
 therefore cannot turn catalog presence alone into playable mechanics.
 

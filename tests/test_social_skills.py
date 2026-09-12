@@ -374,10 +374,7 @@ def test_a_binding_cannot_disagree_with_the_recorded_inventory() -> None:
         (
             replace(
                 procedure("skill:savoir-faire"),
-                transferred={
-                    "runtime-procedure": (366,),
-                    "contextual-default-procedure": (),
-                },
+                transferred={"runtime-procedure": ()},
             ),
             "names no owner",
         ),

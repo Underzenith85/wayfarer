@@ -26,6 +26,34 @@ class DefaultConditionKind(StrEnum):
     MATCHING_TECHNOLOGY_LEVEL = "matching-technology-level"
     MATCHING_SPECIALTY = "matching-specialty"
     REQUIRED_EQUIPMENT = "required-equipment"
+    BIOGRAPHICAL = "biographical"
+    CAMPAIGN_SELECTED = "campaign-selected"
+    MINIMUM_TECHNOLOGY_LEVEL = "minimum-technology-level"
+    VESSEL = "vessel"
+    ACTION_MODE = "action-mode"
+
+
+class BiographicalDefault(StrEnum):
+    """Character-history axes that can authorize a source default."""
+
+    HOME_AREA = "home-area"
+    NATIVE_PLANET_TYPE = "native-planet-type"
+    NATIVE_CULTURE = "native-culture"
+
+
+class DefaultActionMode(StrEnum):
+    """Action modes whose presence changes the legal default alternatives."""
+
+    ON_FOOT = "on-foot"
+    DISARM_TRAP = "disarm-trap"
+    RESET_TRAP = "reset-trap"
+
+
+class DefaultVessel(StrEnum):
+    """Vessel facts used by the conditional Shiphandling defaults on B220."""
+
+    POWERED_SHIP = "powered-ship"
+    TALL_SHIP = "tall-ship"
 
 
 class PrerequisiteKind(StrEnum):
@@ -39,8 +67,32 @@ class PrerequisiteKind(StrEnum):
 @dataclass(frozen=True, slots=True)
 class DefaultCondition:
     kind: DefaultConditionKind
-    # Only ``required-equipment`` names a value: the pinned equipment definition.
-    value: str | None = None
+    # The condition kind determines whether this is an identifier, enum value,
+    # or minimum TL. Campaign-selected and matching predicates name no value.
+    value: str | int | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class CampaignDefaultSelection:
+    """A campaign-authored edge from a catalog selector to one concrete skill.
+
+    The catalog owns the modifier. Campaign setup can select a target, but it
+    cannot supply or alter the numerical default.
+    """
+
+    source: str
+    selector: str
+    target: str
+
+
+@dataclass(frozen=True, slots=True)
+class CampaignSkillSpecialty:
+    """The concrete identity selected for one otherwise-open skill family."""
+
+    family: str
+    definition_id: str
+    name: str
+    specialty: str
 
 
 @dataclass(frozen=True, slots=True)

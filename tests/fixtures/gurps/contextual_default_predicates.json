@@ -1,0 +1,54 @@
+{
+  "owner": 476,
+  "source": "Basic Set Characters, Fourth Edition, third printing",
+  "cases": {
+    "skill:area-knowledge": {
+      "reference": "B176",
+      "target": "attribute:iq",
+      "modifier": -4,
+      "conditions": [["biographical", "home-area"]]
+    },
+    "skill:biology": {
+      "reference": "B180",
+      "target": "attribute:iq",
+      "modifier": -6,
+      "conditions": [["biographical", "native-planet-type"]]
+    },
+    "skill:brainwashing": {
+      "reference": "B182",
+      "target": "skill:hypnotism",
+      "modifier": -6,
+      "conditions": [["campaign-selected", null]]
+    },
+    "skill:forward-observer": {
+      "reference": "B196",
+      "target": "skill:electronics-operation-sensors",
+      "modifier": -5,
+      "conditions": [["matching-technology-level", null], ["minimum-technology-level", 7]]
+    },
+    "skill:savoir-faire": {
+      "reference": "B218",
+      "target": "attribute:iq",
+      "modifier": -4,
+      "conditions": [["biographical", "native-culture"]]
+    },
+    "skill:shadowing": {
+      "reference": "B219",
+      "target": "skill:stealth",
+      "modifier": -4,
+      "conditions": [["action-mode", "on-foot"]]
+    },
+    "skill:shiphandling-ship": {
+      "reference": "B220",
+      "target": "skill:boating-large-powerboat",
+      "modifier": -5,
+      "conditions": [["matching-technology-level", null], ["vessel", "powered-ship"]]
+    },
+    "skill:traps": {
+      "reference": "B226",
+      "target": "attribute:dx",
+      "modifier": -5,
+      "conditions": [["action-mode", "disarm-trap"]]
+    }
+  }
+}

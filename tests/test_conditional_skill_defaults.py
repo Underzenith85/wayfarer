@@ -51,6 +51,10 @@ def test_only_campaign_or_action_scoped_defaults_keep_a_followup() -> None:
         assert recorded[identifier].blocker_owners["contextual-default-procedure"] == tuple(owners)
 
     assert not [
+        entry.id for entry in recorded.values() if "contextual-default-procedure" in entry.blockers
+    ]
+
+    assert not [
         entry
         for entry in recorded.values()
         if "conditional-or-skill-defaults" in entry.blockers

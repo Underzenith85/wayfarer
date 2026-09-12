@@ -7,7 +7,7 @@ acquisition prerequisites and parent-relative techniques remain acyclic.
 """
 
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from decimal import Decimal
 from graphlib import CycleError, TopologicalSorter
 
@@ -15,14 +15,21 @@ from wayfarer.errors import ValidationError
 from wayfarer.rules.catalog import DefinitionKind, ImplementationStatus, RuleDefinition
 from wayfarer.rules.conformance import profile, require_capabilities
 from wayfarer.rules.skill_types import (
+    BiographicalDefault,
+    CampaignDefaultSelection,
+    CampaignSkillSpecialty,
     ControllingAttribute,
+    DefaultActionMode,
     DefaultCondition,
     DefaultConditionKind,
+    DefaultVessel,
     Difficulty,
     PrerequisiteKind,
     SkillDefault,
     SkillPrerequisite,
     SkillSpec,
+    Specialty,
+    VariableFamily,
 )
 
 BASIC = "gurps-basic-set-4e-2004"
@@ -57,8 +64,10 @@ class DefaultContext:
     """Authoritative state used to decide whether a conditional default exists.
 
     A missing fact fails closed. Technology levels are keyed by skill definition;
-    equipment IDs are pinned rule-definition IDs. Matching-specialty needs no
-    caller input because the selected catalog owns both specialty records.
+    equipment IDs are pinned rule-definition IDs. Biographical subjects,
+    campaign-selected edges, vessel facts, and action modes are typed server
+    state. Matching-specialty needs no caller input because the selected catalog
+    owns both specialty records.
     """
 
     technology_levels: Mapping[str, int]
@@ -66,10 +75,49 @@ class DefaultContext:
     purchased_definition_ids: frozenset[str] = frozenset()
     capabilities: frozenset[str] = frozenset()
     campaign_technology_level: int | None = None
+    biographical_subjects: Mapping[BiographicalDefault, frozenset[str]] = field(
+        default_factory=dict
+    )
+    campaign_defaults: frozenset[CampaignDefaultSelection] = frozenset()
+    vessel_facts: frozenset[DefaultVessel] = frozenset()
+    action_modes: frozenset[DefaultActionMode] = frozenset()
 
     @classmethod
     def empty(cls) -> DefaultContext:
         return cls({}, frozenset())
+
+
+def materialize_open_specialty(
+    definition: RuleDefinition,
+    family: VariableFamily,
+    selection: CampaignSkillSpecialty,
+) -> RuleDefinition:
+    """Create one campaign-selected specialization; the family remains a selector.
+
+    The definition retains the family's catalog-owned mechanics. Campaign setup
+    supplies identity only, and therefore has no path to inject a modifier.
+    """
+    spec = definition.skill
+    family_id = definition.id.removeprefix("skill:")
+    if (
+        definition.kind is not DefinitionKind.SKILL
+        or spec is None
+        or spec.specialty is not None
+        or spec.technique is not None
+        or selection.family != definition.id
+        or not selection.definition_id.startswith(definition.id + "-")
+        or not selection.name
+        or not selection.specialty
+        or (family.attribute is not None and family.attribute is not spec.attribute)
+        or (family.difficulty is not None and family.difficulty is not spec.difficulty)
+    ):
+        raise SkillError("skill.specialty", "Invalid open-family specialization")
+    return replace(
+        definition,
+        id=selection.definition_id,
+        name=selection.name,
+        skill=replace(spec, specialty=Specialty(family_id, selection.specialty)),
+    )
 
 
 def relative_level(difficulty: Difficulty, points: int) -> int:
@@ -148,9 +196,44 @@ class SkillCompiler:
                 for condition in default.conditions:
                     if not isinstance(condition.kind, DefaultConditionKind):
                         raise SkillError("skill.definition", "Unsupported default condition")
-                    needs_value = condition.kind is DefaultConditionKind.REQUIRED_EQUIPMENT
+                    needs_value = condition.kind in {
+                        DefaultConditionKind.REQUIRED_EQUIPMENT,
+                        DefaultConditionKind.BIOGRAPHICAL,
+                        DefaultConditionKind.MINIMUM_TECHNOLOGY_LEVEL,
+                        DefaultConditionKind.VESSEL,
+                        DefaultConditionKind.ACTION_MODE,
+                    }
                     if needs_value != (condition.value is not None):
                         raise SkillError("skill.definition", "Invalid default condition value")
+                    if condition.kind is DefaultConditionKind.MINIMUM_TECHNOLOGY_LEVEL:
+                        if type(condition.value) is not int or condition.value < 0:
+                            raise SkillError("skill.definition", "Invalid minimum technology level")
+                    elif condition.value is not None and not isinstance(condition.value, str):
+                        raise SkillError("skill.definition", "Invalid default condition value")
+                    elif condition.kind is DefaultConditionKind.BIOGRAPHICAL:
+                        assert isinstance(condition.value, str)
+                        try:
+                            BiographicalDefault(condition.value)
+                        except ValueError:
+                            raise SkillError(
+                                "skill.definition", "Unsupported biographical default"
+                            ) from None
+                    elif condition.kind is DefaultConditionKind.VESSEL:
+                        assert isinstance(condition.value, str)
+                        try:
+                            DefaultVessel(condition.value)
+                        except ValueError:
+                            raise SkillError(
+                                "skill.definition", "Unsupported vessel default"
+                            ) from None
+                    elif condition.kind is DefaultConditionKind.ACTION_MODE:
+                        assert isinstance(condition.value, str)
+                        try:
+                            DefaultActionMode(condition.value)
+                        except ValueError:
+                            raise SkillError(
+                                "skill.definition", "Unsupported action-mode default"
+                            ) from None
             alternatives = tuple(p for g in spec.prerequisite_groups for p in g.alternatives)
             if any(
                 type(p.minimum) is not int
@@ -260,16 +343,17 @@ class SkillCompiler:
         skill_id: str,
         spec: SkillSpec,
         default: SkillDefault,
+        target_id: str,
         context: DefaultContext,
     ) -> bool:
         for condition in default.conditions:
             if condition.kind is DefaultConditionKind.MATCHING_TECHNOLOGY_LEVEL:
                 own_tl = context.technology_levels.get(skill_id)
-                target_tl = context.technology_levels.get(default.target)
+                target_tl = context.technology_levels.get(target_id)
                 if own_tl is None or own_tl != target_tl:
                     return False
             elif condition.kind is DefaultConditionKind.MATCHING_SPECIALTY:
-                target = self.specs.get(default.target)
+                target = self.specs.get(target_id)
                 if (
                     spec.specialty is None
                     or target is None
@@ -280,9 +364,86 @@ class SkillCompiler:
             elif condition.kind is DefaultConditionKind.REQUIRED_EQUIPMENT:
                 if condition.value not in context.equipment_ids:
                     return False
+            elif condition.kind is DefaultConditionKind.BIOGRAPHICAL:
+                assert isinstance(condition.value, str)
+                try:
+                    fact = BiographicalDefault(condition.value)
+                except ValueError:
+                    raise SkillError(
+                        "skill.definition", "Unsupported biographical default"
+                    ) from None
+                if (
+                    spec.specialty is None
+                    or spec.specialty.name
+                    not in context.biographical_subjects.get(fact, frozenset())
+                ):
+                    return False
+            elif condition.kind is DefaultConditionKind.CAMPAIGN_SELECTED:
+                if (
+                    CampaignDefaultSelection(skill_id, default.target, target_id)
+                    not in context.campaign_defaults
+                ):
+                    return False
+            elif condition.kind is DefaultConditionKind.MINIMUM_TECHNOLOGY_LEVEL:
+                minimum = condition.value
+                assert isinstance(minimum, int)
+                if (
+                    context.campaign_technology_level is None
+                    or context.campaign_technology_level < minimum
+                ):
+                    return False
+            elif condition.kind is DefaultConditionKind.VESSEL:
+                assert isinstance(condition.value, str)
+                try:
+                    vessel = DefaultVessel(condition.value)
+                except ValueError:
+                    raise SkillError("skill.definition", "Unsupported vessel default") from None
+                if vessel not in context.vessel_facts:
+                    return False
+            elif condition.kind is DefaultConditionKind.ACTION_MODE:
+                assert isinstance(condition.value, str)
+                try:
+                    mode = DefaultActionMode(condition.value)
+                except ValueError:
+                    raise SkillError(
+                        "skill.definition", "Unsupported action-mode default"
+                    ) from None
+                if mode not in context.action_modes:
+                    return False
             else:
                 raise SkillError("skill.definition", "Unsupported default condition")
         return True
+
+    def _default_targets(
+        self, skill_id: str, default: SkillDefault, context: DefaultContext
+    ) -> tuple[str, ...]:
+        """Resolve a catalog selector without ever making it a rollable skill."""
+        if not any(
+            condition.kind is DefaultConditionKind.CAMPAIGN_SELECTED
+            for condition in default.conditions
+        ):
+            return (default.target,)
+
+        def permitted(selection: CampaignDefaultSelection) -> bool:
+            if selection.source != skill_id or selection.selector != default.target:
+                return False
+            target = self.specs.get(selection.target)
+            if target is None or target.technique is not None:
+                return False
+            if default.target == "skill:any":
+                return True
+            if default.target in self.specs:
+                return selection.target == default.target
+            return (
+                target.specialty is not None
+                and f"skill:{target.specialty.family}" == default.target
+            )
+
+        return tuple(
+            sorted(
+                selection.target for selection in context.campaign_defaults if permitted(selection)
+            )
+        )
 
     def compile(
         self,
@@ -326,6 +487,26 @@ class SkillCompiler:
             or context.campaign_technology_level < 0
         ):
             raise SkillError("skill.context", "Campaign technology level must be nonnegative")
+        if any(
+            not isinstance(kind, BiographicalDefault)
+            or not isinstance(subjects, frozenset)
+            or any(not isinstance(subject, str) or not subject for subject in subjects)
+            for kind, subjects in context.biographical_subjects.items()
+        ):
+            raise SkillError("skill.context", "Biographical context needs typed nonempty subjects")
+        if any(
+            not isinstance(item, CampaignDefaultSelection)
+            or not all(
+                isinstance(value, str) and value
+                for value in (item.source, item.selector, item.target)
+            )
+            for item in context.campaign_defaults
+        ):
+            raise SkillError("skill.context", "Campaign defaults need concrete definition IDs")
+        if any(not isinstance(item, DefaultVessel) for item in context.vessel_facts):
+            raise SkillError("skill.context", "Vessel context needs typed facts")
+        if any(not isinstance(item, DefaultActionMode) for item in context.action_modes):
+            raise SkillError("skill.context", "Action context needs typed modes")
 
         def adjusted(result: SkillLevel) -> SkillLevel:
             level = result.level if adjust is None else adjust(result.target, result.level)
@@ -350,31 +531,32 @@ class SkillCompiler:
             paid = points.get(key, 0)
             candidates: list[tuple[int, str, bool, tuple[DefaultCondition, ...]]] = []
             for default in spec.defaults:
-                if not self._conditions_satisfied(key, spec, default, context):
-                    continue
-                if default.target in attributes:
-                    candidates.append(
-                        (
-                            min(20, attributes[default.target]) + default.modifier,
-                            default.target,
-                            False,
-                            default.conditions,
+                for target_id in self._default_targets(key, default, context):
+                    if not self._conditions_satisfied(key, spec, default, target_id, context):
+                        continue
+                    if target_id in attributes:
+                        candidates.append(
+                            (
+                                min(20, attributes[target_id]) + default.modifier,
+                                target_id,
+                                False,
+                                default.conditions,
+                            )
                         )
-                    )
-                elif default.target in points and default.target in levels:
-                    source_level = (
-                        default_native[default.target]
-                        if (key, default.target) in self.reciprocal_defaults
-                        else levels[default.target].level
-                    )
-                    candidates.append(
-                        (
-                            source_level + default.modifier,
-                            default.target,
-                            True,
-                            default.conditions,
+                    elif target_id in points and target_id in levels:
+                        source_level = (
+                            default_native[target_id]
+                            if (key, target_id) in self.reciprocal_defaults
+                            else levels[target_id].level
                         )
-                    )
+                        candidates.append(
+                            (
+                                source_level + default.modifier,
+                                target_id,
+                                True,
+                                default.conditions,
+                            )
+                        )
             if spec.specialty is not None and spec.specialty.optional_parent in native:
                 parent_id = spec.specialty.optional_parent
                 assert parent_id is not None
