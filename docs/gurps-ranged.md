@@ -94,6 +94,14 @@ survive dropping and retrieving the weapon. Breakage keeps its disabled state.
 This does not expose recovery of normally expended thrown items, which remains
 with #287.
 
+Shotguns use the B409 multiple-projectile split. A mode records the projectiles
+released by each shell. At ordinary range, that multiplier increases effective
+RoF and possible hits, but firing and reload reservations still consume shells.
+At less than 10% of 1/2D, effective RoF remains the number of shells; half the
+projectile multiplier (rounded down) instead multiplies the full damage
+expression and the target's DR. The boundary, both resolution paths, ammunition
+conservation, persistence and replay are covered in `tests/test_shotguns.py`.
+
 Burst critical hits are implemented here, with independent evidence in
 `tests/test_ranged_critical_bursts.py` (Campaigns fourth printing B373, B399,
 B556). #173 now supplies [opt-in conventional firearm malfunctions](gurps-firearms.md):
@@ -111,8 +119,8 @@ protocols require additional typed skill, weapon readiness, and ground-item stat
 #152 supplies typed one-handed and prone-bipod bracing plus fixed/variable scope
 timing. Certification and generation validators must continue using the
 capability registry rather than inferring support from a typed weapon or manual
-ruling. Shotguns, automatic-only minimum bursts, suppression and spraying remain
-unsupported; this change does not widen the permitted fire modes.
+ruling. Automatic-only minimum bursts, suppression and spraying remain
+unsupported; this change widens only the typed multiple-projectile mode.
 
 #286 adds [opt-in projectile readiness](gurps-projectile-readiness.md): typed
 preparation/drawing/cocking, exact ammunition Fast-Draw specialties, and authored

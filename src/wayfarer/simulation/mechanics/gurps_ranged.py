@@ -15,7 +15,11 @@ from wayfarer.rules.combat_tables import minimum_strength_penalty
 from wayfarer.rules.effects import DerivedValue
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.rules.location_types import HitLocation, HumanLocation
-from wayfarer.rules.ranged_tables import range_penalty, rapid_fire_bonus
+from wayfarer.rules.ranged_tables import (
+    multiple_projectile_attack,
+    range_penalty,
+    rapid_fire_bonus,
+)
 from wayfarer.rules.spray_types import Stream
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import (
@@ -750,12 +754,22 @@ def resolve(
         bonus = min(-2, weapon.bulk)
     elif actor.last_maneuver == "all_out_attack":
         bonus += 1
+    effective_shots = pending.shots
+    close_projectile_multiplier = 1
+    if weapon.multiple_projectiles is not None:
+        assert weapon.half_damage_range is not None
+        effective_shots, close_projectile_multiplier = multiple_projectile_attack(
+            pending.shots,
+            weapon.multiple_projectiles.projectiles_per_shot,
+            scene.distance,
+            float(weapon.half_damage_range),
+        )
     attack_target = (
         int(value.value)
         + bonus
         + scene.size_modifier
         + range_penalty(scene.distance + scene.speed_yards_per_second)
-        + rapid_fire_bonus(pending.shots)
+        + rapid_fire_bonus(effective_shots)
         # A mount bears the weapon, so the firer's own ST is not what limits it.
         - (0 if weapon.mount is not None else minimum_strength_penalty(weapon.minimum_st, st))
     )
@@ -827,7 +841,7 @@ def resolve(
         attack,
         cause_id=pending.id,
         shots=pending.shots,
-        rapid_bonus=rapid_fire_bonus(pending.shots),
+        rapid_bonus=rapid_fire_bonus(effective_shots),
     )
     if failure is not None:
         state = state.model_copy(
@@ -841,8 +855,16 @@ def resolve(
     from wayfarer.simulation.hit_locations import location_special_effects, torso_near_miss
 
     near_miss = bool(shots_fired) and torso_near_miss(pending.hit_location, attack)
+    effective_shots_fired = (
+        shots_fired
+        if weapon.multiple_projectiles is None or close_projectile_multiplier > 1
+        else shots_fired * weapon.multiple_projectiles.projectiles_per_shot
+    )
     hits = (
-        min(shots_fired, 1 + max(0, attack.effective_target - sum(attack.dice)) // weapon.recoil)
+        min(
+            effective_shots_fired,
+            1 + max(0, attack.effective_target - sum(attack.dice)) // weapon.recoil,
+        )
         if attack.outcome.succeeded
         else int(near_miss)
     )
@@ -1138,7 +1160,7 @@ def resolve(
         dr_bonus = damage_resistance(
             state.resources, target.actor_id, build_revision=defender_build.revision
         )
-    dr = armor_dr() + dr_bonus
+    dr = (armor_dr() + dr_bonus) * close_projectile_multiplier
     first_location, first_location_dice, first_dr = location, location_dice, dr
     hit_resistances: list[int] = []
     hit_locations: list[HumanLocation | None] = []
@@ -1150,11 +1172,27 @@ def resolve(
 
         range_st = weapon.rated_strength.st
         expression = strength_damage(equipment.profile_id, range_st)[0]
-    count = weapon.damage.dice or expression.dice
-    adds = weapon.damage.adds + (0 if weapon.damage.basis == "fixed" else expression.add)
+    count = (weapon.damage.dice or expression.dice) * close_projectile_multiplier
+    adds = (
+        weapon.damage.adds + (0 if weapon.damage.basis == "fixed" else expression.add)
+    ) * close_projectile_multiplier
     half = weapon.half_damage_range is not None and scene.distance >= float(
         weapon.half_damage_range
     ) * (range_st if weapon.range_basis == "st" else 1)
+    resistance_damage = (
+        weapon.damage
+        if close_projectile_multiplier == 1
+        else weapon.damage.model_copy(
+            update={
+                "armor_divisor": weapon.damage.armor_divisor / close_projectile_multiplier,
+            }
+        )
+    )
+    resistance_weapon = (
+        weapon
+        if close_projectile_multiplier == 1
+        else weapon.model_copy(update={"damage": resistance_damage})
+    )
     for index in range(impacts if blocked is None else 0):
         if index and pending.hit_location == "random":
             from wayfarer.simulation.mechanics.location_combat import from_behind
@@ -1167,10 +1205,10 @@ def resolve(
             current_hp = next(p for p in state.resources.pools if p.id == hp.id)
             if current_hp.injury and missing_location(current_hp.injury, location):
                 location = "torso"
-            dr = armor_dr() + dr_bonus
+            dr = (armor_dr() + dr_bonus) * close_projectile_multiplier
         elif index and location != base_location:
             location, location_dice = base_location, base_location_dice
-            dr = armor_dr() + dr_bonus
+            dr = (armor_dr() + dr_bonus) * close_projectile_multiplier
         hit_resistances.append(dr)
         hit_locations.append(location)
         hit_location_dice.append(location_dice)
@@ -1202,7 +1240,7 @@ def resolve(
                 encounter,
                 pending.target_item_id,
                 damage,
-                weapon.damage,
+                resistance_damage,
                 impact=index,
             )
             damages.append(damage)
@@ -1218,7 +1256,7 @@ def resolve(
                 encounter,
                 shield_hit,
                 damage,
-                weapon,
+                resistance_weapon,
                 impact=index,
             )
             if damage == 0:
@@ -1441,9 +1479,9 @@ def resolve(
         hits=impacts,
         per_hit_damage=tuple(damages),
         per_hit_injury=tuple(injuries),
-        per_hit_resistance=tuple(hit_resistances) if pending.shots > 1 else (),
-        per_hit_locations=tuple(hit_locations) if pending.shots > 1 else (),
-        per_hit_location_dice=tuple(hit_location_dice) if pending.shots > 1 else (),
+        per_hit_resistance=tuple(hit_resistances) if effective_shots > 1 else (),
+        per_hit_locations=tuple(hit_locations) if effective_shots > 1 else (),
+        per_hit_location_dice=tuple(hit_location_dice) if effective_shots > 1 else (),
     )
     if failure is not None:
         from wayfarer.simulation.firearms import MalfunctionRecord, save_malfunction

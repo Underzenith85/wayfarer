@@ -3638,6 +3638,22 @@
       "title": "MountSpec",
       "type": "object"
     },
+    "MultipleProjectiles": {
+      "additionalProperties": false,
+      "description": "B409 projectile multiplier printed after a weapon's shell RoF.",
+      "properties": {
+        "projectiles_per_shot": {
+          "minimum": 2,
+          "title": "Projectiles Per Shot",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "projectiles_per_shot"
+      ],
+      "title": "MultipleProjectiles",
+      "type": "object"
+    },
     "NPCAction": {
       "additionalProperties": false,
       "properties": {
@@ -5466,6 +5482,17 @@
           "anyOf": [
             {
               "$ref": "#/$defs/ProjectileReadiness"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "multiple_projectiles": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MultipleProjectiles"
             },
             {
               "type": "null"

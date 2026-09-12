@@ -225,9 +225,13 @@
         "assault-rifle-556",
         "assault-rifle-762s",
         "battle-rifle-762",
-        "assault-carbine-556"
+        "assault-carbine-556",
+        "blunderbuss-8g",
+        "double-shotgun-10g",
+        "pump-shotgun-12g",
+        "auto-shotgun-12g"
       ],
-      "omitted_rows": "Seven B278 pistol rows and eleven ordinary B279 musket/rifle rows are recorded with distinct chamber capacity and exact rational ammunition mass. The long guns fail closed until the ST-conditioned one-hand exception is typed. Other pistol and SMG rows, musket rests, bipods, gyroc acceleration, smartguns, integral launchers, and every shotgun row remain unresolved.",
+      "omitted_rows": "Seven B278 pistol rows, eleven ordinary B279 musket/rifle rows and all four B279 shotgun rows are recorded with distinct chamber capacity and exact rational ammunition mass. The long guns fail closed until the ST-conditioned one-hand exception is typed. Other pistol and SMG rows, musket rests, bipods, gyroc acceleration, smartguns, integral launchers, and automatic-only and high-cyclic RoF remain unresolved.",
       "mechanics": [
         "malfunction",
         "shotgun-multiple-projectiles",
@@ -265,9 +269,13 @@
         "assault-rifle-556-round",
         "assault-rifle-762s-round",
         "battle-rifle-762-round",
-        "assault-carbine-556-round"
+        "assault-carbine-556-round",
+        "blunderbuss-8g-round",
+        "double-shotgun-10g-round",
+        "pump-shotgun-12g-round",
+        "auto-shotgun-12g-round"
       ],
-      "omitted_rows": "B275-276 ordinary missiles and eighteen B278-279 firearm rounds are recorded with exact rational dollar and pound values. Alternate missiles, remaining firearm rounds, ammunition variants, explosive warheads and power cells remain unresolved.",
+      "omitted_rows": "B275-276 ordinary missiles and twenty-two B278-279 firearm rounds are recorded with exact rational dollar and pound values. Alternate missiles, remaining firearm rounds, ammunition variants, explosive warheads and power cells remain unresolved.",
       "mechanics": [
         "ammunition-variants",
         "power-cell-charges"
@@ -868,13 +876,17 @@
     },
     {
       "id": "shotgun-multiple-projectiles",
-      "reference": "B279",
+      "reference": "Characters third printing B279; Campaigns fourth printing B409",
       "anchor": "inspected",
-      "behaviour": "One shot that throws several projectiles resolves as multiple hits.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "behaviour": "Shells are conserved independently from dispersed-projectile effective RoF; at less than 10% of 1/2D, shell RoF is retained while damage dice, adds and target DR use half the projectile multiplier rounded down.",
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.ranged_attack",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_shotguns.py::test_b409_ten_percent_boundary",
+        "tests/test_shotguns.py::test_close_shotgun_multiplies_damage_but_spends_one_shell",
+        "tests/test_shotguns.py::test_dispersed_shotgun_counts_pellets_but_spends_one_shell"
+      ],
       "evidence_gap": null
     },
     {
@@ -1514,6 +1526,20 @@
       "evidence": null,
       "tests": [
         "tests/test_gurps_ranged.py::test_burst_applies_each_hit_separately"
+      ],
+      "gap": null
+    },
+    {
+      "id": "RangedMode.multiple_projectiles",
+      "unit": "optional projectiles released per consumed shot",
+      "reference": "Characters third printing B279; Campaigns fourth printing B409",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_shotguns.py::test_b409_ten_percent_boundary",
+        "tests/test_shotguns.py::test_dispersed_shotgun_counts_pellets_but_spends_one_shell"
       ],
       "gap": null
     },
