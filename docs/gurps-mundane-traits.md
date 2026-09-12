@@ -125,3 +125,24 @@ check/surprise adapters are internal APIs, not new player-supplied rule contexts
 
 Independent evidence is in `tests/test_physical_traits.py`, alongside existing
 injury, recovery, melee, ranged, unarmed, fright and schema conformance suites.
+
+## Mental, behavioral and relationship execution (#333)
+
+Candidate version **0.4.0** binds Eidetic and Photographic Memory,
+Single-Minded, Versatile, all three selected Shyness levels, Penetrating Voice,
+Honesty and Truthfulness. The projection derives only from an approved build.
+It exposes the exact contextual modifiers and automatic recall result; it never
+chooses an action for the player. Failed Bad Temper, Curious, Overconfidence,
+Honesty and Truthfulness checks now return a typed obligation naming the
+required consequence beyond the existing self-control roll.
+
+The relationship procedure records one 3d frequency roll (or no roll for a
+constant relationship), validates stable person identities, rejects duplicate
+constructions and requires a netted Ally/Dependent to share one frequency.
+The five selected catalog constructions remain unavailable because their
+manual relationship obligations and full construction-price variants are not
+executable. Careful, Code of Honor (Soldier), and all selected Sense of Duty
+scopes likewise remain explicitly manual and unavailable; they do not count as
+verified coverage. Independent literal evidence is in
+`tests/test_mental_traits.py` (Characters third printing B36, B51, B85, B96,
+B101 and B124-159).

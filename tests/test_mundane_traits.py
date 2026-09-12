@@ -205,6 +205,16 @@ def test_inventory_package_and_audit_reconcile() -> None:
         "trait:overconfidence",
         "trait:status",
         "trait:voice",
+        "trait:eidetic-memory",
+        "trait:photographic-memory",
+        "trait:single-minded",
+        "trait:versatile",
+        "trait:shyness-mild",
+        "trait:shyness-severe",
+        "trait:shyness-crippling",
+        "trait:perk-penetrating-voice",
+        "trait:honesty",
+        "trait:truthfulness",
     }
     assert report["available"] == len(implemented)
     assert all(
