@@ -26,7 +26,9 @@ class ArchitectureTests(unittest.TestCase):
 
         self.assertNotIn("hex_battlefield", Encounter.model_fields)
         self.assertNotIn("HexBattlefield", Encounter.model_json_schema().get("$defs", {}))
-        self.assertIn("battlefield_id", Encounter.model_fields)
+        self.assertNotIn("battlefield_id", Encounter.model_fields)
+        self.assertNotIn("spatial_kind", Encounter.model_fields)
+        self.assertIn("spatial_context", Encounter.model_fields)
 
     def test_simulation_entity_names_have_one_owner(self) -> None:
         owners: dict[str, list[str]] = {}

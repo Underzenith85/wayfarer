@@ -6,10 +6,13 @@
 Standalone hex geometry values can omit their location for compatibility with
 old migration requests, but configured templates must name an authored location.
 
-Encounters store a template ID and spatial kind, with actor positions/facings,
-ground-item state and combat timing remaining state. Geometry helpers take the
-selected rules template explicitly. An unknown ID or a coordinate-system mismatch
-fails closed. Both kinds use the existing scene/location validation.
+Encounters store a discriminated spatial context. Square and hex contexts own the
+template ID plus every exact actor position and facing; participant pose values
+are runtime mirrors and are omitted from encounter serialization. Basic contexts
+instead own bounded spatial facts and require no template. Ground-item state and
+combat timing remain common encounter state. Geometry helpers take the selected
+rules template explicitly. An unknown ID or a coordinate-system mismatch fails
+closed. Both mapped kinds use the existing scene/location validation.
 
 The existing GM `MigrateEncounterHex` command now installs its map under a
 content-derived ID and appends a `MigrationEntry` with the old and new runtime

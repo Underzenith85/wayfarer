@@ -8,9 +8,18 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import TYPE_CHECKING, Annotated, Literal
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, Annotated, Literal, Self
 
-from pydantic import BeforeValidator, Field, ValidationInfo, model_validator
+from pydantic import (
+    AliasChoices,
+    BeforeValidator,
+    Field,
+    SerializerFunctionWrapHandler,
+    ValidationInfo,
+    model_serializer,
+    model_validator,
+)
 
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id, Record
@@ -171,7 +180,7 @@ class CombatRules(Record):
     prone_movement_allowance: int = Field(default=1, ge=0, le=100)
     default_reach: int = Field(default=1, ge=1, le=20)
     max_combatants: int = Field(default=30, ge=2, le=100)
-    battlefields: tuple[BattlefieldTemplate, ...] = Field(min_length=1, max_length=100)
+    battlefields: tuple[BattlefieldTemplate, ...] = Field(default=(), max_length=100)
 
     consequences: tuple[CombatConsequence, ...] = Field(default=(), exclude=True)
     attacks: tuple[AttackProfile, ...] = Field(default=(), exclude=True)
@@ -206,11 +215,137 @@ class Placement(Record):
     facing: Facing = "north"
 
 
+class SquareActorPlacement(Record):
+    actor_id: Id
+    position: GridPoint
+    facing: Facing = "north"
+
+
+class HexActorPlacement(Record):
+    actor_id: Id
+    position: Hex
+    facing: HexFacing
+
+
+class SpatialProvenance(Record):
+    """Trusted origin and lifetime for an authoritative mapless assertion."""
+
+    source: Literal["scenario", "gm-adjudication"]
+    source_id: Id
+    declared_by: Id
+    declared_revision: int = Field(ge=0)
+    invalidated_revision: int | None = Field(default=None, ge=0)
+
+    @model_validator(mode="after")
+    def validate_lifetime(self) -> SpatialProvenance:
+        if (
+            self.invalidated_revision is not None
+            and self.invalidated_revision < self.declared_revision
+        ):
+            raise ValueError("Spatial fact cannot be invalidated before it is declared")
+        return self
+
+
+class DistanceSpatialFact(Record):
+    kind: Literal["distance"] = "distance"
+    subject_id: Id
+    object_id: Id
+    yards: float = Field(ge=0, le=10000, allow_inf_nan=False)
+    provenance: SpatialProvenance
+
+
+class ReachSpatialFact(Record):
+    kind: Literal["reach"] = "reach"
+    subject_id: Id
+    object_id: Id
+    relation: Literal["close", "reachable", "separated"]
+    provenance: SpatialProvenance
+
+
+class VisibilitySpatialFact(Record):
+    kind: Literal["visibility"] = "visibility"
+    subject_id: Id
+    object_id: Id
+    visible: bool
+    provenance: SpatialProvenance
+
+
+class CoverSpatialFact(Record):
+    kind: Literal["cover"] = "cover"
+    subject_id: Id
+    object_id: Id
+    cover: Literal["none", "partial", "full"]
+    provenance: SpatialProvenance
+
+
+class ObstacleSpatialFact(Record):
+    kind: Literal["obstacle"] = "obstacle"
+    subject_id: Id
+    object_id: Id
+    blocked: bool
+    provenance: SpatialProvenance
+
+
+class RetreatSpatialFact(Record):
+    kind: Literal["retreat"] = "retreat"
+    subject_id: Id
+    object_id: Id
+    feasible: bool
+    provenance: SpatialProvenance
+
+
+BasicSpatialFact = Annotated[
+    DistanceSpatialFact
+    | ReachSpatialFact
+    | VisibilitySpatialFact
+    | CoverSpatialFact
+    | ObstacleSpatialFact
+    | RetreatSpatialFact,
+    Field(discriminator="kind"),
+]
+
+
+class BasicSpatialContext(Record):
+    kind: Literal["basic"] = "basic"
+    facts: tuple[BasicSpatialFact, ...] = Field(default=(), max_length=10000)
+
+    @model_validator(mode="after")
+    def validate_facts(self) -> BasicSpatialContext:
+        keys = tuple((f.kind, f.subject_id, f.object_id) for f in self.facts)
+        if len(set(keys)) != len(keys):
+            raise ValueError("Basic spatial facts require one authoritative value per pair")
+        return self
+
+
+class SquareSpatialContext(Record):
+    kind: Literal["square"] = "square"
+    battlefield_id: Id
+    placements: tuple[SquareActorPlacement, ...] = Field(min_length=2, max_length=100)
+
+
+class HexSpatialContext(Record):
+    kind: Literal["hex"] = "hex"
+    battlefield_id: Id
+    placements: tuple[HexActorPlacement, ...] = Field(min_length=2, max_length=100)
+
+
+SpatialContext = Annotated[
+    BasicSpatialContext | SquareSpatialContext | HexSpatialContext,
+    Field(discriminator="kind"),
+]
+
+
 class Combatant(Record):
     actor_id: Id
     initiative: int = Field(ge=0, le=100)
-    position: GridPoint | Hex
-    facing: Facing
+    # Runtime mirrors for existing mechanics. Exact spatial state is serialized only
+    # through Encounter.spatial_context; _replace keeps these mirrors synchronized.
+    runtime_position: GridPoint | Hex | None = Field(
+        default=None,
+        alias="position",
+        validation_alias=AliasChoices("position", "runtime_position"),
+    )
+    facing: Facing = "north"
     hex_facing: HexFacing | None = None
     retreat_used: bool = False
     retreat_attacker_id: str | None = None
@@ -240,6 +375,24 @@ class Combatant(Record):
     stream: Stream | None = Field(default=None, exclude_if=lambda v: v is None)
     forced_do_nothing: bool = False
     maneuver_state: ManeuverState = Field(default_factory=ManeuverState)
+
+    @property
+    def position(self) -> GridPoint | Hex:
+        if self.runtime_position is None:
+            raise ValidationError("Basic combatant has no exact position")
+        return self.runtime_position
+
+    def model_copy(self, *, update: Mapping[str, object] | None = None, deep: bool = False) -> Self:
+        fields = dict(update or {})
+        if "position" in fields:
+            fields["runtime_position"] = fields.pop("position")
+        return super().model_copy(update=fields, deep=deep)
+
+    @model_serializer(mode="wrap")
+    def serialize_runtime_pose(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        result = dict(handler(self))
+        result["position"] = result.pop("runtime_position")
+        return result
 
 
 class PendingDefense(Record):
@@ -281,7 +434,19 @@ class Encounter(Record):
     # Version 1 is retained for unbound legacy snapshots, including scene-less profiles.
     version: Literal[1, 2] = Field(default=1, exclude_if=lambda v: v == 1)
     scene_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
-    battlefield_id: Id
+    spatial_context: SpatialContext | None = Field(
+        default=None, validation_alias="spatial_context", serialization_alias="spatial_context"
+    )
+    legacy_battlefield_id: Id | None = Field(
+        default=None,
+        validation_alias=AliasChoices("battlefield_id", "legacy_battlefield_id"),
+        exclude=True,
+    )
+    legacy_spatial_kind: Literal["square", "hex"] = Field(
+        default="square",
+        validation_alias=AliasChoices("spatial_kind", "legacy_spatial_kind"),
+        exclude=True,
+    )
     darkness_penalty: int = Field(default=0, ge=-10, le=0, exclude_if=lambda v: v == 0)
     status: Literal["active", "completed"] = "active"
     participants: tuple[Combatant, ...] = Field(min_length=2)
@@ -299,18 +464,173 @@ class Encounter(Record):
     pending_unarmed: PendingUnarmed | None = None
     unarmed_history: tuple[UnarmedTrace, ...] = ()
     ranged_situations: tuple[RangedSituation, ...] = ()
-    spatial_kind: Literal["square", "hex"] = "square"
     tactical_traces: tuple[TacticalTrace, ...] = ()
 
     @model_validator(mode="after")
     def validate_scene_version(self) -> Encounter:
         if (self.version == 2) != (self.scene_id is not None):
             raise ValueError("Scene-bound encounters require version 2 and a scene ID")
+        context_was_serialized = self.spatial_context is not None
+        context = self.spatial
+        if not isinstance(context, BasicSpatialContext):
+            participants = {p.actor_id: p for p in self.participants}
+            if {p.actor_id for p in context.placements} != set(participants):
+                raise ValueError("Spatial placements must match combat participants")
+            for placement in context.placements:
+                participant = participants[placement.actor_id]
+                if context_was_serialized:
+                    object.__setattr__(participant, "runtime_position", placement.position)
+                    if isinstance(placement, SquareActorPlacement):
+                        object.__setattr__(participant, "facing", placement.facing)
+                        object.__setattr__(participant, "hex_facing", None)
+                    else:
+                        object.__setattr__(participant, "hex_facing", placement.facing)
+                if participant.position != placement.position:
+                    raise ValueError("Runtime combat position disagrees with spatial context")
+                if isinstance(placement, SquareActorPlacement):
+                    if participant.facing != placement.facing or participant.hex_facing is not None:
+                        raise ValueError("Runtime square facing disagrees with spatial context")
+                elif participant.hex_facing != placement.facing:
+                    raise ValueError("Runtime hex facing disagrees with spatial context")
         return self
 
     @property
     def current_actor_id(self) -> str:
         return self.turn_order[self.turn_index]
+
+    @property
+    def spatial_kind(self) -> Literal["basic", "square", "hex"]:
+        return self.spatial.kind
+
+    @property
+    def spatial(self) -> SpatialContext:
+        context = self.spatial_context
+        if context is not None:
+            return context
+        battlefield_id = self.legacy_battlefield_id
+        if battlefield_id is None:
+            raise ValueError("Mapped encounter requires a battlefield or spatial context")
+        if self.legacy_spatial_kind == "hex":
+            placements: tuple[HexActorPlacement, ...] = tuple(
+                HexActorPlacement(actor_id=p.actor_id, position=p.position, facing=p.hex_facing)
+                for p in self.participants
+                if isinstance(p.position, Hex) and p.hex_facing is not None
+            )
+            if len(placements) != len(self.participants):
+                raise ValueError("Legacy hex encounter requires hex positions and facings")
+            context = HexSpatialContext(battlefield_id=battlefield_id, placements=placements)
+        else:
+            square: tuple[SquareActorPlacement, ...] = tuple(
+                SquareActorPlacement(actor_id=p.actor_id, position=p.position, facing=p.facing)
+                for p in self.participants
+                if isinstance(p.position, GridPoint)
+            )
+            if len(square) != len(self.participants):
+                raise ValueError("Legacy square encounter requires square positions")
+            context = SquareSpatialContext(battlefield_id=battlefield_id, placements=square)
+        object.__setattr__(self, "spatial_context", context)
+        object.__setattr__(self, "legacy_battlefield_id", None)
+        object.__setattr__(self, "legacy_spatial_kind", "square")
+        return context
+
+    @property
+    def battlefield_id(self) -> str:
+        context = self.spatial
+        if isinstance(context, BasicSpatialContext):
+            raise ValidationError("Basic spatial context has no battlefield")
+        return context.battlefield_id
+
+    def placement(self, actor_id: str) -> SquareActorPlacement | HexActorPlacement:
+        context = self.spatial
+        if isinstance(context, BasicSpatialContext):
+            raise ValidationError("Basic spatial context has no exact placement")
+        placement = next((p for p in context.placements if p.actor_id == actor_id), None)
+        if placement is None:
+            raise ValidationError("Combatant has no spatial placement")
+        return placement
+
+    def replace_placement(self, placement: SquareActorPlacement | HexActorPlacement) -> Encounter:
+        context = self.spatial
+        if isinstance(context, BasicSpatialContext):
+            raise ValidationError("Basic spatial context has no exact placement")
+        if (isinstance(context, SquareSpatialContext)) != isinstance(
+            placement, SquareActorPlacement
+        ):
+            raise ValidationError("Coordinate systems require explicit migration")
+        if placement.actor_id not in self.turn_order:
+            raise ValidationError("Placement actor is not a combat participant")
+        return self.model_copy(
+            update={
+                "spatial_context": context.model_copy(
+                    update={
+                        "placements": tuple(
+                            placement if p.actor_id == placement.actor_id else p
+                            for p in context.placements
+                        )
+                    }
+                )
+            }
+        )
+
+    def add_participant(self, participant: Combatant) -> Encounter:
+        """Add a combatant and its context-owned placement atomically."""
+        if any(p.actor_id == participant.actor_id for p in self.participants):
+            raise ValidationError("Actor already participates")
+        context = self.spatial
+        if isinstance(context, SquareSpatialContext):
+            if (
+                not isinstance(participant.position, GridPoint)
+                or participant.hex_facing is not None
+            ):
+                raise ValidationError("Square context requires square coordinates and facing")
+            context = context.model_copy(
+                update={
+                    "placements": context.placements
+                    + (
+                        SquareActorPlacement(
+                            actor_id=participant.actor_id,
+                            position=participant.position,
+                            facing=participant.facing,
+                        ),
+                    )
+                }
+            )
+        elif isinstance(context, HexSpatialContext):
+            if not isinstance(participant.position, Hex) or participant.hex_facing is None:
+                raise ValidationError("Hex context requires hex coordinates and facing")
+            context = context.model_copy(
+                update={
+                    "placements": context.placements
+                    + (
+                        HexActorPlacement(
+                            actor_id=participant.actor_id,
+                            position=participant.position,
+                            facing=participant.hex_facing,
+                        ),
+                    )
+                }
+            )
+        return self.model_copy(
+            update={
+                "participants": self.participants + (participant,),
+                "spatial_context": context,
+            }
+        )
+
+    @model_serializer(mode="wrap")
+    def serialize_context_owned_spatial_state(
+        self, handler: SerializerFunctionWrapHandler
+    ) -> dict[str, object]:
+        result = dict(handler(self))
+        participants = result.get("participants")
+        if isinstance(participants, (list, tuple)):
+            for participant in participants:
+                if isinstance(participant, dict):
+                    participant.pop("position", None)
+                    participant.pop("runtime_position", None)
+                    participant.pop("facing", None)
+                    participant.pop("hex_facing", None)
+        return result
 
 
 class CombatResult(Record):
@@ -351,11 +671,15 @@ class CombatEngine:
         resources: ResourceState,
         actor_ids: frozenset[str],
     ) -> None:
-        battlefield = self.battlefields.get(encounter.battlefield_id)
+        spatial = encounter.spatial
+        if isinstance(spatial, BasicSpatialContext):
+            raise ValidationError("Basic spatial context is not executable until its adapter lands")
+        battlefield = self.battlefields.get(spatial.battlefield_id)
         if battlefield is None:
             raise ValidationError("Encounter battlefield is not configured")
         entities = {entity.id: entity for entity in world.entities}
         participants = {p.actor_id: p for p in encounter.participants}
+        placements = {p.actor_id: p for p in spatial.placements}
         if (
             len(participants) != len(encounter.participants)
             or not 2 <= len(participants) <= self.rules.max_combatants
@@ -363,6 +687,8 @@ class CombatEngine:
             or len(set(encounter.turn_order)) != len(encounter.turn_order)
             or encounter.turn_index >= len(encounter.turn_order)
             or not set(participants) <= actor_ids
+            or set(placements) != set(participants)
+            or len(placements) != len(spatial.placements)
         ):
             raise ValidationError("Invalid encounter participants or turn order")
         expected_order = tuple(
@@ -384,6 +710,7 @@ class CombatEngine:
             (item.owner_id, item.id) for item in resources.items if item.equipped and item.ready
         }
         for participant in encounter.participants:
+            placement = placements[participant.actor_id]
             entity = entities.get(participant.actor_id)
             if (
                 entity is None
@@ -393,19 +720,19 @@ class CombatEngine:
                 raise ValidationError("Combatant is not at the battlefield location")
             if (
                 (
-                    isinstance(participant.position, GridPoint)
+                    isinstance(placement.position, GridPoint)
                     and (
                         not isinstance(battlefield, Battlefield)
                         or (
-                            participant.position.x >= battlefield.width
-                            or participant.position.y >= battlefield.height
+                            placement.position.x >= battlefield.width
+                            or placement.position.y >= battlefield.height
                         )
                     )
                 )
-                or (encounter.spatial_kind != "hex" and isinstance(participant.position, Hex))
-                or participant.position in blocked
+                or (encounter.spatial_kind != "hex" and isinstance(placement.position, Hex))
+                or placement.position in blocked
                 or (
-                    participant.position in occupied
+                    placement.position in occupied
                     and not (
                         self.rules.gurps_equipment is not None
                         and self.rules.gurps_equipment.profile_id == "gurps-basic-set-4e-2004"
@@ -414,13 +741,13 @@ class CombatEngine:
                             in encounter.close_pairs
                             for other in encounter.participants
                             if other.actor_id != participant.actor_id
-                            and other.position == participant.position
+                            and placements[other.actor_id].position == placement.position
                         )
                     )
                 )
             ):
                 raise ValidationError("Combatant position is blocked, occupied or out of bounds")
-            occupied.add(participant.position)
+            occupied.add(placement.position)
             if (
                 self.rules.gurps_equipment is None
                 and participant.movement_allowance != self.rules.movement_allowance
@@ -537,16 +864,39 @@ class CombatEngine:
             )
             for p in placements
         )
+        board = self.battlefields[battlefield_id]
+        if isinstance(board, HexBattlefield):
+            if any(not isinstance(p.position, Hex) or p.hex_facing is None for p in placements):
+                raise ValidationError("Hex encounter requires hex positions and facings")
+            spatial_context: SpatialContext = HexSpatialContext(
+                battlefield_id=battlefield_id,
+                placements=tuple(
+                    HexActorPlacement(actor_id=p.actor_id, position=p.position, facing=p.hex_facing)
+                    for p in placements
+                    if isinstance(p.position, Hex) and p.hex_facing is not None
+                ),
+            )
+        else:
+            if any(
+                not isinstance(p.position, GridPoint) or p.hex_facing is not None
+                for p in placements
+            ):
+                raise ValidationError("Square encounter requires square positions and facings")
+            spatial_context = SquareSpatialContext(
+                battlefield_id=battlefield_id,
+                placements=tuple(
+                    SquareActorPlacement(actor_id=p.actor_id, position=p.position, facing=p.facing)
+                    for p in placements
+                    if isinstance(p.position, GridPoint)
+                ),
+            )
         order = tuple(
             p.actor_id for p in sorted(participants, key=lambda p: (-p.initiative, p.actor_id))
         )
         encounter = Encounter(
             darkness_penalty=self.battlefields[battlefield_id].darkness_penalty,
             id=encounter_id,
-            battlefield_id=battlefield_id,
-            spatial_kind="hex"
-            if isinstance(self.battlefields[battlefield_id], HexBattlefield)
-            else "square",
+            spatial_context=spatial_context,
             participants=participants,
             turn_order=order,
         )
@@ -591,7 +941,7 @@ class CombatEngine:
 
     @staticmethod
     def _replace(encounter: Encounter, participant: Combatant) -> Encounter:
-        return encounter.model_copy(
+        updated = encounter.model_copy(
             update={
                 "participants": tuple(
                     participant if p.actor_id == participant.actor_id else p
@@ -599,6 +949,28 @@ class CombatEngine:
                 )
             }
         )
+        context = updated.spatial
+        if isinstance(context, SquareSpatialContext):
+            if not isinstance(participant.position, GridPoint):
+                raise ValidationError("Square context cannot contain hex coordinates")
+            return updated.replace_placement(
+                SquareActorPlacement(
+                    actor_id=participant.actor_id,
+                    position=participant.position,
+                    facing=participant.facing,
+                )
+            )
+        if isinstance(context, HexSpatialContext):
+            if not isinstance(participant.position, Hex) or participant.hex_facing is None:
+                raise ValidationError("Hex context requires hex coordinates and facing")
+            return updated.replace_placement(
+                HexActorPlacement(
+                    actor_id=participant.actor_id,
+                    position=participant.position,
+                    facing=participant.hex_facing,
+                )
+            )
+        return updated
 
     @staticmethod
     def _reachable(
@@ -1576,6 +1948,8 @@ def validate_consequences(rules: CombatRules, state: PlayState) -> None:
 def hex_template(encounter: Encounter, rules: CombatRules | None) -> HexBattlefield | None:
     if rules is None:
         raise ValidationError("Encounter requires combat rules")
+    if isinstance(encounter.spatial, BasicSpatialContext):
+        return None
     template = next((b for b in rules.battlefields if b.id == encounter.battlefield_id), None)
     if template is None:
         raise ValidationError("Encounter battlefield is not configured")
