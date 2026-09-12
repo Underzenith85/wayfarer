@@ -9,15 +9,15 @@ same JSON record instead of maintaining a second, drifting table (#383).
 
 from __future__ import annotations
 
-import json
 from functools import cache
 from pathlib import Path
-from typing import Any
 
+from pydantic import TypeAdapter
+
+from wayfarer.rules.mundane_skills.schema import DefaultConditionRecord, InventoryRow
 from wayfarer.rules.skill_types import (
     ControllingAttribute,
     DefaultCondition,
-    DefaultConditionKind,
     SkillDefault,
 )
 
@@ -33,31 +33,29 @@ _ATTRIBUTES = {
 
 
 @cache
-def _rows() -> dict[str, dict[str, Any]]:
+def _rows() -> dict[str, InventoryRow]:
     path = Path(__file__).with_name("inventory.json")
-    values: list[dict[str, Any]] = json.loads(path.read_text())
-    return {f"skill:{row['id']}": row for row in values}
+    values = TypeAdapter(tuple[InventoryRow, ...]).validate_json(path.read_text())
+    return {f"skill:{row.id}": row for row in values}
+
+
+def _conditions(values: tuple[DefaultConditionRecord, ...]) -> tuple[DefaultCondition, ...]:
+    return tuple(DefaultCondition(value.kind, value.value) for value in values)
 
 
 def recorded_defaults(identifier: str) -> tuple[SkillDefault, ...]:
     """Return the exact defaults recorded for one source-indexed row."""
     row = _rows()[identifier]
 
-    def conditions(value: dict[str, Any]) -> tuple[DefaultCondition, ...]:
-        return tuple(
-            DefaultCondition(DefaultConditionKind(item["kind"]), item.get("value"))
-            for item in value.get("conditions", ())
-        )
-
     return tuple(
-        SkillDefault(_ATTRIBUTES[value["attribute"]], value["modifier"], conditions(value))
-        for value in row.get("attribute_defaults", ())
+        SkillDefault(_ATTRIBUTES[value.attribute], value.modifier, _conditions(value.conditions))
+        for value in row.attribute_defaults
     ) + tuple(
-        SkillDefault(f"skill:{value['target']}", value["modifier"], conditions(value))
-        for value in row.get("skill_defaults", ())
+        SkillDefault(f"skill:{value.target}", value.modifier, _conditions(value.conditions))
+        for value in row.skill_defaults
     )
 
 
 def recorded_blockers(identifier: str) -> frozenset[str]:
     """Expose blocker names solely for procedure/source reconciliation."""
-    return frozenset(_rows()[identifier].get("blockers", ()))
+    return frozenset(_rows()[identifier].blockers)
