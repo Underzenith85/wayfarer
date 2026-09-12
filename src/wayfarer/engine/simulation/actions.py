@@ -49,6 +49,7 @@ from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
 from wayfarer.engine.simulation.combat.profiles import CombatRules
 from wayfarer.engine.simulation.health.recovery import RecoveryRules, RecoveryState
 from wayfarer.engine.simulation.magic.bindings import SpellRules
+from wayfarer.engine.simulation.projects.inventions import InventionRules
 from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.engine.simulation.social.noncombat import NoncombatEncounter, NoncombatRules
 from wayfarer.engine.world import World
@@ -162,6 +163,7 @@ class ActionRules(Record):
     spells: SpellRules | None = Field(default=None, exclude=True)
     administration: AdministrationRules | None = Field(default=None, exclude=True)
     law: LawRules | None = Field(default=None, exclude=True)
+    inventions: InventionRules | None = Field(default=None, exclude=True)
 
 
 class ActionResult(Record):

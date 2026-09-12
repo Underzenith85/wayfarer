@@ -282,6 +282,15 @@
       "owner": 501
     },
     {
+      "id": "basic-ordinary-invention-lifecycle",
+      "sha256": "9e81446986b96fdf2b1c54deea7fe265c73ac5b0dfe4a0867615660eda8dd0ab",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": ["tests/test_invention_projects.py::test_phases_costs_and_unbound_product_are_persisted_monotonically"],
+      "owner": 524
+    },
+    {
       "id": "basic-control-rating-legality",
       "sha256": "7e46c8dffa4099607946f7cfa794effefd940b78fe32d94e8c85ccb052236849",
       "status": "pending",

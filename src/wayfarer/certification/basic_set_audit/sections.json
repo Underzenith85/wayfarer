@@ -12891,14 +12891,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "implemented",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-inventions.md",
+        "tests/test_invention_projects.py::test_phases_costs_and_unbound_product_are_persisted_monotonically"
+      ],
       "historical_owners": [
         191
       ],
       "completion_owner": 524,
-      "capability_id": "gurps.equipment.catalog",
+      "capability_id": "gurps.projects.invention",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b461:17-technology-and-atrifacts",
       "classification": null,
@@ -12987,14 +12990,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "implemented",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-inventions.md",
+        "tests/test_invention_projects.py::test_phases_costs_and_unbound_product_are_persisted_monotonically"
+      ],
       "historical_owners": [
         191
       ],
       "completion_owner": 524,
-      "capability_id": "gurps.equipment.catalog",
+      "capability_id": "gurps.projects.invention",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b472:new-inventions",
       "classification": null,
@@ -13011,14 +13017,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "implemented",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-inventions.md",
+        "tests/test_invention_projects.py::test_shortfalls_block_before_project_time_or_randomness"
+      ],
       "historical_owners": [
         191
       ],
       "completion_owner": 524,
-      "capability_id": "gurps.equipment.catalog",
+      "capability_id": "gurps.projects.invention",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b472:new-inventions",
       "classification": null,
@@ -13059,14 +13068,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
+      "implementation": "implemented",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-inventions.md",
+        "tests/test_invention_projects.py::test_phases_costs_and_unbound_product_are_persisted_monotonically"
+      ],
       "historical_owners": [
         191
       ],
       "completion_owner": 524,
-      "capability_id": "gurps.equipment.catalog",
+      "capability_id": "gurps.projects.invention",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b472:new-inventions",
       "classification": null,
@@ -13137,7 +13149,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 524,
+      "completion_owner": 525,
       "capability_id": "gurps.equipment.catalog",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b474:gadgeteering",
