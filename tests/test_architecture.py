@@ -20,6 +20,15 @@ REDUCER_MODULES = (
 )
 
 
+def reducer_sources(module: str) -> tuple[Path, ...]:
+    """The sources of one reducer seam, whether it is a module or a package."""
+    package = Path(wayfarer.__file__).parent / "orchestration"
+    single = package / f"{module}.py"
+    if single.exists():
+        return (single,)
+    return tuple(sorted((package / module).rglob("*.py")))
+
+
 class ArchitectureTests(unittest.TestCase):
     def test_encounters_reference_templates_without_embedding_maps(self) -> None:
         from wayfarer.engine.simulation.combat.encounter import Encounter
@@ -188,56 +197,54 @@ class ArchitectureTests(unittest.TestCase):
 
     def test_orchestration_steps_stay_reviewable(self) -> None:
         """#417's service seams must not grow another giant reducer or callback."""
-        package = Path(wayfarer.__file__).parent / "orchestration"
         for module in REDUCER_MODULES:
-            source = package / f"{module}.py"
-            tree = ast.parse(source.read_text())
-            for node in ast.walk(tree):
-                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                    assert node.end_lineno is not None
-                    with self.subTest(module=module, function=node.name):
-                        self.assertLessEqual(node.end_lineno - node.lineno + 1, 200)
+            for source in reducer_sources(module):
+                tree = ast.parse(source.read_text())
+                for node in ast.walk(tree):
+                    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                        assert node.end_lineno is not None
+                        with self.subTest(module=source.name, function=node.name):
+                            self.assertLessEqual(node.end_lineno - node.lineno + 1, 200)
 
     def test_transaction_callbacks_are_straight_sequences(self) -> None:
         """Dispatch and mutable working state belong in named steps, not closures."""
-        package = Path(wayfarer.__file__).parent / "orchestration"
         for module in REDUCER_MODULES:
-            tree = ast.parse((package / f"{module}.py").read_text())
-            for service in ast.walk(tree):
-                if not isinstance(service, ast.AsyncFunctionDef):
+            for source in reducer_sources(module):
+                self.check_straight_callbacks(source, module)
+
+    def check_straight_callbacks(self, source: Path, module: str) -> None:
+        tree = ast.parse(source.read_text())
+        for service in ast.walk(tree):
+            if not isinstance(service, ast.AsyncFunctionDef):
+                continue
+            callbacks = {
+                node.name: node for node in service.body if isinstance(node, ast.FunctionDef)
+            }
+            for call in ast.walk(service):
+                if not isinstance(call, ast.Call):
                     continue
-                callbacks = {
-                    node.name: node for node in service.body if isinstance(node, ast.FunctionDef)
-                }
-                for call in ast.walk(service):
-                    if not isinstance(call, ast.Call):
-                        continue
-                    seeded = isinstance(call.func, ast.Name) and call.func.id == "commit_command"
-                    legacy = (
-                        isinstance(call.func, ast.Attribute) and call.func.attr == "commit_turn"
-                    )
-                    if not (seeded or legacy):
-                        continue
-                    with self.subTest(module=module, function=service.name):
-                        self.assertGreaterEqual(len(call.args), 6 if seeded else 5)
-                        callback = call.args[5 if seeded else 4]
-                        self.assertIsInstance(callback, ast.Name)
-                        assert isinstance(callback, ast.Name)
-                        self.assertIn(callback.id, callbacks)
-                        for statement in callbacks[callback.id].body:
-                            self.assertIsInstance(
-                                statement, (ast.Assign, ast.AnnAssign, ast.Expr, ast.Return)
-                            )
-                        self.assertFalse(
-                            any(
-                                isinstance(
-                                    node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)
-                                )
-                                for statement in callbacks[callback.id].body
-                                for node in ast.walk(statement)
-                            ),
-                            "A transaction callback must not define another closure",
+                seeded = isinstance(call.func, ast.Name) and call.func.id == "commit_command"
+                legacy = isinstance(call.func, ast.Attribute) and call.func.attr == "commit_turn"
+                if not (seeded or legacy):
+                    continue
+                with self.subTest(module=module, function=service.name):
+                    self.assertGreaterEqual(len(call.args), 6 if seeded else 5)
+                    callback = call.args[5 if seeded else 4]
+                    self.assertIsInstance(callback, ast.Name)
+                    assert isinstance(callback, ast.Name)
+                    self.assertIn(callback.id, callbacks)
+                    for statement in callbacks[callback.id].body:
+                        self.assertIsInstance(
+                            statement, (ast.Assign, ast.AnnAssign, ast.Expr, ast.Return)
                         )
+                    self.assertFalse(
+                        any(
+                            isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda))
+                            for statement in callbacks[callback.id].body
+                            for node in ast.walk(statement)
+                        ),
+                        "A transaction callback must not define another closure",
+                    )
 
     def test_orchestration_does_not_draw_random_values(self) -> None:
         """#415: all draws use the domain dice/selection API."""
@@ -443,7 +450,10 @@ assert 'wayfarer.engine.simulation.rules_context' not in sys.modules
         """Transactions end in PlayService.commit; only play touches play_json."""
         package = Path(wayfarer.__file__).parent
         allowed = {package / "orchestration" / "play.py"}
-        for source in (*package.rglob("orchestration/*.py"), *package.rglob("transport/**/*.py")):
+        for source in (
+            *package.rglob("orchestration/**/*.py"),
+            *package.rglob("transport/**/*.py"),
+        ):
             if source in allowed:
                 continue
             tree = ast.parse(source.read_text())

@@ -9,7 +9,8 @@ from wayfarer.engine.simulation.campaign.party import Subgroup
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.spatial import Placement
-from wayfarer.orchestration.combat import CombatService, TakeCombatTurn, _elapsed_combat_ticks
+from wayfarer.engine.simulation.combat.withdrawal import elapsed_seconds
+from wayfarer.orchestration.combat import CombatService, TakeCombatTurn
 from wayfarer.orchestration.play import PlayService
 
 
@@ -34,19 +35,19 @@ def test_shared_seconds_settle_by_cycle_and_decisive_partial_cycle() -> None:
         frozenset({"a", "b"}),
     )
     after_a = engine._advance(original)
-    assert _elapsed_combat_ticks(original, after_a) == 0
+    assert elapsed_seconds(original, after_a) == 0
     after_b = engine._advance(after_a)
-    assert _elapsed_combat_ticks(after_a, after_b) == 1
+    assert elapsed_seconds(after_a, after_b) == 1
 
     decisive = after_a.model_copy(
         update={"status": "completed", "completion_reason": "incapacitation"}
     )
-    assert _elapsed_combat_ticks(original, decisive) == 1
+    assert elapsed_seconds(original, decisive) == 1
     # Ending combat is a lifecycle decision, not a hidden one-second maneuver.
     manually_ended = original.model_copy(
         update={"status": "completed", "completion_reason": "resolved"}
     )
-    assert _elapsed_combat_ticks(original, manually_ended) == 0
+    assert elapsed_seconds(original, manually_ended) == 0
 
 
 def test_defense_resources_reset_only_at_that_actors_next_turn() -> None:
