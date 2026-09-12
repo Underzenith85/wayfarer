@@ -136,7 +136,11 @@ def test_every_entry_has_concrete_runtime_and_source_blockers_and_real_evidence(
         107,
         173,
         191,
-        *(n for n in range(221, 244) if n not in {233, 234, 235, 236, 237, 238, 239, 240, 241}),
+        *(
+            n
+            for n in range(221, 244)
+            if n not in {233, 234, 235, 236, 237, 238, 239, 240, 241, 242}
+        ),
     }
     assert {e.name for e in data.entries if e.optional} == {"Clerical Magic", "Ritual Magic"}
 
@@ -253,7 +257,7 @@ def test_transferred_skills_and_source_audit_use_the_complete_owner_inventory() 
         (e.name, e.page) for e in exclusions()
     }
     assert lookup("skill:alchemy").blockers == (243, 191)
-    assert lookup("skill:zen-archery").blockers == (242, 191)
+    assert lookup("skill:zen-archery").blockers == (191,)
     owned = [e for e in source_inventory() if e.id.startswith("supernatural/")]
     assert len(owned) == 334
     assert {e.id for e in owned} == {"supernatural/" + e.id for e in inventory().entries}

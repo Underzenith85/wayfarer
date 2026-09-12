@@ -432,7 +432,7 @@ def test_excluded_skills_remain_owned_by_the_catalog_that_carries_them() -> None
     rows = {e.id: e for e in transferred_exclusions()}
     assert len(rows) == 28
     assert rows["alchemy"].owners == (243, 191)
-    assert rows["zen-archery"].owners == (242, 191)
+    assert rows["zen-archery"].owners == (191,)
     assert all(row.reason and row.page for row in rows.values())
 
 
