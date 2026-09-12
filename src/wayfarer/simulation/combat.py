@@ -445,6 +445,21 @@ class CombatWithdrawal(Record):
     group_id: Id
 
 
+class SprayTarget(Record):
+    """A declared additional target in one B409 spraying-fire sweep."""
+
+    target_id: Id
+    shots: int = Field(ge=1)
+    hit_location: HitLocation | None = None
+
+
+class PendingSprayTarget(SprayTarget):
+    """Server-derived traversal cost and control penalty for a queued target."""
+
+    recoil_penalty: int = Field(ge=1)
+    traversal_shots: int = Field(ge=0)
+
+
 class PendingDefense(Record):
     id: Id
     attacker_id: Id
@@ -457,6 +472,11 @@ class PendingDefense(Record):
     mode_id: str | None = None
     hit_location: HitLocation | None = None
     target_item_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
+    spray_targets: tuple[PendingSprayTarget, ...] = Field(
+        default=(), exclude_if=lambda value: not value
+    )
+    spray_recoil_penalty: int = Field(default=0, ge=0, exclude_if=lambda value: value == 0)
+    traversal_shots: int = Field(default=0, ge=0, exclude_if=lambda value: value == 0)
     spell_cast_id: str | None = Field(default=None, exclude_if=lambda value: value is None)
     post_attack_destination: GridPoint | None = None
     post_attack_square_facing: Facing | None = None
@@ -2190,6 +2210,33 @@ class CombatEngine:
         )
         attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
         if (
+            self.rules.gurps_equipment is not None
+            and pending.spray_targets
+            and not encounter.blocked_reason
+        ):
+            following, *remaining = pending.spray_targets
+            encounter = encounter.model_copy(
+                update={
+                    "pending_defense": pending.model_copy(
+                        update={
+                            "id": "spray:" + hashlib.sha256(pending.id.encode()).hexdigest(),
+                            "defender_id": following.target_id,
+                            "shots": following.shots,
+                            "hit_location": following.hit_location,
+                            "target_item_id": None,
+                            "spray_targets": tuple(remaining),
+                            "spray_recoil_penalty": following.recoil_penalty,
+                            "traversal_shots": following.traversal_shots,
+                            "post_attack_destination": None,
+                            "post_attack_square_facing": None,
+                            "post_attack_hex_path": (),
+                            "post_attack_facing": None,
+                            "post_attack_posture": None,
+                        }
+                    )
+                }
+            )
+        elif (
             self.rules.gurps_equipment is not None
             and attacker.maneuver_state.attacks_remaining
             and not encounter.blocked_reason

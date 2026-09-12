@@ -1501,8 +1501,9 @@ def _preview_turn(
         )
         if preview.pending_defense is not None:
             from wayfarer.simulation.mechanics.gurps_melee import prepare_attack
+            from wayfarer.simulation.mechanics.gurps_ranged import prepare_spraying_fire
 
-            prepare_attack(
+            preview = prepare_attack(
                 play.rules_context,
                 state,
                 preview,
@@ -1511,6 +1512,7 @@ def _preview_turn(
                 target_item_id=command.target_item_id,
                 shots=command.shots,
             )
+            prepare_spraying_fire(play.rules_context, state, preview, command)
         if command.maneuver == "aim" and preview_result.code != "combat.wait_triggered":
             from wayfarer.simulation.mechanics.gurps_maneuvers import observe
 
@@ -1634,6 +1636,7 @@ def _begin_turn(
             update={
                 "maneuver": "do_nothing",
                 "shots": 1,
+                "spray_targets": (),
                 "reload_ammunition_id": None,
                 "unload_ammunition": False,
                 "fast_draw": False,
@@ -1803,6 +1806,7 @@ def _after_turn(
         and result.code != "combat.wait_triggered"
     ):
         from wayfarer.simulation.mechanics.gurps_melee import prepare_attack
+        from wayfarer.simulation.mechanics.gurps_ranged import prepare_spraying_fire
 
         encounter = prepare_attack(
             play.rules_context,
@@ -1813,6 +1817,7 @@ def _after_turn(
             target_item_id=command.target_item_id,
             shots=command.shots,
         )
+        encounter = prepare_spraying_fire(play.rules_context, state, encounter, command)
         assert encounter.pending_defense is not None
         result = result.model_copy(update={"available": encounter.pending_defense.allowed})
     elif (
@@ -1981,8 +1986,10 @@ def _defend(
         from wayfarer.simulation.mechanics.gurps_melee import injury_turn
 
         attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
-        if not attacker.maneuver_state.attacks_remaining and (
-            encounter.wait_interrupt is None or not encounter.wait_interrupt.reacting
+        if (
+            not attacker.maneuver_state.attacks_remaining
+            and (encounter.wait_interrupt is None or not encounter.wait_interrupt.reacting)
+            and not (encounter.pending_defense and encounter.pending_defense.spray_targets)
         ):
             state = injury_turn(
                 play.rules_context,
@@ -2005,8 +2012,15 @@ def _defend(
     if encounter.pending_defense is not None and engine.rules.gurps_equipment is not None:
         from wayfarer.simulation.mechanics.gurps_melee import prepare_attack
 
+        queued = encounter.pending_defense
         encounter = prepare_attack(
-            play.rules_context, state, encounter, encounter.pending_defense.mode_id
+            play.rules_context,
+            state,
+            encounter,
+            queued.mode_id,
+            hit_location=queued.hit_location,
+            target_item_id=queued.target_item_id,
+            shots=queued.shots,
         )
     if engine.rules.attacks or engine.rules.gurps_equipment is not None:
         if engine.rules.gurps_equipment is None:

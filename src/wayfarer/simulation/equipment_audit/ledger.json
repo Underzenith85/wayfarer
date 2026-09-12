@@ -541,6 +541,21 @@
       "evidence_gap": null
     },
     {
+      "id": "spraying-fire",
+      "reference": "Campaigns fourth printing B409",
+      "anchor": "inspected",
+      "behaviour": "A RoF 5+ weapon may attack ordered targets within one 30-degree angle, spending traversal shots and adding one to effective Recoil per successive target.",
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.rapid_fire",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_spraying_fire.py::test_spraying_fire_persists_separate_attacks_and_traversal_cost",
+        "tests/test_spraying_fire.py::test_invalid_spraying_fire_rejects_before_dice_or_mutation",
+        "tests/test_spraying_fire.py::test_spraying_fire_rejects_targets_outside_thirty_degree_arc"
+      ],
+      "evidence_gap": null
+    },
+    {
       "id": "variable-power-scope",
       "reference": "B271-289",
       "anchor": "range-only",

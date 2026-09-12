@@ -121,7 +121,12 @@ timing. Certification and generation validators must continue using the
 capability registry rather than inferring support from a typed weapon or manual
 ruling. Automatic-only minimum bursts and the unbounded B373 doubling sequence
 are covered by `tests/test_automatic_fire.py` and the high-RoF table regression
-in `tests/test_gurps_ranged.py`. Suppression and spraying remain unsupported.
+in `tests/test_gurps_ranged.py`. Campaigns fourth-printing B409 spraying fire
+persists an ordered multi-target sweep: every target receives a separate attack,
+successive targets add to effective Recoil, and mapped target separation consumes
+the source-defined traversal shots. The entire sweep is validated before dice,
+and mapless encounters fail closed because they cannot prove the 30-degree arc or
+left-to-right ordering. Suppression fire remains unsupported.
 
 #286 adds [opt-in projectile readiness](gurps-projectile-readiness.md): typed
 preparation/drawing/cocking, exact ammunition Fast-Draw specialties, and authored

@@ -406,6 +406,41 @@ export interface components {
        */
       task_id: string | null;
     };
+    /**
+     * SprayTarget
+     * @description A declared additional target in one B409 spraying-fire sweep.
+     */
+    SprayTarget: {
+      /** Target Id */
+      target_id: string;
+      /** Shots */
+      shots: number;
+      /**
+       * Hit Location
+       * @default null
+       */
+      hit_location:
+        | (
+            | "torso"
+            | "vitals"
+            | "skull"
+            | "face"
+            | "neck"
+            | "groin"
+            | "left-arm"
+            | "right-arm"
+            | "left-leg"
+            | "right-leg"
+            | "left-hand"
+            | "right-hand"
+            | "left-foot"
+            | "right-foot"
+            | "left-eye"
+            | "right-eye"
+          )
+        | "random"
+        | null;
+    };
     /** TacticalActivity */
     TacticalActivity: {
       /**
@@ -607,6 +642,11 @@ export interface components {
        * @default 1
        */
       shots: number;
+      /**
+       * Spray Targets
+       * @default []
+       */
+      spray_targets: components["schemas"]["SprayTarget"][];
       /**
        * Reload Ammunition Id
        * @default null
