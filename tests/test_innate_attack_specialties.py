@@ -2,8 +2,8 @@
 
 An innate attack comes from the creature, not from an item: there is no missile
 to reserve, no magazine to reload and no grip that limits it. The four
-specialties the B301-B304 index lists are distinct rows with no cross-specialty
-inference, and the Projectile specialty is reconciled with the projectile skill
+specialties the B301-B304 index lists are distinct rows with explicit B201
+cross-specialty defaults, and Projectile is reconciled with the projectile skill
 the opt-in spell adapter already pins.
 """
 
@@ -35,28 +35,31 @@ def test_the_family_expands_into_its_indexed_specialties() -> None:
         spec = entry.definition.skill
         # B201: DX/E, defaulting to DX-4, with no TL context of its own.
         assert (spec.reference, spec.difficulty.value) == ("B201", "easy")
-        assert [(d.target, d.modifier) for d in spec.defaults] == [("attribute:dx", -4)]
+        assert (spec.defaults[0].target, spec.defaults[0].modifier) == ("attribute:dx", -4)
+        assert {(d.target, d.modifier) for d in spec.defaults[1:]} == {
+            (other, -2) for other in SPECIALTIES if other != identifier
+        }
         assert not entry.tl_required
         specialty = spec.specialty
         assert specialty is not None
         assert specialty.family == "innate-attack" and specialty.optional_parent is None
-        assert entry.blocker_owners["conditional-or-skill-defaults"] == (383, 362)
+        assert "conditional-or-skill-defaults" not in entry.blockers
 
 
-def test_the_projectile_specialty_reconciles_with_the_adapters_pinned_skill() -> None:
-    """Both are pinned definitions of the same B201 row; neither pin changes."""
+def test_the_projectile_specialty_extends_the_adapters_definition() -> None:
+    """The downstream ranged package adds B201 specialty defaults and dispatch."""
     legacy = projectile_definition()
     reconciled = PROCEDURES["skill:innate-attack-projectile"].definition()
     assert legacy.id == reconciled.id == "skill:innate-attack-projectile"
     assert legacy.name == reconciled.name == "Innate Attack (Projectile)"
     assert legacy.status is reconciled.status is ImplementationStatus.IMPLEMENTED
     assert legacy.skill is not None and reconciled.skill is not None
-    # The recorded mechanics agree; the reconciled row adds the specialty
-    # record and the ranged dispatch hook the adapter never carried.
+    # The base mechanics agree; the ranged package adds exact cross-defaults,
+    # specialty metadata, and the dispatch hook the adapter never carried.
     assert legacy.skill.attribute == reconciled.skill.attribute
     assert legacy.skill.difficulty == reconciled.skill.difficulty
     assert legacy.skill.reference == reconciled.skill.reference
-    assert legacy.skill.defaults == reconciled.skill.defaults
+    assert legacy.skill.defaults == reconciled.skill.defaults[:1]
     assert legacy.skill.specialty is None and reconciled.skill.specialty is not None
     assert "combat.ranged-attack" not in legacy.hooks
     assert "combat.ranged-attack" in reconciled.hooks

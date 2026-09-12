@@ -20,6 +20,7 @@ from wayfarer.rules.checks import RecordedDice
 from wayfarer.rules.firearm_types import FirearmSpec
 from wayfarer.rules.mundane_skills import inventory
 from wayfarer.rules.mundane_skills.ranged import PROCEDURES, definitions, require_mode
+from wayfarer.rules.skill_types import DefaultConditionKind
 from wayfarer.simulation.combat import RangedSituation
 from wayfarer.simulation.gurps_equipment import Damage, RangedMode
 
@@ -98,12 +99,28 @@ def test_both_families_expand_into_their_indexed_specialties() -> None:
         assert entry.definition is not None and entry.definition.skill is not None
         specialty = entry.definition.skill.specialty
         assert specialty is not None and specialty.optional_parent is None
-        # B198/B179 record DX-4 for the family; cross-specialty defaults stay #362's.
-        assert [(d.target, d.modifier) for d in entry.definition.skill.defaults] == [
-            ("attribute:dx", -4)
-        ]
-        # #336 split conditional defaults into #383, which owns the base.
-        assert entry.blocker_owners["conditional-or-skill-defaults"] == (383, 362)
+        defaults = entry.definition.skill.defaults
+        assert (defaults[0].target, defaults[0].modifier) == ("attribute:dx", -4)
+        assert "conditional-or-skill-defaults" not in entry.blockers
+        assert all(
+            default.conditions[0].kind is DefaultConditionKind.MATCHING_TECHNOLOGY_LEVEL
+            for default in defaults[1:]
+        )
+
+    # B199: ordinary Guns specialties cross-default at -2; any edge involving
+    # Grenade Launcher or LAW is -4. B179 also links matching Pistol/Rifle types.
+    pistol = PROCEDURES["skill:guns-pistol"].defaults
+    assert {(d.target, d.modifier) for d in pistol[1:]} >= {
+        ("skill:guns-rifle", -2),
+        ("skill:guns-grenade-launcher", -4),
+        ("skill:guns-light-anti-armor-weapon", -4),
+        ("skill:beam-weapons-pistol", -4),
+    }
+    projector = PROCEDURES["skill:beam-weapons-projector"].defaults
+    assert {(d.target, d.modifier) for d in projector[1:]} == {
+        ("skill:beam-weapons-pistol", -4),
+        ("skill:beam-weapons-rifle", -4),
+    }
 
 
 @pytest.mark.parametrize("identifier", [*GUNS, *BEAMS])

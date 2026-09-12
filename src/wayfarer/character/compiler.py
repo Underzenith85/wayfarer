@@ -16,7 +16,7 @@ from pydantic import ValidationError as SchemaError
 from wayfarer.character import statistics
 from wayfarer.character.size_modifier import SizeModifierCost
 from wayfarer.character.size_modifier import cost as size_modifier_cost
-from wayfarer.character.skills import SkillCompiler, SkillError
+from wayfarer.character.skills import DefaultContext, SkillCompiler, SkillError
 from wayfarer.character.statistics import (
     ATTRIBUTE_IDS,
     SECONDARY_IDS,
@@ -39,6 +39,7 @@ from wayfarer.rules.catalog import (
 )
 from wayfarer.rules.effects import DerivedValue, Effect, EffectEvaluator, MechanicalTarget
 from wayfarer.rules.gurps_characters import SIZE_MODIFIER_DEFINITION_ID, STATISTICS_V2_HOOK
+from wayfarer.rules.skill_types import DefaultConditionKind
 from wayfarer.rules.traits import TraitOptions
 from wayfarer.rules.traits import cost as trait_cost
 
@@ -484,6 +485,19 @@ class CharacterCompiler:
                 return int(adjusted)
 
             try:
+                technology_levels = (
+                    {
+                        key: self.policy.technology_level
+                        for key, spec in self.skills.specs.items()
+                        if any(
+                            condition.kind is DefaultConditionKind.MATCHING_TECHNOLOGY_LEVEL
+                            for default in spec.defaults
+                            for condition in default.conditions
+                        )
+                    }
+                    if self.policy.technology_level is not None
+                    else {}
+                )
                 compiled_skills = self.skills.compile(
                     {
                         p.definition_id: p.amount
@@ -492,6 +506,7 @@ class CharacterCompiler:
                     },
                     skill_attributes,
                     adjust_skill,
+                    DefaultContext(technology_levels, frozenset()),
                 )
                 bases.update(
                     {

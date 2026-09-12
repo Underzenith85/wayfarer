@@ -109,19 +109,19 @@ async def hurl(cid: str, play: PlayService) -> object:
     return await defend(cid, play, "b")
 
 
-def test_the_row_is_bound_and_keeps_only_its_defaults_blocker() -> None:
+def test_the_row_is_bound_with_its_spear_specialty_default() -> None:
     entry = {e.id: e for e in inventory()}["skill:spear-thrower"]
     assert entry.bound and entry.dispatch == "combat.ranged-attack"
     assert entry.implementation == "implemented"
     assert entry.definition is not None and entry.definition.skill is not None
-    # B222: DX/A, defaulting to DX-5.
+    # B222: DX/A, defaulting to DX-5 or Thrown Weapon (Spear)-4.
     assert entry.definition.skill.reference == "B222"
     assert entry.definition.skill.difficulty.value == "average"
     assert [(d.target, d.modifier) for d in entry.definition.skill.defaults] == [
-        ("attribute:dx", -5)
+        ("attribute:dx", -5),
+        ("skill:thrown-weapon-spear", -4),
     ]
-    assert entry.blockers == ("conditional-or-skill-defaults",)
-    assert entry.blocker_owners["conditional-or-skill-defaults"] == (383, 362)
+    assert entry.blockers == ()
 
 
 async def test_the_launcher_improves_the_throw_and_is_not_consumed(tmp_path: Path) -> None:

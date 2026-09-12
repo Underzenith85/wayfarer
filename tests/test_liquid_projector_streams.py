@@ -113,9 +113,12 @@ def test_the_family_expands_without_stream_residuals() -> None:
         entry = entries[identifier]
         assert entry.bound and entry.dispatch == "combat.ranged-attack"
         assert entry.definition is not None and entry.definition.skill is not None
-        assert [(d.target, d.modifier) for d in entry.definition.skill.defaults] == [
-            ("attribute:dx", -4)
-        ]
+        defaults = entry.definition.skill.defaults
+        assert (defaults[0].target, defaults[0].modifier) == ("attribute:dx", -4)
+        assert {(d.target, d.modifier) for d in defaults[1:]} == {
+            (other, -4) for other in SPECIALTIES if other != identifier
+        }
+        assert "conditional-or-skill-defaults" not in entry.blockers
     report = audit_report()["transferred_procedure_scope"]
     assert isinstance(report, list)
     assert not {

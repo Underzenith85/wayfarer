@@ -163,6 +163,35 @@ def test_default_chains_require_training_at_every_link() -> None:
     assert levels == {"a": 15, "b": 14, "c": 12}
 
 
+def test_reciprocal_defaults_resolve_from_purchased_levels_without_a_cycle() -> None:
+    """B179/B198/B201/B205: specialty defaults commonly run both ways."""
+    rows = (
+        definition(
+            "skill:a",
+            SkillSpec(A.DX, D.EASY, "B179", (SkillDefault("skill:b", -2),)),
+        ),
+        definition(
+            "skill:b",
+            SkillSpec(A.DX, D.EASY, "B179", (SkillDefault("skill:a", -2),)),
+        ),
+    )
+    engine = skill_engine(*rows)
+
+    # A default-only result cannot become the next link in the chain.
+    levels = {s.target: s for s in engine.compile({"skill:a": 20}, attrs())}
+    assert levels["skill:a"].level == 16
+    assert levels["skill:b"].level == 14
+    assert levels["skill:b"].default_from == "skill:a"
+
+    # Buying both skills lets either purchased level support the other. The
+    # stable result is independent of catalog declaration order.
+    levels = {s.target: s for s in engine.compile({"skill:a": 20, "skill:b": 4}, attrs())}
+    assert levels["skill:a"].level == 16
+    assert levels["skill:b"].level == 15
+    assert levels["skill:b"].default_from == "skill:a"
+    assert levels["skill:b"].default_credit == 12
+
+
 def test_conditional_defaults_fail_closed_and_record_the_selected_facts() -> None:
     matching_tl = DefaultCondition(DefaultConditionKind.MATCHING_TECHNOLOGY_LEVEL)
     has_tools = DefaultCondition(DefaultConditionKind.REQUIRED_EQUIPMENT, "equipment:tool-kit")
@@ -289,13 +318,20 @@ def test_progression_never_decreases(points: int, difficulty: D) -> None:
         assert relative_level(difficulty, points + 4) == relative_level(difficulty, points) + 1
 
 
-def test_definitions_reject_cycles_missing_references_and_unsupported_mechanics() -> None:
+def test_definitions_allow_default_cycles_but_reject_acquisition_cycles() -> None:
     a = definition("a", SkillSpec(A.DX, D.AVERAGE, "B173", (SkillDefault("b", -2),)))
     b = definition("b", SkillSpec(A.DX, D.AVERAGE, "B173", (SkillDefault("a", -2),)))
-    with pytest.raises(SkillError, match="Cyclic"):
-        skill_engine(a, b)
+    assert skill_engine(a, b).reciprocal_defaults == frozenset({("a", "b"), ("b", "a")})
     with pytest.raises(SkillError, match="reference"):
         skill_engine(a)
+    prerequisite_a = definition(
+        "a", SkillSpec(A.DX, D.AVERAGE, "B173", prerequisites=(SkillPrerequisite("b"),))
+    )
+    prerequisite_b = definition(
+        "b", SkillSpec(A.DX, D.AVERAGE, "B173", prerequisites=(SkillPrerequisite("a"),))
+    )
+    with pytest.raises(SkillError, match="Cyclic"):
+        skill_engine(prerequisite_a, prerequisite_b)
     with pytest.raises(SkillError, match="outside Lite"):
         skill_engine(definition("vh", SkillSpec(A.IQ, D.VERY_HARD, "B170")), profile_id=LITE)
     with pytest.raises(SkillError, match="technique"):

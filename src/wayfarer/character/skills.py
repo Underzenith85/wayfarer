@@ -2,8 +2,8 @@
 
 No request supplies mechanics. Specs come from exact pinned catalog definitions.
 Default-only skills cannot be links in a default chain (B173). Purchased links
-are evaluated in dependency order; cycles fail closed, including reciprocal
-catalog defaults, which require a separately reviewed default-direction model.
+are resolved to a stable best level, including reciprocal catalog defaults;
+acquisition prerequisites and parent-relative techniques remain acyclic.
 """
 
 from collections.abc import Callable, Mapping
@@ -126,8 +126,8 @@ class SkillCompiler:
         )
         graph: dict[str, set[str]] = {}
         for key, spec in self.specs.items():
-            refs = {d.target for d in spec.defaults if d.target not in ControllingAttribute}
-            refs.update(p.target for p in spec.prerequisites)
+            default_refs = {d.target for d in spec.defaults if d.target not in ControllingAttribute}
+            refs = {p.target for p in spec.prerequisites}
             refs.update(p.target for group in spec.prerequisite_groups for p in group.alternatives)
             if any(type(d.modifier) is not int or d.modifier > 0 for d in spec.defaults):
                 raise SkillError("skill.definition", "Defaults need integer nonpositive modifiers")
@@ -184,15 +184,53 @@ class SkillCompiler:
                 ):
                     raise SkillError("skill.technique", "Unsupported technique definition")
                 refs.add(technique.parent)
-            if any(ref not in self.specs or self.specs[ref].technique is not None for ref in refs):
+            if any(
+                ref not in self.specs or self.specs[ref].technique is not None
+                for ref in refs | default_refs
+            ):
                 raise SkillError(
                     "skill.reference", f"Missing or unsupported skill reference: {key}"
                 )
+            # Defaults are deliberately absent from this graph. Basic Set
+            # specialties commonly default to one another; their nonpositive
+            # modifiers are resolved to a stable level during compilation.
             graph[key] = refs
         try:
             self.order = tuple(TopologicalSorter(graph).static_order())
         except CycleError as exc:
             raise SkillError("skill.cycle", "Cyclic skill definitions are unsupported") from exc
+        default_graph = {
+            key: {
+                default.target
+                for default in spec.defaults
+                if default.target not in ControllingAttribute
+            }
+            for key, spec in self.specs.items()
+        }
+
+        def reaches(start: str, goal: str) -> bool:
+            pending = [start]
+            visited: set[str] = set()
+            while pending:
+                current = pending.pop()
+                if current == goal:
+                    return True
+                if current in visited:
+                    continue
+                visited.add(current)
+                pending.extend(default_graph[current] - visited)
+            return False
+
+        # Within a reciprocal component, only the purchased native level is a
+        # default source. Otherwise B173 point credit could feed around the
+        # cycle forever. Final learned levels still propagate out of the
+        # component to ordinary one-way defaults.
+        self.reciprocal_defaults = frozenset(
+            (key, target)
+            for key, targets in default_graph.items()
+            for target in targets
+            if reaches(target, key)
+        )
 
     def _conditions_satisfied(
         self,
@@ -256,11 +294,11 @@ class SkillCompiler:
         ):
             raise SkillError("skill.context", "Equipment context needs definition IDs")
 
-        def record(result: SkillLevel) -> None:
+        def adjusted(result: SkillLevel) -> SkillLevel:
             level = result.level if adjust is None else adjust(result.target, result.level)
             if type(level) is not int:
                 raise SkillError("skill.level", "Skill effects must produce whole-number levels")
-            levels[result.target] = replace(result, level=level, unmodified=result.level)
+            return replace(result, level=level, unmodified=result.level)
 
         # Optional specialties have an implicit reverse default. Use purchased
         # native levels for that edge so it cannot feed its own default back.
@@ -273,50 +311,10 @@ class SkillCompiler:
         default_native = {
             key: level if adjust is None else adjust(key, level) for key, level in native.items()
         }
-        for key in self.order:
-            if key not in self.available:
-                continue
+
+        def ordinary(key: str) -> SkillLevel | None:
             spec = self.specs[key]
             paid = points.get(key, 0)
-
-            def satisfied(requirement: SkillPrerequisite) -> bool:
-                target = requirement.target
-                return (
-                    target in points
-                    and target in levels
-                    and levels[target].level >= requirement.minimum
-                )
-
-            # B168: every firm prerequisite, and one alternative from each set.
-            prerequisites = all(satisfied(p) for p in spec.prerequisites) and all(
-                any(satisfied(p) for p in group.alternatives) for group in spec.prerequisite_groups
-            )
-            if not prerequisites:
-                if paid:
-                    raise SkillError("skill.prerequisite", f"Missing trained prerequisite: {key}")
-                continue
-            if spec.technique is not None:
-                technique = spec.technique
-                parent = levels.get(technique.parent)
-                if parent is None or technique.parent not in points:
-                    if paid:
-                        raise SkillError(
-                            "skill.prerequisite", f"Technique needs a trained parent: {key}"
-                        )
-                    continue
-                if paid == 1 and spec.difficulty is Difficulty.HARD:
-                    raise SkillError("technique.points", "Hard techniques start at two points")
-                improvement = paid - (1 if paid and spec.difficulty is Difficulty.HARD else 0)
-                modifier = technique.default_modifier + improvement
-                if modifier > technique.maximum_modifier:
-                    raise SkillError(
-                        "technique.cap", f"Technique exceeds its parent-relative cap: {key}"
-                    )
-                record(SkillLevel(key, parent.level + modifier, paid, technique.parent))
-                if levels[key].level > parent.level + technique.maximum_modifier:
-                    raise SkillError("technique.cap", f"Technique effects exceed its cap: {key}")
-                continue
-
             candidates: list[tuple[int, str, bool, tuple[DefaultCondition, ...]]] = []
             for default in spec.defaults:
                 if not self._conditions_satisfied(key, spec, default, context):
@@ -331,9 +329,14 @@ class SkillCompiler:
                         )
                     )
                 elif default.target in points and default.target in levels:
+                    source_level = (
+                        default_native[default.target]
+                        if (key, default.target) in self.reciprocal_defaults
+                        else levels[default.target].level
+                    )
                     candidates.append(
                         (
-                            levels[default.target].level + default.modifier,
+                            source_level + default.modifier,
                             default.target,
                             True,
                             default.conditions,
@@ -374,14 +377,74 @@ class SkillCompiler:
                 level, target, credit, conditions = max(
                     options, key=lambda x: (x[0], x[1] == "", x[1])
                 )
-                record(
-                    SkillLevel(
-                        key,
-                        level,
-                        paid,
-                        default_from=target or None,
-                        default_credit=credit,
-                        default_conditions=conditions,
-                    )
+                return adjusted(
+                    SkillLevel(key, level, paid, target or None, credit, None, conditions)
                 )
+            return None
+
+        def satisfied(requirement: SkillPrerequisite) -> bool:
+            target = requirement.target
+            return (
+                target in points
+                and target in levels
+                and levels[target].level >= requirement.minimum
+            )
+
+        # Reciprocal defaults are legitimate source data. Start with native and
+        # attribute-default anchors, then propagate purchased-skill defaults to
+        # a fixed point. Nonpositive modifiers make levels bounded; provenance
+        # uses the same deterministic tie-break as an acyclic compilation.
+        ordinary_keys = tuple(
+            key for key in self.order if key in self.available and self.specs[key].technique is None
+        )
+        for _ in range(len(ordinary_keys) + 1):
+            changed = False
+            for key in ordinary_keys:
+                spec = self.specs[key]
+                prerequisites = all(satisfied(p) for p in spec.prerequisites) and all(
+                    any(satisfied(p) for p in group.alternatives)
+                    for group in spec.prerequisite_groups
+                )
+                if not prerequisites:
+                    continue
+                result = ordinary(key)
+                if result is not None and levels.get(key) != result:
+                    levels[key] = result
+                    changed = True
+            if not changed:
+                break
+        else:
+            raise SkillError("skill.cycle", "Skill defaults did not resolve to a stable level")
+
+        for key in ordinary_keys:
+            if key in points and key not in levels:
+                raise SkillError("skill.prerequisite", f"Missing trained prerequisite: {key}")
+
+        # Techniques cannot be default sources or prerequisites. Their parent
+        # levels are stable after the ordinary-skill fixed point.
+        for key in self.order:
+            if key not in self.available or self.specs[key].technique is None:
+                continue
+            spec = self.specs[key]
+            paid = points.get(key, 0)
+            technique = spec.technique
+            assert technique is not None
+            parent = levels.get(technique.parent)
+            if parent is None or technique.parent not in points:
+                if paid:
+                    raise SkillError(
+                        "skill.prerequisite", f"Technique needs a trained parent: {key}"
+                    )
+                continue
+            if paid == 1 and spec.difficulty is Difficulty.HARD:
+                raise SkillError("technique.points", "Hard techniques start at two points")
+            improvement = paid - (1 if paid and spec.difficulty is Difficulty.HARD else 0)
+            modifier = technique.default_modifier + improvement
+            if modifier > technique.maximum_modifier:
+                raise SkillError(
+                    "technique.cap", f"Technique exceeds its parent-relative cap: {key}"
+                )
+            levels[key] = adjusted(SkillLevel(key, parent.level + modifier, paid, technique.parent))
+            if levels[key].level > parent.level + technique.maximum_modifier:
+                raise SkillError("technique.cap", f"Technique effects exceed its cap: {key}")
         return tuple(levels[key] for key in sorted(levels))
