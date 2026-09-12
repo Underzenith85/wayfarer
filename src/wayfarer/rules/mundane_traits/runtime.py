@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Final, Literal
 
+from wayfarer.rules.background_traits import BACKGROUND_HOOKS
 from wayfarer.rules.mental_traits import MENTAL_HOOKS
 from wayfarer.rules.physical_traits import PHYSICAL_HOOKS
 
@@ -47,6 +48,8 @@ class Audience:
     classes: tuple[str, ...] = ()
     visible: bool = True
     appearance_applicable: bool = True
+    observer_status: int = 0
+    status_disposition: Literal["friendly", "neutral", "angry", "resentful"] = "neutral"
 
 
 DEFAULT_AUDIENCE: Final = Audience()
@@ -94,7 +97,6 @@ REACTION_BINDINGS: Final = MappingProxyType(
             "status",
             ("reaction", "influence"),
             28,
-            ("free-status-from-wealth-or-rank",),
         ),
         "trait:low-status": ReactionBinding(
             "trait.status",
@@ -102,7 +104,6 @@ REACTION_BINDINGS: Final = MappingProxyType(
             "status",
             ("reaction", "influence"),
             28,
-            ("free-status-from-wealth-or-rank",),
         ),
     }
 )
@@ -123,6 +124,7 @@ REPUTATION_BINDINGS: Final = MappingProxyType(
 STANDING_HOOKS: Final = frozenset({"trait.appearance", "trait.reputation"})
 SUPPORTED_HOOKS: Final = frozenset(
     {SELF_CONTROL_HOOK}
+    | BACKGROUND_HOOKS
     | {binding.hook for binding in REACTION_BINDINGS.values()}
     | STANDING_HOOKS
     | MENTAL_HOOKS

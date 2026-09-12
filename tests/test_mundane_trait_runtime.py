@@ -112,7 +112,6 @@ def test_manual_obligations_and_unbound_effects_cannot_activate() -> None:
     engine = runtime_compiler()
     for identifier, options in (
         ("trait:code-of-honor-soldier", None),
-        ("trait:rank-watch", None),
         ("trait:ally-associate", None),
     ):
         result = engine.compile(gurps_draft(Purchase(definition_id=identifier, trait=options)))

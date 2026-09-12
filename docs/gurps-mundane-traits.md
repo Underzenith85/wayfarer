@@ -21,14 +21,16 @@ totals or manufacture activation approvals.
 ## Executable effects and coverage matrix
 
 Construction cost and executable effect stay separate. `mundane_traits.runtime`
-binds effects to existing authoritative services. Twenty-seven records have selected
-runtime bindings; this does not certify every rule or variant of those traits.
+binds effects to existing authoritative services. Fifty-six of 69 records have
+selected runtime bindings through candidate 0.5.0; this does not certify every
+rule or variant of those traits.
 
 | Selected records | Bound effect | Reference | Remaining owner |
 | --- | --- | --- | --- |
 | Charisma | +1 reaction/influence per level, when perceived | B41 | #191 source reconciliation |
 | Voice | +2 reaction when heard | B97 | #335 influence-skill bonus |
-| Status, Low Status | Selected signed reaction/influence level | B28 | #334 relative standing/free Status |
+| Status, Low Status | Relative observer reaction plus purchased/free level | B28 | #191 source reconciliation |
+| Wealth, Rank, language and culture | Starting assets, free Status, rank form, comprehension and familiarity | B23-30 | #191 source reconciliation |
 | Bad Temper, Curious, Overconfidence | Approved self-control rating roll | B120-121, B124, B129, B148 | #333 consequences beyond the roll |
 | Hideous, Ugly, Unattractive, Average, Attractive, Handsome | Appearance reactions, including Handsome's attraction split | B21 | #191; additional constructions #335 |
 | Reputation (Bravery), Reputation (Cruelty) | +1/-1 reaction per purchased level, maximum four; everyone, always | B26-28 | #191; restricted/uncertain constructions #335 |
@@ -48,13 +50,13 @@ consequences are not implemented. Reputation records name concrete details;
 these two selected constructions do not approximate class-scoped prices or
 recognition-frequency discounts.
 
-The other 38 records remain unavailable. Every record carries source owner #191;
+The other 13 records remain unavailable. Every record carries source owner #191;
 concrete runtime follow-ups are exported directly to the source audit:
 
 | Follow-up | Selected outstanding scope |
 | --- | --- |
-| #333 | Mental and behavioral effects, manual obligations and relationships |
-| #334 | Wealth, Status/Rank, language and culture interactions/constructions |
+| #333 | Remaining manual obligations and incomplete relationship constructions |
+| #334 | Completed by candidate 0.5.0 |
 | #335 | Appearance and reputation variants; Voice influence-skill bonuses |
 
 These follow-ups block remaining #113 gameplay coverage and #122 certification.
@@ -146,3 +148,22 @@ scopes likewise remain explicitly manual and unavailable; they do not count as
 verified coverage. Independent literal evidence is in
 `tests/test_mental_traits.py` (Characters third printing B36, B51, B85, B96,
 B101 and B124-159).
+
+## Background interactions (#334)
+
+Candidate version **0.5.0** binds the selected Wealth, Status, Rank, language,
+Language Talent, and Cultural Familiarity constructions. Wealth uses exact
+rational multipliers against campaign starting wealth; Multimillionaire 1-3
+are separate 75/100/125-point constructions. Status is relative to the observer:
+deference, friendly superiors, hostile superiors, resentment, negative Status,
+and its -4 floor are explicit. Free Status comes from qualifying Wealth and
+each ordinary Rank, while replacement Rank supplies equivalent Status and
+Courtesy Rank supplies only its title. Rank requires a pinned campaign
+organization membership.
+
+The campaign context records the one free native language and culture.
+Additional spoken and written language forms retain separate levels; Language
+Talent raises a purchased form by one level without changing its purchased
+cost. Same-race Cultural Familiarity costs 1 point and alien familiarity has a
+separate 2-point construction in the identity-bound package. Independent tests
+for every interaction are in `tests/test_background_traits.py` (B23-30).

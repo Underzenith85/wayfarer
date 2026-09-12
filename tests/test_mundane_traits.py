@@ -215,6 +215,24 @@ def test_inventory_package_and_audit_reconcile() -> None:
         "trait:perk-penetrating-voice",
         "trait:honesty",
         "trait:truthfulness",
+        "trait:language-talent",
+        "trait:wealth-dead-broke",
+        "trait:wealth-poor",
+        "trait:wealth-struggling",
+        "trait:wealth-average",
+        "trait:wealth-comfortable",
+        "trait:wealth-wealthy",
+        "trait:wealth-very-wealthy",
+        "trait:wealth-filthy-rich",
+        "trait:wealth-multimillionaire-1",
+        "trait:wealth-multimillionaire-2",
+        "trait:wealth-multimillionaire-3",
+        "trait:language-trade-spoken",
+        "trait:language-trade-written",
+        "trait:culture-foreign",
+        "trait:rank-watch",
+        "trait:rank-replaces-status-watch",
+        "trait:courtesy-rank-watch",
     }
     assert report["available"] == len(implemented)
     assert all(
@@ -224,7 +242,7 @@ def test_inventory_package_and_audit_reconcile() -> None:
     )
     unbound = report["unbound_effects"]
     assert isinstance(unbound, tuple)
-    assert "trait.rank" in unbound and "trait.voice" not in unbound
+    assert "trait.associated_npc" in unbound and "trait.rank" not in unbound
     bound = next(e for e in entries if e.id == "trait:voice")
     assert bound.blockers == ("voice-influence-skill-bonus",)
     assert any(e.obligations for e in entries)

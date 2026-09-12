@@ -8,6 +8,7 @@ contributes nothing and cannot reach a roll.
 
 from collections.abc import Mapping
 
+from wayfarer.character.background_traits import background_traits
 from wayfarer.character.compiler import ValidatedBuild
 from wayfarer.errors import ValidationError
 from wayfarer.rules.catalog import ImplementationStatus, RuleDefinition
@@ -93,10 +94,13 @@ def reaction_modifiers(
     nothing. Each modifier carries its definition ID as provenance.
     """
     modifiers = []
+    status_ids = {"trait:status", "trait:low-status"}
     for purchase in sorted(build.trait_purchases, key=lambda p: p.definition_id):
         binding = REACTION_BINDINGS.get(purchase.definition_id)
         definition = definitions.get(purchase.definition_id)
         if binding is None or definition is None or definition.trait_rules is None:
+            continue
+        if purchase.definition_id in status_ids:
             continue
         if definition.status is not ImplementationStatus.IMPLEMENTED:
             continue
@@ -109,7 +113,20 @@ def reaction_modifiers(
         modifiers.append(
             ReactionModifier("trait", binding.per_level * purchase.amount, purchase.definition_id)
         )
-    return tuple(modifiers)
+    background = background_traits(build, definitions)
+    status_sources = [
+        p.definition_id
+        for p in build.trait_purchases
+        if p.definition_id in status_ids
+        or p.definition_id.startswith("trait:wealth-")
+        or "rank-" in p.definition_id
+    ]
+    if status_sources and audience.recognizes_status:
+        value = background.status_reaction(audience.observer_status, audience.status_disposition)
+        if value:
+            source = status_sources[0] if len(status_sources) == 1 else "trait:background-status"
+            modifiers.append(ReactionModifier("trait", value, source))
+    return tuple(sorted(modifiers, key=lambda value: value.source_id))
 
 
 def skill_conditions(
