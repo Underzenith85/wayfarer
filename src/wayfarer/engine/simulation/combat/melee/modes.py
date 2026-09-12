@@ -59,6 +59,9 @@ def mode(
     )
     if entry is None:
         raise ValidationError("Weapon is not in the pinned combat catalog")
+    # deferred: melee.modes -> objects.combat -> melee.defense -> melee.modes.
+    # A weapon's effective mode depends on the object's condition, and object combat
+    # scores defenses made with that mode.
     from wayfarer.engine.simulation.combat.objects.combat import effective_entry
 
     entry = effective_entry(runtime, item)
@@ -194,6 +197,7 @@ def heavy_parry_weight(
         e.definition_id == item.definition_id and e.modes for e in equipment.entries
     ):
         return None
+    # deferred: melee.modes -> objects.combat -> melee.defense -> melee.modes, as above.
     from wayfarer.engine.simulation.combat.objects.combat import effective_entry
 
     entry = effective_entry(runtime, item)

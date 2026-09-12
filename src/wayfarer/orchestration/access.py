@@ -406,6 +406,8 @@ class CampaignAccess:
                     environment=self.medical_environment,
                 )
             elif kind in ("request_ruling", "decide_ruling", "execute_ruling"):
+                # deferred: access -> adjudication -> play -> npcs -> providers -> access.
+                # The provider needs an access handle to answer a director's question.
                 from wayfarer.orchestration.adjudication import RULING_ADAPTER, AdjudicationService
 
                 ruling = RULING_ADAPTER.validate_json(raw)

@@ -800,6 +800,8 @@ def apply_spell(
             rng=rng,
         )
     if outcome == "resisted":
+        # deferred: spells -> effects -> spells.
+        # Casting can break a daze, and a daze is an effect of a cast spell.
         from wayfarer.engine.simulation.magic.effects import break_daze
 
         state = break_daze(state, context.target_id, command.id)

@@ -25,6 +25,8 @@ def captive(state: PlayState, actor_id: str) -> Captivity | None:
 def guard(state: PlayState, actor_id: str, kind: str, *, allow_fright: bool = False) -> None:
     if kind not in ("resolve_weapon_explosion", "declare_thrown_landing"):
         blast_guard(state.resources)
+    # deferred: recovery_guard is a noun and equipment.retrieval is a verb, so
+    # test_engine_nouns_do_not_import_verbs rejects this at module level.
     from wayfarer.engine.simulation.equipment.retrieval import tasks as retrievals
 
     if kind not in ("question", "wait", "retrieve_equipment") and any(

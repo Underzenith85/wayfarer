@@ -654,6 +654,8 @@ def apply_injury(
         }
     )
     if injury:
+        # deferred: fatigue -> injury -> magic.effects -> magic.spells -> fatigue.
+        # Breaking a daze is a spell effect; spellcasting spends fatigue, which is injured here.
         from wayfarer.engine.simulation.magic.effects import break_daze
 
         updated = break_daze(updated, command.actor_id, command.id)

@@ -261,6 +261,8 @@ class PartyService:
                             }
                         )
                     elif activity.family == "recovery":
+                        # deferred: party <-> recovery.  flush replays queued recovery commands and
+                        # recovery flushes the party after a finish.
                         from wayfarer.orchestration.recovery import RecoveryCommand, RecoveryService
 
                         state = RecoveryService(self.play).finish(

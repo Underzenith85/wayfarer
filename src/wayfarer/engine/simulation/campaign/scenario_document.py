@@ -268,6 +268,10 @@ def parse_document(source: str) -> ScenarioDocumentBase:
     ):
         raise ValueError("Unsupported scenario schema_version; explicit migration is required")
     if raw["schema_version"] == 2:
+        # deferred: scenario_document -> social_policy -> scenario_document.
+        # parse_document dispatches schema_version 2 to its own subclass, which subclasses
+        # the base declared here.  Moving the dispatch out would take PublishedRevision's
+        # validator with it, since that calls parse_document too.
         from wayfarer.engine.simulation.campaign.social_policy import SocialScenarioDocument
 
         return SocialScenarioDocument.model_validate_json(source)

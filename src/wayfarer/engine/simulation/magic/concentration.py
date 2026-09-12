@@ -16,6 +16,8 @@ def require_idle_concentration(resources: ResourceState, actor_id: str) -> None:
 
     if retching_penalty(resources, actor_id):
         raise ConflictError("Retching prevents concentration")
+    # deferred: spells -> concentration -> spells.
+    # Concentration reads the spell ledger; casting checks concentration.
     from wayfarer.engine.simulation.magic.spells import latest
 
     if any(e.actor_id == actor_id and e.concentrating for e in effects(resources)) or any(

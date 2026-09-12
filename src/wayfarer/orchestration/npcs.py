@@ -186,6 +186,8 @@ def checkpoint(play: PlayService, state: PlayState) -> PlayState:
                         ).hexdigest(),
                     )
                 if choice.kind == "transfer_prisoner":
+                    # deferred: play -> npcs -> recovery -> advancement -> play.
+                    # An NPC checkpoint can finish a recovery, which spends advancement points.
                     from wayfarer.orchestration.recovery import RecoveryService
 
                     if choice.setback_rule_id is None or choice.target_actor_id is None:
@@ -283,6 +285,7 @@ def social_occurrence(
     trigger: NPCSocialTrigger,
     occurrence_id: str,
 ) -> PlayState:
+    # deferred: npcs -> social -> access -> combat -> combat.context -> play -> npcs.
     from wayfarer.orchestration.social import ResolvedInteraction, dispatch
 
     profile_id = play.engine.reviewer.compiler.statistics_profile
@@ -416,6 +419,7 @@ class NPCService:
         plan_id: str,
     ) -> PlayState:
         """Generate a bounded advisory choice before submitting a typed NPC proposal."""
+        # deferred: npcs -> providers -> access -> combat -> combat.context -> play -> npcs.
         from wayfarer.orchestration.providers import ProviderRequest
 
         campaign = await self.play.store.read(cid)

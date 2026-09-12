@@ -86,6 +86,8 @@ def interrupt_concentration(
     resources: ResourceState, actor_id: str, command_id: str, *, distraction: bool = False
 ) -> ResourceState:
     """Other maneuvers abandon concentration; an active defense needs Will-3."""
+    # deferred: abilities -> magic.spells -> magic.concentration -> abilities.
+    # An ability can interrupt a spell, and concentration is itself an ability.
     from wayfarer.engine.simulation.magic.spells import interrupt_spells
 
     resources = interrupt_spells(resources, actor_id, command_id, distraction=distraction)
@@ -185,6 +187,7 @@ def apply_ability(
     if resources.revision != command.expected_revision:
         raise ConflictError("Ability revision changed")
     if command.kind in ("activate", "analyze"):
+        # deferred: abilities -> magic.concentration -> abilities, as above.
         from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
 
         require_idle_concentration(resources, command.actor_id)

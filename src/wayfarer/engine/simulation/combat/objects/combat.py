@@ -188,6 +188,8 @@ def critical_breakage(
         else item.condition
     )
     usable = residual_definition(profile, condition) is not None
+    # deferred: objects.combat -> thrown.flight -> objects.combat.
+    # A thrown object's flight ends in an object hit.
     from wayfarer.engine.simulation.combat.thrown.flight import position
 
     subject = next(p for p in encounter.participants if p.actor_id == item.owner_id)

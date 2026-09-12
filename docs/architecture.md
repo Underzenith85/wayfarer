@@ -30,19 +30,28 @@ orchestration commits and transport serves, and the engine never imports it.
 Certification is deliberately outside the engine: it reads ledgers and source
 files, which the engine never does.
 
-Two rules keep the engine importable in any order.
+Three rules keep the engine importable in any order.
 
 - **Nouns never import verbs.** A verb is a module that takes a `RulesContext`
   and resolves mechanics; a noun is the state, contract or pure reducer it reads.
   Verbs may import nouns from any domain. The reverse is a cycle, and an
-  architecture test rejects it for every module the importer always pays for
-  (a deferred import inside a function body is how the remaining mechanic cycles
-  are broken today).
+  architecture test rejects it for every module the importer always pays for.
 - **Package inits do not re-export.** An `__init__.py` under `engine/` either
   declares the package's own rules, as the three inventory packages do, or holds
   nothing but its docstring. A facade that imports its siblings would make
   importing one domain load them all, and a noun would load a verb. Importers
   name the concrete module.
+- **Function-local imports are not a cycle-breaking tool.** A module that needs
+  a helper from a module above it means the helper is in the wrong module: move
+  it down to the tier its callers already sit on, and both imports go to the top
+  of the file. The few deferrals that remain say which cycle or gate they
+  respect in a `# deferred:` note, and an architecture test rejects one without
+  that note. Most are genuine mutual recursion between two reducers that resolve
+  each other; one is a patch seam a test depends on.
+
+The cycle test reads the graph a module actually pays for on import, so it
+counts relative imports, and treats `from package import submodule` as an edge
+to the submodule rather than to the package init that does not mention it.
 
 The simulation resolver mutates the supplied state and returns an event. The
 SQLite adapter invokes it only after locking and checking the expected revision,

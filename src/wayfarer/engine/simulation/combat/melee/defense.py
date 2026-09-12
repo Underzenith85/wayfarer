@@ -81,6 +81,9 @@ def defense_value(
         ),
         None,
     )
+    # deferred: melee.defense -> objects.combat -> melee.defense.
+    # Scoring a defense reads the item being defended with; damaging an item reads the
+    # defense that failed to stop it.
     from wayfarer.engine.simulation.combat.objects.combat import weapon_target
 
     if object_target and next(i for i in state.resources.items if i.id == object_target).ground:
@@ -105,6 +108,9 @@ def defense_value(
     ):
         raise ValidationError("The selected maneuver forbids this defense")
     if selected == "parry" and item_id in ("left-hand", "right-hand"):
+        # deferred: melee.defense -> unarmed.defense -> melee.defense.  Genuine mutual
+        # recursion: a barehanded parry defers to the unarmed scorer, which asks back for
+        # the dodge and weapon-parry values.
         from wayfarer.engine.simulation.combat.unarmed.defense import unarmed_defense
 
         encounter = next(
@@ -222,6 +228,7 @@ def defense_value(
     for item in ready:
         if item_id is not None and item.id != item_id:
             continue
+        # deferred: melee.defense -> objects.combat -> melee.defense, as above.
         from wayfarer.engine.simulation.combat.objects.combat import effective_entry
 
         entry = effective_entry(runtime, item)
@@ -259,6 +266,8 @@ def defense_value(
                     if incoming_weight > compiled.statistics.basic_lift * 1000 * weapon_mode.hands:
                         continue
                     if 0 < 3 * entry.weight_millipounds <= incoming_weight:
+                        # deferred: melee.modes -> objects.combat -> melee.defense -> melee.heavy_parry ->
+                        # melee.modes.  A heavy parry is scored from the weapon mode it is made with.
                         from wayfarer.engine.simulation.combat.melee.heavy_parry import (
                             require_breakage,
                         )
@@ -325,6 +334,7 @@ def exert_defense(
     for a parry or block is stressed by that use, and one that breaks under it
     defends with nothing. A hand is not an implement and never breaks here.
     """
+    # deferred: melee.defense -> objects.combat -> melee.defense, as above.
     from wayfarer.engine.simulation.combat.objects.combat import defense_stress, worn_stress
 
     if selected != "none":

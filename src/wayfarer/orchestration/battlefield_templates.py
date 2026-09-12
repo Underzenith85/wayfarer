@@ -25,6 +25,8 @@ if TYPE_CHECKING:
 
 def install_rules(campaign: Campaign, play: PlayService, combat: CombatRules) -> PlayService:
     """Retain immutable source provenance while recording the migrated runtime graph."""
+    # deferred: battlefield_templates -> play -> npcs -> providers -> access ->
+    # combat -> combat.context -> battlefield_templates.
     from wayfarer.orchestration.play import PlayService
 
     engine = REGISTRY.bind(

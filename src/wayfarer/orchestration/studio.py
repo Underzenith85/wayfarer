@@ -848,6 +848,8 @@ class ScenarioStudio:
 
         published = None
         if "scenario_document_json" in seed:
+            # deferred: scenario_documents -> studio -> scenario_documents.  Activation saves a
+            # draft through the documents service, which wraps this studio.
             from wayfarer.orchestration.scenario_documents import ScenarioDocuments
 
             documents = ScenarioDocuments(self)

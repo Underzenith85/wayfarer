@@ -532,6 +532,53 @@ class ArchitectureTests(unittest.TestCase):
             with self.subTest(source=source):
                 self.assertEqual([type(node) for node in tree.body], [ast.Expr])
 
+    def test_deferred_imports_are_explained(self) -> None:
+        """A function-local wayfarer import says which cycle or gate it respects.
+
+        Promoting one to module level is the default; the few that cannot be
+        promoted are the interesting ones, so each carries a ``# deferred:`` note
+        on the line above saying why.  The notes are the allowlist -- there is no
+        list here to fall out of date.
+        """
+        package = Path(wayfarer.__file__).parent
+        for source in sorted(package.rglob("*.py")):
+            text = source.read_text()
+            tree = ast.parse(text)
+            lines = text.splitlines()
+            guarded = {
+                node
+                for parent in ast.walk(tree)
+                if isinstance(parent, ast.If) and "TYPE_CHECKING" in ast.unparse(parent.test)
+                for node in ast.walk(parent)
+            }
+            for parent in ast.walk(tree):
+                if not isinstance(parent, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    continue
+                for node in ast.walk(parent):
+                    if node in guarded:
+                        continue
+                    if isinstance(node, ast.ImportFrom):
+                        local = bool(node.level) or (node.module or "").startswith("wayfarer")
+                    elif isinstance(node, ast.Import):
+                        local = any(a.name.startswith("wayfarer") for a in node.names)
+                    else:
+                        continue
+                    if not local:
+                        continue
+                    # The note may run over several lines; read the whole block.
+                    block: list[str] = []
+                    for previous in reversed(lines[: node.lineno - 1]):
+                        stripped = previous.strip()
+                        if not stripped.startswith("#"):
+                            break
+                        block.append(stripped)
+                    with self.subTest(source=source, line=node.lineno):
+                        self.assertTrue(
+                            any(line.startswith("# deferred:") for line in block),
+                            f"{source}:{node.lineno} defers a wayfarer import without a "
+                            '"# deferred:" note saying which cycle or gate it respects',
+                        )
+
     def test_modules_import_in_one_order(self) -> None:
         """No module-level import cycle: a package must be importable from any entry.
 
@@ -540,11 +587,16 @@ class ArchitectureTests(unittest.TestCase):
         blocks and deferred imports inside function bodies.
         """
         package = Path(wayfarer.__file__).parent
-        graph: dict[str, set[str]] = {}
-        for source in package.rglob("*.py"):
+
+        def name(source: Path) -> str:
             parts = source.relative_to(package.parent).with_suffix("").parts
             if parts[-1] == "__init__":
                 parts = parts[:-1]
+            return ".".join(parts)
+
+        modules = {name(source): source for source in package.rglob("*.py")}
+        graph: dict[str, set[str]] = {}
+        for module, source in modules.items():
             tree = ast.parse(source.read_text())
             deferred = {
                 node
@@ -557,12 +609,27 @@ class ArchitectureTests(unittest.TestCase):
             for node in ast.walk(tree):
                 if node in deferred:
                     continue
-                if isinstance(node, ast.ImportFrom) and (node.module or "").startswith("wayfarer"):
-                    assert node.module is not None
-                    edges.add(node.module)
+                if isinstance(node, ast.ImportFrom):
+                    if node.level:
+                        # A relative import is an edge too: resolve it against this
+                        # module's package before deciding whether it leaves wayfarer.
+                        anchor = (
+                            module if source.name == "__init__.py" else module.rpartition(".")[0]
+                        )
+                        for _ in range(node.level - 1):
+                            anchor = anchor.rpartition(".")[0]
+                        target = f"{anchor}.{node.module}" if node.module else anchor
+                    else:
+                        target = node.module or ""
+                    if not target.startswith("wayfarer"):
+                        continue
+                    edges.add(target)
+                    # ``from package import submodule`` depends on the submodule, not
+                    # just on the package init that does not mention it.
+                    edges |= {f"{target}.{a.name}" for a in node.names} & modules.keys()
                 elif isinstance(node, ast.Import):
                     edges |= {a.name for a in node.names if a.name.startswith("wayfarer")}
-            graph[".".join(parts)] = edges
+            graph[module] = edges
 
         colour: dict[str, int] = {}
         path: list[str] = []
