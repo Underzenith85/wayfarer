@@ -101,6 +101,74 @@ REPEATING_RIFLE_ROWS = (
     ("assault-carbine-556", 8, 900, 7300, 4, 2, 4, 400, 3000, 15, 30, 1, 3, 9, -3, 2),
 )
 
+ORDINARY_HANDGUN_ROWS = (
+    ("revolver-38", "pistol", 6, 400, 2000, 2, -1, "pi", 2, 120, 1500, 3, 6, 0, 3, 8, -2, 2),
+    (
+        "auto-pistol-9mm-tl7",
+        "pistol",
+        7,
+        600,
+        2600,
+        2,
+        2,
+        "pi",
+        2,
+        150,
+        1850,
+        3,
+        15,
+        1,
+        3,
+        9,
+        -2,
+        2,
+    ),
+    (
+        "holdout-pistol-380",
+        "pistol",
+        7,
+        300,
+        1300,
+        2,
+        0,
+        "pi",
+        1,
+        125,
+        1500,
+        3,
+        5,
+        1,
+        3,
+        8,
+        -1,
+        3,
+    ),
+    ("revolver-357m", "pistol", 7, 500, 3000, 3, -1, "pi", 2, 185, 2000, 3, 6, 0, 3, 10, -2, 3),
+    ("revolver-44m", "pistol", 7, 900, 3250, 3, 0, "pi+", 2, 200, 2500, 3, 6, 0, 3, 11, -3, 4),
+    (
+        "auto-pistol-44m",
+        "pistol",
+        8,
+        750,
+        4500,
+        3,
+        0,
+        "pi+",
+        2,
+        230,
+        2500,
+        3,
+        9,
+        1,
+        3,
+        12,
+        -3,
+        4,
+    ),
+    ("auto-pistol-40", "pistol", 8, 640, 2100, 2, 0, "pi+", 2, 150, 1900, 3, 15, 1, 3, 9, -2, 2),
+    ("machine-pistol-9mm", "smg", 7, 900, 5500, 2, 2, "pi", 2, 160, 1900, 20, 25, 1, 3, 12, -3, 3),
+)
+
 SHIELD_ROWS = (
     ("light-shield", 0, 1, 25, 2000, 5, 20),
     ("small-shield", 0, 1, 40, 8000, 6, 30),
@@ -519,6 +587,91 @@ def test_b279_repeating_rifle_ammunition_exact_values() -> None:
         "assault-rifle-762s-round": ("6/5", "60"),
         "battle-rifle-762-round": ("17/10", "85"),
         "assault-carbine-556-round": ("2/3", "100/3"),
+    }
+    assert {
+        key: (str(entries[key].price), str(entries[key].weight_millipounds)) for key in expected
+    } == expected
+
+
+def test_remaining_b278_handguns_reconstruct_loaded_table_weight() -> None:
+    entries = {
+        entry.definition_id.removeprefix("equipment:"): entry for entry in BASIC_EQUIPMENT.entries
+    }
+    for row in ORDINARY_HANDGUN_ROWS:
+        (
+            key,
+            skill,
+            tl,
+            cost,
+            loaded_weight,
+            dice,
+            adds,
+            damage_type,
+            accuracy,
+            half,
+            maximum,
+            rate_of_fire,
+            shots,
+            chamber,
+            reload_seconds,
+            minimum_st,
+            bulk,
+            recoil,
+        ) = row
+        entry = entries[key]
+        assert (entry.provenance.pages, entry.technology_level, entry.price) == ((278,), tl, cost)
+        assert entry.unsupported_mechanics == ()
+        assert len(entry.modes) == 1 and isinstance(entry.modes[0], RangedMode)
+        mode = entry.modes[0]
+        assert mode.skill_id == "skill:guns-" + skill
+        assert (mode.damage.dice, mode.damage.adds, mode.damage.damage_type) == (
+            dice,
+            adds,
+            damage_type,
+        )
+        assert (
+            mode.accuracy,
+            mode.half_damage_range,
+            mode.maximum_range,
+            mode.rate_of_fire,
+            mode.shots,
+            mode.chamber_capacity,
+            mode.reload_seconds,
+            mode.minimum_st,
+            mode.hands,
+            mode.bulk,
+            mode.recoil,
+        ) == (
+            accuracy,
+            half,
+            maximum,
+            rate_of_fire,
+            shots,
+            chamber,
+            reload_seconds,
+            minimum_st,
+            1,
+            bulk,
+            recoil,
+        )
+        assert mode.ammunition_id is not None
+        ammunition = entries[mode.ammunition_id.removeprefix("equipment:")]
+        assert entry.weight_millipounds + ammunition.weight_millipounds * shots == loaded_weight
+
+
+def test_remaining_b278_handgun_ammunition_exact_values() -> None:
+    entries = {
+        entry.definition_id.removeprefix("equipment:"): entry for entry in BASIC_EQUIPMENT.entries
+    }
+    expected = {
+        "revolver-38-round": ("2/3", "100/3"),
+        "auto-pistol-9mm-tl7-round": ("0.8", "40"),
+        "holdout-pistol-380-round": ("0.8", "40"),
+        "revolver-357m-round": ("0.7", "35"),
+        "revolver-44m-round": ("1", "50"),
+        "auto-pistol-44m-round": ("4/3", "200/3"),
+        "auto-pistol-40-round": ("14/15", "140/3"),
+        "machine-pistol-9mm-round": ("22/25", "44"),
     }
     assert {
         key: (str(entries[key].price), str(entries[key].weight_millipounds)) for key in expected
