@@ -9,8 +9,8 @@ from itertools import product
 from wayfarer.engine.rules.types.object import residual_definition
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.combat.encounter import Encounter
+from wayfarer.engine.simulation.combat.equipment_entry import effective_entry
 from wayfarer.engine.simulation.combat.melee.modes import mode as weapon_mode
-from wayfarer.engine.simulation.combat.objects.combat import effective_entry
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
 from wayfarer.engine.simulation.combat.tactical import pose
 from wayfarer.engine.simulation.combat.unarmed.fighters import free_hands

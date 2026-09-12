@@ -8,7 +8,7 @@ import json
 from wayfarer.engine.rules.types.object import residual_definition
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.combat.encounter import Encounter
-from wayfarer.engine.simulation.combat.objects.combat import effective_entry
+from wayfarer.engine.simulation.combat.equipment_entry import effective_entry
 from wayfarer.engine.simulation.combat.vocabulary import Maneuver
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode
 from wayfarer.errors import WayfarerError

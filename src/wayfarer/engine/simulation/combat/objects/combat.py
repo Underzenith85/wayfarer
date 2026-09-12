@@ -16,38 +16,22 @@ from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.critical import Die, TableRoll
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
+from wayfarer.engine.simulation.combat.equipment_entry import effective_entry
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.engine.simulation.combat.objects.locations import item_hands
 from wayfarer.engine.simulation.combat.tactical import attack_geometry
 from wayfarer.engine.simulation.equipment.catalog import (
     Damage,
-    EquipmentProfile,
     MeleeMode,
     RangedMode,
 )
 from wayfarer.engine.simulation.equipment.objects import DamageObject, StressObject, apply_object
 from wayfarer.engine.simulation.health.hit_locations import disabled
 from wayfarer.engine.simulation.hex_geometry import DIRECTIONS, Hex
-from wayfarer.engine.simulation.resources import Item, ResourceEvent
+from wayfarer.engine.simulation.resources import ResourceEvent
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Record
-
-
-def effective_entry(runtime: RulesContext, item: Item) -> EquipmentProfile:
-
-    if item.firearm_failure is not None and item.firearm_failure.kind in (
-        "destroyed",
-        "explosion",
-        "dud",
-    ):
-        raise ValidationError("Destroyed firearm has no usable weapon mode")
-    entries = {e.definition_id: e for e in catalog(runtime).entries}
-    entry = entries[item.definition_id]
-    residual = residual_definition(entry.durability, item.condition)
-    if item.condition and item.condition.disabled and residual is None:
-        raise ValidationError("Disabled equipment has no usable weapon mode")
-    return entries[residual] if residual else entry
 
 
 def synchronize(state: PlayState, encounter: Encounter) -> Encounter:
