@@ -174,13 +174,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        240,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned psionic power membership, conditional variants, power modifiers, Talent projection, suppression and shared AbilityService integration.",
+      "evidence": [
+        "tests/test_psi_powers.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -541,13 +542,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        240,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned psionic power membership, conditional variants, power modifiers, Talent projection, suppression and shared AbilityService integration.",
+      "evidence": [
+        "tests/test_psi_powers.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -862,13 +864,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        240,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned psionic power membership, conditional variants, power modifiers, Talent projection, suppression and shared AbilityService integration.",
+      "evidence": [
+        "tests/test_psi_powers.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2311,13 +2314,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        240,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned psionic power membership, conditional variants, power modifiers, Talent projection, suppression and shared AbilityService integration.",
+      "evidence": [
+        "tests/test_psi_powers.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -4449,13 +4453,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        240,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned power membership and conditional variants, power modifiers, capped Talent construction, approved-build allocation, Antipsi suppression and existing AbilityService integration.",
+      "evidence": [
+        "tests/test_psi_powers.py"
+      ],
       "members": [
         "advantage:neutralize",
         "advantage:obscure",
@@ -4479,13 +4484,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        240,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned power membership and conditional variants, power modifiers, capped Talent construction, approved-build allocation, Antipsi suppression and existing AbilityService integration.",
+      "evidence": [
+        "tests/test_psi_powers.py"
+      ],
       "members": [
         "advantage:channeling",
         "advantage:clairsentience",
@@ -4517,13 +4523,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        240,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned power membership and conditional variants, power modifiers, capped Talent construction, approved-build allocation, Antipsi suppression and existing AbilityService integration.",
+      "evidence": [
+        "tests/test_psi_powers.py"
+      ],
       "members": [
         "advantage:detect",
         "advantage:healing",
@@ -4548,13 +4555,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        240,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned power membership and conditional variants, power modifiers, capped Talent construction, approved-build allocation, Antipsi suppression and existing AbilityService integration.",
+      "evidence": [
+        "tests/test_psi_powers.py"
+      ],
       "members": [
         "advantage:binding",
         "advantage:damage-resistance",
@@ -4584,14 +4592,13 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        240,
         191
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Representative Telepathic Mind Reading only; this does not implement the power Talent or every member.",
+      "supported_subset": "Pinned power membership and conditional variants, power modifiers, capped Talent construction, approved-build allocation, Antipsi suppression and existing AbilityService integration.",
       "evidence": [
-        "tests/test_abilities.py"
+        "tests/test_psi_powers.py"
       ],
       "members": [
         "advantage:animal-empathy",
@@ -4628,13 +4635,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        240,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned power membership and conditional variants, power modifiers, capped Talent construction, approved-build allocation, Antipsi suppression and existing AbilityService integration.",
+      "evidence": [
+        "tests/test_psi_powers.py"
+      ],
       "members": [
         "advantage:jumper",
         "advantage:snatcher",
