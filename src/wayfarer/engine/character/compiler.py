@@ -37,6 +37,7 @@ from wayfarer.engine.rules.catalog import (
 )
 from wayfarer.engine.rules.effects import DerivedValue, Effect, EffectEvaluator, MechanicalTarget
 from wayfarer.engine.rules.gurps_characters import SIZE_MODIFIER_DEFINITION_ID, STATISTICS_V2_HOOK
+from wayfarer.engine.rules.traits import registry as trait_registry
 from wayfarer.engine.rules.traits.base import TraitOptions
 from wayfarer.engine.rules.traits.base import cost as trait_cost
 from wayfarer.errors import ValidationError
@@ -381,67 +382,12 @@ class CharacterCompiler:
                 elif cost is not None:
                     options = purchase.trait or TraitOptions()
                     try:
-                        if any(
-                            hook.startswith("movement-form:") for hook in metadata.runtime_hooks
-                        ):
-                            from wayfarer.engine.rules.traits.movement_forms import (
-                                validate_purchase as validate_movement_form,
-                            )
-
-                            cost = validate_movement_form(definition, amount, options)
-                        elif any(
-                            hook.startswith("physiology-trait:") for hook in metadata.runtime_hooks
-                        ):
-                            from wayfarer.engine.rules.traits.physiology import (
-                                validate_purchase as validate_physiology,
-                            )
-
-                            cost = validate_physiology(definition, amount, options)
-                        elif any(
-                            hook.startswith("sensory-trait:") for hook in metadata.runtime_hooks
-                        ):
-                            from wayfarer.engine.rules.traits.sensory import (
-                                validate_purchase as validate_sensory_trait,
-                            )
-
-                            cost = validate_sensory_trait(definition, amount, options)
-                        elif any(
-                            hook.startswith("mental-spirit-trait:")
-                            for hook in metadata.runtime_hooks
-                        ):
-                            from wayfarer.engine.rules.traits.mental_spirit import (
-                                validate_purchase as validate_mental_spirit_trait,
-                            )
-
-                            cost = validate_mental_spirit_trait(definition, amount, options)
-                        elif any(
-                            hook.startswith("attack-defense-trait:")
-                            for hook in metadata.runtime_hooks
-                        ):
-                            from wayfarer.engine.rules.traits.attack_defense import (
-                                validate_purchase as validate_attack_defense_trait,
-                            )
-
-                            cost = validate_attack_defense_trait(definition, amount, options)
-                        elif any(
-                            hook.startswith("world-travel-trait:")
-                            for hook in metadata.runtime_hooks
-                        ):
-                            from wayfarer.engine.rules.traits.world_travel import (
-                                validate_purchase as validate_world_travel_trait,
-                            )
-
-                            cost = validate_world_travel_trait(definition, amount, options)
-                        elif any(
-                            hook.startswith("mana-divine-trait:") for hook in metadata.runtime_hooks
-                        ):
-                            from wayfarer.engine.rules.traits.mana_divine import (
-                                validate_purchase as validate_mana_divine_trait,
-                            )
-
-                            cost = validate_mana_divine_trait(definition, amount, options)
-                        else:
-                            cost = trait_cost(cost, amount, options, metadata)
+                        family = trait_registry.family(metadata.runtime_hooks)
+                        cost = (
+                            family.validate_purchase(definition, amount, options)
+                            if family is not None
+                            else trait_cost(cost, amount, options, metadata)
+                        )
                         if any(hook.startswith("ability:") for hook in metadata.runtime_hooks):
                             from wayfarer.engine.rules.supernatural.abilities import (
                                 validate_purchase as validate_ability,
