@@ -152,8 +152,8 @@ class InventoryRow(Record):
     alias_of: Identifier | None = None
     specialty_required: bool = False
     tl_required: bool = False
-    # A row whose contextual blockers are all resolved keeps the standing
-    # source-delta blocker that `inventory()` adds, so an empty list is not
+    # A row whose contextual blockers are all resolved may have an empty list;
+    # the selected source baseline is tracked separately from mechanics gaps.
     # a claim that the row is clean.
     blockers: tuple[Blocker, ...] = ()
     issues: Annotated[tuple[Annotated[int, Field(gt=0)], ...], Field(min_length=1)]
@@ -267,5 +267,5 @@ class SourceIndex(Record):
     observed_source: Annotated[str, Field(min_length=1)]
     sha256: Annotated[str, Field(pattern=r"^[a-f0-9]{64}$")]
     index_reference: Annotated[str, Field(min_length=1)]
-    baseline_reconciled: Literal[False]
+    baseline_reconciled: Literal[True]
     entries: tuple[SourceIndexEntry, ...]

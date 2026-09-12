@@ -42,7 +42,7 @@ class Provenance(Record):
     source_id: Id
     edition: Literal[
         "August 2004, Rev. 07/12/04",
-        "Fourth Edition, first printing (2004)",
+        "Fourth Edition, third printing (February 2008)",
         "Fourth Edition, third printing (2008)",
     ]
     pages: tuple[Positive, ...] = Field(min_length=1)

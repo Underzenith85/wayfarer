@@ -3,7 +3,7 @@
   "profile_id": "gurps-basic-set-4e-2004",
   "lite_profile_id": "gurps-lite-4e-2004",
   "printing": "Characters Fourth Edition, third printing (February 2008)",
-  "baseline_note": "Third-printing review data for the frozen 2004 first-printing profile. No row, unit or price is reconciled against the first printing or the 2007-01-26 errata; every status stays pending until #191 resolves it.",
+  "baseline_note": "Review data for the selected Characters third-printing and Campaigns fourth-printing baseline. Each row, unit, and price stays pending until its evidence is independently reviewed under #191.",
   "sections": [
     {
       "id": "melee-weapons-b271",
@@ -1852,7 +1852,7 @@
     {
       "id": "RangedMode.rated_strength",
       "unit": "optional weapon strength protocol",
-      "reference": "Characters third printing B16/B270; frozen first-printing/errata reconciliation pending #191",
+      "reference": "Characters third printing B16/B270; selected-printing field review pending #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -1865,7 +1865,7 @@
     {
       "id": "RatedStrength.kind",
       "unit": "bow or crossbow selector",
-      "reference": "Characters third printing B16/B270; frozen first-printing/errata reconciliation pending #191",
+      "reference": "Characters third printing B16/B270; selected-printing field review pending #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -1878,7 +1878,7 @@
     {
       "id": "RatedStrength.st",
       "unit": "weapon ST level",
-      "reference": "Characters third printing B16/B270; frozen first-printing/errata reconciliation pending #191",
+      "reference": "Characters third printing B16/B270; selected-printing field review pending #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -1904,7 +1904,7 @@
     {
       "id": "RangedMode.entangle",
       "unit": "optional entangling binding protocol",
-      "reference": "Characters third printing B181/B211; frozen first-printing/errata reconciliation pending #191",
+      "reference": "Characters third printing B181/B211; selected-printing field review pending #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -1917,7 +1917,7 @@
     {
       "id": "EntangleSpec.binding_st",
       "unit": "binding strength level",
-      "reference": "Characters third printing B181/B211; frozen first-printing/errata reconciliation pending #191",
+      "reference": "Characters third printing B181/B211; selected-printing field review pending #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -1930,7 +1930,7 @@
     {
       "id": "EntangleSpec.attack_penalty",
       "unit": "attack roll modifier",
-      "reference": "Characters third printing B181/B211; frozen first-printing/errata reconciliation pending #191",
+      "reference": "Characters third printing B181/B211; selected-printing field review pending #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -1943,7 +1943,7 @@
     {
       "id": "EntangleSpec.defense_penalty",
       "unit": "active defense modifier",
-      "reference": "Characters third printing B181/B211; frozen first-printing/errata reconciliation pending #191",
+      "reference": "Characters third printing B181/B211; selected-printing field review pending #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -1956,7 +1956,7 @@
     {
       "id": "EntangleSpec.immobilizes",
       "unit": "movement restriction flag",
-      "reference": "Characters third printing B181/B211; frozen first-printing/errata reconciliation pending #191",
+      "reference": "Characters third printing B181/B211; selected-printing field review pending #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -1969,7 +1969,7 @@
     {
       "id": "EntangleSpec.attached",
       "unit": "weapon retention flag",
-      "reference": "Characters third printing B181/B211; frozen first-printing/errata reconciliation pending #191",
+      "reference": "Characters third printing B181/B211; selected-printing field review pending #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -1982,7 +1982,7 @@
     {
       "id": "EntangleSpec.escape_skill_id",
       "unit": "optional trained escape skill reference",
-      "reference": "Characters third printing B181/B211; frozen first-printing/errata reconciliation pending #191",
+      "reference": "Characters third printing B181/B211; selected-printing field review pending #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -1995,7 +1995,7 @@
     {
       "id": "RangedMode.mount",
       "unit": "optional crew-served mount protocol",
-      "reference": "Characters third printing B178/B198; frozen first-printing/errata reconciliation pending #191",
+      "reference": "Characters third printing B178/B198; selected-printing field review pending #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -2008,7 +2008,7 @@
     {
       "id": "MountSpec.crew",
       "unit": "crew complement",
-      "reference": "Characters third printing B178/B198; frozen first-printing/errata reconciliation pending #191",
+      "reference": "Characters third printing B178/B198; selected-printing field review pending #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -2021,7 +2021,7 @@
     {
       "id": "MountSpec.laying_seconds",
       "unit": "seconds of laying",
-      "reference": "Characters third printing B178/B198; frozen first-printing/errata reconciliation pending #191",
+      "reference": "Characters third printing B178/B198; selected-printing field review pending #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -2034,7 +2034,7 @@
     {
       "id": "MountSpec.indirect",
       "unit": "indirect fire flag",
-      "reference": "Characters third printing B178/B198; frozen first-printing/errata reconciliation pending #191",
+      "reference": "Characters third printing B178/B198; selected-printing field review pending #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -2047,7 +2047,7 @@
     {
       "id": "MountSpec.vehicle_mounted",
       "unit": "vehicle mount flag",
-      "reference": "Characters third printing B178/B198; frozen first-printing/errata reconciliation pending #191",
+      "reference": "Characters third printing B178/B198; selected-printing field review pending #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -2060,7 +2060,7 @@
     {
       "id": "RangedMode.sprayer",
       "unit": "optional held stream protocol",
-      "reference": "Characters third printing B205; frozen first-printing/errata reconciliation pending #191",
+      "reference": "Characters third printing B205; selected-printing field review pending #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -2073,7 +2073,7 @@
     {
       "id": "SprayerSpec.sustained_seconds",
       "unit": "seconds of sustained stream",
-      "reference": "Characters third printing B205; frozen first-printing/errata reconciliation pending #191",
+      "reference": "Characters third printing B205; selected-printing field review pending #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -2086,7 +2086,7 @@
     {
       "id": "SprayerSpec.rounds_per_second",
       "unit": "rounds per second of stream",
-      "reference": "Characters third printing B205; frozen first-printing/errata reconciliation pending #191",
+      "reference": "Characters third printing B205; selected-printing field review pending #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -2099,7 +2099,7 @@
     {
       "id": "SprayerSpec.ignites",
       "unit": "ignition flag",
-      "reference": "Characters third printing B205; frozen first-printing/errata reconciliation pending #191",
+      "reference": "Characters third printing B205; selected-printing field review pending #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -2112,7 +2112,7 @@
     {
       "id": "RangedMode.launcher",
       "unit": "optional launcher-assisted throw protocol",
-      "reference": "Characters third printing B222; frozen first-printing/errata reconciliation pending #191",
+      "reference": "Characters third printing B222; selected-printing field review pending #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -2125,7 +2125,7 @@
     {
       "id": "LauncherSpec.launcher_definition_id",
       "unit": "pinned launcher catalog reference",
-      "reference": "Characters third printing B222; frozen first-printing/errata reconciliation pending #191",
+      "reference": "Characters third printing B222; selected-printing field review pending #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -2138,7 +2138,7 @@
     {
       "id": "LauncherSpec.range_multiplier",
       "unit": "range multiplier",
-      "reference": "Characters third printing B222; frozen first-printing/errata reconciliation pending #191",
+      "reference": "Characters third printing B222; selected-printing field review pending #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -2151,7 +2151,7 @@
     {
       "id": "LauncherSpec.damage_bonus",
       "unit": "damage adds",
-      "reference": "Characters third printing B222; frozen first-printing/errata reconciliation pending #191",
+      "reference": "Characters third printing B222; selected-printing field review pending #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -2333,7 +2333,7 @@
     {
       "id": "FirearmSpec.fuse_seconds",
       "unit": "normal fuse duration in seconds",
-      "reference": "Campaigns fourth printing B407/B414-415; physical power-cell accounting, first-printing/errata reconciliation remains #191",
+      "reference": "Campaigns fourth printing B407/B414-415; physical power-cell accounting, selected-printing field review remains #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -2347,7 +2347,7 @@
     {
       "id": "ExplosionSpec.dice",
       "unit": "six-sided blast damage dice",
-      "reference": "Campaigns fourth printing B407/B414-415; physical power-cell accounting, first-printing/errata reconciliation remains #191",
+      "reference": "Campaigns fourth printing B407/B414-415; physical power-cell accounting, selected-printing field review remains #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -2361,7 +2361,7 @@
     {
       "id": "ExplosionSpec.adds",
       "unit": "blast damage points before multiplier",
-      "reference": "Campaigns fourth printing B407/B414-415; physical power-cell accounting, first-printing/errata reconciliation remains #191",
+      "reference": "Campaigns fourth printing B407/B414-415; physical power-cell accounting, selected-printing field review remains #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -2375,7 +2375,7 @@
     {
       "id": "ExplosionSpec.multiplier",
       "unit": "blast damage and radius multiplier",
-      "reference": "Campaigns fourth printing B407/B414-415; physical power-cell accounting, first-printing/errata reconciliation remains #191",
+      "reference": "Campaigns fourth printing B407/B414-415; physical power-cell accounting, selected-printing field review remains #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -2389,7 +2389,7 @@
     {
       "id": "ExplosionSpec.damage_type",
       "unit": "crushing or burning blast damage",
-      "reference": "Campaigns fourth printing B407/B414-415; physical power-cell accounting, first-printing/errata reconciliation remains #191",
+      "reference": "Campaigns fourth printing B407/B414-415; physical power-cell accounting, selected-printing field review remains #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -2403,7 +2403,7 @@
     {
       "id": "ExplosionSpec.armor_divisor",
       "unit": "divisor for direct target armor only",
-      "reference": "Campaigns fourth printing B407/B414-415; physical power-cell accounting, first-printing/errata reconciliation remains #191",
+      "reference": "Campaigns fourth printing B407/B414-415; physical power-cell accounting, selected-printing field review remains #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -2417,7 +2417,7 @@
     {
       "id": "ExplosionSpec.fragmentation_dice",
       "unit": "six-sided cutting fragmentation dice",
-      "reference": "Campaigns fourth printing B407/B414-415; physical power-cell accounting, first-printing/errata reconciliation remains #191",
+      "reference": "Campaigns fourth printing B407/B414-415; physical power-cell accounting, selected-printing field review remains #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -2431,7 +2431,7 @@
     {
       "id": "EquipmentProfile.warhead",
       "unit": "pinned explosive and fragmentation damage",
-      "reference": "Campaigns fourth printing B407/B414-415; physical power-cell accounting, first-printing/errata reconciliation remains #191",
+      "reference": "Campaigns fourth printing B407/B414-415; physical power-cell accounting, selected-printing field review remains #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
@@ -2445,7 +2445,7 @@
     {
       "id": "EquipmentProfile.power_cell_capacity",
       "unit": "charges per individual physical cell",
-      "reference": "Campaigns fourth printing B407/B414-415; physical power-cell accounting, first-printing/errata reconciliation remains #191",
+      "reference": "Campaigns fourth printing B407/B414-415; physical power-cell accounting, selected-printing field review remains #191",
       "anchor": "inspected",
       "status": "pending",
       "reviewer": null,

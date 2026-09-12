@@ -1,6 +1,6 @@
 """Independent numeric cases: Campaigns fourth printing B379,399,421-422,552.
 
-These examples are not a certification of the frozen first-printing baseline.
+These examples are not a certification of the frozen source baseline.
 """
 
 from decimal import Decimal

@@ -2,7 +2,7 @@
   "observed_source": "GURPS Basic Set: Characters, Fourth Edition, third printing (2008), ISBN 978-1-55634-729-0",
   "sha256": "872b5fece8f4013bf46825b397ef52b52c865fa2879f4544f055d9b6caecf47e",
   "index_reference": "B301-B304; chapter examples B168-B233",
-  "baseline_reconciled": false,
+  "baseline_reconciled": true,
   "entries": [
     {
       "id": "accounting",

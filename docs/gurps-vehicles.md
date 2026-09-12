@@ -31,10 +31,9 @@ GURPS profile or let scenario generation invent the remaining mechanics.
 
 ## Source and independent evidence
 
-Source: GURPS Basic Set, Campaigns Fourth Edition, fourth printing, B394-395,
-B430-432 and B468-470. This does not supersede the repository's frozen first
-printing plus 2007-01-26 errata baseline. Cross-printing/errata reconciliation
-remains part of #191; this PR does not certify that reconciliation.
+Source: the selected GURPS Basic Set: Campaigns Fourth Edition, fourth printing,
+B394-395, B430-432 and B468-470. Item-level mechanics review remains part of
+#191; this PR does not certify the full vehicle rules.
 
 `tests/test_vehicle_modes.py` supplies independently entered expected values:
 B432's HP60/velocity25 versus HP10/velocity5 rear-end example produces 12d and 2d;

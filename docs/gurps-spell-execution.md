@@ -29,7 +29,7 @@ never silently interpreted as hexes.
 
 The implementation review used Characters, fourth edition, **third printing,
 February 2008**, and Campaigns, fourth edition, **fourth printing**. This is not
-certification of the repository's separate first-printing/2007-errata baseline.
+certification of the repository's separate selected-printing baseline.
 No source text is included in the fixtures. Numeric expectations were entered
 independently in `test_spell_energy.py`, `test_spell_backfires.py` and
 `test_spell_execution.py`.

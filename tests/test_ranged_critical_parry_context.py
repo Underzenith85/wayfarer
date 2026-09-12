@@ -1,6 +1,6 @@
 """Campaigns fourth printing B376, B556-557: armed thrown-Parry consequences.
 
-Handwritten numeric cases; first-printing/errata certification remains #191.
+Handwritten numeric cases; selected-printing certification remains #191.
 """
 
 from pathlib import Path

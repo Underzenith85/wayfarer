@@ -48,5 +48,5 @@ This does not certify a production equipment table or complete every explosive
 combat option. Contact shielding, internal explosions, secondary fires and other
 contextual environmental consequences remain outside this protocol. Evidence uses
 Campaigns fourth printing B407/B414–415 and the existing B377 defense procedure;
-first-printing/errata reconciliation remains #191 and overall ranged coverage stays
+selected-printing reconciliation remains #191 and overall ranged coverage stays
 partial.

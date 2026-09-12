@@ -4,7 +4,7 @@ Issue #104 adds profile-selected commitments to the existing CombatService and
 encounter receipts. Prototype campaigns retain their original maneuver set.
 The numeric expectations are provisionally aligned with Basic Set B363-366,
 Fourth Edition (2004); available Campaigns fourth-printing text is cross-checked
-without claiming verification of the frozen first-printing/errata baseline.
+without claiming verification of the selected-printing baseline.
 
 | Maneuver | Executable behavior |
 | --- | --- |

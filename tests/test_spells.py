@@ -1,6 +1,6 @@
 """Hand-entered Basic Set B235-241, B246-247, B249-250 lifecycle examples.
 
-Provisional first-printing/2007-01-26 baseline; source verification pending.
+Selected Characters third-printing baseline; mechanics verification pending.
 """
 
 import pytest

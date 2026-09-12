@@ -11,11 +11,11 @@ or saved package is changed.
 
 `rules/supernatural/inventory.json` records observed artifact hashes, edition,
 printing, page references, classification and source evidence separately from
-`gurps-4e-2004-first-printing+errata-2007-01-26`:
+`gurps-4e-characters-3p-2008+campaigns-4p-2008`:
 
 | Observed source | Index and rule references | Reconciliation |
 | --- | --- | --- |
-| Characters, Fourth Edition, third printing, February 2008 | B297–300 trait index; B304–334 spell index; B34–101 and B122–165 traits; B235–257 magic/psi | No additional errata overlay selected. #191 must reconcile the frozen first printing and selected 2007-01-26 errata. |
+| Characters, Fourth Edition, third printing, February 2008 | B297–300 trait index; B304–334 spell index; B34–101 and B122–165 traits; B235–257 magic/psi | Selected baseline; no additional errata overlay. #191 owns the remaining item-level source audit. |
 | Campaigns, Fourth Edition, fourth printing, 2008 | B479–482 enchantments and magic items, also indexed in Characters | Same unresolved baseline comparison; later-printing evidence does not certify the original baseline. |
 
 The inventory contains identifiers and descriptive metadata, not rulebook prose

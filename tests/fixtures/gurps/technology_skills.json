@@ -1,5 +1,5 @@
 {
-  "baseline_id": "gurps-4e-2004-first-printing+errata-2007-01-26",
+  "baseline_id": "gurps-4e-characters-3p-2008+campaigns-4p-2008",
   "source_id": "sjg:basic-set-characters-4e-2004",
   "profile": "gurps-basic-set-4e-2004",
   "owner": 346,
@@ -10,7 +10,7 @@
     "B230-B233 techniques",
     "B301-B304 skill index"
   ],
-  "provenance": "Hand-entered expected results under the provisional implementation policy. Every effective target, margin, outcome and unit count was worked out from the source rules and never generated from engine output. Frozen first-printing artifact verification remains #336.",
+  "provenance": "Hand-entered expected results under the provisional implementation policy. Every effective target, margin, outcome and unit count was worked out from the selected Characters third-printing source and never generated from engine output. Mechanics review remains #336.",
   "cases": [
     {
       "id": "driving-automobile-controlled",

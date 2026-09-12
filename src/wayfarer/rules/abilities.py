@@ -2,7 +2,7 @@
 
 Numeric references: Characters third printing, B46, B48, B61, B69-70,
 B106, B111, B115 and B257; Campaigns fourth printing B550. The historic
-first-printing/2007 baseline delta remains uncertified. No package pin changes.
+selected-printing source coverage remains uncertified. No package pin changes.
 """
 
 from typing import Final

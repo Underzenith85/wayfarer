@@ -38,8 +38,8 @@ def test_inventory_and_references() -> None:
         "skill:arm-lock-judo",
     } <= ids
     assert len(entries) > 180
-    assert audit_report()["available"] == 0
-    assert all(e.blockers and e.followup_issues for e in entries)
+    assert audit_report()["available"] == 54
+    assert all(e.followup_issues for e in entries)
     RulesCatalog((candidate_package(),))
     assert candidate_package().digest == candidate_package().digest
     with pytest.raises(ValidationError, match="Duplicate"):
@@ -111,7 +111,7 @@ def test_source_indexed_default_alternatives(identifier: str, expected: dict[str
     entry = next(e for e in inventory() if e.id == f"skill:{identifier}")
     assert entry.definition and entry.definition.skill
     assert {d.target: d.modifier for d in entry.definition.skill.defaults} == expected
-    assert not entry.available
+    assert entry.available is (entry.bound and not entry.blockers)
 
 
 def test_mathematics_specialties_and_prerequisites() -> None:
@@ -199,10 +199,8 @@ def test_candidate_audit_and_runtime_agree(monkeypatch: pytest.MonkeyPatch) -> N
     assert bow.bound and bow.dispatch == "combat.ranged-attack"
     assert bow.definition is not None
     assert bow.definition.status is ImplementationStatus.IMPLEMENTED
-    # #191's printing delta still blocks every row, so nothing is runtime-available.
-    assert all(e.blockers for e in entries) and not bow.available
-    with pytest.raises(ValidationError, match="unavailable"):
-        require_available("skill:bow")
+    assert bow.available
+    assert require_available("skill:bow") == bow.definition
     entry = next(e for e in entries if e.definition and not e.bound)
     monkeypatch.setattr(module, "inventory", lambda: (replace(entry, blockers=()),))
     # Even a mistakenly cleared blocker list cannot activate an unsupported definition.
@@ -295,7 +293,6 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     # #336 split its remaining contextual work into concrete children, so a
     # blocker names the residual that owns it, plus any child a procedure split.
     assert entries["skill:net"].blocker_owners == {
-        "first-printing-delta-audit": (382,),
         "conditional-or-skill-defaults": (383, 362),
     }
     assert entries["skill:guns"].owners == (344,)
@@ -325,7 +322,6 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         368,
         369,
         370,
-        382,
         383,
         384,
         385,
@@ -358,7 +354,6 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         368,
         369,
         370,
-        382,
         383,
         384,
         385,
@@ -433,7 +428,7 @@ def indexed_expansions(index: object, parent: str) -> int:
 def test_independent_source_index_accounts_for_every_listing() -> None:
     """Characters third printing B301-304: 275 skills and 27 named techniques."""
     index = source_index()
-    assert index.baseline_reconciled is False
+    assert index.baseline_reconciled is True
     assert "third printing" in index.observed_source
     assert len([e for e in index.entries if e.kind == "skill"]) == 275
     assert len([e for e in index.entries if e.kind == "technique"]) == 27
@@ -588,7 +583,7 @@ def test_previously_unstructured_source_metadata(
     assert spec.attribute == attribute
     assert spec.difficulty == difficulty
     assert {d.target: d.modifier for d in spec.defaults} == defaults
-    assert not entry.available
+    assert entry.available is (entry.bound and not entry.blockers)
 
 
 def test_alias_and_technique_context_stays_explicit() -> None:
@@ -624,7 +619,6 @@ def test_every_blocker_has_a_named_followup() -> None:
     for entry in inventory():
         assert set(entry.blocker_owners) == set(entry.blockers)
         assert entry.procedure_owner not in (112, 191, 336)
-        assert entry.blocker_owners["first-printing-delta-audit"] == (382,)
         assert all(
             set(owners) <= set(entry.followup_issues) for owners in entry.blocker_owners.values()
         )
@@ -650,9 +644,7 @@ def test_alias_and_owner_validation() -> None:
             )
         )
     with pytest.raises(ValidationError, match="Unowned blocker"):
-        validate_inventory(
-            (replace(first, followup_issues=(112, first.procedure_owner)), *entries[1:])
-        )
+        validate_inventory((replace(first, followup_issues=(112,)), *entries[1:]))
 
 
 def test_candidate_inventory_does_not_inherit_live_representative_metadata(

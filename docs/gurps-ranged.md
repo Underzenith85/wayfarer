@@ -7,7 +7,7 @@ No frozen player-v1 endpoints or payloads are changed.
 
 The numerical baseline is GURPS Lite Fourth Edition, August 2004, pp. 27–29;
 Basic Set Fourth Edition (2004), B270, B372–375 and B550. The repository's
-first-printing/errata source audit remains pending. These are independently
+selected-printing source audit remains pending. These are independently
 specified numeric expectations, not a claim of source certification.
 
 | Behavior | Implementation and evidence |
@@ -63,13 +63,13 @@ crossbow cannot be fired under Bow.
 Additional numeric regression evidence is in `tests/test_ranged_followups.py`,
 checked against Campaigns fourth printing, B373, B376, B382, B399-400 and
 B556-557, and Characters third printing, B147. Those printings do not certify the
-frozen first-printing/2007-errata profile. The authoritative errata endpoints
+selected-printing profile. The authoritative errata endpoints
 were inaccessible during this change, so the audit gate remains open.
 
 Coverage is **partial**. `tests/test_ranged_critical_completion.py` adds
 independent critical-miss, weapon-quality, per-hit location and restart/retry
 fixtures, using Campaigns fourth printing B376, B382, B399 and B556-557.
-The existing first-printing/errata audit remains a separate gate (#191).
+The existing selected-printing audit remains a separate gate (#191).
 New quality metadata is opt-in and Basic-only; it requires a durable individual
 weapon and does not alter saved catalog definitions. Disabled weapons cannot be
 Readied, and broken thrown items retain their condition in `expended_items`.
@@ -84,7 +84,7 @@ retain an optional `affected_mode_id`; old records remain readable without
 inferring a missing mode. Missing anatomy still pauses the consequence with the
 declared mode and table intact. Numeric and restart/retry evidence is in
 `tests/test_ranged_critical_parry_context.py` (Campaigns fourth printing B376,
-B556-557); this does not certify the first-printing/errata profile.
+B556-557); this does not certify the selected-printing profile.
 
 Critical-miss weapon drops and critical-hit forced drops now record the holding
 combatant's ground position in the same transaction. Existing local Ready

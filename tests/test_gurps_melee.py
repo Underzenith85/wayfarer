@@ -303,7 +303,7 @@ async def setup(
                             "provenance": e.provenance.model_copy(
                                 update={
                                     "source_id": source,
-                                    "edition": "Fourth Edition, first printing (2004)",
+                                    "edition": "Fourth Edition, third printing (February 2008)",
                                 }
                             )
                         }

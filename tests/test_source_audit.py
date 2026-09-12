@@ -18,7 +18,7 @@ def test_audit_integrity_and_unresolved_sources_block_certification() -> None:
     manifest = load(ROOT)
     assert sum(f.status == "compared" for f in manifest.fixtures) == 54
     assert not any(f.status == "reviewed" for f in manifest.fixtures)
-    assert any("errata" in b for b in blockers(manifest))
+    assert "source:sjg:gurps-lite-4e-2004" in blockers(manifest)
     assert any(b.startswith("scope:") for b in blockers(manifest))
 
 
@@ -99,10 +99,20 @@ def test_removed_required_scope_rejected() -> None:
 def test_compared_fixture_cannot_be_promoted_without_source_reconciliation() -> None:
     manifest = load(ROOT)
     index = next(i for i, f in enumerate(manifest.fixtures) if f.status == "compared")
+    ledger = json.loads((ROOT / "tests/fixtures/gurps/conformance.json").read_text())
+    case = next(c for c in ledger["cases"] if c["id"] == manifest.fixtures[index].id)
+    source_index = next(i for i, s in enumerate(manifest.sources) if s.id == case["source_id"])
+    sources = list(manifest.sources)
+    sources[source_index] = sources[source_index].model_copy(
+        update={"status": "compared", "blockers": (191,)}
+    )
     fixtures = list(manifest.fixtures)
     fixtures[index] = fixtures[index].model_copy(update={"status": "reviewed"})
     with pytest.raises(ValidationError, match="requires reconciled source"):
-        validate(ROOT, manifest.model_copy(update={"fixtures": tuple(fixtures)}))
+        validate(
+            ROOT,
+            manifest.model_copy(update={"fixtures": tuple(fixtures), "sources": tuple(sources)}),
+        )
 
 
 def test_mundane_skill_rows_carry_item_level_owners_and_certification_state() -> None:
@@ -121,17 +131,16 @@ def test_mundane_skill_rows_carry_item_level_owners_and_certification_state() ->
     # as implemented, and a transferred one reaches it naming the concrete open
     # child that owns it.
     assert sum(r.implementation == "implemented" for r in rows) == 233
-    assert next(r for r in rows if r.id == "skill:acting").blockers == (112, 336, 345, 382)
+    assert next(r for r in rows if r.id == "skill:acting").blockers == (112, 336, 345)
     assert next(r for r in rows if r.id == "skill:savoir-faire").blockers == (
         111,
         112,
         336,
         345,
         366,
-        382,
         383,
         385,
     )
-    assert next(r for r in rows if r.id == "skill:bow").blockers == (112, 336, 344, 382)
-    assert next(r for r in rows if r.id == "skill:net").blockers == (112, 336, 344, 362, 382, 383)
-    assert next(r for r in rows if r.id == "skill:broadsword").blockers == (103, 112, 336, 339, 382)
+    assert next(r for r in rows if r.id == "skill:bow").blockers == (112, 336, 344)
+    assert next(r for r in rows if r.id == "skill:net").blockers == (112, 336, 344, 362, 383)
+    assert next(r for r in rows if r.id == "skill:broadsword").blockers == (103, 112, 336, 339)

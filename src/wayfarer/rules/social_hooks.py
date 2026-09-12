@@ -1,10 +1,10 @@
 """Shared appearance and reputation reaction resolver.
 
 Intended sources: Basic Set Characters, Fourth Edition, B21 (Appearance) and
-B26-27 (Reputation), on the frozen 2004 first printing / 2007-01-26 errata
-baseline. Reconstructed from model knowledge under the owner's explicit
-provisional-implementation authorization; exact printing verification remains an
-audit blocker. No rulebook prose here.
+B26-27 (Reputation), on the selected Characters third-printing baseline.
+Reconstructed from model knowledge under the owner's explicit provisional-
+implementation authorization; mechanics verification remains an audit blocker.
+No rulebook prose here.
 
 Status, Charisma and Voice are *not* declared here: `rules.mundane_traits.runtime`
 binds them to approved purchases of pinned definitions (#113). Selected

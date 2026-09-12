@@ -99,9 +99,10 @@ def test_conformance_fixture_contract_is_source_referenced_and_independent() -> 
     }
     assert all(source["edition"] == "Fourth Edition" for source in sources.values())
     assert sources["sjg:gurps-lite-4e-2004"]["revision"] == "07/12/04"
-    for source in data["sources"][1:]:
-        assert source["printing"] == 1
-        assert source["errata"][0]["revision"] == "2007-01-26"
+    assert sources["sjg:basic-set-characters-4e-2004"]["printing"] == 3
+    assert sources["sjg:basic-set-campaigns-4e-2004"]["printing"] == 4
+    assert not sources["sjg:basic-set-characters-4e-2004"]["errata"]
+    assert not sources["sjg:basic-set-campaigns-4e-2004"]["errata"]
 
     cases = data["cases"]
     assert len({case["id"] for case in cases}) == len(cases)

@@ -195,14 +195,14 @@ def test_composed_template_prices_and_activates_through_the_existing_compiler() 
     assert "purchase.exclusion" in {d.code for d in conflicting.compilation.diagnostics}
 
 
-def test_item_audit_retains_concrete_runtime_and_source_owners() -> None:
+def test_item_audit_retains_inventory_and_concrete_runtime_owners() -> None:
     from wayfarer.rules.mundane_traits import inventory
     from wayfarer.source_audit import inventory as source_inventory
 
     rows = {row.id: row for row in source_inventory() if row.scope == "mundane-traits"}
     for entry in inventory():
         assert rows[entry.id].blockers == entry.followup_issues
-        assert 191 in entry.followup_issues
+        assert 113 in entry.followup_issues
         if not entry.implemented:
             assert set(entry.followup_issues) & {332, 333, 334, 335}
-    assert rows["trait:appearance-very-handsome"].blockers == (191, 335)
+    assert rows["trait:appearance-very-handsome"].blockers == (113, 335)

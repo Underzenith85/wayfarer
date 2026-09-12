@@ -25,7 +25,7 @@ the wielder's effective ST, 8 at ST+1/+2, and 20 at ST+3/+4. The last case requi
 standing and an accessible, owned, functional instance of the pinned cocking aid.
 ST+5 or higher rejects. Each step rechecks fatigue-adjusted ST and aid access;
 partial progress survives non-Ready turns and process restarts. B410's separate
-cocking-time wording and the first-printing/errata delta remain source-audit
+cocking-time wording and the selected-printing delta remain source-audit
 items; this implementation follows the B270 timing explicitly requested by #286.
 
 `unload_seconds_per_round` is an **authored, uncertified timing**, approved by the
@@ -39,6 +39,6 @@ v2 command fields; v1 inputs stay frozen.
 `tests/test_projectile_readiness.py` covers Fast-Draw outcomes, conservation,
 restart/retry, bow stages and let-down, authored unloading, and crossbow timing.
 These fixtures use the supplied third/fourth printings. #191 still owns the frozen
-first-printing/errata audit; #180 owns production equipment validation. The
+selected-printing audit; #180 owns production equipment validation. The
 capability remains partial, and the general Fast-Draw family still includes
 weapon-drawing specialties outside this projectile procedure.

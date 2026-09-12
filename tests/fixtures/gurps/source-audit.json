@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "baseline_id": "gurps-4e-2004-first-printing+errata-2007-01-26",
+  "baseline_id": "gurps-4e-characters-3p-2008+campaigns-4p-2008",
   "sources": [
     {
       "id": "sjg:gurps-lite-4e-2004",
@@ -16,51 +16,23 @@
     },
     {
       "id": "sjg:basic-set-characters-4e-2004",
-      "target": "2004 hardcover, first printing + errata 2007-01-26",
+      "target": "Fourth Edition, third printing, February 2008",
       "observed": "Third printing, February 2008",
       "reference": "Publication/printing statement, PDF page 2",
-      "status": "different-printing",
+      "status": "reviewed",
       "sha256": "872b5fece8f4013bf46825b397ef52b52c865fa2879f4544f055d9b6caecf47e",
-      "blockers": [
-        191
-      ],
-      "note": "Printing metadata visually reviewed 2026-09-07; numeric agreement with later printings does not establish the frozen baseline."
-    },
-    {
-      "id": "sjg:basic-set-characters-4e-2004:errata-2007-01-26",
-      "target": "First-printing corrections dated 2007-01-26",
-      "observed": "Official search metadata matches title/date; correction contents unavailable",
-      "reference": "https://www.sjgames.com/errata/gurps/4e/basic-set-characters.html",
-      "status": "unavailable",
-      "sha256": null,
-      "blockers": [
-        191
-      ],
-      "note": "Direct retrieval and browser retrieval returned HTTP 403 on 2026-09-07. No correction is asserted reviewed or applied."
+      "blockers": [],
+      "note": "Printing statement visually reviewed; the user selected this exact supplied artifact as the authoritative baseline on 2026-09-11."
     },
     {
       "id": "sjg:basic-set-campaigns-4e-2004",
-      "target": "2004 hardcover, first printing + errata 2007-01-26",
+      "target": "Fourth Edition, fourth printing, April 2008",
       "observed": "Fourth printing",
       "reference": "Publication/printing statement, PDF page 2",
-      "status": "different-printing",
+      "status": "reviewed",
       "sha256": "79cff8f75b91b4ba72e7947320bf98e184515e60108bda0f0891d379b3c96e80",
-      "blockers": [
-        191
-      ],
-      "note": "Printing metadata visually reviewed 2026-09-07; numeric agreement with later printings does not establish the frozen baseline."
-    },
-    {
-      "id": "sjg:basic-set-campaigns-4e-2004:errata-2007-01-26",
-      "target": "First-printing corrections dated 2007-01-26",
-      "observed": "Official search metadata matches title/date; correction contents unavailable",
-      "reference": "https://www.sjgames.com/errata/gurps/4e/basic-set-campaigns.html",
-      "status": "unavailable",
-      "sha256": null,
-      "blockers": [
-        191
-      ],
-      "note": "Direct retrieval and browser retrieval returned HTTP 403 on 2026-09-07. No correction is asserted reviewed or applied."
+      "blockers": [],
+      "note": "Printing statement visually reviewed; the user selected this exact supplied artifact as the authoritative baseline on 2026-09-11."
     }
   ],
   "scopes": [
@@ -80,7 +52,7 @@
       "owner": 191,
       "decision": "unresolved",
       "reviewed": false,
-      "reason": "Page coverage placeholder for rules outside reconciled item inventories, including character construction, advancement, templates, modifiers and tables. This is an unresolved scope, not a claim that every rule is mapped."
+      "reason": "Page coverage placeholder for rules outside reconciled item inventories, including character construction, advancement, templates, modifiers and tables. The exact source is pinned; rule enumeration remains incomplete."
     },
     {
       "id": "basic-campaign-rules",
@@ -89,7 +61,7 @@
       "owner": 191,
       "decision": "unresolved",
       "reviewed": false,
-      "reason": "Chapter/table/rule enumeration and printing delta review remain required; capability families are not individual source rules."
+      "reason": "Chapter/table/rule enumeration remains required; capability families are not individual source rules. The exact fourth-printing source is pinned."
     },
     {
       "id": "mundane-skills",
@@ -839,7 +811,7 @@
       "sha256": "a3d6a15d52d7df921641b82ed5c6d09bec69df530c0b03cf41c9862530610bdf",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B14: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "evidence": "Characters, Fourth Edition, third printing, B14: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
       "tests": [
         "tests/test_statistics.py::test_attribute_costs"
       ],
@@ -850,7 +822,7 @@
       "sha256": "1ee796f36ae7129151ca070d5419fbc06b547ad4689da12f4b16e39cc2133384",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B14: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "evidence": "Characters, Fourth Edition, third printing, B14: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
       "tests": [
         "tests/test_statistics.py::test_attribute_costs"
       ],
@@ -1037,7 +1009,7 @@
       "sha256": "b5f4e959d2211ca83389f3f335501f900989b0db0554df21267e2429096e0c50",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B15, B17: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "evidence": "Characters, Fourth Edition, third printing, B15, B17: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
       "tests": [
         "tests/test_statistics.py::test_basic_lift_rounding_point"
       ],
@@ -1048,7 +1020,7 @@
       "sha256": "09493347233fb14205673573a3150d175a1883e5b4e705706caf0e94206a50df",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B15, B17: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "evidence": "Characters, Fourth Edition, third printing, B15, B17: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
       "tests": [
         "tests/test_statistics.py::test_basic_lift_rounding_point"
       ],
@@ -1422,7 +1394,7 @@
       "sha256": "40ad561cd9ac9b259640b2d0bc429fb0c25ddaa70e218b614c6090475e2425ce",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -1433,7 +1405,7 @@
       "sha256": "d71f068cab14171b6b90cf2706bfb63de1362aff05623fdb898000f02ebfa0c5",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -1444,7 +1416,7 @@
       "sha256": "2421aeb75574fa8828afaaddf3f33ff9889c0eebc9d025e250f94e73919b327a",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -1455,7 +1427,7 @@
       "sha256": "4dc2098734aa089338c33b1b8101644e0ba4e69722e5465ba3f81106cbe25bdf",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -1466,7 +1438,7 @@
       "sha256": "13bbec30d9c37452752e4a461130774f42adc2691c4ecc58b394080e6f5f59cf",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -1477,7 +1449,7 @@
       "sha256": "ff2f8407c5584730f5151c886d6a2124a958f4f1d40a9d0aba71b156976d2e7b",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -1488,7 +1460,7 @@
       "sha256": "7124b5504cfc0093dacf766f6e72b8622e4df14fd4e2dbec920577e6ea32f73d",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -1499,7 +1471,7 @@
       "sha256": "e573b145ecfedbc9057a97ff1fdb9f2322bacfc6ebb481cc639261face0cb306",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -1510,7 +1482,7 @@
       "sha256": "e2024e71e5a6e8b1ec79256e0976a80998cd49902a4886e4014af0a3c77f47e9",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -1521,7 +1493,7 @@
       "sha256": "73c99f726181851789dfef62a2d3c429be9ff43b935a2df17c4820befbdf6d01",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "evidence": "Characters, Fourth Edition, third printing, B16: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -1532,7 +1504,7 @@
       "sha256": "e18a40bf906d8b98bb34b56445624530ce25af0eb83acef2b102174d68f5fe0f",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B16-17: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "evidence": "Characters, Fourth Edition, third printing, B16-17: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -1543,7 +1515,7 @@
       "sha256": "b872f3299602e236e88c047a00a16728b292ff6c5c9c90f0cd5e2510740b2a5c",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B16-17: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "evidence": "Characters, Fourth Edition, third printing, B16-17: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -1554,7 +1526,7 @@
       "sha256": "c2a3b552e77e03e555fb871b4e8b2d1e13de5289f1291be7c3abcd86d800935f",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B16-17: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "evidence": "Characters, Fourth Edition, third printing, B16-17: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -1565,7 +1537,7 @@
       "sha256": "a6ea2b7f9fddc33a6fd90052cfdc76f5d03cec7bb8973851b8e27ac7b6103924",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-07",
-      "evidence": "Characters, Fourth Edition, third printing, B16-17: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Frozen first-printing reconciliation remains open.",
+      "evidence": "Characters, Fourth Edition, third printing, B16-17: independently compared the numeric inputs and expected results to the printed table/formula. No numeric mismatch found. Selected-printing mechanics review remains open.",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2431,7 +2403,7 @@
     },
     {
       "id": "unarmed-karate-bonus",
-      "sha256": "8d599bd258bd77147edfff61bdc9003dcfea4f7d386c5e953ab7106a3bc8c48c",
+      "sha256": "93aa050029c22116278eaf49b8b462055c5181574baafdcbf1a0d42150e6fc09",
       "status": "pending",
       "reviewer": null,
       "evidence": null,
@@ -2442,7 +2414,7 @@
     },
     {
       "id": "grapple-wrestling-st",
-      "sha256": "fafa75870209feba66c1633a07faf7c6608ca794cdc3504d3be0a16dd50630b3",
+      "sha256": "aea7a3f33fe3325d0272f13afe3d8a65ccaf86fc36d7cdc89a113b9382ad907d",
       "status": "pending",
       "reviewer": null,
       "evidence": null,
@@ -2453,7 +2425,7 @@
     },
     {
       "id": "grapple-two-hand-escape",
-      "sha256": "8e973bd0b4861f67623318066ba9925756cf9e613348864fa92a0c8e3ae12859",
+      "sha256": "cd14400f064db036a078d4cc96846fbab68f0f9b53b07dfdc820bae4e5fa5c14",
       "status": "pending",
       "reviewer": null,
       "evidence": null,
@@ -2464,7 +2436,7 @@
     },
     {
       "id": "grapple-pin-undecided",
-      "sha256": "e8b324801722bfd86665cb3c406d7436fc1a744cbbaf4bb05c9c33a822bb137d",
+      "sha256": "28a94b44530e57e7428cbb165c6f70787251a3b37d8901c38fa6e4ea97ccc002",
       "status": "pending",
       "reviewer": null,
       "evidence": null,
@@ -2475,7 +2447,7 @@
     },
     {
       "id": "basic-height-three-feet-head",
-      "sha256": "2e6420697734b762e7b43e08612bbe558711f50d95139cb829faad9aa75e5619",
+      "sha256": "0ebfaf6e98cec62467f620a48ba7055ffcdfe73ae5ce3b351444b19a97078806",
       "status": "pending",
       "reviewer": null,
       "evidence": null,
@@ -2486,7 +2458,7 @@
     },
     {
       "id": "basic-unliving-torso-piercing",
-      "sha256": "7b9fb9d1760b21388f659529d8f4b5d9b8066693811b7a66fd301b473a2e5f40",
+      "sha256": "442ed8933affce60b32be825eca44f40c719e4fdc08b3abe19dfc3c38c68da08",
       "status": "pending",
       "reviewer": null,
       "evidence": null,
@@ -2497,7 +2469,7 @@
     },
     {
       "id": "basic-aim-brace-variable-scope",
-      "sha256": "6400a14578de8e0009be288ec05a9b6c7cdf2130c01d86e147d1aac866ff9f0f",
+      "sha256": "fe2ee177b7b3aca793e1f6579863dcf95ac360a177fa7caf1621309b32427ead",
       "status": "pending",
       "reviewer": null,
       "evidence": null,
@@ -2508,7 +2480,7 @@
     },
     {
       "id": "basic-stop-thrust-two-yard-charge",
-      "sha256": "627f3e77e6231b1cedc575e2968e49cf603db24d70336209332d0374f0c3c00c",
+      "sha256": "30dc3eaa75e415000836b8c63a97ad0a62b1dc55e2cf3f7c0e070655e4aca381",
       "status": "pending",
       "reviewer": null,
       "evidence": null,
@@ -2519,7 +2491,7 @@
     },
     {
       "id": "basic-all-out-double-off-hand",
-      "sha256": "3ccae526fbbb8724d958de00a6fb6cdaf95c31ba78852e2e6aabe6c57da446d1",
+      "sha256": "f1384f3dc632e32c0b445379308c6181b3796872e39173c21a6e71a21b3f8c04",
       "status": "pending",
       "reviewer": null,
       "evidence": null,
@@ -2530,7 +2502,7 @@
     },
     {
       "id": "basic-attack-then-step-order",
-      "sha256": "e8637ed9ac78af40451cba23cbe27a184e8f4f938c7e998435d26bce4268edc2",
+      "sha256": "4d4a638fe06251bad3de530d6e24e90507a570b126e46779b8af95abd743c39b",
       "status": "pending",
       "reviewer": null,
       "evidence": null,
@@ -2544,7 +2516,7 @@
       "sha256": "6e85b1d66adbfb42018160ab206a346c08f34800c3bc4e7d6cc83e339de62436",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -2555,7 +2527,7 @@
       "sha256": "a166f6a88dfe1bcbf19b8aaf62c6bd52d2705e72efe685639ecbdc1a6d4794f8",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -2566,7 +2538,7 @@
       "sha256": "6807c0f0f7b26770a2bb148de6d288510f2f61372e7132e9149d316ce5b4562c",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -2577,7 +2549,7 @@
       "sha256": "9a0f0e290692f9fe193b0cbd400655dc3973826167cc12816cd3da0c8f43efcf",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -2588,7 +2560,7 @@
       "sha256": "469c9929e82a23ed44ef57046ed4a4d926cb6b9a9820de1bc05c279527d2a4af",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -2599,7 +2571,7 @@
       "sha256": "93f2f9a0336725b33fe5db7343b50fff99b77502e30e0e6d0bfcbd3cdec38212",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -2610,7 +2582,7 @@
       "sha256": "a7f9774c3fdd859ef1a40c4b53a2a03fc29bb70bf323fc96e57f3e85a1ce378a",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -2621,7 +2593,7 @@
       "sha256": "8c76ef60f51432854fe2c86a873d48db2da8a29ddac71254f7e2b749e7d83899",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -2632,7 +2604,7 @@
       "sha256": "1b1529adea38b843b5004642435a4fce76f518792b8a101d37f00006d7229f82",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -2643,7 +2615,7 @@
       "sha256": "00a9d6c789223e1cbc323c4baa2f064a1cc0168c594b47fcd3a2cb37fa429dc5",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B15-16; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_damage_table_rows"
       ],
@@ -2654,7 +2626,7 @@
       "sha256": "a9c0afe0e6c048b1c021c15a3e7d00f1368126f97a6d3a9a2cc9ae67b787b770",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16: no intermediate-row rule specified; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B16: no intermediate-row rule specified; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_damage_error_fixtures"
       ],
@@ -2665,7 +2637,7 @@
       "sha256": "9743368a723784e98976f1f93470ada47d6b8b6dc7b6850c71e255084cf23fea",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16: no intermediate-row rule specified; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B16: no intermediate-row rule specified; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_damage_error_fixtures"
       ],
@@ -2676,7 +2648,7 @@
       "sha256": "fdf79b67fc30e7a82b64752ac63271b197c2fc7097cac3f017a7a12dccc61719",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16: no intermediate-row rule specified; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B16: no intermediate-row rule specified; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_damage_error_fixtures"
       ],
@@ -2687,7 +2659,7 @@
       "sha256": "446da18c4b5e8d41010350592e5fa4e6d3ab185bc97267f7469dcce9af5cae75",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16: no intermediate-row rule specified; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B16: no intermediate-row rule specified; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_damage_error_fixtures"
       ],
@@ -2698,7 +2670,7 @@
       "sha256": "47a179dadfa670e2880b175a628b52088c543c948c2fd4c123d078e22eb271b4",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16: no intermediate-row rule specified; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B16: no intermediate-row rule specified; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_damage_error_fixtures"
       ],
@@ -2709,7 +2681,7 @@
       "sha256": "2403b28336ce1e27c2b16d332ab244712407246efc00b62f15100c848402cada",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16: no intermediate-row rule specified; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B16: no intermediate-row rule specified; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_damage_error_fixtures"
       ],
@@ -2720,7 +2692,7 @@
       "sha256": "5b34a91b706e10ce37e5f25d2256593f03147047c23942d95e31d71f3943b86c",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16: no intermediate-row rule specified; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B16: no intermediate-row rule specified; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_damage_error_fixtures"
       ],
@@ -2731,7 +2703,7 @@
       "sha256": "8e665f722fa993868cb0c25ac19a89f2cedad6daa18403f6e23a283443447fea",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2742,7 +2714,7 @@
       "sha256": "b0b86583c8da5b9c7144886f93f23bb3363d0513f550d6f68208048a1164bffc",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2753,7 +2725,7 @@
       "sha256": "a5249e3f8c777df5ce27446fe94bb8f70a00172aba1c95d189420f486c045898",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2764,7 +2736,7 @@
       "sha256": "c419766819a90c42eea7ce65e026eae8f756acea2cb9676f2c7804dbc82453d8",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2775,7 +2747,7 @@
       "sha256": "d8114e2958cd5f9899e1342144abfa2cb77367eb256218472f87b1c512cb64ac",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2786,7 +2758,7 @@
       "sha256": "42a38ef1fc1c35020811cdaef3a53fdcbd85a34950e2ba53cb9c6e56e0c4bd9f",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2797,7 +2769,7 @@
       "sha256": "0e00cb3cc9701c1596876d3c3ce37f0fedf8046bc93fc613c5fac87d306675ac",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2808,7 +2780,7 @@
       "sha256": "c62e916abd95d0e1db9cf250437e77f4535c2804bce460a67e7249abebd099fe",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2819,7 +2791,7 @@
       "sha256": "db75bdcd94704b5df9d9fdc384810a180d4d913366c223445cdd32c417acbe0a",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2830,7 +2802,7 @@
       "sha256": "8161a0eb9de27f3c40b8a1b6a310acfa7d6a668351a784abd0cc3d70d54e9ba4",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2841,7 +2813,7 @@
       "sha256": "e65de6e35c44ecf58d4eae0ef6a8ea8cf7d6968fdc86255a2bb6097f0e9fb8ce",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2852,7 +2824,7 @@
       "sha256": "01e0795f89d7c705d2ae3355f7a200dee97479bd0cddb2a2c15085f803fceaf2",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2863,7 +2835,7 @@
       "sha256": "614b1070d2eff32d9a64f5f15892fbf5bc003640958a2e5889d56d41569a9b0e",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2874,7 +2846,7 @@
       "sha256": "c2c17d6288bc1415e6b46282e4209bc758f8879803d7c603a79d9b69b3a9693f",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2885,7 +2857,7 @@
       "sha256": "2ce98460c4e402ab52bf993a6e0b6f749ec16350ba1bd5bc0a1bc2d3dd9ed81b",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2896,7 +2868,7 @@
       "sha256": "e031542198415678a07e25d12346df0c59a91cf33d29600059f3b802e5502fe6",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2907,7 +2879,7 @@
       "sha256": "4e2ddd1163e25b35788218af84578e0f7c55606c39bb1df526fd8567194f1495",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2918,7 +2890,7 @@
       "sha256": "57def297b185849b9f88ef7862dd13289f07128ff97caecbe2e960152439dc37",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B16-17; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
@@ -2929,7 +2901,7 @@
       "sha256": "1da5edfc21412b9dbe37c23621795e1bc7a9eb2a12a692eda19c709d5cec1c89",
       "status": "compared",
       "reviewer": "Codex source comparison, 2026-09-08",
-      "evidence": "Characters third printing, February 2008, B16; no interpolation or first-printing certification asserted.",
+      "evidence": "Characters third printing, February 2008, B16; no interpolation or full conformance certification asserted.",
       "tests": [
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],

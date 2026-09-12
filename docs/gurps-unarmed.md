@@ -29,7 +29,7 @@ Commands use the existing authenticated actor check, canonical payload digest, c
 
 ## Evidence and limits
 
-The declared source is Basic Set Fourth Edition, first printing (2004), with the January 26, 2007 first-printing errata baseline. Numeric references: Characters B182, B203, B228 and B271; Campaigns B349, B366, B370-371, B379, B400, B403 and B436. Tests contain numeric expectations and references, not rulebook prose. Independent cases are in the common conformance ledger and `tests/test_unarmed.py`. The exact printing/errata artifact audit remains outstanding; the implementation is not a conformance certificate.
+The declared source is the selected Basic Set baseline: Characters third printing (February 2008) and Campaigns fourth printing (April 2008), with no separate errata overlay. Numeric references: Characters B182, B203, B228 and B271; Campaigns B349, B366, B370-371, B379, B400, B403 and B436. Tests contain numeric expectations and references, not rulebook prose. Independent cases are in the common conformance ledger and `tests/test_unarmed.py`. Individual mechanics review remains outstanding; the implementation is not a conformance certificate.
 
 Both `gurps.combat.unarmed` and `gurps.combat.grappling` remain **partial**, which keeps the existing scenario/character capability checks fail-closed. #108 remains open. [Follow-up #176](https://github.com/Underzenith85/wayfarer/issues/176) tracks the remaining work:
 
@@ -60,7 +60,7 @@ The Double Defense subset of #176 has restart, duplicate-receipt, pre-dice rejec
 - An armed critical parry delegates to the shared weapon-miss reducer, retaining the selected parry mode, original table dice, reroll dice, equipment condition and ground location. The incoming unarmed hit then resolves once. Barehanded failures continue to use the unarmed table.
 - The selected Judo parry records the attacker and first eligible following turn. A defensive arm lock names no existing grip, rechecks both hands and reach before dice, and creates the lock only after its own attack/defense resolution. A failed parry grants no opportunity; spending the first following turn expires it. This subset does not implement Wrestling parries or armed-attack defense.
 
-Independent examples and restart/duplicate-receipt tests are in `tests/test_unarmed_critical_followups.py` and `tests/test_unarmed_parry_lock.py`. Source review used B403 and B557 of the supplied Campaigns PDF, SHA-256 `79cff8f75b91b4ba72e7947320bf98e184515e60108bda0f0891d379b3c96e80`. This matches the already-audited **fourth printing**, not the pinned first printing plus January 2007 errata; the exact-baseline blocker in #191 remains. No whole-issue or certification claim is made.
+Independent examples and restart/duplicate-receipt tests are in `tests/test_unarmed_critical_followups.py` and `tests/test_unarmed_parry_lock.py`. Source review used B403 and B557 of the selected Campaigns fourth-printing PDF, SHA-256 `79cff8f75b91b4ba72e7947320bf98e184515e60108bda0f0891d379b3c96e80`. No whole-issue or certification claim is made.
 
 ## Unarmed Wait reactions
 

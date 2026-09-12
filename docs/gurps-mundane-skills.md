@@ -19,8 +19,8 @@ for the groups bound this way.
 The supplied **Characters, Fourth Edition, third printing (2008), ISBN
 978-1-55634-729-0** is the observed source. `source_index.json` records its SHA-256
 and independently indexes B301–B304, with explicit chapter expansions at
-B168–B233. This observation is not verification of the selected first-printing
-plus 2007-01-26 errata baseline. That reconciliation remains #336, using #191's
+B168–B233. This observation uses the selected Characters third-printing
+baseline. Remaining item-level verification stays under #336 and #191's
 audit machinery. No rulebook prose is bundled.
 
 | Source accounting | Entries |
@@ -105,7 +105,7 @@ retained where previously recorded, but they do not replace the active owners.
 | Owner | Remaining scope |
 | --- | --- |
 | #336 | Complete. The contextual shapes landed; everything it could not settle without the artifact or campaign state names one of the four children below. |
-| #382 | Verifying the frozen first-printing baseline against the source artifact. |
+| #382 | Reconciled: the supplied Characters third printing is the selected source artifact. |
 | #383 | Conditional skill defaults and the remaining alternative prerequisites. |
 | #384 | Technology-level context for TL-tagged skills, and optional-rule selection. |
 | #385 | The remaining required and optional specialty families, and the one unexpanded technique template. |
@@ -265,7 +265,7 @@ Evidence is in `tests/test_innate_attack_specialties.py`.
 Forty ranged rows carry #112's `conditional-or-skill-defaults` blocker: the
 source states a default for them that is conditional or comes from another
 skill, and neither the skill it comes from nor its modifier is recorded here.
-Verifying those values needs the frozen first-printing plus 2007-01-26 errata
+Verifying those values needs the selected Characters third-printing
 artifact that #336 and #191 own, and reading either off a different printing
 would defeat the baseline the audit exists to protect.
 
@@ -284,9 +284,9 @@ A binding may only resolve or keep the blockers the inventory recorded, and its
 numbers must be the recorded ones: `inventory()` raises on either drift, and on
 a kept blocker that names no owner. A blocker a procedure owner splits keeps
 naming the child that owns it in `blocker_owners`, so a transfer stays visible
-instead of resolving into silence. Every row still carries
-`first-printing-delta-audit`, so a bound procedure reports as `implemented` and
-remains unavailable.
+instead of resolving into silence. Source identity is now reconciled to the
+selected third printing. A bound
+procedure is available only when no concrete mechanics blocker remains.
 
 The definitions live in a new pin, package `0.7.0` with profile version 7
 (`rules/profiles.py`). Existing v2–v6 campaign pins resolve byte-for-byte
@@ -472,11 +472,12 @@ absent skill and trait metadata already is, so adding the shape moves no digest 
 a package pinned before it existed. `tests/test_contextual_metadata.py` pins that,
 along with the compiler behaviour and every recorded template and family.
 
-What this issue could not settle is split into four children, each owning specific
-blockers rather than a share of a general one: **#382** the frozen first-printing
-verification every row waits on, **#383** conditional defaults and the remaining
-alternative prerequisites, **#384** technology-level context and optional-rule
-selection, **#385** the remaining specialty families. `blocker_owners` names them
+What this issue could not settle is split into concrete children, each owning
+specific blockers rather than a share of a general one. **#382** selected the
+supplied printing and is resolved; **#383** owns conditional defaults and the
+remaining alternative prerequisites, **#384** technology-level context and
+optional-rule selection, and **#385** the remaining specialty families.
+`blocker_owners` names them
 per row, so #336 itself keeps nothing.
 
 ### Conditional default contract (#383)

@@ -360,8 +360,8 @@ def test_registration_validates_dependencies_capabilities_and_options() -> None:
         ProfileRegistry((tampered,))
 
 
-def test_gurps_registration_cites_the_frozen_sources() -> None:
-    """Independent expectation: the fixture's frozen source metadata, not engine output."""
+def test_gurps_registration_cites_the_selected_sources() -> None:
+    """Independent expectation: selected source metadata, not engine output."""
     sources = {s["id"]: s for s in json.loads(FIXTURE.read_text())["sources"]}
     registered = {
         s.id: s
@@ -376,8 +376,9 @@ def test_gurps_registration_cites_the_frozen_sources() -> None:
         assert cited.rights == "user-supplied-reference"
         assert cited.citation is not None
         if source["printing"] is not None:
-            assert "first printing" in cited.citation
-            assert source["errata"][0]["revision"] in cited.citation
+            ordinal = {3: "third", 4: "fourth"}[source["printing"]]
+            assert f"{ordinal} printing" in cited.citation
+            assert not source["errata"]
         else:
             assert source["revision"] in cited.citation
     assert GURPS_LITE_PROFILE.packages[0].sources[0].id == "sjg:gurps-lite-4e-2004"

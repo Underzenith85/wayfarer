@@ -3,7 +3,7 @@
 #112's frozen inventory records that the source states a conditional or
 cross-skill default for these rows and that neither its source skill nor its
 modifier is recorded. Verifying those values needs the frozen
-first-printing/2007-errata artifact, which #336 and #191 own. Until then the
+selected-printing artifact, which #336 and #191 own. Until then the
 gap is published per row and nothing is reconstructed into a runnable roll.
 """
 

@@ -1,7 +1,7 @@
 """Trusted trait construction metadata; no executable model-supplied formulas.
 
-Cost baseline: Basic Set: Characters, 4e first printing (2004), B120-121,
-B101-102, with errata through 2007-01-26. Runtime execution is separately gated.
+Cost baseline: Basic Set: Characters, Fourth Edition, third printing (2008),
+B101-102 and B120-121. Runtime execution is separately gated.
 """
 
 from dataclasses import dataclass

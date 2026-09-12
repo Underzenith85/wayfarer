@@ -3,8 +3,8 @@
 Independent expectations: Basic Set Characters, Fourth Edition, B168 for
 alternative prerequisites, B182 for the cross-package Brain Hacking prerequisite,
 B208-233 for the technique listings and open families, and B223 Surgery as the
-alternative set the audit already records as unflattenable. Third-printing
-constructions are not a first-printing certification; #382 still blocks every row.
+alternative set the audit already records as unflattenable. These constructions
+use the selected third-printing Characters baseline.
 """
 
 from decimal import Decimal
@@ -277,7 +277,6 @@ def test_no_row_is_left_recording_nothing_at_all() -> None:
 def test_every_remaining_contextual_blocker_names_a_concrete_child() -> None:
     """#336 keeps nothing: each blocker it split names the issue that owns it."""
     assert dict(CONTEXT_RESIDUALS) == {
-        "first-printing-delta-audit": (382,),
         "conditional-or-skill-defaults": (383,),
         "prerequisite-procedure": (383,),
         "weapon-default-audit": (383,),

@@ -70,8 +70,8 @@ a new command ID to recover a possibly committed action.
 `pnpm contracts:generate` in `frontend` to regenerate the typed client definitions.
 The normal contract check includes those definitions. Backend tests validate the
 OpenAPI document and real HTTP behavior. `tests/test_tactical.py` contains original
-numeric cases referencing Basic Set Fourth Edition (2004), B367–377 and B384–392.
-The declared first-printing/January 26, 2007 errata audit remains outstanding.
+numeric cases referencing the selected Campaigns fourth printing, B367–377 and
+B384–392. Item-level mechanics review remains outstanding.
 
 `pnpm exec playwright test --config playwright.tactical.config.ts` exercises the
 production panel and generated client against real Python HTTP/storage services,

@@ -1,7 +1,7 @@
-"""Dedicated provisional Basic Set mundane skill inventory (#112).
+"""Dedicated Basic Set mundane skill inventory (#112).
 
-Source-indexed metadata remains provisional for the frozen first-printing profile.
-Printing deltas and item-level mechanics blockers are explicit audit data.
+Source-indexed metadata uses the selected Characters third-printing baseline.
+Item-level mechanics blockers remain explicit audit data.
 No existing package pin is changed and unimplemented runtime skills fail closed.
 """
 
@@ -49,12 +49,11 @@ PROFILE = "gurps-basic-set-4e-2004"
 SOURCE = source(PROFILE)
 OWNER = 112
 CONTEXT_OWNER = 336
-# #336 completed the contextual shapes and split what still needs the source
-# artifact or campaign state into concrete children. Each remaining blocker names
+# #336 completed the contextual shapes and split what still needs campaign state
+# into concrete children. Each remaining blocker names
 # the one that owns it instead of resolving into the context owner.
 CONTEXT_RESIDUALS = MappingProxyType(
     {
-        "first-printing-delta-audit": (382,),
         "conditional-or-skill-defaults": (383,),
         "prerequisite-procedure": (383,),
         "weapon-default-audit": (383,),
@@ -112,9 +111,7 @@ class SkillAudit:
     # Blockers this row's procedure owner transferred, each naming the concrete
     # open child that must resolve it.
     transferred: tuple[tuple[str, tuple[int, ...]], ...] = ()
-    provenance: str = (
-        "Characters Fourth Edition, third printing; first-printing delta audit pending"
-    )
+    provenance: str = "Characters Fourth Edition, third printing (February 2008)"
 
     @property
     def available(self) -> bool:
@@ -379,7 +376,7 @@ def inventory() -> tuple[SkillAudit, ...]:
                 ImplementationStatus.UNSUPPORTED,
                 skill=spec,
             )
-        blockers = ["first-printing-delta-audit", *row.blockers]
+        blockers: list[str] = list(row.blockers)
         # A template or an open family records its contextual shape; only a row
         # with neither a definition nor a shape is still missing its metadata.
         if definition is None and template is None and variable is None:
@@ -476,8 +473,8 @@ def validate_inventory(entries: tuple[SkillAudit, ...]) -> None:
     if len(identifiers) != len(entries):
         raise ValidationError("Duplicate skill inventory ID")
     for entry in entries:
-        if not entry.reference or not entry.followup_issues or not entry.blockers:
-            raise ValidationError("Provisional inventory requires references and explicit blockers")
+        if not entry.reference or not entry.followup_issues:
+            raise ValidationError("Inventory entries require references and explicit owners")
         if entry.definition and entry.definition.skill:
             if entry.definition.id != entry.id:
                 raise ValidationError(f"Mismatched skill definition ID for {entry.id}")
@@ -620,7 +617,7 @@ def audit_report() -> dict[str, object]:
     return {
         "profile": PROFILE,
         "source_id": SOURCE.id,
-        "baseline": "2004 first printing; errata 2007-01-26; verification pending",
+        "baseline": "Characters third printing (February 2008), exact artifact pinned",
         "inventory_completeness": "B301-B304 reconciled; contextual expansions explicitly blocked",
         "source_index": source_index().model_dump(mode="json"),
         "skills": [

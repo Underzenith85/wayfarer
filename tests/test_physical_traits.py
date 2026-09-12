@@ -1,7 +1,7 @@
 """Literal expected results: Characters 4e third printing B35,39,43,55,59,71,79.
 
-Campaigns B393/B420/B424/B426 supplies timing. Profile certification and
-first-printing errata reconciliation are separate from these runtime examples.
+Campaigns B393/B420/B424/B426 supplies timing. Full profile certification is
+separate from these runtime examples.
 """
 
 import json

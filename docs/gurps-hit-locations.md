@@ -49,9 +49,9 @@ cross-system lasting-disadvantage effects remain unsupported.
 Independent cases in `tests/test_hit_locations.py` cover limb/vitals/skull/eye
 injury, divisor rounding, random locations, temporary/lasting/permanent duration,
 critical head arithmetic and aftermath, shield impairment and SQLite replay. Runtime arithmetic
-was checked against *Basic Set: Campaigns*, Fourth Edition, fourth printing,
-B379, B398-400, B420-422, B552 and B556-557. These cases do not certify the frozen
-first-printing plus January 26, 2007 errata baseline. The profile capability gates
+was checked against the selected *Basic Set: Campaigns*, Fourth Edition, fourth
+printing, B379, B398-400, B420-422, B552 and B556-557. These cases do not certify
+the full rules profile. The capability gates
 and coverage matrix remain partial until that evidence and the named remaining
 mechanics are complete.
 
