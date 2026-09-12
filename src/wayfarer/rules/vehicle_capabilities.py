@@ -7,7 +7,14 @@ Full Basic Set capability rows remain partial until all audit consumers exist.
 from types import MappingProxyType
 
 GROUND = frozenset(
-    {"vehicle-maneuver", "vehicle-control", "vehicle-impact", "vehicle-skid", "vehicle-rollover"}
+    {
+        "vehicle-maneuver",
+        "vehicle-control",
+        "vehicle-impact",
+        "vehicle-skid",
+        "vehicle-rollover",
+        "vehicle-resolve-ejection",
+    }
 )
 PLANAR = frozenset({"vehicle-maneuver", "vehicle-control", "vehicle-impact"})
 VEHICLE_OPERATIONS = MappingProxyType(

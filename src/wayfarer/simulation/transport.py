@@ -27,6 +27,7 @@ from wayfarer.simulation.resources import (
     ResourceState,
 )
 from wayfarer.simulation.vehicle_commands import (
+    ResolveVehicleEjection,
     UpgradeVehicle,
     VehicleControl,
     VehicleImpact,
@@ -72,6 +73,7 @@ TransportCommand = Annotated[
     | VehicleManeuver
     | VehicleRollover
     | VehicleSkid
+    | ResolveVehicleEjection
     | UpgradeVehicle,
     Field(discriminator="kind"),
 ]
@@ -102,9 +104,10 @@ def validate_transport(engine: ResourceEngine, state: ResourceState, t: Transpor
     """Explicit scenario activation validator. No inferred migration from catalog listings."""
     if t.locomotion == "ground-mount" and t.body_id not in engine.actors:
         raise ValidationError("Mount must be a world actor")
-    if not set(t.occupants) <= engine.actors:
+    passengers = t.occupants + tuple(e.actor_id for e in t.pending_ejections)
+    if not set(passengers) <= engine.actors:
         raise ValidationError("Unknown transport occupant")
-    for actor in t.occupants + ((t.body_id,) if t.locomotion == "ground-mount" else ()):
+    for actor in passengers + ((t.body_id,) if t.locomotion == "ground-mount" else ()):
         pool = next((p for p in state.pools if p.id == "hp:" + actor), None)
         if pool is None or pool.injury is None or pool.injury.profile_id != t.profile_id:
             raise ValidationError("Transport actors require matching explicit injury profiles")
@@ -160,6 +163,7 @@ def apply_transport(
             VehicleManeuver,
             VehicleRollover,
             VehicleSkid,
+            ResolveVehicleEjection,
         ),
     ):
         updated = resolve_vehicle(

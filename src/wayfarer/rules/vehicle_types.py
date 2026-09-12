@@ -29,6 +29,17 @@ class PassengerProtection(Record):
     strength: int | None = Field(default=None, ge=3)
 
 
+class PassengerEjection(Record):
+    """Unbelted occupant awaiting authoritative tactical placement (B432)."""
+
+    actor_id: str = Field(min_length=1)
+    origin_q: int = Field(ge=-1000, le=1000)
+    origin_r: int = Field(ge=-1000, le=1000)
+    facing: Literal[0, 1, 2, 3, 4, 5]
+    distance_yards: int = Field(gt=0, le=1000)
+    collision_speed: int = Field(gt=0, le=1000)
+
+
 class VehicleTrace(Record):
     command_id: str
     reason: str
@@ -37,5 +48,7 @@ class VehicleTrace(Record):
     basic_damage: int = 0
     injury: int = 0
     ejection_yards: int = 0
+    destination_q: int | None = Field(default=None, exclude_if=lambda value: value is None)
+    destination_r: int | None = Field(default=None, exclude_if=lambda value: value is None)
     target: int | None = None
     margin: int | None = None

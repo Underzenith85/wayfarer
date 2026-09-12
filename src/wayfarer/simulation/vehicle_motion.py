@@ -4,12 +4,57 @@ B394-395, B468-469; straight flight/depth are supported on an authored planar ma
 Vertical navigation and environmental aftermath require dedicated consumers.
 """
 
+from fractions import Fraction
+
 from wayfarer.errors import ValidationError
 from wayfarer.rules.checks import Modifier, Outcome, RandomSource, draw_dice, evaluate_success
 from wayfarer.rules.transport_types import Transport
 from wayfarer.rules.vehicle_types import VehicleTrace
 from wayfarer.simulation.hex_geometry import DIRECTIONS, Hex, HexBattlefield, neighbor
 from wayfarer.simulation.vehicle_commands import VehicleControl, VehicleManeuver
+
+
+def ground_cruising_speed(
+    top_speed: int,
+    acceleration: int,
+    locomotion: str,
+    terrain: str,
+    *,
+    road_bound: bool = False,
+    on_road: bool = False,
+) -> Fraction:
+    """B466 overland mph before convoy and weather modifiers."""
+    if (
+        type(top_speed) is not int
+        or top_speed < 1
+        or type(acceleration) is not int
+        or acceleration < 1
+    ):
+        raise ValidationError("Ground travel requires positive vehicle ratings")
+    if locomotion not in {
+        "ground-wheeled",
+        "ground-tracked",
+        "ground-drawn",
+        "ground-walking",
+        "ground-slithering",
+    }:
+        raise ValidationError("Ground travel tables require a ground vehicle")
+    if terrain not in {"very-bad", "bad", "average", "good"}:
+        raise ValidationError("Unknown ground travel terrain")
+    if road_bound and not on_road:
+        top_speed = min(top_speed, 4 * acceleration)
+    wheeled = locomotion in {"ground-wheeled", "ground-drawn"}
+    multiplier = {
+        "very-bad": Fraction(1, 10)
+        if wheeled
+        else Fraction(3, 20)
+        if locomotion == "ground-tracked"
+        else Fraction(1, 5),
+        "bad": Fraction(1, 4) if wheeled else Fraction(1, 2),
+        "average": Fraction(1, 2) if wheeled else Fraction(1),
+        "good": Fraction(5, 4),
+    }[terrain]
+    return top_speed * multiplier
 
 
 def safe_deceleration(t: Transport) -> int:
@@ -67,6 +112,7 @@ def move_vehicle(
         budget = t.acceleration  # B394: full Basic Move before accelerating.
     point = Hex(q=t.q, r=t.r)
     base = board.cell(point).ground
+    base_extra = board.cell(point).extra_cost
     facing = t.facing
     straight = t.straight_yards
     cost = extra = turns = 0
@@ -112,8 +158,10 @@ def move_vehicle(
             if cell in occupied:
                 raise ValidationError("Vehicle path intersects another occupant")
             if t.locomotion.startswith("ground-"):
-                if terrain.blocked or terrain.ground != base:
-                    raise ValidationError("Vehicle path requires collision or slope resolution")
+                if terrain.blocked:
+                    raise ValidationError("Vehicle path requires collision resolution")
+                if terrain.ground != base and not (terrain.extra_cost or base_extra):
+                    raise ValidationError("Vehicle slope requires an authored movement surcharge")
                 if cell in footprint(pose):
                     surcharge = max(surcharge, terrain.extra_cost)
             elif t.locomotion == "air":
@@ -130,6 +178,8 @@ def move_vehicle(
         if index:
             extra += surcharge
             cost += 1 + surcharge
+            base = board.cell(point).ground
+            base_extra = board.cell(point).extra_cost
     if entering_high and (turns > 1 or extra):
         raise ValidationError("Entering high speed requires a full straight ordinary move")
     if cost != budget:
@@ -137,7 +187,29 @@ def move_vehicle(
     speed = max(0, command.end_speed - extra)
     braking = t.speed - speed
     if braking > 2 * deceleration:
-        raise ValidationError("Terrain exceeds the supported emergency braking envelope")
+        return t.model_copy(
+            update={
+                "q": point.q,
+                "r": point.r,
+                "facing": facing,
+                "speed": speed,
+                "straight_yards": straight,
+                "remaining_points": speed,
+                "status": "skidding",
+                "attack_penalty": min(-1, -(braking - 2 * deceleration)),
+                "aim_lost": True,
+                "traces": (
+                    *t.traces,
+                    VehicleTrace(
+                        command_id=command.id,
+                        reason="automatic-terrain-control-loss",
+                        actor_id=t.operator_id,
+                        target=0,
+                        margin=-(braking - 2 * deceleration),
+                    ),
+                ),
+            }
+        )
     if braking > deceleration:
         if command.control_skill is None:
             raise ValidationError("Terrain or emergency braking requires a control maneuver")

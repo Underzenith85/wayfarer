@@ -61,6 +61,9 @@ restart. PostgreSQL runs require `WAYFARER_TEST_DATABASE_URL`.
 | Immovable obstacles | Hard/soft surface factor; optional authoritative breakable object limits both damage amounts to obstacle HP + DR | B431 |
 | Occupants | Damage based on each vehicle's actual speed loss; per-occupant belts/airbags, worn armor blunt trauma and innate DR; existing injury/threshold reducer | B431-432 |
 | Open cabin | Unbelted passenger knockback distance uses pre-armor damage and explicitly compiled ST; persisted ejection-pending state blocks subsequent movement | B432 |
+| Ground slopes and overland terrain | Tactical slopes require an authored movement surcharge; B466 cruising-speed factors distinguish wheeled, tracked and legged vehicles and cap road-bound off-road speed | B395, B466 |
+| Ground skid aftermath | Difficult terrain consumes saved skid movement; declared vehicles and actors enter the existing collision/injury path at the last clear pose | B395, B430-432, B469 |
+| Ejection aftermath | Pending ejections leave the manifest, resolve to the exact knockback hex, take landing collision damage, and enter the existing drowning/swimming/rescue schedule after water entry | B354, B431-432, B436 |
 
 ## Residual coverage blockers (#358)
 
@@ -72,9 +75,6 @@ residual per locomotion mode and splits it into live children;
 
 | Missing consumer or variant | Current behavior | Owner |
 | --- | --- | ---: |
-| Slopes, terrain-specific travel tables and unsafe terrain deceleration beyond the supported envelope | Reject; no inferred travel behavior. | #392 |
-| Minor skid paths through difficult terrain or other actors; fractional endpoint reconciliation | Reject the ambiguous path; exact residual thirds are saved. | #392 |
-| Ejection destination, subsequent impacts, swimming/rescue and removed occupant manifests | Ejection distance is computed, but placement and follow-on hazards remain pending. | #392 |
 | Vertical flight, climbing/diving trajectories, continuing stalls/falls, airborne drift and terrain-relative air-crash consequences | Altitude/control facts persist, but full three-dimensional movement and ongoing descent are not implemented. | #393 |
 | Sinking, capsizing recovery, underwater stress damage, leaks, decompression, water currents, fractional draft and open-deck overboard checks | Pending states block ordinary operation; open-deck control rejects before dice. | #394 |
 | Space thrust, navigation, fuel/delta-v and very large speed/damage scales | Navigation rejects; only control/stress and the resolved collision exchange are provided. | #395 |
@@ -94,8 +94,9 @@ above, never the residuals.
 status is **derived** from the audit above rather than hand-set: a mode counts as
 verified only once it resolves control loss, collision, occupant injury and
 restart and owes no residual, and the movement row is verified only when every
-mode is. No mode qualifies yet, and the combat row has no implementation behind
-it at all, so both stay `partial`.
+mode is. The five non-mounted ground modes now qualify. Air, water, underwater,
+space and mounted movement keep the movement row `partial`; the combat row stays
+`partial` as well.
 
 `rules/vehicle_coverage.validate_coverage` rejects three drifts: an audit that
 declares different modes from `VEHICLE_OPERATIONS`, a mode that claims a concern
