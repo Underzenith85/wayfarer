@@ -221,9 +221,8 @@ def _summon(
             i.id for i in resources.items if i.owner_id == target_id and i.ready and i.equipped
         ),
     )
-    encounter = encounter.model_copy(
+    encounter = encounter.add_participant(participant).model_copy(
         update={
-            "participants": encounter.participants + (participant,),
             "turn_order": encounter.turn_order + (target_id,),
         }
     )

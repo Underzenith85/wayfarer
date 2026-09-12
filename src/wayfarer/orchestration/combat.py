@@ -759,14 +759,14 @@ def _join(
             )
         ),
     )
-    joined_participants = encounter.participants + (participant,)
+    encounter = encounter.add_participant(participant)
+    joined_participants = encounter.participants
     order = tuple(
         p.actor_id for p in sorted(joined_participants, key=lambda p: (-p.initiative, p.actor_id))
     )
     current_actor = encounter.current_actor_id
     encounter = encounter.model_copy(
         update={
-            "participants": joined_participants,
             "turn_order": order,
             "turn_index": order.index(current_actor),
         }

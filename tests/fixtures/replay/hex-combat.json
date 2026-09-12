@@ -13,7 +13,7 @@
       "command_input": "{\"command\":{\"actor_id\":\"a\",\"attack_option\":null,\"defense_option\":null,\"destination\":null,\"encounter_id\":\"fight\",\"expected_revision\":2,\"facing\":null,\"hex_facing\":null,\"hex_path\":[],\"hit_location\":null,\"id\":\"replay-attack\",\"item_id\":\"sword-a\",\"kind\":\"take_combat_turn\",\"maneuver\":\"attack\",\"mode_id\":\"swing\",\"posture\":null,\"ready_hand\":null,\"reload_ammunition_id\":null,\"second_item_id\":null,\"second_mode_id\":null,\"second_target_id\":null,\"shots\":1,\"step_timing\":\"before\",\"target_id\":\"b\",\"wait_trigger\":null},\"operation\":\"combat\"}",
       "seed": "4006abbedbfdaf0b2eaec25b0dc6ae385c1695ea1a5cef6ae346d7e7b03f3bdf",
       "recorded_at_us": 1789171679332817,
-      "state_digest": "709683f78084b0930fc127a1cefeb74673954b231c24e5e28afe83f2eeccb62b",
+      "state_digest": "c4952e248eeb269c5744dd47e3e86ee5e41d563634a7b5e9fbef7fd356568f85",
       "events": [
         {
           "kind": "state.patched",
@@ -22,8 +22,64 @@
           },
           "scope": "campaign",
           "before_digest": "3f83720decbe4b0d5beb7d59697d7e8c6cafeaf0f6731ead07ce8312a63a88c6",
-          "after_digest": "709683f78084b0930fc127a1cefeb74673954b231c24e5e28afe83f2eeccb62b",
+          "after_digest": "c4952e248eeb269c5744dd47e3e86ee5e41d563634a7b5e9fbef7fd356568f85",
           "changes": [
+            {
+              "operation": "remove",
+              "path": [
+                "play_json",
+                "encounters",
+                0,
+                "battlefield_id"
+              ],
+              "value": null
+            },
+            {
+              "operation": "remove",
+              "path": [
+                "play_json",
+                "encounters",
+                0,
+                "spatial_kind"
+              ],
+              "value": null
+            },
+            {
+              "operation": "remove",
+              "path": [
+                "play_json",
+                "encounters",
+                0,
+                "participants",
+                0,
+                "facing"
+              ],
+              "value": null
+            },
+            {
+              "operation": "remove",
+              "path": [
+                "play_json",
+                "encounters",
+                0,
+                "participants",
+                0,
+                "hex_facing"
+              ],
+              "value": null
+            },
+            {
+              "operation": "remove",
+              "path": [
+                "play_json",
+                "encounters",
+                0,
+                "participants",
+                0,
+                "position"
+              ],
+              "value": null
+            },
             {
               "operation": "set",
               "path": [
@@ -47,6 +103,78 @@
                 "last_maneuver"
               ],
               "value": "attack"
+            },
+            {
+              "operation": "remove",
+              "path": [
+                "play_json",
+                "encounters",
+                0,
+                "participants",
+                1,
+                "facing"
+              ],
+              "value": null
+            },
+            {
+              "operation": "remove",
+              "path": [
+                "play_json",
+                "encounters",
+                0,
+                "participants",
+                1,
+                "hex_facing"
+              ],
+              "value": null
+            },
+            {
+              "operation": "remove",
+              "path": [
+                "play_json",
+                "encounters",
+                0,
+                "participants",
+                1,
+                "position"
+              ],
+              "value": null
+            },
+            {
+              "operation": "remove",
+              "path": [
+                "play_json",
+                "encounters",
+                0,
+                "participants",
+                2,
+                "facing"
+              ],
+              "value": null
+            },
+            {
+              "operation": "remove",
+              "path": [
+                "play_json",
+                "encounters",
+                0,
+                "participants",
+                2,
+                "hex_facing"
+              ],
+              "value": null
+            },
+            {
+              "operation": "remove",
+              "path": [
+                "play_json",
+                "encounters",
+                0,
+                "participants",
+                2,
+                "position"
+              ],
+              "value": null
             },
             {
               "operation": "set",
@@ -77,6 +205,45 @@
                 "post_attack_hex_path": [],
                 "post_attack_facing": null,
                 "post_attack_posture": null
+              }
+            },
+            {
+              "operation": "set",
+              "path": [
+                "play_json",
+                "encounters",
+                0,
+                "spatial_context"
+              ],
+              "value": {
+                "kind": "hex",
+                "battlefield_id": "hex-template:191e7e7f8f7c258b0792fd5d",
+                "placements": [
+                  {
+                    "actor_id": "a",
+                    "position": {
+                      "q": 0,
+                      "r": 0
+                    },
+                    "facing": 0
+                  },
+                  {
+                    "actor_id": "b",
+                    "position": {
+                      "q": 1,
+                      "r": 0
+                    },
+                    "facing": 3
+                  },
+                  {
+                    "actor_id": "c",
+                    "position": {
+                      "q": 4,
+                      "r": 1
+                    },
+                    "facing": 3
+                  }
+                ]
               }
             },
             {

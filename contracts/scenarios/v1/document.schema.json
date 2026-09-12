@@ -1279,6 +1279,7 @@
           "type": "integer"
         },
         "battlefields": {
+          "default": [],
           "items": {
             "discriminator": {
               "mapping": {
@@ -1297,7 +1298,6 @@
             ]
           },
           "maxItems": 100,
-          "minItems": 1,
           "title": "Battlefields",
           "type": "array"
         },
@@ -1339,8 +1339,7 @@
       },
       "required": [
         "id",
-        "version",
-        "battlefields"
+        "version"
       ],
       "title": "CombatRules",
       "type": "object"

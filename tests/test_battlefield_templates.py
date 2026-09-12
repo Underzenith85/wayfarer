@@ -23,7 +23,8 @@ async def test_embedded_map_migrates_then_replays_after_cache_loss(tmp_path: Pat
     raw = json.loads(initial["play_json"])
     encounter = raw["encounters"][0]
     command = migration()
-    encounter.pop("spatial_kind")
+    context = encounter.pop("spatial_context")
+    encounter["battlefield_id"] = context["battlefield_id"]
     encounter["hex_battlefield"] = command.battlefield.model_dump(
         mode="json", exclude={"location_id", "darkness_penalty"}
     )
@@ -71,7 +72,11 @@ async def test_missing_template_fails_closed_and_geometry_is_pinned(tmp_path: Pa
     campaign = await play.store.read(cid)
     state = play._load(campaign)
     encounter = state.encounters[0]
-    broken = encounter.model_copy(update={"battlefield_id": "missing"})
+    context = encounter.spatial
+    assert context.kind == "hex"
+    broken = encounter.model_copy(
+        update={"spatial_context": context.model_copy(update={"battlefield_id": "missing"})}
+    )
     with pytest.raises(ValidationError, match="battlefield|template"):
         play.engine.validate(state.model_copy(update={"encounters": (broken,)}))
     rules = play.engine.rules.combat

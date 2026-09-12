@@ -115,11 +115,12 @@ should land on these seams rather than invent new ones.
   every new error-severity `StudioFinding` must reference the node an author has
   to edit and state in its message what would satisfy the rule. See
   [scenario authoring](scenario-authoring.md#what-a-validation-finding-owes-the-author).
-- **One owner per spatial fact (#323, #324, #326, #329).** Combat state is
-  moving to a discriminated basic, square and hex spatial context. Until it
-  lands, keep square and hex vocabularies distinct (`Facing` versus
-  `HexFacing`), keep `RangedSituation` the only distance store, and do not add
-  battlefield or placement requirements to shared schemas.
+- **One owner per spatial fact (#323, #324, #326, #329).** `Encounter` owns a
+  discriminated basic, square or hex spatial context. Basic contexts retain
+  authored/adjudicated facts with provenance and lifetime; mapped contexts own
+  the template reference and every exact actor pose. Keep square and hex
+  vocabularies distinct (`Facing` versus `HexFacing`) and do not add battlefield
+  or placement requirements to shared schemas.
 - **One engine, one transaction (#181, #290, #397).** Vehicle, object and
   ranged follow-ups reuse `simulation.transport`, `simulation.combat` and the
   injury and object reducers, and every commit still passes through
@@ -259,12 +260,14 @@ in one place.
   `World`, and every `Scene` binds to a `location_id`. Where each actor stands
   is state (`Entity.location_id`, `ActorScene`), rewritten by move and travel
   commands.
-- **Battlefield templates.** `CombatRules.battlefields` owns a tagged union of
+- **Battlefield templates.** `CombatRules.battlefields` optionally owns a tagged union of
   square `Battlefield` and `HexBattlefield` templates. Both name an authored
   location and contribute to `configuration_digest`. `StartEncounter` names a
-  template and supplies positions and facings; an `Encounter` retains only
-  `battlefield_id`, its spatial kind and changing combat state. Geometry helpers
-  receive the selected template explicitly from the rules context.
+  template and supplies positions and facings; an `Encounter` retains those
+  exact poses and the template ID in its mapped spatial context. Combatants keep
+  only runtime pose mirrors for existing mechanic APIs, and encounter
+  serialization removes those mirrors so persisted state has one owner.
+  Geometry helpers receive the selected template explicitly from the rules context.
 - **Migration and projections.** `MigrateEncounterHex` installs a derived template
   and records a `MigrationEntry` before switching an encounter's placements.
   `migrate_embedded_maps` lifts retained embedded maps in an atomic, replayable

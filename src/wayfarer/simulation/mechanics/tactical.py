@@ -5,7 +5,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.simulation.combat import CombatEngine, Encounter
+from wayfarer.simulation.combat import (
+    CombatEngine,
+    Encounter,
+    HexActorPlacement,
+    HexSpatialContext,
+)
 from wayfarer.simulation.hex_geometry import RetreatContext, can_retreat
 from wayfarer.simulation.tactical import defense_adjustment, occupants, pose, validate_hex_encounter
 
@@ -39,19 +44,29 @@ def migrate(runtime: RulesContext, encounter: Encounter, command: MigrateEncount
             "lying" if actor.posture == "prone" else actor.posture
         ):
             raise ValidationError("Map migration cannot change posture")
+    participants = tuple(
+        p.model_copy(
+            update={
+                "position": poses[p.actor_id].position,
+                "hex_facing": poses[p.actor_id].facing,
+            }
+        )
+        for p in encounter.participants
+    )
     result = encounter.model_copy(
         update={
-            "spatial_kind": "hex",
-            "battlefield_id": command.battlefield.id,
-            "participants": tuple(
-                p.model_copy(
-                    update={
-                        "position": poses[p.actor_id].position,
-                        "hex_facing": poses[p.actor_id].facing,
-                    }
-                )
-                for p in encounter.participants
+            "spatial_context": HexSpatialContext(
+                battlefield_id=command.battlefield.id,
+                placements=tuple(
+                    HexActorPlacement(
+                        actor_id=p.actor_id,
+                        position=poses[p.actor_id].position,
+                        facing=poses[p.actor_id].facing,
+                    )
+                    for p in participants
+                ),
             ),
+            "participants": participants,
         }
     )
     rules = runtime.rules.combat

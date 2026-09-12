@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Literal
 
 from wayfarer.errors import ValidationError
 from wayfarer.models import Id, Record
-from wayfarer.simulation.combat import Battlefield, CombatRules, Encounter
+from wayfarer.simulation.combat import BasicSpatialContext, Battlefield, CombatRules, Encounter
 from wayfarer.simulation.hex_geometry import HexBattlefield
 from wayfarer.simulation.noncombat import NoncombatEncounter
 from wayfarer.simulation.party import QueuedActivity, Subgroup
@@ -34,13 +34,15 @@ class ActorActivity:
     noncombat: tuple[NoncombatEncounter, ...]
 
     @property
-    def spatial_kind(self) -> Literal["square", "hex"] | None:
+    def spatial_kind(self) -> Literal["basic", "square", "hex"] | None:
         if self.encounter is None:
             return None
-        return "hex" if self.encounter.spatial_kind == "hex" else "square"
+        return self.encounter.spatial_kind
 
     def battlefield(self, rules: CombatRules) -> Battlefield | HexBattlefield | None:
         if self.encounter is None:
+            return None
+        if isinstance(self.encounter.spatial, BasicSpatialContext):
             return None
         return next(b for b in rules.battlefields if b.id == self.encounter.battlefield_id)
 
@@ -73,6 +75,14 @@ def bind_scene(
     """Infer only a unique authored location mapping; never invent legacy scenes."""
     if scenes is None:
         raise ValidationError("Configure scene rules through explicit campaign migration first")
+    if isinstance(encounter.spatial, BasicSpatialContext):
+        if encounter.scene_id is not None:
+            if scene_id not in (None, encounter.scene_id):
+                raise ValidationError("Encounter scene is already bound")
+            scene_id = encounter.scene_id
+        if scene_id is None or not any(s.id == scene_id for s in scenes.scenes):
+            raise ValidationError("Basic encounter requires an explicit authored scene")
+        return encounter.model_copy(update={"version": 2, "scene_id": scene_id})
     battlefield = next((b for b in combat.battlefields if b.id == encounter.battlefield_id), None)
     if battlefield is None:
         raise ValidationError("Unknown encounter battlefield")
