@@ -4870,13 +4870,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        242,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
+      "evidence": [
+        "tests/test_cinematic_skills.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -4892,13 +4893,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        242,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
+      "evidence": [
+        "tests/test_cinematic_skills.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -4914,13 +4916,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        242,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
+      "evidence": [
+        "tests/test_cinematic_skills.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -4936,13 +4939,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        242,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
+      "evidence": [
+        "tests/test_cinematic_skills.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -4958,13 +4962,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        242,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
+      "evidence": [
+        "tests/test_cinematic_skills.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -4980,13 +4985,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        242,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
+      "evidence": [
+        "tests/test_cinematic_skills.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5002,13 +5008,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        242,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
+      "evidence": [
+        "tests/test_cinematic_skills.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5046,13 +5053,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        242,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
+      "evidence": [
+        "tests/test_cinematic_skills.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5068,13 +5076,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        242,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
+      "evidence": [
+        "tests/test_cinematic_skills.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5090,13 +5099,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        242,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
+      "evidence": [
+        "tests/test_cinematic_skills.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5112,13 +5122,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        242,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
+      "evidence": [
+        "tests/test_cinematic_skills.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5134,13 +5145,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        242,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
+      "evidence": [
+        "tests/test_cinematic_skills.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5156,13 +5168,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        242,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
+      "evidence": [
+        "tests/test_cinematic_skills.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5178,13 +5191,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        242,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
+      "evidence": [
+        "tests/test_cinematic_skills.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5200,13 +5214,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        242,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
+      "evidence": [
+        "tests/test_cinematic_skills.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5222,13 +5237,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        242,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
+      "evidence": [
+        "tests/test_cinematic_skills.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5244,13 +5260,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        242,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
+      "evidence": [
+        "tests/test_cinematic_skills.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5266,13 +5283,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        242,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
+      "evidence": [
+        "tests/test_cinematic_skills.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5310,13 +5328,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        242,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
+      "evidence": [
+        "tests/test_cinematic_skills.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5332,13 +5351,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        242,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
+      "evidence": [
+        "tests/test_cinematic_skills.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5398,13 +5418,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        242,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
+      "evidence": [
+        "tests/test_cinematic_skills.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5420,13 +5441,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        242,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
+      "evidence": [
+        "tests/test_cinematic_skills.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5442,13 +5464,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        242,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned cinematic skill attribute, difficulty, learning prerequisites, optional-profile gating, and authorized replay-safe check procedure.",
+      "evidence": [
+        "tests/test_cinematic_skills.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
