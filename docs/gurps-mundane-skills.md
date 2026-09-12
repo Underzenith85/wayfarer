@@ -51,11 +51,28 @@ also verifies names, pages and owners against the supernatural catalog.
 
 | Accounting group | Rows | Decision |
 | --- | ---: | --- |
-| Structured candidate definitions | 243 | Unsupported; runtime or campaign-context blockers remain. |
-| Bound runtime procedures | 233 | Implemented and dispatched by #344 (12), #345 (16), #346 (83), #356 (83) and the TL-indexed and crew-served ranged rows (#354, #355, #357). Of all inventory rows, 174 currently have no remaining blocker. |
+| Structured candidate definitions | 184 | Unsupported; runtime or campaign-context blockers remain. |
+| Bound runtime procedures | 292 | The prior 233 plus 58 concrete or family arts, crafts and trade rows from #338. Three open or dynamic arts rows also have dispatch but remain contextual rather than manufacturing definitions. |
 | Contextual records | 28 | 23 B230-233 technique templates and five open families (#336). Not rollable skills, so they record a shape rather than a definition. No row is left recording nothing at all. |
 | Transferred cinematic/supernatural skills | 28 | Owned by #242/#243 and source audit #191. |
-| **Total accounted records** | **532** | **504 inventory rows plus 28 transferred rows; 209 inventory rows are available.** |
+| **Total accounted records** | **532** | **504 inventory rows plus 28 transferred rows; 264 inventory rows are available.** |
+
+## Arts, crafts and trade procedures (#338)
+
+The 43 listed entries, their finite specialty expansions, and the transferred
+Motion-Picture Camera technique now bind 62 source-indexed rows. Each concrete
+row names the authoritative service that consumes its outcome, a distinct
+effect and unit, its retry policy, the context it requires, and only the
+modifier axes that apply to that task. Contests are used for detection,
+deception, theft, and bargaining; hazardous work and unknown-until-later work
+retain those failure semantics instead of becoming ordinary retries.
+
+Armoury, Group Performance, Mimicry, and Smith are non-rollable family selectors;
+their recorded concrete specialties carry the dispatch. Open-subject skills
+require an explicit campaign-selected subject. Impersonate and Motion-Picture
+Camera enforce their recorded parent-specific technique default and cap before
+dice. No persisted package or profile version changes while the engine remains
+prerelease.
 
 This revision fills the previously empty Aerobatics, Aquabatics, crewman, suit
 and weapon entries; records Weather Sense as a TL-dependent Meteorology alias;
@@ -110,7 +127,7 @@ retained where previously recorded, but they do not replace the active owners.
 | #476 | Complete. Biographical, campaign-selected, minimum-TL, vessel, and action-mode predicates fail closed and preserve their facts in the skill receipt. |
 | #384 | Complete. `/TL` purchases record TL explicitly, profiles activating those skills require an explicit campaign TL, and cinematic templates name and enforce their optional-rule selections. |
 | #385 | Complete. All open and finite specialty families are recorded; Motion-Picture Camera is explicitly transferred to its open Photography parent work in #338. |
-| #338 | Arts, crafts and trade procedures. |
+| #338 | Complete. Arts, crafts and trade rows dispatch explicit procedures. |
 | #339 | Melee, defense and tactical skill procedures. |
 | #340 | Combat technique procedures and parent-specific dispatch. |
 | #341 | Knowledge, investigation and professional information procedures. |

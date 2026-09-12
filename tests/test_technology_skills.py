@@ -159,11 +159,16 @@ def test_listed_scope_is_completely_accounted_for() -> None:
         entry = rows[identifier]
         procedure = PROCEDURES[identifier]
         if identifier in TRANSFERRED:
-            assert entry.implementation == "unsupported"
             assert not procedure.implemented
             owner = TRANSFERRED[identifier]
             assert owner in procedure.owners
             assert owner in entry.followup_issues
+            if identifier == "skill:motion-picture-camera":
+                # The receiving #338 catalog now supplies the real procedure.
+                assert entry.implementation == "implemented"
+                assert entry.dispatch == "noncombat.approach"
+            else:
+                assert entry.implementation == "unsupported"
         else:
             assert entry.implementation == "implemented"
             assert procedure.implemented
@@ -178,6 +183,9 @@ def test_a_binding_may_only_resolve_or_keep_the_recorded_blockers() -> None:
         assert set(procedure.resolved).isdisjoint(procedure.blockers)
         assert all(owners for owners in procedure.transferred.values())
         # Blockers the binding keeps survive; the ones it resolves are gone.
+        if identifier == "skill:motion-picture-camera":
+            assert recorded.dispatch == "noncombat.approach"
+            continue
         assert set(procedure.blockers) <= set(recorded.blockers)
         assert set(procedure.resolved).isdisjoint(recorded.blockers)
 
@@ -384,9 +392,8 @@ def test_verified_vehicle_movement_allows_skill_activation() -> None:
 def test_implemented_rows_reach_the_audit_report() -> None:
     report = audit_report()
     counts = cast(dict[str, int], report["implementation_counts"])
-    # 83 technology rows from #346 and 83 more from #356, plus 51 ranged
-    # (#344 and every one of its children) and 16 social (#345).
-    assert counts["implemented"] == 233
+    # #338 adds 58 concrete/family arts rows to the prior total.
+    assert counts["implemented"] == 292
     rows = {entry.id: entry for entry in inventory()}
     assert rows["skill:vacc-suit"].dispatch == "hazard.exposure"
     assert rows["skill:driving-automobile"].dispatch == "transport.vehicle-control"

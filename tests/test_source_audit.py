@@ -126,11 +126,16 @@ def test_mundane_skill_rows_carry_item_level_owners_and_certification_state() ->
     assert {r.implementation for r in rows} == {"implemented", "unsupported", "contextual"}
     # #336 records a technique template or an open family for each of these.
     assert sum(r.implementation == "contextual" for r in rows) == 28
-    # #344 (with #354, #355, #357, #359), #345, #346, #356: a bound procedure
-    # reaches certification
-    # as implemented, and a transferred one reaches it naming the concrete open
-    # child that owns it.
-    assert sum(r.implementation == "implemented" for r in rows) == 233
+    # #338, #344 (with its children), #345, #346 and #356: a bound procedure
+    # reaches certification as implemented, and a transferred one reaches it
+    # naming the concrete open child that owns it.
+    assert sum(r.implementation == "implemented" for r in rows) == 292
+    assert next(r for r in rows if r.id == "skill:photography").blockers == (
+        112,
+        336,
+        338,
+        384,
+    )
     assert next(r for r in rows if r.id == "skill:acting").blockers == (112, 336, 345)
     assert next(r for r in rows if r.id == "skill:savoir-faire").blockers == (
         111,

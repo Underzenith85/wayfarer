@@ -60,6 +60,7 @@ _CAPABILITIES: Final = (
     # Whole-entry social skill procedures, separate from the shared reaction and
     # influence machinery: an implemented row dispatches its own resolution shape.
     Capability("gurps.social.skill_procedures", False, True, CoverageStatus.PARTIAL, 345),
+    Capability("gurps.skills.arts_trades", False, True, CoverageStatus.PARTIAL, 338),
     Capability("gurps.equipment.weapon_profiles", True, True, CoverageStatus.PARTIAL, 101),
     Capability("gurps.equipment.armor_profiles", True, True, CoverageStatus.PARTIAL, 101),
     Capability("gurps.equipment.catalog", True, True, CoverageStatus.PARTIAL, 114),

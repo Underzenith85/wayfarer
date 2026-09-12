@@ -39,8 +39,8 @@ def test_inventory_and_references() -> None:
         "skill:arm-lock-judo",
     } <= ids
     assert len(entries) > 180
-    # Physics and Research become available once their acquisition context is explicit.
-    assert audit_report()["available"] == 209
+    # #338 adds the concrete arts, crafts and trade procedures without changing a pin.
+    assert audit_report()["available"] == 264
     assert all(e.followup_issues for e in entries)
     RulesCatalog((candidate_package(),))
     assert candidate_package().digest == candidate_package().digest
@@ -402,11 +402,11 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     ]
     assert report["runtime_owner_unassigned"] == 0
     assert report["implementation_counts"] == {
-        # 45 ranged (#344, #354, #355, #357, #359), 16 social (#345) and 83
-        # technology (#346) rows dispatch a real procedure.
+        # The former total plus 58 concrete/family arts rows. Three open/dynamic
+        # rows stay contextual even though their procedure dispatch is bound.
         "contextual": 28,
-        "implemented": 233,
-        "unsupported": 243,
+        "implemented": 292,
+        "unsupported": 184,
     }
     # A bound row can still leave part of its entry to another issue; that gap is
     # published rather than folded into the blocker list.

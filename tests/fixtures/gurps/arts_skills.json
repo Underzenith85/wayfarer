@@ -1,0 +1,17 @@
+{
+  "source": "Basic Set Characters, Fourth Edition, third printing, B178-B233",
+  "cases": [
+    {"skill": "skill:armoury-small-arms", "dispatch": "object.repair", "effect": "restore-small-arm", "unit": "restored-hp", "resolution": "success-roll", "context": ["matching-specialty"]},
+    {"skill": "skill:artist", "dispatch": "noncombat.approach", "effect": "create-artwork", "unit": "quality-step", "resolution": "success-roll", "context": ["materials-present", "subject-selected"]},
+    {"skill": "skill:camouflage", "dispatch": "noncombat.approach", "effect": "conceal-position", "unit": "concealment-margin", "resolution": "quick-contest", "context": ["terrain-described"]},
+    {"skill": "skill:counterfeiting", "dispatch": "noncombat.approach", "effect": "produce-counterfeit", "unit": "quality-step", "resolution": "quick-contest", "context": ["sample-present"]},
+    {"skill": "skill:fire-eating", "dispatch": "hazard.exposure", "effect": "perform-fire-eating", "unit": "performance", "resolution": "success-roll", "context": ["flame-present"]},
+    {"skill": "skill:impersonate", "dispatch": "social.skill-procedure", "effect": "impersonate-known-person", "unit": "deception-margin", "resolution": "quick-contest", "context": ["identity-selected"]},
+    {"skill": "skill:lockpicking", "dispatch": "noncombat.approach", "effect": "open-lock", "unit": "lock-opened", "resolution": "success-roll", "context": ["lock-and-tools"]},
+    {"skill": "skill:merchant", "dispatch": "social.skill-procedure", "effect": "negotiate-price", "unit": "price-step", "resolution": "quick-contest", "context": ["trade-offer"]},
+    {"skill": "skill:motion-picture-camera", "dispatch": "noncombat.approach", "effect": "operate-motion-picture-camera", "unit": "quality-step", "resolution": "success-roll", "context": ["camera-present"]},
+    {"skill": "skill:pickpocket", "dispatch": "noncombat.approach", "effect": "steal-carried-item", "unit": "item-taken", "resolution": "quick-contest", "context": ["item-accessible"]},
+    {"skill": "skill:prospecting", "dispatch": "noncombat.approach", "effect": "locate-valuable-material", "unit": "finding", "resolution": "success-roll", "context": ["terrain-described"]},
+    {"skill": "skill:smith-iron", "dispatch": "object.repair", "effect": "forge-iron", "unit": "work-step", "resolution": "success-roll", "context": ["forge-present"]}
+  ]
+}
