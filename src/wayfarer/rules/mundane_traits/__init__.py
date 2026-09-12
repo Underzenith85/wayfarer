@@ -15,6 +15,7 @@ from pydantic import Field, model_validator
 
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record
+from wayfarer.rules.background_traits import BACKGROUND_BINDINGS, BACKGROUND_HOOKS
 from wayfarer.rules.catalog import (
     DefinitionKind,
     ImplementationStatus,
@@ -52,12 +53,19 @@ class Vocabulary(Record):
 
     languages: tuple[Identifier, ...] = Field(default=("trade",), strict=False, max_length=30)
     cultures: tuple[Identifier, ...] = Field(default=("foreign",), strict=False, max_length=30)
+    alien_cultures: tuple[Identifier, ...] = Field(default=(), strict=False, max_length=30)
     organizations: tuple[Identifier, ...] = Field(default=("watch",), strict=False, max_length=30)
     people: tuple[Identifier, ...] = Field(default=("associate",), strict=False, max_length=30)
 
     @model_validator(mode="after")
     def unique(self) -> Self:
-        for values in (self.languages, self.cultures, self.organizations, self.people):
+        for values in (
+            self.languages,
+            self.cultures,
+            self.alien_cultures,
+            self.organizations,
+            self.people,
+        ):
             if len(values) != len(set(values)):
                 raise ValueError("Duplicate background identity")
         return self
@@ -352,6 +360,18 @@ def inventory(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> tuple[TraitEntry, 
                 category="background",
             )
         )
+    for multimillionaire_level, points in ((1, 75), (2, 100), (3, 125)):
+        entries.append(
+            _entry(
+                f"wealth-multimillionaire-{multimillionaire_level}",
+                f"Wealth (Multimillionaire {multimillionaire_level})",
+                points,
+                25,
+                "trait.wealth",
+                group="wealth",
+                category="background",
+            )
+        )
     for scope, points in (
         ("individual", -2),
         ("small-group", -5),
@@ -390,6 +410,18 @@ def inventory(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> tuple[TraitEntry, 
                 f"culture-{culture}",
                 f"Cultural Familiarity ({culture})",
                 1,
+                23,
+                "trait.culture",
+                category="background",
+                identity=culture,
+            )
+        )
+    for culture in sorted(vocabulary.alien_cultures):
+        entries.append(
+            _entry(
+                f"culture-{culture}",
+                f"Cultural Familiarity ({culture}; alien)",
+                2,
                 23,
                 "trait.culture",
                 category="background",
@@ -508,6 +540,12 @@ def validate_inventory(entries: tuple[TraitEntry, ...]) -> None:
             entry.id not in MENTAL_BINDINGS or MENTAL_BINDINGS[entry.id][0] != entry.effect
         ):
             raise ValidationError("Mental effect requires an exact catalog binding")
+        if (
+            entry.effect in BACKGROUND_HOOKS
+            and entry.id in BACKGROUND_BINDINGS
+            and BACKGROUND_BINDINGS[entry.id][0] != entry.effect
+        ):
+            raise ValidationError("Background effect disagrees with its catalog binding")
         definition = entry.definition(entries)
         assert definition.trait_rules is not None
         validate_metadata(definition.trait_rules)
@@ -517,7 +555,7 @@ def candidate_package(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> RulesPacka
     entries = inventory(vocabulary)
     return RulesPackage(
         "package:gurps-mundane-trait-candidates",
-        "0.4.0",
+        "0.5.0",
         "gurps-4e",
         (SOURCE,),
         tuple(entry.definition(entries) for entry in entries),
@@ -549,14 +587,7 @@ def audit_report(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> dict[str, objec
         "blockers": dict(sorted(Counter(b for e in entries for b in e.blockers).items())),
         "unbound_effects": tuple(sorted({e.effect for e in entries if not e.implemented})),
         "outside_selected_scope": (
-            "native-language reductions",
-            "alien cultural familiarity",
             "variable relationship constructions",
-            "multimillionaire wealth",
-            "setting-dependent rank prerequisites",
-            "free Status from Wealth or Rank",
-            "language-talent cost interactions",
-            "relationship count limits and Ally/Dependent netting",
             "exotic and supernatural traits",
             "appearance special options and modifiers",
             "restricted-audience and uncertain-recognition reputation constructions",
