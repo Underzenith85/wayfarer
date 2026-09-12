@@ -1,0 +1,18 @@
+{
+  "baseline_id": "source:gurps-basic-set-characters-4e-third-printing-2008",
+  "owner": 385,
+  "families": {
+    "skill:armoury": ["B178", ["battlesuits", "body-armor", "force-shields", "heavy-weapons", "melee-weapons", "missile-weapons", "small-arms", "vehicular-armor"]],
+    "skill:fast-draw": ["B194", ["force-sword", "knife", "long-arm", "pistol", "sword", "two-handed-sword", "arrow", "ammo"]],
+    "skill:fortune-telling": ["B196", ["astrology", "augury", "crystal-gazing", "dream-interpretation", "feng-shui", "palmistry", "tarot"]],
+    "skill:group-performance": ["B198", ["choreography", "conducting", "directing", "fight-choreography"]],
+    "skill:meteorology": ["B209", ["earthlike", "gas-giants", "hostile-terrestrial", "ice-dwarfs", "ice-worlds", "rock-worlds"]],
+    "skill:mimicry": ["B210", ["animal-sounds", "bird-calls", "speech"]],
+    "skill:navigation": ["B211", ["air", "land", "sea", "space", "hyperspace"]],
+    "skill:pharmacy": ["B213", ["herbal", "synthetic"]],
+    "skill:shield": ["B220", ["standard", "buckler", "force"]],
+    "skill:smith": ["B221", ["copper", "iron", "lead-and-tin"]],
+    "skill:strategy": ["B222", ["land", "naval", "space"]],
+    "skill:survival": ["B223", ["arctic", "desert", "island-beach", "jungle", "mountain", "plains", "swampland", "woodlands", "bank", "deep-ocean-vent", "fresh-water-lake", "open-ocean", "reef", "river-stream", "salt-water-sea", "tropical-lagoon"]]
+  }
+}

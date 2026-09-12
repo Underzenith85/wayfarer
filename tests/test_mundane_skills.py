@@ -280,6 +280,30 @@ def test_open_specialty_axes_match_the_independent_source_fixture() -> None:
         assert "specialty-expansion" not in entry.blockers
         assert StructuralClass.VARIABLE_FAMILY in entry.structural_classes
         assert StructuralClass.UNEXPANDED_SPECIALTY not in entry.structural_classes
+
+
+def test_concrete_specialty_families_match_the_independent_source_fixture() -> None:
+    """#385 expands every finite source list without borrowing expected IDs from code."""
+    fixture = json.loads(Path("tests/fixtures/gurps/concrete_specialty_families.json").read_text())
+    assert fixture["owner"] == 385
+    entries = {entry.id: entry for entry in inventory()}
+    indexed = {entry.id: entry for entry in source_index().entries}
+    for parent_id, (reference, names) in fixture["families"].items():
+        parent = entries[parent_id]
+        children = tuple(f"{parent_id}-{name}" for name in names)
+        assert parent.reference == reference
+        assert parent.specialties == children
+        assert "specialty-expansion" not in parent.blockers
+        for child_id, name in zip(children, names, strict=True):
+            child = entries[child_id]
+            assert child.reference == reference
+            assert child.definition is not None and child.definition.skill is not None
+            assert child.definition.skill.specialty is not None
+            assert child.definition.skill.specialty.family == parent_id.removeprefix("skill:")
+            assert child.definition.skill.specialty.name == name
+            assert indexed[child_id.removeprefix("skill:")].parent == parent_id.removeprefix(
+                "skill:"
+            )
     sampled = {c for e in entries.values() for c in e.structural_classes}
     assert sampled == set(StructuralClass)
     assert all(e.structural_classes for e in entries.values())
@@ -387,7 +411,7 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         # technology (#346) rows dispatch a real procedure.
         "contextual": 28,
         "implemented": 233,
-        "unsupported": 176,
+        "unsupported": 243,
     }
     # A bound row can still leave part of its entry to another issue; that gap is
     # published rather than folded into the blocker list.
@@ -456,7 +480,7 @@ def test_independent_source_index_accounts_for_every_listing() -> None:
     # #344 and its children expand Thrown Weapon, the two TL-indexed weapon
     # families, the crew-served ones, the liquid projectors and Innate Attack;
     # #346 the vehicle and crew families and #356 the discipline-keyed ones.
-    assert len([e for e in index.entries if e.kind == "expansion"]) == 162
+    assert len([e for e in index.entries if e.kind == "expansion"]) == 229
     assert indexed_expansions(index, "thrown-weapon") == 7
     indexed = {e.id: e for e in index.entries}
     assert indexed["brain-hacking"].page == 182

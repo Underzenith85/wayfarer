@@ -172,6 +172,7 @@ class InventoryRow(Record):
     technique: TechniqueRecord | None = None
     template: TechniqueTemplateRecord | None = None
     variable: VariableFamilyRecord | None = None
+    specialties: tuple[Identifier, ...] = ()
     prerequisite_groups: tuple[PrerequisiteGroupRecord, ...] = ()
     alias_of: Identifier | None = None
     specialty_required: bool = False
@@ -233,6 +234,7 @@ class InventoryRow(Record):
             self.specialty_required
             and not self.specialty
             and self.variable is None
+            and not self.specialties
             and "specialty-expansion" not in self.blockers
         ):
             raise ValueError("Unexpanded required specialties need an explicit blocker")

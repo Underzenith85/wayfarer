@@ -118,6 +118,7 @@ class SkillAudit:
     # Blockers this row's procedure owner transferred, each naming the concrete
     # open child that must resolve it.
     transferred: tuple[tuple[str, tuple[int, ...]], ...] = ()
+    specialties: tuple[str, ...] = ()
     provenance: str = "Characters Fourth Edition, third printing (February 2008)"
 
     @property
@@ -198,6 +199,7 @@ class SkillAudit:
         if (
             self.specialty_required
             and self.variable is None
+            and not self.specialties
             and (spec is None or spec.specialty is None)
         ):
             found.add(StructuralClass.UNEXPANDED_SPECIALTY)
@@ -454,6 +456,7 @@ def inventory() -> tuple[SkillAudit, ...]:
                 bound=procedure is not None and procedure.implemented,
                 dispatch=dispatch,
                 transferred=transferred,
+                specialties=tuple(f"skill:{child}" for child in row.specialties),
             )
         )
     entries = tuple(result)
@@ -561,6 +564,16 @@ def validate_inventory(entries: tuple[SkillAudit, ...]) -> None:
         if entry.variable is not None and entry.variable.mirrors is not None:
             if entry.variable.mirrors not in identifiers or entry.variable.mirrors == entry.id:
                 raise ValidationError(f"Invalid variable family mirror for {entry.id}")
+        if entry.specialties:
+            if not set(entry.specialties) <= identifiers or entry.id in entry.specialties:
+                raise ValidationError(f"Invalid specialty expansion for {entry.id}")
+            for child_id in entry.specialties:
+                child = next(item for item in entries if item.id == child_id)
+                child_spec = child.definition.skill if child.definition else None
+                if child_spec is None or child_spec.specialty is None:
+                    raise ValidationError(f"Specialty expansion is not concrete: {child_id}")
+                if f"skill:{child_spec.specialty.family}" != entry.id:
+                    raise ValidationError(f"Specialty expansion has the wrong family: {child_id}")
         if not entry.structural_classes:
             raise ValidationError(f"Unclassified inventory row: {entry.id}")
         if OWNER not in entry.followup_issues:
