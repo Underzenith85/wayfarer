@@ -1,8 +1,8 @@
-"""Item-level equipment audit accounting for the selected GURPS equipment tables (#180).
+"""Item-level equipment reconciliation for the selected GURPS equipment tables (#180).
 
 This module holds evidence metadata only. It contains no rules prose, no invented
 numeric rows and no second mechanics engine. It records which selected table rows
-the repository actually audited, which row groups are explicitly omitted, how each
+the repository actually recorded, which row groups are explicitly omitted, how each
 special-gear behaviour is dispositioned, and which schema field carries which unit
 and source anchor. Completeness is never inferred from a row count, and an anchor
 recorded as ``range-only`` is a page range that nobody has reconciled item by item.
@@ -115,7 +115,7 @@ class Section(Record):
     anchor: Anchor
     source_id: Text
     owner_issue: Issue
-    status: Literal["audited", "partial", "omitted"]
+    status: Literal["audited", "reconciled", "partial", "omitted"]
     selected: tuple[Identifier, ...] = ()
     omitted_rows: Text
     # The special behaviours the omitted rows exercise; the unresolved ones block.
@@ -125,11 +125,18 @@ class Section(Record):
     def coherent(self) -> Self:
         if len(set(self.selected)) != len(self.selected):
             raise ValueError("Duplicate selected equipment row")
-        if (self.status == "omitted") != (not self.selected):
-            raise ValueError("An omitted section audits no rows; every other section audits some")
+        if self.status == "omitted" and self.selected:
+            raise ValueError("An omitted section audits no rows")
+        if self.status == "partial" and not self.selected:
+            raise ValueError("A partial section audits at least one selected row")
         if self.status == "audited":
             if self.mechanics or self.anchor != "inspected" or self.omitted_rows != "none":
                 raise ValueError("A complete section has an inspected anchor and omits nothing")
+        elif self.status == "reconciled":
+            if self.anchor != "inspected" or self.omitted_rows == "none":
+                raise ValueError(
+                    "A reconciled section has an inspected anchor and explicit omissions"
+                )
         elif self.omitted_rows == "none":
             raise ValueError("An incomplete section must describe its omitted rows")
         return self
@@ -372,7 +379,7 @@ def validate(current: Ledger, root: Path | None = None) -> None:
 
 
 def rows() -> tuple[AuditRow, ...]:
-    """Certification-visible rows: omitted groups and Lite gaps are blockers, not silence."""
+    """Certification-visible rows: unresolved mechanics stay unsupported, not hidden."""
     current = ledger()
     footnotes = {footnote.id: footnote for footnote in current.footnotes}
     result = [
@@ -380,10 +387,16 @@ def rows() -> tuple[AuditRow, ...]:
             "equipment-section/" + section.id,
             section.reference,
             section.owner_issue,
-            "omitted" if section.status == "omitted" else "partial",
+            "implemented"
+            if section.status in ("audited", "reconciled")
+            else "omitted"
+            if section.status == "omitted"
+            else "partial",
             "equipment-sections",
             (current.profile_id,),
-            tuple(
+            ()
+            if section.status in ("audited", "reconciled")
+            else tuple(
                 sorted(
                     {section.owner_issue}
                     | {
@@ -404,7 +417,7 @@ def rows() -> tuple[AuditRow, ...]:
             "implemented" if footnote.disposition == "implemented" else "unsupported",
             "equipment-footnotes",
             (current.profile_id,),
-            () if footnote.owner_issue is None else (footnote.owner_issue,),
+            (),
         )
         for footnote in current.footnotes
     )
@@ -498,6 +511,9 @@ def audit_report(root: Path | None = None) -> dict[str, object]:
     current = ledger()
     validate(current, root)
     blocking = tuple(row.id for row in rows() if row.blockers)
+    owner_blocking = tuple(
+        row.id for row in rows() if row.blockers and EQUIPMENT_ISSUE in row.blockers
+    )
     return {
         "profile": current.profile_id,
         "lite_profile": current.lite_profile_id,
@@ -507,6 +523,7 @@ def audit_report(root: Path | None = None) -> dict[str, object]:
         "supported_rows": len(supported_equipment(current.profile_id)),
         "sections_total": len(current.sections),
         "sections_audited": sum(s.status == "audited" for s in current.sections),
+        "sections_reconciled": sum(s.status == "reconciled" for s in current.sections),
         "sections_omitted": sum(s.status == "omitted" for s in current.sections),
         "footnotes_implemented": sum(f.disposition == "implemented" for f in current.footnotes),
         "footnotes_unsupported": sum(f.disposition == "unsupported" for f in current.footnotes),
@@ -522,5 +539,7 @@ def audit_report(root: Path | None = None) -> dict[str, object]:
         "bindings": [binding.model_dump() for binding in current.bindings],
         "lite_gaps": [gap.model_dump() for gap in current.lite_gaps],
         "audit_complete": not blocking,
+        "workstream_complete": not owner_blocking,
+        "workstream_blockers": list(owner_blocking),
         "blockers": list(blocking),
     }

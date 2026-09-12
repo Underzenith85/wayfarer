@@ -11,7 +11,7 @@
       "anchor": "inspected",
       "source_id": "sjg:basic-set-characters-4e-2004",
       "owner_issue": 180,
-      "status": "partial",
+      "status": "reconciled",
       "selected": [
         "light-club",
         "broadsword",
@@ -85,17 +85,20 @@
       "anchor": "inspected",
       "source_id": "sjg:basic-set-characters-4e-2004",
       "owner_issue": 180,
-      "status": "partial",
+      "status": "reconciled",
       "selected": [
         "electrolaser-pistol",
         "laser-pistol",
         "laser-pistol-cell",
         "blaster-pistol"
       ],
-      "omitted_rows": "Laser Pistol and its individual rechargeable power cell are executable with exact B280 values, smartgun authorization and laser-sight assistance, and authored environmental attenuation. Electrolaser Pistol and Blaster Pistol remain index-only and fail closed because linked affliction and surge behavior is unsupported; every other B280 beam row remains omitted.",
+      "omitted_rows": "Laser Pistol and its individual rechargeable power cell are executable. Electrolaser Pistol and Blaster Pistol are recorded index rows. The remaining named table rows are Electrolaser Carbine, Laser Sniper Rifle, Laser Rifle, Blaster Rifle and Heavy Blaster; their loaded-cell splits and rifle handling are explicitly omitted. The optional omni-blaster setting is a variant, not another table row. Linked affliction and surge behavior remains unsupported.",
       "mechanics": [
         "linked-affliction",
-        "surge"
+        "surge",
+        "beam-environment",
+        "smartgun",
+        "conditional-one-handed-firearm"
       ]
     },
     {
@@ -104,7 +107,7 @@
       "anchor": "inspected",
       "source_id": "sjg:basic-set-characters-4e-2004",
       "owner_issue": 180,
-      "status": "partial",
+      "status": "reconciled",
       "selected": [
         "bronze-corselet",
         "leather-armor",
@@ -115,7 +118,7 @@
         "steel-corselet",
         "steel-laminate-plate"
       ],
-      "omitted_rows": "Every B283 row that splits DR between locations, protects only one facing, or carries a footnote, plus flexible and layered rows and the other armor pages.",
+      "omitted_rows": "The eight selected simple body rows are the executable subset. Every other B283-286 row is itemized in armor-split-dr, including simple-location pieces, flexible armor, split/front/partial DR, advanced suits and horse barding; none is silently inferred from this subset.",
       "mechanics": [
         "split-dr",
         "front-only-dr",
@@ -129,7 +132,7 @@
       "anchor": "inspected",
       "source_id": "sjg:basic-set-characters-4e-2004",
       "owner_issue": 180,
-      "status": "partial",
+      "status": "reconciled",
       "selected": [
         "frame-backpack",
         "small-backpack",
@@ -205,13 +208,13 @@
     },
     {
       "id": "wealth-and-legality",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B264-270",
+      "anchor": "inspected",
       "source_id": "sjg:basic-set-characters-4e-2004",
       "owner_issue": 180,
-      "status": "omitted",
+      "status": "reconciled",
       "selected": [],
-      "omitted_rows": "Starting wealth, cost of living and legality class. No row, price band or legality code is recorded and no equipment purchase path exists.",
+      "omitted_rows": "B264-266 Starting Wealth, Trading Points for Money, Finding a Job, Monthly Pay, Cost of Living and Status, and B267 Legality Class are reconciled as economic/legal rules rather than physical equipment rows. B268-270 equipment availability, weapon statistics, money, technology and weapon-quality rules are likewise explicit behavior omissions; no price band or LC is invented on a selected item.",
       "mechanics": [
         "starting-wealth",
         "legality-class"
@@ -223,7 +226,7 @@
       "anchor": "inspected",
       "source_id": "sjg:basic-set-characters-4e-2004",
       "owner_issue": 180,
-      "status": "partial",
+      "status": "reconciled",
       "selected": [
         "blowpipe",
         "longbow",
@@ -260,7 +263,7 @@
       "anchor": "inspected",
       "source_id": "sjg:basic-set-characters-4e-2004",
       "owner_issue": 180,
-      "status": "partial",
+      "status": "reconciled",
       "selected": [
         "flintlock-pistol-51",
         "wheel-lock-pistol-60",
@@ -298,7 +301,7 @@
         "pdw-46",
         "gyroc-pistol-15mm"
       ],
-      "omitted_rows": "The B278 15mm Gyroc Pistol is executable with its exact table row, typed rocket acceleration and smartgun behavior. Fifteen B278 handgun/one-handed machine-pistol rows, the B278 full-automatic 9mm SMG, three conventional two-handed SMG/PDW rows, eleven ordinary B279 musket/rifle rows and all four B279 shotgun rows are recorded with distinct chamber capacity and exact rational ammunition mass. The two-handed rows fail closed until the ST-conditioned one-hand exception is typed. Gauss armor division, musket rests, bipods and integral launchers remain unresolved.",
+      "omitted_rows": "All ordinary selected rows are recorded. The remaining named B278-279 firearm rows are TL9 Auto Pistol 9mm, Gauss PDW 4mm, Matchlock Musket .80, Dart Rifle 11mm, Sniper Rifle .338, ICW 6.8mm and Gauss Rifle 4mm. Their gauss armor division, dart divisor, musket rest, bipod, integral launcher and related footnotes are explicitly unsupported; no row is hidden behind 'remaining firearms'.",
       "mechanics": [
         "malfunction",
         "shotgun-multiple-projectiles",
@@ -313,7 +316,7 @@
       "anchor": "inspected",
       "source_id": "sjg:basic-set-characters-4e-2004",
       "owner_issue": 180,
-      "status": "partial",
+      "status": "reconciled",
       "selected": [
         "blowpipe-dart",
         "arrow",
@@ -356,7 +359,7 @@
         "pdw-46-round",
         "gyroc-pistol-15mm-round"
       ],
-      "omitted_rows": "B275-276 ordinary missiles, thirty-four firearm/shotgun rounds and the 15mm gyroc round from B278-279 are recorded with exact rational dollar and pound values. Alternate missiles, remaining firearm rounds, ammunition variants and explosive warheads remain unresolved; the selected B280 laser cell is audited with its beam weapon.",
+      "omitted_rows": "B275-276 ordinary missiles, thirty-four firearm/shotgun rounds and the 15mm gyroc round are recorded. Omitted base loads correspond exactly to the seven omitted firearm rows: TL9 9mm pistol, 4mm Gauss PDW, .80 matchlock, 11mm dart rifle, .338 sniper rifle, 6.8mm ICW and 4mm Gauss rifle. Arrows/bolts, alternative missiles, shot loads, warheads and AP/APHC/APDS ammunition are explicit variants rather than unnamed rows; the B280 laser cell is audited with its beam weapon.",
       "mechanics": [
         "ammunition-variants"
       ]
@@ -367,7 +370,7 @@
       "anchor": "inspected",
       "source_id": "sjg:basic-set-characters-4e-2004",
       "owner_issue": 180,
-      "status": "partial",
+      "status": "reconciled",
       "selected": [
         "light-shield",
         "small-shield",
@@ -385,41 +388,51 @@
     },
     {
       "id": "heavy-weapons",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B281",
+      "anchor": "inspected",
       "source_id": "sjg:basic-set-characters-4e-2004",
       "owner_issue": 180,
-      "status": "omitted",
+      "status": "reconciled",
       "selected": [],
-      "omitted_rows": "Crew-served and mounted heavy weapon rows, including their crew, mounting and emplacement requirements. No row is recorded.",
+      "omitted_rows": "All twelve named Heavy Weapon Table rows are explicit omissions: ATGM 115mm; SAM 70mm; Scorpion; HMG .50; Under-Barrel 40mm; Integral 25mm; Bazooka 60mm; RPG 85mm; LAW 84mm; Auto Rifle 7.62mm; LMG 7.62mm; and SAW 5.56mm. Flamethrower is separately accounted as the B281 Liquid Projector row. Guided/homing attacks, minimum range, back-blast, explosive payloads, mounts, tripod, under-barrel/integral attachment and flamethrower stream behavior remain unsupported.",
       "mechanics": [
-        "crew-served-mounting"
+        "crew-served-mounting",
+        "guided-homing-attacks",
+        "minimum-weapon-range",
+        "hazardous-back-blast",
+        "explosive-warheads",
+        "weapon-mount-and-tripod",
+        "integral-weapon-attachment",
+        "liquid-projector-stream"
       ]
     },
     {
       "id": "armor-split-dr",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B283-286",
+      "anchor": "inspected",
       "source_id": "sjg:basic-set-characters-4e-2004",
       "owner_issue": 180,
-      "status": "omitted",
+      "status": "reconciled",
       "selected": [],
-      "omitted_rows": "Armor rows whose DR differs by location or facing, and rows that only cover part of a listed location. The schema carries one DR for every listed location.",
+      "omitted_rows": "B283 low-tech omissions: Fur Loincloth, Fur Tunic, Bronze Breastplate, Cloth Armor, Leather Jacket, Mail Hauberk, Mail Shirt, Double Mail Hauberk, Steel Breastplate, Buff Coat; Bronze Armbands/Greaves, Cloth Sleeves, Heavy Leather Leggings/Sleeves, Leather Leggings/Pants, Studded Leather Skirt, Mail Leggings/Sleeves, Scale Leggings/Sleeves, Heavy Plate Arms/Legs, Plate Arms/Legs; Bronze Helmet/Pot-Helm, Cloth/Leather Cap, Leather Helm, Legionary Helmet, Mail Coif, Barrel Helm, Face Mask, Greathelm, Pot-Helm; Cloth/Leather Gloves, Gauntlets, Heavy Gauntlets; Sandals, Shoes, Boots and Sollerets. B284-285 omissions: Flak Jacket, Frag/Ballistic/Tactical Vest and inserts/plates, Ballistic/Tactical Suit, Reinforced/Assault Boots, Ballistic Gloves, Gas Mask, Steel Pot, Frag/Ballistic Helmet and visors, NBC/Space/Vacc Suit and helmets, Battlesuit, Combat Hardsuit and Space Armor with helmets. B286 omissions are every named Leather-and-Cloth, Mail, Scale and Plate horse face, head/neck, partial/full barding and legging row. Split/front/partial DR, flexibility, concealment, suit systems, add-ons and mount anatomy remain explicit unsupported mechanics.",
       "mechanics": [
         "split-dr",
         "front-only-dr",
-        "layered-armor"
+        "layered-armor",
+        "concealed-armor",
+        "technology-level-variants",
+        "special-tool-effects"
       ]
     },
     {
       "id": "higher-tl-variants",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B268-289",
+      "anchor": "inspected",
       "source_id": "sjg:basic-set-characters-4e-2004",
       "owner_issue": 180,
-      "status": "omitted",
+      "status": "reconciled",
       "selected": [],
-      "omitted_rows": "Higher-TL variants of the audited weapon, armor and gear rows. Recorded rows carry one TL each; no variant row or TL substitution rule is recorded.",
+      "omitted_rows": "All non-row substitutions are explicit: weapon quality and material changes on B274; arrow/bolt, ammunition, firearm-quality, AP/APHC/APDS and presentation variants on B275-280; omni-blaster settings on B280; armor DR-by-TL, powered-system duration and helmet/suit features on B284-285; iron, spike, buckler and plastic-riot shield variants on B287; secure radio pricing on B288 (recorded as its own inventory variant); and skill-relative tool TL on B289 (recorded with a typed marker). No variant is inferred from a base row.",
       "mechanics": [
         "technology-level-variants"
       ]
@@ -430,7 +443,7 @@
       "anchor": "inspected",
       "source_id": "sjg:basic-set-characters-4e-2004",
       "owner_issue": 180,
-      "status": "partial",
+      "status": "reconciled",
       "selected": [
         "ear-muffs",
         "hip-quiver",
@@ -456,7 +469,7 @@
       "anchor": "inspected",
       "source_id": "sjg:basic-set-characters-4e-2004",
       "owner_issue": 180,
-      "status": "partial",
+      "status": "reconciled",
       "selected": [
         "manual-typewriter",
         "wax-tablet",
@@ -1033,8 +1046,8 @@
     },
     {
       "id": "split-dr",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B283-286 armor tables and notes",
+      "anchor": "inspected",
       "behaviour": "One armor row grants different DR to different covered locations.",
       "disposition": "unsupported",
       "capability_id": null,
@@ -1044,8 +1057,8 @@
     },
     {
       "id": "front-only-dr",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B283-286 armor tables and notes",
+      "anchor": "inspected",
       "behaviour": "One armor row protects only one facing of the locations it covers.",
       "disposition": "unsupported",
       "capability_id": null,
@@ -1055,8 +1068,8 @@
     },
     {
       "id": "layered-armor",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B283-286 armor tables and notes",
+      "anchor": "inspected",
       "behaviour": "Armor worn over other armor combines DR at an encumbrance and flexibility cost.",
       "disposition": "unsupported",
       "capability_id": null,
@@ -1066,8 +1079,8 @@
     },
     {
       "id": "concealed-armor",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B283-285 armor tables and notes",
+      "anchor": "inspected",
       "behaviour": "Armor concealment under clothing changes what observers can notice.",
       "disposition": "unsupported",
       "capability_id": null,
@@ -1218,8 +1231,8 @@
     },
     {
       "id": "crew-served-mounting",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B281 Heavy Weapon Table",
+      "anchor": "inspected",
       "behaviour": "A heavy weapon requires a crew, a mount and setup time before it can fire.",
       "disposition": "unsupported",
       "capability_id": null,
@@ -1228,9 +1241,86 @@
       "evidence_gap": null
     },
     {
+      "id": "guided-homing-attacks",
+      "reference": "B281 notes 3-4",
+      "anchor": "inspected",
+      "behaviour": "Guided and homing heavy-weapon missiles acquire and attack through distinct aiming procedures.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "minimum-weapon-range",
+      "reference": "B281 note 1",
+      "anchor": "inspected",
+      "behaviour": "Selected launchers cannot attack inside their printed minimum range.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "hazardous-back-blast",
+      "reference": "B281 note 2",
+      "anchor": "inspected",
+      "behaviour": "A launcher attack creates a burning-damage hazard behind the firer.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "explosive-warheads",
+      "reference": "B281 Heavy Weapon Table",
+      "anchor": "inspected",
+      "behaviour": "Heavy-weapon ammunition carries a separately resolved explosive and fragmentation payload.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "weapon-mount-and-tripod",
+      "reference": "B281 Heavy Weapon Table and note 5",
+      "anchor": "inspected",
+      "behaviour": "Mounted weapons and detachable tripods change handling, setup and carried weight.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "integral-weapon-attachment",
+      "reference": "B281 notes 6 and 8",
+      "anchor": "inspected",
+      "behaviour": "Under-barrel and integral launchers inherit handling from their host weapon.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
+      "id": "liquid-projector-stream",
+      "reference": "B281 Liquid Projector row",
+      "anchor": "inspected",
+      "behaviour": "A flamethrower projects a sustained burning stream rather than discrete rapid-fire shots.",
+      "disposition": "unsupported",
+      "capability_id": null,
+      "owner_issue": 180,
+      "tests": [],
+      "evidence_gap": null
+    },
+    {
       "id": "technology-level-variants",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B268-289 equipment tables and notes",
+      "anchor": "inspected",
       "behaviour": "A row's higher-TL variant substitutes weight, cost or performance values.",
       "disposition": "unsupported",
       "capability_id": null,
@@ -1240,8 +1330,8 @@
     },
     {
       "id": "weapon-accessories",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B289 Weapon and Combat Accessories",
+      "anchor": "inspected",
       "behaviour": "Accessories attach to a weapon and change its handling or accuracy.",
       "disposition": "unsupported",
       "capability_id": null,
@@ -1251,8 +1341,8 @@
     },
     {
       "id": "special-tool-effects",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B288-289 General Equipment",
+      "anchor": "inspected",
       "behaviour": "Ordinary tools grant task or skill effects rather than combat values.",
       "disposition": "unsupported",
       "capability_id": null,
@@ -1284,8 +1374,8 @@
     },
     {
       "id": "legality-class",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B267 Legality Class",
+      "anchor": "inspected",
       "behaviour": "A row's legality class governs where it may lawfully be carried.",
       "disposition": "unsupported",
       "capability_id": null,
@@ -1295,8 +1385,8 @@
     },
     {
       "id": "starting-wealth",
-      "reference": "B264-289",
-      "anchor": "range-only",
+      "reference": "B264-266 Starting Wealth and economics",
+      "anchor": "inspected",
       "behaviour": "Starting wealth and cost of living bound what equipment a character may buy.",
       "disposition": "unsupported",
       "capability_id": null,

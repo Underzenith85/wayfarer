@@ -9,8 +9,11 @@ mechanics engine. Four claims are kept apart on purpose:
 - how each special gear behaviour is dispositioned;
 - what unit and source anchor each equipment schema field carries.
 
-Row counts never imply source completeness. The audit is **incomplete**, it says
-so in its own report, and nothing here enables a profile or a release claim.
+Row counts never imply source completeness. All fourteen B264-289 sections are
+now source-reconciled: every selected row, omitted physical row, non-row variant,
+cross-reference and special behavior is named against an inspected page. This
+completes #180's Basic Set workstream without enabling unsupported equipment or
+claiming that the wider Lite/#191 certification evidence is complete.
 
 Run:
 
@@ -19,17 +22,18 @@ uv run --frozen python scripts/audit_gurps_equipment.py
 uv run --frozen python scripts/audit_gurps_equipment.py --require-complete
 ```
 
-The second form exits nonzero while any blocker remains, which is the current
-state. CI runs the first form; `tests/test_equipment_audit.py` exercises the
-integrity checks and their failure cases.
+The second form still exits nonzero for the independently owned Lite and field
+evidence blockers. CI runs the first form; `tests/test_equipment_audit.py`
+exercises integrity, workstream-completion and failure cases.
 
 ## Selected-table inventory and omitted rows
 
 `ledger.json` splits B264-289 into fourteen sections. Every registered row
 (`BASIC_EQUIPMENT` plus the blocked `ULTRATECH_INDEX`) belongs to exactly one
 section, and the validator rejects a ledger whose sections do not cover the
-pinned catalog exactly. **No section is complete.** Ten carry an inspected page
-anchor and record what they leave out:
+pinned catalog exactly. All fourteen carry an inspected page anchor and a
+`reconciled` status. `audited` remains reserved for a section whose every row is
+mechanically supported and which therefore omits nothing:
 
 | Section | Anchor | Rows recorded | Omitted |
 | --- | --- | --- | --- |
@@ -43,11 +47,15 @@ anchor and record what they leave out:
 | `general-equipment-b288` | B288 | 63 | no fixed-TL physical row; behavior-bearing items remain fail-closed |
 | `weapon-accessories` | B289 | 12 | no physical row; accessory behavior remains fail-closed |
 | `general-equipment-remainder` | B289 | 53 | no physical row; special effects remain fail-closed |
+| `wealth-and-legality` | B264-270 | 0 | economic, legal, availability and quality rules are explicitly non-row omissions |
+| `heavy-weapons` | B281 | 0 | all 12 heavy-weapon rows and the Liquid Projector row are named and unsupported |
+| `armor-split-dr` | B283-286 | 0 | every remaining armor row and its split, layered, suit or mount behavior is named |
+| `higher-tl-variants` | B268-289 | 0 | every non-row quality, material, ammunition, armor, shield and TL substitution family is named |
 
-The remaining four sections record **no rows at all**: wealth and legality,
-heavy weapons, split-DR armor and higher-TL variants. Their anchors are recorded as `range-only`,
-meaning B264-289 as a range that nobody has reconciled item by item. A
-`range-only` anchor is a coverage gap, not a page citation.
+Four sections select no executable catalog rows: wealth and legality, heavy
+weapons, split/special armor, and higher-TL variants. They nevertheless enumerate
+their source rows and rules explicitly against inspected B264-289 pages. Their
+unsupported status remains visible to certification and selection gates.
 
 B288-289 now account for all fixed-TL physical rows and embedded purchasable
 variants. Piton is the table's alias for Iron Spike, and Transportation is a

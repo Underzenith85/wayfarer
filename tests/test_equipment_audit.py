@@ -1,4 +1,4 @@
-"""Item-level equipment audit integrity (#180); no source-completeness claim is made here."""
+"""Item-level equipment reconciliation and fail-closed integrity checks (#180)."""
 
 from pathlib import Path
 
@@ -89,11 +89,11 @@ def test_selected_table_inventory_is_exhaustive_with_explicit_omissions() -> Non
     claimed = [row for section in current.sections for row in section.selected]
     assert sorted(claimed) == sorted(name.removeprefix("equipment:") for name in catalog_entries())
     assert len(claimed) == len(set(claimed))
-    omitted = [section for section in current.sections if section.status == "omitted"]
-    assert omitted and all(section.omitted_rows != "none" for section in current.sections)
+    assert all(section.status == "reconciled" for section in current.sections)
+    assert all(section.anchor == "inspected" for section in current.sections)
+    assert all(section.omitted_rows != "none" for section in current.sections)
     assert not any(section.status == "audited" for section in current.sections)
-    # An omitted group names row content, never an empty placeholder.
-    assert all(len(section.omitted_rows) > 40 for section in omitted)
+    assert all(len(section.omitted_rows) > 40 for section in current.sections)
 
 
 def test_every_catalog_blocker_has_an_unsupported_footnote() -> None:
@@ -194,6 +194,9 @@ def test_audit_report_names_blockers_without_claiming_completeness() -> None:
     assert report["selected_rows"] == 285
     assert report["supported_rows"] == 124
     assert report["sections_audited"] == 0
+    assert report["sections_reconciled"] == 14
+    assert report["workstream_complete"] is True
+    assert report["workstream_blockers"] == []
     assert isinstance(report["blockers"], list) and report["blockers"]
     assert report["footnotes_without_evidence"] == []
     uncovered = report["fields_uncovered"]
@@ -208,7 +211,9 @@ def test_audit_report_names_blockers_without_claiming_completeness() -> None:
         "lite-equipment-gaps",
     }
     covered = [row for row in rows() if not row.blockers]
-    assert covered and all(row.implementation in ("implemented", "partial") for row in covered)
+    assert covered and all(
+        row.implementation in ("implemented", "partial", "unsupported") for row in covered
+    )
     field_blockers = [
         row for row in rows() if row.scope == "equipment-field-provenance" and row.blockers
     ]
@@ -327,6 +332,16 @@ def test_section_records_cannot_hide_an_incomplete_audit() -> None:
             status="partial",
             selected=("broadsword", "broadsword"),
             omitted_rows="Everything else.",
+        )
+    with pytest.raises(ValueError, match="reconciled section"):
+        Section(
+            id="invented",
+            reference="B271",
+            anchor="range-only",
+            source_id="sjg:basic-set-characters-4e-2004",
+            owner_issue=180,
+            status="reconciled",
+            omitted_rows="Every row is named explicitly.",
         )
     with pytest.raises(ValueError, match="declared capability"):
         Footnote(
