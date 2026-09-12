@@ -120,6 +120,7 @@ class RangedMode(Record):
     half_damage_range: Annotated[Decimal | int, Field(gt=0, allow_inf_nan=False)] | None = None
     maximum_range: Annotated[Decimal | int, Field(gt=0, allow_inf_nan=False)]
     rate_of_fire: Positive = 1
+    minimum_shots_per_attack: Positive = Field(default=1, exclude_if=lambda value: value == 1)
     shots: Positive
     chamber_capacity: Nonnegative = Field(default=0, exclude_if=lambda value: value == 0)
     reload_seconds: Nonnegative
@@ -154,6 +155,10 @@ class RangedMode(Record):
     def valid_range(self) -> Self:
         if self.chamber_capacity > self.shots:
             raise ValueError("Chamber capacity cannot exceed total shots")
+        if self.minimum_shots_per_attack > self.rate_of_fire:
+            raise ValueError("Minimum burst cannot exceed rate of fire")
+        if self.minimum_shots_per_attack > 1 and (self.firearm is None or self.rate_of_fire < 4):
+            raise ValueError("Automatic-only fire requires a rapid-fire firearm")
         if self.chamber_capacity and self.firearm is None:
             raise ValueError("Chamber capacity requires explicit firearm facts")
         if self.multiple_projectiles is not None and (

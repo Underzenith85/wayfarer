@@ -14,7 +14,7 @@ from wayfarer.orchestration.combat import CombatService, TakeCombatTurn
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.rules.checks import RecordedDice
-from wayfarer.rules.ranged_tables import range_penalty
+from wayfarer.rules.ranged_tables import range_penalty, rapid_fire_bonus
 from wayfarer.simulation.combat import RangedSituation
 from wayfarer.simulation.gurps_equipment import Damage, RangedMode
 from wayfarer.simulation.resources import Consume, Transfer
@@ -73,6 +73,34 @@ async def load(cid: str, play: PlayService) -> None:
 )
 def test_range_table(distance: float, expected: int) -> None:
     assert range_penalty(distance) == expected
+
+
+@pytest.mark.parametrize(
+    ("shots", "expected"),
+    [(99, 6), (100, 7), (199, 7), (200, 8), (399, 8), (400, 9), (1600, 11)],
+)
+def test_b373_high_rate_of_fire_bonus_continues_by_doubling(shots: int, expected: int) -> None:
+    assert rapid_fire_bonus(shots) == expected
+
+
+def test_tactical_v2_accepts_high_cyclic_burst_without_widening_v1() -> None:
+    from wayfarer.simulation.combat_commands import TakeCombatTurn
+    from wayfarer.transport.tactical_v1_commands import TakeCombatTurn as TakeCombatTurnV1
+
+    command = TakeCombatTurn(
+        id="high-cyclic",
+        actor_id="attacker",
+        expected_revision=0,
+        encounter_id="encounter",
+        maneuver="attack",
+        item_id="weapon",
+        target_id="target",
+        mode_id="ranged",
+        shots=1600,
+    )
+    assert command.shots == 1600
+    with pytest.raises(ValueError):
+        TakeCombatTurnV1.model_validate(command.model_dump())
 
 
 async def test_thrown_weapon_leaves_inventory_and_retries_once(tmp_path: Path) -> None:

@@ -78,6 +78,7 @@ FIREARM_ROWS = (
     ("snub-revolver-38", 6, 250, 1500, 1, 2, "pi", 1, 120, 1250, 3, 5, 3, 8, -1, 3),
     ("auto-pistol-45-tl6", 6, 300, 3000, 2, 0, "pi+", 2, 175, 1700, 3, 8, 3, 10, -2, 3),
     ("auto-pistol-9mm-tl6", 6, 350, 2400, 2, 2, "pi", 2, 150, 1850, 3, 9, 3, 9, -2, 2),
+    ("smg-9mm-tl6", 6, 700, 10500, 3, -1, "pi", 3, 160, 1900, 8, 32, 3, 10, -4, 2),
     ("blunderbuss-8g", 4, 150, 12000, 1, 0, "pi", 1, 15, 100, 1, 1, 15, 11, -5, 1),
     ("double-shotgun-10g", 5, 450, 10000, 1, 2, "pi", 3, 50, 125, 2, 2, 3, 11, -5, 1),
     ("pump-shotgun-12g", 6, 240, 8000, 1, 1, "pi", 3, 50, 125, 2, 5, 3, 10, -5, 1),
@@ -427,6 +428,9 @@ def test_b278_firearms_preserve_independent_table_columns() -> None:
             1,
             shots - 1,
         )
+    automatic = entries["smg-9mm-tl6"].modes[0]
+    assert isinstance(automatic, RangedMode)
+    assert (automatic.rate_of_fire, automatic.minimum_shots_per_attack) == (8, 2)
 
 
 def test_b278_firearm_ammunition_uses_exact_per_round_units() -> None:
@@ -441,6 +445,7 @@ def test_b278_firearm_ammunition_uses_exact_per_round_units() -> None:
         "snub-revolver-38-round": ("0.8", 40),
         "auto-pistol-45-tl6-round": ("1.5", 75),
         "auto-pistol-9mm-tl6-round": ("8/9", Fraction(400, 9)),
+        "smg-9mm-tl6-round": ("15/16", Fraction(375, 8)),
         "blunderbuss-8g-round": ("2.6", 130),
         "double-shotgun-10g-round": ("1", 50),
         "pump-shotgun-12g-round": ("2.8", 140),

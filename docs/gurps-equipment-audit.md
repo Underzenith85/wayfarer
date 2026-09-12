@@ -35,8 +35,8 @@ anchor and record what they leave out:
 | --- | --- | --- | --- |
 | `melee-weapons-b271` | B271-274 | 45 | non-equipment attacks and rows the typed schema cannot represent without inventing values |
 | `muscle-powered-ranged` | B275-276 | 18 | duplicated thrown modes, special binding damage, launcher/cocking-aid behavior and remaining material/ammunition variants |
-| `firearms` | B278-279 | 30 | gyroc acceleration, smartguns, full-auto-only fire, two-handed SMGs, musket rests, bipods and integral launchers |
-| `ammunition` | B275-279 | 35 | remaining firearm rounds, alternative missiles, ammunition variants, explosive warheads and power cells |
+| `firearms` | B278-279 | 31 | gyroc acceleration, smartguns, other SMGs, musket rests, bipods and integral launchers |
+| `ammunition` | B275-279 | 36 | remaining firearm rounds, alternative missiles, ammunition variants, explosive warheads and power cells |
 | `beam-weapons-b280` | B280 | 3 | every other beam row; the three recorded rows are index facts that cannot be equipped or fired |
 | `body-armor-b283` | B283 | 8 | split-DR, single-facing, flexible, layered and footnoted rows, plus the other armor pages |
 | `shields` | B287 | 4 | duplicate cloak appearances, the unrepresentable force shield, and buckler, material and offensive variants |
@@ -62,8 +62,11 @@ The four B279 shotgun rows likewise preserve shells separately from their nine
 projectiles and retain exact per-shell load mass, including `850/7`
 millipounds for the automatic shotgun.
 Seven remaining ordinary handguns and the one one-handed machine pistol do the
-same without a mechanics blocker. Rows with gyroc acceleration, smartguns,
-full-auto-only notation, or two-hand notation remain explicit omissions.
+same without a mechanics blocker. Rows with gyroc acceleration, smartguns, or
+other two-hand notation remain explicit omissions.
+The B278 TL6 9mm SMG records its `8!` automatic-only RoF as an eight-shot
+maximum and a two-shot minimum burst. Its exact 32-round load reconstructs the
+listed 1.5-pound loaded-ammunition weight.
 
 The four ordinary B287 shields now provide direct cases for Shield and
 EquipmentProfile.shield, including exact DB, cost, weight, DR and HP columns.

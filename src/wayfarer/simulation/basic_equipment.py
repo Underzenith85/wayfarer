@@ -207,6 +207,7 @@ def firearm(
     reload_protocol: Literal["magazine", "per-round"] = "magazine",
     chamber_capacity: int = 0,
     projectiles_per_shot: int | None = None,
+    minimum_shots_per_attack: int = 1,
 ) -> RangedMode:
     """Construct one independently transcribed B278-279 conventional-firearm row."""
     return RangedMode(
@@ -225,6 +226,7 @@ def firearm(
         half_damage_range=half_range,
         maximum_range=maximum_range,
         rate_of_fire=rate_of_fire,
+        minimum_shots_per_attack=minimum_shots_per_attack,
         shots=shots,
         chamber_capacity=chamber_capacity,
         reload_seconds=reload_seconds,
@@ -1389,6 +1391,35 @@ FIREARMS = (
             projectiles_per_shot=9,
         ),
     ),
+    ranged_weapon(
+        "smg-9mm-tl6",
+        278,
+        6,
+        700,
+        9000,
+        firearm(
+            "shot",
+            "smg",
+            6,
+            3,
+            -1,
+            "pi",
+            3,
+            160,
+            1900,
+            8,
+            32,
+            3,
+            10,
+            -4,
+            2,
+            "smg-9mm-tl6-round",
+            "repeating",
+            hands=2,
+            minimum_shots_per_attack=2,
+        ),
+        unsupported=("conditional-one-handed-firearm",),
+    ),
 )
 
 # Remaining ordinary B278 handguns and the one one-handed machine-pistol row.
@@ -1863,6 +1894,7 @@ FIREARM_AMMUNITION = tuple(
         ("auto-pistol-44m-round", 8, Fraction(4, 3), Fraction(200, 3)),
         ("auto-pistol-40-round", 8, Fraction(14, 15), Fraction(140, 3)),
         ("machine-pistol-9mm-round", 7, Fraction(22, 25), 44),
+        ("smg-9mm-tl6-round", 6, Fraction(15, 16), Fraction(375, 8)),
     )
 )
 

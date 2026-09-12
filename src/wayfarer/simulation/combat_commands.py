@@ -70,7 +70,7 @@ class TakeCombatTurn(CombatCommand):
     item_id: str | None = None
     target_id: str | None = None
     mode_id: str | None = None
-    shots: int = Field(default=1, ge=1, le=100)
+    shots: int = Field(default=1, ge=1)
     reload_ammunition_id: str | None = None
     unload_ammunition: bool = Field(default=False, exclude_if=lambda v: not v)
     fast_draw: bool = Field(default=False, exclude_if=lambda v: not v)
