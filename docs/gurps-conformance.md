@@ -201,6 +201,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.social.skill_procedures` | no | yes | partial | #345; [bound social skill procedures and their transferred rows](gurps-mundane-skills.md); remaining #353, #366, #367, #368, #369, #370 |
 | `gurps.skills.arts_trades` | no | yes | partial | #338; [task-specific arts, crafts and trade procedures](gurps-mundane-skills.md#arts-crafts-and-trade-procedures-338) |
 | `gurps.combat.melee_weapon_skills` | no | yes | partial | #339; [bound melee, unarmed, defense and tactical skill procedures](gurps-mundane-skills.md#combat-skill-procedures-339) |
+| `gurps.combat.technique_procedures` | no | yes | partial | #340; [parent-specific combat technique procedures](gurps-mundane-skills.md#combat-technique-procedures-340) |
 | `gurps.equipment.weapon_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; source audit pending) |
 | `gurps.equipment.armor_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; source audit pending) |
 | `gurps.equipment.catalog` | yes | yes | partial | #114 |

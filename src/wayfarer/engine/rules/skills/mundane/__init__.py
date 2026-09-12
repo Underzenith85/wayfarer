@@ -35,6 +35,7 @@ from wayfarer.engine.rules.skills.mundane.schema import (
 )
 from wayfarer.engine.rules.skills.mundane.social.inventory import PROCEDURES as SOCIAL_PROCEDURES
 from wayfarer.engine.rules.skills.mundane.social.inventory import unsupported_scope as social_scope
+from wayfarer.engine.rules.skills.mundane.techniques import PROCEDURES as TECHNIQUE_PROCEDURES
 from wayfarer.engine.rules.skills.mundane.technology.inventory import (
     PROCEDURES as TECHNOLOGY_PROCEDURES,
 )
@@ -91,6 +92,7 @@ BINDINGS = (
     MELEE_PROCEDURES,
     RANGED_PROCEDURES,
     SOCIAL_PROCEDURES,
+    TECHNIQUE_PROCEDURES,
     TECHNOLOGY_PROCEDURES,
 )
 
