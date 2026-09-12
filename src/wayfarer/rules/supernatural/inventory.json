@@ -5489,13 +5489,14 @@
         "enchantment"
       ],
       "blockers": [
-        221,
         191
       ],
       "source": "campaigns-fourth",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned enchantment identity, page, learning definition, item authority, private check, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_enchantment.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6022,13 +6023,14 @@
         "enchantment"
       ],
       "blockers": [
-        221,
         191
       ],
       "source": "campaigns-fourth",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned enchantment identity, page, learning definition, item authority, private check, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_enchantment.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6215,13 +6217,14 @@
         "enchantment"
       ],
       "blockers": [
-        221,
         191
       ],
       "source": "campaigns-fourth",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned enchantment identity, page, learning definition, item authority, private check, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_enchantment.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6436,13 +6439,14 @@
         "enchantment"
       ],
       "blockers": [
-        221,
         191
       ],
       "source": "campaigns-fourth",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned enchantment identity, page, learning definition, item authority, private check, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_enchantment.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7089,13 +7093,14 @@
         "enchantment"
       ],
       "blockers": [
-        221,
         191
       ],
       "source": "campaigns-fourth",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned enchantment identity, page, learning definition, item authority, private check, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_enchantment.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7137,13 +7142,14 @@
         "enchantment"
       ],
       "blockers": [
-        221,
         191
       ],
       "source": "campaigns-fourth",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned enchantment identity, page, learning definition, item authority, private check, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_enchantment.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7619,13 +7625,14 @@
         "enchantment"
       ],
       "blockers": [
-        221,
         191
       ],
       "source": "campaigns-fourth",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned enchantment identity, page, learning definition, item authority, private check, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_enchantment.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
