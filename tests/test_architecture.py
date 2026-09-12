@@ -20,6 +20,62 @@ REDUCER_MODULES = (
 )
 
 
+# Engine functions that still branch more than BRANCH_LIMIT times, with the count
+# each is allowed today.  An entry may shrink or disappear; it may never grow, and
+# no new name may be added.  See "Branching" in docs/architecture.md.
+BRANCH_LIMIT = 15
+BRANCHING: dict[tuple[str, str], int] = {
+    ("engine/character/compiler.py", "__init__"): 17,
+    ("engine/character/compiler.py", "compile"): 59,
+    ("engine/character/skills.py", "__init__"): 29,
+    ("engine/character/skills.py", "_conditions_satisfied"): 16,
+    ("engine/character/skills.py", "compile"): 36,
+    ("engine/rules/skills/mundane/__init__.py", "validate_inventory"): 35,
+    ("engine/simulation/abilities.py", "apply_ability"): 51,
+    ("engine/simulation/action_engine/engine.py", "_resolve_action"): 18,
+    ("engine/simulation/action_engine/engine.py", "assess"): 40,
+    ("engine/simulation/campaign/lifecycle.py", "validate_lifecycle"): 40,
+    ("engine/simulation/combat/criticals/limbs.py", "resolve_limb"): 17,
+    ("engine/simulation/combat/engine.py", "validate"): 28,
+    ("engine/simulation/combat/firearm_transitions.py", "service"): 22,
+    ("engine/simulation/combat/melee/defense.py", "defense_value"): 29,
+    ("engine/simulation/combat/melee/resolution.py", "resolve_melee"): 62,
+    ("engine/simulation/combat/ranged/attack.py", "prepare"): 19,
+    ("engine/simulation/combat/ranged/resolution.py", "resolve"): 71,
+    ("engine/simulation/combat/ranged/situation.py", "validate_command"): 34,
+    ("engine/simulation/combat/ranged_readiness.py", "reload"): 22,
+    ("engine/simulation/combat/tactical_transitions.py", "prepare_defense"): 17,
+    ("engine/simulation/combat/thrown/explosions.py", "resolve_blast"): 30,
+    ("engine/simulation/combat/turns.py", "apply_turn"): 79,
+    ("engine/simulation/combat/unarmed/declaration.py", "validate_action"): 44,
+    ("engine/simulation/combat/unarmed/fighters.py", "guard_control"): 18,
+    ("engine/simulation/combat/unarmed/resolution.py", "defend"): 29,
+    ("engine/simulation/equipment/catalog.py", "valid_entries"): 33,
+    ("engine/simulation/equipment/catalog.py", "valid_range"): 32,
+    ("engine/simulation/equipment/objects.py", "apply_object"): 20,
+    ("engine/simulation/equipment/repair_transitions.py", "repair"): 22,
+    ("engine/simulation/health/fatigue.py", "apply_fatigue"): 17,
+    ("engine/simulation/health/hazards.py", "apply_hazard"): 35,
+    ("engine/simulation/health/hit_locations.py", "wound_factor"): 16,
+    ("engine/simulation/health/injury.py", "apply_injury"): 74,
+    ("engine/simulation/health/medical/advanced.py", "_apply_advanced_recovery"): 34,
+    ("engine/simulation/health/medical/recovery.py", "apply_recovery"): 56,
+    ("engine/simulation/magic/backfire_transitions.py", "_select_backfire"): 21,
+    ("engine/simulation/magic/missiles.py", "resolve"): 18,
+    ("engine/simulation/magic/spell_transitions.py", "approved_context"): 22,
+    ("engine/simulation/magic/spells.py", "apply_spell"): 67,
+    ("engine/simulation/movement/transport.py", "apply_transport"): 33,
+    ("engine/simulation/movement/vehicles/collisions.py", "impact"): 26,
+    ("engine/simulation/movement/vehicles/motion.py", "control_vehicle"): 22,
+    ("engine/simulation/movement/vehicles/motion.py", "move_vehicle"): 30,
+    ("engine/simulation/movement/vehicles/operations/collisions.py", "resolve"): 38,
+    ("engine/simulation/movement/vehicles/operations/water.py", "resolve"): 17,
+    ("engine/simulation/resources.py", "apply"): 45,
+    ("engine/simulation/resources.py", "validate"): 36,
+    ("engine/simulation/social/social.py", "apply_social"): 29,
+}
+
+
 def reducer_sources(module: str) -> tuple[Path, ...]:
     """The sources of one reducer seam, whether it is a module or a package."""
     package = Path(wayfarer.__file__).parent / "orchestration"
@@ -194,6 +250,34 @@ class ArchitectureTests(unittest.TestCase):
                     if isinstance(node.func, ast.Name) and node.func.id == "commit_command":
                         self.assertIn("rng", {kw.arg for kw in node.keywords}, str(source))
                         self.assertIn("actor_id", {kw.arg for kw in node.keywords}, str(source))
+
+    def test_engine_branching_only_shrinks(self) -> None:
+        """A rule is read one branch at a time; the long ladders may only get shorter."""
+        package = Path(wayfarer.__file__).parent
+        counted: dict[tuple[str, str], int] = {}
+        for source in sorted((package / "engine").rglob("*.py")):
+            name = source.relative_to(package).as_posix()
+            for node in ast.walk(ast.parse(source.read_text())):
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    branches = sum(isinstance(n, ast.If) for n in ast.walk(node))
+                    if branches > BRANCH_LIMIT:
+                        counted[(name, node.name)] = max(
+                            counted.get((name, node.name), 0), branches
+                        )
+        for key, branches in sorted(counted.items()):
+            allowed = BRANCHING.get(key)
+            with self.subTest(function=key):
+                self.assertIsNotNone(
+                    allowed,
+                    f"{key[0]}:{key[1]} has {branches} branches; dispatch on the kind instead",
+                )
+                assert allowed is not None
+                self.assertLessEqual(branches, allowed, f"{key[0]}:{key[1]} grew a branch")
+        for key, allowed in sorted(BRANCHING.items()):
+            with self.subTest(function=key):
+                self.assertLessEqual(
+                    counted.get(key, 0), allowed, f"{key[0]}:{key[1]} is stale in BRANCHING"
+                )
 
     def test_orchestration_steps_stay_reviewable(self) -> None:
         """#417's service seams must not grow another giant reducer or callback."""

@@ -442,3 +442,29 @@ magic because it is about a caster holding a spell, and `movement/physical.py`
 dispatches travel. `disabled()` moved to `health/hit_locations.py` and now takes
 the resource state, so travel no longer reaches into combat to ask which limbs
 work.
+
+### Branching
+
+A rule should be readable one branch at a time. Where a function decides by
+kind, the kind selects the code rather than walking past every other kind:
+
+- **A command type selects its handler.** Resolving a vehicle command looks the
+  command up in `movement/vehicles/operations/registry.py` and calls one
+  operation; each operation reads an `Operation` record and returns the state it
+  produced. The same shape drives `orchestration/combat/steps.py`.
+- **A maneuver selects its rule.** `combat/maneuver_rules.py` holds one rule per
+  maneuver, each reading a frozen `Declaration` and returning the combatant it
+  produces, so a maneuver's legality and its effect sit together.
+- **A family registers itself.** `rules/traits/registry.py` names each trait
+  family's runtime-hook prefix and the check that prices its purchases, so the
+  character compiler asks which family owns a trait instead of testing each one.
+- **Gather the inputs once.** A handler takes a record whose fields are already
+  resolved (`RulesContext`, `CareContext`, `Operation`, `Declaration`) rather
+  than re-deriving and re-checking the same optional values.
+
+`tests/test_architecture.py` holds the functions that still branch more than
+fifteen times, with the count each is allowed today. An entry may shrink or
+disappear; it may never grow, and a new one may not be added. The remaining
+entries are the long resolvers, which are the next candidates: applying a turn,
+applying injury, ranged and melee resolution, casting, compiling a character and
+applying recovery.
