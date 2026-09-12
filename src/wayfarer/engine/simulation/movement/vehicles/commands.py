@@ -135,3 +135,20 @@ class DamageVehicle(Command):
 class UpgradeVehicle(Command):
     kind: Literal["vehicle-upgrade-v2"] = "vehicle-upgrade-v2"
     transport_id: str
+
+
+VehicleCommand = (
+    UpgradeVehicle
+    | ResolveAirAftermath
+    | ResolveWaterAftermath
+    | NavigateSpace
+    | ResolveMountSeparation
+    | VehicleRam
+    | DamageVehicle
+    | VehicleControl
+    | VehicleImpact
+    | VehicleManeuver
+    | VehicleRollover
+    | VehicleSkid
+    | ResolveVehicleEjection
+)
