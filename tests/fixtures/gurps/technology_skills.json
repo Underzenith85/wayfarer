@@ -153,6 +153,8 @@
         "task_tl": 8,
         "familiar": true,
         "handling": 0,
+        "trained": ["skill:computer-operation"],
+        "capabilities": ["literacy"],
         "dice": [3, 3, 4]
       },
       "expected": {
@@ -361,6 +363,7 @@
         "task_tl": 8,
         "familiar": true,
         "handling": 0,
+        "trained": ["skill:mathematics-applied"],
         "dice": [3, 3, 4]
       },
       "expected": {

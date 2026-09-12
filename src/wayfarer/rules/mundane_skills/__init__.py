@@ -25,7 +25,13 @@ from wayfarer.rules.catalog import (
 from wayfarer.rules.gurps_characters import source
 from wayfarer.rules.mundane_skills.ranged import PROCEDURES as RANGED_PROCEDURES
 from wayfarer.rules.mundane_skills.ranged import ranged_scope
-from wayfarer.rules.mundane_skills.schema import Exclusion, Exclusions, InventoryRow, SourceIndex
+from wayfarer.rules.mundane_skills.schema import (
+    ContextualPrerequisiteRecord,
+    Exclusion,
+    Exclusions,
+    InventoryRow,
+    SourceIndex,
+)
 from wayfarer.rules.mundane_skills.social import PROCEDURES as SOCIAL_PROCEDURES
 from wayfarer.rules.mundane_skills.social import unsupported_scope as social_scope
 from wayfarer.rules.mundane_skills.technology import PROCEDURES as TECHNOLOGY_PROCEDURES
@@ -34,6 +40,7 @@ from wayfarer.rules.skill_types import ControllingAttribute as A
 from wayfarer.rules.skill_types import (
     DefaultCondition,
     PrerequisiteGroup,
+    PrerequisiteKind,
     SkillDefault,
     SkillPrerequisite,
     SkillSpec,
@@ -283,6 +290,19 @@ def coverage_blockers(profile_id: str) -> tuple[int, ...]:
 def inventory() -> tuple[SkillAudit, ...]:
     rows = source_inventory()
     result = []
+
+    def prerequisite(value: str | ContextualPrerequisiteRecord) -> SkillPrerequisite:
+        if isinstance(value, str):
+            return SkillPrerequisite(f"skill:{value}")
+        kind = value.kind
+        target = f"skill:{value.target}" if kind is PrerequisiteKind.TRAINED_SKILL else value.target
+        return SkillPrerequisite(
+            target,
+            value.minimum,
+            kind,
+            value.minimum_technology_level,
+        )
+
     for row in rows:
         identifier = "skill:" + row.id
         definition = None
@@ -316,7 +336,8 @@ def inventory() -> tuple[SkillAudit, ...]:
                     )
                     for d in row.skill_defaults
                 ),
-                tuple(SkillPrerequisite(f"skill:{p}") for p in row.prerequisites),
+                tuple(SkillPrerequisite(f"skill:{p}") for p in row.prerequisites)
+                + tuple(prerequisite(p) for p in row.contextual_prerequisites),
                 Specialty(
                     row.specialty.family,
                     row.specialty.name,
@@ -334,9 +355,7 @@ def inventory() -> tuple[SkillAudit, ...]:
                 if row.technique
                 else None,
                 tuple(
-                    PrerequisiteGroup(
-                        tuple(SkillPrerequisite(f"skill:{p}") for p in group.alternatives)
-                    )
+                    PrerequisiteGroup(tuple(prerequisite(p) for p in group.alternatives))
                     for group in row.prerequisite_groups
                 ),
             )
@@ -497,7 +516,7 @@ def validate_inventory(entries: tuple[SkillAudit, ...]) -> None:
                 p.target
                 for p in spec.prerequisites
                 + tuple(p for g in spec.prerequisite_groups for p in g.alternatives)
-                if p.target not in cross_package
+                if p.kind is PrerequisiteKind.TRAINED_SKILL and p.target not in cross_package
             )
             if spec.technique:
                 references += (spec.technique.parent,)
@@ -545,7 +564,11 @@ def validate_inventory(entries: tuple[SkillAudit, ...]) -> None:
         dependency_spec = entry.definition.skill if entry.definition else None
         # A prerequisite another catalog owns is not a node in this graph.
         parents = (
-            tuple(p.target for p in dependency_spec.prerequisites if p.target in by_id)
+            tuple(
+                p.target
+                for p in dependency_spec.prerequisites
+                if p.kind is PrerequisiteKind.TRAINED_SKILL and p.target in by_id
+            )
             if dependency_spec
             else ()
         )
@@ -556,7 +579,7 @@ def validate_inventory(entries: tuple[SkillAudit, ...]) -> None:
                 p.target
                 for group in dependency_spec.prerequisite_groups
                 for p in group.alternatives
-                if p.target in by_id
+                if p.kind is PrerequisiteKind.TRAINED_SKILL and p.target in by_id
             )
         if dependency_spec and dependency_spec.technique:
             parents += (dependency_spec.technique.parent,)

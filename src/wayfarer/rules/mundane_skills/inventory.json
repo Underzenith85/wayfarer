@@ -130,8 +130,7 @@
     "name": "Aerobatics",
     "page": 174,
     "blockers": [
-      "runtime-procedure",
-      "prerequisite-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
@@ -147,7 +146,13 @@
         "modifier": -6
       }
     ],
-    "procedure_owner": 343
+    "procedure_owner": 343,
+    "contextual_prerequisites": [
+      {
+        "kind": "capability",
+        "target": "flight"
+      }
+    ]
   },
   {
     "id": "airshipman",
@@ -238,8 +243,7 @@
     "name": "Aquabatics",
     "page": 174,
     "blockers": [
-      "runtime-procedure",
-      "prerequisite-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
@@ -255,7 +259,22 @@
         "modifier": -6
       }
     ],
-    "procedure_owner": 343
+    "procedure_owner": 343,
+    "prerequisite_groups": [
+      {
+        "alternatives": [
+          "swimming",
+          {
+            "kind": "purchased-definition",
+            "target": "advantage:amphibious"
+          },
+          {
+            "kind": "purchased-definition",
+            "target": "disadvantage:aquatic"
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "archaeology",
@@ -3796,8 +3815,7 @@
       "runtime-procedure",
       "specialty-expansion",
       "technology-level-context",
-      "conditional-or-skill-defaults",
-      "prerequisite-procedure"
+      "conditional-or-skill-defaults"
     ],
     "issues": [
       112,
@@ -3808,7 +3826,14 @@
       384,
       385
     ],
-    "procedure_owner": 356
+    "procedure_owner": 356,
+    "contextual_prerequisites": [
+      {
+        "kind": "trained-skill",
+        "target": "mathematics-applied",
+        "minimum_technology_level": 5
+      }
+    ]
   },
   {
     "id": "engineer-artillery",
@@ -3825,7 +3850,6 @@
     "tl_required": true,
     "blockers": [
       "conditional-or-skill-defaults",
-      "prerequisite-procedure",
       "runtime-procedure",
       "technology-level-context"
     ],
@@ -3835,7 +3859,14 @@
       356,
       383
     ],
-    "procedure_owner": 356
+    "procedure_owner": 356,
+    "contextual_prerequisites": [
+      {
+        "kind": "trained-skill",
+        "target": "mathematics-applied",
+        "minimum_technology_level": 5
+      }
+    ]
   },
   {
     "id": "engineer-civil",
@@ -3852,7 +3883,6 @@
     "tl_required": true,
     "blockers": [
       "conditional-or-skill-defaults",
-      "prerequisite-procedure",
       "runtime-procedure",
       "technology-level-context"
     ],
@@ -3862,7 +3892,14 @@
       356,
       383
     ],
-    "procedure_owner": 356
+    "procedure_owner": 356,
+    "contextual_prerequisites": [
+      {
+        "kind": "trained-skill",
+        "target": "mathematics-applied",
+        "minimum_technology_level": 5
+      }
+    ]
   },
   {
     "id": "engineer-clockwork",
@@ -3879,7 +3916,6 @@
     "tl_required": true,
     "blockers": [
       "conditional-or-skill-defaults",
-      "prerequisite-procedure",
       "runtime-procedure",
       "technology-level-context"
     ],
@@ -3889,7 +3925,14 @@
       356,
       383
     ],
-    "procedure_owner": 356
+    "procedure_owner": 356,
+    "contextual_prerequisites": [
+      {
+        "kind": "trained-skill",
+        "target": "mathematics-applied",
+        "minimum_technology_level": 5
+      }
+    ]
   },
   {
     "id": "engineer-combat",
@@ -3906,7 +3949,6 @@
     "tl_required": true,
     "blockers": [
       "conditional-or-skill-defaults",
-      "prerequisite-procedure",
       "runtime-procedure",
       "technology-level-context"
     ],
@@ -3916,7 +3958,14 @@
       356,
       383
     ],
-    "procedure_owner": 356
+    "procedure_owner": 356,
+    "contextual_prerequisites": [
+      {
+        "kind": "trained-skill",
+        "target": "mathematics-applied",
+        "minimum_technology_level": 5
+      }
+    ]
   },
   {
     "id": "engineer-electrical",
@@ -3933,7 +3982,6 @@
     "tl_required": true,
     "blockers": [
       "conditional-or-skill-defaults",
-      "prerequisite-procedure",
       "runtime-procedure",
       "technology-level-context"
     ],
@@ -3943,7 +3991,14 @@
       356,
       383
     ],
-    "procedure_owner": 356
+    "procedure_owner": 356,
+    "contextual_prerequisites": [
+      {
+        "kind": "trained-skill",
+        "target": "mathematics-applied",
+        "minimum_technology_level": 5
+      }
+    ]
   },
   {
     "id": "engineer-electronics",
@@ -3960,7 +4015,6 @@
     "tl_required": true,
     "blockers": [
       "conditional-or-skill-defaults",
-      "prerequisite-procedure",
       "runtime-procedure",
       "technology-level-context"
     ],
@@ -3970,7 +4024,14 @@
       356,
       383
     ],
-    "procedure_owner": 356
+    "procedure_owner": 356,
+    "contextual_prerequisites": [
+      {
+        "kind": "trained-skill",
+        "target": "mathematics-applied",
+        "minimum_technology_level": 5
+      }
+    ]
   },
   {
     "id": "engineer-materials",
@@ -3987,7 +4048,6 @@
     "tl_required": true,
     "blockers": [
       "conditional-or-skill-defaults",
-      "prerequisite-procedure",
       "runtime-procedure",
       "technology-level-context"
     ],
@@ -3997,7 +4057,22 @@
       356,
       383
     ],
-    "procedure_owner": 356
+    "procedure_owner": 356,
+    "contextual_prerequisites": [
+      {
+        "kind": "trained-skill",
+        "target": "mathematics-applied",
+        "minimum_technology_level": 5
+      }
+    ],
+    "prerequisite_groups": [
+      {
+        "alternatives": [
+          "chemistry",
+          "metallurgy"
+        ]
+      }
+    ]
   },
   {
     "id": "engineer-mining",
@@ -4014,7 +4089,6 @@
     "tl_required": true,
     "blockers": [
       "conditional-or-skill-defaults",
-      "prerequisite-procedure",
       "runtime-procedure",
       "technology-level-context"
     ],
@@ -4024,7 +4098,14 @@
       356,
       383
     ],
-    "procedure_owner": 356
+    "procedure_owner": 356,
+    "contextual_prerequisites": [
+      {
+        "kind": "trained-skill",
+        "target": "mathematics-applied",
+        "minimum_technology_level": 5
+      }
+    ]
   },
   {
     "id": "engineer-robotics",
@@ -4041,7 +4122,6 @@
     "tl_required": true,
     "blockers": [
       "conditional-or-skill-defaults",
-      "prerequisite-procedure",
       "runtime-procedure",
       "technology-level-context"
     ],
@@ -4051,7 +4131,14 @@
       356,
       383
     ],
-    "procedure_owner": 356
+    "procedure_owner": 356,
+    "contextual_prerequisites": [
+      {
+        "kind": "trained-skill",
+        "target": "mathematics-applied",
+        "minimum_technology_level": 5
+      }
+    ]
   },
   {
     "id": "engineer-small-arms",
@@ -4068,7 +4155,6 @@
     "tl_required": true,
     "blockers": [
       "conditional-or-skill-defaults",
-      "prerequisite-procedure",
       "runtime-procedure",
       "technology-level-context"
     ],
@@ -4078,7 +4164,14 @@
       356,
       383
     ],
-    "procedure_owner": 356
+    "procedure_owner": 356,
+    "contextual_prerequisites": [
+      {
+        "kind": "trained-skill",
+        "target": "mathematics-applied",
+        "minimum_technology_level": 5
+      }
+    ]
   },
   {
     "id": "environment-suit",
@@ -4744,8 +4837,7 @@
     "specialty_required": false,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "prerequisite-procedure"
+      "runtime-procedure"
     ],
     "issues": [
       112,
@@ -4753,7 +4845,13 @@
       343,
       383
     ],
-    "procedure_owner": 343
+    "procedure_owner": 343,
+    "contextual_prerequisites": [
+      {
+        "kind": "capability",
+        "target": "flight"
+      }
+    ]
   },
   {
     "id": "force-sword",
@@ -7391,8 +7489,7 @@
     "tl_required": false,
     "blockers": [
       "runtime-procedure",
-      "conditional-or-skill-defaults",
-      "prerequisite-procedure"
+      "conditional-or-skill-defaults"
     ],
     "issues": [
       112,
@@ -7400,7 +7497,10 @@
       339,
       383
     ],
-    "procedure_owner": 339
+    "procedure_owner": 339,
+    "prerequisites": [
+      "riding"
+    ]
   },
   {
     "id": "lasso",
@@ -10236,8 +10336,7 @@
     "tl_required": true,
     "blockers": [
       "runtime-procedure",
-      "technology-level-context",
-      "prerequisite-procedure"
+      "technology-level-context"
     ],
     "issues": [
       112,
@@ -10246,15 +10345,21 @@
       383,
       384
     ],
-    "procedure_owner": 346
+    "procedure_owner": 346,
+    "contextual_prerequisites": [
+      {
+        "kind": "trained-skill",
+        "target": "mathematics-applied",
+        "minimum_technology_level": 5
+      }
+    ]
   },
   {
     "id": "physics-acoustics",
     "name": "Physics (Acoustics)",
     "blockers": [
       "runtime-procedure",
-      "technology-level-context",
-      "prerequisite-procedure"
+      "technology-level-context"
     ],
     "issues": [
       112,
@@ -10272,7 +10377,14 @@
       "optional_parent": "physics"
     },
     "tl_required": true,
-    "procedure_owner": 346
+    "procedure_owner": 346,
+    "contextual_prerequisites": [
+      {
+        "kind": "trained-skill",
+        "target": "mathematics-applied",
+        "minimum_technology_level": 5
+      }
+    ]
   },
   {
     "id": "physiology",
@@ -11123,8 +11235,7 @@
     "blockers": [
       "runtime-procedure",
       "technology-level-context",
-      "conditional-or-skill-defaults",
-      "prerequisite-procedure"
+      "conditional-or-skill-defaults"
     ],
     "issues": [
       112,
@@ -11133,7 +11244,18 @@
       383,
       384
     ],
-    "procedure_owner": 346
+    "procedure_owner": 346,
+    "contextual_prerequisites": [
+      {
+        "kind": "capability",
+        "target": "literacy"
+      },
+      {
+        "kind": "trained-skill",
+        "target": "computer-operation",
+        "minimum_technology_level": 8
+      }
+    ]
   },
   {
     "id": "retain-weapon",
@@ -11581,8 +11703,7 @@
       "runtime-procedure",
       "specialty-expansion",
       "technology-level-context",
-      "conditional-or-skill-defaults",
-      "prerequisite-procedure"
+      "conditional-or-skill-defaults"
     ],
     "issues": [
       112,
@@ -11614,7 +11735,6 @@
     },
     "blockers": [
       "conditional-or-skill-defaults",
-      "prerequisite-procedure",
       "runtime-procedure",
       "technology-level-context"
     ],
@@ -11626,7 +11746,21 @@
       383,
       384
     ],
-    "procedure_owner": 346
+    "procedure_owner": 346,
+    "contextual_prerequisites": [
+      {
+        "kind": "trained-skill",
+        "target": "airshipman"
+      },
+      {
+        "kind": "trained-skill",
+        "target": "leadership"
+      },
+      {
+        "kind": "capability",
+        "target": "trained-navigation-air"
+      }
+    ]
   },
   {
     "id": "shiphandling-ship",
@@ -11648,7 +11782,6 @@
     },
     "blockers": [
       "conditional-or-skill-defaults",
-      "prerequisite-procedure",
       "runtime-procedure",
       "technology-level-context"
     ],
@@ -11660,7 +11793,21 @@
       383,
       384
     ],
-    "procedure_owner": 346
+    "procedure_owner": 346,
+    "contextual_prerequisites": [
+      {
+        "kind": "trained-skill",
+        "target": "leadership"
+      },
+      {
+        "kind": "capability",
+        "target": "trained-navigation-sea"
+      },
+      {
+        "kind": "trained-skill",
+        "target": "seamanship"
+      }
+    ]
   },
   {
     "id": "shiphandling-starship",
@@ -11682,7 +11829,6 @@
     },
     "blockers": [
       "conditional-or-skill-defaults",
-      "prerequisite-procedure",
       "runtime-procedure",
       "technology-level-context"
     ],
@@ -11694,7 +11840,21 @@
       383,
       384
     ],
-    "procedure_owner": 346
+    "procedure_owner": 346,
+    "contextual_prerequisites": [
+      {
+        "kind": "trained-skill",
+        "target": "leadership"
+      },
+      {
+        "kind": "capability",
+        "target": "trained-navigation-hyperspace"
+      },
+      {
+        "kind": "trained-skill",
+        "target": "spacer"
+      }
+    ]
   },
   {
     "id": "shiphandling-submarine",
@@ -11716,7 +11876,6 @@
     },
     "blockers": [
       "conditional-or-skill-defaults",
-      "prerequisite-procedure",
       "runtime-procedure",
       "technology-level-context"
     ],
@@ -11728,7 +11887,21 @@
       383,
       384
     ],
-    "procedure_owner": 346
+    "procedure_owner": 346,
+    "contextual_prerequisites": [
+      {
+        "kind": "trained-skill",
+        "target": "leadership"
+      },
+      {
+        "kind": "capability",
+        "target": "trained-navigation-sea"
+      },
+      {
+        "kind": "trained-skill",
+        "target": "submariner"
+      }
+    ]
   },
   {
     "id": "shortsword",

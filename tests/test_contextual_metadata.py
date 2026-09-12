@@ -11,7 +11,7 @@ from decimal import Decimal
 
 import pytest
 
-from wayfarer.character.skills import SkillCompiler, SkillError
+from wayfarer.character.skills import DefaultContext, SkillCompiler, SkillError
 from wayfarer.errors import ValidationError
 from wayfarer.rules.catalog import DefinitionKind, ImplementationStatus, RuleDefinition
 from wayfarer.rules.mundane_skills import (
@@ -28,6 +28,7 @@ from wayfarer.rules.skill_types import (
 )
 from wayfarer.rules.skill_types import (
     PrerequisiteGroup,
+    PrerequisiteKind,
     SkillDefault,
     SkillPrerequisite,
     SkillSpec,
@@ -145,6 +146,94 @@ def test_a_firm_prerequisite_is_still_required_alongside_an_alternative_set() ->
         for r in engine.compile({"skill:firm": 4, "skill:first": 4, "skill:gated": 4}, ATTRIBUTES)
     }
     assert levels["skill:gated"] == 12
+
+
+def test_contextual_and_tl_conditional_prerequisites_fail_closed() -> None:
+    """B174/B213: capabilities and TL-gated trained skills are authoritative facts."""
+    base = SkillSpec(A.IQ, D.AVERAGE, "B174", (SkillDefault(A.IQ, -5),))
+    gated = SkillSpec(
+        A.IQ,
+        D.HARD,
+        "B213",
+        (SkillDefault(A.IQ, -6),),
+        prerequisites=(
+            SkillPrerequisite("flight", kind=PrerequisiteKind.CAPABILITY),
+            SkillPrerequisite("skill:math", minimum_technology_level=5),
+        ),
+    )
+    engine = SkillCompiler(
+        BASIC,
+        {"skill:math": skill("skill:math", base), "skill:gated": skill("skill:gated", gated)},
+    )
+    with pytest.raises(SkillError, match="Missing trained prerequisite"):
+        engine.compile(
+            {"skill:gated": 4},
+            ATTRIBUTES,
+            default_context=DefaultContext({}, frozenset()),
+        )
+    # At TL4, the TL5+ Mathematics requirement does not apply, but flight still does.
+    levels = engine.compile(
+        {"skill:gated": 4},
+        ATTRIBUTES,
+        default_context=DefaultContext(
+            {}, frozenset(), capabilities=frozenset({"flight"}), campaign_technology_level=4
+        ),
+    )
+    assert next(result.level for result in levels if result.target == "skill:gated") == 12
+    # At TL5 it applies and must be trained, not merely available by default.
+    with pytest.raises(SkillError, match="Missing trained prerequisite"):
+        engine.compile(
+            {"skill:gated": 4},
+            ATTRIBUTES,
+            default_context=DefaultContext(
+                {},
+                frozenset(),
+                capabilities=frozenset({"flight"}),
+                campaign_technology_level=5,
+            ),
+        )
+    levels = engine.compile(
+        {"skill:math": 1, "skill:gated": 4},
+        ATTRIBUTES,
+        default_context=DefaultContext(
+            {},
+            frozenset(),
+            capabilities=frozenset({"flight"}),
+            campaign_technology_level=5,
+        ),
+    )
+    assert {result.target for result in levels} == {"skill:math", "skill:gated"}
+
+
+def test_source_records_every_remaining_alternative_prerequisite() -> None:
+    """B174, B190, B213, B217 and B220 no longer rely on prose-only gates."""
+    entries = {entry.id: entry for entry in inventory()}
+    for identifier in (
+        "skill:aerobatics",
+        "skill:aquabatics",
+        "skill:flight",
+        "skill:lance",
+        "skill:physics",
+        "skill:physics-acoustics",
+        "skill:research",
+        "skill:engineer",
+        "skill:shiphandling",
+    ):
+        assert "prerequisite-procedure" not in entries[identifier].blockers
+    aquabatics = entries["skill:aquabatics"].definition
+    assert aquabatics is not None and aquabatics.skill is not None
+    alternatives = aquabatics.skill.prerequisite_groups[0].alternatives
+    assert {(item.kind, item.target) for item in alternatives} == {
+        (PrerequisiteKind.TRAINED_SKILL, "skill:swimming"),
+        (PrerequisiteKind.PURCHASED_DEFINITION, "advantage:amphibious"),
+        (PrerequisiteKind.PURCHASED_DEFINITION, "disadvantage:aquatic"),
+    }
+    materials = entries["skill:engineer-materials"].definition
+    assert materials is not None and materials.skill is not None
+    assert {item.target for item in materials.skill.prerequisite_groups[0].alternatives} == {
+        "skill:chemistry",
+        "skill:metallurgy",
+    }
 
 
 def test_a_single_member_alternative_set_is_rejected() -> None:

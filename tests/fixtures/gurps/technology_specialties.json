@@ -132,6 +132,7 @@
         "task_tl": 9,
         "familiar": true,
         "handling": 0,
+        "trained": ["skill:mathematics-applied"],
         "dice": [5, 5, 5]
       },
       "expected": {

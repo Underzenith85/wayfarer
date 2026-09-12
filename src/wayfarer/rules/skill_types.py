@@ -28,6 +28,14 @@ class DefaultConditionKind(StrEnum):
     REQUIRED_EQUIPMENT = "required-equipment"
 
 
+class PrerequisiteKind(StrEnum):
+    """The authoritative fact that satisfies a skill-acquisition requirement."""
+
+    TRAINED_SKILL = "trained-skill"
+    PURCHASED_DEFINITION = "purchased-definition"
+    CAPABILITY = "capability"
+
+
 @dataclass(frozen=True, slots=True)
 class DefaultCondition:
     kind: DefaultConditionKind
@@ -46,6 +54,9 @@ class SkillDefault:
 class SkillPrerequisite:
     target: str
     minimum: int = 1
+    kind: PrerequisiteKind = PrerequisiteKind.TRAINED_SKILL
+    # Some prerequisites only exist at or above a skill's TL (B190, B213, B217).
+    minimum_technology_level: int | None = None
 
 
 @dataclass(frozen=True, slots=True)

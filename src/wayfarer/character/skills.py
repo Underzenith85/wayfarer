@@ -19,6 +19,7 @@ from wayfarer.rules.skill_types import (
     DefaultCondition,
     DefaultConditionKind,
     Difficulty,
+    PrerequisiteKind,
     SkillDefault,
     SkillPrerequisite,
     SkillSpec,
@@ -62,6 +63,9 @@ class DefaultContext:
 
     technology_levels: Mapping[str, int]
     equipment_ids: frozenset[str]
+    purchased_definition_ids: frozenset[str] = frozenset()
+    capabilities: frozenset[str] = frozenset()
+    campaign_technology_level: int | None = None
 
     @classmethod
     def empty(cls) -> DefaultContext:
@@ -127,8 +131,15 @@ class SkillCompiler:
         graph: dict[str, set[str]] = {}
         for key, spec in self.specs.items():
             default_refs = {d.target for d in spec.defaults if d.target not in ControllingAttribute}
-            refs = {p.target for p in spec.prerequisites}
-            refs.update(p.target for group in spec.prerequisite_groups for p in group.alternatives)
+            refs = {
+                p.target for p in spec.prerequisites if p.kind is PrerequisiteKind.TRAINED_SKILL
+            }
+            refs.update(
+                p.target
+                for group in spec.prerequisite_groups
+                for p in group.alternatives
+                if p.kind is PrerequisiteKind.TRAINED_SKILL
+            )
             if any(type(d.modifier) is not int or d.modifier > 0 for d in spec.defaults):
                 raise SkillError("skill.definition", "Defaults need integer nonpositive modifiers")
             for default in spec.defaults:
@@ -142,10 +153,19 @@ class SkillCompiler:
                         raise SkillError("skill.definition", "Invalid default condition value")
             alternatives = tuple(p for g in spec.prerequisite_groups for p in g.alternatives)
             if any(
-                type(p.minimum) is not int or p.minimum < 1
+                type(p.minimum) is not int
+                or p.minimum < 1
+                or not isinstance(p.kind, PrerequisiteKind)
+                or (
+                    p.minimum_technology_level is not None
+                    and (
+                        type(p.minimum_technology_level) is not int
+                        or p.minimum_technology_level < 0
+                    )
+                )
                 for p in tuple(spec.prerequisites) + alternatives
             ):
-                raise SkillError("skill.definition", "Prerequisites need positive integer levels")
+                raise SkillError("skill.definition", "Invalid acquisition prerequisite")
             if any(len(group.alternatives) < 2 for group in spec.prerequisite_groups):
                 raise SkillError(
                     "skill.definition", "An alternative set needs at least two alternatives"
@@ -293,6 +313,16 @@ class SkillCompiler:
             for identifier in context.equipment_ids
         ):
             raise SkillError("skill.context", "Equipment context needs definition IDs")
+        if any(
+            not isinstance(identifier, str) or not identifier
+            for identifier in context.purchased_definition_ids | context.capabilities
+        ):
+            raise SkillError("skill.context", "Acquisition context needs nonempty identifiers")
+        if context.campaign_technology_level is not None and (
+            type(context.campaign_technology_level) is not int
+            or context.campaign_technology_level < 0
+        ):
+            raise SkillError("skill.context", "Campaign technology level must be nonnegative")
 
         def adjusted(result: SkillLevel) -> SkillLevel:
             level = result.level if adjust is None else adjust(result.target, result.level)
@@ -383,12 +413,24 @@ class SkillCompiler:
             return None
 
         def satisfied(requirement: SkillPrerequisite) -> bool:
+            threshold = requirement.minimum_technology_level
+            if threshold is not None:
+                if context.campaign_technology_level is None:
+                    return False
+                if context.campaign_technology_level < threshold:
+                    return True
             target = requirement.target
-            return (
-                target in points
-                and target in levels
-                and levels[target].level >= requirement.minimum
-            )
+            if requirement.kind is PrerequisiteKind.TRAINED_SKILL:
+                return (
+                    target in points
+                    and target in levels
+                    and levels[target].level >= requirement.minimum
+                )
+            if requirement.kind is PrerequisiteKind.PURCHASED_DEFINITION:
+                return target in context.purchased_definition_ids
+            if requirement.kind is PrerequisiteKind.CAPABILITY:
+                return target in context.capabilities
+            raise SkillError("skill.definition", "Unsupported acquisition prerequisite")
 
         # Reciprocal defaults are legitimate source data. Start with native and
         # attribute-default anchors, then propagate purchased-skill defaults to

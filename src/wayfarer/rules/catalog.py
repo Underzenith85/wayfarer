@@ -97,6 +97,17 @@ class RulesPackage:
             if skill is not None:
                 if not skill["prerequisite_groups"]:
                     del skill["prerequisite_groups"]
+                prerequisites = list(skill["prerequisites"])
+                prerequisites.extend(
+                    prerequisite
+                    for group in skill.get("prerequisite_groups", ())
+                    for prerequisite in group["alternatives"]
+                )
+                for prerequisite in prerequisites:
+                    if prerequisite["kind"] == "trained-skill":
+                        del prerequisite["kind"]
+                    if prerequisite["minimum_technology_level"] is None:
+                        del prerequisite["minimum_technology_level"]
                 # Conditional defaults were added after the first package pins.
                 # Absence remains absence rather than changing every historic digest.
                 for default in skill["defaults"]:

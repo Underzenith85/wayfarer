@@ -42,6 +42,8 @@ from wayfarer.rules.gurps_checks import RepeatedAttemptPolicy, replay_success, s
 from wayfarer.rules.skill_types import ControllingAttribute as A
 from wayfarer.rules.skill_types import Difficulty as D
 from wayfarer.rules.skill_types import (
+    PrerequisiteGroup,
+    PrerequisiteKind,
     SkillDefault,
     SkillPrerequisite,
     SkillSpec,
@@ -215,6 +217,7 @@ class TechnologyProcedure:
     difficulty: D
     defaults: tuple[SkillDefault, ...] = ()
     prerequisites: tuple[SkillPrerequisite, ...] = ()
+    prerequisite_groups: tuple[PrerequisiteGroup, ...] = ()
     specialty: Specialty | None = None
     technique: Technique | None = None
     task: TaskClass | None = None
@@ -279,6 +282,7 @@ class TechnologyProcedure:
             self.prerequisites,
             self.specialty,
             self.technique,
+            self.prerequisite_groups,
         )
 
     def definition(self) -> RuleDefinition:
@@ -377,7 +381,7 @@ VEHICLE_FAMILIES: Final = {
             ("starship", "Starship"),
             ("submarine", "Submarine"),
         ),
-        {CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,), PREREQUISITE_PROCEDURE: (CONDITIONAL_OWNER,)},
+        {CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)},
     ),
     "submarine": (
         "Submarine",
@@ -436,6 +440,7 @@ def _vehicle_rows() -> tuple[TechnologyProcedure, ...]:
                 attribute,
                 difficulty,
                 defaults,
+                _ship_prerequisites(name) if family == "shiphandling" else (),
                 specialty=Specialty(family, name),
                 task=CONTROL,
                 resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
@@ -444,6 +449,27 @@ def _vehicle_rows() -> tuple[TechnologyProcedure, ...]:
             for name, label in members
         )
     return tuple(rows)
+
+
+def _ship_prerequisites(name: str) -> tuple[SkillPrerequisite, ...]:
+    """B220 crew, leadership, and navigation requirements for each command specialty."""
+    targets = {
+        "airship": ("airshipman", "leadership", "trained-navigation-air"),
+        "ship": ("leadership", "trained-navigation-sea", "seamanship"),
+        "starship": ("leadership", "trained-navigation-hyperspace", "spacer"),
+        "submarine": ("leadership", "trained-navigation-sea", "submariner"),
+    }[name]
+    return tuple(
+        SkillPrerequisite(
+            target if target.startswith("trained-navigation-") else f"skill:{target}",
+            kind=(
+                PrerequisiteKind.CAPABILITY
+                if target.startswith("trained-navigation-")
+                else PrerequisiteKind.TRAINED_SKILL
+            ),
+        )
+        for target in targets
+    )
 
 
 def _crew(name: str, title: str) -> TechnologyProcedure:
@@ -505,6 +531,7 @@ def _task(
     task: TaskClass,
     *,
     prerequisites: tuple[str, ...] = (),
+    acquisition: tuple[SkillPrerequisite, ...] = (),
     context: Mapping[str, tuple[int, ...]] | None = None,
 ) -> TechnologyProcedure:
     """A standalone row this issue binds to its own dispatch."""
@@ -515,7 +542,7 @@ def _task(
         attribute,
         difficulty,
         defaults,
-        tuple(SkillPrerequisite(f"skill:{target}") for target in prerequisites),
+        tuple(SkillPrerequisite(f"skill:{target}") for target in prerequisites) + acquisition,
         task=task,
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
         transferred=dict(context or {}),
@@ -628,9 +655,7 @@ SCIENCE_FAMILIES: Final = {
             ("robotics", "Robotics"),
             ("small-arms", "Small Arms"),
         ),
-        # B190 requires a related science or shop skill, and which one depends on
-        # the specialty; the alternative-prerequisite procedure owns that shape.
-        {CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,), PREREQUISITE_PROCEDURE: (CONDITIONAL_OWNER,)},
+        {CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)},
     ),
     "hazardous-materials": (
         "Hazardous Materials",
@@ -707,6 +732,17 @@ def _family(
     context: Mapping[str, tuple[int, ...]],
 ) -> tuple[TechnologyProcedure, ...]:
     """One family row and the concrete specialties that complete it."""
+    conditional_prerequisites = (
+        (
+            SkillPrerequisite(
+                "skill:mathematics-applied",
+                kind=PrerequisiteKind.TRAINED_SKILL,
+                minimum_technology_level=5,
+            ),
+        )
+        if family == "engineer"
+        else ()
+    )
     return (
         TechnologyProcedure(
             f"skill:{family}",
@@ -715,6 +751,7 @@ def _family(
             A.IQ,
             difficulty,
             defaults,
+            conditional_prerequisites,
             specialties=tuple(f"skill:{family}-{name}" for name, _ in members),
             resolved=(RUNTIME_PROCEDURE, SPECIALTY_EXPANSION, TECHNOLOGY_LEVEL),
             transferred=dict(context),
@@ -727,6 +764,17 @@ def _family(
                 A.IQ,
                 difficulty,
                 defaults,
+                conditional_prerequisites,
+                (
+                    PrerequisiteGroup(
+                        (
+                            SkillPrerequisite("skill:chemistry"),
+                            SkillPrerequisite("skill:metallurgy"),
+                        )
+                    ),
+                )
+                if family == "engineer" and name == "materials"
+                else (),
                 specialty=Specialty(family, name),
                 task=task,
                 resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
@@ -1088,7 +1136,12 @@ _ROWS: Final = (
         D.VERY_HARD,
         _attribute(A.IQ, -6),
         _study(),
-        context={PREREQUISITE_PROCEDURE: (CONDITIONAL_OWNER,)},
+        acquisition=(
+            SkillPrerequisite(
+                "skill:mathematics-applied",
+                minimum_technology_level=5,
+            ),
+        ),
     ),
     _task(
         "research",
@@ -1098,10 +1151,11 @@ _ROWS: Final = (
         D.AVERAGE,
         _attribute(A.IQ, -5),
         _study(),
-        context={
-            CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,),
-            PREREQUISITE_PROCEDURE: (CONDITIONAL_OWNER,),
-        },
+        acquisition=(
+            SkillPrerequisite("literacy", kind=PrerequisiteKind.CAPABILITY),
+            SkillPrerequisite("skill:computer-operation", minimum_technology_level=8),
+        ),
+        context={CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)},
     ),
     # B169/B213 optional Physics specialty, bound through its own dispatch.
     TechnologyProcedure(
@@ -1110,10 +1164,15 @@ _ROWS: Final = (
         213,
         A.IQ,
         D.HARD,
+        prerequisites=(
+            SkillPrerequisite(
+                "skill:mathematics-applied",
+                minimum_technology_level=5,
+            ),
+        ),
         specialty=Specialty("physics", "acoustics", "skill:physics"),
         task=_study(),
         resolved=(RUNTIME_PROCEDURE, TECHNOLOGY_LEVEL),
-        transferred={PREREQUISITE_PROCEDURE: (CONDITIONAL_OWNER,)},
     ),
     # B233 techniques: each bounded by its own parent, never by a generic rule.
     # Bought against the concrete Piloting specialty the character flies, so it
@@ -1227,6 +1286,8 @@ class Operator:
     technology_level: int
     trained: frozenset[str] = frozenset()
     parent_level: int | None = None
+    purchased_definitions: frozenset[str] = frozenset()
+    capabilities: frozenset[str] = frozenset()
 
 
 @dataclass(frozen=True, slots=True)
@@ -1364,12 +1425,38 @@ def attempt(
     """
     entry = require_task(profile_id, operator.skill_id)
     require_capabilities(profile_id, CHECK_CAPABILITIES)
-    missing = sorted(p.target for p in entry.prerequisites if p.target not in operator.trained)
-    if missing:
-        raise ValidationError(f"Untrained prerequisite for {entry.id}: {', '.join(missing)}")
     base = technique_target(entry, operator) if entry.technique else operator.level
     if base < 1:
         raise ValidationError(f"Effective skill must be positive: {entry.id}")
+
+    def acquisition_satisfied(prerequisite: SkillPrerequisite) -> bool:
+        if (
+            prerequisite.minimum_technology_level is not None
+            and operator.technology_level < prerequisite.minimum_technology_level
+        ):
+            return True
+        return (
+            prerequisite.target in operator.trained
+            if prerequisite.kind is PrerequisiteKind.TRAINED_SKILL
+            else prerequisite.target in operator.purchased_definitions
+            if prerequisite.kind is PrerequisiteKind.PURCHASED_DEFINITION
+            else prerequisite.target in operator.capabilities
+        )
+
+    missing = [
+        prerequisite.target
+        for prerequisite in entry.prerequisites
+        if not acquisition_satisfied(prerequisite)
+    ]
+    missing.extend(
+        "/".join(prerequisite.target for prerequisite in group.alternatives)
+        for group in entry.prerequisite_groups
+        if not any(acquisition_satisfied(prerequisite) for prerequisite in group.alternatives)
+    )
+    if missing:
+        raise ValidationError(
+            f"Untrained prerequisite for {entry.id}: {', '.join(sorted(missing))}"
+        )
     return _result(
         entry, success_roll(profile_id, base, _modifiers(entry, operator, situation), rng=rng)
     )

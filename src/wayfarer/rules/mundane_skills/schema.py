@@ -5,7 +5,7 @@ from typing import Annotated, Literal, Self
 from pydantic import Field, model_validator
 
 from wayfarer.models import Record
-from wayfarer.rules.skill_types import DefaultConditionKind, Difficulty
+from wayfarer.rules.skill_types import DefaultConditionKind, Difficulty, PrerequisiteKind
 
 AttributeName = Literal["IQ", "DX", "HT", "ST", "Will", "Per", "Perception"]
 Identifier = Annotated[str, Field(pattern=r"^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$")]
@@ -78,14 +78,36 @@ class TechniqueRecord(Record):
         return self
 
 
+class ContextualPrerequisiteRecord(Record):
+    """A prerequisite that is not an unconditional trained-skill edge."""
+
+    kind: PrerequisiteKind
+    target: Annotated[str, Field(pattern=r"^[a-z][a-z0-9:-]*(?:-[a-z0-9]+)*$")]
+    minimum: Annotated[int, Field(ge=1)] = 1
+    minimum_technology_level: Annotated[int, Field(ge=0)] | None = None
+
+
 class PrerequisiteGroupRecord(Record):
     """An alternative set; satisfying any one member satisfies the requirement."""
 
-    alternatives: Annotated[tuple[Identifier, ...], Field(min_length=2)]
+    alternatives: Annotated[
+        tuple[Identifier | ContextualPrerequisiteRecord, ...], Field(min_length=2)
+    ]
 
     @model_validator(mode="after")
     def distinct(self) -> Self:
-        if len(set(self.alternatives)) != len(self.alternatives):
+        keys = tuple(
+            alternative
+            if isinstance(alternative, str)
+            else (
+                alternative.kind,
+                alternative.target,
+                alternative.minimum,
+                alternative.minimum_technology_level,
+            )
+            for alternative in self.alternatives
+        )
+        if len(set(keys)) != len(keys):
             raise ValueError("Duplicate prerequisite alternative")
         return self
 
@@ -144,6 +166,7 @@ class InventoryRow(Record):
     attribute_defaults: tuple[AttributeDefault, ...] = ()
     skill_defaults: tuple[SkillDefaultRecord, ...] = ()
     prerequisites: tuple[Identifier, ...] = ()
+    contextual_prerequisites: tuple[ContextualPrerequisiteRecord, ...] = ()
     specialty: SpecialtyRecord | None = None
     technique: TechniqueRecord | None = None
     template: TechniqueTemplateRecord | None = None
@@ -167,6 +190,7 @@ class InventoryRow(Record):
             self.attribute_defaults
             or self.skill_defaults
             or self.prerequisites
+            or self.contextual_prerequisites
             or self.specialty
             or self.technique
         ):
@@ -195,7 +219,10 @@ class InventoryRow(Record):
         if self.prerequisite_groups and self.attribute is None:
             raise ValueError("Structured mechanics require attribute and difficulty")
         for group in self.prerequisite_groups:
-            if self.id in group.alternatives or set(group.alternatives) & set(self.prerequisites):
+            skill_alternatives = {
+                alternative for alternative in group.alternatives if isinstance(alternative, str)
+            }
+            if self.id in skill_alternatives or skill_alternatives & set(self.prerequisites):
                 raise ValueError("An alternative cannot repeat the row or a firm prerequisite")
         if self.procedure_owner not in self.issues or self.procedure_owner in (112, 191, 336):
             raise ValueError("Every row needs a named procedure owner beyond the audit")
@@ -213,6 +240,7 @@ class InventoryRow(Record):
             self.blockers,
             self.issues,
             self.prerequisites,
+            self.contextual_prerequisites,
         ):
             if len(set(metadata)) != len(metadata):
                 raise ValueError("Duplicate inventory metadata")
