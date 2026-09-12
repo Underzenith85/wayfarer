@@ -8,7 +8,7 @@ from test_tactical import migration
 from test_tactical import setup as tactical_setup
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.simulation.combat.combat import GridPoint
+from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.hex_geometry import Hex
 from wayfarer.engine.simulation.resources import Item
 from wayfarer.models import Campaign, CommandReceipt

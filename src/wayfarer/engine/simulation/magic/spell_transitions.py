@@ -5,15 +5,11 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.combat.combat import (
-    Battlefield,
-    CombatEngine,
-    Defense,
-    Encounter,
-    GridPoint,
-    PendingDefense,
-)
+from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
+from wayfarer.engine.simulation.combat.encounter import Encounter, PendingDefense
+from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.maneuvers import ManeuverState
+from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.health.recovery_guard import guard
 from wayfarer.engine.simulation.magic.binding_context import SpellEnvironment
 from wayfarer.engine.simulation.magic.binding_context import approved_context as build_context

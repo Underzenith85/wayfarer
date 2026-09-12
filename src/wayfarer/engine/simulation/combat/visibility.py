@@ -1,7 +1,8 @@
 """Authoritative encounter visibility shared by mechanics and projections."""
 
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.combat.combat import BasicSpatialContext, Encounter, basic_visible
+from wayfarer.engine.simulation.combat.encounter import Encounter, basic_visible
+from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
 from wayfarer.engine.simulation.combat.tactical import sight
 from wayfarer.engine.simulation.hex_geometry import HexBattlefield
 from wayfarer.errors import ValidationError

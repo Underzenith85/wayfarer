@@ -2,8 +2,9 @@
 
 from wayfarer.engine.rules.checks import draw_dice
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.combat.combat import CombatEngine, Encounter
 from wayfarer.engine.simulation.combat.criticals.limbs import CriticalLimbResult, resolve_limb
+from wayfarer.engine.simulation.combat.encounter import Encounter
+from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
 

@@ -24,12 +24,9 @@ from wayfarer.engine.simulation.campaign.objectives import (
     Reward,
 )
 from wayfarer.engine.simulation.campaign.party import CrossSceneEffect, PartyRules
-from wayfarer.engine.simulation.combat.combat import (
-    AttackProfile,
-    GridPoint,
-    Placement,
-    ProtectionProfile,
-)
+from wayfarer.engine.simulation.combat.battlefield import GridPoint
+from wayfarer.engine.simulation.combat.profiles import AttackProfile, ProtectionProfile
+from wayfarer.engine.simulation.combat.spatial import Placement
 from wayfarer.engine.simulation.hex_geometry import Hex
 from wayfarer.engine.simulation.resources import Item, Owner, Scheduled
 from wayfarer.engine.simulation.social.noncombat import Approach, NoncombatRule, NoncombatRules

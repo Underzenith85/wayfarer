@@ -12,7 +12,7 @@ from wayfarer.engine.simulation.campaign.npcs import NPCRules
 from wayfarer.engine.simulation.campaign.objectives import ObjectiveRules
 from wayfarer.engine.simulation.campaign.party import PartyRules
 from wayfarer.engine.simulation.campaign.scenes import SceneRules
-from wayfarer.engine.simulation.combat.combat import (
+from wayfarer.engine.simulation.combat.profiles import (
     AttackProfile,
     CombatConsequence,
     ProtectionProfile,

@@ -49,11 +49,8 @@ from wayfarer.engine.simulation.campaign.party import validate as validate_party
 from wayfarer.engine.simulation.campaign.party import validate_effects as validate_party_effects
 from wayfarer.engine.simulation.campaign.scenes import JournalEntry, SceneEvent
 from wayfarer.engine.simulation.campaign.scenes import validate_state as validate_scene_state
-from wayfarer.engine.simulation.combat.combat import (
-    CombatEngine,
-    CombatRules,
-    validate_consequences,
-)
+from wayfarer.engine.simulation.combat.engine import CombatEngine, validate_consequences
+from wayfarer.engine.simulation.combat.profiles import CombatRules
 from wayfarer.engine.simulation.events import (
     ActionResolved,
     ActorAudience,

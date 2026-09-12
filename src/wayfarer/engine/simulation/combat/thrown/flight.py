@@ -7,8 +7,8 @@ from wayfarer.engine.rules.checks import CheckTrace, draw_dice
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.types.object import GroundPosition
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.combat.combat import Combatant, Encounter
 from wayfarer.engine.simulation.combat.critical import Die, TableRoll
+from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury

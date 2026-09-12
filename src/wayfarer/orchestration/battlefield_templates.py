@@ -10,8 +10,8 @@ from wayfarer.engine.simulation.campaign.advancement import MigrationEntry
 from wayfarer.engine.simulation.campaign.scenario_document import digest_json
 from wayfarer.engine.simulation.campaign.scenario_references import boundary
 from wayfarer.engine.simulation.campaign.social_policy import parse_graph
-from wayfarer.engine.simulation.combat.combat import CombatRules
 from wayfarer.engine.simulation.combat.commands import MigrateEncounterHex
+from wayfarer.engine.simulation.combat.profiles import CombatRules
 from wayfarer.engine.simulation.hex_geometry import HexBattlefield
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign

@@ -554,7 +554,8 @@ def apply_spell(
             ):
                 raise ConflictError("Spell binding changed")
             if command.kind == "focus":
-                from wayfarer.engine.simulation.combat.combat import CombatEngine, GridPoint
+                from wayfarer.engine.simulation.combat.battlefield import GridPoint
+                from wayfarer.engine.simulation.combat.engine import CombatEngine
                 from wayfarer.engine.simulation.hex_geometry import Hex
 
                 if (

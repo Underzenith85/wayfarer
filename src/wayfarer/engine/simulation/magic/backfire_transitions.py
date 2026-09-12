@@ -9,7 +9,8 @@ from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.rules.checks import draw_dice, draw_index
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build
-from wayfarer.engine.simulation.combat.combat import Battlefield, Combatant, Encounter, GridPoint
+from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
+from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.hex_geometry import Hex

@@ -11,7 +11,7 @@ from test_gurps_melee import setup
 
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.tables.ranged import range_penalty, rapid_fire_bonus
-from wayfarer.engine.simulation.combat.combat import RangedSituation
+from wayfarer.engine.simulation.combat.encounter import RangedSituation
 from wayfarer.engine.simulation.equipment.catalog import Damage, RangedMode
 from wayfarer.engine.simulation.resources import Consume, Transfer
 from wayfarer.errors import ValidationError

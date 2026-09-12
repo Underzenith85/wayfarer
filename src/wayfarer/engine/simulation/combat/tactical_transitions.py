@@ -4,13 +4,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from wayfarer.engine.simulation.combat.combat import (
+from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter, move_basic
+from wayfarer.engine.simulation.combat.engine import CombatEngine
+from wayfarer.engine.simulation.combat.spatial import (
     BasicSpatialContext,
-    Combatant,
-    CombatEngine,
     CoverSpatialFact,
     DistanceSpatialFact,
-    Encounter,
     HexActorPlacement,
     HexSpatialContext,
     ObstacleSpatialFact,
@@ -18,7 +17,6 @@ from wayfarer.engine.simulation.combat.combat import (
     RetreatSpatialFact,
     SpatialProvenance,
     VisibilitySpatialFact,
-    move_basic,
 )
 from wayfarer.engine.simulation.combat.tactical import (
     defense_adjustment,

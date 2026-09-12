@@ -7,7 +7,7 @@ import pytest
 from test_spell_bindings import command, idle, setup, start_fight
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.simulation.combat.combat import GridPoint
+from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.maneuvers import WaitTrigger
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.magic.spells import latest

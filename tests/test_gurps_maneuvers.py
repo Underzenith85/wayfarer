@@ -6,7 +6,7 @@ import pytest
 from test_gurps_melee import setup
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.simulation.combat.combat import CombatResult
+from wayfarer.engine.simulation.combat.encounter import CombatResult
 from wayfarer.engine.simulation.combat.melee import defense_value
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat import CombatService, ResumeInterruptedTurn, TakeCombatTurn

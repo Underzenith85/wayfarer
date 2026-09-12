@@ -6,10 +6,10 @@ import pytest
 from test_reinforcements import escalation, setup_profiled_basic
 
 from wayfarer.engine.rules.types.object import GroundPosition
-from wayfarer.engine.simulation.combat.combat import (
+from wayfarer.engine.simulation.combat.encounter import PendingDefense
+from wayfarer.engine.simulation.combat.spatial import (
     BasicSpatialContext,
     HexSpatialContext,
-    PendingDefense,
     ReachSpatialFact,
 )
 from wayfarer.engine.simulation.combat.tactical_transitions import migrate_basic

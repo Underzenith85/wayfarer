@@ -11,7 +11,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.combat.combat import CombatEngine, Encounter
+from wayfarer.engine.simulation.combat.encounter import Encounter
+from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.entangle import escape
 from wayfarer.errors import ValidationError
 

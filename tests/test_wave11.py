@@ -354,7 +354,8 @@ async def test_director_combat_defense_survives_restart(tmp_path: Path) -> None:
     from test_actions import Dice, world
     from test_combat import combat_engine, resources, start
 
-    from wayfarer.engine.simulation.combat.combat import GridPoint, Placement
+    from wayfarer.engine.simulation.combat.battlefield import GridPoint
+    from wayfarer.engine.simulation.combat.spatial import Placement
     from wayfarer.orchestration.combat import CombatService
 
     engine = combat_engine()

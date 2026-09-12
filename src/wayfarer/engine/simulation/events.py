@@ -19,7 +19,7 @@ from wayfarer.engine.simulation.ability_types import AbilityEvent
 from wayfarer.engine.simulation.actions import ActionResult, PlayState
 from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.campaign.scenes import SceneEvent
-from wayfarer.engine.simulation.combat.combat import CombatResult
+from wayfarer.engine.simulation.combat.encounter import CombatResult
 from wayfarer.engine.simulation.health.fright import TimedFright
 from wayfarer.engine.simulation.health.hazards import HazardResult
 from wayfarer.engine.simulation.health.injury import InjuryResult

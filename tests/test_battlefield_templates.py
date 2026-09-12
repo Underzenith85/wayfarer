@@ -7,7 +7,7 @@ import pytest
 from pydantic import ValidationError as SchemaError
 from test_tactical import migration, setup
 
-from wayfarer.engine.simulation.combat.combat import Encounter
+from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.events import document
 from wayfarer.engine.simulation.hex_geometry import HexBattlefield
 from wayfarer.errors import ValidationError

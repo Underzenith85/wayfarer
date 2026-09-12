@@ -22,8 +22,9 @@ from wayfarer.errors import ValidationError
 from wayfarer.models import Record
 
 if TYPE_CHECKING:
-    from wayfarer.engine.simulation.combat.combat import Combatant, Encounter, Maneuver
+    from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
     from wayfarer.engine.simulation.combat.maneuvers import DefenseOption
+    from wayfarer.engine.simulation.combat.vocabulary import Maneuver
     from wayfarer.engine.simulation.equipment.catalog import EquipmentCatalog
 
 

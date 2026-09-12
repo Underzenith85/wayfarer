@@ -27,7 +27,7 @@ from wayfarer.engine.rules.skills.mundane.ranged import (
     require_capability,
     require_mode,
 )
-from wayfarer.engine.simulation.combat.combat import RangedSituation
+from wayfarer.engine.simulation.combat.encounter import RangedSituation
 from wayfarer.engine.simulation.equipment.catalog import Damage, RangedMode
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.play import PlayService

@@ -22,20 +22,15 @@ from wayfarer.engine.rules.tables.ranged import (
 from wayfarer.engine.rules.types.location import HitLocation, HumanLocation
 from wayfarer.engine.rules.types.spray import Stream
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.combat.combat import (
-    ActiveSuppressionZone,
-    BasicSpatialContext,
-    CombatEngine,
-    Defense,
-    Encounter,
-    InjuryTrace,
-    PendingDefense,
-    PendingSprayTarget,
-    RangedSituation,
-)
+from wayfarer.engine.simulation.combat.encounter import Encounter, PendingDefense, RangedSituation
+from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.entangle import attack_penalty as entangle_attack_penalty
 from wayfarer.engine.simulation.combat.entangle import bind as entangle_bind
 from wayfarer.engine.simulation.combat.maneuvers import ATTACK_MANEUVERS
+from wayfarer.engine.simulation.combat.profiles import InjuryTrace
+from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
+from wayfarer.engine.simulation.combat.suppression import ActiveSuppressionZone, PendingSprayTarget
+from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.fatigue import fatigue_value
@@ -117,7 +112,7 @@ def situation(
         )
         value = value.model_copy(update={"distance_yards": float(distance)})
     elif encounter.spatial_kind == "basic":
-        from wayfarer.engine.simulation.combat.combat import basic_distance
+        from wayfarer.engine.simulation.combat.encounter import basic_distance
 
         value = value.model_copy(
             update={"distance_yards": basic_distance(encounter, attacker, defender)}
@@ -148,7 +143,7 @@ def _spray_vector(encounter: Encounter, actor_id: str, target_id: str) -> tuple[
             (target.position.q + target.position.r / 2) - (actor.position.q + actor.position.r / 2),
             (target.position.r - actor.position.r) * sqrt(3) / 2,
         )
-    from wayfarer.engine.simulation.combat.combat import GridPoint
+    from wayfarer.engine.simulation.combat.battlefield import GridPoint
 
     if not isinstance(actor.position, GridPoint) or not isinstance(target.position, GridPoint):
         raise ValidationError("Spraying fire requires exact mapped positions")

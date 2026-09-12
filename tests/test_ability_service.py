@@ -20,7 +20,9 @@ from wayfarer.engine.simulation.abilities import apply_ability, damage_resistanc
 from wayfarer.engine.simulation.ability_types import AbilityRules, AbilitySpec
 from wayfarer.engine.simulation.action_engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, Wait
-from wayfarer.engine.simulation.combat.combat import Battlefield, CombatRules, GridPoint, Placement
+from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
+from wayfarer.engine.simulation.combat.profiles import CombatRules
+from wayfarer.engine.simulation.combat.spatial import Placement
 from wayfarer.engine.simulation.resources import Pool, ResourceEngine
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.orchestration.abilities import AbilityService

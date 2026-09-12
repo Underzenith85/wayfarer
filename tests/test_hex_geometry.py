@@ -13,7 +13,8 @@ from hypothesis import strategies as st
 from pydantic import ValidationError as ModelError
 
 from wayfarer.engine.rules.conformance import BASELINE_ID
-from wayfarer.engine.simulation.combat.combat import Battlefield, CombatEngine, GridPoint
+from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
+from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.hex_geometry import (
     Cell,
     Hex,

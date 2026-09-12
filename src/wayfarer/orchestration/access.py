@@ -7,7 +7,8 @@ from dataclasses import asdict, replace
 
 from wayfarer.engine.simulation.actions import ACTION_ADAPTER, PlayState
 from wayfarer.engine.simulation.campaign.access import CampaignMember, StreamEvent
-from wayfarer.engine.simulation.combat.combat import CombatRules, hex_template
+from wayfarer.engine.simulation.combat.engine import hex_template
+from wayfarer.engine.simulation.combat.profiles import CombatRules
 from wayfarer.engine.simulation.resources import wire_weight
 from wayfarer.errors import AuthorizationError, ConflictError, NotFoundError, ValidationError
 from wayfarer.orchestration.combat import COMBAT_ADAPTER, CombatService

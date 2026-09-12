@@ -9,24 +9,17 @@ from pydantic import Field, TypeAdapter
 from wayfarer.engine.rules.types.explosion import BlastResponse
 from wayfarer.engine.rules.types.location import Hand, HitLocation
 from wayfarer.engine.rules.types.object import GroundPosition
-from wayfarer.engine.simulation.combat.combat import (
-    BasicSpatialFact,
-    Defense,
-    Facing,
-    GridPoint,
-    Maneuver,
-    Placement,
-    Posture,
-    RangedSituation,
-    SprayTarget,
-    SuppressionZone,
-)
+from wayfarer.engine.simulation.combat.battlefield import GridPoint
+from wayfarer.engine.simulation.combat.encounter import RangedSituation
 from wayfarer.engine.simulation.combat.maneuvers import AttackOption, DefenseOption, WaitTrigger
+from wayfarer.engine.simulation.combat.spatial import BasicSpatialFact, Placement
+from wayfarer.engine.simulation.combat.suppression import SprayTarget, SuppressionZone
 from wayfarer.engine.simulation.combat.unarmed_records import (
     GrappleLocation,
     UnarmedAction,
     UnarmedSkill,
 )
+from wayfarer.engine.simulation.combat.vocabulary import Defense, Facing, Maneuver, Posture
 from wayfarer.engine.simulation.hex_geometry import Hex, HexBattlefield, HexFacing, Pose
 from wayfarer.models import Id, Record
 

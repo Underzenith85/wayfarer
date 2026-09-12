@@ -7,12 +7,10 @@ from typing import TYPE_CHECKING, Literal
 
 from wayfarer.engine.simulation.campaign.party import QueuedActivity, Subgroup
 from wayfarer.engine.simulation.campaign.scenes import SceneRules
-from wayfarer.engine.simulation.combat.combat import (
-    BasicSpatialContext,
-    Battlefield,
-    CombatRules,
-    Encounter,
-)
+from wayfarer.engine.simulation.combat.battlefield import Battlefield
+from wayfarer.engine.simulation.combat.encounter import Encounter
+from wayfarer.engine.simulation.combat.profiles import CombatRules
+from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
 from wayfarer.engine.simulation.hex_geometry import HexBattlefield
 from wayfarer.engine.simulation.social.noncombat import NoncombatEncounter
 from wayfarer.errors import ValidationError

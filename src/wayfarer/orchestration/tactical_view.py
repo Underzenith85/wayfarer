@@ -11,9 +11,10 @@ from pydantic import Field
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import movement
 from wayfarer.engine.simulation.campaign.access import CampaignMember
-from wayfarer.engine.simulation.combat.combat import BasicSpatialContext, Encounter, Maneuver
+from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.melee import prepare_attack
 from wayfarer.engine.simulation.combat.ranged import validate_command
+from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
 from wayfarer.engine.simulation.combat.tactical import TacticalTrace, pose
 from wayfarer.engine.simulation.combat.tactical_transitions import prepare_defense
 from wayfarer.engine.simulation.combat.unarmed import (
@@ -22,6 +23,7 @@ from wayfarer.engine.simulation.combat.unarmed import (
     validate_action,
 )
 from wayfarer.engine.simulation.combat.visibility import visible_actors as visible_actors
+from wayfarer.engine.simulation.combat.vocabulary import Maneuver
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode
 from wayfarer.engine.simulation.hex_geometry import Cell, Hex, HexBattlefield, neighbor
 from wayfarer.errors import ValidationError, WayfarerError

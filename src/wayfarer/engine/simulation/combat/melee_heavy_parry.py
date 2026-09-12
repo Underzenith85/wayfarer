@@ -8,8 +8,8 @@ from pydantic import Field
 from wayfarer.engine.rules.checks import draw_dice
 from wayfarer.engine.rules.types.object import residual_definition
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.combat.combat import Combatant, Encounter
 from wayfarer.engine.simulation.combat.critical import Die
+from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
 from wayfarer.engine.simulation.equipment.catalog import EquipmentProfile
 from wayfarer.engine.simulation.resources import Item, ResourceEvent
 from wayfarer.engine.simulation.rules_context import RulesContext

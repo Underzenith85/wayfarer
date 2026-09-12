@@ -18,16 +18,13 @@ from wayfarer.engine.rules.tables.combat import minimum_strength_penalty, strong
 from wayfarer.engine.rules.types.location import HitLocation, HumanLocation
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, fatigue_ready, level
-from wayfarer.engine.simulation.combat.combat import (
-    Combatant,
-    CombatEngine,
-    Defense,
-    Encounter,
-    InjuryTrace,
-)
+from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
+from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.entangle import attack_penalty as entangle_attack_penalty
 from wayfarer.engine.simulation.combat.entangle import defense_penalty as entangle_defense_penalty
 from wayfarer.engine.simulation.combat.maneuvers import ATTACK_MANEUVERS, attack_modifier
+from wayfarer.engine.simulation.combat.profiles import InjuryTrace
+from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.equipment.catalog import (
     MeleeMode,
     RangedMode,
@@ -569,11 +566,9 @@ def prepare_attack(
         and attacker.maneuver_state.second_attack_item_id is None
     ):
         raise ValidationError("Double attack requires a weapon usable twice without readying")
-    from wayfarer.engine.simulation.combat.combat import (
-        BasicSpatialContext,
-        CombatEngine,
-        basic_distance,
-    )
+    from wayfarer.engine.simulation.combat.encounter import basic_distance
+    from wayfarer.engine.simulation.combat.engine import CombatEngine
+    from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
     from wayfarer.engine.simulation.combat.tactical import attack_geometry, defense_adjustment
 
     geometry = encounter

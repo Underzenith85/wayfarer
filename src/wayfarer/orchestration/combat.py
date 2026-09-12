@@ -12,21 +12,6 @@ from pydantic import ValidationError as SchemaError
 from wayfarer.engine.rules.checks import CheckTrace
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.adjudication import expire_rulings
-from wayfarer.engine.simulation.combat.combat import (
-    BasicSpatialContext,
-    BasicSpatialFact,
-    Combatant,
-    CombatEngine,
-    CombatResult,
-    CombatWithdrawal,
-    CoverSpatialFact,
-    Encounter,
-    HexSpatialContext,
-    ReachSpatialFact,
-    RetreatSpatialFact,
-    VisibilitySpatialFact,
-    basic_visible,
-)
 from wayfarer.engine.simulation.combat.commands import (
     COMBAT_ADAPTER as COMBAT_ADAPTER,
 )
@@ -99,8 +84,25 @@ from wayfarer.engine.simulation.combat.commands import (
 from wayfarer.engine.simulation.combat.commands import (
     WithdrawEncounter as WithdrawEncounter,
 )
+from wayfarer.engine.simulation.combat.encounter import (
+    Combatant,
+    CombatResult,
+    CombatWithdrawal,
+    Encounter,
+    basic_visible,
+)
+from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.lite_resolution import resolve_injury
 from wayfarer.engine.simulation.combat.maneuvers import ATTACK_MANEUVERS
+from wayfarer.engine.simulation.combat.spatial import (
+    BasicSpatialContext,
+    BasicSpatialFact,
+    CoverSpatialFact,
+    HexSpatialContext,
+    ReachSpatialFact,
+    RetreatSpatialFact,
+    VisibilitySpatialFact,
+)
 from wayfarer.engine.simulation.resources import Advance, Pool, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Campaign, CommandReceipt

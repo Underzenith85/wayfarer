@@ -19,7 +19,8 @@ from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.conformance import BASELINE_ID
 from wayfarer.engine.rules.types.object import ObjectProfile
 from wayfarer.engine.simulation.campaign.access import CampaignMember
-from wayfarer.engine.simulation.combat.combat import CombatResult, GridPoint, RangedSituation
+from wayfarer.engine.simulation.combat.battlefield import GridPoint
+from wayfarer.engine.simulation.combat.encounter import CombatResult, RangedSituation
 from wayfarer.engine.simulation.hex_geometry import Cell, Hex, HexBattlefield, Pose
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.engine.world import Fact

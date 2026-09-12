@@ -40,7 +40,8 @@ from wayfarer.engine.simulation.campaign.scenes import (
     SceneEvent,
     SceneRules,
 )
-from wayfarer.engine.simulation.combat.combat import CombatResult, CombatRules, Encounter
+from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
+from wayfarer.engine.simulation.combat.profiles import CombatRules
 from wayfarer.engine.simulation.health.recovery import RecoveryRules, RecoveryState
 from wayfarer.engine.simulation.magic.bindings import SpellRules
 from wayfarer.engine.simulation.resources import ResourceState

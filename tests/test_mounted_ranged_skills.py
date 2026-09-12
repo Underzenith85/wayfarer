@@ -21,8 +21,8 @@ from wayfarer.engine.rules.skills.mundane import inventory
 from wayfarer.engine.rules.skills.mundane.ranged import PROCEDURES, definitions, require_mode
 from wayfarer.engine.rules.types.mount import MountSpec
 from wayfarer.engine.rules.types.transport import Transport
-from wayfarer.engine.simulation.combat.combat import RangedSituation
 from wayfarer.engine.simulation.combat.commands import HexPlacement, MigrateEncounterHex
+from wayfarer.engine.simulation.combat.encounter import RangedSituation
 from wayfarer.engine.simulation.equipment.catalog import Damage, RangedMode
 from wayfarer.engine.simulation.hex_geometry import Cell, Hex, HexBattlefield, Pose
 from wayfarer.engine.world import Fact

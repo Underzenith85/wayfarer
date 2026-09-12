@@ -8,7 +8,8 @@ from test_spell_bindings import setup
 from test_spells import command, context, state
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.simulation.combat.combat import GridPoint, Placement
+from wayfarer.engine.simulation.combat.battlefield import GridPoint
+from wayfarer.engine.simulation.combat.spatial import Placement
 from wayfarer.engine.simulation.magic.backfires import backfires, refund_due
 from wayfarer.engine.simulation.magic.spells import apply_spell, latest
 from wayfarer.orchestration.combat import CombatService, StartEncounter

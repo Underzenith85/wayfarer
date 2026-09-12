@@ -24,7 +24,7 @@ from wayfarer.engine.rules.skills.mundane.ranged import (
 )
 from wayfarer.engine.rules.types.spray import SprayerSpec, Stream
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.combat.combat import Combatant, RangedSituation
+from wayfarer.engine.simulation.combat.encounter import Combatant, RangedSituation
 from wayfarer.engine.simulation.equipment.catalog import Damage, RangedMode
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import CombatService

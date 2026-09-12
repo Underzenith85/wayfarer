@@ -9,7 +9,8 @@ from pydantic import Field
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.campaign.encounter_context import activity_for
-from wayfarer.engine.simulation.combat.combat import BasicSpatialContext, Encounter, basic_visible
+from wayfarer.engine.simulation.combat.encounter import Encounter, basic_visible
+from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
 from wayfarer.errors import ValidationError, WayfarerError
 from wayfarer.models import Record
 from wayfarer.orchestration.combat import (

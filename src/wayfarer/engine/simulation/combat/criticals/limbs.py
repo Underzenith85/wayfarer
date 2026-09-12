@@ -8,8 +8,8 @@ from pydantic import Field
 from wayfarer.engine.rules.checks import draw_dice
 from wayfarer.engine.rules.types.location import HumanLocation
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.combat.combat import Encounter
 from wayfarer.engine.simulation.combat.critical import Die, TableRoll
+from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode, WeaponMode
 from wayfarer.engine.simulation.health.injury import (
     DisableLocation,

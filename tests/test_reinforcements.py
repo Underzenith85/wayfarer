@@ -9,7 +9,7 @@ from test_gurps_melee import setup as melee_setup
 
 from wayfarer.engine.rules.conformance import BASELINE_ID
 from wayfarer.engine.simulation.campaign.party import migrate as migrate_party
-from wayfarer.engine.simulation.combat.combat import (
+from wayfarer.engine.simulation.combat.spatial import (
     BasicSpatialContext,
     BasicSpatialFact,
     CoverSpatialFact,

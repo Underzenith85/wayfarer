@@ -5,7 +5,8 @@ from typing import Literal
 
 from wayfarer.engine.rules.types.location import Hand, HitLocation, HumanLocation
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.combat.combat import Combatant, Encounter, Posture
+from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
+from wayfarer.engine.simulation.combat.vocabulary import Posture
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode
 from wayfarer.engine.simulation.health.hit_locations import (
     disabled,
@@ -23,7 +24,7 @@ def unavailable_hand(locations: frozenset[HumanLocation], hand: Hand) -> bool:
 
 
 def from_behind(attacker: Combatant, defender: Combatant) -> bool:
-    from wayfarer.engine.simulation.combat.combat import GridPoint
+    from wayfarer.engine.simulation.combat.battlefield import GridPoint
     from wayfarer.engine.simulation.combat.tactical import pose
     from wayfarer.engine.simulation.hex_geometry import Hex, arc
 
@@ -61,11 +62,9 @@ def validate_target(
     )
     if any(h in occupied_hands for _, h in attacker.hand_bindings):
         raise ValidationError("Selected weapon hand is controlled by a grapple")
-    from wayfarer.engine.simulation.combat.combat import (
-        BasicSpatialContext,
-        CombatEngine,
-        basic_distance,
-    )
+    from wayfarer.engine.simulation.combat.encounter import basic_distance
+    from wayfarer.engine.simulation.combat.engine import CombatEngine
+    from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
 
     distance = (
         basic_distance(encounter, attacker_id, defender_id)

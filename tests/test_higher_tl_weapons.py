@@ -7,7 +7,7 @@ from test_gurps_maneuvers import defend, turn
 from test_gurps_melee import setup
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.simulation.combat.combat import RangedSituation
+from wayfarer.engine.simulation.combat.encounter import RangedSituation
 from wayfarer.engine.simulation.equipment.basic.catalog import BASIC_EQUIPMENT
 from wayfarer.engine.simulation.equipment.basic.ultratech import ULTRATECH_INDEX
 from wayfarer.engine.simulation.equipment.catalog import RangedMode

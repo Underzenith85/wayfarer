@@ -18,7 +18,7 @@ from wayfarer.errors import ValidationError
 from wayfarer.models import Id, Record
 
 if TYPE_CHECKING:
-    from wayfarer.engine.simulation.combat.combat import Encounter
+    from wayfarer.engine.simulation.combat.encounter import Encounter
 
 BASIC = "gurps-basic-set-4e-2004"
 UnarmedAction = Literal[
@@ -189,7 +189,7 @@ def contest(
 
 
 def validate_control(encounter: Encounter, resources: ResourceState, *, basic: bool) -> None:
-    from wayfarer.engine.simulation.combat.combat import BasicSpatialContext
+    from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
 
     mapless = isinstance(encounter.spatial, BasicSpatialContext)
     if not basic and (

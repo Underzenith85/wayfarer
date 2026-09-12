@@ -17,8 +17,8 @@ from wayfarer.engine.simulation.resources import AmmunitionLoad, ResourceEvent, 
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
-    from wayfarer.engine.simulation.combat.combat import Encounter
     from wayfarer.engine.simulation.combat.commands import TakeCombatTurn
+    from wayfarer.engine.simulation.combat.encounter import Encounter
     from wayfarer.engine.simulation.rules_context import RulesContext
 
 

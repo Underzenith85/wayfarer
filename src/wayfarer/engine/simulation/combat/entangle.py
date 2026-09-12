@@ -12,7 +12,7 @@ supplies the procedure and the invariants only.
 from wayfarer.engine.rules.checks import RandomSource
 from wayfarer.engine.rules.gurps_checks import Contestant, QuickContestTrace, quick_contest
 from wayfarer.engine.rules.types.entangle import Entanglement, EntangleSpec
-from wayfarer.engine.simulation.combat.combat import Combatant
+from wayfarer.engine.simulation.combat.encounter import Combatant
 from wayfarer.errors import ValidationError
 
 ESCAPE_RULE = "gurps.combat.entangling_attack"

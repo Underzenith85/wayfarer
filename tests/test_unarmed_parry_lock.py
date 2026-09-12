@@ -7,7 +7,7 @@ from test_unarmed import action, defend, setup, state_of, wait
 from test_unarmed_integrations import checkpoint
 
 from wayfarer.engine.rules.checks import RecordedDice
-from wayfarer.engine.simulation.combat.combat import CombatEngine
+from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.unarmed import fighter
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import ChooseDefense, CombatService

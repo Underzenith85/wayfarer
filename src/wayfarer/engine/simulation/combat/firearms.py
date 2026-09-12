@@ -6,7 +6,8 @@ from typing import Literal
 from wayfarer.engine.rules.checks import CheckTrace
 from wayfarer.engine.rules.types.firearm import FirearmFailure
 from wayfarer.engine.rules.types.readiness import ProjectileProgress
-from wayfarer.engine.simulation.combat.combat import Combatant, InjuryTrace, RangedSituation
+from wayfarer.engine.simulation.combat.encounter import Combatant, RangedSituation
+from wayfarer.engine.simulation.combat.profiles import InjuryTrace
 from wayfarer.engine.simulation.equipment.catalog import EquipmentCatalog, RangedMode
 from wayfarer.engine.simulation.resources import (
     AmmunitionLoad,

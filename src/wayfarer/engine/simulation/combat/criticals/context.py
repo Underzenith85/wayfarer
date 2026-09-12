@@ -4,13 +4,14 @@ import hashlib
 
 from wayfarer.engine.rules.types.location import HumanLocation
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.combat.combat import Encounter, GridPoint
+from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.critical import (
     CriticalMiss,
     CriticalWeapon,
     IncomingWound,
     save_critical,
 )
+from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode
 from wayfarer.engine.simulation.hex_geometry import Hex
 from wayfarer.engine.simulation.rules_context import RulesContext

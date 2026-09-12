@@ -6,7 +6,8 @@ from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.character.power import PowerReviewer
 from wayfarer.engine.rules.checks import RandomSource
 from wayfarer.engine.simulation.actions import ActionRules, PlayState
-from wayfarer.engine.simulation.combat.combat import CombatEngine, Encounter, hex_template
+from wayfarer.engine.simulation.combat.encounter import Encounter
+from wayfarer.engine.simulation.combat.engine import CombatEngine, hex_template
 from wayfarer.engine.simulation.hex_geometry import HexBattlefield
 from wayfarer.engine.simulation.resources import ResourceEngine
 from wayfarer.errors import ValidationError

@@ -30,12 +30,8 @@ from wayfarer.engine.simulation.campaign.objectives import (
 from wayfarer.engine.simulation.campaign.party import PartyRules
 from wayfarer.engine.simulation.campaign.scenes import Discovery, Scene, SceneExit, SceneRules
 from wayfarer.engine.simulation.campaign.studio import GenerationBrief, ScenarioGraph
-from wayfarer.engine.simulation.combat.combat import (
-    AttackProfile,
-    Battlefield,
-    CombatConsequence,
-    CombatRules,
-)
+from wayfarer.engine.simulation.combat.battlefield import Battlefield
+from wayfarer.engine.simulation.combat.profiles import AttackProfile, CombatConsequence, CombatRules
 from wayfarer.engine.simulation.health.recovery import RecoveryOption, RecoveryRules, SetbackRule
 from wayfarer.engine.simulation.resources import (
     EquipmentSpec,

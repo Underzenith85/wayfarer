@@ -26,19 +26,19 @@ from wayfarer.engine.simulation.actors import (
     injury_turn,
     movement,
 )
-from wayfarer.engine.simulation.combat.combat import (
-    BasicSpatialContext,
+from wayfarer.engine.simulation.combat.encounter import (
     Combatant,
-    CombatEngine,
     CombatResult,
     Encounter,
     basic_distance,
     basic_visible,
     move_basic,
 )
+from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.maneuvers import ManeuverState, WaitInterrupt, WaitTrigger
 from wayfarer.engine.simulation.combat.melee import defense_value
 from wayfarer.engine.simulation.combat.objects.locations import unavailable_hand
+from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
 from wayfarer.engine.simulation.combat.unarmed_records import (
     BASIC,
     GrappleLocation,
@@ -1503,7 +1503,7 @@ def critical_miss(
     continuation; a bare limb never selects the armed weapon-break/drop table.
     """
     if hand not in (None, "left-hand", "right-hand"):
-        from wayfarer.engine.simulation.combat.combat import PendingDefense
+        from wayfarer.engine.simulation.combat.encounter import PendingDefense
         from wayfarer.engine.simulation.combat.ranged_misses import resolve_miss
 
         # The shared weapon reducer needs the pending transaction identity, not

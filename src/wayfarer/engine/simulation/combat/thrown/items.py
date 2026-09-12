@@ -5,7 +5,9 @@ from typing import TYPE_CHECKING, Literal
 
 from wayfarer.engine.rules.types.object import GroundPosition
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.combat.combat import Battlefield, CombatEngine, Encounter
+from wayfarer.engine.simulation.combat.battlefield import Battlefield
+from wayfarer.engine.simulation.combat.encounter import Encounter
+from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.resources import Item, ResourceEvent, ResourceState
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record

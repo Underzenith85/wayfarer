@@ -7,7 +7,8 @@ from typing import TYPE_CHECKING
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, level
-from wayfarer.engine.simulation.combat.combat import CombatEngine, Encounter
+from wayfarer.engine.simulation.combat.encounter import Encounter
+from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.maneuvers import attack_modifier
 from wayfarer.engine.simulation.combat.melee import mode
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode

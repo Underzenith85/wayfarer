@@ -12,7 +12,7 @@ from test_statistics import BASIC, LITE
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.gurps_checks import replay_success
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.combat.combat import Encounter
+from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.unarmed import settle_control
 from wayfarer.engine.simulation.combat.unarmed_records import (
     Grip,

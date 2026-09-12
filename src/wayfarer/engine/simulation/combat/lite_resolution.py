@@ -5,7 +5,9 @@ from __future__ import annotations
 from wayfarer.engine.rules.checks import Modifier, Outcome, draw_dice, success_check
 from wayfarer.engine.rules.effects import DerivedValue, EffectEvaluator, MechanicalTarget
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.combat.combat import Defense, Encounter, InjuryTrace
+from wayfarer.engine.simulation.combat.encounter import Encounter
+from wayfarer.engine.simulation.combat.profiles import InjuryTrace
+from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
 

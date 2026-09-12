@@ -5,8 +5,9 @@ from typing import Literal
 
 from pydantic import Field, model_validator
 
-from wayfarer.engine.simulation.combat.combat import Combatant, InjuryTrace, RangedSituation
 from wayfarer.engine.simulation.combat.critical import TableRoll
+from wayfarer.engine.simulation.combat.encounter import Combatant, RangedSituation
+from wayfarer.engine.simulation.combat.profiles import InjuryTrace
 from wayfarer.engine.simulation.equipment.catalog import EquipmentCatalog, RangedMode
 from wayfarer.engine.simulation.resources import (
     AmmunitionLoad,

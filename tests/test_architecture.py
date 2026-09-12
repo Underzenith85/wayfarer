@@ -22,7 +22,7 @@ REDUCER_MODULES = (
 
 class ArchitectureTests(unittest.TestCase):
     def test_encounters_reference_templates_without_embedding_maps(self) -> None:
-        from wayfarer.engine.simulation.combat.combat import Encounter
+        from wayfarer.engine.simulation.combat.encounter import Encounter
 
         self.assertNotIn("hex_battlefield", Encounter.model_fields)
         self.assertNotIn("HexBattlefield", Encounter.model_json_schema().get("$defs", {}))

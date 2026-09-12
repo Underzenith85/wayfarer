@@ -11,7 +11,9 @@ from wayfarer.engine.rules.types.explosion import BlastResponse, ExplosionSpec
 from wayfarer.engine.rules.types.firearm import FirearmFailure
 from wayfarer.engine.rules.types.object import GroundPosition
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.combat.combat import Battlefield, CombatEngine, Encounter, GridPoint
+from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
+from wayfarer.engine.simulation.combat.encounter import Encounter
+from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.explosions import BlastRecord, blasts, save
 from wayfarer.engine.simulation.combat.firearms import spend_rounds
 from wayfarer.engine.simulation.equipment.catalog import RangedMode

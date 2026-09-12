@@ -19,7 +19,7 @@ from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.skills.mundane import inventory
 from wayfarer.engine.rules.skills.mundane.ranged import definitions, require_mode
 from wayfarer.engine.rules.types.launcher import LauncherSpec
-from wayfarer.engine.simulation.combat.combat import RangedSituation
+from wayfarer.engine.simulation.combat.encounter import RangedSituation
 from wayfarer.engine.simulation.equipment.catalog import (
     LITE_SOURCE,
     Damage,

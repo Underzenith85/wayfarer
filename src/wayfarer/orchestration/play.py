@@ -101,7 +101,7 @@ class PlayService:
             override = campaign.get("combat_rules_json")
             if override is None:
                 return self
-            from wayfarer.engine.simulation.combat.combat import CombatRules
+            from wayfarer.engine.simulation.combat.profiles import CombatRules
 
             original = self.engine.rules.combat
             if original is None:

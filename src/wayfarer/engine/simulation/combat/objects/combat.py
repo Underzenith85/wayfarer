@@ -11,8 +11,9 @@ from wayfarer.engine.rules.tables.combat import (
 )
 from wayfarer.engine.rules.types.object import ObjectResult, residual_definition
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.combat.combat import Encounter, GridPoint
+from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.critical import Die, TableRoll
+from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.equipment.catalog import (
     Damage,
     EquipmentProfile,
@@ -463,7 +464,7 @@ def target_positions(
     item_id: str,
 ) -> tuple[GridPoint | Hex, ...]:
     """B400–401: held weapon length occupies forward hexes; ground items keep their landing."""
-    from wayfarer.engine.simulation.combat.combat import GridPoint
+    from wayfarer.engine.simulation.combat.battlefield import GridPoint
     from wayfarer.engine.simulation.hex_geometry import DIRECTIONS, Hex
 
     item = next(i for i in state.resources.items if i.id == item_id)
@@ -501,7 +502,8 @@ def target_geometry(
     reach: frozenset[int] | None = None,
 ) -> Encounter:
     """Use a reachable visible part of the item for geometry, never move its owner."""
-    from wayfarer.engine.simulation.combat.combat import CombatEngine, GridPoint
+    from wayfarer.engine.simulation.combat.battlefield import GridPoint
+    from wayfarer.engine.simulation.combat.engine import CombatEngine
     from wayfarer.engine.simulation.combat.tactical import attack_geometry
     from wayfarer.engine.simulation.hex_geometry import Hex
 
