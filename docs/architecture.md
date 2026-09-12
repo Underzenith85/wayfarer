@@ -468,3 +468,30 @@ disappear; it may never grow, and a new one may not be added. The remaining
 entries are the long resolvers, which are the next candidates: applying a turn,
 applying injury, ranged and melee resolution, casting, compiling a character and
 applying recovery.
+
+### Combat eligibility and resolved settlement (#560)
+
+`engine/simulation/combat/settlement.py` owns combat eligibility, automatic
+completion and skipping incapacitated initiative entries. Both turn and defense
+commands reach it through the shared settlement step; defense resolution must not
+complete or advance past incapacitated actors independently. Pending defenses,
+unarmed resolutions and blocked interactions remain active until resolved.
+
+For GURPS equipment combat, an eligible participant has explicit, matching HP
+injury and FP fatigue records, is not injury-incapacitated, and passes the persisted
+`fatigue_ready` check. B419-420 and B426 permit conscious actors at nonpositive HP
+and noncollapsed actors at nonpositive FP to continue under the applicable checks.
+Settlement draws no dice. Fatigue collapse, unconsciousness and heart attack
+exclude an actor even when their injury record is unaffected. Stun and being prone
+do not alone exclude them. Missing GURPS records fail validation with the pool id;
+only the explicit prototype path retains its HP-only fallback.
+
+The fewer-than-two eligible participants stopping condition remains engine policy.
+Issue #568 tracks replacing that count with explicit opposition/lifecycle semantics.
+Completion preserves injury and fatigue records for recovery.
+
+The reviewed `fatigue-turn` and `fatigue-defense` replay fixtures start with a
+fatigue-collapsed defender whose injury record remains unincapacitated. The latter
+also retains an unresolved attack. Both finish with `incapacitation` after their
+command resolves. Existing five fixture families regenerate unchanged; the new
+cases are required by the release gate. No engine version bump is involved.

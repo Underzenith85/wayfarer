@@ -207,7 +207,18 @@ async def test_process_death_rolls_back_projection_event_and_receipt(tmp_path: P
     assert await reopened.replay(cid) == await reopened.read(cid)
 
 
-@pytest.mark.parametrize("case", ["reference", "capture-rescue", "hex-combat", "spell", "recovery"])
+@pytest.mark.parametrize(
+    "case",
+    [
+        "reference",
+        "capture-rescue",
+        "hex-combat",
+        "spell",
+        "recovery",
+        "fatigue-turn",
+        "fatigue-defense",
+    ],
+)
 async def test_fixture_fold_and_reexecution(
     case: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
