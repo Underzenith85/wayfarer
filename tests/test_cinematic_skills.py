@@ -5,7 +5,7 @@ from dataclasses import replace
 import pytest
 from test_statistics import gurps_draft, profile_package
 
-from wayfarer.character.compiler import CharacterCompiler, Purchase
+from wayfarer.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.rules.catalog import (
     CampaignPolicy,
@@ -112,7 +112,7 @@ def compiler() -> CharacterCompiler:
     return CharacterCompiler(RulesCatalog((combined,)), rules, policy, statistics_profile=PROFILE)
 
 
-def approved_weird_science():
+def approved_weird_science() -> ValidatedBuild:
     engine = compiler()
     result = engine.compile(gurps_draft(Purchase(definition_id="skill:weird-science", amount=4)))
     assert result.build is not None, result.diagnostics
