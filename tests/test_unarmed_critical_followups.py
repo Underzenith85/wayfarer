@@ -10,7 +10,7 @@ from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.maneuvers import ManeuverState
-from wayfarer.engine.simulation.combat.unarmed import fighter, guard_control
+from wayfarer.engine.simulation.combat.unarmed.fighters import fighter, guard_control
 from wayfarer.engine.simulation.equipment.catalog import Damage, MeleeMode, Parry
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import ChooseDefense, CombatService, TakeUnarmedTurn

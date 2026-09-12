@@ -437,7 +437,7 @@ def _release_missile(
     turn_started: bool,
 ) -> PlayState:
     from wayfarer.engine.simulation.actors import injury_turn
-    from wayfarer.engine.simulation.combat.melee import defense_value
+    from wayfarer.engine.simulation.combat.melee.defense import defense_value
 
     if context.target_id == command.actor_id:
         raise ValidationError("Missile release requires another participant")

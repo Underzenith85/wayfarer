@@ -40,7 +40,7 @@ from wayfarer.engine.simulation.campaign.scenes import Scene, SceneRules
 from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
 from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
 from wayfarer.engine.simulation.combat.encounter import RangedSituation
-from wayfarer.engine.simulation.combat.melee import defense_value
+from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.engine.simulation.combat.profiles import CombatRules
 from wayfarer.engine.simulation.combat.spatial import Placement
 from wayfarer.engine.simulation.combat.vocabulary import Defense

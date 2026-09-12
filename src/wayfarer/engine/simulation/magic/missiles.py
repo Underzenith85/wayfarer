@@ -10,7 +10,7 @@ from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, level
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
-from wayfarer.engine.simulation.combat.melee import defense_value
+from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.engine.simulation.combat.profiles import InjuryTrace
 from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers

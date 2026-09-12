@@ -17,12 +17,12 @@ from pydantic import Field
 from wayfarer.engine.rules.types.recovery import ProfileId
 from wayfarer.engine.simulation.actions import ActionCommand, PlayState
 from wayfarer.engine.simulation.health.injury import InjuryResult
-from wayfarer.engine.simulation.health.medical import (
+from wayfarer.engine.simulation.health.medical.commands import (
     BeginRecovery,
     CareContext,
     FinishRecovery,
-    apply_recovery,
 )
+from wayfarer.engine.simulation.health.medical.recovery import apply_recovery
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.medical import (
     CareEnvironment,

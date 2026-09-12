@@ -11,7 +11,7 @@ from test_social_completion import with_aftermath
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.fright import FrightEffect
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
-from wayfarer.engine.simulation.combat.melee import defense_value
+from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.fatigue import ContinueExertion, apply_fatigue
 from wayfarer.engine.simulation.health.fright import effects

@@ -197,7 +197,7 @@ async def test_smartgun_rejects_an_unauthorized_owner(tmp_path: Path) -> None:
             )
         }
     )
-    from wayfarer.engine.simulation.combat.melee import mode as select_mode
+    from wayfarer.engine.simulation.combat.melee.modes import mode as select_mode
 
     with pytest.raises(ValidationError, match="denies"):
         select_mode(play.rules_context, denied, "a", "sword-a", "beam")

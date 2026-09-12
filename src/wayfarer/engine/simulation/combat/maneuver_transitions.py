@@ -10,7 +10,7 @@ from wayfarer.engine.simulation.actors import build, catalog, level
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.maneuvers import attack_modifier
-from wayfarer.engine.simulation.combat.melee import mode
+from wayfarer.engine.simulation.combat.melee.modes import mode
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.errors import ValidationError
@@ -39,7 +39,9 @@ def observe(
             raise ValidationError("Aim requires one selected ranged mode")
         aimed_mode = modes[0]
         if aimed_mode.rated_strength is not None:
-            from wayfarer.engine.simulation.combat.ranged import validate_rated_strength
+            from wayfarer.engine.simulation.combat.ranged.situation import (
+                validate_rated_strength,
+            )
             from wayfarer.engine.simulation.health.fatigue import fatigue_value
 
             stats = build(runtime, state, actor.actor_id).statistics

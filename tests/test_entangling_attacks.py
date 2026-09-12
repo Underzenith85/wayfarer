@@ -142,7 +142,7 @@ async def test_binding_penalises_the_victims_attacks_and_defenses(tmp_path: Path
     assert result.injury is not None
     assert result.injury.attack.effective_target == 13 - 4 - 2
     # b's own Dodge carries the binding's -3 through the shared defense service.
-    from wayfarer.engine.simulation.combat.melee import defense_value
+    from wayfarer.engine.simulation.combat.melee.defense import defense_value
 
     state = play._load(await play.store.read(cid))
     dodge, _ = defense_value(play.rules_context, state, participant(state), "dodge")

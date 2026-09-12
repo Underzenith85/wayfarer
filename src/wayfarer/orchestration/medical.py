@@ -10,13 +10,13 @@ from typing import cast
 from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.rules.types.recovery import ProfileId
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.health.medical import (
+from wayfarer.engine.simulation.health.medical.commands import (
     BeginRecovery,
     CareContext,
     FinishRecovery,
     RecoveryResult,
-    apply_recovery,
 )
+from wayfarer.engine.simulation.health.medical.recovery import apply_recovery
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.entropy import commit_command

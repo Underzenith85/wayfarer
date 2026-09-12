@@ -13,7 +13,7 @@ from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.gurps_checks import replay_success
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.combat.encounter import Encounter
-from wayfarer.engine.simulation.combat.unarmed import settle_control
+from wayfarer.engine.simulation.combat.unarmed.fighters import settle_control
 from wayfarer.engine.simulation.combat.unarmed_records import (
     Grip,
     contest,
@@ -494,7 +494,7 @@ def test_shared_independent_unarmed_ledger() -> None:
 
 
 async def test_grappled_arm_cannot_parry_with_held_weapon(tmp_path: Path) -> None:
-    from wayfarer.engine.simulation.combat.melee import defense_value
+    from wayfarer.engine.simulation.combat.melee.defense import defense_value
 
     cid, play = await setup(tmp_path)
     await action(cid, play, "a", "grapple", hands=("left-hand",), enter=True, location="left-arm")

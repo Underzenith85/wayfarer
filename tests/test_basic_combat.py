@@ -7,7 +7,7 @@ import pytest
 from test_encounter_context import load, setup
 
 from wayfarer.engine.simulation.combat.encounter import RangedSituation, basic_distance
-from wayfarer.engine.simulation.combat.ranged import situation
+from wayfarer.engine.simulation.combat.ranged.situation import situation
 from wayfarer.engine.simulation.combat.spatial import (
     BasicSpatialContext,
     BasicSpatialFact,

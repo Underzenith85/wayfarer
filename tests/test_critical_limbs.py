@@ -9,7 +9,7 @@ from test_gurps_melee import attack, choice, setup
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.simulation.combat.critical import CriticalMiss
 from wayfarer.engine.simulation.combat.criticals.limbs import CriticalLimbResult, resolve_limb
-from wayfarer.engine.simulation.combat.melee import mode
+from wayfarer.engine.simulation.combat.melee.modes import mode
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import CombatService

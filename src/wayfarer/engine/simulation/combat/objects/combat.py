@@ -432,7 +432,7 @@ def intercepted_projectiles(
         return None, 0
     if selected != "dodge":
         return shield, 1
-    from wayfarer.engine.simulation.combat.melee import defense_value
+    from wayfarer.engine.simulation.combat.melee.defense import defense_value
 
     pending = encounter.pending_defense
     assert pending is not None

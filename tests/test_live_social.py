@@ -36,7 +36,7 @@ def test_explicit_v2_contract_is_pinned() -> None:
 async def test_fright_stun_defense_and_unconscious_no_defense(tmp_path: Path) -> None:
     from test_gurps_melee import setup
 
-    from wayfarer.engine.simulation.combat.melee import defense_value
+    from wayfarer.engine.simulation.combat.melee.defense import defense_value
 
     cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004")
     state = play._load(await play.store.read(cid))

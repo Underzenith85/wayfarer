@@ -11,12 +11,12 @@ from test_resources import engine
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.types.recovery import interrupt_tasks
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
-from wayfarer.engine.simulation.health.medical import (
+from wayfarer.engine.simulation.health.medical.commands import (
     BeginRecovery,
     CareContext,
     FinishRecovery,
-    apply_recovery,
 )
+from wayfarer.engine.simulation.health.medical.recovery import apply_recovery
 from wayfarer.engine.simulation.resources import Advance, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 

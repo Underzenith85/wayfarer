@@ -12,16 +12,14 @@ from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import movement
 from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.combat.encounter import Encounter
-from wayfarer.engine.simulation.combat.melee import prepare_attack
-from wayfarer.engine.simulation.combat.ranged import validate_command
+from wayfarer.engine.simulation.combat.melee.attack import prepare_attack
+from wayfarer.engine.simulation.combat.ranged.situation import validate_command
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
 from wayfarer.engine.simulation.combat.tactical import TacticalTrace, pose
 from wayfarer.engine.simulation.combat.tactical_transitions import prepare_defense
-from wayfarer.engine.simulation.combat.unarmed import (
-    guard_control,
-    unarmed_defense,
-    validate_action,
-)
+from wayfarer.engine.simulation.combat.unarmed.declaration import validate_action
+from wayfarer.engine.simulation.combat.unarmed.defense import unarmed_defense
+from wayfarer.engine.simulation.combat.unarmed.fighters import guard_control
 from wayfarer.engine.simulation.combat.visibility import visible_actors as visible_actors
 from wayfarer.engine.simulation.combat.vocabulary import Maneuver
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode
@@ -162,7 +160,7 @@ def preview(
                 command.item_id,
             )
         else:
-            from wayfarer.engine.simulation.combat.melee import validate_defense_choices
+            from wayfarer.engine.simulation.combat.melee.defense import validate_defense_choices
 
             if (
                 prepared.pending_defense is None
@@ -204,7 +202,7 @@ def preview(
         "move_and_attack",
         "feint",
     ):
-        from wayfarer.engine.simulation.combat.melee import mode
+        from wayfarer.engine.simulation.combat.melee.modes import mode
 
         selected = mode(
             play.rules_context, state, command.actor_id, command.item_id, command.mode_id
@@ -326,8 +324,8 @@ def choices(
             return ()
         allowed = pending.allowed if pending else unarmed.allowed if unarmed else ()
         if pending:
-            from wayfarer.engine.simulation.combat.melee import mode as weapon_mode
-            from wayfarer.engine.simulation.combat.unarmed import free_hands
+            from wayfarer.engine.simulation.combat.melee.modes import mode as weapon_mode
+            from wayfarer.engine.simulation.combat.unarmed.fighters import free_hands
 
             incoming = (
                 weapon_mode(

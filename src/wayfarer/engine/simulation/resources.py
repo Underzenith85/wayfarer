@@ -784,7 +784,7 @@ class ResourceEngine:
                     ),
                 }
             )
-            from wayfarer.engine.simulation.health.medical import accrue_rest
+            from wayfarer.engine.simulation.health.medical.rest import accrue_rest
 
             updated = updated.model_copy(
                 update={

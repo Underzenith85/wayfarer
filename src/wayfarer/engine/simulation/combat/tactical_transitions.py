@@ -395,7 +395,7 @@ def prepare_defense(
         target = next(p for p in encounter.participants if p.actor_id == defender_id)
         bonus = 0
         if command.basic_retreat:
-            from wayfarer.engine.simulation.combat.melee import mode
+            from wayfarer.engine.simulation.combat.melee.modes import mode
             from wayfarer.engine.simulation.equipment.catalog import RangedMode
 
             hp = next(p for p in state.resources.pools if p.id == f"hp:{target.actor_id}")
@@ -456,7 +456,7 @@ def prepare_defense(
     target = next(p for p in encounter.participants if p.actor_id == defender_id)
     bonus = defense_adjustment(encounter, actor, target) if command.defense != "none" else 0
     if command.retreat is not None:
-        from wayfarer.engine.simulation.combat.melee import mode
+        from wayfarer.engine.simulation.combat.melee.modes import mode
         from wayfarer.engine.simulation.equipment.catalog import RangedMode
 
         if command.defense == "none" or command.second_defense is not None:

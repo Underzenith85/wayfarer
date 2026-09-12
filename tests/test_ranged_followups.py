@@ -334,7 +334,7 @@ async def test_one_eye_aim_removes_ranged_penalty_even_with_zero_acc(
     tmp_path: Path, aim_first: bool, target: int
 ) -> None:
     from wayfarer.engine.rules.types.location import LastingInjury
-    from wayfarer.engine.simulation.combat.ranged import resolve
+    from wayfarer.engine.simulation.combat.ranged.resolution import resolve
 
     ranged = weapon(thrown=True).model_copy(update={"accuracy": 0})
     cid, play = await setup(

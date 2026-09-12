@@ -13,7 +13,7 @@ from wayfarer.engine.rules.types.injury import InjuryStatus
 from wayfarer.engine.rules.types.recovery import FatigueStatus
 from wayfarer.engine.simulation.action_engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, Move, Wait
-from wayfarer.engine.simulation.health.medical import BeginRecovery, FinishRecovery
+from wayfarer.engine.simulation.health.medical.commands import BeginRecovery, FinishRecovery
 from wayfarer.engine.simulation.resources import Owner, ResourceEngine, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.medical import CareEnvironment, MedicalService
@@ -218,7 +218,8 @@ async def test_heart_attack_deadline_uses_shared_clock_once(tmp_path: Path) -> N
 async def test_rest_at_full_fp_cannot_bank_credit_against_future_cost(tmp_path: Path) -> None:
     from wayfarer.engine.rules.checks import RecordedDice
     from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
-    from wayfarer.engine.simulation.health.medical import CareContext, apply_recovery
+    from wayfarer.engine.simulation.health.medical.commands import CareContext
+    from wayfarer.engine.simulation.health.medical.recovery import apply_recovery
     from wayfarer.engine.simulation.resources import Advance
 
     cid, play, _ = await setup(tmp_path)
@@ -276,7 +277,8 @@ async def test_rest_at_full_fp_cannot_bank_credit_against_future_cost(tmp_path: 
 
 async def test_partial_rest_accrues_before_exhaustion_cost_and_never_twice(tmp_path: Path) -> None:
     from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
-    from wayfarer.engine.simulation.health.medical import CareContext, apply_recovery
+    from wayfarer.engine.simulation.health.medical.commands import CareContext
+    from wayfarer.engine.simulation.health.medical.recovery import apply_recovery
     from wayfarer.engine.simulation.resources import Advance
 
     cid, play, _ = await setup(tmp_path)
@@ -342,7 +344,8 @@ async def test_partial_rest_accrues_before_exhaustion_cost_and_never_twice(tmp_p
 
 
 async def test_restricted_rest_accrual_preserves_continuous_day(tmp_path: Path) -> None:
-    from wayfarer.engine.simulation.health.medical import CareContext, apply_recovery
+    from wayfarer.engine.simulation.health.medical.commands import CareContext
+    from wayfarer.engine.simulation.health.medical.recovery import apply_recovery
     from wayfarer.engine.simulation.resources import Advance
 
     cid, play, _ = await setup(tmp_path)
@@ -394,7 +397,8 @@ async def test_restricted_rest_accrual_preserves_continuous_day(tmp_path: Path) 
 
 async def test_natural_healing_cannot_be_banked_for_future_injury(tmp_path: Path) -> None:
     from wayfarer.engine.simulation.health.injury import Wound, apply_injury
-    from wayfarer.engine.simulation.health.medical import CareContext, apply_recovery
+    from wayfarer.engine.simulation.health.medical.commands import CareContext
+    from wayfarer.engine.simulation.health.medical.recovery import apply_recovery
     from wayfarer.engine.simulation.resources import Advance
 
     cid, play, _ = await setup(tmp_path)
@@ -460,7 +464,8 @@ async def test_natural_healing_cannot_be_banked_for_future_injury(tmp_path: Path
 
 async def test_exertion_interrupts_rest_and_death_cannot_deadlock_clock(tmp_path: Path) -> None:
     from wayfarer.engine.simulation.health.fatigue import ContinueExertion, apply_fatigue
-    from wayfarer.engine.simulation.health.medical import CareContext, apply_recovery
+    from wayfarer.engine.simulation.health.medical.commands import CareContext
+    from wayfarer.engine.simulation.health.medical.recovery import apply_recovery
     from wayfarer.engine.simulation.resources import Advance
 
     cid, play, _ = await setup(tmp_path)

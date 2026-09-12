@@ -208,7 +208,7 @@ def equipment_view(play: PlayService, state: PlayState, actor_id: str) -> tuple[
         )
     if encounter is not None:
         from wayfarer.engine.simulation.combat.thrown.items import record, recover
-        from wayfarer.engine.simulation.combat.unarmed import free_hands
+        from wayfarer.engine.simulation.combat.unarmed.fighters import free_hands
 
         for item in state.resources.expended_items:
             landing = record(state.resources, item.id)

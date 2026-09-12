@@ -259,7 +259,7 @@ async def test_crossbow_missing_aid_rejects_before_dice(tmp_path: Path) -> None:
 @pytest.mark.parametrize("quantity", [1, 10])
 async def test_fast_draw_respects_shared_reservations(tmp_path: Path, quantity: int) -> None:
     from wayfarer.engine.rules.types.readiness import ProjectileProgress
-    from wayfarer.engine.simulation.combat.ranged import reload_weapon
+    from wayfarer.engine.simulation.combat.ranged.ammunition import reload_weapon
     from wayfarer.engine.simulation.resources import AmmunitionLoad, Item
 
     mode = rated().model_copy(

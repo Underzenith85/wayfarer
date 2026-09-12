@@ -182,7 +182,7 @@ def recover(
     from wayfarer.engine.simulation.actors import build, catalog
     from wayfarer.engine.simulation.combat.explosions import guard as blast_guard
     from wayfarer.engine.simulation.combat.thrown.flight import position
-    from wayfarer.engine.simulation.combat.unarmed import free_hands
+    from wayfarer.engine.simulation.combat.unarmed.fighters import free_hands
 
     blast_guard(state.resources)
     equipment = catalog(runtime)
@@ -250,8 +250,8 @@ def validate_catch(
     runtime: RulesContext, state: PlayState, encounter: Encounter, command: ChooseDefense
 ) -> None:
     from wayfarer.engine.simulation.actors import catalog
-    from wayfarer.engine.simulation.combat.melee import mode
-    from wayfarer.engine.simulation.combat.unarmed import free_hands
+    from wayfarer.engine.simulation.combat.melee.modes import mode
+    from wayfarer.engine.simulation.combat.unarmed.fighters import free_hands
     from wayfarer.engine.simulation.equipment.catalog import RangedMode
 
     pending = encounter.pending_defense

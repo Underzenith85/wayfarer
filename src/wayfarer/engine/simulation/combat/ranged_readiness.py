@@ -44,7 +44,7 @@ def reload(
     validate_only: bool,
 ) -> ResourceState:
     from wayfarer.engine.simulation.actors import build, catalog
-    from wayfarer.engine.simulation.combat.ranged import validate_rated_strength
+    from wayfarer.engine.simulation.combat.ranged.situation import validate_rated_strength
     from wayfarer.engine.simulation.combat.thrown.flight import position
 
     spec = weapon.readiness

@@ -16,12 +16,12 @@ from wayfarer.engine.simulation.health.condition_checks import (
     require_hazard_capacity,
 )
 from wayfarer.engine.simulation.health.hazards import HazardCommand, apply_hazard
-from wayfarer.engine.simulation.health.medical import (
+from wayfarer.engine.simulation.health.medical.commands import (
     BeginRecovery,
     CareContext,
     FinishRecovery,
-    apply_recovery,
 )
+from wayfarer.engine.simulation.health.medical.recovery import apply_recovery
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.hazard_care import HazardCare, HazardCareCommand, HazardCareService
 from wayfarer.orchestration.hazards import HazardContext, HazardService

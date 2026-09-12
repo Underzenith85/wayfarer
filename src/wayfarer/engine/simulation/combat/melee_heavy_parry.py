@@ -44,7 +44,7 @@ def resolve_heavy_parry(
     defender: Combatant,
     item_id: str,
 ) -> tuple[PlayState, Combatant, tuple[int, ...], bool]:
-    from wayfarer.engine.simulation.combat.melee import heavy_parry_weight
+    from wayfarer.engine.simulation.combat.melee.modes import heavy_parry_weight
     from wayfarer.engine.simulation.combat.objects.combat import effective_entry, synchronize
 
     pending = encounter.pending_defense

@@ -22,13 +22,13 @@ from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.traits.physical import PhysicalTraits, SurpriseState
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.health.injury import InjuryTurn, apply_injury
-from wayfarer.engine.simulation.health.medical import (
+from wayfarer.engine.simulation.health.medical.commands import (
     BeginRecovery,
     CareContext,
     FinishRecovery,
-    accrue_rest,
-    apply_recovery,
 )
+from wayfarer.engine.simulation.health.medical.recovery import apply_recovery
+from wayfarer.engine.simulation.health.medical.rest import accrue_rest
 from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.physical_checks import (
@@ -254,8 +254,8 @@ async def test_approved_sense_check_is_private_authorized_and_retry_safe(tmp_pat
 async def test_combat_reflexes_boosts_every_active_defense(tmp_path: Path) -> None:
     from test_gurps_melee import setup
 
-    from wayfarer.engine.simulation.combat.melee import defense_value
-    from wayfarer.engine.simulation.combat.unarmed import unarmed_defense
+    from wayfarer.engine.simulation.combat.melee.defense import defense_value
+    from wayfarer.engine.simulation.combat.unarmed.defense import unarmed_defense
 
     plain_id, plain = await setup(tmp_path / "plain", PROFILE, unarmed_fixture=True)
     trait_id, enhanced = await setup(

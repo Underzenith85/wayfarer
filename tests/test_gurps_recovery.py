@@ -15,11 +15,13 @@ from wayfarer.engine.simulation.health.fatigue import (
     fatigue_value,
 )
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
-from wayfarer.engine.simulation.health.medical import (
+from wayfarer.engine.simulation.health.medical.commands import (
     BeginRecovery,
     CareContext,
     FinishRecovery,
-    apply_recovery,
+)
+from wayfarer.engine.simulation.health.medical.recovery import apply_recovery
+from wayfarer.engine.simulation.health.medical.tables import (
     first_aid_parameters,
     physician_parameters,
 )

@@ -159,9 +159,9 @@ def resolve_blast(
 ) -> tuple[PlayState, Encounter, int]:
     from wayfarer.engine.rules.tables.ranged import range_penalty
     from wayfarer.engine.simulation.actors import catalog, movement
-    from wayfarer.engine.simulation.combat.melee import defense_value
+    from wayfarer.engine.simulation.combat.melee.defense import defense_value
     from wayfarer.engine.simulation.combat.thrown.flight import position
-    from wayfarer.engine.simulation.combat.unarmed import hurt
+    from wayfarer.engine.simulation.combat.unarmed.injury import hurt
     from wayfarer.engine.simulation.equipment.objects import DamageObject, apply_object
     from wayfarer.engine.simulation.health.hit_locations import select_location
 

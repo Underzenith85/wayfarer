@@ -9,7 +9,7 @@ from test_gurps_melee import attack, choice, setup
 
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.types.object import ObjectProfile
-from wayfarer.engine.simulation.combat.melee import defense_value
+from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.engine.simulation.combat.melee_heavy_parry import HeavyParryResult
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import CombatService

@@ -8,7 +8,7 @@ from test_unarmed_integrations import checkpoint
 
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.simulation.combat.engine import CombatEngine
-from wayfarer.engine.simulation.combat.unarmed import fighter
+from wayfarer.engine.simulation.combat.unarmed.fighters import fighter
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import ChooseDefense, CombatService
 from wayfarer.orchestration.play import PlayService
