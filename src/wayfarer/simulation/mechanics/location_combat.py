@@ -76,19 +76,30 @@ def validate_target(
     )
     if any(h in occupied_hands for _, h in attacker.hand_bindings):
         raise ValidationError("Selected weapon hand is controlled by a grapple")
+    from wayfarer.simulation.combat import (
+        BasicSpatialContext,
+        CombatEngine,
+        basic_distance,
+    )
+
+    distance = (
+        basic_distance(encounter, attacker_id, defender_id)
+        if isinstance(encounter.spatial, BasicSpatialContext)
+        else float(CombatEngine.distance(attacker.position, defender.position))
+    )
     if isinstance(selected, RangedMode):
-        if attacker.position == defender.position or any(
-            attacker_id in (g.holder_id, g.target_id) for g in encounter.grips
-        ):
+        if distance == 0 or any(attacker_id in (g.holder_id, g.target_id) for g in encounter.grips):
             raise ValidationError(
                 "Ranged attacks while in close combat require further integration"
             )
-    elif attacker.position == defender.position and 0 not in selected.reach:
+    elif distance == 0 and 0 not in selected.reach:
         raise ValidationError("Weapon does not support close-combat reach")
     hp = next(p for p in state.resources.pools if p.id == f"hp:{defender_id}")
     if hp.injury is None:
         raise ValidationError("GURPS injury requires explicit migration")
     require_location(hp.injury, location)
+    if location in ("left-eye", "right-eye") and isinstance(encounter.spatial, BasicSpatialContext):
+        raise ValidationError("Basic eye targeting requires an authoritative facing judgment")
     if location in ("left-eye", "right-eye") and from_behind(attacker, defender):
         raise ValidationError("Eyes cannot be targeted from behind")
     if location is not None and location != "random":

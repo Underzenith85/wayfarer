@@ -19,6 +19,7 @@ from wayfarer.rules.ranged_tables import range_penalty, rapid_fire_bonus
 from wayfarer.rules.spray_types import Stream
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.combat import (
+    BasicSpatialContext,
     CombatEngine,
     Defense,
     Encounter,
@@ -51,14 +52,26 @@ def declare(
 ) -> Encounter:
     if not situations:
         return encounter
-    from wayfarer.simulation.mechanics.gurps_melee import catalog
+    if runtime.rules.combat and runtime.rules.combat.gurps_equipment is not None:
+        from wayfarer.simulation.mechanics.gurps_melee import catalog
 
-    catalog(runtime)
+        catalog(runtime)
     keys = [(s.attacker_id, s.defender_id) for s in situations]
     if len(set(keys)) != len(keys) or any(
         a == b or a not in encounter.turn_order or b not in encounter.turn_order for a, b in keys
     ):
         raise ValidationError("Ranged scene requires unique directed participant pairs")
+    if isinstance(encounter.spatial, BasicSpatialContext):
+        if any(
+            item.distance_yards is not None
+            or encounter.spatial.active("distance", item.attacker_id, item.defender_id) is None
+            for item in situations
+        ):
+            raise ValidationError(
+                "Basic ranged situations derive distance from authoritative spatial facts"
+            )
+    elif any(item.distance_yards is None for item in situations):
+        raise ValidationError("Mapped ranged situations require declared distance")
     return encounter.model_copy(update={"ranged_situations": situations})
 
 
@@ -95,14 +108,20 @@ def situation(
             beam=bool(weapon and weapon.damage.tight_beam),
         )
         value = value.model_copy(update={"distance_yards": float(distance)})
+    elif encounter.spatial_kind == "basic":
+        from wayfarer.simulation.combat import basic_distance
+
+        value = value.model_copy(
+            update={"distance_yards": basic_distance(encounter, attacker, defender)}
+        )
     if ground:
         actor = next(p for p in encounter.participants if p.actor_id == attacker)
         target = next(p for p in encounter.participants if p.actor_id == defender)
         value = value.model_copy(
             update={
                 "speed_yards_per_second": 0.0,
-                "distance_yards": value.distance_yards
-                if encounter.spatial_kind == "hex"
+                "distance_yards": value.distance
+                if encounter.spatial_kind in ("hex", "basic")
                 else float(CombatEngine.distance(actor.position, target.position)),
             }
         )
@@ -149,7 +168,7 @@ def validate_command(
         if not isinstance(selected, MeleeMode) or selected.damage.basis != "thrust":
             raise ValidationError("Stop thrust requires a ready thrusting melee mode")
     if (
-        encounter.spatial_kind != "hex"
+        encounter.spatial_kind == "square"
         and encounter.ranged_situations
         and (command.destination is not None or command.maneuver == "move")
     ):
@@ -492,7 +511,7 @@ def prepare(
     st = fatigue_value(fp, stats.st)
     validate_rated_strength(catalog(runtime).profile_id, weapon, st)
     range_st = weapon.rated_strength.st if weapon.rated_strength is not None else st
-    if scene.distance_yards > float(weapon.maximum_range) * (
+    if scene.distance > float(weapon.maximum_range) * (
         range_st if weapon.range_basis == "st" else 1
     ):
         raise ValidationError("Target exceeds maximum ranged weapon range")
@@ -735,7 +754,7 @@ def resolve(
         int(value.value)
         + bonus
         + scene.size_modifier
-        + range_penalty(scene.distance_yards + scene.speed_yards_per_second)
+        + range_penalty(scene.distance + scene.speed_yards_per_second)
         + rapid_fire_bonus(pending.shots)
         # A mount bears the weapon, so the firer's own ST is not what limits it.
         - (0 if weapon.mount is not None else minimum_strength_penalty(weapon.minimum_st, st))
@@ -1133,7 +1152,7 @@ def resolve(
         expression = strength_damage(equipment.profile_id, range_st)[0]
     count = weapon.damage.dice or expression.dice
     adds = weapon.damage.adds + (0 if weapon.damage.basis == "fixed" else expression.add)
-    half = weapon.half_damage_range is not None and scene.distance_yards >= float(
+    half = weapon.half_damage_range is not None and scene.distance >= float(
         weapon.half_damage_range
     ) * (range_st if weapon.range_basis == "st" else 1)
     for index in range(impacts if blocked is None else 0):

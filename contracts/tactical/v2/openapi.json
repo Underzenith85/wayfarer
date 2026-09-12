@@ -236,6 +236,31 @@
       }
     },
     "schemas": {
+      "BasicMove": {
+        "additionalProperties": false,
+        "properties": {
+          "reference_actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Reference Actor Id",
+            "type": "string"
+          },
+          "direction": {
+            "enum": [
+              "approach",
+              "withdraw"
+            ],
+            "title": "Direction",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reference_actor_id",
+          "direction"
+        ],
+        "title": "BasicMove",
+        "type": "object"
+      },
       "Cell": {
         "additionalProperties": false,
         "properties": {
@@ -384,6 +409,11 @@
               }
             ],
             "default": null
+          },
+          "basic_retreat": {
+            "default": false,
+            "title": "Basic Retreat",
+            "type": "boolean"
           },
           "parry_mode_id": {
             "anyOf": [
@@ -1629,6 +1659,17 @@
             ],
             "default": null,
             "title": "Hex Facing"
+          },
+          "basic_move": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BasicMove"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           }
         },
         "required": [

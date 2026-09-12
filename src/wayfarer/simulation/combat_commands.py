@@ -11,6 +11,7 @@ from wayfarer.rules.explosion_types import BlastResponse
 from wayfarer.rules.location_types import Hand, HitLocation
 from wayfarer.rules.object_types import GroundPosition
 from wayfarer.simulation.combat import (
+    BasicSpatialFact,
     Defense,
     Facing,
     GridPoint,
@@ -37,6 +38,26 @@ class StartEncounter(CombatCommand):
     scene_id: Id | None = Field(default=None, exclude_if=lambda v: v is None)
     placements: tuple[Placement, ...] = Field(min_length=2)
     ranged_situations: tuple[RangedSituation, ...] = ()
+
+
+class StartBasicEncounter(CombatCommand):
+    kind: Literal["start_basic_encounter"] = "start_basic_encounter"
+    encounter_id: Id
+    scene_id: Id
+    participant_ids: tuple[Id, ...] = Field(min_length=2, max_length=100)
+    facts: tuple[BasicSpatialFact, ...] = Field(default=(), max_length=10000)
+    ranged_situations: tuple[RangedSituation, ...] = ()
+
+
+class BasicMove(Record):
+    reference_actor_id: Id
+    direction: Literal["approach", "withdraw"]
+
+
+class DeclareBasicSpatialFacts(CombatCommand):
+    kind: Literal["declare_basic_spatial_facts"] = "declare_basic_spatial_facts"
+    encounter_id: Id
+    facts: tuple[BasicSpatialFact, ...] = Field(min_length=1, max_length=1000)
 
 
 class TakeCombatTurn(CombatCommand):
@@ -77,6 +98,7 @@ class TakeCombatTurn(CombatCommand):
     braced: bool = Field(default=False, exclude_if=lambda value: not value)
     hex_path: tuple[Hex, ...] = Field(default=(), max_length=100)
     hex_facing: HexFacing | None = None
+    basic_move: BasicMove | None = Field(default=None, exclude_if=lambda value: value is None)
 
 
 class TakeUnarmedTurn(CombatCommand):
@@ -117,6 +139,7 @@ class ChooseDefense(CombatCommand):
     second_item_id: str | None = None
     catch_thrown: bool = Field(default=False, exclude_if=lambda v: not v)
     retreat: Hex | None = None
+    basic_retreat: bool = Field(default=False, exclude_if=lambda value: not value)
     parry_mode_id: str | None = Field(default=None, exclude_if=lambda value: value is None)
     second_parry_mode_id: str | None = Field(default=None, exclude_if=lambda value: value is None)
 
@@ -189,6 +212,8 @@ class ContinueCriticalMiss(CombatCommand):
 
 TypedCombatCommand = Annotated[
     StartEncounter
+    | StartBasicEncounter
+    | DeclareBasicSpatialFacts
     | TakeCombatTurn
     | ChooseDefense
     | JoinEncounter

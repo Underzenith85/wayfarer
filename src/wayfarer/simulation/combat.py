@@ -64,6 +64,7 @@ Defense = Literal["dodge", "parry", "block", "none"]
 
 if TYPE_CHECKING:
     from wayfarer.simulation.actions import PlayState
+    from wayfarer.simulation.combat_commands import BasicMove
 
 
 class GridPoint(Record):
@@ -230,7 +231,7 @@ class HexActorPlacement(Record):
 class SpatialProvenance(Record):
     """Trusted origin and lifetime for an authoritative mapless assertion."""
 
-    source: Literal["scenario", "gm-adjudication"]
+    source: Literal["scenario", "gm-adjudication", "engine-derived"]
     source_id: Id
     declared_by: Id
     declared_revision: int = Field(ge=0)
@@ -311,10 +312,52 @@ class BasicSpatialContext(Record):
 
     @model_validator(mode="after")
     def validate_facts(self) -> BasicSpatialContext:
-        keys = tuple((f.kind, f.subject_id, f.object_id) for f in self.facts)
+        active = tuple(f for f in self.facts if f.provenance.invalidated_revision is None)
+        keys = tuple(
+            (
+                f.kind,
+                min(f.subject_id, f.object_id) if f.kind == "distance" else f.subject_id,
+                max(f.subject_id, f.object_id) if f.kind == "distance" else f.object_id,
+            )
+            for f in active
+        )
         if len(set(keys)) != len(keys):
             raise ValueError("Basic spatial facts require one authoritative value per pair")
+        histories: dict[tuple[str, str, str], list[BasicSpatialFact]] = {}
+        for fact in self.facts:
+            key = (
+                fact.kind,
+                min(fact.subject_id, fact.object_id)
+                if fact.kind == "distance"
+                else fact.subject_id,
+                max(fact.subject_id, fact.object_id) if fact.kind == "distance" else fact.object_id,
+            )
+            histories.setdefault(key, []).append(fact)
+        for history in histories.values():
+            ordered = sorted(history, key=lambda f: f.provenance.declared_revision)
+            if any(
+                left.provenance.invalidated_revision is None
+                or left.provenance.invalidated_revision > right.provenance.declared_revision
+                for left, right in zip(ordered, ordered[1:], strict=False)
+            ):
+                raise ValueError("Basic spatial fact lifetimes cannot overlap")
         return self
+
+    def active(self, kind: str, subject_id: str, object_id: str) -> BasicSpatialFact | None:
+        return next(
+            (
+                fact
+                for fact in reversed(self.facts)
+                if fact.kind == kind
+                and fact.provenance.invalidated_revision is None
+                and (
+                    (fact.subject_id, fact.object_id) == (subject_id, object_id)
+                    or kind == "distance"
+                    and (fact.subject_id, fact.object_id) == (object_id, subject_id)
+                )
+            ),
+            None,
+        )
 
 
 class SquareSpatialContext(Record):
@@ -413,6 +456,12 @@ class PendingDefense(Record):
     post_attack_hex_path: tuple[Hex, ...] = ()
     post_attack_facing: HexFacing | None = None
     post_attack_posture: Posture | None = None
+    post_attack_basic_reference_id: Id | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+    post_attack_basic_direction: Literal["approach", "withdraw"] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
 
 class DefenseChoice(Record):
@@ -424,9 +473,15 @@ class DefenseChoice(Record):
 class RangedSituation(Record):
     attacker_id: Id
     defender_id: Id
-    distance_yards: float = Field(gt=0, allow_inf_nan=False)
+    distance_yards: float | None = Field(default=None, gt=0, allow_inf_nan=False)
     speed_yards_per_second: float = Field(default=0, ge=0, allow_inf_nan=False)
     size_modifier: int = 0
+
+    @property
+    def distance(self) -> float:
+        if self.distance_yards is None:
+            raise ValidationError("Ranged situation requires an authoritative distance")
+        return self.distance_yards
 
 
 class Encounter(Record):
@@ -492,6 +547,10 @@ class Encounter(Record):
                         raise ValueError("Runtime square facing disagrees with spatial context")
                 elif participant.hex_facing != placement.facing:
                     raise ValueError("Runtime hex facing disagrees with spatial context")
+        elif any(
+            p.runtime_position is not None or p.hex_facing is not None for p in self.participants
+        ):
+            raise ValueError("Basic combatants cannot retain exact mapped poses")
         return self
 
     @property
@@ -633,6 +692,124 @@ class Encounter(Record):
         return result
 
 
+def basic_distance(encounter: Encounter, subject_id: str, object_id: str) -> float:
+    context = encounter.spatial
+    if not isinstance(context, BasicSpatialContext):
+        left = encounter.placement(subject_id).position
+        right = encounter.placement(object_id).position
+        return float(CombatEngine.distance(left, right))
+    fact = context.active("distance", subject_id, object_id)
+    if not isinstance(fact, DistanceSpatialFact):
+        raise ValidationError("Basic combat requires an authoritative distance fact")
+    return fact.yards
+
+
+def basic_reachable(encounter: Encounter, subject_id: str, object_id: str) -> bool:
+    context = encounter.spatial
+    if not isinstance(context, BasicSpatialContext):
+        actor = next(p for p in encounter.participants if p.actor_id == subject_id)
+        return basic_distance(encounter, subject_id, object_id) <= actor.reach
+    fact = context.active("reach", subject_id, object_id)
+    if not isinstance(fact, ReachSpatialFact):
+        raise ValidationError("Basic combat requires an authoritative reach fact")
+    return fact.relation in ("close", "reachable")
+
+
+def basic_visible(encounter: Encounter, subject_id: str, object_id: str) -> bool:
+    context = encounter.spatial
+    if not isinstance(context, BasicSpatialContext):
+        return True
+    fact = context.active("visibility", subject_id, object_id)
+    if not isinstance(fact, VisibilitySpatialFact):
+        raise ValidationError("Basic combat requires an authoritative visibility fact")
+    return fact.visible
+
+
+def move_basic(
+    encounter: Encounter,
+    *,
+    actor_id: str,
+    reference_actor_id: str,
+    direction: Literal["approach", "withdraw"],
+    yards: int,
+    command_id: str,
+    revision: int,
+    require_obstacle: bool = True,
+) -> Encounter:
+    context = encounter.spatial
+    if not isinstance(context, BasicSpatialContext):
+        raise ValidationError("Basic movement requires a basic spatial context")
+    if actor_id == reference_actor_id or reference_actor_id not in encounter.turn_order:
+        raise ValidationError("Basic movement requires another combatant as its reference")
+    obstacle = context.active("obstacle", actor_id, reference_actor_id)
+    if require_obstacle and not isinstance(obstacle, ObstacleSpatialFact):
+        raise ValidationError("Basic movement requires an authoritative obstacle fact")
+    if isinstance(obstacle, ObstacleSpatialFact) and obstacle.blocked:
+        raise ValidationError("An authoritative obstacle blocks this movement")
+    prior = basic_distance(encounter, actor_id, reference_actor_id)
+    distance = max(0.0, prior - yards) if direction == "approach" else prior + yards
+    actors = {p.actor_id: p for p in encounter.participants}
+    actor = actors[actor_id]
+    reference = actors[reference_actor_id]
+    retained: list[BasicSpatialFact] = []
+    for fact in context.facts:
+        if fact.provenance.invalidated_revision is None and actor_id in (
+            fact.subject_id,
+            fact.object_id,
+        ):
+            fact = fact.model_copy(
+                update={
+                    "provenance": fact.provenance.model_copy(
+                        update={"invalidated_revision": revision}
+                    )
+                }
+            )
+        retained.append(fact)
+    provenance = SpatialProvenance(
+        source="engine-derived",
+        source_id=command_id,
+        declared_by=actor_id,
+        declared_revision=revision,
+    )
+    retained.extend(
+        (
+            DistanceSpatialFact(
+                subject_id=actor_id,
+                object_id=reference_actor_id,
+                yards=distance,
+                provenance=provenance,
+            ),
+            ReachSpatialFact(
+                subject_id=actor_id,
+                object_id=reference_actor_id,
+                relation=(
+                    "close"
+                    if distance == 0
+                    else "reachable"
+                    if distance <= actor.reach
+                    else "separated"
+                ),
+                provenance=provenance,
+            ),
+            ReachSpatialFact(
+                subject_id=reference_actor_id,
+                object_id=actor_id,
+                relation=(
+                    "close"
+                    if distance == 0
+                    else "reachable"
+                    if distance <= reference.reach
+                    else "separated"
+                ),
+                provenance=provenance,
+            ),
+        )
+    )
+    return encounter.model_copy(
+        update={"spatial_context": context.model_copy(update={"facts": tuple(retained)})}
+    )
+
+
 class CombatResult(Record):
     encounter_id: Id
     code: str
@@ -672,14 +849,20 @@ class CombatEngine:
         actor_ids: frozenset[str],
     ) -> None:
         spatial = encounter.spatial
-        if isinstance(spatial, BasicSpatialContext):
-            raise ValidationError("Basic spatial context is not executable until its adapter lands")
-        battlefield = self.battlefields.get(spatial.battlefield_id)
-        if battlefield is None:
+        battlefield = (
+            None
+            if isinstance(spatial, BasicSpatialContext)
+            else self.battlefields.get(spatial.battlefield_id)
+        )
+        if not isinstance(spatial, BasicSpatialContext) and battlefield is None:
             raise ValidationError("Encounter battlefield is not configured")
         entities = {entity.id: entity for entity in world.entities}
         participants = {p.actor_id: p for p in encounter.participants}
-        placements = {p.actor_id: p for p in spatial.placements}
+        placements = (
+            {}
+            if isinstance(spatial, BasicSpatialContext)
+            else {p.actor_id: p for p in spatial.placements}
+        )
         if (
             len(participants) != len(encounter.participants)
             or not 2 <= len(participants) <= self.rules.max_combatants
@@ -687,8 +870,8 @@ class CombatEngine:
             or len(set(encounter.turn_order)) != len(encounter.turn_order)
             or encounter.turn_index >= len(encounter.turn_order)
             or not set(participants) <= actor_ids
-            or set(placements) != set(participants)
-            or len(placements) != len(spatial.placements)
+            or not isinstance(spatial, BasicSpatialContext)
+            and (set(placements) != set(participants) or len(placements) != len(spatial.placements))
         ):
             raise ValidationError("Invalid encounter participants or turn order")
         expected_order = tuple(
@@ -703,51 +886,80 @@ class CombatEngine:
             validate_hex_encounter(
                 encounter, self.rules.gurps_equipment, board=self.hex_map(encounter)
             )
+        if isinstance(spatial, BasicSpatialContext):
+            for fact in spatial.facts:
+                if (
+                    fact.subject_id == fact.object_id
+                    or fact.subject_id not in participants
+                    or fact.object_id not in participants
+                ):
+                    raise ValidationError("Basic spatial facts must relate encounter participants")
+            for actor_id, actor in participants.items():
+                for other_id in participants:
+                    if actor_id == other_id:
+                        continue
+                    reach = spatial.active("reach", actor_id, other_id)
+                    distance = spatial.active("distance", actor_id, other_id)
+                    if isinstance(reach, ReachSpatialFact) and isinstance(
+                        distance, DistanceSpatialFact
+                    ):
+                        expected = (
+                            "close"
+                            if distance.yards == 0
+                            else "reachable"
+                            if distance.yards <= actor.reach
+                            else "separated"
+                        )
+                        if reach.relation != expected:
+                            raise ValidationError("Basic distance and reach facts conflict")
         occupied: set[GridPoint | Hex] = set()
         blocked = set(battlefield.blocked) if isinstance(battlefield, Battlefield) else set()
-        self.hex_map(encounter)
+        if battlefield is not None:
+            self.hex_map(encounter)
         ready = {
             (item.owner_id, item.id) for item in resources.items if item.equipped and item.ready
         }
         for participant in encounter.participants:
-            placement = placements[participant.actor_id]
             entity = entities.get(participant.actor_id)
-            if (
-                entity is None
-                or entity.kind is not EntityKind.ACTOR
-                or (encounter.status == "active" and entity.location_id != battlefield.location_id)
-            ):
+            if entity is None or entity.kind is not EntityKind.ACTOR:
                 raise ValidationError("Combatant is not at the battlefield location")
-            if (
-                (
-                    isinstance(placement.position, GridPoint)
-                    and (
-                        not isinstance(battlefield, Battlefield)
-                        or (
-                            placement.position.x >= battlefield.width
-                            or placement.position.y >= battlefield.height
+            if not isinstance(spatial, BasicSpatialContext):
+                assert battlefield is not None
+                placement = placements[participant.actor_id]
+                if encounter.status == "active" and entity.location_id != battlefield.location_id:
+                    raise ValidationError("Combatant is not at the battlefield location")
+                if (
+                    (
+                        isinstance(placement.position, GridPoint)
+                        and (
+                            not isinstance(battlefield, Battlefield)
+                            or (
+                                placement.position.x >= battlefield.width
+                                or placement.position.y >= battlefield.height
+                            )
                         )
                     )
-                )
-                or (encounter.spatial_kind != "hex" and isinstance(placement.position, Hex))
-                or placement.position in blocked
-                or (
-                    placement.position in occupied
-                    and not (
-                        self.rules.gurps_equipment is not None
-                        and self.rules.gurps_equipment.profile_id == "gurps-basic-set-4e-2004"
-                        and all(
-                            tuple(sorted((other.actor_id, participant.actor_id)))
-                            in encounter.close_pairs
-                            for other in encounter.participants
-                            if other.actor_id != participant.actor_id
-                            and placements[other.actor_id].position == placement.position
+                    or (encounter.spatial_kind != "hex" and isinstance(placement.position, Hex))
+                    or placement.position in blocked
+                    or (
+                        placement.position in occupied
+                        and not (
+                            self.rules.gurps_equipment is not None
+                            and self.rules.gurps_equipment.profile_id == "gurps-basic-set-4e-2004"
+                            and all(
+                                tuple(sorted((other.actor_id, participant.actor_id)))
+                                in encounter.close_pairs
+                                for other in encounter.participants
+                                if other.actor_id != participant.actor_id
+                                and placements[other.actor_id].position == placement.position
+                            )
                         )
                     )
-                )
-            ):
-                raise ValidationError("Combatant position is blocked, occupied or out of bounds")
-            occupied.add(placement.position)
+                ):
+                    raise ValidationError(
+                        "Combatant position is blocked, occupied or out of bounds"
+                    )
+                occupied.add(placement.position)
             if (
                 self.rules.gurps_equipment is None
                 and participant.movement_allowance != self.rules.movement_allowance
@@ -897,6 +1109,44 @@ class CombatEngine:
             darkness_penalty=self.battlefields[battlefield_id].darkness_penalty,
             id=encounter_id,
             spatial_context=spatial_context,
+            participants=participants,
+            turn_order=order,
+        )
+        self.validate(encounter, world, resources, actor_ids)
+        return encounter
+
+    def start_basic(
+        self,
+        encounter_id: str,
+        participant_ids: tuple[str, ...],
+        facts: tuple[BasicSpatialFact, ...],
+        initiatives: dict[str, int],
+        world: World,
+        resources: ResourceState,
+        actor_ids: frozenset[str],
+    ) -> Encounter:
+        participants = tuple(
+            Combatant(
+                actor_id=actor_id,
+                initiative=initiatives[actor_id],
+                reach=self.rules.default_reach,
+                movement_allowance=self.rules.movement_allowance,
+                ready_item_ids=tuple(
+                    sorted(
+                        item.id
+                        for item in resources.items
+                        if item.owner_id == actor_id and item.equipped and item.ready
+                    )
+                ),
+            )
+            for actor_id in participant_ids
+        )
+        order = tuple(
+            p.actor_id for p in sorted(participants, key=lambda p: (-p.initiative, p.actor_id))
+        )
+        encounter = Encounter(
+            id=encounter_id,
+            spatial_context=BasicSpatialContext(facts=facts),
             participants=participants,
             turn_order=order,
         )
@@ -1072,6 +1322,7 @@ class CombatEngine:
         command_json: str = "",
         hex_path: tuple[Hex, ...] = (),
         hex_facing: HexFacing | None = None,
+        basic_move: BasicMove | None = None,
     ) -> tuple[Encounter, ResourceState, CombatResult]:
         original, original_resources = encounter, resources
         interrupt = encounter.wait_interrupt
@@ -1124,6 +1375,7 @@ class CombatEngine:
             second_mode_id=second_mode_id,
             hex_path=hex_path,
             hex_facing=hex_facing,
+            basic_move=basic_move,
         )
         if self.rules.gurps_equipment is not None and interrupt is None and command_json:
             action = "attack" if maneuver in ATTACK_MANEUVERS else maneuver
@@ -1147,7 +1399,8 @@ class CombatEngine:
                         )
                     )
                     stop_candidate = trigger.stop_thrust and (
-                        action == "attack"
+                        original.spatial_kind != "basic"
+                        and action == "attack"
                         and target_id == waiter_id
                         and self.distance(before_actor.position, after_actor.position) >= 1
                         and self.distance(after_actor.position, waiter.position)
@@ -1165,6 +1418,8 @@ class CombatEngine:
                         observable = sight(
                             result[0], waiter, after_actor, board=self.hex_map(result[0])
                         )
+                    elif original.spatial_kind == "basic":
+                        observable = basic_visible(original, waiter_id, actor_id)
                     matches = (
                         (trigger.actor_id is None or trigger.actor_id == actor_id)
                         and trigger.action == action
@@ -1183,7 +1438,11 @@ class CombatEngine:
                         if declaration.stop_thrust
                         else 0
                     )
-                    moved = self.distance(before_actor.position, after_actor.position) >= 1
+                    moved = (
+                        basic_move is not None
+                        if original.spatial_kind == "basic"
+                        else self.distance(before_actor.position, after_actor.position) >= 1
+                    )
                     paused = self._replace(
                         original,
                         waiter.model_copy(
@@ -1199,15 +1458,20 @@ class CombatEngine:
                     )
                     resume_json = command_json
                     if moved:
-                        paused_actor = before_actor.model_copy(
-                            update={
-                                "position": after_actor.position,
-                                "facing": after_actor.facing,
-                                "hex_facing": after_actor.hex_facing,
-                                "posture": after_actor.posture,
-                            }
-                        )
-                        paused = self._replace(paused, paused_actor)
+                        if original.spatial_kind == "basic":
+                            paused = paused.model_copy(
+                                update={"spatial_context": result[0].spatial}
+                            )
+                        else:
+                            paused_actor = before_actor.model_copy(
+                                update={
+                                    "position": after_actor.position,
+                                    "facing": after_actor.facing,
+                                    "hex_facing": after_actor.hex_facing,
+                                    "posture": after_actor.posture,
+                                }
+                            )
+                            paused = self._replace(paused, paused_actor)
                         saved = json.loads(command_json)
                         saved.update(
                             {
@@ -1216,6 +1480,7 @@ class CombatEngine:
                                 "posture": None,
                                 "hex_path": [],
                                 "hex_facing": None,
+                                "basic_move": None,
                                 "step_timing": "before",
                             }
                         )
@@ -1268,6 +1533,7 @@ class CombatEngine:
         second_mode_id: str | None = None,
         hex_path: tuple[Hex, ...] = (),
         hex_facing: HexFacing | None = None,
+        basic_move: BasicMove | None = None,
     ) -> tuple[Encounter, ResourceState, CombatResult]:
         if self.rules.gurps_equipment is not None:
             command_id = "combat:" + hashlib.sha256(command_id.encode()).hexdigest()
@@ -1289,12 +1555,17 @@ class CombatEngine:
         ):
             participant = participant.model_copy(update={"stream": None})
             encounter = self._replace(encounter, participant)
-        battlefield = self.battlefields[encounter.battlefield_id]
+        basic = isinstance(encounter.spatial, BasicSpatialContext)
+        battlefield = None if basic else self.battlefields[encounter.battlefield_id]
         deferred_step = step_timing == "after"
         if deferred_step and maneuver != "attack":
             raise ValidationError("Only Attack permits a step after the attack")
         if deferred_step and not (
-            destination is not None or hex_path or hex_facing is not None or posture is not None
+            destination is not None
+            or hex_path
+            or hex_facing is not None
+            or posture is not None
+            or basic_move is not None
         ):
             raise ValidationError("A post-attack step requires movement, facing, or posture")
         if deferred_step and encounter.spatial_kind == "hex":
@@ -1320,6 +1591,7 @@ class CombatEngine:
                     board=self.hex_map(encounter),
                 )
         elif deferred_step and destination is not None:
+            assert battlefield is not None
             if not isinstance(participant.position, GridPoint):
                 raise ValidationError("Square step requires square coordinates")
             occupied = {
@@ -1359,6 +1631,42 @@ class CombatEngine:
             encounter = self._replace(encounter, participant)
         elif (hex_path or hex_facing is not None) and not deferred_step:
             raise ValidationError("Hex movement requires explicit battlefield migration")
+        if basic_move is not None:
+            if not basic or destination is not None or facing is not None or hex_path or hex_facing:
+                raise ValidationError("Basic movement cannot mix mapped movement fields")
+            allowed_steps = {
+                "attack",
+                "aim",
+                "evaluate",
+                "feint",
+                "ready",
+                "concentrate",
+                "all_out_defense",
+            }
+            if maneuver != "move" and maneuver not in allowed_steps:
+                raise ValidationError("Maneuver does not permit basic movement")
+            if maneuver in ("attack", "aim", "evaluate", "feint"):
+                raise ValidationError(
+                    "Basic movement with a spatially dependent maneuver requires "
+                    "post-movement GM adjudication"
+                )
+            if not deferred_step:
+                allowance = (
+                    self.rules.prone_movement_allowance
+                    if maneuver == "move" and participant.posture == "prone"
+                    else participant.movement_allowance
+                    if maneuver == "move"
+                    else max(1, (participant.movement_allowance + 9) // 10)
+                )
+                encounter = move_basic(
+                    encounter,
+                    actor_id=actor_id,
+                    reference_actor_id=basic_move.reference_actor_id,
+                    direction=basic_move.direction,
+                    yards=allowance,
+                    command_id=command_id,
+                    revision=resources.revision,
+                )
         if self.rules.gurps_equipment is None and (
             maneuver not in ("do_nothing", "move", "ready", "change_posture", "attack", "wait")
             or attack_option
@@ -1522,6 +1830,8 @@ class CombatEngine:
                     if not set(wait_trigger.zone) <= cells:
                         raise ValidationError("Wait zone is outside the battlefield")
                 if wait_trigger.stop_thrust:
+                    if basic:
+                        raise ValidationError("Basic stop thrust requires explicit GM adjudication")
                     if (
                         wait_trigger.actor_id is None
                         or wait_trigger.reaction_target_id != wait_trigger.actor_id
@@ -1537,7 +1847,12 @@ class CombatEngine:
                 )
                 if (
                     maneuver != "aim"
-                    and self.distance(participant.position, target.position) > reach
+                    and (
+                        basic_distance(encounter, participant.actor_id, target.actor_id)
+                        if basic
+                        else self.distance(participant.position, target.position)
+                    )
+                    > reach
                 ):
                     raise ValidationError("Maneuver target is outside melee reach")
                 if maneuver == "evaluate":
@@ -1610,8 +1925,13 @@ class CombatEngine:
                     for p in encounter.participants
                     if p.actor_id != actor_id and isinstance(p.position, GridPoint)
                 }
+                assert battlefield is not None
                 if not self._reachable(
-                    battlefield, participant.position, destination, limit, occupied
+                    battlefield,
+                    participant.position,
+                    destination,
+                    limit,
+                    occupied,
                 ):
                     raise ValidationError(
                         "Maneuver movement exceeds allowance or terrain constraints"
@@ -1634,6 +1954,12 @@ class CombatEngine:
         if maneuver == "move" and encounter.spatial_kind == "hex":
             if any(value is not None for value in (posture, item_id, target_id)):
                 raise ValidationError("Move accepts only a path and facing")
+            participant = participant.model_copy(update={"last_maneuver": maneuver})
+        elif maneuver == "move" and basic:
+            if basic_move is None or any(
+                value is not None for value in (destination, facing, posture, item_id, target_id)
+            ):
+                raise ValidationError("Basic Move requires one authoritative relative movement")
             participant = participant.model_copy(update={"last_maneuver": maneuver})
         elif maneuver == "move":
             if destination is None or any(
@@ -1732,7 +2058,7 @@ class CombatEngine:
                 or target.actor_id == actor_id
                 or item_id not in participant.ready_item_ids
                 or (
-                    self.distance(participant.position, target.position) > participant.reach
+                    not basic_reachable(encounter, actor_id, target_id)
                     and not any(
                         s.attacker_id == actor_id and s.defender_id == target_id
                         for s in encounter.ranged_situations
@@ -1759,6 +2085,12 @@ class CombatEngine:
                 post_attack_hex_path=hex_path if deferred_step else (),
                 post_attack_facing=hex_facing if deferred_step else None,
                 post_attack_posture=posture if deferred_step else None,
+                post_attack_basic_reference_id=(
+                    basic_move.reference_actor_id if deferred_step and basic_move else None
+                ),
+                post_attack_basic_direction=(
+                    basic_move.direction if deferred_step and basic_move else None
+                ),
             )
             encounter = encounter.model_copy(update={"pending_defense": pending})
             return (

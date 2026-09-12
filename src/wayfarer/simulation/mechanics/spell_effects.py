@@ -3,6 +3,7 @@
 import hashlib
 import json
 
+from wayfarer.errors import ValidationError
 from wayfarer.rules.hazard_types import HazardSchedule, HazardSpec
 from wayfarer.simulation.abilities import damage_resistance
 from wayfarer.simulation.actions import PlayState
@@ -231,6 +232,7 @@ def crossings(
     command_id: str,
 ) -> PlayState:
     """B433 partial-turn flame contact, including paths ending outside the area."""
+    old_encounter = next(e for e in before.encounters if e.id == encounter_id)
     fires = tuple(
         e
         for e in active_spells(before.resources)
@@ -241,7 +243,8 @@ def crossings(
     )
     if not fires:
         return state
-    old_encounter = next(e for e in before.encounters if e.id == encounter_id)
+    if old_encounter.spatial_kind == "basic":
+        raise ValidationError("Basic movement through an area spell requires GM adjudication")
     new_encounter = next(e for e in state.encounters if e.id == encounter_id)
     origin = next(p.position for p in old_encounter.participants if p.actor_id == actor_id)
     destination = next(p.position for p in new_encounter.participants if p.actor_id == actor_id)

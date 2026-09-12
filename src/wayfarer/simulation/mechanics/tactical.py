@@ -6,10 +6,13 @@ from typing import TYPE_CHECKING
 
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.simulation.combat import (
+    BasicSpatialContext,
     CombatEngine,
     Encounter,
     HexActorPlacement,
     HexSpatialContext,
+    RetreatSpatialFact,
+    move_basic,
 )
 from wayfarer.simulation.hex_geometry import RetreatContext, can_retreat
 from wayfarer.simulation.tactical import defense_adjustment, occupants, pose, validate_hex_encounter
@@ -21,6 +24,10 @@ if TYPE_CHECKING:
 
 
 def migrate(runtime: RulesContext, encounter: Encounter, command: MigrateEncounterHex) -> Encounter:
+    if isinstance(encounter.spatial, BasicSpatialContext):
+        raise ValidationError(
+            "Basic-to-hex migration requires an explicit spatial consistency contract"
+        )
     if (
         encounter.spatial_kind == "hex"
         or encounter.status != "active"
@@ -79,10 +86,70 @@ def migrate(runtime: RulesContext, encounter: Encounter, command: MigrateEncount
 def prepare_defense(
     runtime: RulesContext, state: PlayState, encounter: Encounter, command: ChooseDefense
 ) -> Encounter:
-    if encounter.spatial_kind != "hex":
+    if isinstance(encounter.spatial, BasicSpatialContext):
         if command.retreat is not None:
-            raise ValidationError("Retreat requires a migrated hex encounter")
+            raise ValidationError("Basic retreat does not accept a hex destination")
+        pending, unarmed = encounter.pending_defense, encounter.pending_unarmed
+        attacker_id = pending.attacker_id if pending else unarmed.actor_id if unarmed else None
+        defender_id = pending.defender_id if pending else unarmed.target_id if unarmed else None
+        if defender_id != command.actor_id or attacker_id is None:
+            raise ValidationError("Defense is unavailable")
+        actor = next(p for p in encounter.participants if p.actor_id == attacker_id)
+        target = next(p for p in encounter.participants if p.actor_id == defender_id)
+        bonus = 0
+        if command.basic_retreat:
+            from wayfarer.simulation.gurps_equipment import RangedMode
+            from wayfarer.simulation.mechanics.gurps_melee import mode
+
+            hp = next(p for p in state.resources.pools if p.id == f"hp:{target.actor_id}")
+            fact = encounter.spatial.active("retreat", target.actor_id, actor.actor_id)
+            if (
+                command.defense == "none"
+                or command.second_defense is not None
+                or target.retreat_used
+                or target.posture in ("kneeling",)
+                or bool(hp.injury and hp.injury.stunned)
+                or target.grappled
+                or target.pinned
+                or any(g.holder_id == target.actor_id for g in encounter.grips)
+                or target.maneuver_state.defense_forbidden
+                or not isinstance(fact, RetreatSpatialFact)
+                or not fact.feasible
+                or pending
+                and runtime.rules.combat is not None
+                and runtime.rules.combat.gurps_equipment is not None
+                and isinstance(
+                    mode(runtime, state, actor.actor_id, pending.weapon_id, pending.mode_id),
+                    RangedMode,
+                )
+            ):
+                raise ValidationError("Retreat is unavailable")
+            bonus = 3 if command.defense == "dodge" else 1
+            target = target.model_copy(
+                update={"retreat_used": True, "retreat_attacker_id": actor.actor_id}
+            )
+            encounter = CombatEngine._replace(encounter, target)
+            encounter = move_basic(
+                encounter,
+                actor_id=target.actor_id,
+                reference_actor_id=actor.actor_id,
+                direction="withdraw",
+                yards=max(1, (target.movement_allowance + 9) // 10),
+                command_id=command.id,
+                revision=state.revision,
+                require_obstacle=False,
+            )
+        elif target.retreat_attacker_id == actor.actor_id and command.defense != "none":
+            bonus = 3 if command.defense == "dodge" else 1
+        return CombatEngine._replace(
+            encounter, target.model_copy(update={"tactical_defense_bonus": bonus})
+        )
+    if encounter.spatial_kind != "hex":
+        if command.retreat is not None or command.basic_retreat:
+            raise ValidationError("Retreat requires the matching spatial representation")
         return encounter
+    if command.basic_retreat:
+        raise ValidationError("Hex retreat requires an explicit destination")
     pending, unarmed = encounter.pending_defense, encounter.pending_unarmed
     attacker_id = pending.attacker_id if pending else unarmed.actor_id if unarmed else None
     defender_id = pending.defender_id if pending else unarmed.target_id if unarmed else None
@@ -136,8 +203,29 @@ def prepare_defense(
 
 
 def finish_defense(
-    runtime: RulesContext, encounter: Encounter, command: ChooseDefense
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    command: ChooseDefense,
 ) -> Encounter:
+    if encounter.spatial_kind == "basic":
+        target = next(p for p in encounter.participants if p.actor_id == command.actor_id)
+        encounter = CombatEngine._replace(
+            encounter, target.model_copy(update={"tactical_defense_bonus": 0})
+        )
+        pending = encounter.defense_history[-1].pending if encounter.defense_history else None
+        if pending and pending.post_attack_basic_reference_id:
+            attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
+            encounter = move_basic(
+                encounter,
+                actor_id=attacker.actor_id,
+                reference_actor_id=pending.post_attack_basic_reference_id,
+                direction=pending.post_attack_basic_direction or "approach",
+                yards=max(1, (attacker.movement_allowance + 9) // 10),
+                command_id=command.id,
+                revision=state.revision,
+            )
+        return encounter
     if encounter.spatial_kind != "hex":
         return encounter
     target = next(p for p in encounter.participants if p.actor_id == command.actor_id)

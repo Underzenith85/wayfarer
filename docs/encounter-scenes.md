@@ -2,11 +2,11 @@
 
 Issue #322 adds scene bindings and scheduling invariants, without changing GURPS
 mechanics, spatial representations or the shared-time algorithm. Basic/mapless
-combat remains #324; the legacy square grid is not basic combat.
+combat is implemented by #324; the legacy square grid is not basic combat.
 
 A scene-aware encounter stores `version: 2` and `scene_id`. For active encounters,
 all participants must have that actor scene, their world location must match the
-scene and battlefield, and all must share one scheduling subgroup. Each actor and
+scene (and the battlefield for mapped encounters), and all must share one scheduling subgroup. Each actor and
 each subgroup can belong to at most one active combat encounter. Independent
 groups can each own a fight, including in the same scene. Completed encounters
 retain their historical scene after actors travel.

@@ -440,6 +440,8 @@ class CampaignAccess:
                 )
             elif kind in (
                 "start_encounter",
+                "start_basic_encounter",
+                "declare_basic_spatial_facts",
                 "take_combat_turn",
                 "resume_interrupted_turn",
                 "choose_defense",

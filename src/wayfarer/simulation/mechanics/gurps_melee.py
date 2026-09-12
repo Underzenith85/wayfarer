@@ -686,7 +686,7 @@ def prepare_attack(
         and attacker.maneuver_state.second_attack_item_id is None
     ):
         raise ValidationError("Double attack requires a weapon usable twice without readying")
-    from wayfarer.simulation.combat import CombatEngine
+    from wayfarer.simulation.combat import BasicSpatialContext, CombatEngine, basic_distance
     from wayfarer.simulation.tactical import attack_geometry, defense_adjustment
 
     geometry = encounter
@@ -705,7 +705,12 @@ def prepare_attack(
         location=hit_location,
         board=runtime.hex_map(geometry),
     )
-    if CombatEngine.distance(attacker.position, target_position.position) not in selected.reach:
+    selected_distance = (
+        basic_distance(geometry, attacker.actor_id, target_position.actor_id)
+        if isinstance(geometry.spatial, BasicSpatialContext)
+        else float(CombatEngine.distance(attacker.position, target_position.position))
+    )
+    if selected_distance not in selected.reach:
         raise ValidationError("Target is outside selected weapon reach")
     allowed: list[Defense] = ["none"]
     for candidate in ("dodge", "parry", "block"):

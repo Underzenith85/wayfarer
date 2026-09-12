@@ -19,6 +19,11 @@ def contract(version: int = 1) -> str:
         schema = model.model_json_schema()
         schemas.update(schema.pop("$defs", {}))
         schemas[model.__name__] = schema
+    # The frozen v1 request model overwrites the live TakeCombatTurn definition.
+    # Remove definitions reachable only from the overwritten live model so additive
+    # v2 command fields cannot drift the reviewed v1 document.
+    if version == 1:
+        schemas.pop("BasicMove", None)
     schemas["TacticalError"] = {
         "type": "object",
         "required": ["code", "error"],

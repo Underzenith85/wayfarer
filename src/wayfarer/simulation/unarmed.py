@@ -189,6 +189,9 @@ def contest(
 
 
 def validate_control(encounter: Encounter, resources: ResourceState, *, basic: bool) -> None:
+    from wayfarer.simulation.combat import BasicSpatialContext
+
+    mapless = isinstance(encounter.spatial, BasicSpatialContext)
     if not basic and (
         encounter.grips
         or encounter.close_pairs
@@ -207,7 +210,8 @@ def validate_control(encounter: Encounter, resources: ResourceState, *, basic: b
             pair != tuple(sorted(pair))
             or pair[0] == pair[1]
             or not set(pair) <= participants.keys()
-            or participants[pair[0]].position != participants[pair[1]].position
+            or not mapless
+            and participants[pair[0]].position != participants[pair[1]].position
         ):
             raise ValidationError("Invalid close-combat relationship")
     occupied: set[tuple[str, Hand]] = set()
