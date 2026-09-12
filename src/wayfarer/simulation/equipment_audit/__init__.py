@@ -46,7 +46,9 @@ from wayfarer.simulation.gurps_equipment import (
     Provenance,
     RangedMode,
     RatedStrength,
+    RocketAcceleration,
     Shield,
+    SmartgunSpec,
 )
 
 LEDGER_PATH = Path(__file__).with_name("ledger.json")
@@ -64,6 +66,8 @@ AUDITED_MODELS = (
     MeleeMode,
     RangedMode,
     RatedStrength,
+    RocketAcceleration,
+    SmartgunSpec,
     FirearmSpec,
     ExplosionSpec,
     ProjectileReadiness,

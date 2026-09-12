@@ -79,6 +79,7 @@ class TakeCombatTurn(CombatCommand):
     suppression_zones: tuple[SuppressionZone, ...] = Field(
         default=(), max_length=20, exclude_if=lambda value: not value
     )
+    laser_sight: bool = Field(default=False, exclude_if=lambda value: not value)
     reload_ammunition_id: str | None = None
     unload_ammunition: bool = Field(default=False, exclude_if=lambda v: not v)
     fast_draw: bool = Field(default=False, exclude_if=lambda v: not v)

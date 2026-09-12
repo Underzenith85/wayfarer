@@ -16,6 +16,7 @@ from wayfarer.simulation.objects import ObjectCommand, apply_object
 from wayfarer.simulation.resources import (
     COMMAND_ADAPTER,
     Advance,
+    RechargePowerCell,
     ResourceEngine,
     ResourceState,
     Schedule,
@@ -50,8 +51,8 @@ class ResourceService:
         command = COMMAND_ADAPTER.validate_python(value)
         if command.actor_id != authenticated_actor_id or command.actor_id not in self.engine.actors:
             raise ValidationError("Command actor is not authorized")
-        if isinstance(command, (Schedule, Advance)) and not system:
-            raise ValidationError("Clock commands require engine authority")
+        if isinstance(command, (Schedule, Advance, RechargePowerCell)) and not system:
+            raise ValidationError("Clock and recharge commands require engine authority")
         payload = command.model_dump_json()
 
         def resolve(state: Campaign) -> CommandReceipt:

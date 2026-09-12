@@ -4849,6 +4849,16 @@
             "default": null,
             "title": "Charges"
           },
+          "authorized_actor_ids": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Authorized Actor Ids",
+            "type": "array"
+          },
           "mount_crew": {
             "default": [],
             "items": {
@@ -7038,6 +7048,33 @@
               }
             ],
             "default": null
+          },
+          "rocket_acceleration": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/RocketAcceleration"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "smartgun": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/SmartgunSpec"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "beam_environment_dr": {
+            "default": false,
+            "title": "Beam Environment Dr",
+            "type": "boolean"
           }
         },
         "required": [
@@ -7734,6 +7771,40 @@
         "title": "Reward",
         "type": "object"
       },
+      "RocketAcceleration": {
+        "additionalProperties": false,
+        "description": "Explicit distance bands for an accelerating projectile such as B278 gyroc.",
+        "properties": {
+          "close_max_yards": {
+            "minimum": 1,
+            "title": "Close Max Yards",
+            "type": "integer"
+          },
+          "close_damage_divisor": {
+            "minimum": 2,
+            "title": "Close Damage Divisor",
+            "type": "integer"
+          },
+          "medium_max_yards": {
+            "minimum": 1,
+            "title": "Medium Max Yards",
+            "type": "integer"
+          },
+          "medium_damage_divisor": {
+            "minimum": 2,
+            "title": "Medium Damage Divisor",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "close_max_yards",
+          "close_damage_divisor",
+          "medium_max_yards",
+          "medium_damage_divisor"
+        ],
+        "title": "RocketAcceleration",
+        "type": "object"
+      },
       "RulingAlternative": {
         "additionalProperties": false,
         "properties": {
@@ -8262,6 +8333,32 @@
           "defense_bonus"
         ],
         "title": "Shield",
+        "type": "object"
+      },
+      "SmartgunSpec": {
+        "additionalProperties": false,
+        "description": "B278 smartgun facts; never inferred from TL or an equipment name.",
+        "properties": {
+          "laser_sight_bonus": {
+            "const": 1,
+            "default": 1,
+            "title": "Laser Sight Bonus",
+            "type": "integer"
+          },
+          "service_bonus": {
+            "const": 1,
+            "default": 1,
+            "title": "Service Bonus",
+            "type": "integer"
+          },
+          "access_controlled": {
+            "const": true,
+            "default": true,
+            "title": "Access Controlled",
+            "type": "boolean"
+          }
+        },
+        "title": "SmartgunSpec",
         "type": "object"
       },
       "SpellChannel": {

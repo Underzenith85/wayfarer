@@ -35,9 +35,9 @@ anchor and record what they leave out:
 | --- | --- | --- | --- |
 | `melee-weapons-b271` | B271-274 | 45 | non-equipment attacks and rows the typed schema cannot represent without inventing values |
 | `muscle-powered-ranged` | B275-276 | 18 | duplicated thrown modes, special binding damage, launcher/cocking-aid behavior and remaining material/ammunition variants |
-| `firearms` | B278-279 | 34 | gyroc acceleration, smartguns, Gauss armor division, musket rests, bipods and integral launchers |
-| `ammunition` | B275-279 | 39 | remaining firearm rounds, alternative missiles, ammunition variants, explosive warheads and power cells |
-| `beam-weapons-b280` | B280 | 3 | every other beam row; the three recorded rows are index facts that cannot be equipped or fired |
+| `firearms` | B278-279 | 35 | remaining firearm rows, Gauss armor division, musket rests, bipods and integral launchers |
+| `ammunition` | B275-279 | 40 | remaining firearm rounds, alternative missiles, ammunition variants and explosive warheads |
+| `beam-weapons-b280` | B280 | 4 | Laser Pistol and its cell are executable; Electrolaser and Blaster remain blocked with every other beam row omitted |
 | `body-armor-b283` | B283 | 8 | split-DR, single-facing, flexible, layered and footnoted rows, plus the other armor pages |
 | `shields` | B287 | 4 | duplicate cloak appearances, the unrepresentable force shield, and buckler, material and offensive variants |
 | `general-equipment-b288` | B288 | 10 | every other B288 row and the whole B289 continuation |
@@ -62,8 +62,8 @@ The four B279 shotgun rows likewise preserve shells separately from their nine
 projectiles and retain exact per-shell load mass, including `850/7`
 millipounds for the automatic shotgun.
 Seven remaining ordinary handguns and the one one-handed machine pistol do the
-same without a mechanics blocker. Rows with gyroc acceleration, smartguns, or
-other specialized notation remain explicit omissions.
+same without a mechanics blocker. The 15mm Gyroc Pistol now carries its exact
+row, individual rockets, typed close-range acceleration and smartgun behavior.
 The B278 TL6 9mm SMG records its `8!` automatic-only RoF as an eight-shot
 maximum and a two-shot minimum burst. Its exact 32-round load reconstructs the
 listed 1.5-pound loaded-ammunition weight.
@@ -97,17 +97,21 @@ entries already fail `inventory_spec()` and `EquipmentCatalog.bind()`;
 `require_supported()` and `validate_selection()` reject them for scenario and
 character selection with the owning issue in the message.
 
-Power cells are recorded as an unsupported behaviour of their own
-(`power-cell-charges`) precisely so that they are not modelled with the existing
-per-round ammunition path: a rechargeable cell holds charge, not disposable
-rounds. Smartguns, linked afflictions, surge damage and beam environmental
-effects are recorded the same way. `weapon-breakage` is implemented as of #173,
+Power cells are individual physical inventory items with authoritative remaining
+charge. They can be unloaded, source-switched and recharged only by an
+engine-authorized command that names the power source; retries return the saved
+receipt and cannot add charge twice. Smartguns require an explicit authorized
+owner, grant their service bonus, and expose the built-in laser only when the
+scene says its dot is visible. The selected Laser Pistol also requires authored
+obscurant DR. Linked afflictions and surge damage remain unsupported, so the
+Electrolaser and Blaster index rows still fail closed. `weapon-breakage` is implemented as of #173,
 but no audited row declares a weapon quality, so the column has no
 selected-table case behind its executable one.
 
 ## Field provenance carried forward from #101
 
 Every field of `Provenance`, `Damage`, `Parry`, `MeleeMode`, `RangedMode`,
+`RocketAcceleration`, `SmartgunSpec`,
 `Armor`, `Shield` and `EquipmentProfile` has one record giving its unit, its
 source anchor and either its executable coverage or an explicit gap. Adding or
 removing a schema field without updating the ledger fails the audit.

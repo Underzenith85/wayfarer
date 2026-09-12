@@ -87,15 +87,13 @@
       "selected": [
         "electrolaser-pistol",
         "laser-pistol",
+        "laser-pistol-cell",
         "blaster-pistol"
       ],
-      "omitted_rows": "Every other B280 beam row. The three recorded rows are index facts only: none can be equipped, fired or reloaded while their behaviours stay unsupported.",
+      "omitted_rows": "Laser Pistol and its individual rechargeable power cell are executable with exact B280 values, smartgun authorization and laser-sight assistance, and authored environmental attenuation. Electrolaser Pistol and Blaster Pistol remain index-only and fail closed because linked affliction and surge behavior is unsupported; every other B280 beam row remains omitted.",
       "mechanics": [
-        "power-cell-charges",
-        "smartgun",
         "linked-affliction",
-        "surge",
-        "beam-environment"
+        "surge"
       ]
     },
     {
@@ -241,9 +239,10 @@
         "machine-pistol-9mm",
         "smg-45",
         "smg-9mm-tl7",
-        "pdw-46"
+        "pdw-46",
+        "gyroc-pistol-15mm"
       ],
-      "omitted_rows": "Fifteen B278 handgun/one-handed machine-pistol rows, the B278 full-automatic 9mm SMG, three conventional two-handed SMG/PDW rows, eleven ordinary B279 musket/rifle rows and all four B279 shotgun rows are recorded with distinct chamber capacity and exact rational ammunition mass. The two-handed rows fail closed until the ST-conditioned one-hand exception is typed. Gyroc acceleration, smartguns, Gauss armor division, musket rests, bipods and integral launchers remain unresolved.",
+      "omitted_rows": "The B278 15mm Gyroc Pistol is executable with its exact table row, typed rocket acceleration and smartgun behavior. Fifteen B278 handgun/one-handed machine-pistol rows, the B278 full-automatic 9mm SMG, three conventional two-handed SMG/PDW rows, eleven ordinary B279 musket/rifle rows and all four B279 shotgun rows are recorded with distinct chamber capacity and exact rational ammunition mass. The two-handed rows fail closed until the ST-conditioned one-hand exception is typed. Gauss armor division, musket rests, bipods and integral launchers remain unresolved.",
       "mechanics": [
         "malfunction",
         "shotgun-multiple-projectiles",
@@ -298,12 +297,12 @@
         "machine-pistol-9mm-round",
         "smg-45-round",
         "smg-9mm-tl7-round",
-        "pdw-46-round"
+        "pdw-46-round",
+        "gyroc-pistol-15mm-round"
       ],
-      "omitted_rows": "B275-276 ordinary missiles and thirty-four firearm/shotgun rounds from B278-279 are recorded with exact rational dollar and pound values. Alternate missiles, remaining firearm rounds, ammunition variants, explosive warheads and power cells remain unresolved.",
+      "omitted_rows": "B275-276 ordinary missiles, thirty-four firearm/shotgun rounds and the 15mm gyroc round from B278-279 are recorded with exact rational dollar and pound values. Alternate missiles, remaining firearm rounds, ammunition variants and explosive warheads remain unresolved; the selected B280 laser cell is audited with its beam weapon.",
       "mechanics": [
-        "ammunition-variants",
-        "power-cell-charges"
+        "ammunition-variants"
       ]
     },
     {
@@ -832,14 +831,30 @@
       "evidence_gap": null
     },
     {
+      "id": "rocket-acceleration",
+      "reference": "B278",
+      "anchor": "inspected",
+      "behaviour": "Gyroc rockets inflict one-third damage at 1-2 yards, one-half damage at 3-10 yards, and full damage beyond 10 yards.",
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.ranged_attack",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_higher_tl_weapons.py::test_gyroc_acceleration_divides_rolled_damage_by_range"
+      ],
+      "evidence_gap": null
+    },
+    {
       "id": "power-cell-charges",
       "reference": "B280",
       "anchor": "inspected",
       "behaviour": "A rechargeable power cell holds shots as charge, not as disposable rounds; the existing per-round ammunition implementation must not be reused for it.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.ammunition",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_higher_tl_weapons.py::test_smartgun_laser_beam_cell_environment_and_recharge",
+        "tests/test_exotic_malfunctions.py::test_beam_cell_preserves_physical_instance"
+      ],
       "evidence_gap": null
     },
     {
@@ -847,10 +862,13 @@
       "reference": "B280",
       "anchor": "inspected",
       "behaviour": "A smartgun electronically restricts or assists the authorised user.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.ranged_attack",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_higher_tl_weapons.py::test_smartgun_laser_beam_cell_environment_and_recharge",
+        "tests/test_higher_tl_weapons.py::test_smartgun_rejects_an_unauthorized_owner"
+      ],
       "evidence_gap": null
     },
     {
@@ -880,10 +898,12 @@
       "reference": "B280",
       "anchor": "inspected",
       "behaviour": "Beam attacks lose effect to environmental obscurants and intervening conditions.",
-      "disposition": "unsupported",
-      "capability_id": null,
-      "owner_issue": 180,
-      "tests": [],
+      "disposition": "implemented",
+      "capability_id": "gurps.combat.ranged_attack",
+      "owner_issue": null,
+      "tests": [
+        "tests/test_higher_tl_weapons.py::test_smartgun_laser_beam_cell_environment_and_recharge"
+      ],
       "evidence_gap": null
     },
     {
@@ -2664,6 +2684,116 @@
         "tests/test_exotic_malfunctions.py::test_exotic_table_branches",
         "tests/test_exotic_malfunctions.py::test_low_tl_explosion_uses_pinned_warhead_and_restarts"
       ],
+      "gap": null
+    },
+    {
+      "id": "RangedMode.rocket_acceleration",
+      "unit": "typed gyroc acceleration bands",
+      "reference": "B278 Gyroc footnote 2",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": ["tests/test_higher_tl_weapons.py::test_gyroc_acceleration_divides_rolled_damage_by_range"],
+      "gap": null
+    },
+    {
+      "id": "RangedMode.smartgun",
+      "unit": "typed smartgun behavior",
+      "reference": "B278 Gyroc footnote 1 and B280 Beam Weapons",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": ["tests/test_higher_tl_weapons.py::test_smartgun_rejects_an_unauthorized_owner"],
+      "gap": null
+    },
+    {
+      "id": "RangedMode.beam_environment_dr",
+      "unit": "flag requiring authored obscurant DR",
+      "reference": "B280 Beam Weapons footnote 3",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": ["tests/test_higher_tl_weapons.py::test_smartgun_laser_beam_cell_environment_and_recharge"],
+      "gap": null
+    },
+    {
+      "id": "RocketAcceleration.close_max_yards",
+      "unit": "yards",
+      "reference": "B278 Gyroc footnote 2",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": ["tests/test_higher_tl_weapons.py::test_gyroc_acceleration_divides_rolled_damage_by_range"],
+      "gap": null
+    },
+    {
+      "id": "RocketAcceleration.close_damage_divisor",
+      "unit": "rolled-damage divisor",
+      "reference": "B278 Gyroc footnote 2",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": ["tests/test_higher_tl_weapons.py::test_gyroc_acceleration_divides_rolled_damage_by_range"],
+      "gap": null
+    },
+    {
+      "id": "RocketAcceleration.medium_max_yards",
+      "unit": "yards",
+      "reference": "B278 Gyroc footnote 2",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": ["tests/test_higher_tl_weapons.py::test_gyroc_acceleration_divides_rolled_damage_by_range"],
+      "gap": null
+    },
+    {
+      "id": "RocketAcceleration.medium_damage_divisor",
+      "unit": "rolled-damage divisor",
+      "reference": "B278 Gyroc footnote 2",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": ["tests/test_higher_tl_weapons.py::test_gyroc_acceleration_divides_rolled_damage_by_range"],
+      "gap": null
+    },
+    {
+      "id": "SmartgunSpec.laser_sight_bonus",
+      "unit": "attack roll bonus",
+      "reference": "B278 Gyroc footnote 1 and Campaigns B412 Laser Sights",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": ["tests/test_higher_tl_weapons.py::test_smartgun_laser_beam_cell_environment_and_recharge"],
+      "gap": null
+    },
+    {
+      "id": "SmartgunSpec.service_bonus",
+      "unit": "repair or malfunction-service roll bonus",
+      "reference": "B278 Gyroc footnote 1",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": ["tests/test_higher_tl_weapons.py::test_selected_gyroc_and_laser_rows_are_exact_and_executable"],
+      "gap": null
+    },
+    {
+      "id": "SmartgunSpec.access_controlled",
+      "unit": "authorization requirement flag",
+      "reference": "B278 Gyroc footnote 1",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": ["tests/test_higher_tl_weapons.py::test_smartgun_rejects_an_unauthorized_owner"],
       "gap": null
     }
   ],

@@ -569,6 +569,9 @@ async def setup(
                 owner_id=a,
                 equipped=True,
                 ready=True,
+                authorized_actor_ids=(a,)
+                if ranged_mode is not None and ranged_mode.smartgun is not None
+                else (),
             )
             for a in actor_ids
         )

@@ -144,6 +144,22 @@
             "default": 0,
             "title": "Size Modifier",
             "type": "integer"
+          },
+          "beam_environment_dr": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Beam Environment Dr",
+            "type": "integer"
+          },
+          "laser_visible_to_firer": {
+            "default": false,
+            "title": "Laser Visible To Firer",
+            "type": "boolean"
+          },
+          "laser_visible_to_target": {
+            "default": false,
+            "title": "Laser Visible To Target",
+            "type": "boolean"
           }
         },
         "required": [

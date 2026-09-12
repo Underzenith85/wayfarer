@@ -22,7 +22,7 @@ is certified by these synthetic runtime fixtures; catalog binding remains #180.
 | Stoppage | Exactly one shot fires, using the original attack dice without a burst bonus. Ordinary defense and injury still apply; remaining ammunition stays loaded. |
 | Diagnose | One Ready and an IQ-based weapon skill roll, or Armoury; Armoury gets +2 for a misfire. Failed diagnosis preserves the failure. |
 | Clear | Three Ready maneuvers and a roll. Misfire uses IQ-based weapon skill or Armoury+2; stoppage uses IQ-based weapon skill-4 or Armoury. Failure permits another attempt; critical failure becomes a mechanical problem. |
-| Repair | After diagnosis, 3,600 Ready maneuvers represent an hour of repair work; requires the explicit Armoury skill. Success clears the fault, failure permits another attempt, and critical failure permanently disables the weapon. |
+| Repair | After diagnosis, 3,600 Ready maneuvers represent an hour of repair work; requires the explicit Armoury skill. Success clears the fault, failure permits another attempt, and critical failure permanently disables the weapon. An explicit smartgun adds its printed +1 service bonus. |
 
 Servicing is an internal `TakeCombatTurn` Ready operation selected by
 `firearm_service` (`diagnose`, `clear`, `repair`) and `firearm_service_skill`
@@ -52,6 +52,9 @@ repairs, restart/retry receipts, replay, and schema/profile guards.
 
 Coverage remains partial. [Low-TL and exotic constructions](gurps-exotic-malfunctions.md)
 now provide explicit explosion, grenade, single-use and power-cell protocols.
+The selected B278 Gyroc and B280 Laser Pistol add authorized smartguns, typed
+rocket acceleration, individual rechargeable cells and beam-environment DR;
+their executable evidence is in `tests/test_higher_tl_weapons.py`.
 Production catalog auditing remains #180. [Projectile readiness](gurps-projectile-readiness.md)
 and [thrown recovery/catching](gurps-thrown-recovery.md) are also explicit protocols.
 None of these changes certify the overall Basic Set or Lite profile.

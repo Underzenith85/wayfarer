@@ -63,6 +63,7 @@ class EquipmentSpec(Record):
     effects: tuple[Effect, ...] = ()
     durability: ObjectProfile | None = Field(default=None, exclude_if=lambda v: v is None)
     power_cell_capacity: int | None = Field(default=None, ge=1, exclude_if=lambda v: v is None)
+    smartgun: bool = Field(default=False, exclude_if=lambda value: not value)
 
 
 class Item(Record):
@@ -77,6 +78,7 @@ class Item(Record):
     ground: GroundPosition | None = Field(default=None, exclude_if=lambda v: v is None)
     firearm_failure: FirearmFailure | None = Field(default=None, exclude_if=lambda v: v is None)
     charges: int | None = Field(default=None, ge=0, exclude_if=lambda v: v is None)
+    authorized_actor_ids: tuple[Id, ...] = Field(default=(), exclude_if=lambda value: not value)
     # Everyone currently serving a mounted weapon, the gunner included (#357).
     mount_crew: tuple[Id, ...] = Field(default=(), exclude_if=lambda v: not v)
 
@@ -255,8 +257,16 @@ class Advance(Command):
     to: Tick
 
 
+class RechargePowerCell(Command):
+    kind: Literal["recharge_power_cell"] = "recharge_power_cell"
+    item_id: Id
+    charges: Count
+    source_id: Id
+
+
 ResourceCommand = Annotated[
-    Transfer | Consume | Equip | Unequip | Schedule | Advance, Field(discriminator="kind")
+    Transfer | Consume | Equip | Unequip | Schedule | Advance | RechargePowerCell,
+    Field(discriminator="kind"),
 ]
 COMMAND_ADAPTER: TypeAdapter[ResourceCommand] = TypeAdapter(ResourceCommand)
 
@@ -421,6 +431,15 @@ class ResourceEngine:
                     )
             elif item.charges is not None:
                 raise ValidationError("Charges require a pinned power-cell definition")
+            if spec.smartgun:
+                if (
+                    not item.authorized_actor_ids
+                    or len(set(item.authorized_actor_ids)) != len(item.authorized_actor_ids)
+                    or not set(item.authorized_actor_ids) <= set(owners)
+                ):
+                    raise ValidationError("Smartgun requires explicit valid authorized actors")
+            elif item.authorized_actor_ids:
+                raise ValidationError("Authorization facts require a pinned smartgun")
             if item.ready and not item.equipped:
                 raise ValidationError("Unequipped item cannot be ready")
             if item.ground is not None and (item.equipped or item.ready or item.container_id):
@@ -508,8 +527,10 @@ class ResourceEngine:
         self.validate(state)
         if command.actor_id not in self.actors:
             raise ValidationError("Command actor is not a world actor")
-        if isinstance(command, (Schedule, Advance)) and not system:
-            raise ValidationError("Scheduling and clock advancement require engine authority")
+        if isinstance(command, (Schedule, Advance, RechargePowerCell)) and not system:
+            raise ValidationError(
+                "Scheduling, clock advancement and recharge require engine authority"
+            )
         digest = hashlib.sha256(command.model_dump_json().encode()).hexdigest()
         previous = next((r for r in state.receipts if r.command_id == command.id), None)
         if previous:
@@ -603,6 +624,32 @@ class ResourceEngine:
                 items[item.id] = Item(**{**item.model_dump(), "equipped": False, "ready": False})
             updated = state.model_copy(
                 update={"items": tuple(sorted(items.values(), key=lambda i: i.id))}
+            )
+        elif isinstance(command, RechargePowerCell):
+            item = items.get(command.item_id)
+            if item is None or item.owner_id != command.actor_id:
+                raise ValidationError("Recharge requires an owned power cell")
+            spec = self.specs[item.definition_id]
+            if spec.power_cell_capacity is None or item.charges is None:
+                raise ValidationError("Recharge requires a pinned physical power cell")
+            if any(load.ammunition_item_id == item.id for load in state.ammunition_loads):
+                raise ValidationError("Unload a power cell before recharging it")
+            if item.charges + command.charges > spec.power_cell_capacity:
+                raise ValidationError("Recharge exceeds pinned power-cell capacity")
+            items[item.id] = item.model_copy(update={"charges": item.charges + command.charges})
+            updated = state.model_copy(
+                update={
+                    "items": tuple(sorted(items.values(), key=lambda entry: entry.id)),
+                    "events": state.events
+                    + (
+                        ResourceEvent(
+                            id=f"recharge:{command.id}",
+                            at=state.game_time,
+                            target_id=item.id,
+                            kind=f"power-cell:{command.source_id}:{command.charges}",
+                        ),
+                    ),
+                }
             )
         elif isinstance(command, Schedule):
             entry = command.entry

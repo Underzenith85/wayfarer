@@ -1740,6 +1740,15 @@ def _prepare_attack_turn(
     from wayfarer.simulation.mechanics.gurps_melee import prepare_attack
     from wayfarer.simulation.mechanics.gurps_ranged import prepare_spraying_fire
 
+    if command.laser_sight:
+        assert encounter.pending_defense is not None
+        encounter = encounter.model_copy(
+            update={
+                "pending_defense": encounter.pending_defense.model_copy(
+                    update={"laser_sight": True}
+                )
+            }
+        )
     encounter = prepare_attack(
         context.play.rules_context,
         state,
