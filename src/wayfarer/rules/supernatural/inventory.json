@@ -4848,13 +4848,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        243,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned magic-craft attributes, difficulties, defaults, prerequisites, modes, and authorized replay-safe checks.",
+      "evidence": [
+        "tests/test_magic_craft_skills.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5031,13 +5032,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        243,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned magic-craft attributes, difficulties, defaults, prerequisites, modes, and authorized replay-safe checks.",
+      "evidence": [
+        "tests/test_magic_craft_skills.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5306,13 +5308,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        243,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned magic-craft attributes, difficulties, defaults, prerequisites, modes, and authorized replay-safe checks.",
+      "evidence": [
+        "tests/test_magic_craft_skills.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5374,13 +5377,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        243,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned magic-craft attributes, difficulties, defaults, prerequisites, modes, and authorized replay-safe checks.",
+      "evidence": [
+        "tests/test_magic_craft_skills.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5396,13 +5400,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        243,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned magic-craft attributes, difficulties, defaults, prerequisites, modes, and authorized replay-safe checks.",
+      "evidence": [
+        "tests/test_magic_craft_skills.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
