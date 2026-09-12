@@ -80,6 +80,40 @@
         "title": "ControllingAttribute",
         "type": "string"
       },
+      "DefaultCondition": {
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/DefaultConditionKind"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Value"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "title": "DefaultCondition",
+        "type": "object"
+      },
+      "DefaultConditionKind": {
+        "description": "Authoritative facts that may gate a B168-173 skill default.",
+        "enum": [
+          "matching-technology-level",
+          "matching-specialty",
+          "required-equipment"
+        ],
+        "title": "DefaultConditionKind",
+        "type": "string"
+      },
       "DefinitionKind": {
         "enum": [
           "attribute",
@@ -173,6 +207,14 @@
           "modifier": {
             "title": "Modifier",
             "type": "integer"
+          },
+          "conditions": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/DefaultCondition"
+            },
+            "title": "Conditions",
+            "type": "array"
           }
         },
         "required": [

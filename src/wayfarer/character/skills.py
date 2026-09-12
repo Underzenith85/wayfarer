@@ -16,7 +16,10 @@ from wayfarer.rules.catalog import DefinitionKind, ImplementationStatus, RuleDef
 from wayfarer.rules.conformance import profile, require_capabilities
 from wayfarer.rules.skill_types import (
     ControllingAttribute,
+    DefaultCondition,
+    DefaultConditionKind,
     Difficulty,
+    SkillDefault,
     SkillPrerequisite,
     SkillSpec,
 )
@@ -45,6 +48,24 @@ class SkillLevel:
     default_from: str | None = None
     default_credit: int = 0
     unmodified: int | None = None
+    default_conditions: tuple[DefaultCondition, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class DefaultContext:
+    """Authoritative state used to decide whether a conditional default exists.
+
+    A missing fact fails closed. Technology levels are keyed by skill definition;
+    equipment IDs are pinned rule-definition IDs. Matching-specialty needs no
+    caller input because the selected catalog owns both specialty records.
+    """
+
+    technology_levels: Mapping[str, int]
+    equipment_ids: frozenset[str]
+
+    @classmethod
+    def empty(cls) -> DefaultContext:
+        return cls({}, frozenset())
 
 
 def relative_level(difficulty: Difficulty, points: int) -> int:
@@ -110,6 +131,15 @@ class SkillCompiler:
             refs.update(p.target for group in spec.prerequisite_groups for p in group.alternatives)
             if any(type(d.modifier) is not int or d.modifier > 0 for d in spec.defaults):
                 raise SkillError("skill.definition", "Defaults need integer nonpositive modifiers")
+            for default in spec.defaults:
+                if len(set(default.conditions)) != len(default.conditions):
+                    raise SkillError("skill.definition", "Duplicate default condition")
+                for condition in default.conditions:
+                    if not isinstance(condition.kind, DefaultConditionKind):
+                        raise SkillError("skill.definition", "Unsupported default condition")
+                    needs_value = condition.kind is DefaultConditionKind.REQUIRED_EQUIPMENT
+                    if needs_value != (condition.value is not None):
+                        raise SkillError("skill.definition", "Invalid default condition value")
             alternatives = tuple(p for g in spec.prerequisite_groups for p in g.alternatives)
             if any(
                 type(p.minimum) is not int or p.minimum < 1
@@ -120,7 +150,7 @@ class SkillCompiler:
                 raise SkillError(
                     "skill.definition", "An alternative set needs at least two alternatives"
                 )
-            if len({d.target for d in spec.defaults}) != len(spec.defaults):
+            if len({(d.target, d.conditions) for d in spec.defaults}) != len(spec.defaults):
                 raise SkillError("skill.definition", "Duplicate skill defaults")
             if spec.specialty is not None:
                 specialty = spec.specialty
@@ -164,11 +194,41 @@ class SkillCompiler:
         except CycleError as exc:
             raise SkillError("skill.cycle", "Cyclic skill definitions are unsupported") from exc
 
+    def _conditions_satisfied(
+        self,
+        skill_id: str,
+        spec: SkillSpec,
+        default: SkillDefault,
+        context: DefaultContext,
+    ) -> bool:
+        for condition in default.conditions:
+            if condition.kind is DefaultConditionKind.MATCHING_TECHNOLOGY_LEVEL:
+                own_tl = context.technology_levels.get(skill_id)
+                target_tl = context.technology_levels.get(default.target)
+                if own_tl is None or own_tl != target_tl:
+                    return False
+            elif condition.kind is DefaultConditionKind.MATCHING_SPECIALTY:
+                target = self.specs.get(default.target)
+                if (
+                    spec.specialty is None
+                    or target is None
+                    or target.specialty is None
+                    or spec.specialty.name != target.specialty.name
+                ):
+                    return False
+            elif condition.kind is DefaultConditionKind.REQUIRED_EQUIPMENT:
+                if condition.value not in context.equipment_ids:
+                    return False
+            else:
+                raise SkillError("skill.definition", "Unsupported default condition")
+        return True
+
     def compile(
         self,
         points: Mapping[str, int],
         values: Mapping[str, Decimal],
         adjust: Callable[[str, int], int] | None = None,
+        default_context: DefaultContext | None = None,
     ) -> tuple[SkillLevel, ...]:
         if any(
             key not in self.available or type(p) is not int or p < 1 for key, p in points.items()
@@ -183,6 +243,18 @@ class SkillCompiler:
                 )
             attributes[attribute_id] = int(value)
         levels: dict[str, SkillLevel] = {}
+        context = default_context or DefaultContext.empty()
+
+        if any(
+            not isinstance(key, str) or type(level) is not int or level < 0
+            for key, level in context.technology_levels.items()
+        ):
+            raise SkillError("skill.context", "Technology levels need nonnegative integers")
+        if any(
+            not isinstance(identifier, str) or not identifier
+            for identifier in context.equipment_ids
+        ):
+            raise SkillError("skill.context", "Equipment context needs definition IDs")
 
         def record(result: SkillLevel) -> None:
             level = result.level if adjust is None else adjust(result.target, result.level)
@@ -244,39 +316,50 @@ class SkillCompiler:
                 if levels[key].level > parent.level + technique.maximum_modifier:
                     raise SkillError("technique.cap", f"Technique effects exceed its cap: {key}")
                 continue
-            candidates: list[tuple[int, str, bool]] = []
+
+            candidates: list[tuple[int, str, bool, tuple[DefaultCondition, ...]]] = []
             for default in spec.defaults:
+                if not self._conditions_satisfied(key, spec, default, context):
+                    continue
                 if default.target in attributes:
                     candidates.append(
                         (
                             min(20, attributes[default.target]) + default.modifier,
                             default.target,
                             False,
+                            default.conditions,
                         )
                     )
                 elif default.target in points and default.target in levels:
                     candidates.append(
-                        (levels[default.target].level + default.modifier, default.target, True)
+                        (
+                            levels[default.target].level + default.modifier,
+                            default.target,
+                            True,
+                            default.conditions,
+                        )
                     )
             if spec.specialty is not None and spec.specialty.optional_parent in native:
                 parent_id = spec.specialty.optional_parent
                 assert parent_id is not None
-                candidates.append((default_native[parent_id] - 2, parent_id, True))
+                candidates.append((default_native[parent_id] - 2, parent_id, True, ()))
             for other, other_spec in self.specs.items():
                 if (
                     other in native
                     and other_spec.specialty is not None
                     and other_spec.specialty.optional_parent == key
                 ):
-                    candidates.append((default_native[other] - 2, other, True))
+                    candidates.append((default_native[other] - 2, other, True, ()))
             attribute = attributes[spec.attribute]
             # B173: skill defaults grant point-equivalent credit; attribute
             # defaults do not. Partial investment remains recorded without rounding up.
-            options = [(level, target, 0) for level, target, _ in candidates]
+            options = [
+                (level, target, 0, conditions) for level, target, _, conditions in candidates
+            ]
             if paid:
-                options.append((native[key], "", 0))
+                options.append((native[key], "", 0, ()))
                 if self.profile_id == BASIC:
-                    for level, target, skill_default in candidates:
+                    for level, target, skill_default, conditions in candidates:
                         credit = _credit(spec.difficulty, level - attribute) if skill_default else 0
                         if credit:
                             options.append(
@@ -284,9 +367,21 @@ class SkillCompiler:
                                     attribute + relative_level(spec.difficulty, paid + credit),
                                     target,
                                     credit,
+                                    conditions,
                                 )
                             )
             if options:
-                level, target, credit = max(options, key=lambda x: (x[0], x[1] == "", x[1]))
-                record(SkillLevel(key, level, paid, target or None, credit))
+                level, target, credit, conditions = max(
+                    options, key=lambda x: (x[0], x[1] == "", x[1])
+                )
+                record(
+                    SkillLevel(
+                        key,
+                        level,
+                        paid,
+                        default_from=target or None,
+                        default_credit=credit,
+                        default_conditions=conditions,
+                    )
+                )
         return tuple(levels[key] for key in sorted(levels))
