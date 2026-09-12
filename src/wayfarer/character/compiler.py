@@ -432,6 +432,14 @@ class CharacterCompiler:
                             )
 
                             cost = validate_world_travel_trait(definition, amount, options)
+                        elif any(
+                            hook.startswith("mana-divine-trait:") for hook in metadata.runtime_hooks
+                        ):
+                            from wayfarer.rules.mana_divine_traits import (
+                                validate_purchase as validate_mana_divine_trait,
+                            )
+
+                            cost = validate_mana_divine_trait(definition, amount, options)
                         else:
                             cost = trait_cost(cost, amount, options, metadata)
                         if any(hook.startswith("ability:") for hook in metadata.runtime_hooks):
@@ -460,6 +468,60 @@ class CharacterCompiler:
             spent += cost
             disadvantages += max(0, -cost)
             entries.append(PurchasedEntry(key, amount, cost, purchase.technology_level))
+        selected_purchase = {p.definition_id: p for p in draft.purchases}
+        mana_conflicts: tuple[tuple[str, frozenset[str], str | None], ...] = (
+            (
+                "advantage:magic-resistance",
+                frozenset(
+                    {
+                        "advantage:magery",
+                        "trait:magery",
+                        "trait:magery-0",
+                    }
+                ),
+                "improved",
+            ),
+            (
+                "advantage:magic-resistance",
+                frozenset(
+                    {
+                        "advantage:mana-enhancer",
+                        "disadvantage:magic-susceptibility",
+                    }
+                ),
+                None,
+            ),
+            (
+                "advantage:mana-damper",
+                frozenset(
+                    {
+                        "advantage:magery",
+                        "trait:magery",
+                        "trait:magery-0",
+                    }
+                ),
+                None,
+            ),
+            (
+                "advantage:magery",
+                frozenset({"trait:magery", "trait:magery-0"}),
+                None,
+            ),
+        )
+        for owner, incompatible, exception in mana_conflicts:
+            mana_purchase = selected_purchase.get(owner)
+            if mana_purchase is None or not selected.intersection(incompatible):
+                continue
+            modifiers = () if mana_purchase.trait is None else mana_purchase.trait.modifiers
+            if exception is not None and exception in modifiers:
+                continue
+            diagnostics.append(
+                Diagnostic(
+                    "trait.exclusion",
+                    ("purchases",),
+                    f"{owner} is incompatible with the selected mana trait",
+                )
+            )
         for definition in self.definitions.values():
             if definition.kind is DefinitionKind.ATTRIBUTE and definition.id not in selected:
                 diagnostics.append(Diagnostic("attribute.required", ("purchases",), definition.id))
@@ -543,6 +605,12 @@ class CharacterCompiler:
             from wayfarer.rules.gurps_magic import PREREQUISITES, magery_level
 
             magery = max(0, magery_level({p.definition_id: p.amount for p in draft.purchases}))
+            mana_magery = selected_purchase.get("advantage:magery")
+            if mana_magery is not None:
+                options = mana_magery.trait or TraitOptions()
+                zero_only = bool(dict(options.parameters).get("zero-only", False))
+                if not zero_only and not options.modifiers:
+                    magery = max(magery, mana_magery.amount)
 
             def spell_bonus(key: str) -> int:
                 return magery if key in {"spell:" + name for name in PREREQUISITES} else 0
