@@ -9,6 +9,7 @@ a runtime adapter cannot silently change an action.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, replace
 from decimal import ROUND_CEILING, Decimal
 from enum import StrEnum
@@ -689,91 +690,142 @@ MODIFIERS: Final = _deduplicate_and_patch()
 MODIFIER_INDEX: Final = MappingProxyType({definition.id: definition for definition in MODIFIERS})
 
 
-def _percentage(
+def _fixed_percentage(
     selection: ModifierSelection,
+    definition: ModifierDefinition,
     approvals: tuple[ModifierApproval, ...],
 ) -> int:
-    definition = MODIFIER_INDEX.get(selection.definition_id)
-    if definition is None:
-        raise ValidationError("Unknown ability modifier")
+    del approvals
     if (
-        selection.gadget is not None
-        and definition.cost_kind is not CostKind.GADGET
-        and selection.definition_id != UNIQUE
+        selection.level != 1
+        or selection.option is not None
+        or (selection.gadget is not None and selection.definition_id != UNIQUE)
     ):
-        raise ValidationError("Gadget facts are not applicable to this modifier")
-    if definition.cost_kind is CostKind.FIXED:
-        if (
-            selection.level != 1
-            or selection.option is not None
-            or (selection.gadget is not None and selection.definition_id != UNIQUE)
-        ):
-            raise ValidationError("Fixed modifier takes no level or option")
-        value = definition.percent
-    elif definition.cost_kind is CostKind.PER_LEVEL:
-        if selection.level > definition.maximum_level or selection.option is not None:
-            raise ValidationError("Modifier level is outside its source bounds")
-        value = definition.percent * selection.level
-    elif definition.cost_kind is CostKind.TABLE:
-        options = {option.id: option.percent for option in definition.options}
-        if selection.level != 1 or selection.option not in options:
-            raise ValidationError("Modifier requires one trusted table option")
-        value = options[selection.option]
-    elif definition.cost_kind is CostKind.GADGET:
-        if selection.level != 1 or selection.option is not None or selection.gadget is None:
-            raise ValidationError("Gadget limitation requires explicit construction facts")
-        gadget = selection.gadget
-        if selection.definition_id == BREAKABLE:
-            durability = (
-                -20
-                if gadget.damage_resistance <= 2
-                else -15
-                if gadget.damage_resistance <= 5
-                else -10
-                if gadget.damage_resistance <= 15
-                else -5
-                if gadget.damage_resistance <= 25
-                else 0
-            )
-            size = (
-                0
-                if gadget.size_modifier <= -9
-                else -5
-                if gadget.size_modifier <= -7
-                else -10
-                if gadget.size_modifier <= -5
-                else -15
-                if gadget.size_modifier <= -3
-                else -20
-                if gadget.size_modifier <= -1
-                else -25
-            )
-            value = durability + size + (0 if gadget.repairable else -15)
-        elif selection.definition_id == STOLEN:
-            value = {
-                "grabbable": -40,
-                "quick-contest": -30,
-                "stealth-trickery": -20,
-                "forceful": -10,
-            }[gadget.theft_method]
-            if not gadget.works_for_thief:
-                value = int(Decimal(value) / 2)
-        else:
-            raise ValidationError("Unknown gadget cost adapter")
-    else:
-        matches = tuple(
-            approval
-            for approval in approvals
-            if approval.modifier_id == selection.definition_id
-            and approval.option == selection.option
-        )
-        if selection.level != 1 or len(matches) != 1:
-            raise ValidationError("Modifier requires an exact campaign approval")
-        value = matches[0].percent
-        if definition.classification is ModifierClass.ENHANCEMENT and value < 0:
-            raise ValidationError("Enhancement approval cannot reduce cost")
-        if definition.classification is not ModifierClass.ENHANCEMENT and value > 0:
-            raise ValidationError("Limitation approval cannot increase cost")
+        raise ValidationError("Fixed modifier takes no level or option")
+    return definition.percent
+
+
+def _per_level_percentage(
+    selection: ModifierSelection,
+    definition: ModifierDefinition,
+    approvals: tuple[ModifierApproval, ...],
+) -> int:
+    del approvals
+    if selection.level > definition.maximum_level or selection.option is not None:
+        raise ValidationError("Modifier level is outside its source bounds")
+    return definition.percent * selection.level
+
+
+def _table_percentage(
+    selection: ModifierSelection,
+    definition: ModifierDefinition,
+    approvals: tuple[ModifierApproval, ...],
+) -> int:
+    del approvals
+    options = {option.id: option.percent for option in definition.options}
+    if selection.level != 1 or selection.option not in options:
+        raise ValidationError("Modifier requires one trusted table option")
+    return options[selection.option]
+
+
+def _breakable_percentage(gadget: GadgetConstruction) -> int:
+    durability = (
+        -20
+        if gadget.damage_resistance <= 2
+        else -15
+        if gadget.damage_resistance <= 5
+        else -10
+        if gadget.damage_resistance <= 15
+        else -5
+        if gadget.damage_resistance <= 25
+        else 0
+    )
+    size = (
+        0
+        if gadget.size_modifier <= -9
+        else -5
+        if gadget.size_modifier <= -7
+        else -10
+        if gadget.size_modifier <= -5
+        else -15
+        if gadget.size_modifier <= -3
+        else -20
+        if gadget.size_modifier <= -1
+        else -25
+    )
+    return durability + size + (0 if gadget.repairable else -15)
+
+
+def _stolen_percentage(gadget: GadgetConstruction) -> int:
+    value = {
+        "grabbable": -40,
+        "quick-contest": -30,
+        "stealth-trickery": -20,
+        "forceful": -10,
+    }[gadget.theft_method]
+    return value if gadget.works_for_thief else int(Decimal(value) / 2)
+
+
+_GADGET_PERCENTAGES: Final[dict[str, Callable[[GadgetConstruction], int]]] = {
+    BREAKABLE: _breakable_percentage,
+    STOLEN: _stolen_percentage,
+}
+
+
+def _gadget_percentage(
+    selection: ModifierSelection,
+    definition: ModifierDefinition,
+    approvals: tuple[ModifierApproval, ...],
+) -> int:
+    del definition, approvals
+    if selection.level != 1 or selection.option is not None or selection.gadget is None:
+        raise ValidationError("Gadget limitation requires explicit construction facts")
+    resolver = _GADGET_PERCENTAGES.get(selection.definition_id)
+    if resolver is None:
+        raise ValidationError("Unknown gadget cost adapter")
+    return resolver(selection.gadget)
+
+
+def _approved_percentage(
+    selection: ModifierSelection,
+    definition: ModifierDefinition,
+    approvals: tuple[ModifierApproval, ...],
+) -> int:
+    matches = tuple(
+        approval
+        for approval in approvals
+        if approval.modifier_id == selection.definition_id and approval.option == selection.option
+    )
+    if selection.level != 1 or len(matches) != 1:
+        raise ValidationError("Modifier requires an exact campaign approval")
+    value = matches[0].percent
+    if definition.classification is ModifierClass.ENHANCEMENT and value < 0:
+        raise ValidationError("Enhancement approval cannot reduce cost")
+    if definition.classification is not ModifierClass.ENHANCEMENT and value > 0:
+        raise ValidationError("Limitation approval cannot increase cost")
+    return value
+
+
+_COST_PERCENTAGES: Final[
+    dict[
+        CostKind,
+        Callable[[ModifierSelection, ModifierDefinition, tuple[ModifierApproval, ...]], int],
+    ]
+] = {
+    CostKind.FIXED: _fixed_percentage,
+    CostKind.PER_LEVEL: _per_level_percentage,
+    CostKind.TABLE: _table_percentage,
+    CostKind.GADGET: _gadget_percentage,
+    CostKind.CAMPAIGN_APPROVAL: _approved_percentage,
+}
+
+
+def _limited_percentage(
+    selection: ModifierSelection,
+    definition: ModifierDefinition,
+    approvals: tuple[ModifierApproval, ...],
+    value: int,
+) -> int:
     if selection.limited_by is not None:
         if definition.classification is not ModifierClass.ENHANCEMENT:
             raise ValidationError("Only an enhancement may have a limited scope")
@@ -787,6 +839,23 @@ def _percentage(
             )
         )
     return value
+
+
+def _percentage(
+    selection: ModifierSelection,
+    approvals: tuple[ModifierApproval, ...],
+) -> int:
+    definition = MODIFIER_INDEX.get(selection.definition_id)
+    if definition is None:
+        raise ValidationError("Unknown ability modifier")
+    if (
+        selection.gadget is not None
+        and definition.cost_kind is not CostKind.GADGET
+        and selection.definition_id != UNIQUE
+    ):
+        raise ValidationError("Gadget facts are not applicable to this modifier")
+    value = _COST_PERCENTAGES[definition.cost_kind](selection, definition, approvals)
+    return _limited_percentage(selection, definition, approvals, value)
 
 
 def validate_selections(
