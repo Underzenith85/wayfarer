@@ -7,16 +7,24 @@ from typing import TYPE_CHECKING
 
 from wayfarer.engine.rules.checks import CheckTrace, draw_dice
 from wayfarer.engine.rules.gurps_checks import success_roll
+from wayfarer.engine.rules.tables.ranged import range_penalty
 from wayfarer.engine.rules.types.explosion import BlastResponse, ExplosionSpec
 from wayfarer.engine.rules.types.firearm import FirearmFailure
 from wayfarer.engine.rules.types.object import GroundPosition
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import catalog, movement
 from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.explosions import BlastRecord, blasts, save
 from wayfarer.engine.simulation.combat.firearms import spend_rounds
+from wayfarer.engine.simulation.combat.melee.defense import defense_value
+from wayfarer.engine.simulation.combat.objects.combat import synchronize
+from wayfarer.engine.simulation.combat.thrown.flight import position
+from wayfarer.engine.simulation.combat.unarmed.injury import hurt
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
+from wayfarer.engine.simulation.equipment.objects import DamageObject, apply_object
+from wayfarer.engine.simulation.health.hit_locations import select_location
 from wayfarer.engine.simulation.hex_geometry import Hex, distance
 from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.errors import ValidationError
@@ -37,8 +45,6 @@ def schedule_payload(
     shots_fired: int,
     critical: int,
 ) -> tuple[PlayState, Encounter, bool]:
-    from wayfarer.engine.simulation.actors import catalog
-    from wayfarer.engine.simulation.combat.thrown.flight import position
 
     pending = encounter.pending_defense
     assert pending is not None
@@ -157,13 +163,6 @@ def resolve_blast(
     center: GroundPosition | None,
     environment: str,
 ) -> tuple[PlayState, Encounter, int]:
-    from wayfarer.engine.rules.tables.ranged import range_penalty
-    from wayfarer.engine.simulation.actors import catalog, movement
-    from wayfarer.engine.simulation.combat.melee.defense import defense_value
-    from wayfarer.engine.simulation.combat.thrown.flight import position
-    from wayfarer.engine.simulation.combat.unarmed.injury import hurt
-    from wayfarer.engine.simulation.equipment.objects import DamageObject, apply_object
-    from wayfarer.engine.simulation.health.hit_locations import select_location
 
     if catalog(runtime).profile_id != "gurps-basic-set-4e-2004":
         raise ValidationError("Explosions require the exact Basic Set profile")
@@ -504,7 +503,6 @@ def resolve_blast(
                 ),
             }
         )
-    from wayfarer.engine.simulation.combat.objects.combat import synchronize
 
     state = state.model_copy(update={"resources": resources})
     debt = blast.deferred_ticks

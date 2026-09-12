@@ -5,12 +5,20 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.combat.encounter import Encounter, RangedSituation
+from wayfarer.engine.simulation.actors import catalog
+from wayfarer.engine.simulation.combat.encounter import Encounter, RangedSituation, basic_distance
 from wayfarer.engine.simulation.combat.engine import CombatEngine
+from wayfarer.engine.simulation.combat.firearm_transitions import service
 from wayfarer.engine.simulation.combat.maneuvers import ATTACK_MANEUVERS
+from wayfarer.engine.simulation.combat.melee.modes import mode
 from wayfarer.engine.simulation.combat.ranged.ammunition import reload_weapon, unload_weapon
+from wayfarer.engine.simulation.combat.ranged.readiness import let_down
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
-from wayfarer.engine.simulation.equipment.catalog import RangedMode
+from wayfarer.engine.simulation.combat.tactical import attack_geometry, pose
+from wayfarer.engine.simulation.combat.thrown.items import recover
+from wayfarer.engine.simulation.combat.unarmed.declaration import declare_unarmed_wait
+from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode
+from wayfarer.engine.simulation.hex_geometry import ranged_distance
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
@@ -24,8 +32,6 @@ def declare(
     if not situations:
         return encounter
     if runtime.rules.combat and runtime.rules.combat.gurps_equipment is not None:
-        from wayfarer.engine.simulation.actors import catalog
-
         catalog(runtime)
     keys = [(s.attacker_id, s.defender_id) for s in situations]
     if len(set(keys)) != len(keys) or any(
@@ -66,9 +72,6 @@ def situation(
     if value is None:
         raise ValidationError("Ranged attack requires declared scene distance, speed and size")
     if encounter.spatial_kind == "hex":
-        from wayfarer.engine.simulation.combat.tactical import attack_geometry, pose
-        from wayfarer.engine.simulation.hex_geometry import ranged_distance
-
         actor = next(p for p in encounter.participants if p.actor_id == attacker)
         target = next(p for p in encounter.participants if p.actor_id == defender)
         attack_geometry(encounter, actor, target, board=runtime.hex_map(encounter))
@@ -80,8 +83,6 @@ def situation(
         )
         value = value.model_copy(update={"distance_yards": float(distance)})
     elif encounter.spatial_kind == "basic":
-        from wayfarer.engine.simulation.combat.encounter import basic_distance
-
         value = value.model_copy(
             update={"distance_yards": basic_distance(encounter, attacker, defender)}
         )
@@ -134,8 +135,6 @@ def validate_command(
     if command.attack_option == "suppression" and not command.suppression_zones:
         raise ValidationError("Suppression fire requires at least one declared zone")
     if command.laser_sight:
-        from wayfarer.engine.simulation.combat.melee.modes import mode
-
         selected = mode(runtime, state, command.actor_id, command.item_id or "", command.mode_id)
         if command.maneuver not in ATTACK_MANEUVERS or not isinstance(selected, RangedMode):
             raise ValidationError("Laser sight requires a ranged attack")
@@ -157,7 +156,6 @@ def validate_command(
             or command.let_down_bow
         ):
             raise ValidationError("Thrown recovery requires a dedicated Ready")
-        from wayfarer.engine.simulation.combat.thrown.items import recover
 
         recover(runtime, state, encounter, command)
     if command.braced and command.maneuver != "aim":
@@ -170,13 +168,8 @@ def validate_command(
     ) and not (command.maneuver == "all_out_attack" and command.attack_option == "double"):
         raise ValidationError("Second attack choices require All-Out Attack (Double)")
     if command.wait_trigger is not None and command.wait_trigger.unarmed is not None:
-        from wayfarer.engine.simulation.combat.unarmed.declaration import declare_unarmed_wait
-
         declare_unarmed_wait(runtime, state, encounter, command.actor_id, command.wait_trigger)
     if command.wait_trigger is not None and command.wait_trigger.stop_thrust:
-        from wayfarer.engine.simulation.combat.melee.modes import mode
-        from wayfarer.engine.simulation.equipment.catalog import MeleeMode
-
         trigger = command.wait_trigger
         assert trigger.item_id is not None
         selected = mode(runtime, state, command.actor_id, trigger.item_id, trigger.mode_id)
@@ -204,8 +197,6 @@ def validate_command(
     if command.shots != 1 and command.maneuver not in ATTACK_MANEUVERS:
         raise ValidationError("Shot count requires an attack")
     if command.firearm_service is not None:
-        from wayfarer.engine.simulation.combat.firearm_transitions import service
-
         service(runtime, state, encounter, command, validate_only=True)
     elif command.firearm_service_skill != "weapon":
         raise ValidationError("Firearm service skill requires a service operation")
@@ -238,8 +229,6 @@ def validate_command(
             or command.firearm_service is not None
         ):
             raise ValidationError("Bow let-down requires its own Ready")
-        from wayfarer.engine.simulation.combat.melee.modes import mode
-        from wayfarer.engine.simulation.combat.ranged.readiness import let_down
 
         selected = mode(runtime, state, command.actor_id, command.item_id or "", command.mode_id)
         if not isinstance(selected, RangedMode):

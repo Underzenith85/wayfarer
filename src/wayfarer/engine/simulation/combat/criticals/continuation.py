@@ -6,8 +6,10 @@ from typing import Literal
 from wayfarer.engine.rules.checks import draw_dice
 from wayfarer.engine.rules.types.location import HumanLocation
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import build, catalog
 from wayfarer.engine.simulation.combat.critical import CriticalMiss, load_critical
 from wayfarer.engine.simulation.combat.encounter import Encounter
+from wayfarer.engine.simulation.combat.objects.combat import synchronize
 from wayfarer.engine.simulation.health.injury import (
     DisableLocation,
     Wound,
@@ -34,7 +36,6 @@ class Continuation(Record):
 def context(
     runtime: RulesContext, state: PlayState, encounter: Encounter, critical_id: str
 ) -> CriticalMiss:
-    from wayfarer.engine.simulation.actors import build, catalog
 
     saved = load_critical(state.resources, critical_id)
     if (
@@ -133,7 +134,6 @@ def continue_critical(
             )
             if saved.table_total == 6:
                 basic //= 2
-            from wayfarer.engine.simulation.actors import build
 
             stats = build(runtime, state, saved.subject_id).statistics
             assert stats is not None
@@ -188,7 +188,6 @@ def continue_critical(
             )
             incoming_injury = wound.injury
         state = state.model_copy(update={"resources": resources})
-        from wayfarer.engine.simulation.combat.objects.combat import synchronize
 
         encounter = synchronize(state, encounter).model_copy(update={"blocked_reason": None})
         pool = next(p for p in resources.pools if p.id == f"hp:{saved.subject_id}")

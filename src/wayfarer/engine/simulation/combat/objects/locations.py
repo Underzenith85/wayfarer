@@ -5,7 +5,12 @@ from typing import Literal
 
 from wayfarer.engine.rules.types.location import Hand, HitLocation, HumanLocation
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
+from wayfarer.engine.simulation.actors import build, catalog
+from wayfarer.engine.simulation.combat.battlefield import GridPoint
+from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter, basic_distance
+from wayfarer.engine.simulation.combat.engine import CombatEngine
+from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
+from wayfarer.engine.simulation.combat.tactical import pose
 from wayfarer.engine.simulation.combat.vocabulary import Posture
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode
 from wayfarer.engine.simulation.health.hit_locations import (
@@ -15,6 +20,7 @@ from wayfarer.engine.simulation.health.hit_locations import (
     wound_factor,
 )
 from wayfarer.engine.simulation.health.injury import ResolveCrippling, apply_injury
+from wayfarer.engine.simulation.hex_geometry import Hex, arc
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
 
@@ -24,9 +30,6 @@ def unavailable_hand(locations: frozenset[HumanLocation], hand: Hand) -> bool:
 
 
 def from_behind(attacker: Combatant, defender: Combatant) -> bool:
-    from wayfarer.engine.simulation.combat.battlefield import GridPoint
-    from wayfarer.engine.simulation.combat.tactical import pose
-    from wayfarer.engine.simulation.hex_geometry import Hex, arc
 
     if isinstance(attacker.position, Hex) and isinstance(defender.position, Hex):
         return arc(pose(defender), attacker.position) == "rear"
@@ -48,7 +51,6 @@ def validate_target(
     location: HitLocation | None,
 ) -> None:
     """Reject unsupported location intent before consciousness/exertion dice."""
-    from wayfarer.engine.simulation.actors import catalog
 
     attacker = next((p for p in encounter.participants if p.actor_id == attacker_id), None)
     defender = next((p for p in encounter.participants if p.actor_id == defender_id), None)
@@ -62,9 +64,6 @@ def validate_target(
     )
     if any(h in occupied_hands for _, h in attacker.hand_bindings):
         raise ValidationError("Selected weapon hand is controlled by a grapple")
-    from wayfarer.engine.simulation.combat.encounter import basic_distance
-    from wayfarer.engine.simulation.combat.engine import CombatEngine
-    from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
 
     distance = (
         basic_distance(encounter, attacker_id, defender_id)
@@ -118,7 +117,6 @@ def validate_posture(state: PlayState, actor_id: str, posture: Posture | None) -
 
 
 def _validate_bindings(runtime: RulesContext, state: PlayState, participant: Combatant) -> None:
-    from wayfarer.engine.simulation.actors import catalog
 
     items = {
         i.id: i
@@ -168,7 +166,6 @@ def bind_ready_hand(
             raise ValidationError("Ready requires an explicit usable hand after crippling")
         return encounter
     hands: tuple[Hand, ...] = ("left-hand", "right-hand") if hand == "both" else (hand,)
-    from wayfarer.engine.simulation.actors import catalog
 
     item = next(i for i in state.resources.items if i.id == item_id)
     shield = next(
@@ -219,7 +216,6 @@ def settle_crippling(
     runtime: RulesContext, state: PlayState, encounter: Encounter, command_id: str
 ) -> PlayState:
     """B422: roll duration once at combat end, saved inside the combat CAS."""
-    from wayfarer.engine.simulation.actors import build
 
     resources = state.resources
     for participant in encounter.participants:

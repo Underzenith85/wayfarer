@@ -3,6 +3,7 @@
 import hashlib
 
 from wayfarer.engine.rules.types.location import HumanLocation
+from wayfarer.engine.simulation.abilities import damage_resistance
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.critical import (
@@ -12,6 +13,7 @@ from wayfarer.engine.simulation.combat.critical import (
     save_critical,
 )
 from wayfarer.engine.simulation.combat.encounter import Encounter
+from wayfarer.engine.simulation.combat.objects.combat import effective_entry
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode
 from wayfarer.engine.simulation.hex_geometry import Hex
 from wayfarer.engine.simulation.rules_context import RulesContext
@@ -44,7 +46,6 @@ def capture_critical(
     assert compiled.statistics is not None
     statistics = compiled.statistics
     item = next(i for i in state.resources.items if i.id == item_id)
-    from wayfarer.engine.simulation.combat.objects.combat import effective_entry
 
     entry = effective_entry(runtime, item)
     modes = tuple(
@@ -89,8 +90,6 @@ def capture_critical(
     )
     dr_bonus = 0
     if runtime.rules.abilities is not None:
-        from wayfarer.engine.simulation.abilities import damage_resistance
-
         dr_bonus = damage_resistance(state.resources, actor_id, build_revision=compiled.revision)
     limbs: tuple[HumanLocation, ...] = ("left-arm", "right-arm", "left-leg", "right-leg")
     record = CriticalMiss.model_validate(

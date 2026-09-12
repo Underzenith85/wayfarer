@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING
 
 from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter, move_basic
 from wayfarer.engine.simulation.combat.engine import CombatEngine
+from wayfarer.engine.simulation.combat.explosions import blasts
+from wayfarer.engine.simulation.combat.melee.modes import mode
 from wayfarer.engine.simulation.combat.spatial import (
     BasicSpatialContext,
     CoverSpatialFact,
@@ -20,11 +22,13 @@ from wayfarer.engine.simulation.combat.spatial import (
 )
 from wayfarer.engine.simulation.combat.tactical import (
     defense_adjustment,
+    move_hex,
     occupants,
     pose,
     sight,
     validate_hex_encounter,
 )
+from wayfarer.engine.simulation.equipment.catalog import RangedMode
 from wayfarer.engine.simulation.hex_geometry import (
     HexBattlefield,
     Occupant,
@@ -33,6 +37,7 @@ from wayfarer.engine.simulation.hex_geometry import (
     distance,
     neighbor,
 )
+from wayfarer.engine.simulation.magic.spells import active_spells
 from wayfarer.errors import ConflictError, ValidationError
 
 if TYPE_CHECKING:
@@ -79,8 +84,6 @@ def migrate(
         for item in state.resources.items
     ):
         raise ValidationError("Map migration cannot reinterpret grounded equipment")
-    from wayfarer.engine.simulation.combat.explosions import blasts
-    from wayfarer.engine.simulation.magic.spells import active_spells
 
     if any(
         not blast.resolved and blast.encounter_id == encounter.id
@@ -237,8 +240,6 @@ def migrate_basic(
         for item in state.resources.items
     ):
         raise ValidationError("Grounded equipment prevents Basic conversion")
-    from wayfarer.engine.simulation.combat.explosions import blasts
-    from wayfarer.engine.simulation.magic.spells import active_spells
 
     if any(
         not blast.resolved and blast.encounter_id == encounter.id
@@ -395,9 +396,6 @@ def prepare_defense(
         target = next(p for p in encounter.participants if p.actor_id == defender_id)
         bonus = 0
         if command.basic_retreat:
-            from wayfarer.engine.simulation.combat.melee.modes import mode
-            from wayfarer.engine.simulation.equipment.catalog import RangedMode
-
             hp = next(p for p in state.resources.pools if p.id == f"hp:{target.actor_id}")
             fact = encounter.spatial.active("retreat", target.actor_id, actor.actor_id)
             if (
@@ -456,9 +454,6 @@ def prepare_defense(
     target = next(p for p in encounter.participants if p.actor_id == defender_id)
     bonus = defense_adjustment(encounter, actor, target) if command.defense != "none" else 0
     if command.retreat is not None:
-        from wayfarer.engine.simulation.combat.melee.modes import mode
-        from wayfarer.engine.simulation.equipment.catalog import RangedMode
-
         if command.defense == "none" or command.second_defense is not None:
             raise ValidationError("Retreat requires one active defense")
         if pending and isinstance(
@@ -532,8 +527,6 @@ def finish_defense(
     encounter = CombatEngine._replace(encounter, target)
     pending = encounter.defense_history[-1].pending if encounter.defense_history else None
     if pending and (pending.post_attack_hex_path or pending.post_attack_facing is not None):
-        from wayfarer.engine.simulation.combat.tactical import move_hex
-
         attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
         attacker = move_hex(
             encounter,

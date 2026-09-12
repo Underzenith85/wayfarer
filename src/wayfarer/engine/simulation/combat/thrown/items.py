@@ -5,9 +5,17 @@ from typing import TYPE_CHECKING, Literal
 
 from wayfarer.engine.rules.types.object import GroundPosition
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import build, catalog
 from wayfarer.engine.simulation.combat.battlefield import Battlefield
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
+from wayfarer.engine.simulation.combat.explosions import guard as blast_guard
+from wayfarer.engine.simulation.combat.melee.modes import mode
+from wayfarer.engine.simulation.combat.thrown.flight import position
+from wayfarer.engine.simulation.combat.unarmed.fighters import free_hands
+from wayfarer.engine.simulation.combat.visibility import visible_actors
+from wayfarer.engine.simulation.equipment.catalog import RangedMode
+from wayfarer.engine.simulation.hex_geometry import Hex
 from wayfarer.engine.simulation.resources import Item, ResourceEvent, ResourceState
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record
@@ -61,8 +69,6 @@ def landed(
     catcher_id: str | None = None,
     hand: str | None = None,
 ) -> tuple[ResourceState, Encounter]:
-    from wayfarer.engine.simulation.combat.thrown.flight import position
-    from wayfarer.engine.simulation.combat.visibility import visible_actors
 
     pending = encounter.pending_defense
     assert pending is not None
@@ -138,7 +144,6 @@ def declare_landing(
     landing: GroundPosition,
     command_id: str,
 ) -> ResourceState:
-    from wayfarer.engine.simulation.actors import catalog
 
     if catalog(runtime).profile_id != "gurps-basic-set-4e-2004":
         raise ValidationError("Thrown landing requires the exact Basic Set profile")
@@ -149,8 +154,6 @@ def declare_landing(
     if landing.encounter_id != encounter.id:
         raise ValidationError("Landing must belong to the original encounter")
     if encounter.spatial_kind == "hex":
-        from wayfarer.engine.simulation.hex_geometry import Hex
-
         if landing.geometry != "hex" or Hex(q=landing.x, r=landing.y) not in {
             c.position for c in runtime.require_hex(encounter).cells
         }:
@@ -179,10 +182,6 @@ def declare_landing(
 def recover(
     runtime: RulesContext, state: PlayState, encounter: Encounter, command: TakeCombatTurn
 ) -> PlayState:
-    from wayfarer.engine.simulation.actors import build, catalog
-    from wayfarer.engine.simulation.combat.explosions import guard as blast_guard
-    from wayfarer.engine.simulation.combat.thrown.flight import position
-    from wayfarer.engine.simulation.combat.unarmed.fighters import free_hands
 
     blast_guard(state.resources)
     equipment = catalog(runtime)
@@ -249,10 +248,6 @@ def undo_recovery(
 def validate_catch(
     runtime: RulesContext, state: PlayState, encounter: Encounter, command: ChooseDefense
 ) -> None:
-    from wayfarer.engine.simulation.actors import catalog
-    from wayfarer.engine.simulation.combat.melee.modes import mode
-    from wayfarer.engine.simulation.combat.unarmed.fighters import free_hands
-    from wayfarer.engine.simulation.equipment.catalog import RangedMode
 
     pending = encounter.pending_defense
     if (

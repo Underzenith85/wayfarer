@@ -10,9 +10,13 @@ from wayfarer.engine.rules.checks import Outcome
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.types.readiness import ProjectileProgress
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import build, catalog
+from wayfarer.engine.simulation.combat.ranged.strength import validate_rated_strength
+from wayfarer.engine.simulation.combat.thrown.flight import position
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
 from wayfarer.engine.simulation.health.condition_checks import definition_modifiers
 from wayfarer.engine.simulation.health.fatigue import fatigue_value
+from wayfarer.engine.simulation.health.physical_traits import physical_traits
 from wayfarer.engine.simulation.resources import AmmunitionLoad, ResourceEvent, ResourceState
 from wayfarer.errors import ValidationError
 
@@ -43,9 +47,6 @@ def reload(
     *,
     validate_only: bool,
 ) -> ResourceState:
-    from wayfarer.engine.simulation.actors import build, catalog
-    from wayfarer.engine.simulation.combat.ranged.strength import validate_rated_strength
-    from wayfarer.engine.simulation.combat.thrown.flight import position
 
     spec = weapon.readiness
     assert spec is not None
@@ -135,7 +136,6 @@ def reload(
     fast_used = progress.fast_draw_used
     if command.fast_draw:
         assert learned is not None and spec.fast_draw_skill_id is not None
-        from wayfarer.engine.simulation.health.physical_traits import physical_traits
 
         traits = physical_traits(resources, command.actor_id)
         trace = success_roll(
@@ -295,7 +295,6 @@ def interrupted_draws(
     encounter: Encounter,
 ) -> ResourceState:
     """B382: a dropped, stunned, unbalanced or fallen bow must be drawn again."""
-    from wayfarer.engine.simulation.actors import catalog
 
     rules = runtime.rules.combat
     if rules is None or rules.gurps_equipment is None:

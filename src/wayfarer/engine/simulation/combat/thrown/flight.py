@@ -6,9 +6,13 @@ from typing import Literal
 from wayfarer.engine.rules.checks import CheckTrace, draw_dice
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.types.object import GroundPosition
+from wayfarer.engine.simulation.abilities import damage_resistance
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import build, catalog
 from wayfarer.engine.simulation.combat.critical import Die, TableRoll
 from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
+from wayfarer.engine.simulation.combat.melee.modes import mode
+from wayfarer.engine.simulation.combat.objects.combat import synchronize
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
@@ -70,9 +74,6 @@ class FlightResult(Record):
 def resolve_flight(
     runtime: RulesContext, state: PlayState, encounter: Encounter, table: tuple[int, ...]
 ) -> tuple[PlayState, Encounter, tuple[int, ...]]:
-    from wayfarer.engine.simulation.actors import build, catalog
-    from wayfarer.engine.simulation.combat.melee.modes import mode
-    from wayfarer.engine.simulation.combat.objects.combat import synchronize
 
     pending = encounter.pending_defense
     assert pending is not None
@@ -144,8 +145,6 @@ def resolve_flight(
                 default=0,
             )
             if runtime.rules.abilities:
-                from wayfarer.engine.simulation.abilities import damage_resistance
-
                 armor += damage_resistance(
                     state.resources, target.actor_id, build_revision=target_build.revision
                 )

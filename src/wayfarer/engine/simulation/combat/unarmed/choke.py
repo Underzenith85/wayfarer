@@ -5,10 +5,12 @@ from __future__ import annotations
 import hashlib
 from typing import TYPE_CHECKING
 
+from wayfarer.engine.rules.types.hazard import HazardSchedule, HazardSpec
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, fatigue_ready
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
 from wayfarer.engine.simulation.combat.unarmed.records import Grip, require_basic
+from wayfarer.engine.simulation.health.hazards import HazardCommand, apply_hazard
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
@@ -20,8 +22,6 @@ def start_choke(
     runtime: RulesContext, state: PlayState, grip: Grip, command_id: str
 ) -> tuple[PlayState, Grip]:
     """The existing suffocation schedule owns FP, consciousness and death timing."""
-    from wayfarer.engine.rules.types.hazard import HazardSchedule, HazardSpec
-    from wayfarer.engine.simulation.health.hazards import HazardCommand, apply_hazard
 
     compiled = build(runtime, state, grip.target_id)
     assert compiled.statistics is not None
@@ -68,7 +68,6 @@ def start_choke(
 def resolve_choke(
     runtime: RulesContext, state: PlayState, encounter: Encounter, command: ResolveChokeEffects
 ) -> tuple[PlayState, CombatResult]:
-    from wayfarer.engine.simulation.health.hazards import HazardCommand, apply_hazard
 
     require_basic(catalog(runtime).profile_id)
     grip = next((g for g in encounter.grips if g.id == command.grip_id), None)
@@ -117,7 +116,6 @@ def retire_chokes(
     after: tuple[Grip, ...],
     command_id: str,
 ) -> PlayState:
-    from wayfarer.engine.simulation.health.hazards import HazardCommand, apply_hazard
 
     remaining = {g.id for g in after}
     for grip in before:

@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import catalog, exertion, injury_turn
+from wayfarer.engine.simulation.combat.commands import ChooseDefense
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter, move_basic
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.maneuvers import ManeuverState
@@ -30,7 +31,6 @@ def execute_unarmed(
     encounter: Encounter,
     command: TakeUnarmedTurn | ChooseDefense,
 ) -> tuple[PlayState, Encounter, CombatResult]:
-    from wayfarer.engine.simulation.combat.commands import ChooseDefense
 
     require_basic(catalog(runtime).profile_id)
     # A declared Wait reaction borrows the interrupted turn; it is not a second turn.

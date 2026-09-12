@@ -8,15 +8,22 @@ from wayfarer.engine.rules.effects import DerivedValue
 from wayfarer.engine.rules.tables.combat import minimum_strength_penalty
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, exertion, fatigue_ready, level
+from wayfarer.engine.simulation.combat.combat_height import defense_height
 from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.entangle import defense_penalty as entangle_defense_penalty
 from wayfarer.engine.simulation.combat.maneuvers import ATTACK_MANEUVERS
 from wayfarer.engine.simulation.combat.melee.modes import heavy_parry_weight, mode
+from wayfarer.engine.simulation.combat.objects.locations import item_hands
+from wayfarer.engine.simulation.combat.tactical import pose
 from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode, inventory_load
 from wayfarer.engine.simulation.health.fatigue import fatigue_value
+from wayfarer.engine.simulation.health.fright import can_defend
+from wayfarer.engine.simulation.health.fright import stunned as fright_stunned
+from wayfarer.engine.simulation.health.hit_locations import disabled
 from wayfarer.engine.simulation.health.injury import impaired_movement
+from wayfarer.engine.simulation.magic.effects import require_not_dazed
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
 
@@ -24,8 +31,6 @@ from wayfarer.errors import ValidationError
 def defense_height_bonus(
     runtime: RulesContext, state: PlayState, participant: Combatant, reach: int = 1
 ) -> int:
-    from wayfarer.engine.simulation.combat.combat_height import defense_height
-    from wayfarer.engine.simulation.combat.tactical import pose
 
     encounter = next(
         (
@@ -88,11 +93,9 @@ def defense_value(
             if item_id not in (None, object_target):
                 raise ValidationError("Only the targeted weapon can parry this attack")
             item_id = object_target
-    from wayfarer.engine.simulation.health.fright import can_defend
 
     if not can_defend(state.resources, participant.actor_id):
         raise ValidationError("Fright condition prevents active defense")
-    from wayfarer.engine.simulation.magic.effects import require_not_dazed
 
     require_not_dazed(state.resources, participant.actor_id)
     if participant.pinned:
@@ -153,8 +156,6 @@ def defense_value(
     shields = [
         (i, entries[i.definition_id].shield) for i in ready if entries[i.definition_id].shield
     ]
-    from wayfarer.engine.simulation.combat.objects.locations import item_hands
-    from wayfarer.engine.simulation.health.hit_locations import disabled
 
     unavailable = disabled(state.resources, participant.actor_id) | frozenset(
         g.location
@@ -182,7 +183,6 @@ def defense_value(
     )
     if targeted_weapon:
         bonus = 0
-    from wayfarer.engine.simulation.health.fright import stunned as fright_stunned
 
     penalty = (
         entangle_defense_penalty(participant)

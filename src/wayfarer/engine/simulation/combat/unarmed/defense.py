@@ -8,13 +8,18 @@ from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, fatigue_ready
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
+from wayfarer.engine.simulation.combat.melee.modes import mode
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
+from wayfarer.engine.simulation.combat.tactical import defense_adjustment, height_effect
 from wayfarer.engine.simulation.combat.unarmed.fighters import (
     encumbrance_level,
     fighter,
     free_hands,
 )
 from wayfarer.engine.simulation.combat.unarmed.records import GrappleLocation
+from wayfarer.engine.simulation.equipment.catalog import MeleeMode
+from wayfarer.engine.simulation.health.fright import can_defend
+from wayfarer.engine.simulation.health.fright import stunned as fright_stunned
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
@@ -43,14 +48,11 @@ def unarmed_defense(
         return None, None
     if actor.pinned or actor.maneuver_state.defense_forbidden:
         raise ValidationError("Actor cannot defend")
-    from wayfarer.engine.simulation.health.fright import can_defend
 
     if not can_defend(state.resources, actor_id):
         raise ValidationError("Fright condition prevents active defense")
     height_bonus = 0
     if encounter.spatial_kind == "hex":
-        from wayfarer.engine.simulation.combat.tactical import defense_adjustment, height_effect
-
         source_id = (
             encounter.pending_unarmed.actor_id
             if encounter.pending_unarmed is not None
@@ -76,9 +78,6 @@ def unarmed_defense(
     if selected != "parry" or actor.maneuver_state.parry_forbidden:
         raise ValidationError("Only Dodge or an unarmed Parry is supported")
     if item_id is not None and item_id not in ("left-hand", "right-hand"):
-        from wayfarer.engine.simulation.combat.melee.modes import mode
-        from wayfarer.engine.simulation.equipment.catalog import MeleeMode
-
         weapon = mode(runtime, state, actor_id, item_id, mode_id)
         if not isinstance(weapon, MeleeMode):
             raise ValidationError("Armed parry requires an unambiguous melee mode")
@@ -107,7 +106,6 @@ def unarmed_defense(
     if hp.injury is None or hp.injury.incapacitated or not fatigue_ready(state, actor_id):
         raise ValidationError("Incapacitated actor cannot parry")
     targets = parry_candidates(runtime, state, encounter, actor_id)
-    from wayfarer.engine.simulation.health.fright import stunned as fright_stunned
 
     penalty = (
         (-4 if hp.injury.stunned or fright_stunned(state.resources, actor_id) else 0)

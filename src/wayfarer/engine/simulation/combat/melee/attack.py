@@ -5,9 +5,19 @@ from __future__ import annotations
 from wayfarer.engine.rules.types.location import HitLocation
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build
-from wayfarer.engine.simulation.combat.encounter import Encounter
+from wayfarer.engine.simulation.combat.encounter import Encounter, basic_distance
+from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.engine.simulation.combat.melee.modes import mode
+from wayfarer.engine.simulation.combat.objects.combat import (
+    target_geometry,
+    target_modifier,
+    weapon_target,
+)
+from wayfarer.engine.simulation.combat.objects.locations import validate_target
+from wayfarer.engine.simulation.combat.ranged.attack import prepare
+from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
+from wayfarer.engine.simulation.combat.tactical import attack_geometry, defense_adjustment
 from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
 from wayfarer.engine.simulation.rules_context import RulesContext
@@ -28,8 +38,6 @@ def prepare_attack(
     assert pending is not None
     selected = mode(runtime, state, pending.attacker_id, pending.weapon_id, mode_id)
     if target_item_id:
-        from wayfarer.engine.simulation.combat.objects.combat import target_modifier
-
         if selected.damage.damage_type not in (
             "cr",
             "cut",
@@ -43,8 +51,6 @@ def prepare_attack(
             raise ValidationError("Object target requires a supported damage mode")
         target_modifier(runtime, state, pending.defender_id, target_item_id)
     if isinstance(selected, RangedMode):
-        from wayfarer.engine.simulation.combat.ranged.attack import prepare
-
         return prepare(
             runtime,
             state,
@@ -58,7 +64,6 @@ def prepare_attack(
         raise ValidationError("Shot count requires a ranged mode")
     attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
     defender = next(p for p in encounter.participants if p.actor_id == pending.defender_id)
-    from wayfarer.engine.simulation.combat.objects.locations import validate_target
 
     validate_target(
         runtime, state, encounter, pending.attacker_id, pending.defender_id, selected, hit_location
@@ -71,15 +76,9 @@ def prepare_attack(
         and attacker.maneuver_state.second_attack_item_id is None
     ):
         raise ValidationError("Double attack requires a weapon usable twice without readying")
-    from wayfarer.engine.simulation.combat.encounter import basic_distance
-    from wayfarer.engine.simulation.combat.engine import CombatEngine
-    from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
-    from wayfarer.engine.simulation.combat.tactical import attack_geometry, defense_adjustment
 
     geometry = encounter
     if target_item_id:
-        from wayfarer.engine.simulation.combat.objects.combat import target_geometry
-
         geometry = target_geometry(
             runtime, state, encounter, target_item_id, frozenset(selected.reach)
         )
@@ -101,8 +100,6 @@ def prepare_attack(
         raise ValidationError("Target is outside selected weapon reach")
     allowed: list[Defense] = ["none"]
     for candidate in ("dodge", "parry", "block"):
-        from wayfarer.engine.simulation.combat.objects.combat import weapon_target
-
         if (
             target_item_id
             and next(i for i in state.resources.items if i.id == target_item_id).ground
@@ -147,7 +144,6 @@ def waive_off_hand_penalty(
     The maneuver commits the penalties from the declared hands; the trait, read from
     the approved build, waives them before either blow is prepared.
     """
-    from wayfarer.engine.simulation.combat.engine import CombatEngine
 
     compiled = build(runtime, state, actor_id)
     if not any(p.definition_id == "trait:ambidexterity" for p in compiled.purchases):

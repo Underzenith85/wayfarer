@@ -5,11 +5,15 @@ from typing import Literal
 
 from pydantic import Field
 
+from wayfarer.engine.character.statistics import damage as strength_damage
 from wayfarer.engine.rules.checks import draw_dice
 from wayfarer.engine.rules.types.location import HumanLocation
+from wayfarer.engine.simulation.abilities import damage_resistance
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import build, catalog
 from wayfarer.engine.simulation.combat.critical import Die, TableRoll
 from wayfarer.engine.simulation.combat.encounter import Encounter
+from wayfarer.engine.simulation.combat.objects.combat import effective_entry
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode, WeaponMode
 from wayfarer.engine.simulation.health.injury import (
     DisableLocation,
@@ -46,7 +50,6 @@ def resolve_limb(
     defender_mode_id: str | None = None,
 ) -> tuple[PlayState, Encounter, CriticalLimbResult]:
     """Missing anatomy/grips/mode preserves the exact original blocker, before dice."""
-    from wayfarer.engine.simulation.actors import build, catalog
 
     result = CriticalLimbResult.model_validate({"table_rolls": (table,)})
     if sum(table) not in (5, 6, 15):
@@ -72,7 +75,6 @@ def resolve_limb(
         return state, encounter, result
     entries = {e.definition_id: e for e in catalog(runtime).entries}
     item = next(i for i in state.resources.items if i.id == item_id)
-    from wayfarer.engine.simulation.combat.objects.combat import effective_entry
 
     entry = effective_entry(runtime, item)
     modes: tuple[WeaponMode, ...] = tuple(
@@ -146,8 +148,6 @@ def resolve_limb(
         )
         expression = stats.swing if mode.damage.basis == "swing" else stats.thrust
         if isinstance(mode, RangedMode) and mode.rated_strength is not None:
-            from wayfarer.engine.character.statistics import damage as strength_damage
-
             expression = strength_damage(catalog(runtime).profile_id, mode.rated_strength.st)[0]
         dice = draw_dice(runtime.rng, mode.damage.dice or expression.dice)
         damage = max(
@@ -175,8 +175,6 @@ def resolve_limb(
             default=0,
         )
         if runtime.rules.abilities is not None:
-            from wayfarer.engine.simulation.abilities import damage_resistance
-
             dr += damage_resistance(state.resources, actor_id, build_revision=compiled.revision)
         resources, injury = apply_injury(
             state.resources,

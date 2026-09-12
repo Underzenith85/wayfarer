@@ -12,14 +12,22 @@ from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.types.location import Hand
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, fatigue_ready
+from wayfarer.engine.simulation.combat.commands import (
+    ChooseDefense,
+    MigrateEncounterBasic,
+    TakeCombatTurn,
+    TakeUnarmedTurn,
+)
 from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.objects.locations import unavailable_hand
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
 from wayfarer.engine.simulation.combat.unarmed.records import BASIC, wrestling_bonus
+from wayfarer.engine.simulation.equipment.catalog import inventory_load
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.fatigue import fatigue_value
 from wayfarer.engine.simulation.health.hit_locations import disabled
+from wayfarer.engine.simulation.resources import ResourceEvent
 from wayfarer.errors import ConflictError, ValidationError
 
 if TYPE_CHECKING:
@@ -89,12 +97,6 @@ def settle_control(state: PlayState, encounter: Encounter) -> Encounter:
 
 
 def guard_control(encounter: Encounter, command: TypedCombatCommand, state: PlayState) -> None:
-    from wayfarer.engine.simulation.combat.commands import (
-        ChooseDefense,
-        MigrateEncounterBasic,
-        TakeCombatTurn,
-        TakeUnarmedTurn,
-    )
 
     if encounter.pending_unarmed is not None:
         if isinstance(command, MigrateEncounterBasic):
@@ -159,7 +161,6 @@ def grapple_ready(
     command: TakeCombatTurn,
 ) -> tuple[PlayState, Encounter]:
     """B371: drawing with a free hand requires DX; failure drops that item only."""
-    from wayfarer.engine.simulation.resources import ResourceEvent
 
     if not any(g.target_id == command.actor_id for g in encounter.grips):
         return state, encounter
@@ -222,7 +223,6 @@ def strength(
 
 
 def encumbrance_level(runtime: RulesContext, state: PlayState, actor_id: str) -> int:
-    from wayfarer.engine.simulation.equipment.catalog import inventory_load
 
     compiled = build(runtime, state, actor_id)
     assert compiled.statistics is not None

@@ -2,9 +2,11 @@
 
 from wayfarer.engine.rules.checks import draw_dice
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import catalog
 from wayfarer.engine.simulation.combat.criticals.limbs import CriticalLimbResult, resolve_limb
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
+from wayfarer.engine.simulation.combat.thrown.flight import position
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
 
@@ -18,7 +20,6 @@ def resolve_miss(
     parry_item: str | None = None,
     parry_mode_id: str | None = None,
 ) -> tuple[PlayState, Encounter, CriticalLimbResult, str | None]:
-    from wayfarer.engine.simulation.actors import catalog
 
     if catalog(runtime).profile_id != "gurps-basic-set-4e-2004":
         raise ValidationError("Ranged critical misses require the exact Basic Set profile")
@@ -66,8 +67,6 @@ def resolve_miss(
             assert item.condition is not None
             updates["condition"] = item.condition.model_copy(update={"disabled": True})
         if broken or number in (9, 10, 11, 14):
-            from wayfarer.engine.simulation.combat.thrown.flight import position
-
             updates["equipped"] = False
             updates["ground"] = position(encounter, subject)
             updates["container_id"] = None

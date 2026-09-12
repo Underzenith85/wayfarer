@@ -4,9 +4,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from wayfarer.engine.rules.types.hazard import HazardSchedule, HazardSpec
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import build
 from wayfarer.engine.simulation.combat.encounter import Encounter, PendingDefense
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
+from wayfarer.engine.simulation.health.hazards import HazardCommand, apply_hazard
+from wayfarer.engine.simulation.magic.area_fire import armor
 
 if TYPE_CHECKING:
     from wayfarer.engine.simulation.rules_context import RulesContext
@@ -29,11 +33,6 @@ def _schedule_lingering_fire(
     assert encounter.scene_id is not None
     import hashlib
     import json
-
-    from wayfarer.engine.rules.types.hazard import HazardSchedule, HazardSpec
-    from wayfarer.engine.simulation.actors import build
-    from wayfarer.engine.simulation.health.hazards import HazardCommand, apply_hazard
-    from wayfarer.engine.simulation.magic.area_fire import armor
 
     source = (
         "sprayer-fire:"

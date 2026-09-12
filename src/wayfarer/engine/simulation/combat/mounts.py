@@ -10,6 +10,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import catalog
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
 from wayfarer.engine.simulation.resources import ResourceState
@@ -23,7 +24,6 @@ if TYPE_CHECKING:
 def assign_crew(
     runtime: RulesContext, state: PlayState, encounter: Encounter, command: TakeCombatTurn
 ) -> ResourceState:
-    from wayfarer.engine.simulation.actors import catalog
 
     if command.item_id is None:
         raise ValidationError("Serving a mount requires the mounted weapon")

@@ -6,8 +6,13 @@ from math import sqrt
 from typing import TYPE_CHECKING
 
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
+from wayfarer.engine.simulation.combat.firearm_transitions import validate_attack
+from wayfarer.engine.simulation.combat.firearms import spend_rounds
+from wayfarer.engine.simulation.combat.melee.modes import mode
+from wayfarer.engine.simulation.combat.objects.locations import validate_target
 from wayfarer.engine.simulation.combat.ranged.situation import situation
 from wayfarer.engine.simulation.combat.suppression import ActiveSuppressionZone, PendingSprayTarget
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
@@ -23,15 +28,12 @@ def _spray_vector(encounter: Encounter, actor_id: str, target_id: str) -> tuple[
     actor = next(p for p in encounter.participants if p.actor_id == actor_id)
     target = next(p for p in encounter.participants if p.actor_id == target_id)
     if encounter.spatial_kind == "hex":
-        from wayfarer.engine.simulation.hex_geometry import Hex
-
         if not isinstance(actor.position, Hex) or not isinstance(target.position, Hex):
             raise ValidationError("Spraying fire requires one mapped coordinate system")
         return (
             (target.position.q + target.position.r / 2) - (actor.position.q + actor.position.r / 2),
             (target.position.r - actor.position.r) * sqrt(3) / 2,
         )
-    from wayfarer.engine.simulation.combat.battlefield import GridPoint
 
     if not isinstance(actor.position, GridPoint) or not isinstance(target.position, GridPoint):
         raise ValidationError("Spraying fire requires exact mapped positions")
@@ -54,7 +56,6 @@ def prepare_spraying_fire(
     pending = encounter.pending_defense
     if pending is None or pending.mode_id is None:
         raise ValidationError("Spraying fire requires a pending ranged attack")
-    from wayfarer.engine.simulation.combat.melee.modes import mode
 
     selected = mode(runtime, state, command.actor_id, command.item_id or "", pending.mode_id)
     if not isinstance(selected, RangedMode):
@@ -88,7 +89,6 @@ def prepare_spraying_fire(
         raise ValidationError("Spraying-fire targets must be ordered from one side to the other")
     participants = {p.actor_id: p for p in encounter.participants}
     traversal: list[int] = []
-    from wayfarer.engine.simulation.combat.objects.locations import validate_target
 
     for index, (target_id, shots, hit_location) in enumerate(declarations):
         target = participants.get(target_id)
@@ -146,7 +146,6 @@ def prepare_suppression_fire(
         return state, encounter
     if encounter.spatial_kind != "hex" or board is None:
         raise ValidationError("Suppression fire requires an exact hex path and battlefield")
-    from wayfarer.engine.simulation.combat.melee.modes import mode
 
     selected = mode(runtime, state, command.actor_id, command.item_id or "", command.mode_id)
     if (
@@ -204,8 +203,6 @@ def prepare_suppression_fire(
         )
         for index, zone in enumerate(declarations)
     )
-    from wayfarer.engine.simulation.combat.firearm_transitions import validate_attack
-    from wayfarer.engine.simulation.combat.firearms import spend_rounds
 
     validate_attack(state.resources, command.item_id or "", selected, total)
     resources = spend_rounds(state.resources, command.item_id or "", total)

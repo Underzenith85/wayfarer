@@ -11,6 +11,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import build, catalog
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.entangle import escape
@@ -23,7 +24,6 @@ if TYPE_CHECKING:
 def escape_binding(
     runtime: RulesContext, state: PlayState, encounter: Encounter, actor_id: str
 ) -> Encounter:
-    from wayfarer.engine.simulation.actors import build, catalog
 
     participant = next((p for p in encounter.participants if p.actor_id == actor_id), None)
     if participant is None or participant.entangled is None:

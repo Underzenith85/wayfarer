@@ -6,11 +6,13 @@ from wayfarer.engine.rules.skills.mundane.ranged import require_technology
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, level
 from wayfarer.engine.simulation.combat.encounter import Combatant
+from wayfarer.engine.simulation.combat.objects.locations import item_hands, unavailable_hand
 from wayfarer.engine.simulation.equipment.catalog import (
     MeleeMode,
     RangedMode,
     require_skill_procedure,
 )
+from wayfarer.engine.simulation.health.hit_locations import disabled
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
 
@@ -75,8 +77,6 @@ def mode(
         and catalog(runtime).profile_id != "gurps-basic-set-4e-2004"
     ):
         raise ValidationError("Weapon damage requires unsupported profile mechanics")
-    from wayfarer.engine.simulation.combat.objects.locations import item_hands, unavailable_hand
-    from wayfarer.engine.simulation.health.hit_locations import disabled
 
     unavailable = disabled(state.resources, actor_id) | frozenset(
         g.location

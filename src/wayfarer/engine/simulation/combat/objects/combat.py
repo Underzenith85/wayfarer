@@ -11,17 +11,23 @@ from wayfarer.engine.rules.tables.combat import (
 )
 from wayfarer.engine.rules.types.object import ObjectResult, residual_definition
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import catalog
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.critical import Die, TableRoll
 from wayfarer.engine.simulation.combat.encounter import Encounter
+from wayfarer.engine.simulation.combat.engine import CombatEngine
+from wayfarer.engine.simulation.combat.melee.defense import defense_value
+from wayfarer.engine.simulation.combat.objects.locations import item_hands
+from wayfarer.engine.simulation.combat.tactical import attack_geometry
 from wayfarer.engine.simulation.equipment.catalog import (
     Damage,
     EquipmentProfile,
     MeleeMode,
     RangedMode,
 )
-from wayfarer.engine.simulation.equipment.objects import StressObject, apply_object
-from wayfarer.engine.simulation.hex_geometry import Hex
+from wayfarer.engine.simulation.equipment.objects import DamageObject, StressObject, apply_object
+from wayfarer.engine.simulation.health.hit_locations import disabled
+from wayfarer.engine.simulation.hex_geometry import DIRECTIONS, Hex
 from wayfarer.engine.simulation.resources import Item, ResourceEvent
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ConflictError, ValidationError
@@ -29,7 +35,6 @@ from wayfarer.models import Record
 
 
 def effective_entry(runtime: RulesContext, item: Item) -> EquipmentProfile:
-    from wayfarer.engine.simulation.actors import catalog
 
     if item.firearm_failure is not None and item.firearm_failure.kind in (
         "destroyed",
@@ -138,7 +143,6 @@ def critical_breakage(
     defender_item: str | None,
     parrying: bool,
 ) -> tuple[PlayState, Encounter, tuple[int, ...], bool]:
-    from wayfarer.engine.simulation.actors import catalog
 
     pending = encounter.pending_defense
     assert pending is not None
@@ -238,9 +242,6 @@ def intercepting_shield(
     rapid_fire: bool = False,
 ) -> str | None:
     """B484: the DB must change an ordinary failed defense into success."""
-    from wayfarer.engine.simulation.actors import catalog
-    from wayfarer.engine.simulation.combat.objects.locations import item_hands
-    from wayfarer.engine.simulation.health.hit_locations import disabled
 
     if defense is None or defense.outcome is not Outcome.SUCCESS:
         return None
@@ -291,8 +292,6 @@ def shield_damage(
 ) -> tuple[PlayState, Encounter, int]:
     """Cover DR is computed from the pinned maximum HP before the blow, B408/B484."""
 
-    from wayfarer.engine.simulation.equipment.objects import DamageObject
-
     pending = encounter.pending_defense
     assert pending is not None
     item = next(i for i in state.resources.items if i.id == item_id)
@@ -324,7 +323,6 @@ def shield_damage(
 
 def target_modifier(runtime: RulesContext, state: PlayState, actor_id: str, item_id: str) -> int:
     """B400 weapon sizes; other equipped targets require a pinned SM (B483)."""
-    from wayfarer.engine.simulation.actors import catalog
 
     item = next((i for i in state.resources.items if i.id == item_id), None)
     if item is None or item.owner_id != actor_id or (not item.equipped and not item.ground):
@@ -354,7 +352,6 @@ def damage_target(
     impact: int,
 ) -> tuple[PlayState, Encounter, ObjectResult | None]:
     """One authoritative object receipt per projectile; destroyed targets absorb no more rolls."""
-    from wayfarer.engine.simulation.equipment.objects import DamageObject
 
     pending = encounter.pending_defense
     assert pending is not None
@@ -387,7 +384,6 @@ def weapon_target(runtime: RulesContext, state: PlayState, item_id: str | None) 
     """B401 restricts defenses for weapon targets, including ranged weapons."""
     if item_id is None:
         return False
-    from wayfarer.engine.simulation.actors import catalog
 
     item = next(i for i in state.resources.items if i.id == item_id)
     return any(e.definition_id == item.definition_id and e.modes for e in catalog(runtime).entries)
@@ -402,7 +398,6 @@ def defense_stress(
     item_id: str | None,
 ) -> tuple[PlayState, Encounter]:
     """Stress the selected implement and shields that contribute defense bonus."""
-    from wayfarer.engine.simulation.actors import catalog
 
     entries = {e.definition_id: e for e in catalog(runtime).entries}
     pending = encounter.pending_defense
@@ -432,7 +427,6 @@ def intercepted_projectiles(
         return None, 0
     if selected != "dodge":
         return shield, 1
-    from wayfarer.engine.simulation.combat.melee.defense import defense_value
 
     pending = encounter.pending_defense
     assert pending is not None
@@ -464,8 +458,6 @@ def target_positions(
     item_id: str,
 ) -> tuple[GridPoint | Hex, ...]:
     """B400–401: held weapon length occupies forward hexes; ground items keep their landing."""
-    from wayfarer.engine.simulation.combat.battlefield import GridPoint
-    from wayfarer.engine.simulation.hex_geometry import DIRECTIONS, Hex
 
     item = next(i for i in state.resources.items if i.id == item_id)
     owner = next(p for p in encounter.participants if p.actor_id == item.owner_id)
@@ -502,10 +494,6 @@ def target_geometry(
     reach: frozenset[int] | None = None,
 ) -> Encounter:
     """Use a reachable visible part of the item for geometry, never move its owner."""
-    from wayfarer.engine.simulation.combat.battlefield import GridPoint
-    from wayfarer.engine.simulation.combat.engine import CombatEngine
-    from wayfarer.engine.simulation.combat.tactical import attack_geometry
-    from wayfarer.engine.simulation.hex_geometry import Hex
 
     pending = encounter.pending_defense
     assert pending is not None
@@ -535,7 +523,6 @@ def worn_stress(
     command_id: str,
 ) -> tuple[PlayState, Encounter]:
     """Worn protection is in use even while its wearer does not attack."""
-    from wayfarer.engine.simulation.actors import catalog
 
     armor = {e.definition_id for e in catalog(runtime).entries if e.armor is not None}
     return stress(
