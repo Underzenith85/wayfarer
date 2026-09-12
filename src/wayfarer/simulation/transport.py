@@ -29,6 +29,7 @@ from wayfarer.simulation.resources import (
 from wayfarer.simulation.vehicle_commands import (
     NavigateSpace,
     ResolveAirAftermath,
+    ResolveMountSeparation,
     ResolveVehicleEjection,
     ResolveWaterAftermath,
     UpgradeVehicle,
@@ -79,6 +80,7 @@ TransportCommand = Annotated[
     | ResolveAirAftermath
     | ResolveWaterAftermath
     | NavigateSpace
+    | ResolveMountSeparation
     | ResolveVehicleEjection
     | UpgradeVehicle,
     Field(discriminator="kind"),
@@ -167,6 +169,7 @@ def apply_transport(
             ResolveAirAftermath,
             ResolveWaterAftermath,
             NavigateSpace,
+            ResolveMountSeparation,
             VehicleControl,
             VehicleImpact,
             VehicleManeuver,

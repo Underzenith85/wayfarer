@@ -29,7 +29,6 @@ COMBAT: Final = "gurps.vehicles.combat"
 # The issues this audit split its residual scope into. A closed owner cannot
 # hold a blocker, which is why #120 and #207 are superseded rather than cited.
 SUPERSEDED: Final = (120, 207)
-MOUNTED_OWNER: Final = 396
 VEHICLE_COMBAT_OWNER: Final = 397
 
 
@@ -114,17 +113,11 @@ _MODES: Final = (
         ALL_CONCERNS,
         {},
     ),
-    # The B397 spooked-mount check executes, but it belongs to the version-one
-    # adapter; every version-two mounted path rejects by name.
     ModeCoverage(
         "ground-mount",
         "B397, B466-B470",
-        (),
-        {
-            "mounted movement keyed to the mount's own move": MOUNTED_OWNER,
-            "mount control through Riding and the mounted loss table": MOUNTED_OWNER,
-            "rider separation on a fall or a collision": MOUNTED_OWNER,
-        },
+        ALL_CONCERNS,
+        {},
     ),
 )
 MODES: Final = MappingProxyType({entry.mode: entry for entry in _MODES})

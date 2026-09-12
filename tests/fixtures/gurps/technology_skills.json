@@ -35,7 +35,7 @@
         "units": 1,
         "unit": "control-roll",
         "hazard": false,
-        "activation_blockers": ["gurps.vehicles.movement"]
+        "activation_blockers": []
       }
     },
     {
@@ -61,7 +61,7 @@
         "units": 0,
         "unit": "control-roll",
         "hazard": true,
-        "activation_blockers": ["gurps.vehicles.movement"]
+        "activation_blockers": []
       }
     },
     {
@@ -87,7 +87,7 @@
         "units": 0,
         "unit": "control-roll",
         "hazard": true,
-        "activation_blockers": ["gurps.vehicles.movement"]
+        "activation_blockers": []
       }
     },
     {
@@ -139,7 +139,7 @@
         "units": 1,
         "unit": "station-held",
         "hazard": false,
-        "activation_blockers": ["gurps.vehicles.movement"]
+        "activation_blockers": []
       }
     },
     {
@@ -323,7 +323,7 @@
         "units": 1,
         "unit": "control-roll",
         "hazard": false,
-        "activation_blockers": ["gurps.vehicles.movement"]
+        "activation_blockers": []
       }
     },
     {

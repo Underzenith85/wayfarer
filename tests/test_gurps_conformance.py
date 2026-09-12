@@ -82,8 +82,11 @@ def test_verified_capabilities_belong_to_landed_mechanics_issues() -> None:
         "gurps.character.skill_defaults",
         "gurps.character.specialties",
         "gurps.character.techniques",
+        "gurps.vehicles.movement",
     }
-    assert all(CAPABILITIES[identifier].owner_issue in (97, 98, 99, 192) for identifier in verified)
+    assert all(
+        CAPABILITIES[identifier].owner_issue in (97, 98, 99, 192, 358) for identifier in verified
+    )
 
 
 def test_conformance_fixture_contract_is_source_referenced_and_independent() -> None:

@@ -32,7 +32,7 @@ from wayfarer.rules.vehicle_coverage import (
 )
 
 # The children this audit split its residual scope into, transcribed from #358.
-RESIDUAL_OWNERS = (396, 397)
+RESIDUAL_OWNERS = (397,)
 
 
 def test_every_declared_mode_is_audited_against_the_adapter_itself() -> None:
@@ -45,11 +45,7 @@ def test_every_declared_mode_is_audited_against_the_adapter_itself() -> None:
 def test_completed_ground_modes_are_verified_and_residuals_have_live_owners() -> None:
     """#358 acceptance: verified with evidence, or carrying a concrete open child."""
     for mode, entry in MODES.items():
-        assert entry.verified == (
-            mode in ("air", "water", "underwater", "space")
-            or mode.startswith("ground-")
-            and mode != "ground-mount"
-        )
+        assert entry.verified
         assert bool(entry.residuals) != entry.verified
         for detail, owner in entry.residuals.items():
             assert owner in RESIDUAL_OWNERS, f"{mode}: {detail}"
@@ -62,16 +58,19 @@ def test_the_capability_rows_are_owned_by_this_audit_and_derived_from_it() -> No
     for identifier, derived in ((MOVEMENT, movement_status()), (COMBAT, combat_status())):
         declared = CAPABILITIES[identifier]
         assert declared.owner_issue == OWNER
-        assert declared.status is derived is CoverageStatus.PARTIAL
-    assert capability(MOVEMENT).status is CoverageStatus.PARTIAL
+        assert declared.status is derived
+    assert capability(MOVEMENT).status is CoverageStatus.VERIFIED
+    assert capability(COMBAT).status is CoverageStatus.PARTIAL
     validate_coverage()
 
 
-def test_a_mode_that_carries_no_operation_resolves_no_concern() -> None:
-    """`ground-mount` rejects every version-two path by name, so it claims nothing."""
+def test_ground_mount_carries_movement_control_collision_and_restart() -> None:
+    """The mount remains a creature behind the version-two transport adapter."""
     mount = MODES["ground-mount"]
-    assert not mount.operations and mount.concerns == ()
-    assert set(mount.owners) == {396}
+    assert "vehicle-maneuver" in mount.operations
+    assert "vehicle-resolve-mount-separation" in mount.operations
+    assert set(mount.concerns) == set(ALL_CONCERNS)
+    assert not mount.owners
     # A spacecraft can lose control and can collide, but it cannot travel.
     assert "vehicle-space-navigation" in MODES["space"].operations
     assert Concern.COLLISION in MODES["space"].concerns
@@ -108,6 +107,11 @@ def test_a_mode_cannot_claim_a_concern_it_has_no_operation_for(
 ) -> None:
     import wayfarer.rules.vehicle_coverage as module
 
+    monkeypatch.setattr(
+        module,
+        "VEHICLE_OPERATIONS",
+        {**VEHICLE_OPERATIONS, "ground-mount": frozenset()},
+    )
     replace(monkeypatch, ModeCoverage("ground-mount", "B397", (Concern.COLLISION,)))
     with pytest.raises(ValidationError, match="no operation"):
         module.validate_coverage()
@@ -119,16 +123,10 @@ def test_a_mode_that_stops_owing_anything_raises_the_declared_row(
     """Verification is derived: clearing every residual is what moves the status."""
     import wayfarer.rules.vehicle_coverage as module
 
-    assert movement_status() is CoverageStatus.PARTIAL
-    raised = tuple(
-        ModeCoverage(row.mode, row.reference, ALL_CONCERNS if row.operations else ())
-        for row in module._MODES
-    )
-    monkeypatch.setattr(module, "_MODES", raised)
-    # `ground-mount` carries no operation, so the row cannot rise on the others.
+    assert movement_status() is CoverageStatus.VERIFIED
+    blocked = ModeCoverage("ground-mount", "B397", ALL_CONCERNS, {"unresolved consequence": 396})
+    replace(monkeypatch, blocked)
     assert module.movement_status() is CoverageStatus.PARTIAL
-    monkeypatch.setattr(module, "_MODES", tuple(r for r in raised if r.operations))
-    assert module.movement_status() is CoverageStatus.VERIFIED
     monkeypatch.setattr(module, "COMBAT_RESIDUALS", {})
     assert module.combat_status() is CoverageStatus.VERIFIED
 
@@ -139,7 +137,7 @@ def test_the_registry_cannot_quietly_disagree_with_the_audit(
     """Raising a mode is the only way to raise a row; the reverse is rejected."""
     import wayfarer.rules.vehicle_coverage as module
 
-    monkeypatch.setattr(module, "movement_status", lambda: CoverageStatus.VERIFIED)
+    monkeypatch.setattr(module, "movement_status", lambda: CoverageStatus.PARTIAL)
     with pytest.raises(ValidationError, match="disagrees with the audit"):
         module.validate_coverage()
 
@@ -148,7 +146,7 @@ def test_the_report_publishes_every_residual_and_its_owner() -> None:
     report = audit_report()
     assert report["owner"] == OWNER
     assert report["supersedes"] == [120, 207]
-    assert report["verified_modes"] == 9
+    assert report["verified_modes"] == 10
     assert report["total_modes"] == len(VEHICLE_OPERATIONS)
     assert report["residual_owners"] == list(RESIDUAL_OWNERS)
     assert residual_owners() == RESIDUAL_OWNERS
@@ -157,14 +155,12 @@ def test_the_report_publishes_every_residual_and_its_owner() -> None:
     assert {str(row["mode"]) for row in modes} == set(VEHICLE_OPERATIONS)
 
 
-def test_the_bound_vehicle_rows_still_publish_their_activation_blocker() -> None:
-    """#346's procedures execute; live play may not offer them until this verifies."""
+def test_verified_vehicle_rows_no_longer_publish_an_activation_blocker() -> None:
     scope = dict(unsupported_scope())
-    assert scope["skill:driving-automobile"].id == MOVEMENT
-    assert scope["skill:driving-automobile"].owner_issue == OWNER
+    assert "skill:driving-automobile" not in scope
     assert "skill:research" not in scope
     # Repairing a machine is not operating one, so #356's Mechanic rows are clear.
     assert "skill:mechanic-automobile" not in scope
     rows = {entry.id: entry for entry in inventory()}
     assert OWNER in rows["skill:driving-automobile"].followup_issues
-    assert PROCEDURES["skill:driving-automobile"].activation_blockers == (MOVEMENT,)
+    assert PROCEDURES["skill:driving-automobile"].activation_blockers == ()

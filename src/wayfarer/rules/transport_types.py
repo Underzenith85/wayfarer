@@ -27,6 +27,10 @@ class Transport(Record):
     submersion: int = Field(default=0, ge=0, le=1000000)
     sink_rate: int = Field(default=1, ge=1, le=1000)
     leak_rate: int = Field(default=0, ge=0, le=1000)
+    mount_loss_total: int | None = Field(default=None, ge=2, le=12)
+    rider_fall_yards: int = Field(default=0, ge=0, le=10)
+    mount_fall_yards: int = Field(default=0, ge=0, le=10)
+    mount_riding_penalty: int = Field(default=0, ge=-20, le=0)
     space_acceleration_tenths_g: int = Field(default=10, ge=1, le=1000000)
     space_elapsed_seconds: int = Field(default=0, ge=0)
     open_cabin: bool = False
@@ -70,6 +74,9 @@ class Transport(Record):
         "stress-failure",
         "ejection-pending",
         "control-required",
+        "exhausted",
+        "rider-separated",
+        "mount-fallen",
     ] = "controlled"
     last_turn: int = Field(default=-1, ge=-1)
     successes: int = Field(default=0, ge=0, le=3)
@@ -121,7 +128,9 @@ class Transport(Record):
         if sorted(self.footprint) != list(range(min(self.footprint), max(self.footprint) + 1)):
             raise ValueError("Transport footprint must be contiguous")
         if self.locomotion == "ground-mount" and (
-            self.occupants != (self.operator_id,) or self.restraints != "none"
+            self.occupants != (self.operator_id,)
+            and not (self.status == "crashed" and not self.occupants)
+            or self.restraints != "none"
         ):
             raise ValueError("Mount slice supports one unrestrained rider")
         return self

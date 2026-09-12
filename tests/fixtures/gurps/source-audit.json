@@ -2906,6 +2906,17 @@
         "tests/test_statistics.py::test_purchased_secondary_characteristics"
       ],
       "owner": 215
+    },
+    {
+      "id": "basic-vehicle-movement-coverage",
+      "sha256": "2335dbf3289c688d71a48cd0550597b1f75e85048b2d86d2e47db50acc8c4538",
+      "status": "compared",
+      "reviewer": "Codex source comparison, 2026-09-12",
+      "evidence": "Campaigns fourth printing, February 2008, B394-397, B430-432 and B466-470; independently checked each declared locomotion mode against the printed control-loss, collision, occupant-injury and restart procedures.",
+      "tests": [
+        "tests/test_vehicle_modes.py::test_b469_mode_specific_control"
+      ],
+      "owner": 396
     }
   ]
 }
