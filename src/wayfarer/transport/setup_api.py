@@ -12,12 +12,18 @@ from wayfarer.orchestration.catalog import ScenarioCatalog
 from wayfarer.orchestration.profiles import ProfileMigrations
 from wayfarer.orchestration.setup import SetupService
 from wayfarer.orchestration.workshop_options import CharacterPreviewRequest, preview_character
-from wayfarer.transport.campaign_api import ORCHESTRATOR_KEY, TOKENS_KEY, _identity, _json
+from wayfarer.transport.catalog_api import install as install_catalog
+from wayfarer.transport.common import (
+    ORCHESTRATOR_KEY,
+    TEMPLATES_KEY,
+    TOKENS_KEY,
+    _identity,
+    _json,
+)
 
 SETUP_KEY = web.AppKey("setup-service", SetupService)
 MIGRATIONS_KEY = web.AppKey("profile-migrations", ProfileMigrations)
 LEGACY_KEY = web.AppKey("setup-legacy", bool)
-TEMPLATES_KEY = web.AppKey("setup-templates", tuple[ScenarioGraph, ...])
 
 
 async def session(request: web.Request) -> web.Response:
@@ -130,7 +136,6 @@ async def migrate(request: web.Request) -> web.Response:
 def install(app: web.Application, service: SetupService, graphs: tuple[ScenarioGraph, ...]) -> None:
     app[SETUP_KEY] = service
     app[TEMPLATES_KEY] = graphs
-    from wayfarer.transport.catalog_api import install as install_catalog
 
     install_catalog(app, ScenarioCatalog(service, frozenset(app[TOKENS_KEY].values())))
     if service.profiles is not None:

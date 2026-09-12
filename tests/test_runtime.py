@@ -88,7 +88,7 @@ async def test_normal_runtime_restart_and_opening_action(tmp_path: Path) -> None
             f"/api/v1/campaigns/{cid}/actions", headers=headers, json=action
         )
         assert response.status == 202, await response.text()
-        from wayfarer.transport.v1.http import SERVICE
+        from wayfarer.transport.v1.keys import SERVICE
 
         aid = (await response.json())["id"]
         await client.app[SERVICE].resolve(aid)

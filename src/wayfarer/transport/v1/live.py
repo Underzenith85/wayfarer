@@ -12,8 +12,16 @@ from datetime import UTC, datetime
 from aiohttp import WSMsgType, web
 
 from . import outbox
-from .common import Fault, Obj, array, encoded, obj, uid, validate
-from .http import NO_ORIGIN, ORIGINS, SERVICE, TOKENS, identity
+from .common import (
+    Fault,
+    Obj,
+    array,
+    encoded,
+    obj,
+    uid,
+    validate,
+)
+from .keys import NO_ORIGIN, ORIGINS, SERVICE, TOKENS, identity
 from .outbox import sync
 
 CONNECTIONS = web.AppKey("v1-connections", dict[str, int])

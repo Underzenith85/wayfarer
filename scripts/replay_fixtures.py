@@ -83,7 +83,7 @@ async def engine_for(name: str, directory: Path) -> ActionEngine:
     if name == "reference":
         from test_wave14 import Table
 
-        from wayfarer.transport.campaign_api import ACCESS_KEY
+        from wayfarer.transport.common import ACCESS_KEY
 
         table = Table(directory / "reference.sqlite")
         await table.open()
@@ -204,7 +204,7 @@ async def capture(name: str, directory: Path) -> ReplayFixture:
     if name == "reference":
         from test_wave14 import Table
 
-        from wayfarer.transport.campaign_api import ACCESS_KEY
+        from wayfarer.transport.common import ACCESS_KEY
 
         table = Table(directory / "reference.sqlite")
         await table.open()

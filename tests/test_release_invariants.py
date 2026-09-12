@@ -17,7 +17,7 @@ from wayfarer.engine.simulation.resources import Consume, ResourceState, Transfe
 from wayfarer.errors import ProviderError
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.providers import Orchestrator, ProviderReply, ProviderRequest, Usage
-from wayfarer.transport.campaign_api import ACCESS_KEY
+from wayfarer.transport.common import ACCESS_KEY
 
 
 @given(st.lists(st.integers(min_value=1, max_value=5), min_size=1, max_size=15))

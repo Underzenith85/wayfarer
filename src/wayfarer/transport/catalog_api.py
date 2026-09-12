@@ -23,8 +23,7 @@ from wayfarer.errors import (
 from wayfarer.models import Record
 from wayfarer.orchestration.catalog import ScenarioCatalog
 from wayfarer.orchestration.scenario_documents import ScenarioDocuments, adapt_graph
-from wayfarer.transport.campaign_api import ORCHESTRATOR_KEY, _identity
-from wayfarer.transport.setup_api import TEMPLATES_KEY
+from wayfarer.transport.common import ORCHESTRATOR_KEY, TEMPLATES_KEY, _identity
 
 KEY = web.AppKey("scenario-catalog", ScenarioCatalog)
 TASKS_KEY = web.AppKey("scenario-generation-tasks", dict[str, asyncio.Task[None]])

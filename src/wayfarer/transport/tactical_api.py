@@ -51,7 +51,7 @@ from wayfarer.orchestration.tactical_view import (
 from wayfarer.orchestration.tactical_view import (
     choices as tactical_choices,
 )
-from wayfarer.transport.campaign_api import ACCESS_KEY, _identity, _json
+from wayfarer.transport.common import ACCESS_KEY, _identity, _json
 from wayfarer.transport.tactical_v1_commands import ChooseDefense as ChooseDefenseV1
 from wayfarer.transport.tactical_v1_commands import MigrateEncounterHex as MigrateEncounterHexV1
 from wayfarer.transport.tactical_v1_commands import TakeCombatTurn as TakeCombatTurnV1

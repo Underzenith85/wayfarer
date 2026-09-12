@@ -24,7 +24,7 @@ from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.transport.campaign_api import create_campaign_app
 from wayfarer.transport.v1.common import Fault, Obj, array, obj, uid, validate
-from wayfarer.transport.v1.http import SERVICE
+from wayfarer.transport.v1.keys import SERVICE
 from wayfarer.transport.v1.projection import Projector
 from wayfarer.transport.v1.service import V1Service
 
