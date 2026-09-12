@@ -7,13 +7,10 @@ from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build
 from wayfarer.engine.simulation.combat.encounter import Encounter, basic_distance
 from wayfarer.engine.simulation.combat.engine import CombatEngine
+from wayfarer.engine.simulation.combat.equipment_entry import weapon_target
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.engine.simulation.combat.melee.modes import mode
-from wayfarer.engine.simulation.combat.objects.combat import (
-    target_geometry,
-    target_modifier,
-    weapon_target,
-)
+from wayfarer.engine.simulation.combat.objects.combat import target_geometry, target_modifier
 from wayfarer.engine.simulation.combat.objects.locations import validate_target
 from wayfarer.engine.simulation.combat.ranged.attack import prepare
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext

@@ -16,85 +16,24 @@ from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.critical import Die, TableRoll
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
+from wayfarer.engine.simulation.combat.equipment_effects import synchronize
 from wayfarer.engine.simulation.combat.equipment_entry import effective_entry
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.engine.simulation.combat.objects.locations import item_hands
 from wayfarer.engine.simulation.combat.tactical import attack_geometry
+from wayfarer.engine.simulation.combat.thrown.flight import position as ground_position
 from wayfarer.engine.simulation.equipment.catalog import (
     Damage,
     MeleeMode,
     RangedMode,
 )
-from wayfarer.engine.simulation.equipment.objects import DamageObject, StressObject, apply_object
+from wayfarer.engine.simulation.equipment.objects import DamageObject, apply_object
 from wayfarer.engine.simulation.health.hit_locations import disabled
 from wayfarer.engine.simulation.hex_geometry import DIRECTIONS, Hex
 from wayfarer.engine.simulation.resources import ResourceEvent
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Record
-
-
-def synchronize(state: PlayState, encounter: Encounter) -> Encounter:
-    return encounter.model_copy(
-        update={
-            "participants": tuple(
-                p.model_copy(
-                    update={
-                        "ready_item_ids": tuple(
-                            i.id
-                            for i in state.resources.items
-                            if i.owner_id == p.actor_id and i.ready and i.equipped
-                        ),
-                        "hand_bindings": tuple(
-                            (i, h)
-                            for i, h in p.hand_bindings
-                            if any(
-                                x.id == i and x.owner_id == p.actor_id and x.ready and x.equipped
-                                for x in state.resources.items
-                            )
-                        ),
-                    }
-                )
-                for p in encounter.participants
-            )
-        }
-    )
-
-
-def stress(
-    runtime: RulesContext,
-    state: PlayState,
-    encounter: Encounter,
-    actor_id: str,
-    command_id: str,
-    item_ids: tuple[str, ...],
-) -> tuple[PlayState, Encounter]:
-    """Only equipment actually used by this action; idle equipment never rolls."""
-    for item_id in dict.fromkeys(item_ids):
-        item = next(i for i in state.resources.items if i.id == item_id)
-        condition = item.condition
-        if (
-            condition is None
-            or condition.disabled
-            or condition.hp > 0
-            or condition.last_stress_at == state.resources.game_time
-        ):
-            continue
-        resources, _ = apply_object(
-            runtime.resources,
-            state.resources,
-            StressObject(
-                id="combat-stress:"
-                + hashlib.sha256(f"{command_id}:{item_id}".encode()).hexdigest(),
-                actor_id=actor_id,
-                expected_revision=state.resources.revision,
-                item_id=item_id,
-            ),
-            system=True,
-            rng=runtime.rng,
-        )
-        state = state.model_copy(update={"resources": resources})
-    return state, synchronize(state, encounter)
 
 
 def shock(state: PlayState, item_id: str) -> int:
@@ -172,17 +111,13 @@ def critical_breakage(
         else item.condition
     )
     usable = residual_definition(profile, condition) is not None
-    # deferred: objects.combat -> thrown.flight -> objects.combat.
-    # A thrown object's flight ends in an object hit.
-    from wayfarer.engine.simulation.combat.thrown.flight import position
-
     subject = next(p for p in encounter.participants if p.actor_id == item.owner_id)
     updated = item.model_copy(
         update={
             "condition": condition,
             "ready": usable,
             "equipped": item.equipped if broken else False,
-            "ground": item.ground if broken else position(encounter, subject),
+            "ground": item.ground if broken else ground_position(encounter, subject),
         }
     )
     saved = BreakageResult.model_validate(
@@ -366,39 +301,6 @@ def damage_target(
     return state, synchronize(state, encounter), result
 
 
-def weapon_target(runtime: RulesContext, state: PlayState, item_id: str | None) -> bool:
-    """B401 restricts defenses for weapon targets, including ranged weapons."""
-    if item_id is None:
-        return False
-
-    item = next(i for i in state.resources.items if i.id == item_id)
-    return any(e.definition_id == item.definition_id and e.modes for e in catalog(runtime).entries)
-
-
-def defense_stress(
-    runtime: RulesContext,
-    state: PlayState,
-    encounter: Encounter,
-    actor_id: str,
-    command_id: str,
-    item_id: str | None,
-) -> tuple[PlayState, Encounter]:
-    """Stress the selected implement and shields that contribute defense bonus."""
-
-    entries = {e.definition_id: e for e in catalog(runtime).entries}
-    pending = encounter.pending_defense
-    targeted_weapon = weapon_target(runtime, state, pending.target_item_id if pending else None)
-    items = tuple(
-        i.id
-        for i in state.resources.items
-        if i.owner_id == actor_id
-        and i.equipped
-        and i.ready
-        and (i.id == item_id or (not targeted_weapon and entries[i.definition_id].shield))
-    )
-    return stress(runtime, state, encounter, actor_id, command_id, items)
-
-
 def intercepted_projectiles(
     runtime: RulesContext,
     state: PlayState,
@@ -499,27 +401,3 @@ def target_geometry(
         except ValidationError, ValueError:
             continue
     raise ValidationError("Object target has no reachable visible occupied position")
-
-
-def worn_stress(
-    runtime: RulesContext,
-    state: PlayState,
-    encounter: Encounter,
-    actor_id: str,
-    command_id: str,
-) -> tuple[PlayState, Encounter]:
-    """Worn protection is in use even while its wearer does not attack."""
-
-    armor = {e.definition_id for e in catalog(runtime).entries if e.armor is not None}
-    return stress(
-        runtime,
-        state,
-        encounter,
-        actor_id,
-        command_id,
-        tuple(
-            i.id
-            for i in state.resources.items
-            if i.owner_id == actor_id and i.equipped and i.definition_id in armor
-        ),
-    )

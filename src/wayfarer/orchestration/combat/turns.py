@@ -8,13 +8,13 @@ from wayfarer.engine.simulation.actors import exertion, injury_turn, movement
 from wayfarer.engine.simulation.combat.commands import TakeCombatTurn, TypedCombatCommand
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
 from wayfarer.engine.simulation.combat.entangle_transitions import escape_binding
+from wayfarer.engine.simulation.combat.equipment_effects import stress, worn_stress
 from wayfarer.engine.simulation.combat.firearm_transitions import service
 from wayfarer.engine.simulation.combat.maneuver_transitions import observe
 from wayfarer.engine.simulation.combat.maneuvers import ATTACK_MANEUVERS
 from wayfarer.engine.simulation.combat.melee.attack import prepare_attack, waive_off_hand_penalty
 from wayfarer.engine.simulation.combat.melee.modes import mode, mode_reach, require_two_weapon_modes
 from wayfarer.engine.simulation.combat.mounts import assign_crew
-from wayfarer.engine.simulation.combat.objects.combat import stress, worn_stress
 from wayfarer.engine.simulation.combat.objects.locations import (
     bind_ready_hand,
     validate_posture,

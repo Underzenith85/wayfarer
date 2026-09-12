@@ -9,7 +9,7 @@ from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog
 from wayfarer.engine.simulation.combat.critical import CriticalMiss, load_critical
 from wayfarer.engine.simulation.combat.encounter import Encounter
-from wayfarer.engine.simulation.combat.objects.combat import synchronize
+from wayfarer.engine.simulation.combat.equipment_effects import synchronize
 from wayfarer.engine.simulation.health.injury import (
     DisableLocation,
     Wound,
