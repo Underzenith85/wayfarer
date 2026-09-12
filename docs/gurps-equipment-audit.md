@@ -42,7 +42,7 @@ anchor and record what they leave out:
 | `shields` | B287 | 4 | duplicate cloak appearances, the unrepresentable force shield, and buckler, material and offensive variants |
 | `general-equipment-b288` | B288 | 63 | no fixed-TL physical row; behavior-bearing items remain fail-closed |
 | `weapon-accessories` | B289 | 12 | no physical row; accessory behavior remains fail-closed |
-| `general-equipment-remainder` | B289 | 41 | six variable-TL rows that need a typed TL expression |
+| `general-equipment-remainder` | B289 | 53 | no physical row; special effects remain fail-closed |
 
 The remaining four sections record **no rows at all**: wealth and legality,
 heavy weapons, split-DR armor and higher-TL variants. Their anchors are recorded as `range-only`,
@@ -51,8 +51,9 @@ meaning B264-289 as a range that nobody has reconciled item by item. A
 
 B288-289 now account for all fixed-TL physical rows and embedded purchasable
 variants. Piton is the table's alias for Iron Spike, and Transportation is a
-cross-reference rather than a physical row. The six `Var.` rows remain explicit
-omissions until a profile can carry a skill-relative technology level. Equipment
+cross-reference rather than a physical row. The five `Var.` medical/laboratory
+rows carry a skill-relative TL marker, while the portable tool-kit variants retain
+their individually printed TLs. Equipment
 with an operating duration, task bonus, communications effect, protection,
 medical effect, or attachment rule is retained as an exact inventory record but
 rejected by the selection gate on its declared unsupported mechanic.
@@ -96,8 +97,10 @@ nonzero parry modifiers and two-handed grips. Special melee behavior that the
 engine cannot yet execute remains explicit and blocks only the affected item:
 alternate thrown modes, stuck picks, flail defense penalties, mounted lance
 damage, variable reach, conditional post-attack readiness, and the cutlass hilt.
-Rows whose values do not fit the schema are explicit omissions: superscience TL,
-extra dice added to ST-based damage, and variable minimum ST.
+Superscience and skill-relative TL markers are typed and remain unusable without
+a concrete campaign TL. The Force Sword keeps its fixed damage mode, while the
+Monowire Whip remains inventory-only because extra dice added to ST-based damage
+are still unrepresentable. Variable minimum ST remains an explicit omission.
 
 An `unsupported` behaviour names an owning issue and nothing else. Its identifier
 is the same string an entry lists in `unsupported_mechanics`, and the validator

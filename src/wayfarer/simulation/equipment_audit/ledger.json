@@ -57,9 +57,11 @@
         "warhammer",
         "flail",
         "greatsword",
-        "thrusting-greatsword"
+        "thrusting-greatsword",
+        "force-sword",
+        "monowire-whip"
       ],
-      "omitted_rows": "Explicit non-catalog rows: Punch, Kick, Kick with Boots, Blunt Teeth, Fangs, Sharp Beak, Sharp Teeth, Striker and the variable Shield Bash rows. Brass Knuckles lacks a table ST value. Stun Gun and Garrote use damage forms the schema cannot encode. Force Sword and Monowire Whip have a superscience TL that the integer TL field cannot encode; Monowire Whip and Chainsaw also add dice to ST-based damage, and Whip has variable ST and purchased reach. These rows remain blocked rather than receiving invented values.",
+      "omitted_rows": "Explicit non-catalog rows: Punch, Kick, Kick with Boots, Blunt Teeth, Fangs, Sharp Beak, Sharp Teeth, Striker and the variable Shield Bash rows. Brass Knuckles lacks a table ST value. Stun Gun and Garrote use damage forms the schema cannot encode. Force Sword is recorded with its superscience TL and exact fixed mode; Monowire Whip retains exact inventory facts but no invented ST-plus-dice mode. Chainsaw also adds dice to ST-based damage, and Whip has variable ST and purchased reach. These rows remain blocked rather than receiving invented values.",
       "mechanics": [
         "unbalanced-parry",
         "fencing-parry",
@@ -370,9 +372,10 @@
         "light-shield",
         "small-shield",
         "medium-shield",
-        "large-shield"
+        "large-shield",
+        "force-shield"
       ],
-      "omitted_rows": "The Light Cloak and Heavy Cloak appearances duplicate physical rows already recorded from B276. Force Shield has a superscience TL and no finite HP, which the typed schema cannot encode. Buckler, spike, iron, plastic-riot and offensive shield-bash or shield-rush variants remain explicit behavior gaps; the four ordinary defensive rows retain the table's exact DB, cost, weight, DR and HP.",
+      "omitted_rows": "The Light Cloak and Heavy Cloak appearances duplicate physical rows already recorded from B276. Force Shield retains its superscience TL, DB, cost and weight as a blocked inventory row; its absent finite HP prevents ordinary shield durability. Buckler, spike, iron, plastic-riot and offensive shield-bash or shield-rush variants remain explicit behavior gaps; the four ordinary defensive rows retain the table's exact DB, cost, weight, DR and HP.",
       "mechanics": [
         "shield-offense",
         "buckler-variant",
@@ -495,11 +498,24 @@
         "shovel",
         "spinning-wheel",
         "wheelbarrow",
-        "whetstone"
+        "whetstone",
+        "bandages",
+        "crash-kit",
+        "first-aid-kit",
+        "surgical-instruments",
+        "portable-carpentry-tool-kit",
+        "portable-armoury-tool-kit",
+        "portable-explosives-tool-kit",
+        "portable-machinist-tool-kit",
+        "portable-mechanic-tool-kit",
+        "portable-electrician-tool-kit",
+        "portable-electronics-repair-tool-kit",
+        "suitcase-lab"
       ],
-      "omitted_rows": "Six rows printed with variable TL (Bandages, Crash Kit, First Aid Kit, Surgical Instruments, Portable Tool Kit and Suitcase Lab) remain omitted because EquipmentProfile requires one concrete TL. Transportation is a cross-reference, not an equipment row.",
+      "omitted_rows": "No B289 physical row is omitted. Skill-relative medical/laboratory rows preserve their printed variable TL, and the seven named portable tool-kit variants preserve their individual TL, cost and weight. Transportation is a cross-reference, not an equipment row. Behavior-bearing rows remain selection-blocked.",
       "mechanics": [
-        "special-tool-effects"
+        "special-tool-effects",
+        "technology-level-variants"
       ]
     }
   ],
@@ -2047,14 +2063,15 @@
     },
     {
       "id": "EquipmentProfile.technology_level",
-      "unit": "TL",
-      "reference": "B264-289 TL column",
-      "anchor": "range-only",
+      "unit": "integer TL, skill-relative marker, or superscience marker",
+      "reference": "B264-289 TL column, including B272/B287 ^ and B289 var.",
+      "anchor": "inspected",
       "status": "pending",
       "reviewer": null,
       "evidence": null,
       "tests": [
-        "tests/test_basic_equipment.py::test_selected_source_rows"
+        "tests/test_basic_equipment.py::test_selected_source_rows",
+        "tests/test_basic_equipment.py::test_non_numeric_technology_levels_fail_closed"
       ],
       "gap": null
     },
