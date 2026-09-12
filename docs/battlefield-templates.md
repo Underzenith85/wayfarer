@@ -14,6 +14,10 @@ combat timing remain common encounter state. Geometry helpers take the selected
 rules template explicitly. An unknown ID or a coordinate-system mismatch fails
 closed. Both mapped kinds use the existing scene/location validation.
 
+Basic contexts are executable through `StartBasicEncounter`, `BasicMove` and
+`DeclareBasicSpatialFacts`; their provenance and invalidation rules are documented
+in [Basic (mapless) combat](mapless-combat.md).
+
 The existing GM `MigrateEncounterHex` command now installs its map under a
 content-derived ID and appends a `MigrationEntry` with the old and new runtime
 digests. It preserves the original square template, so other encounters and

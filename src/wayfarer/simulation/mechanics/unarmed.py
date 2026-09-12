@@ -19,7 +19,16 @@ from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.rules.location_types import Hand, HumanLocation
 from wayfarer.rules.unarmed_tables import UNARMED_SKILLS, unarmed_critical_miss
 from wayfarer.simulation.actions import PlayState
-from wayfarer.simulation.combat import Combatant, CombatEngine, CombatResult, Encounter
+from wayfarer.simulation.combat import (
+    BasicSpatialContext,
+    Combatant,
+    CombatEngine,
+    CombatResult,
+    Encounter,
+    basic_distance,
+    basic_visible,
+    move_basic,
+)
 from wayfarer.simulation.condition_checks import check_modifiers, retching_penalty
 from wayfarer.simulation.fatigue import fatigue_value
 from wayfarer.simulation.gurps_equipment import DamageType
@@ -106,10 +115,14 @@ def settle_control(state: PlayState, encounter: Encounter) -> Encounter:
         )
         for p in encounter.participants
     )
-    pairs = tuple(
-        pair
-        for pair in encounter.close_pairs
-        if fighter(encounter, pair[0]).position == fighter(encounter, pair[1]).position
+    pairs = (
+        encounter.close_pairs
+        if isinstance(encounter.spatial, BasicSpatialContext)
+        else tuple(
+            pair
+            for pair in encounter.close_pairs
+            if fighter(encounter, pair[0]).position == fighter(encounter, pair[1]).position
+        )
     )
     return encounter.model_copy(
         update={"grips": grips, "participants": participants, "close_pairs": pairs}
@@ -356,6 +369,11 @@ def validate_action(
         raise ValidationError("Stunned actor cannot apply arm-lock damage")
     if actor.pinned and command.action != "break_free":
         raise ValidationError("Pinned actor may only attempt escape")
+    separation = (
+        basic_distance(encounter, actor.actor_id, target.actor_id)
+        if isinstance(encounter.spatial, BasicSpatialContext)
+        else float(CombatEngine.distance(actor.position, target.position))
+    )
     if command.enter_close_combat:
         if (
             command.action not in ("punch", "grapple", "arm_lock")
@@ -363,16 +381,11 @@ def validate_action(
             or any(g.holder_id == actor.actor_id for g in encounter.grips)
         ):
             raise ValidationError("Close-combat entry is unavailable")
-        if (
-            CombatEngine.distance(actor.position, target.position) != 1
-            or movement(runtime, state, actor.actor_id) == 0
-        ):
+        if separation != 1 or movement(runtime, state, actor.actor_id) == 0:
             raise ValidationError("Close-combat entry requires an adjacent target and movement")
         if actor.posture == "prone":
             raise ValidationError("Prone close-combat entry requires crawling integration")
-    distance = (
-        0 if command.enter_close_combat else CombatEngine.distance(actor.position, target.position)
-    )
+    distance = 0 if command.enter_close_combat else separation
     from wayfarer.simulation.tactical import attack_geometry
 
     if command.action in ("punch", "kick", "grapple", "arm_lock"):
@@ -535,13 +548,30 @@ def interrupt_wait(
     entered, pairs = actor, encounter.close_pairs
     if command.enter_close_combat:
         target = fighter(encounter, command.target_id)
-        entered = actor.model_copy(update={"position": target.position})
         merged = set(pairs)
-        merged.update(
-            (min(actor.actor_id, p.actor_id), max(actor.actor_id, p.actor_id))
-            for p in encounter.participants
-            if p.actor_id != actor.actor_id and p.position == target.position
-        )
+        if isinstance(encounter.spatial, BasicSpatialContext):
+            merged.add(
+                (
+                    min(actor.actor_id, target.actor_id),
+                    max(actor.actor_id, target.actor_id),
+                )
+            )
+            encounter = move_basic(
+                encounter,
+                actor_id=actor.actor_id,
+                reference_actor_id=target.actor_id,
+                direction="approach",
+                yards=1,
+                command_id=command.id,
+                revision=state.revision,
+            )
+        else:
+            entered = actor.model_copy(update={"position": target.position})
+            merged.update(
+                (min(actor.actor_id, p.actor_id), max(actor.actor_id, p.actor_id))
+                for p in encounter.participants
+                if p.actor_id != actor.actor_id and p.position == target.position
+            )
         pairs = tuple(sorted(merged))
     moved = CombatEngine._replace(encounter, entered).model_copy(update={"close_pairs": pairs})
     for waiter_id in encounter.turn_order:
@@ -565,6 +595,10 @@ def interrupt_wait(
 
             if not sight(moved, waiter, entered, board=runtime.hex_map(moved)):
                 continue
+        elif encounter.spatial_kind == "basic" and not basic_visible(
+            encounter, waiter.actor_id, entered.actor_id
+        ):
+            continue
         saved = command.model_copy(update={"enter_close_combat": False})
         paused = CombatEngine._replace(
             moved,
@@ -710,16 +744,33 @@ def execute_unarmed(
         if command.action in ("punch", "kick", "grapple", "arm_lock"):
             if command.enter_close_combat:
                 target = fighter(encounter, command.target_id)
-                actor = actor.model_copy(update={"position": target.position})
                 pairs = set(encounter.close_pairs)
-                pairs.update(
-                    (min(actor.actor_id, p.actor_id), max(actor.actor_id, p.actor_id))
-                    for p in encounter.participants
-                    if p.actor_id != actor.actor_id and p.position == target.position
-                )
-                encounter = CombatEngine._replace(encounter, actor).model_copy(
-                    update={"close_pairs": tuple(sorted(pairs))}
-                )
+                if isinstance(encounter.spatial, BasicSpatialContext):
+                    pairs.add(
+                        (
+                            min(actor.actor_id, target.actor_id),
+                            max(actor.actor_id, target.actor_id),
+                        )
+                    )
+                    encounter = move_basic(
+                        encounter,
+                        actor_id=actor.actor_id,
+                        reference_actor_id=target.actor_id,
+                        direction="approach",
+                        yards=1,
+                        command_id=command.id,
+                        revision=state.revision,
+                    ).model_copy(update={"close_pairs": tuple(sorted(pairs))})
+                else:
+                    actor = actor.model_copy(update={"position": target.position})
+                    pairs.update(
+                        (min(actor.actor_id, p.actor_id), max(actor.actor_id, p.actor_id))
+                        for p in encounter.participants
+                        if p.actor_id != actor.actor_id and p.position == target.position
+                    )
+                    encounter = CombatEngine._replace(encounter, actor).model_copy(
+                        update={"close_pairs": tuple(sorted(pairs))}
+                    )
             allowed_defenses: list[str] = ["none"]
             for choice in ("dodge", "parry"):
                 try:
@@ -882,7 +933,11 @@ def unarmed_defense(
         source_id = encounter.pending_unarmed.actor_id if encounter.pending_unarmed else attacker_id
         if (
             source_id is not None
-            and fighter(encounter, source_id).position == actor.position
+            and (
+                tuple(sorted((source_id, actor.actor_id))) in encounter.close_pairs
+                if isinstance(encounter.spatial, BasicSpatialContext)
+                else fighter(encounter, source_id).position == actor.position
+            )
             and 0 not in weapon.reach
         ):
             raise ValidationError("A weapon parry in close combat requires reach C")

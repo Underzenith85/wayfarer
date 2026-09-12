@@ -122,9 +122,17 @@
             "type": "string"
           },
           "distance_yards": {
-            "exclusiveMinimum": 0,
-            "title": "Distance Yards",
-            "type": "number"
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Distance Yards"
           },
           "speed_yards_per_second": {
             "default": 0,
@@ -140,8 +148,7 @@
         },
         "required": [
           "attacker_id",
-          "defender_id",
-          "distance_yards"
+          "defender_id"
         ],
         "title": "RangedSituation",
         "type": "object"

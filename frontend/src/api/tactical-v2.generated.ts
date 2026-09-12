@@ -40,6 +40,16 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    /** BasicMove */
+    BasicMove: {
+      /** Reference Actor Id */
+      reference_actor_id: string;
+      /**
+       * Direction
+       * @enum {string}
+       */
+      direction: "approach" | "withdraw";
+    };
     /** Cell */
     Cell: {
       position: components["schemas"]["Hex"];
@@ -114,6 +124,11 @@ export interface components {
       catch_thrown: boolean;
       /** @default null */
       retreat: components["schemas"]["Hex"] | null;
+      /**
+       * Basic Retreat
+       * @default false
+       */
+      basic_retreat: boolean;
       /**
        * Parry Mode Id
        * @default null
@@ -644,6 +659,8 @@ export interface components {
        * @default null
        */
       hex_facing: (0 | 1 | 2 | 3 | 4 | 5) | null;
+      /** @default null */
+      basic_move: components["schemas"]["BasicMove"] | null;
     };
     /** TakeUnarmedTurn */
     TakeUnarmedTurn: {

@@ -268,15 +268,20 @@ in one place.
   only runtime pose mirrors for existing mechanic APIs, and encounter
   serialization removes those mirrors so persisted state has one owner.
   Geometry helpers receive the selected template explicitly from the rules context.
+- **Basic spatial facts.** `StartBasicEncounter` creates a scene-bound encounter
+  without a template. Its `BasicSpatialContext` owns revision-lifetime distance,
+  reach, visibility, cover, obstacle and retreat facts with trusted provenance.
+  Basic movement derives distance/reach and invalidates affected judgments; see
+  [Basic (mapless) combat](mapless-combat.md).
 - **Migration and projections.** `MigrateEncounterHex` installs a derived template
   and records a `MigrationEntry` before switching an encounter's placements.
   `migrate_embedded_maps` lifts retained embedded maps in an atomic, replayable
   command, preserving geometry and adding no map where none existed. Scenario
   graphs retain the templates; pre-scenario typed campaigns retain a
   `combat_rules_json` fragment until their scenario migration. Unknown references
-  fail closed. `validate_contexts` checks the scene-to-template location for both
-  coordinate systems. Mapless combat (#324) continues to use declared spatial
-  facts. Which map a client draws is a projection, never a mechanic.
+  fail closed. `validate_contexts` checks scene ownership for Basic combat and the
+  scene-to-template location for both coordinate systems. Which map a client draws
+  is a projection, never a mechanic.
 
 ## Consequences
 

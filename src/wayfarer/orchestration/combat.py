@@ -17,13 +17,20 @@ from wayfarer.rules.checks import CheckTrace
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.adjudication import expire_rulings
 from wayfarer.simulation.combat import (
+    BasicSpatialContext,
+    BasicSpatialFact,
     Combatant,
     CombatEngine,
     CombatResult,
+    CoverSpatialFact,
     Encounter,
+    basic_visible,
 )
 from wayfarer.simulation.combat_commands import (
     COMBAT_ADAPTER as COMBAT_ADAPTER,
+)
+from wayfarer.simulation.combat_commands import (
+    BasicMove as BasicMove,
 )
 from wayfarer.simulation.combat_commands import (
     ChooseDefense as ChooseDefense,
@@ -33,6 +40,9 @@ from wayfarer.simulation.combat_commands import (
 )
 from wayfarer.simulation.combat_commands import (
     ContinueCriticalMiss as ContinueCriticalMiss,
+)
+from wayfarer.simulation.combat_commands import (
+    DeclareBasicSpatialFacts as DeclareBasicSpatialFacts,
 )
 from wayfarer.simulation.combat_commands import (
     DeclareThrownLanding as DeclareThrownLanding,
@@ -63,6 +73,9 @@ from wayfarer.simulation.combat_commands import (
 )
 from wayfarer.simulation.combat_commands import (
     RetrieveEquipment as RetrieveEquipment,
+)
+from wayfarer.simulation.combat_commands import (
+    StartBasicEncounter as StartBasicEncounter,
 )
 from wayfarer.simulation.combat_commands import (
     StartEncounter as StartEncounter,
@@ -123,6 +136,8 @@ class CombatService:
             command,
             (
                 StartEncounter,
+                StartBasicEncounter,
+                DeclareBasicSpatialFacts,
                 EndEncounter,
                 MigrateEncounterHex,
                 ContinueCriticalMiss,
@@ -347,6 +362,8 @@ def _prepare_command(
         affected = {command.actor_id}
         if isinstance(command, StartEncounter):
             affected.update(p.actor_id for p in command.placements)
+        elif isinstance(command, StartBasicEncounter):
+            affected.update(command.participant_ids)
         elif (
             isinstance(command, (TakeCombatTurn, TakeUnarmedTurn)) and command.target_id is not None
         ):
@@ -453,6 +470,93 @@ def _start_encounter(
     return CombatStep(state, encounter, resources, result)
 
 
+def _start_basic_encounter(
+    state: PlayState, command: StartBasicEncounter, context: CombatContext
+) -> CombatStep:
+    play = context.play
+    engine = context.engine
+    resources = state.resources
+    if any(e.id == command.encounter_id for e in state.encounters):
+        raise ConflictError("Encounter ID already exists")
+    actor_map = {actor.actor_id: actor for actor in state.actors}
+    if len(set(command.participant_ids)) != len(command.participant_ids) or any(
+        actor_id not in actor_map for actor_id in command.participant_ids
+    ):
+        raise ValidationError("Basic encounter requires unique play actors")
+    if any(
+        fact.provenance.source != "scenario"
+        or fact.provenance.source_id != command.scene_id
+        or fact.provenance.declared_by != command.actor_id
+        or fact.provenance.declared_revision != command.expected_revision
+        or fact.provenance.invalidated_revision is not None
+        for fact in command.facts
+    ):
+        raise ValidationError("Initial basic facts require scoped scenario provenance")
+    initiatives: dict[str, int] = {}
+    pools = {pool.id: pool for pool in state.resources.pools}
+    for actor_id in command.participant_ids:
+        actor = actor_map[actor_id]
+        if engine.rules.gurps_equipment is not None:
+            from wayfarer.simulation.mechanics.gurps_melee import fatigue_ready
+
+            if not fatigue_ready(state, actor.actor_id):
+                raise ValidationError("Exhausted actor cannot start combat")
+        hp = pools.get(f"hp:{actor.actor_id}")
+        if (
+            actor.conditions
+            or hp is None
+            or (hp.injury.incapacitated if hp.injury else hp.current == 0)
+        ):
+            raise ValidationError("Incapacitated actor cannot start combat")
+        build, _ = play.engine.reviewer.activate(
+            actor.proposal,
+            actor.approval,
+            campaign_id=state.campaign_id,
+            actor_id=actor.actor_id,
+        )
+        values = {value.target: int(value.value) for value in build.sheet.values}
+        initiatives[actor.actor_id] = values["attribute:dx"]
+    encounter = engine.start_basic(
+        command.encounter_id,
+        command.participant_ids,
+        command.facts,
+        initiatives,
+        state.world,
+        resources,
+        frozenset(actor_map),
+    )
+    from wayfarer.simulation.encounter_context import bind_scene
+
+    encounter = bind_scene(encounter, play.engine.rules.scenes, engine.rules, command.scene_id)
+    if engine.rules.gurps_equipment is not None:
+        from wayfarer.simulation.mechanics.location_combat import bind_initial_hands
+
+        encounter = bind_initial_hands(play.rules_context, state, encounter)
+    from wayfarer.simulation.mechanics.gurps_ranged import declare
+
+    encounter = declare(play.rules_context, encounter, command.ranged_situations)
+    encounters = state.encounters + (encounter,)
+    from wayfarer.simulation.encounter_context import validate_contexts
+
+    validate_contexts(
+        state.model_copy(update={"encounters": encounters}),
+        play.engine.rules.scenes,
+        engine.rules,
+    )
+    return CombatStep(
+        state,
+        encounter,
+        resources,
+        CombatResult(
+            encounter_id=encounter.id,
+            code="combat.started",
+            round=encounter.round,
+            current_actor_id=encounter.current_actor_id,
+            available=engine.available(encounter, encounter.current_actor_id),
+        ),
+    )
+
+
 def _prepare_encounter(
     state: PlayState, command: TypedCombatCommand, context: CombatContext
 ) -> Encounter:
@@ -484,6 +588,29 @@ def _prepare_encounter(
                 )
             ):
                 raise ValidationError("Target is unavailable")
+    elif encounter.spatial_kind == "basic" and isinstance(
+        command, (TakeCombatTurn, TakeUnarmedTurn)
+    ):
+        spatial = encounter.spatial
+        assert isinstance(spatial, BasicSpatialContext)
+        if command.target_id is not None:
+            if not basic_visible(encounter, command.actor_id, command.target_id):
+                raise ValidationError("Target is unavailable")
+            cover = spatial.active("cover", command.actor_id, command.target_id)
+            if not isinstance(cover, CoverSpatialFact):
+                raise ValidationError("Basic combat requires an authoritative cover fact")
+            if cover.cover == "full":
+                raise ValidationError("Full cover blocks the target")
+        if isinstance(command, TakeCombatTurn) and command.wait_trigger is not None:
+            for actor_id in (
+                command.wait_trigger.actor_id,
+                command.wait_trigger.target_id,
+                command.wait_trigger.reaction_target_id,
+            ):
+                if actor_id is not None and not basic_visible(
+                    encounter, command.actor_id, actor_id
+                ):
+                    raise ValidationError("Target is unavailable")
     from wayfarer.simulation.mechanics.unarmed import guard_control
 
     guard_control(encounter, command, state)
@@ -536,6 +663,70 @@ def _migrate(
         current_actor_id=encounter.current_actor_id,
     )
     return CombatStep(state, encounter, resources, result)
+
+
+def _declare_basic_facts(
+    state: PlayState, command: TypedCombatCommand, encounter: Encounter, context: CombatContext
+) -> CombatStep:
+    assert isinstance(command, DeclareBasicSpatialFacts)
+    spatial = encounter.spatial
+    if not isinstance(spatial, BasicSpatialContext) or encounter.status != "active":
+        raise ValidationError("Basic spatial facts require an active basic encounter")
+    if any(
+        fact.provenance.source != "gm-adjudication"
+        or fact.provenance.source_id != command.id
+        or fact.provenance.declared_by != command.actor_id
+        or fact.provenance.declared_revision != command.expected_revision
+        or fact.provenance.invalidated_revision is not None
+        or fact.subject_id not in encounter.turn_order
+        or fact.object_id not in encounter.turn_order
+        for fact in command.facts
+    ):
+        raise ValidationError("Basic spatial adjudication requires scoped GM provenance")
+
+    def key(fact: BasicSpatialFact) -> tuple[str, str, str]:
+        return (
+            fact.kind,
+            min(fact.subject_id, fact.object_id) if fact.kind == "distance" else fact.subject_id,
+            max(fact.subject_id, fact.object_id) if fact.kind == "distance" else fact.object_id,
+        )
+
+    keys = {key(fact) for fact in command.facts}
+    if len(keys) != len(command.facts):
+        raise ValidationError("Basic spatial adjudication contains duplicate facts")
+    retained = tuple(
+        fact.model_copy(
+            update={
+                "provenance": fact.provenance.model_copy(
+                    update={"invalidated_revision": command.expected_revision}
+                )
+            }
+        )
+        if fact.provenance.invalidated_revision is None and key(fact) in keys
+        else fact
+        for fact in spatial.facts
+    )
+    encounter = encounter.model_copy(
+        update={"spatial_context": spatial.model_copy(update={"facts": retained + command.facts})}
+    )
+    context.engine.validate(
+        encounter,
+        state.world,
+        state.resources,
+        frozenset(actor.actor_id for actor in state.actors),
+    )
+    return CombatStep(
+        state,
+        encounter,
+        state.resources,
+        CombatResult(
+            encounter_id=encounter.id,
+            code="combat.basic_spatial_facts_declared",
+            round=encounter.round,
+            current_actor_id=encounter.current_actor_id,
+            available=context.engine.available(encounter, encounter.current_actor_id),
+        ),
+    )
 
 
 def _explosion(
@@ -705,8 +896,8 @@ def _join(
     engine = context.engine
     resources = state.resources
     assert isinstance(command, JoinEncounter)
-    if encounter.spatial_kind == "hex":
-        raise ValidationError("Hex reinforcements require explicit placement support")
+    if encounter.spatial_kind != "square":
+        raise ValidationError("Reinforcements require representation-specific placement support")
     from wayfarer.simulation.party import group_for
 
     if encounter.status != "active" or encounter.pending_defense is not None:
@@ -939,6 +1130,8 @@ def _validate_turn(
         and command.wait_trigger is not None
         and command.wait_trigger.stop_thrust
     ):
+        if encounter.spatial_kind == "basic":
+            raise ValidationError("Basic stop thrust requires explicit GM adjudication")
         from wayfarer.simulation.gurps_equipment import MeleeMode
         from wayfarer.simulation.mechanics.gurps_melee import mode
 
@@ -991,6 +1184,7 @@ def _preview_turn(
             command_json=command.model_dump_json(),
             hex_path=command.hex_path,
             hex_facing=command.hex_facing,
+            basic_move=command.basic_move,
         )
         if preview.pending_defense is not None:
             from wayfarer.simulation.mechanics.gurps_melee import prepare_attack
@@ -1362,6 +1556,7 @@ def _take_turn(
         command_json=command_for_turn.model_dump_json(),
         hex_path=command_for_turn.hex_path,
         hex_facing=command_for_turn.hex_facing,
+        basic_move=command_for_turn.basic_move,
     )
     return _after_turn(state, command, encounter, context, command_for_turn, resources, result)
 
@@ -1756,6 +1951,7 @@ def _finish_combat(
         isinstance(command, ChooseDefense)
         and engine.rules.attacks
         and encounter.status == "completed"
+        and encounter.spatial_kind != "basic"
     ):
         previous = step.defense_before
         injury = result.injury
@@ -1796,6 +1992,7 @@ def _finish_combat(
 _COMBAT_STEPS: dict[
     str, Callable[[PlayState, TypedCombatCommand, Encounter, CombatContext], CombatStep]
 ] = {
+    "declare_basic_spatial_facts": _declare_basic_facts,
     "migrate_encounter_hex": _migrate,
     "resolve_weapon_explosion": _explosion,
     "declare_thrown_landing": _landing,
@@ -1815,8 +2012,12 @@ def reduce_combat(
     state: PlayState, command: TypedCombatCommand, context: CombatContext
 ) -> tuple[PlayState, CombatResult]:
     state, command, context = _prepare_command(state, command, context)
-    if isinstance(command, StartEncounter):
-        step = _start_encounter(state, command, context)
+    if isinstance(command, (StartEncounter, StartBasicEncounter)):
+        step = (
+            _start_encounter(state, command, context)
+            if isinstance(command, StartEncounter)
+            else _start_basic_encounter(state, command, context)
+        )
         encounters = step.state.encounters + (step.encounter,)
     else:
         encounter = _prepare_encounter(state, command, context)
@@ -1825,7 +2026,10 @@ def reduce_combat(
             from wayfarer.simulation.mechanics.tactical import finish_defense
 
             step = replace(
-                step, encounter=finish_defense(context.play.rules_context, step.encounter, command)
+                step,
+                encounter=finish_defense(
+                    context.play.rules_context, step.state, step.encounter, command
+                ),
             )
         encounters = tuple(
             step.encounter if e.id == step.encounter.id else e for e in step.state.encounters

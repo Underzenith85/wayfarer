@@ -110,6 +110,8 @@ class Intent(Record):
     selection_id: str | None = Field(default=None, max_length=100)
     maneuver: str | None = Field(default=None, max_length=100)
     defense: str | None = Field(default=None, max_length=100)
+    basic_reference_actor_id: str | None = Field(default=None, max_length=100)
+    basic_direction: Literal["approach", "withdraw"] | None = None
 
     def command(self, command_id: str, actor_id: str, revision: int) -> dict[str, object]:
         value: dict[str, object] = {
@@ -130,7 +132,14 @@ class Intent(Record):
             "approach_noncombat": {"encounter_id", "selection_id"},
             "start_noncombat": {"encounter_id", "selection_id"},
             "withdraw_noncombat": {"encounter_id"},
-            "take_combat_turn": {"encounter_id", "maneuver", "target_id", "item_id"},
+            "take_combat_turn": {
+                "encounter_id",
+                "maneuver",
+                "target_id",
+                "item_id",
+                "basic_reference_actor_id",
+                "basic_direction",
+            },
             "choose_defense": {"encounter_id", "defense"},
         }[self.kind]
         for key in (
@@ -145,12 +154,23 @@ class Intent(Record):
             "selection_id",
             "maneuver",
             "defense",
+            "basic_reference_actor_id",
+            "basic_direction",
         ):
             field = getattr(self, key)
             if field is not None:
                 if key not in permitted:
                     raise ValidationError("Intent contains incompatible parameters")
                 value[key] = field
+        reference = value.pop("basic_reference_actor_id", None)
+        direction = value.pop("basic_direction", None)
+        if (reference is None) != (direction is None):
+            raise ValidationError("Basic movement needs both reference actor and direction")
+        if reference is not None and direction is not None:
+            value["basic_move"] = {
+                "reference_actor_id": reference,
+                "direction": direction,
+            }
         # Validate required fields and the final discriminated command schema.
         encoded = json.dumps(value)
         if self.kind in ("travel_scene", "observe_scene"):

@@ -215,6 +215,8 @@ def preview(
         maneuver=command.maneuver,
         resources=state.resources,
         command_id=command.id,
+        destination=command.destination,
+        facing=command.facing,
         item_id=command.item_id,
         target_id=command.target_id,
         posture=command.posture,
@@ -227,6 +229,7 @@ def preview(
         second_mode_id=command.second_mode_id,
         hex_path=command.hex_path,
         hex_facing=command.hex_facing,
+        basic_move=command.basic_move,
     )
     if result.pending_defense is not None:
         prepare_attack(
