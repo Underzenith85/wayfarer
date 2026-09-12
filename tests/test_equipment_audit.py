@@ -35,13 +35,27 @@ LITE = "gurps-lite-4e-2004"
 def test_selected_row_provenance_anchors() -> None:
     """Every audited row carries the same third-printing provenance and a page in scope."""
     entries = catalog_entries()
-    assert len(entries) == len(BASIC_EQUIPMENT.entries) + len(ULTRATECH_INDEX) == 164
+    assert len(entries) == len(BASIC_EQUIPMENT.entries) + len(ULTRATECH_INDEX) == 270
     for entry in entries.values():
         provenance = entry.provenance
         assert provenance.source_id == "sjg:gurps-basic-set-4e-2004"
         assert provenance.edition == "Fourth Edition, third printing (2008)"
         assert provenance.errata.startswith("Third-printing text")
-        assert set(provenance.pages) <= {271, 272, 273, 274, 275, 276, 278, 279, 280, 283, 287, 288}
+        assert set(provenance.pages) <= {
+            271,
+            272,
+            273,
+            274,
+            275,
+            276,
+            278,
+            279,
+            280,
+            283,
+            287,
+            288,
+            289,
+        }
     pages = {entry.definition_id: entry.provenance.pages for entry in entries.values()}
     assert pages["equipment:broadsword"] == (271,)
     assert pages["equipment:leather-armor"] == (283,)
@@ -51,6 +65,9 @@ def test_selected_row_provenance_anchors() -> None:
     assert pages["equipment:bolt"] == (276,)
     assert pages["equipment:medium-shield"] == (287,)
     assert pages["equipment:cartridge-rifle-45"] == (279,)
+    assert pages["equipment:mini-tv"] == (288,)
+    assert pages["equipment:manual-typewriter"] == (289,)
+    assert pages["equipment:pistol-smg-silencer"] == (289,)
 
 
 def test_tight_beam_burning_reaches_eyes_and_vitals() -> None:
@@ -162,8 +179,8 @@ def test_audited_catalogs_do_not_bind_to_pinned_packages() -> None:
 def test_audit_report_names_blockers_without_claiming_completeness() -> None:
     report = audit_report(ROOT)
     assert report["audit_complete"] is False
-    assert report["selected_rows"] == 164
-    assert report["supported_rows"] == 107
+    assert report["selected_rows"] == 270
+    assert report["supported_rows"] == 124
     assert report["sections_audited"] == 0
     assert isinstance(report["blockers"], list) and report["blockers"]
     assert report["footnotes_without_evidence"] == []
