@@ -111,7 +111,6 @@ def test_a_reused_identifier_without_the_pinned_binding_contributes_nothing() ->
 def test_manual_obligations_and_unbound_effects_cannot_activate() -> None:
     engine = runtime_compiler()
     for identifier, options in (
-        ("trait:honesty", TraitOptions(self_control=12)),  # Self-control plus legal obligations.
         ("trait:code-of-honor-soldier", None),
         ("trait:rank-watch", None),
         ("trait:ally-associate", None),

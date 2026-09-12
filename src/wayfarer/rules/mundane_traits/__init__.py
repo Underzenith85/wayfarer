@@ -22,6 +22,7 @@ from wayfarer.rules.catalog import (
     RulesPackage,
     SourceReference,
 )
+from wayfarer.rules.mental_traits import CONSEQUENCES, MENTAL_BINDINGS, MENTAL_HOOKS
 from wayfarer.rules.mundane_traits.runtime import (
     APPEARANCE_BINDINGS,
     REACTION_BINDINGS,
@@ -97,7 +98,11 @@ class TraitEntry:
         return (
             *(() if self.implemented else (self.effect,)),
             *(binding.blockers if binding is not None else ()),
-            *(("disadvantage-consequences",) if self.effect == "trait.self_control" else ()),
+            *(
+                ("disadvantage-consequences",)
+                if self.effect == "trait.self_control" and self.id not in CONSEQUENCES
+                else ()
+            ),
         )
 
     @property
@@ -499,6 +504,10 @@ def validate_inventory(entries: tuple[TraitEntry, ...]) -> None:
             entry.id not in PHYSICAL_BINDINGS or PHYSICAL_BINDINGS[entry.id][0] != entry.effect
         ):
             raise ValidationError("Physical effect requires an exact catalog binding")
+        if entry.effect in MENTAL_HOOKS and (
+            entry.id not in MENTAL_BINDINGS or MENTAL_BINDINGS[entry.id][0] != entry.effect
+        ):
+            raise ValidationError("Mental effect requires an exact catalog binding")
         definition = entry.definition(entries)
         assert definition.trait_rules is not None
         validate_metadata(definition.trait_rules)
@@ -508,7 +517,7 @@ def candidate_package(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> RulesPacka
     entries = inventory(vocabulary)
     return RulesPackage(
         "package:gurps-mundane-trait-candidates",
-        "0.3.0",
+        "0.4.0",
         "gurps-4e",
         (SOURCE,),
         tuple(entry.definition(entries) for entry in entries),
