@@ -194,6 +194,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.social.influence` | yes | yes | partial | #111; all six authored procedures and B359 exceptions; catalog/trait binding #112/#113 |
 | `gurps.social.fright` | no | yes | partial | #111; lasting consequences #299 |
 | `gurps.social.skill_procedures` | no | yes | partial | #345; [bound social skill procedures and their transferred rows](gurps-mundane-skills.md); remaining #353, #366, #367, #368, #369, #370 |
+| `gurps.skills.arts_trades` | no | yes | partial | #338; [task-specific arts, crafts and trade procedures](gurps-mundane-skills.md#arts-crafts-and-trade-procedures-338) |
 | `gurps.equipment.weapon_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; source audit pending) |
 | `gurps.equipment.armor_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; source audit pending) |
 | `gurps.equipment.catalog` | yes | yes | partial | #114 |
@@ -403,7 +404,9 @@ each owning specific blockers, so no row resolves into a general owner.
 
 Every remaining blocker has a named owner: #336 owns source/context reconciliation,
 and #338–#346 own specific procedure inventories. `runtime_owner_unassigned` is
-zero. #344 binds twelve ranged combat rows to a runtime procedure in a new pin
+zero. #338 binds the arts, crafts and trade rows, including finite specialties
+and the Motion-Picture Camera transfer, to task-specific service outcomes without
+creating another package pin. #344 binds twelve ranged combat rows to a runtime procedure in a new pin
 and transfers the rest of that group to #354, #355, #357, #359, #360, #361 and
 #362, so a blocker a procedure owner splits keeps naming the child that owns it.
 #345 binds sixteen social rows the same way in a further pin, transfers

@@ -22,6 +22,7 @@ from wayfarer.engine.rules.catalog import (
     RulesPackage,
 )
 from wayfarer.engine.rules.gurps_characters import source
+from wayfarer.engine.rules.skills.mundane.arts import PROCEDURES as ARTS_PROCEDURES
 from wayfarer.engine.rules.skills.mundane.ranged import PROCEDURES as RANGED_PROCEDURES
 from wayfarer.engine.rules.skills.mundane.ranged import ranged_scope
 from wayfarer.engine.rules.skills.mundane.schema import (
@@ -84,7 +85,7 @@ CONTEXT_RESIDUALS = MappingProxyType(
 )
 # One runtime binding per procedure group. A row bound by two groups would let
 # either one claim it, so overlap is rejected rather than resolved by order.
-BINDINGS = (RANGED_PROCEDURES, SOCIAL_PROCEDURES, TECHNOLOGY_PROCEDURES)
+BINDINGS = (ARTS_PROCEDURES, RANGED_PROCEDURES, SOCIAL_PROCEDURES, TECHNOLOGY_PROCEDURES)
 
 
 class StructuralClass(StrEnum):
@@ -421,9 +422,14 @@ def inventory() -> tuple[SkillAudit, ...]:
             blockers.append("metadata-audit")
         dispatch: str | None = None
         bound = [group[identifier] for group in BINDINGS if identifier in group]
-        if len(bound) > 1:
+        # A transferring catalog may retain a fail-closed placeholder until the
+        # receiving owner lands its real dispatch.  Exactly one executable
+        # binding supersedes such placeholders; two executable owners remain an
+        # error rather than being resolved by tuple order.
+        executable = [procedure for procedure in bound if procedure.dispatchable]
+        if len(executable) > 1 or (len(bound) > 1 and len(executable) != 1):
             raise ValidationError(f"Row is bound by more than one procedure group: {identifier}")
-        procedure = bound[0] if bound else None
+        procedure = executable[0] if executable else bound[0] if bound else None
         transferred: tuple[tuple[str, tuple[int, ...]], ...] = ()
         if procedure is not None:
             # A binding may only resolve or keep the blockers this inventory
@@ -437,7 +443,12 @@ def inventory() -> tuple[SkillAudit, ...]:
                 accounted.discard("technology-level-context")
             if accounted != set(row.blockers):
                 raise ValidationError(f"Runtime binding disagrees with the inventory: {identifier}")
-            if replace(procedure.spec(), technology_level_required=row.tl_required) != spec:
+            procedure_spec = procedure.spec()
+            if (
+                replace(procedure_spec, technology_level_required=row.tl_required)
+                if procedure_spec is not None
+                else None
+            ) != spec:
                 raise ValidationError(f"Runtime binding changes recorded mechanics: {identifier}")
             if any(not owners for owners in procedure.transferred.values()):
                 raise ValidationError(f"Transferred blocker names no owner: {identifier}")
@@ -448,7 +459,8 @@ def inventory() -> tuple[SkillAudit, ...]:
                 if item[0] != "technology-level-context" or item[0] in row.blockers
             )
             if procedure.dispatchable:
-                definition = replace(procedure.definition(), skill=spec)
+                if spec is not None:
+                    definition = replace(procedure.definition(), skill=spec)
                 dispatch = procedure.dispatch
         result.append(
             SkillAudit(
