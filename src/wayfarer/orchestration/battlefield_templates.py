@@ -5,7 +5,8 @@ from __future__ import annotations
 import hashlib
 from typing import TYPE_CHECKING
 
-from wayfarer.contracts import Campaign
+from wayfarer import validation
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.advancement import MigrationEntry
 from wayfarer.engine.simulation.campaign.scenario_document import digest_json
@@ -15,6 +16,7 @@ from wayfarer.engine.simulation.combat.commands import MigrateEncounterHex
 from wayfarer.engine.simulation.combat.profiles import CombatRules
 from wayfarer.engine.simulation.hex_geometry import HexBattlefield
 from wayfarer.errors import ValidationError
+from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.sessions import REGISTRY
 
 if TYPE_CHECKING:
@@ -138,8 +140,6 @@ def lift_embedded(
     """Upgrade a legacy checkpoint without ever constructing an Encounter with a map."""
     import json
 
-    from wayfarer import validation
-
     raw = validation.mapping(validation.decode(campaign.get("play_json", "null")))
     rules = play.engine.rules.combat
     if rules is None or raw.get("configuration_digest") != play.engine.digest:
@@ -202,9 +202,6 @@ async def migrate_embedded_maps(
     expected_revision: int,
 ) -> Campaign:
     import json
-
-    from wayfarer.contracts import CommandReceipt
-    from wayfarer.orchestration.entropy import commit_command
 
     play = play.for_campaign(await play.store.read(cid))
     if actor_id not in play.engine.reviewer.gm_ids:

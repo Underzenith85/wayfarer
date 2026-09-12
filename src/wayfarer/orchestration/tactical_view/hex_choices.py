@@ -6,10 +6,14 @@ import hashlib
 import json
 from itertools import product
 
+from wayfarer.engine.rules.types.object import residual_definition
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.combat.encounter import Encounter
+from wayfarer.engine.simulation.combat.melee.modes import mode as weapon_mode
+from wayfarer.engine.simulation.combat.objects.combat import effective_entry
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
 from wayfarer.engine.simulation.combat.tactical import pose
+from wayfarer.engine.simulation.combat.unarmed.fighters import free_hands
 from wayfarer.engine.simulation.combat.vocabulary import Maneuver
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode
 from wayfarer.engine.simulation.hex_geometry import Hex, neighbor
@@ -98,9 +102,6 @@ def choices(
             return ()
         allowed = pending.allowed if pending else unarmed.allowed if unarmed else ()
         if pending:
-            from wayfarer.engine.simulation.combat.melee.modes import mode as weapon_mode
-            from wayfarer.engine.simulation.combat.unarmed.fighters import free_hands
-
             incoming = (
                 weapon_mode(
                     play.rules_context,
@@ -199,8 +200,6 @@ def choices(
         rules = engine.rules.gurps_equipment
         assert rules is not None
         entries = {e.definition_id: e for e in rules.entries}
-        from wayfarer.engine.rules.types.object import residual_definition
-        from wayfarer.engine.simulation.combat.objects.combat import effective_entry
 
         weapons = [
             (item, mode)

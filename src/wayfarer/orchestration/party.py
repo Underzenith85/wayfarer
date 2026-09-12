@@ -9,6 +9,7 @@ from pydantic import Field
 
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.actions import (
+    ACTION_ADAPTER,
     ActionCommand,
     Inspect,
     PlayState,
@@ -16,6 +17,7 @@ from wayfarer.engine.simulation.actions import (
     UseItem,
     Wait,
 )
+from wayfarer.engine.simulation.campaign.encounter_context import activity_for
 from wayfarer.engine.simulation.campaign.party import (
     ActivityReceipt,
     PendingEffect,
@@ -30,6 +32,7 @@ from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.noncombat import NoncombatCommand, NoncombatService
+from wayfarer.orchestration.npcs import due_times
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.scenes import SceneService, TravelScene
 
@@ -151,7 +154,6 @@ class PartyService:
         if not state.party.groups:
             return state
         frontier = min(g.ready_through for g in state.party.groups)
-        from wayfarer.orchestration.npcs import due_times
 
         times = sorted(
             {q.due for q in state.party.queue if q.due <= frontier}
@@ -234,8 +236,6 @@ class PartyService:
                 code = "activity.resolved"
                 try:
                     if activity.family == "action":
-                        from wayfarer.engine.simulation.actions import ACTION_ADAPTER
-
                         action = ACTION_ADAPTER.validate_json(activity.command_json).model_copy(
                             update={"expected_revision": revision - 1}
                         )
@@ -302,7 +302,6 @@ class PartyService:
         groups = state.party.groups
         if command.kind not in ("pause_group", "resume_group") and group.paused:
             raise ConflictError("Subgroup is explicitly paused")
-        from wayfarer.engine.simulation.campaign.encounter_context import activity_for
 
         context = activity_for(state, command.actor_id)
         in_combat = context.group_encounter is not None

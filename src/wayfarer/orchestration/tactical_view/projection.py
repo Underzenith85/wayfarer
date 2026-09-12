@@ -9,7 +9,7 @@ from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.tactical import pose
 from wayfarer.engine.simulation.combat.visibility import visible_actors
-from wayfarer.engine.simulation.hex_geometry import HexBattlefield
+from wayfarer.engine.simulation.hex_geometry import HexBattlefield, SightPoint, line_of_sight
 from wayfarer.orchestration.combat import ChooseDefense, TakeCombatTurn
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.tactical_view.hex_choices import choices
@@ -81,7 +81,6 @@ def project(
             state, encounter, actor_id, board=play.rules_context.hex_map(encounter)
         )
         own = next(p for p in encounter.participants if p.actor_id == actor_id)
-        from wayfarer.engine.simulation.hex_geometry import SightPoint, line_of_sight
 
         cells = tuple(
             cell

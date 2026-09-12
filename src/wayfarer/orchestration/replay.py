@@ -5,6 +5,7 @@ import json
 from wayfarer import validation
 from wayfarer.engine.simulation.magic.spells import SpellCommand
 from wayfarer.errors import ValidationError
+from wayfarer.orchestration.battlefield_templates import migrate_embedded_maps
 from wayfarer.orchestration.combat import COMBAT_ADAPTER, CombatService
 from wayfarer.orchestration.party import PartyCommand, PartyService
 from wayfarer.orchestration.play import PlayService
@@ -36,8 +37,6 @@ async def execute_recorded(play: PlayService, record: CommandRecord) -> None:
         if operation == "typed-action":
             await play.execute(record.campaign_id, command, authenticated_actor_id=record.actor_id)
         elif operation == "map-template-migration":
-            from wayfarer.orchestration.battlefield_templates import migrate_embedded_maps
-
             await migrate_embedded_maps(
                 play,
                 record.campaign_id,

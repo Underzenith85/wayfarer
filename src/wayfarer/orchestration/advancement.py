@@ -28,6 +28,8 @@ from wayfarer.engine.simulation.campaign.encounter_context import (
     bind_scene,
     migrate_unique,
 )
+from wayfarer.engine.simulation.campaign.party import migrate
+from wayfarer.engine.simulation.campaign.scenario_references import boundary
 from wayfarer.engine.simulation.campaign.scenes import ActorScene
 from wayfarer.engine.simulation.resources import Pool
 from wayfarer.errors import ConflictError, ValidationError
@@ -495,10 +497,7 @@ class MigrationService:
                     "Rules migration requires explicit ambiguous encounter scene mappings"
                 )
             if self.target.engine.rules.party is not None:
-                from wayfarer.engine.simulation.campaign.party import migrate
-
                 updated = migrate(updated)
-            from wayfarer.engine.simulation.campaign.scenario_references import boundary
 
             pin = boundary(campaign)
             if pin is not None:

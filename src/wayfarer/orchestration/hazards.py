@@ -10,6 +10,9 @@ from decimal import Decimal
 
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.character.statistics import encumbrance
+from wayfarer.engine.character.traits.physical import physical_traits
+from wayfarer.engine.rules.environment import ambient_spec
+from wayfarer.engine.rules.physical import contagion_modifier
 from wayfarer.engine.rules.types.hazard import HazardSchedule, HazardSpec
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.health.hazards import HazardCommand, HazardResult, apply_hazard
@@ -88,15 +91,10 @@ class HazardService:
                     survival = None
                     bonus = 0
                     if context.contacts:
-                        from wayfarer.engine.rules.physical import contagion_modifier
-
                         if context.spec.kind != "disease":
                             raise ValidationError("Contact modifiers require a disease")
                         bonus = contagion_modifier(context.contacts)
                     if context.temperature_f is not None:
-                        from wayfarer.engine.character.traits.physical import physical_traits
-                        from wayfarer.engine.rules.environment import ambient_spec
-
                         levels = physical_traits(
                             build, play.engine.reviewer.compiler.definitions
                         ).temperature_tolerance

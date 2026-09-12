@@ -7,9 +7,13 @@ from wayfarer.engine.rules.types.recovery import require_settled
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import movement
 from wayfarer.engine.simulation.combat.encounter import Encounter
+from wayfarer.engine.simulation.combat.maneuver_transitions import observe
 from wayfarer.engine.simulation.combat.melee.attack import prepare_attack
+from wayfarer.engine.simulation.combat.melee.defense import validate_defense_choices
+from wayfarer.engine.simulation.combat.melee.modes import mode, mode_reach
 from wayfarer.engine.simulation.combat.ranged.situation import validate_command
 from wayfarer.engine.simulation.combat.tactical_transitions import prepare_defense
+from wayfarer.engine.simulation.combat.thrown.items import validate_catch
 from wayfarer.engine.simulation.combat.unarmed.declaration import validate_action
 from wayfarer.engine.simulation.combat.unarmed.defense import unarmed_defense
 from wayfarer.engine.simulation.combat.unarmed.fighters import guard_control
@@ -55,8 +59,6 @@ def preview(
     guard_control(encounter, command, state)
     if isinstance(command, ChooseDefense):
         if command.catch_thrown:
-            from wayfarer.engine.simulation.combat.thrown.items import validate_catch
-
             validate_catch(play.rules_context, state, encounter, command)
         prepared = prepare_defense(play.rules_context, state, encounter, command)
         if prepared.pending_unarmed is not None:
@@ -69,8 +71,6 @@ def preview(
                 command.item_id,
             )
         else:
-            from wayfarer.engine.simulation.combat.melee.defense import validate_defense_choices
-
             if (
                 prepared.pending_defense is None
                 or prepared.pending_defense.defender_id != command.actor_id
@@ -111,8 +111,6 @@ def preview(
         "move_and_attack",
         "feint",
     ):
-        from wayfarer.engine.simulation.combat.melee.modes import mode, mode_reach
-
         selected = mode(
             play.rules_context, state, command.actor_id, command.item_id, command.mode_id
         )
@@ -157,6 +155,4 @@ def preview(
             shots=command.shots,
         )
     if command.maneuver == "aim":
-        from wayfarer.engine.simulation.combat.maneuver_transitions import observe
-
         observe(play.rules_context, state, result, command)

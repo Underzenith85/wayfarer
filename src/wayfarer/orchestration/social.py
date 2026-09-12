@@ -9,8 +9,17 @@ from dataclasses import dataclass
 from pydantic import ValidationError as SchemaError
 
 from wayfarer.contracts import Campaign, CommandReceipt
+from wayfarer.engine.character.traits.social import (
+    bind_standing,
+    reaction_modifiers,
+    skill_conditions,
+)
+from wayfarer.engine.rules.fright import FrightEffect
+from wayfarer.engine.rules.skills.mundane.social.inventory import Resolution, require_procedure
 from wayfarer.engine.rules.traits.mundane.runtime import Check
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import build
+from wayfarer.engine.simulation.health.fright import apply_effect, validate_subject
 from wayfarer.engine.simulation.social.social import (
     SocialCommand,
     SocialContext,
@@ -43,14 +52,12 @@ def bind_trait_modifiers(
     modifier, and an unbound or unpurchased trait contributes nothing. An
     unapproved initiator (an NPC without a build) contributes nothing either.
     """
-    from wayfarer.engine.character.traits.social import bind_standing, reaction_modifiers
 
     check: Check = "influence" if command.kind in ("influence", "skill") else "reaction"
     actor = next((a for a in state.actors if a.actor_id == command.actor_id), None)
     if actor is None or actor.approval is None:
         context.bind_trait_modifiers(())
         return
-    from wayfarer.engine.simulation.actors import build
 
     approved = build(play.rules_context, state, command.actor_id)
     definitions = play.engine.reviewer.compiler.definitions
@@ -74,7 +81,6 @@ def bind_skill_conditions(
     owns what each one is worth. An initiator without an approved build asserts
     nothing extra, and a resolver still cannot supply a trait modifier itself.
     """
-    from wayfarer.engine.rules.skills.mundane.social.inventory import Resolution, require_procedure
 
     if context.procedure_id is None:
         raise ValidationError("Social skill dispatch requires a declared procedure")
@@ -83,8 +89,6 @@ def bind_skill_conditions(
     if actor is None or actor.approval is None:
         context.bind_trait_modifiers(())
         return
-    from wayfarer.engine.character.traits.social import skill_conditions
-    from wayfarer.engine.simulation.actors import build
 
     approved = build(play.rules_context, state, command.actor_id)
     definitions = play.engine.reviewer.compiler.definitions
@@ -110,10 +114,7 @@ def dispatch(
     if interaction.context.profile_id != profile_id:
         raise ValidationError("Social context does not match campaign profile")
     if command.kind == "fright":
-        from wayfarer.engine.simulation.health.fright import validate_subject
-
         validate_subject(before.resources, command.subject_id, profile_id)
-        from wayfarer.engine.simulation.actors import build
 
         if not any(a.actor_id == command.subject_id for a in before.actors):
             raise ValidationError("Fright requires an approved character")
@@ -140,9 +141,6 @@ def dispatch(
         system=True,
     )
     if command.kind == "fright":
-        from wayfarer.engine.rules.fright import FrightEffect
-        from wayfarer.engine.simulation.health.fright import apply_effect
-
         raw = json.loads(resources.events[-1].kind)["private"]["effect"]
         if raw is not None:
             resources = apply_effect(

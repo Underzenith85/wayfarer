@@ -24,7 +24,13 @@ from wayfarer.errors import (
 )
 from wayfarer.models import Record
 from wayfarer.orchestration.access import CampaignAccess
+from wayfarer.orchestration.combat import COMBAT_ADAPTER
+from wayfarer.orchestration.jobs import jobs_for
 from wayfarer.orchestration.llm import LLMClient
+from wayfarer.orchestration.noncombat import NoncombatCommand
+from wayfarer.orchestration.party import PartyCommand
+from wayfarer.orchestration.recovery import RecoveryCommand
+from wayfarer.orchestration.scenes import SCENE_ADAPTER
 from wayfarer.persistence.events import CommandOrigin
 
 
@@ -174,20 +180,12 @@ class Intent(Record):
         # Validate required fields and the final discriminated command schema.
         encoded = json.dumps(value)
         if self.kind in ("travel_scene", "observe_scene"):
-            from wayfarer.orchestration.scenes import SCENE_ADAPTER
-
             SCENE_ADAPTER.validate_json(encoded)
         elif self.kind == "choose_recovery":
-            from wayfarer.orchestration.recovery import RecoveryCommand
-
             RecoveryCommand.model_validate_json(encoded)
         elif self.kind in ("approach_noncombat", "start_noncombat", "withdraw_noncombat"):
-            from wayfarer.orchestration.noncombat import NoncombatCommand
-
             NoncombatCommand.model_validate_json(encoded)
         elif self.kind in ("take_combat_turn", "choose_defense"):
-            from wayfarer.orchestration.combat import COMBAT_ADAPTER
-
             COMBAT_ADAPTER.validate_json(encoded)
         else:
             ACTION_ADAPTER.validate_json(encoded)
@@ -228,7 +226,6 @@ class Orchestrator:
     ) -> None:
         if not 0 < timeout <= 300 or not 1 <= attempts <= 3:
             raise ValueError("Invalid provider bounds")
-        from wayfarer.orchestration.jobs import jobs_for
 
         self.access, self.provider = access, provider
         self.jobs = jobs_for(access.play.store)
@@ -422,8 +419,6 @@ class Orchestrator:
             "travel_scene",
             "approach_noncombat",
         ):
-            from wayfarer.orchestration.party import PartyCommand
-
             command = PartyCommand(
                 kind="queue_activity",
                 id=command_id,

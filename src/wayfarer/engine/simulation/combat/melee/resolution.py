@@ -19,7 +19,6 @@ from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, level
 from wayfarer.engine.simulation.combat.critical import IncomingWound
 from wayfarer.engine.simulation.combat.criticals.context import capture_critical
-from wayfarer.engine.simulation.combat.criticals.limbs import resolve_limb
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.entangle import attack_penalty as entangle_attack_penalty
 from wayfarer.engine.simulation.combat.maneuver_transitions import distracted
@@ -418,6 +417,11 @@ def resolve_melee(
             }
         )
         parry_miss = blocked.endswith(":defender")
+        # deferred: patch seam, not a cycle.  test_critical_continuation replaces
+        # criticals.limbs.resolve_limb with the pre-migration adapter, which a
+        # module-level binding here would resolve past.
+        from wayfarer.engine.simulation.combat.criticals.limbs import resolve_limb
+
         state, encounter, limb = resolve_limb(
             runtime,
             state,

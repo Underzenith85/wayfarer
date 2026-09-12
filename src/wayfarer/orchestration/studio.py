@@ -12,7 +12,7 @@ from pydantic import ValidationError as SchemaError
 
 from wayfarer.contracts import Campaign
 from wayfarer.engine.character.power import PowerReviewer
-from wayfarer.engine.rules.catalog import CampaignPolicy
+from wayfarer.engine.rules.catalog import CampaignPolicy, reference
 from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActorSetup, CheckRule
 from wayfarer.engine.simulation.campaign.access import CampaignMember
@@ -23,9 +23,10 @@ from wayfarer.engine.simulation.campaign.studio import (
     StudioFinding,
     StudioReport,
 )
-from wayfarer.errors import ConflictError, ValidationError
+from wayfarer.errors import ConflictError, NotFoundError, ValidationError
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.providers import Orchestrator, ProviderRequest
+from wayfarer.orchestration.scenario_references import pin_scenario
 
 
 def _listed(values: Iterable[object]) -> str:
@@ -683,7 +684,6 @@ class ScenarioStudio:
             graph.scenes.validate_world(graph.world)
             engine = self.engine(graph)
             # The activation path is also the validator: identical initial resources and discoveries.
-            from wayfarer.engine.rules.catalog import reference
 
             seed = Campaign(
                 id="studio-validation",
@@ -827,7 +827,6 @@ class ScenarioStudio:
             raise ValidationError("Scenario failed hard playability checks")
         activated = PlayService(self.play.store, self.engine(graph), rng=self.play.rng)
         # A deterministic campaign ID makes retries identify the same starting snapshot.
-        from wayfarer.errors import NotFoundError
 
         try:
             existing = await self.play.store.read(campaign["id"])
@@ -846,7 +845,6 @@ class ScenarioStudio:
                 raise ConflictError("Activation membership changed")
             return activated
         seed = campaign.copy()
-        from wayfarer.orchestration.scenario_references import pin_scenario
 
         published = None
         if "scenario_document_json" in seed:
