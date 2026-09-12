@@ -232,6 +232,7 @@ class InventoryRow(Record):
         if (
             self.specialty_required
             and not self.specialty
+            and self.variable is None
             and "specialty-expansion" not in self.blockers
         ):
             raise ValueError("Unexpanded required specialties need an explicit blocker")
