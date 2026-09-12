@@ -59,13 +59,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -307,13 +308,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -715,13 +717,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -737,13 +740,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -759,13 +763,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -940,13 +945,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -1031,13 +1037,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -1076,13 +1083,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -1121,13 +1129,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -1166,13 +1175,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -1553,13 +1563,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2027,13 +2038,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2160,13 +2172,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2204,13 +2217,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2226,13 +2240,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2248,13 +2263,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2292,13 +2308,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2337,13 +2354,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2971,13 +2989,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3174,13 +3193,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3196,13 +3216,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3240,13 +3261,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3419,13 +3441,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3441,13 +3464,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3508,13 +3532,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3618,13 +3643,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3707,13 +3733,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3887,13 +3914,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3909,13 +3937,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3953,13 +3982,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -4044,13 +4074,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -4066,13 +4097,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -4088,13 +4120,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -4110,13 +4143,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -4198,13 +4232,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -4242,13 +4277,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -4308,13 +4344,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        235,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned physiology construction and approved-build survival projection with atomic HP-ledger intervals",
+      "evidence": [
+        "tests/test_physiology_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,

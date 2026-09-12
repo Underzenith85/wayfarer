@@ -390,6 +390,14 @@ class CharacterCompiler:
 
                             cost = validate_movement_form(definition, amount, options)
                         elif any(
+                            hook.startswith("physiology-trait:") for hook in metadata.runtime_hooks
+                        ):
+                            from wayfarer.rules.physiology_traits import (
+                                validate_purchase as validate_physiology,
+                            )
+
+                            cost = validate_physiology(definition, amount, options)
+                        elif any(
                             hook.startswith("sensory-trait:") for hook in metadata.runtime_hooks
                         ):
                             from wayfarer.rules.sensory_traits import (
