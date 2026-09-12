@@ -101,6 +101,23 @@ def approved_context(
         position = command.position
     if command.kind == "focus" and command.position is None:
         raise ValidationError("Light manipulation requires a destination")
+    magic_item = None
+    if channel.magic_item_id is not None:
+        magic_item = next(
+            item
+            for item in rules.magic_items
+            if item.item_id == channel.magic_item_id and item.spell_id == command.spell_id
+        )
+        held = next(
+            (item for item in state.resources.items if item.id == channel.magic_item_id), None
+        )
+        if (
+            held is None
+            or held.owner_id != command.actor_id
+            or (not held.equipped and not held.ready)
+            or (held.condition is not None and held.condition.disabled)
+        ):
+            raise ValidationError("Caster is not holding a usable magic item")
     context = build_context(
         runtime,
         state,
@@ -111,8 +128,44 @@ def approved_context(
             distance=distance,
             radius=command.radius,
             energy=command.energy,
+            magic_item=magic_item,
         ),
     )
+    if channel.ceremonial:
+        ht: list[tuple[str, int]] = []
+        entities_by_id = {e.id: e for e in state.world.entities}
+        for contribution in channel.ceremonial.contributions:
+            participant = next(
+                (a for a in state.actors if a.actor_id == contribution.actor_id), None
+            )
+            if participant is None or participant.approval is None:
+                raise ValidationError("Ceremonial participant requires an approved build")
+            if entities_by_id[contribution.actor_id].location_id != channel.location_id:
+                raise ValidationError("Ceremonial participants must share the ritual location")
+            build, _ = runtime.reviewer.activate(
+                participant.proposal,
+                participant.approval,
+                campaign_id=state.campaign_id,
+                actor_id=participant.actor_id,
+            )
+            purchases = {p.definition_id: p.amount for p in build.purchases}
+            values = {v.target: int(v.value) for v in build.sheet.values}
+            spell_skill = values.get("spell:" + command.spell_id)
+            if contribution.role == "leader" and (spell_skill is None or spell_skill < 15):
+                raise ValidationError("Ceremonial leader requires spell skill 15+")
+            if contribution.role == "mage" and (
+                spell_skill is None or spell_skill < 15 or "trait:magery-0" not in purchases
+            ):
+                raise ValidationError("Mage contribution requires Magery and spell skill 15+")
+            if contribution.role == "nonmage" and spell_skill is None:
+                raise ValidationError("Trained ceremonial assistant must know the spell")
+            ht.append((contribution.actor_id, values["attribute:ht"]))
+        for opponent in channel.ceremonial.opposing_spectators:
+            if entities_by_id[opponent].location_id != channel.location_id:
+                raise ValidationError("Ceremonial opposition must be present at the ritual")
+        context = context.model_copy(
+            update={"ceremonial": channel.ceremonial, "ceremonial_ht": tuple(ht)}
+        )
     return context.model_copy(
         update={
             "execute_effects": True,
@@ -121,6 +174,7 @@ def approved_context(
             "encounter_id": encounter.id if encounter else None,
             "position": position,
             "geometry": geometry,
+            "area": channel.area,
             "light_radius": channel.light_radius,
             "light_penalty": channel.light_penalty,
         }

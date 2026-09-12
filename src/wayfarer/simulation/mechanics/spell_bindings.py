@@ -7,6 +7,7 @@ from pydantic import Field
 from wayfarer.errors import ValidationError
 from wayfarer.models import Id, Record
 from wayfarer.rules.gurps_magic import definitions, magery_level
+from wayfarer.rules.magic_protocols import MagicItemBinding, effective_item_power
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.rules_context import RulesContext
 from wayfarer.simulation.spells import PROFILE, SPELLS, SpellCommand, SpellContext
@@ -24,6 +25,7 @@ class SpellEnvironment(Record):
     distance: int = Field(default=0, ge=0, le=10000)
     radius: int = Field(default=1, ge=1, le=100)
     energy: int = Field(default=1, ge=1, le=100)
+    magic_item: MagicItemBinding | None = None
 
 
 def approved_context(
@@ -44,12 +46,30 @@ def approved_context(
         actor.proposal, actor.approval, campaign_id=state.campaign_id, actor_id=actor.actor_id
     )
     purchases = {p.definition_id: p.amount for p in build.purchases}
-    if spell_key not in purchases:
+    if spell_key not in purchases and environment.magic_item is None:
         raise ValidationError("Spell was not purchased and approved")
     values = {v.target: int(v.value) for v in build.sheet.values}
     learned = tuple(
         k.removeprefix("spell:") for k in purchases if k in expected and k.startswith("spell:")
     )
+    skill = values.get(spell_key)
+    item_reduction = 0
+    if environment.magic_item is not None:
+        item = environment.magic_item
+        if item.spell_id != command.spell_id:
+            raise ValidationError("Magic item does not carry the selected spell")
+        power = effective_item_power(item.power, environment.mana)
+        if power is None or power < 15:
+            raise ValidationError("Magic item has insufficient Power in this mana level")
+        if item.requires_magery and magery_level(purchases) < 0:
+            raise ValidationError("Magic item requires Magery")
+        skill = power
+        learned = tuple(
+            dict.fromkeys((*learned, command.spell_id, *SPELLS[command.spell_id].prerequisites))
+        )
+        item_reduction = item.power_reduction
+    if skill is None:
+        raise ValidationError("Spell has no compiled skill")
     target_ht = 10
     if SPELLS[command.spell_id].kind == "resisted":
         target = next((a for a in state.actors if a.actor_id == environment.target_id), None)
@@ -67,7 +87,7 @@ def approved_context(
     return SpellContext(
         profile_id=PROFILE,
         build_revision=build.revision,
-        skill=values[spell_key],
+        skill=skill,
         magery=magery_level(purchases),
         learned=learned,
         ht=values["attribute:ht"],
@@ -75,5 +95,6 @@ def approved_context(
         iq=values["attribute:iq"],
         target_ht=target_ht,
         unavailable=bool(actor.conditions) or actor.available_at > state.resources.game_time,
-        **environment.model_dump(),
+        item_power_reduction=item_reduction,
+        **environment.model_dump(exclude={"magic_item"}),
     )

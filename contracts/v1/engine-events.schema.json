@@ -405,6 +405,56 @@
       "title": "ActorAudience",
       "type": "object"
     },
+    "AreaSelection": {
+      "additionalProperties": false,
+      "description": "Selected cells within a paid circular area; height is four yards by default.",
+      "properties": {
+        "center": {
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "title": "Center",
+          "type": "array"
+        },
+        "cells": {
+          "default": [],
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "type": "array"
+          },
+          "title": "Cells",
+          "type": "array"
+        },
+        "height_yards": {
+          "default": 4,
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Height Yards",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "center"
+      ],
+      "title": "AreaSelection",
+      "type": "object"
+    },
     "CampaignAudience": {
       "additionalProperties": false,
       "properties": {
@@ -416,6 +466,81 @@
         }
       },
       "title": "CampaignAudience",
+      "type": "object"
+    },
+    "CeremonialContribution": {
+      "additionalProperties": false,
+      "description": "A trusted contribution after the adapter verifies build and allegiance.",
+      "properties": {
+        "actor_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Actor Id",
+          "type": "string"
+        },
+        "fp": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Fp",
+          "type": "integer"
+        },
+        "hp": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Hp",
+          "type": "integer"
+        },
+        "role": {
+          "enum": [
+            "leader",
+            "mage",
+            "nonmage",
+            "spectator"
+          ],
+          "title": "Role",
+          "type": "string"
+        }
+      },
+      "required": [
+        "actor_id",
+        "role"
+      ],
+      "title": "CeremonialContribution",
+      "type": "object"
+    },
+    "CeremonialPlan": {
+      "additionalProperties": false,
+      "properties": {
+        "leader_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Leader Id",
+          "type": "string"
+        },
+        "contributions": {
+          "items": {
+            "$ref": "#/$defs/CeremonialContribution"
+          },
+          "minItems": 2,
+          "title": "Contributions",
+          "type": "array"
+        },
+        "opposing_spectators": {
+          "default": [],
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Opposing Spectators",
+          "type": "array"
+        }
+      },
+      "required": [
+        "leader_id",
+        "contributions"
+      ],
+      "title": "CeremonialPlan",
       "type": "object"
     },
     "CheckTrace": {
@@ -2106,6 +2231,48 @@
           "default": false,
           "title": "Reversed",
           "type": "boolean"
+        },
+        "ceremonial": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CeremonialPlan"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "ceremonial_ht": {
+          "default": [],
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "type": "array"
+          },
+          "title": "Ceremonial Ht",
+          "type": "array"
+        },
+        "area": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AreaSelection"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [

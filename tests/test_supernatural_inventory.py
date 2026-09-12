@@ -128,9 +128,16 @@ def test_every_entry_has_concrete_runtime_and_source_blockers_and_real_evidence(
     for entry in data.entries:
         assert entry.status is not CoverageStatus.VERIFIED
         assert 191 in entry.blockers
-        assert any(221 <= n <= 243 for n in entry.blockers)
+        if not any(221 <= n <= 243 for n in entry.blockers):
+            assert entry.status is CoverageStatus.PARTIAL
+            assert entry.supported_subset and entry.evidence
         assert all(Path(path).is_file() for path in entry.evidence)
-    assert set(coverage_blockers(PROFILE)) == {107, 173, 191, *range(221, 244)}
+    assert set(coverage_blockers(PROFILE)) == {
+        107,
+        173,
+        191,
+        *(n for n in range(221, 244) if n != 241),
+    }
     assert {e.name for e in data.entries if e.optional} == {"Clerical Magic", "Ritual Magic"}
 
 

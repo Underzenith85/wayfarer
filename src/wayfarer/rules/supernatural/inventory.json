@@ -4480,14 +4480,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        241,
         191
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Create Fire fixed ground area only; arbitrary area geometry and spell-specific boundaries remain blocked.",
+      "supported_subset": "Paid square and axial-hex circles, explicit affected subsets, four-yard default height, and Create Fire integration.",
       "evidence": [
-        "tests/test_spell_execution.py"
+        "tests/test_spell_execution.py",
+        "tests/test_magic_protocols.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -4504,13 +4504,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        241,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Typed instant defense, one-per-turn limit, critical-hit exclusion, active-spell penalty, and unreduced cost contract for concrete Blocking spells.",
+      "evidence": [
+        "tests/test_magic_protocols.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -4526,13 +4527,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        241,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Approved participant roles and limits, opposition cap, energy bonus steps, tenfold time, automatic-failure ceiling, atomic FP/HP payments, retries, and shared-location validation.",
+      "evidence": [
+        "tests/test_magic_protocols.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -4548,13 +4550,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        241,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Explicit opt-in tradition boundary; unselected clerical casting fails closed before spell execution.",
+      "evidence": [
+        "tests/test_magic_protocols.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -4570,13 +4573,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        241,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Stable caster, spell, subject, and day identity enforcing the per-day attempt boundary without exposing results.",
+      "evidence": [
+        "tests/test_magic_protocols.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -4592,13 +4596,15 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        241,
         191
       ],
       "source": "campaigns-fourth",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Concrete inventory binding, holder and disabled checks, Magery restriction, mana-sensitive Power, and mana-sensitive energy reduction through SpellService.",
+      "evidence": [
+        "tests/test_magic_protocols.py",
+        "tests/test_spell_bindings.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -4614,13 +4620,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        241,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Typed held hand-or-staff charge boundary for concrete Melee spells; it cannot be substituted with a missile attack.",
+      "evidence": [
+        "tests/test_magic_protocols.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -4636,13 +4643,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        241,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Explicit opt-in tradition boundary; unselected ritual-magic casting fails closed before spell execution.",
+      "evidence": [
+        "tests/test_magic_protocols.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,

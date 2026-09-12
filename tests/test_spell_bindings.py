@@ -26,6 +26,7 @@ from wayfarer.persistence.postgres import AsyncPostgresStore
 from wayfarer.rules.catalog import RulesCatalog
 from wayfarer.rules.checks import RecordedDice
 from wayfarer.rules.gurps_magic import definitions
+from wayfarer.rules.magic_protocols import MagicItemBinding
 from wayfarer.rules.spell_catalog import projectile_definition
 from wayfarer.simulation.action_engine import ActionEngine
 from wayfarer.simulation.actions import ActionRules, ActorSetup, Wait
@@ -269,6 +270,32 @@ def test_no_default_magic_and_modified_catalog_rejected() -> None:
     package = profile_package(PROFILE, replace(entries[0], point_cost=0), *entries[1:])
     with pytest.raises(ValidationError, match="exact Basic Set catalog"):
         profile_compiler(PROFILE, package=package)
+
+
+async def test_magic_item_power_replaces_user_spell_skill(tmp_path: Path) -> None:
+    from wayfarer.simulation.mechanics.spell_bindings import SpellEnvironment
+    from wayfarer.simulation.mechanics.spell_bindings import approved_context as bind_context
+
+    cid, play = await setup(tmp_path)
+    state = play._load(await play.store.read(cid))
+    context = bind_context(
+        play.rules_context,
+        state,
+        command(),
+        SpellEnvironment(
+            target_id="b",
+            mana="low",
+            magic_item=MagicItemBinding(
+                id="wand-light",
+                item_id="wand",
+                spell_id="light",
+                power=20,
+                power_reduction=2,
+            ),
+        ),
+    )
+    assert context.skill == 15
+    assert context.item_power_reduction == 2
 
 
 async def test_player_context_is_compiled_and_retries_are_durable(tmp_path: Path) -> None:

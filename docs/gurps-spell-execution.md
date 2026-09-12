@@ -74,6 +74,31 @@ same saved result. SQLite and PostgreSQL exercise cast and GM-decision retries.
 Recovery rolls cannot be banked by advancing beyond their deadline.
 
 These seams do not expose a new HTTP spell API. Learning-only spells remain
-learning-only. Ceremonial casting, arbitrary spell creation, autonomous demon
-AI, moving Shape Fire, and the remaining #173 ranged-critical variants are not
+learning-only. Arbitrary spell creation, autonomous demon AI, moving Shape Fire,
+and spell-family effects not yet bound to these protocols are not
 silently approximated. They remain outside this representative execution set.
+
+## Shared magic protocols
+
+Issue #241 adds source-indexed protocol contracts for the spell families that
+follow. Ritual obligations are derived from base spell skill; optional clerical
+and ritual traditions must be selected explicitly. Blocking spells enforce one
+instant cast per turn, no defense against a critical hit, and no high-skill
+energy discount. Melee spells produce a typed hand-or-staff charge rather than a
+generic ranged attack.
+
+Ceremonial channels name approved campaign participants and opposition. The
+adapter verifies their builds and shared location, multiplies casting time by
+10, caps the roll so 16 always fails, spends every promised FP/HP contribution
+when the roll is made, and records each payment on the shared ledger. Explicit
+area selections are checked against their paid square or axial-hex radius and
+retain the four-yard default height. Information attempts have a stable
+caster/spell/subject/day identity so individual spells can enforce the daily
+limit without leaking the result.
+
+Magic-item channels bind a concrete inventory item to one spell and Power. A
+disabled item, an item the caster does not hold, insufficient Power after the
+low-mana penalty, and an unmet Magery restriction all fail before dice. Power's
+energy reduction is halved in low mana and doubled in high or very-high mana.
+The spell-family PR still owns the item's concrete effect and cannot treat this
+binding as a generic effect hook.

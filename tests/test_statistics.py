@@ -56,7 +56,7 @@ from wayfarer.rules.conformance import require_capabilities
 from wayfarer.rules.effects import Effect, Operation
 from wayfarer.simulation.resources import Pool
 
-FIXTURE = Path("tests/fixtures/gurps/conformance.json")
+FIXTURE = Path(__file__).parent / "fixtures/gurps/conformance.json"
 LITE = "gurps-lite-4e-2004"
 BASIC = "gurps-basic-set-4e-2004"
 CAPABILITIES = {

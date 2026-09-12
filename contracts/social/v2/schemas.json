@@ -1023,6 +1023,56 @@
         "title": "ApproachSupport",
         "type": "object"
       },
+      "AreaSelection": {
+        "additionalProperties": false,
+        "description": "Selected cells within a paid circular area; height is four yards by default.",
+        "properties": {
+          "center": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "title": "Center",
+            "type": "array"
+          },
+          "cells": {
+            "default": [],
+            "items": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Cells",
+            "type": "array"
+          },
+          "height_yards": {
+            "default": 4,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Height Yards",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "center"
+        ],
+        "title": "AreaSelection",
+        "type": "object"
+      },
       "Armor": {
         "additionalProperties": false,
         "properties": {
@@ -1449,6 +1499,81 @@
           "position"
         ],
         "title": "Cell",
+        "type": "object"
+      },
+      "CeremonialContribution": {
+        "additionalProperties": false,
+        "description": "A trusted contribution after the adapter verifies build and allegiance.",
+        "properties": {
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "fp": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Fp",
+            "type": "integer"
+          },
+          "hp": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Hp",
+            "type": "integer"
+          },
+          "role": {
+            "enum": [
+              "leader",
+              "mage",
+              "nonmage",
+              "spectator"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "actor_id",
+          "role"
+        ],
+        "title": "CeremonialContribution",
+        "type": "object"
+      },
+      "CeremonialPlan": {
+        "additionalProperties": false,
+        "properties": {
+          "leader_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Leader Id",
+            "type": "string"
+          },
+          "contributions": {
+            "items": {
+              "$ref": "#/$defs/CeremonialContribution"
+            },
+            "minItems": 2,
+            "title": "Contributions",
+            "type": "array"
+          },
+          "opposing_spectators": {
+            "default": [],
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Opposing Spectators",
+            "type": "array"
+          }
+        },
+        "required": [
+          "leader_id",
+          "contributions"
+        ],
+        "title": "CeremonialPlan",
         "type": "object"
       },
       "CharacterDraft": {
@@ -3946,6 +4071,61 @@
           "range_multiplier"
         ],
         "title": "LauncherSpec",
+        "type": "object"
+      },
+      "MagicItemBinding": {
+        "additionalProperties": false,
+        "description": "Campaign binding for one spell carried by one concrete magic item.",
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "item_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Item Id",
+            "type": "string"
+          },
+          "spell_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Spell Id",
+            "type": "string"
+          },
+          "power": {
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Power",
+            "type": "integer"
+          },
+          "power_reduction": {
+            "default": 0,
+            "maximum": 100,
+            "minimum": 0,
+            "title": "Power Reduction",
+            "type": "integer"
+          },
+          "requires_magery": {
+            "default": false,
+            "title": "Requires Magery",
+            "type": "boolean"
+          },
+          "always_on": {
+            "default": false,
+            "title": "Always On",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "item_id",
+          "spell_id",
+          "power"
+        ],
+        "title": "MagicItemBinding",
         "type": "object"
       },
       "MeleeMode": {
@@ -7743,6 +7923,52 @@
             "title": "Mana",
             "type": "string"
           },
+          "tradition": {
+            "default": "standard",
+            "enum": [
+              "standard",
+              "clerical",
+              "ritual"
+            ],
+            "title": "Tradition",
+            "type": "string"
+          },
+          "ceremonial": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/CeremonialPlan"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "magic_item_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Magic Item Id"
+          },
+          "area": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/AreaSelection"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
           "light_radius": {
             "default": 2,
             "maximum": 100,
@@ -7802,6 +8028,23 @@
               "$ref": "#/$defs/SpellChannel"
             },
             "title": "Channels",
+            "type": "array"
+          },
+          "enabled_optional_rules": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Enabled Optional Rules",
+            "type": "array",
+            "uniqueItems": true
+          },
+          "magic_items": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/MagicItemBinding"
+            },
+            "title": "Magic Items",
             "type": "array"
           },
           "backfire_alternatives": {

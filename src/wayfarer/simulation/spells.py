@@ -15,6 +15,14 @@ from wayfarer.models import Id, Record
 from wayfarer.rules.checks import CheckTrace, Outcome, RandomSource
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.rules.hazard_types import require_hazards_settled
+from wayfarer.rules.magic_protocols import (
+    AreaSelection,
+    CeremonialPlan,
+    ceremonial_skill_bonus,
+    hex_area,
+    item_energy_cost,
+    square_area,
+)
 from wayfarer.rules.recovery_types import interrupt_tasks, require_settled
 from wayfarer.simulation.concentration import require_idle_concentration
 from wayfarer.simulation.condition_checks import check_modifiers, retching_penalty
@@ -107,6 +115,12 @@ class SpellContext(Record):
     geometry: Literal["square", "hex"] = "square"
     light_radius: int = Field(default=2, ge=0, le=100)
     light_penalty: int = Field(default=-3, ge=-9, le=0)
+    ceremonial: CeremonialPlan | None = Field(default=None, exclude_if=lambda value: value is None)
+    ceremonial_ht: tuple[tuple[Id, int], ...] = Field(
+        default=(), exclude_if=lambda value: not value
+    )
+    item_power_reduction: int = Field(default=0, ge=0, le=100, exclude_if=lambda value: value == 0)
+    area: AreaSelection | None = Field(default=None, exclude_if=lambda value: value is None)
 
 
 class SpellCommand(Command):
@@ -162,6 +176,11 @@ class SpellEffect(Record):
     required_turns: int | None = None
     concentrating: bool = False
     reversed: bool = False
+    ceremonial: CeremonialPlan | None = Field(default=None, exclude_if=lambda value: value is None)
+    ceremonial_ht: tuple[tuple[Id, int], ...] = Field(
+        default=(), exclude_if=lambda value: not value
+    )
+    area: AreaSelection | None = Field(default=None, exclude_if=lambda value: value is None)
 
 
 class SpellResult(Record):
@@ -243,6 +262,66 @@ def casting_seconds(seconds: int, skill: int, *, missile: bool = False) -> int:
         return seconds
     divisor = 1 << (1 + (skill - 20) // 5)
     return max(1, (seconds + divisor - 1) // divisor)
+
+
+def _spend_ceremonial_energy(
+    state: ResourceState,
+    effect: SpellEffect,
+    command: SpellCommand,
+    *,
+    rng: RandomSource,
+) -> tuple[ResourceState, int, int]:
+    """Spend every promised contribution when the ceremonial roll is made."""
+    assert effect.ceremonial is not None
+    ht = dict(effect.ceremonial_ht)
+    total = hp_total = 0
+    for contribution in effect.ceremonial.contributions:
+        actor_ht = ht.get(contribution.actor_id)
+        fp = next((p for p in state.pools if p.id == "fp:" + contribution.actor_id), None)
+        if actor_ht is None or fp is None or fp.fatigue is None:
+            raise ConflictError("Ceremonial participant binding changed")
+        if fp.current < contribution.fp:
+            raise ConflictError("Ceremonial participant can no longer supply promised FP")
+        if contribution.hp:
+            from wayfarer.simulation.injury import Wound, apply_injury
+
+            state, injury = apply_injury(
+                state,
+                Wound(
+                    id=event_id(command.id) + ":ceremony-hp:" + contribution.actor_id,
+                    actor_id=contribution.actor_id,
+                    expected_revision=state.revision,
+                    basic_damage=contribution.hp,
+                    resistance=0,
+                    damage_type="cr",
+                    injury_source="internal",
+                ),
+                ht=actor_ht,
+                rng=rng,
+                system=True,
+                burning_hp=True,
+            )
+            if injury.injury != contribution.hp:
+                raise ConflictError("Ceremonial participant cannot supply promised HP")
+            hp_total += injury.injury
+        if contribution.fp:
+            state, fatigue = apply_fatigue(
+                state,
+                FatigueCost(
+                    id=event_id(command.id) + ":ceremony-fp:" + contribution.actor_id,
+                    actor_id=contribution.actor_id,
+                    expected_revision=state.revision,
+                    amount=contribution.fp,
+                    power=True,
+                ),
+                ht=actor_ht,
+                rng=rng,
+                system=True,
+            )
+            if fatigue.fp_lost != contribution.fp or fatigue.hp_lost:
+                raise ConflictError("Ceremonial participant cannot supply promised FP")
+        total += contribution.energy
+    return state, total, hp_total
 
 
 def apply_spell(
@@ -366,10 +445,17 @@ def apply_spell(
             and context.energy != 1
         ):
             raise ValidationError("Spell does not accept this area or energy")
+        if context.area is not None:
+            if spec.kind != "area" or context.position != context.area.center:
+                raise ValidationError("Area selection must match an Area spell destination")
+            (hex_area if context.geometry == "hex" else square_area)(context.area, context.radius)
         if spec.kind == "missile" and context.energy > context.magery:
             raise ValidationError("Initial missile energy exceeds Magery")
         ritual_skill = context.skill - (5 if context.mana == "low" else 0)
-        reduction = cost_reduction(ritual_skill)
+        ceremonial = context.ceremonial
+        if ceremonial is not None and context.skill < 15:
+            raise ValidationError("Ceremonial magic requires leader spell skill 15+")
+        reduction = 0 if ceremonial else cost_reduction(ritual_skill)
         scale = (
             context.radius
             if spec.kind == "area"
@@ -377,10 +463,18 @@ def apply_spell(
             if spec.kind == "missile"
             else 1
         )
-        cost = max(0, spec.cost * scale - reduction)
+        cost = max(
+            0,
+            item_energy_cost(spec.cost * scale, context.item_power_reduction, context.mana)
+            - reduction,
+        )
         if command.hp_energy > cost:
             raise ValidationError("HP contribution exceeds the spell energy cost")
-        if fp.current < cost - command.hp_energy:
+        if ceremonial is not None and command.hp_energy:
+            raise ValidationError("Ceremonial energy comes from its approved contribution plan")
+        if ceremonial is not None and ceremonial.available_energy < cost:
+            raise ValidationError("Ceremonial group cannot supply the required spell energy")
+        if ceremonial is None and fp.current < cost - command.hp_energy:
             raise ValidationError("Insufficient FP for the selected energy contribution")
         penalty = sum(
             3 if e.concentrating else 1
@@ -388,6 +482,11 @@ def apply_spell(
             if e.actor_id == command.actor_id
         )
         skill = ritual_skill - hp.injury.shock - penalty - command.hp_energy
+        if ceremonial is not None:
+            # Capping the target at 15 makes 16 an ordinary failure and 17-18
+            # critical failures while still recording the energy bonus.
+            bonus = ceremonial_skill_bonus(cost, ceremonial.available_energy) if cost else 0
+            skill = min(15, skill + bonus)
         if spec.kind != "missile":
             skill -= context.distance
         if skill < 1:
@@ -401,7 +500,11 @@ def apply_spell(
             phase="casting",
             started_at=state.game_time,
             ready_at=state.game_time
-            + casting_seconds(spec.seconds, ritual_skill, missile=spec.kind == "missile")
+            + (
+                spec.seconds * 10
+                if ceremonial is not None
+                else casting_seconds(spec.seconds, ritual_skill, missile=spec.kind == "missile")
+            )
             - int(context.execution_version == 2 and context.encounter_id is not None),
             skill=skill,
             cost=cost,
@@ -413,8 +516,10 @@ def apply_spell(
             energy=context.energy,
             hp_energy=command.hp_energy,
             execution_version=context.execution_version,
-            required_turns=casting_seconds(
-                spec.seconds, ritual_skill, missile=spec.kind == "missile"
+            required_turns=(
+                spec.seconds * 10
+                if ceremonial is not None
+                else casting_seconds(spec.seconds, ritual_skill, missile=spec.kind == "missile")
             )
             if context.execution_version == 2 and context.encounter_id
             else None,
@@ -425,6 +530,9 @@ def apply_spell(
             geometry=context.geometry,
             light_radius=context.light_radius,
             light_penalty=context.light_penalty,
+            ceremonial=ceremonial,
+            ceremonial_ht=context.ceremonial_ht,
+            area=context.area,
         )
         outcome = "casting"
     else:
@@ -608,10 +716,15 @@ def apply_spell(
     assert effect is not None
     if command.kind in ("maintain", "cancel", "expand") and hp_budget > spent:
         raise ValidationError("HP contribution exceeds this operation's energy cost")
-    hp_cost = min(hp_budget, spent)
-    fp_cost = spent - hp_cost
-    if fp.current < fp_cost:
-        raise ConflictError("Caster no longer has reserved casting energy")
+    ceremonial_payment = command.kind == "complete" and effect.ceremonial is not None
+    if ceremonial_payment:
+        state, spent, hp_spent = _spend_ceremonial_energy(state, effect, command, rng=rng)
+        hp_cost = fp_cost = 0
+    else:
+        hp_cost = min(hp_budget, spent)
+        fp_cost = spent - hp_cost
+        if fp.current < fp_cost:
+            raise ConflictError("Caster no longer has reserved casting energy")
     if validate_only:
         if command.kind not in ("release", "expand"):
             raise ValidationError("Preflight supports only missile maneuvers")
