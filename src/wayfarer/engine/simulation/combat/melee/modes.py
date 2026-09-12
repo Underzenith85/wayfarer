@@ -139,6 +139,22 @@ def mode(
     return selected
 
 
+def mode_reach(selected: MeleeMode | RangedMode) -> int:
+    """The reach a combatant holds by declaring this mode: a melee mode's longest, else 1."""
+    return max(selected.reach) if isinstance(selected, MeleeMode) else 1
+
+
+def require_two_weapon_modes(first: MeleeMode | RangedMode, second: MeleeMode | RangedMode) -> None:
+    """B365: an All-Out Attack (Double) with two weapons needs a one-handed melee mode in each."""
+    if (
+        not isinstance(first, MeleeMode)
+        or not isinstance(second, MeleeMode)
+        or first.hands != 1
+        or second.hands != 1
+    ):
+        raise ValidationError("Two-weapon Double requires one-handed melee modes")
+
+
 def heavy_parry_weight(
     runtime: RulesContext,
     state: PlayState,

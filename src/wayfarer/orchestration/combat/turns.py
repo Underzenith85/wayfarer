@@ -102,7 +102,10 @@ def _validate_turn(
                 selected_mode,
                 command.hit_location,
             )
-        from wayfarer.engine.simulation.equipment.catalog import MeleeMode
+        from wayfarer.engine.simulation.combat.melee.modes import (
+            mode_reach,
+            require_two_weapon_modes,
+        )
 
         if command.second_item_id is not None:
             second_mode = mode(
@@ -112,20 +115,12 @@ def _validate_turn(
                 command.second_item_id,
                 command.second_mode_id,
             )
-            if (
-                not isinstance(selected_mode, MeleeMode)
-                or not isinstance(second_mode, MeleeMode)
-                or selected_mode.hands != 1
-                or second_mode.hands != 1
-            ):
-                raise ValidationError("Two-weapon Double requires one-handed melee modes")
+            require_two_weapon_modes(selected_mode, second_mode)
 
         encounter = engine._replace(
             encounter,
             next(p for p in encounter.participants if p.actor_id == command.actor_id).model_copy(
-                update={
-                    "reach": max(selected_mode.reach) if isinstance(selected_mode, MeleeMode) else 1
-                }
+                update={"reach": mode_reach(selected_mode)}
             ),
         )
         if command.transport_id is not None:
@@ -163,7 +158,7 @@ def _validate_turn(
     ):
         if encounter.spatial_kind == "basic":
             raise ValidationError("Basic stop thrust requires explicit GM adjudication")
-        from wayfarer.engine.simulation.combat.melee.modes import mode
+        from wayfarer.engine.simulation.combat.melee.modes import mode, mode_reach
         from wayfarer.engine.simulation.equipment.catalog import MeleeMode
 
         assert command.wait_trigger.item_id is not None
@@ -177,7 +172,7 @@ def _validate_turn(
         assert isinstance(trigger_mode, MeleeMode)
         waiter = next(p for p in encounter.participants if p.actor_id == command.actor_id)
         encounter = engine._replace(
-            encounter, waiter.model_copy(update={"reach": max(trigger_mode.reach)})
+            encounter, waiter.model_copy(update={"reach": mode_reach(trigger_mode)})
         )
     return state, encounter
 
@@ -527,24 +522,9 @@ def _after_turn(
     initial_state = context.initial_state
     reaction = context.reaction
     if command_for_turn.second_item_id is not None and result.code != "combat.wait_triggered":
-        from wayfarer.engine.simulation.actors import build as build_character
+        from wayfarer.engine.simulation.combat.melee.attack import waive_off_hand_penalty
 
-        compiled = build_character(play.rules_context, state, command.actor_id)
-        if any(purchase.definition_id == "trait:ambidexterity" for purchase in compiled.purchases):
-            attacker = next(p for p in encounter.participants if p.actor_id == command.actor_id)
-            encounter = engine._replace(
-                encounter,
-                attacker.model_copy(
-                    update={
-                        "maneuver_state": attacker.maneuver_state.model_copy(
-                            update={
-                                "attack_bonus": 0,
-                                "second_attack_penalty": 0,
-                            }
-                        )
-                    }
-                ),
-            )
+        encounter = waive_off_hand_penalty(play.rules_context, state, encounter, command.actor_id)
     if (
         command_for_turn.maneuver == "ready"
         and engine.rules.gurps_equipment is not None

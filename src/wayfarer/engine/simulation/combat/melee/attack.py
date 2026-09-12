@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from wayfarer.engine.rules.types.location import HitLocation
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import build
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.engine.simulation.combat.melee.modes import mode
@@ -135,4 +136,30 @@ def prepare_attack(
                 }
             )
         }
+    )
+
+
+def waive_off_hand_penalty(
+    runtime: RulesContext, state: PlayState, encounter: Encounter, actor_id: str
+) -> Encounter:
+    """B39: Ambidexterity removes the off-hand penalty from both blows of a two-weapon Double.
+
+    The maneuver commits the penalties from the declared hands; the trait, read from
+    the approved build, waives them before either blow is prepared.
+    """
+    from wayfarer.engine.simulation.combat.engine import CombatEngine
+
+    compiled = build(runtime, state, actor_id)
+    if not any(p.definition_id == "trait:ambidexterity" for p in compiled.purchases):
+        return encounter
+    attacker = next(p for p in encounter.participants if p.actor_id == actor_id)
+    return CombatEngine._replace(
+        encounter,
+        attacker.model_copy(
+            update={
+                "maneuver_state": attacker.maneuver_state.model_copy(
+                    update={"attack_bonus": 0, "second_attack_penalty": 0}
+                )
+            }
+        ),
     )
