@@ -3,6 +3,7 @@ name: Frontend
 on:
   workflow_call:
   push:
+    branches: ["main"]
     paths:
       - "frontend/**"
       - "contracts/**"
