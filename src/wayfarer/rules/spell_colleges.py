@@ -11,6 +11,7 @@ from wayfarer.rules.catalog import (
     RulesPackage,
     SourceReference,
 )
+from wayfarer.rules.gurps_magic import definitions as historic_magic_definitions
 from wayfarer.rules.skill_types import ControllingAttribute, Difficulty, SkillSpec
 
 PROFILE = "gurps-basic-set-4e-2004"
@@ -49,13 +50,19 @@ def college_package(
         )
         for source_id in dict.fromkeys(value.source_id for value in bindings)
     )
+    historic = {
+        definition.id: definition
+        for definition in historic_magic_definitions(2)
+        if definition.id.startswith("spell:")
+    }
     return RulesPackage(
         f"package:gurps-basic-spells-{college}",
         "1.0.0",
         "gurps-4e",
         sources,
         tuple(
-            RuleDefinition(
+            historic.get(value.id)
+            or RuleDefinition(
                 value.id,
                 DefinitionKind.SKILL,
                 value.name,
