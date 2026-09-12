@@ -15,8 +15,8 @@ from wayfarer.engine.simulation.combat.unarmed.control import control
 from wayfarer.engine.simulation.combat.unarmed.declaration import interrupt_wait, validate_action
 from wayfarer.engine.simulation.combat.unarmed.defense import unarmed_defense
 from wayfarer.engine.simulation.combat.unarmed.fighters import fighter, settle_control
+from wayfarer.engine.simulation.combat.unarmed.records import PendingUnarmed, require_basic
 from wayfarer.engine.simulation.combat.unarmed.resolution import defend
-from wayfarer.engine.simulation.combat.unarmed_records import PendingUnarmed, require_basic
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:

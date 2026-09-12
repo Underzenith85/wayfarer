@@ -13,7 +13,7 @@ from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.unarmed.choke import start_choke
 from wayfarer.engine.simulation.combat.unarmed.fighters import fighter, free_hands, strength
 from wayfarer.engine.simulation.combat.unarmed.injury import hurt
-from wayfarer.engine.simulation.combat.unarmed_records import BASIC, UnarmedTrace, contest
+from wayfarer.engine.simulation.combat.unarmed.records import BASIC, UnarmedTrace, contest
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers, retching_penalty
 from wayfarer.engine.simulation.health.physical_traits import physical_traits
 

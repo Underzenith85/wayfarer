@@ -16,7 +16,7 @@ from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.objects.locations import unavailable_hand
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
-from wayfarer.engine.simulation.combat.unarmed_records import BASIC, wrestling_bonus
+from wayfarer.engine.simulation.combat.unarmed.records import BASIC, wrestling_bonus
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.fatigue import fatigue_value
 from wayfarer.engine.simulation.health.hit_locations import disabled

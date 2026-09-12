@@ -259,7 +259,7 @@ def defense_value(
                     if incoming_weight > compiled.statistics.basic_lift * 1000 * weapon_mode.hands:
                         continue
                     if 0 < 3 * entry.weight_millipounds <= incoming_weight:
-                        from wayfarer.engine.simulation.combat.melee_heavy_parry import (
+                        from wayfarer.engine.simulation.combat.melee.heavy_parry import (
                             require_breakage,
                         )
 

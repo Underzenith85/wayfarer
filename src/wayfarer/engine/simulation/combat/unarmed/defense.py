@@ -14,7 +14,7 @@ from wayfarer.engine.simulation.combat.unarmed.fighters import (
     fighter,
     free_hands,
 )
-from wayfarer.engine.simulation.combat.unarmed_records import GrappleLocation
+from wayfarer.engine.simulation.combat.unarmed.records import GrappleLocation
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:

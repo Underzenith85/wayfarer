@@ -249,7 +249,7 @@ def resolve_melee(
             and intercepting_shield(runtime, state, encounter, defense, require_durable=False)
             is None
         ):
-            from wayfarer.engine.simulation.combat.melee_heavy_parry import resolve_heavy_parry
+            from wayfarer.engine.simulation.combat.melee.heavy_parry import resolve_heavy_parry
 
             assert defense_item is not None
             state, defender, parry_dice, stopped = resolve_heavy_parry(
@@ -356,7 +356,7 @@ def resolve_melee(
             and intercepting_shield(runtime, state, encounter, second_trace, require_durable=False)
             is None
         ):
-            from wayfarer.engine.simulation.combat.melee_heavy_parry import resolve_heavy_parry
+            from wayfarer.engine.simulation.combat.melee.heavy_parry import resolve_heavy_parry
 
             assert second_item is not None
             state, defender, parry_dice, stopped = resolve_heavy_parry(

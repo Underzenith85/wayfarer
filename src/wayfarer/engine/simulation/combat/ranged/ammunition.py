@@ -40,7 +40,7 @@ def unload_weapon(
     entry = next(e for e in equipment.entries if e.definition_id == item.definition_id)
     weapon = next((m for m in entry.modes if m.id == loaded.mode_id), None)
     if isinstance(weapon, RangedMode) and weapon.readiness is not None:
-        from wayfarer.engine.simulation.combat.ranged_readiness import unload
+        from wayfarer.engine.simulation.combat.ranged.readiness import unload
 
         return unload(state, command, weapon)
     if not isinstance(weapon, RangedMode) or weapon.reload_protocol != "magazine":
@@ -83,7 +83,7 @@ def reload_weapon(
     if item.firearm_failure is not None:
         raise ValidationError("Service the firearm failure before reloading")
     if weapon.readiness is not None:
-        from wayfarer.engine.simulation.combat.ranged_readiness import reload
+        from wayfarer.engine.simulation.combat.ranged.readiness import reload
 
         return reload(runtime, state, command, weapon, validate_only=validate_only)
     if command.fast_draw or command.cocking_aid_id is not None:

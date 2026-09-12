@@ -23,7 +23,7 @@ from wayfarer.engine.simulation.combat.unarmed.fighters import (
     free_hands,
     skill_value,
 )
-from wayfarer.engine.simulation.combat.unarmed_records import require_basic
+from wayfarer.engine.simulation.combat.unarmed.records import require_basic
 from wayfarer.engine.simulation.health.hit_locations import disabled
 from wayfarer.errors import ValidationError
 

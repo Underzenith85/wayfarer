@@ -568,7 +568,7 @@ def _after_turn(
             )
         if command_for_turn.let_down_bow:
             from wayfarer.engine.simulation.combat.melee.modes import mode
-            from wayfarer.engine.simulation.combat.ranged_readiness import let_down
+            from wayfarer.engine.simulation.combat.ranged.readiness import let_down
             from wayfarer.engine.simulation.equipment.catalog import RangedMode
 
             selected = mode(

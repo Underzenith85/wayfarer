@@ -239,7 +239,7 @@ def validate_command(
         ):
             raise ValidationError("Bow let-down requires its own Ready")
         from wayfarer.engine.simulation.combat.melee.modes import mode
-        from wayfarer.engine.simulation.combat.ranged_readiness import let_down
+        from wayfarer.engine.simulation.combat.ranged.readiness import let_down
 
         selected = mode(runtime, state, command.actor_id, command.item_id or "", command.mode_id)
         if not isinstance(selected, RangedMode):

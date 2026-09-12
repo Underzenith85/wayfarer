@@ -43,7 +43,7 @@ BRANCHING: dict[tuple[str, str], int] = {
     ("engine/simulation/combat/ranged/attack.py", "prepare"): 19,
     ("engine/simulation/combat/ranged/resolution.py", "resolve"): 71,
     ("engine/simulation/combat/ranged/situation.py", "validate_command"): 34,
-    ("engine/simulation/combat/ranged_readiness.py", "reload"): 22,
+    ("engine/simulation/combat/ranged/readiness.py", "reload"): 22,
     ("engine/simulation/combat/tactical_transitions.py", "prepare_defense"): 17,
     ("engine/simulation/combat/thrown/explosions.py", "resolve_blast"): 30,
     ("engine/simulation/combat/turns.py", "apply_turn"): 79,
@@ -404,10 +404,6 @@ class ArchitectureTests(unittest.TestCase):
                     for module in modules:
                         with self.subTest(source=source, module=module):
                             self.assertNotIn(module.split(".")[0], forbidden)
-                            if domain == "simulation":
-                                self.assertNotIn(
-                                    module.split(".")[0], {"secrets", "random", "time", "datetime"}
-                                )
                             if not module.startswith("wayfarer."):
                                 continue
                             parts = module.split(".")
@@ -415,6 +411,22 @@ class ArchitectureTests(unittest.TestCase):
                                 self.assertIn(parts[2], dependencies)
                             else:
                                 self.assertIn(parts[1], kernel)
+
+    def test_engine_does_not_import_entropy(self) -> None:
+        """Randomness and clocks enter below orchestration only through explicit values."""
+        package = Path(wayfarer.__file__).parent / "engine"
+        forbidden = {"secrets", "random", "time", "datetime"}
+        for source in package.rglob("*.py"):
+            for node in ast.walk(ast.parse(source.read_text())):
+                if isinstance(node, ast.Import):
+                    modules = [alias.name for alias in node.names]
+                elif isinstance(node, ast.ImportFrom):
+                    modules = [node.module or ""]
+                else:
+                    continue
+                for module in modules:
+                    with self.subTest(source=source, module=module):
+                        self.assertNotIn(module.split(".")[0], forbidden)
 
     def test_engine_packages_are_not_facades(self) -> None:
         """A package init declares the package's own rules or nothing; it never re-exports.
