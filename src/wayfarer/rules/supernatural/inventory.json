@@ -1460,14 +1460,13 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        239,
         191
       ],
       "source": "characters-third",
       "status": "partial",
-      "supported_subset": "Profile v5 learning: Magery 0 and leveled bonus; variants and magic detection remain blocked.",
+      "supported_subset": "Pinned construction, approved-build mana/divine projection, visibility and incompatibilities, plus authored event-backed switchable mana fields integrated with SpellService.",
       "evidence": [
-        "tests/test_magic_catalog.py"
+        "tests/test_mana_divine_traits.py"
       ],
       "members": [],
       "talent_cost": null,
@@ -1484,13 +1483,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        239,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned construction, approved-build mana/divine projection, visibility and incompatibilities, plus authored event-backed switchable mana fields integrated with SpellService.",
+      "evidence": [
+        "tests/test_mana_divine_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -1506,13 +1506,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        239,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned construction, approved-build mana/divine projection, visibility and incompatibilities, plus authored event-backed switchable mana fields integrated with SpellService.",
+      "evidence": [
+        "tests/test_mana_divine_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -1528,13 +1529,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        239,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned construction, approved-build mana/divine projection, visibility and incompatibilities, plus authored event-backed switchable mana fields integrated with SpellService.",
+      "evidence": [
+        "tests/test_mana_divine_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -2010,13 +2012,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        239,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned construction, approved-build mana/divine projection, visibility and incompatibilities, plus authored event-backed switchable mana fields integrated with SpellService.",
+      "evidence": [
+        "tests/test_mana_divine_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -3871,13 +3874,14 @@
       "difficulty": null,
       "colleges": [],
       "blockers": [
-        239,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned construction, approved-build mana/divine projection, visibility and incompatibilities, plus authored event-backed switchable mana fields integrated with SpellService.",
+      "evidence": [
+        "tests/test_mana_divine_traits.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
