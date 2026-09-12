@@ -16,7 +16,10 @@ scenario resolver. Values are derived by rule, never supplied as a number.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
+from fractions import Fraction
+from math import floor
 from types import MappingProxyType
 from typing import Final, Literal
 
@@ -29,6 +32,8 @@ from wayfarer.rules.mundane_traits.runtime import Appearance as Appearance
 
 ReputationScope = Literal["everyone", "large-class", "small-class"]
 Recognition = Literal["always", "sometimes", "occasionally"]
+AppearanceOption = Literal["ordinary", "androgynous", "impressive"]
+EMPTY_RECOGNITION: Final[Mapping[str, RecognitionRoll]] = MappingProxyType({})
 
 APPEARANCE_REACTIONS: Final = MappingProxyType(
     {
@@ -72,6 +77,9 @@ class Standing:
 
     appearance: Appearance = "average"
     reputations: tuple[Reputation, ...] = ()
+    appearance_option: AppearanceOption = "ordinary"
+    universal_appearance: bool = False
+    off_the_shelf_appearance: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -87,6 +95,7 @@ class RecognitionRoll:
 class StandingTrace:
     modifiers: tuple[ReactionModifier, ...]
     recognition: tuple[RecognitionRoll, ...] = ()
+    consequences: tuple[str, ...] = ()
 
     @property
     def total(self) -> int:
@@ -109,6 +118,19 @@ def validate_standing(standing: Standing) -> Standing:
     """Reject any standing the declared hooks cannot derive a modifier from."""
     if standing.appearance not in APPEARANCE_REACTIONS:
         raise ValidationError("Unsupported appearance level")
+    if standing.appearance_option != "ordinary" and standing.appearance not in (
+        "attractive",
+        "handsome",
+        "very-handsome",
+        "transcendent",
+    ):
+        raise ValidationError("Appearance option requires above-average appearance")
+    if standing.off_the_shelf_appearance and standing.appearance not in (
+        "handsome",
+        "very-handsome",
+        "transcendent",
+    ):
+        raise ValidationError("Off-the-Shelf Looks requires appearance above Attractive")
     identifiers = [reputation.id for reputation in standing.reputations]
     if len(set(identifiers)) != len(identifiers) or not all(identifiers):
         raise ValidationError("Reputations require unique identifiers")
@@ -136,6 +158,7 @@ def standing_modifiers(
     audience: Audience = DEFAULT_AUDIENCE,
     *,
     rng: RandomSource,
+    known_recognition: Mapping[str, RecognitionRoll] = EMPTY_RECOGNITION,
 ) -> StandingTrace:
     """Derive typed reaction modifiers, rolling only for uncertain recognition.
 
@@ -148,9 +171,28 @@ def standing_modifiers(
     validate_standing(standing)
     modifiers: list[ReactionModifier] = []
     recognition: list[RecognitionRoll] = []
-    if audience.perceptible and audience.visible and audience.appearance_applicable:
+    consequences: tuple[str, ...] = ()
+    if (
+        audience.perceptible
+        and audience.visible
+        and (audience.appearance_applicable or standing.universal_appearance)
+    ):
         indifferent, attracted = APPEARANCE_REACTIONS[standing.appearance]
-        value = attracted if audience.attracted else indifferent
+        if standing.appearance_option != "ordinary" or standing.universal_appearance:
+            value = {"handsome": 3, "very-handsome": 4, "transcendent": 5}.get(
+                standing.appearance, indifferent
+            )
+        else:
+            value = attracted if audience.attracted else indifferent
+        if (
+            standing.appearance in ("very-handsome", "transcendent")
+            and audience.appearance_resentment
+        ):
+            value = -2
+        if standing.off_the_shelf_appearance and audience.same_culture:
+            value = int(value / 2)
+        if standing.appearance in ("very-handsome", "transcendent") and audience.nuisance_interest:
+            consequences = ("attention-from-nuisances",)
         if value:
             modifiers.append(
                 ReactionModifier("appearance", value, f"appearance:{standing.appearance}")
@@ -160,14 +202,46 @@ def standing_modifiers(
             continue
         target = RECOGNITION_TARGETS[reputation.recognition]
         if target is not None:
-            dice = draw_dice(rng)
-            roll = RecognitionRoll(reputation.id, dice, sum(dice), target, sum(dice) <= target)
+            roll = known_recognition.get(reputation.id)
+            if roll is None:
+                dice = draw_dice(rng)
+                roll = RecognitionRoll(reputation.id, dice, sum(dice), target, sum(dice) <= target)
             recognition.append(roll)
             if not roll.recognized:
                 continue
-        modifiers.append(
-            ReactionModifier(
-                "reputation", reputation.level, f"reputation:{reputation.id}", reputation.hidden
+        previous = sum(modifier.value for modifier in modifiers if modifier.kind == "reputation")
+        capped = max(-4, min(4, previous + reputation.level))
+        contribution = capped - previous
+        if contribution:
+            modifiers.append(
+                ReactionModifier(
+                    "reputation",
+                    contribution,
+                    f"reputation:{reputation.id}",
+                    reputation.hidden,
+                )
             )
-        )
-    return StandingTrace(tuple(modifiers), tuple(recognition))
+    return StandingTrace(tuple(modifiers), tuple(recognition), consequences)
+
+
+def reputation_cost(level: int, scope: ReputationScope, recognition: Recognition) -> int:
+    """Apply each construction discount and round down after each step (B26-28)."""
+    if type(level) is not int or level == 0 or not -4 <= level <= 4:
+        raise ValidationError("Reputation level must be a nonzero integer within -4..4")
+    if scope not in ("everyone", "large-class", "small-class"):
+        raise ValidationError("Unsupported reputation scope")
+    if recognition not in ("always", "sometimes", "occasionally"):
+        raise ValidationError("Unsupported recognition frequency")
+    scope_multiplier = {
+        "everyone": Fraction(1),
+        "large-class": Fraction(1, 2),
+        "small-class": Fraction(1, 3),
+    }[scope]
+    recognition_multiplier = {
+        "always": Fraction(1),
+        "sometimes": Fraction(1, 2),
+        "occasionally": Fraction(1, 3),
+    }[recognition]
+    magnitude = floor(abs(level) * 5 * scope_multiplier)
+    magnitude = floor(magnitude * recognition_multiplier)
+    return magnitude if level > 0 else -magnitude

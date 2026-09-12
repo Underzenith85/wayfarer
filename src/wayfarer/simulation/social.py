@@ -29,7 +29,7 @@ from wayfarer.rules.mundane_skills.social import (
     resolve,
 )
 from wayfarer.rules.mundane_traits.runtime import DEFAULT_AUDIENCE, Audience
-from wayfarer.rules.social_hooks import Standing, StandingTrace, standing_modifiers
+from wayfarer.rules.social_hooks import RecognitionRoll, Standing, StandingTrace, standing_modifiers
 from wayfarer.rules.traits import TraitOptions, TraitRules
 from wayfarer.simulation.resources import Command, Receipt, ResourceEvent, ResourceState
 from wayfarer.world import EntityKind, World
@@ -190,8 +190,35 @@ def apply_social(
         procedure is not None and procedure.resolution is Resolution.INFLUENCE
     )
     if (command.kind == "reaction" or influenced) and context.standing is not None:
+        known_recognition: dict[str, RecognitionRoll] = {}
+        for prior in state.events:
+            if (
+                not prior.id.startswith(("social:", "social-key:"))
+                or prior.target_id != command.subject_id
+            ):
+                continue
+            try:
+                rows = json.loads(prior.kind)["private"].get("recognition", [])
+            except json.JSONDecodeError, KeyError, TypeError, AttributeError:
+                continue
+            for row in rows:
+                try:
+                    roll = RecognitionRoll(
+                        str(row["reputation_id"]),
+                        tuple(row["dice"]),
+                        int(row["total"]),
+                        int(row["target"]),
+                        bool(row["recognized"]),
+                    )
+                except KeyError, TypeError, ValueError:
+                    continue
+                known_recognition[roll.reputation_id] = roll
         standing = standing_modifiers(
-            context.profile_id, context.standing, context.audience, rng=rng
+            context.profile_id,
+            context.standing,
+            context.audience,
+            rng=rng,
+            known_recognition=known_recognition,
         )
         modifiers = standing.modifiers + context.modifiers
     recognition = {"recognition": [asdict(roll) for roll in standing.recognition]}

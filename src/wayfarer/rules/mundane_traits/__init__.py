@@ -319,7 +319,61 @@ def inventory(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> tuple[TraitEntry, 
                 f"Appearance ({level})",
                 points,
                 21,
-                "trait.appearance" if level != "very-handsome" else "trait.appearance_resentment",
+                "trait.appearance",
+                group="appearance",
+                category="background",
+            )
+        )
+    for level, points in (("horrific", -24), ("monstrous", -20), ("transcendent", 20)):
+        entries.append(
+            _entry(
+                f"appearance-{level}",
+                f"Appearance ({level})",
+                points,
+                21,
+                "trait.appearance",
+                group="appearance",
+                category="background",
+            )
+        )
+    for level, points in (("handsome", 12), ("very-handsome", 16), ("transcendent", 20)):
+        for option in ("androgynous", "impressive"):
+            entries.append(
+                _entry(
+                    f"appearance-{level}-{option}",
+                    f"Appearance ({level}; {option})",
+                    points,
+                    21,
+                    "trait.appearance",
+                    group="appearance",
+                    category="background",
+                )
+            )
+    for level, points in (
+        ("attractive", 5),
+        ("handsome", 15),
+        ("very-handsome", 20),
+        ("transcendent", 25),
+    ):
+        entries.append(
+            _entry(
+                f"appearance-{level}-universal",
+                f"Appearance ({level}; Universal)",
+                points,
+                21,
+                "trait.appearance",
+                group="appearance",
+                category="background",
+            )
+        )
+    for level, points in (("handsome", 6), ("very-handsome", 8), ("transcendent", 10)):
+        entries.append(
+            _entry(
+                f"appearance-{level}-off-the-shelf",
+                f"Appearance ({level}; Off-the-Shelf Looks)",
+                points,
+                21,
+                "trait.appearance",
                 group="appearance",
                 category="background",
             )
@@ -337,6 +391,28 @@ def inventory(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> tuple[TraitEntry, 
                 identity=detail,
             )
         )
+    entries.extend(
+        (
+            _entry(
+                "reputation-bravery-guild-sometimes",
+                "Reputation (Bravery +2; guild; sometimes)",
+                2,
+                27,
+                "trait.reputation",
+                category="background",
+                identity="bravery",
+            ),
+            _entry(
+                "reputation-cruelty-guild-occasionally",
+                "Reputation (Cruelty -2; guild; occasionally)",
+                -1,
+                27,
+                "trait.reputation",
+                category="background",
+                identity="cruelty",
+            ),
+        )
+    )
     for sense in ("hearing", "taste-smell", "touch", "vision"):
         entries.append(_entry(f"acute-{sense}", f"Acute {sense}", 2, 35, "trait.senses", levels=10))
     for key, points in (
@@ -555,7 +631,7 @@ def candidate_package(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> RulesPacka
     entries = inventory(vocabulary)
     return RulesPackage(
         "package:gurps-mundane-trait-candidates",
-        "0.5.0",
+        "0.6.0",
         "gurps-4e",
         (SOURCE,),
         tuple(entry.definition(entries) for entry in entries),
@@ -578,8 +654,8 @@ def audit_report(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> dict[str, objec
             for key, binding in sorted(REACTION_BINDINGS.items())
         },
         "standing_bindings": {
-            "appearance": dict(APPEARANCE_BINDINGS),
-            "reputation": dict(REPUTATION_BINDINGS),
+            "appearance": {key: asdict(value) for key, value in APPEARANCE_BINDINGS.items()},
+            "reputation": {key: asdict(value) for key, value in REPUTATION_BINDINGS.items()},
         },
         "total": len(entries),
         "available": sum(e.implemented for e in entries),
@@ -589,7 +665,5 @@ def audit_report(vocabulary: Vocabulary = DEFAULT_VOCABULARY) -> dict[str, objec
         "outside_selected_scope": (
             "variable relationship constructions",
             "exotic and supernatural traits",
-            "appearance special options and modifiers",
-            "restricted-audience and uncertain-recognition reputation constructions",
         ),
     }

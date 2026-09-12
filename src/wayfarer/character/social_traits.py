@@ -39,6 +39,7 @@ def bind_standing(
     Recognition and reaction resolution remain in the existing social reducer.
     """
     appearance = None
+    appearance_binding = None
     reputations = []
     for purchase in sorted(build.trait_purchases, key=lambda p: p.definition_id):
         identifier = purchase.definition_id
@@ -61,10 +62,17 @@ def bind_standing(
         if identifier in APPEARANCE_BINDINGS:
             if appearance is not None:
                 raise ValidationError("Approved build has conflicting appearance traits")
-            appearance = APPEARANCE_BINDINGS[identifier]
+            appearance_binding = APPEARANCE_BINDINGS[identifier]
+            appearance = appearance_binding.level
         else:
             reputations.append(
-                Reputation(identifier, REPUTATION_BINDINGS[identifier] * purchase.amount)
+                Reputation(
+                    identifier,
+                    REPUTATION_BINDINGS[identifier].level * purchase.amount,
+                    REPUTATION_BINDINGS[identifier].scope,
+                    REPUTATION_BINDINGS[identifier].recognition,
+                    REPUTATION_BINDINGS[identifier].classes,
+                )
             )
     if appearance is None and not reputations:
         return authored
@@ -78,6 +86,13 @@ def bind_standing(
     return Standing(
         appearance if appearance is not None else standing.appearance,
         tuple(reputations) if reputations else standing.reputations,
+        appearance_binding.option if appearance_binding is not None else standing.appearance_option,
+        appearance_binding.universal
+        if appearance_binding is not None
+        else standing.universal_appearance,
+        appearance_binding.off_the_shelf
+        if appearance_binding is not None
+        else standing.off_the_shelf_appearance,
     )
 
 

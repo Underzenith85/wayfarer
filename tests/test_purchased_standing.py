@@ -133,12 +133,13 @@ def test_definition_must_pin_the_implemented_hook(identifier: str) -> None:
     assert bind_standing(build, {}, None) is None
 
 
-def test_incomplete_appearance_does_not_activate() -> None:
+def test_very_handsome_activates_only_with_its_completed_binding() -> None:
     result = runtime_compiler().compile(
         gurps_draft(Purchase(definition_id="trait:appearance-very-handsome"))
     )
-    assert result.build is None
-    assert "definition.not_implemented" in {d.code for d in result.diagnostics}
+    assert result.build is not None
+    standing = bind_standing(result.build, runtime_compiler().definitions, None)
+    assert standing is not None and standing.appearance == "very-handsome"
 
 
 async def test_dispatch_combines_purchases_once_and_replays_without_resolving(
@@ -205,4 +206,4 @@ def test_item_audit_retains_inventory_and_concrete_runtime_owners() -> None:
         assert 113 in entry.followup_issues
         if not entry.implemented:
             assert set(entry.followup_issues) & {332, 333, 334, 335}
-    assert rows["trait:appearance-very-handsome"].blockers == (113, 335)
+    assert rows["trait:appearance-very-handsome"].blockers == (113,)

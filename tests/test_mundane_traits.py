@@ -31,7 +31,11 @@ from wayfarer.rules.mundane_traits import (
     inventory,
     validate_inventory,
 )
-from wayfarer.rules.mundane_traits.runtime import SUPPORTED_HOOKS
+from wayfarer.rules.mundane_traits.runtime import (
+    APPEARANCE_BINDINGS,
+    REPUTATION_BINDINGS,
+    SUPPORTED_HOOKS,
+)
 from wayfarer.rules.traits import TraitOptions, cost
 
 
@@ -233,7 +237,7 @@ def test_inventory_package_and_audit_reconcile() -> None:
         "trait:rank-watch",
         "trait:rank-replaces-status-watch",
         "trait:courtesy-rank-watch",
-    }
+    } | set(APPEARANCE_BINDINGS) | set(REPUTATION_BINDINGS)
     assert report["available"] == len(implemented)
     assert all(
         d.status is ImplementationStatus.UNSUPPORTED
@@ -244,7 +248,7 @@ def test_inventory_package_and_audit_reconcile() -> None:
     assert isinstance(unbound, tuple)
     assert "trait.associated_npc" in unbound and "trait.rank" not in unbound
     bound = next(e for e in entries if e.id == "trait:voice")
-    assert bound.blockers == ("voice-influence-skill-bonus",)
+    assert bound.blockers == ()
     assert any(e.obligations for e in entries)
     assert candidate_package().digest == package.digest
     with pytest.raises(ValidationError, match="Duplicate"):
