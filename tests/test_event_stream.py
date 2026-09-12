@@ -15,13 +15,13 @@ from wayfarer.engine.simulation.events import (
     CommandApplied,
     StatePatched,
     document,
-    fold,
     visible,
 )
 from wayfarer.errors import StorageError, ValidationError
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
+from wayfarer.persistence.events import fold
 
 
 @pytest.mark.parametrize("backend", ["sqlite", "postgres"])

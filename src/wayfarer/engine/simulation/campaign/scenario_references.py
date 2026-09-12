@@ -1,32 +1,37 @@
-"""Pure verification of scenario pins carried by campaign stream checkpoints."""
+"""Pure verification of scenario pins carried by campaign stream checkpoints.
+
+A checkpoint reaches the engine as a mapping of the campaign envelope's fields;
+its typed shape is an application contract the engine does not import.
+"""
 
 import json
+from collections.abc import Mapping
 
+from wayfarer import validation
 from wayfarer.engine.simulation.campaign.scenario_document import (
     ScenarioBoundary,
     digest_json,
     parse_document,
 )
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign
 
 
-def boundary(campaign: Campaign) -> ScenarioBoundary | None:
+def boundary(campaign: Mapping[str, object]) -> ScenarioBoundary | None:
     raw = campaign.get("scenario_reference_json")
-    return ScenarioBoundary.model_validate_json(raw) if raw is not None else None
+    return ScenarioBoundary.model_validate_json(validation.string(raw)) if raw is not None else None
 
 
-def verify(campaign: Campaign, *, runtime_digest: str | None = None) -> None:
+def verify(campaign: Mapping[str, object], *, runtime_digest: str | None = None) -> None:
     pin = boundary(campaign)
     if pin is None:
         return  # Explicit legacy boundary; new activations always carry a pin.
     prefix = f"Campaign {campaign['id']} scenario revision {pin.reference.revision}"
     try:
-        graph = json.loads(campaign["scenario_graph_json"])
+        graph = json.loads(validation.string(campaign["scenario_graph_json"]))
         if digest_json(graph) != pin.graph_digest:
             raise ValueError("cached graph digest differs")
         if pin.published is not None:
-            document = parse_document(campaign["scenario_document_json"])
+            document = parse_document(validation.string(campaign["scenario_document_json"]))
             published = pin.published
             if (
                 document.canonical() != published.content_json

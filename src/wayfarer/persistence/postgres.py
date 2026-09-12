@@ -6,7 +6,8 @@ from copy import deepcopy
 
 import psycopg
 
-from wayfarer import validation
+from wayfarer import contracts, validation
+from wayfarer.contracts import Campaign, CommandReceipt, TurnResult
 from wayfarer.engine.simulation.campaign.scenario_document import ScenarioBoundary
 from wayfarer.engine.simulation.events import (
     EVENT_ADAPTER,
@@ -15,10 +16,8 @@ from wayfarer.engine.simulation.events import (
     command_events,
     digest,
     document,
-    fold,
 )
 from wayfarer.errors import ConflictError, NotFoundError, StorageError, ValidationError
-from wayfarer.models import Campaign, CommandReceipt, TurnResult
 from wayfarer.persistence import snapshots
 from wayfarer.persistence.events import (
     COMMAND_SCHEMA_VERSION,
@@ -28,6 +27,7 @@ from wayfarer.persistence.events import (
     CommandResolution,
     StoredEvent,
     command_scenario,
+    fold,
     payload_digest,
     upcast_command,
 )
@@ -133,8 +133,8 @@ class AsyncPostgresStore:
     @staticmethod
     def _campaign(value: object) -> Campaign:
         if isinstance(value, str | bytes):
-            return validation.campaign(validation.decode(value))
-        return validation.campaign(value)
+            return contracts.campaign(validation.decode(value))
+        return contracts.campaign(value)
 
     @staticmethod
     async def _cached(
@@ -353,7 +353,7 @@ class AsyncPostgresStore:
                 emitted = (
                     resolved.events
                     if isinstance(resolved, CommandResolution)
-                    else command_events(before, state, event, actor_id)
+                    else command_events(before, state, event["action"], actor_id)
                 )
                 if not emitted or document(fold(before, emitted)) != document(state):
                     raise StorageError("Command events do not reproduce the committed state")
@@ -440,7 +440,7 @@ class AsyncPostgresStore:
     def _stored(cid: str, row: tuple[object, ...], state: Campaign) -> CommandRecord:
         event_data = validation.mapping(row[7])
         event = CommandReceipt(
-            action=validation.event_action(event_data["action"]),
+            action=contracts.event_action(event_data["action"]),
             outcome=validation.string(event_data["outcome"]),
         )
         return CommandRecord(
@@ -535,7 +535,7 @@ class AsyncPostgresStore:
         for row in await cursor.fetchall():
             after = self._campaign(row[4])
             transcript = self._stream_transcript(row[3])
-            events = command_events(before, after, transcript, str(row[1]))
+            events = command_events(before, after, transcript["action"], str(row[1]))
             await self._append_events(db, cid, str(row[0]), int(str(row[2])), events)
             before = after
 
@@ -550,7 +550,7 @@ class AsyncPostgresStore:
             cursor = await db.execute("SELECT state FROM stream_genesis WHERE campaign=%s", (cid,))
             initial = await cursor.fetchone()
             assert initial is not None
-            state = validation.campaign(validation.decode(validation.string(initial[0])))
+            state = contracts.campaign(validation.decode(validation.string(initial[0])))
             cursor = await db.execute(
                 "SELECT command_id, revision, ordinal, schema_version, event FROM event_stream WHERE campaign=%s AND revision<=%s ORDER BY revision, ordinal",
                 (cid, through if through is not None else 2**63 - 1),
@@ -648,6 +648,6 @@ class AsyncPostgresStore:
     def _stream_transcript(raw: object) -> CommandReceipt:
         data = validation.mapping(raw)
         return CommandReceipt(
-            action=validation.event_action(data["action"]),
+            action=contracts.event_action(data["action"]),
             outcome=validation.string(data["outcome"]),
         )

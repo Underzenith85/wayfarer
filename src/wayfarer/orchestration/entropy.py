@@ -5,11 +5,11 @@ from collections.abc import Callable
 from contextvars import ContextVar
 from copy import deepcopy
 
+from wayfarer.contracts import Campaign, CommandReceipt, TurnResult
 from wayfarer.engine.rules.checks import RandomSource, draw_index
 from wayfarer.engine.rules.randomness import RNG_ALGORITHM, SeededRandom
 from wayfarer.engine.simulation.events import command_events
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, CommandReceipt, TurnResult
 from wayfarer.orchestration.clock import CommandInstant, capture_instant
 from wayfarer.orchestration.origins import current_origin
 from wayfarer.orchestration.replay_inputs import recorded_command
@@ -125,7 +125,8 @@ async def _commit_serialized(
         try:
             before = deepcopy(state)
             event = resolve(state)
-            return CommandResolution(event, command_events(before, state, event, actor_id))
+            family = event["action"]
+            return CommandResolution(event, command_events(before, state, family, actor_id))
         finally:
             _active.reset(token)
 

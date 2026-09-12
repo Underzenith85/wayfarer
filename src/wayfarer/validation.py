@@ -1,20 +1,13 @@
-"""Small runtime schemas for the preserved demo; no unchecked casts at boundaries.
+"""Small runtime schemas for the kernel vocabulary; no unchecked casts at boundaries.
 
 These validate structure and primitive types, not campaign legality. The character
-builder owns costs and campaign policy. JSON decoding itself returns object.
+builder owns costs and campaign policy. JSON decoding itself returns object. The
+application payloads (campaign, message, receipt) parse in :mod:`wayfarer.contracts`.
 """
 
 import json
 
-from wayfarer.models import (
-    Campaign,
-    Character,
-    EventAction,
-    Message,
-    Roll,
-    RulesPackagePin,
-    RulesReference,
-)
+from wayfarer.models import Character, Roll, RulesPackagePin, RulesReference
 
 
 def decode(raw: str | bytes) -> object:
@@ -126,85 +119,6 @@ def roll(value: object) -> Roll:
     return result
 
 
-def message(value: object) -> Message:
-    d = mapping(value)
-    fields(d, {"role", "text"}, {"roll", "action", "flavor"})
-    result: Message = {"role": string(d["role"]), "text": string(d["text"])}
-    if "roll" in d:
-        result["roll"] = None if d["roll"] is None else roll(d["roll"])
-    if "action" in d:
-        result["action"] = string(d["action"])
-    if "flavor" in d:
-        result["flavor"] = string(d["flavor"])
-    return result
-
-
-def campaign(value: object) -> Campaign:
-    d = mapping(value)
-    fields(
-        d,
-        {
-            "id",
-            "revision",
-            "rules",
-            "character",
-            "scenario",
-            "hp",
-            "fp",
-            "minutes",
-            "location",
-            "inventory",
-            "discoveries",
-            "flags",
-            "complete",
-            "messages",
-        },
-        {
-            "rules_ref",
-            "resources_json",
-            "play_json",
-            "scenario_reference_json",
-            "scenario_graph_json",
-            "combat_rules_json",
-            "scenario_document_json",
-            "setup_json",
-        },
-    )
-    result = Campaign(
-        id=string(d["id"]),
-        revision=integer(d["revision"]),
-        rules=string(d["rules"]),
-        character=character(d["character"]),
-        scenario=scenario(d["scenario"]),
-        hp=integer(d["hp"]),
-        fp=integer(d["fp"]),
-        minutes=integer(d["minutes"]),
-        location=string(d["location"]),
-        inventory=strings(d["inventory"]),
-        discoveries=strings(d["discoveries"]),
-        flags=strings(d["flags"]),
-        complete=boolean(d["complete"]),
-        messages=[message(m) for m in sequence(d["messages"])],
-    )
-    if "setup_json" in d:
-        result["setup_json"] = string(d["setup_json"])
-    if "scenario_document_json" in d:
-        result["scenario_document_json"] = string(d["scenario_document_json"])
-    if "scenario_reference_json" in d:
-        result["scenario_reference_json"] = string(d["scenario_reference_json"])
-    if "combat_rules_json" in d:
-        result["combat_rules_json"] = string(d["combat_rules_json"])
-    if "scenario_graph_json" in d:
-        result["scenario_graph_json"] = string(d["scenario_graph_json"])
-    if "play_json" in d:
-        result["play_json"] = string(d["play_json"])
-    if "resources_json" in d:
-        result["resources_json"] = string(d["resources_json"])
-    if "rules_ref" in d:
-        result["rules_ref"] = rules_reference(d["rules_ref"])
-    return result
-
-
 def rules_reference(value: object) -> RulesReference:
     data = mapping(value)
     fields(data, {"edition", "packages", "policy_id", "policy_version"})
@@ -224,34 +138,3 @@ def rules_reference(value: object) -> RulesReference:
         policy_id=string(data["policy_id"]),
         policy_version=integer(data["policy_version"]),
     )
-
-
-def event_action(value: object) -> EventAction:
-    match value:
-        case (
-            "resource"
-            | "v1-membership"
-            | "typed-action"
-            | "power-approval"
-            | "request_ruling"
-            | "decide_ruling"
-            | "execute_ruling"
-            | "evaluate_ruling"
-            | "combat"
-            | "advancement"
-            | "rules-migration"
-            | "scene"
-            | "objectives"
-            | "noncombat"
-            | "party"
-            | "npc"
-            | "recovery"
-            | "director"
-            | "workshop"
-            | "setup"
-        ):
-            return value
-        case "observe" | "talk" | "sneak" | "rest" | "ask" | "legacy":
-            return "legacy"  # Read-only normalization of retained prototype receipts.
-        case _:
-            raise ValueError("Unsupported command family")

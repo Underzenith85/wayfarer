@@ -8,10 +8,10 @@ from pathlib import Path
 import pytest
 from test_unarmed import action, defend, setup, state_of
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.combat import ChooseDefense, CombatService, TakeUnarmedTurn
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore

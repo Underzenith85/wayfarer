@@ -13,6 +13,7 @@ from test_gurps_maneuvers import defend, turn
 from test_gurps_melee import setup
 from test_gurps_ranged import load, scene, weapon
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.character.compiler import Purchase
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.skills.mundane.ranged import definitions
@@ -22,7 +23,6 @@ from wayfarer.engine.simulation.combat.firearms import MalfunctionRecord, save_m
 from wayfarer.engine.simulation.equipment.basic.catalog import BASIC_EQUIPMENT
 from wayfarer.engine.simulation.equipment.catalog import Damage, EquipmentCatalog, RangedMode
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.combat import ChooseDefense, CombatService, TakeCombatTurn
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore

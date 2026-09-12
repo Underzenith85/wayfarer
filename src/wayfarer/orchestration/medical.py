@@ -7,6 +7,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, replace
 from typing import cast
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.rules.types.recovery import ProfileId
 from wayfarer.engine.simulation.actions import PlayState
@@ -18,7 +19,6 @@ from wayfarer.engine.simulation.health.medical.commands import (
 )
 from wayfarer.engine.simulation.health.medical.recovery import apply_recovery
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 

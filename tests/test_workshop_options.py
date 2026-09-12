@@ -7,9 +7,9 @@ from aiohttp.test_utils import TestClient, TestServer
 from test_wave9 import prepare
 
 from scripts.workshop_contracts import contract
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.character.compiler import CharacterDraft, Purchase
 from wayfarer.engine.character.power import CharacterProposal
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.workshop import DraftCommand, WorkshopService
 from wayfarer.orchestration.workshop_options import ProfilePreviewRequest, preview_profile

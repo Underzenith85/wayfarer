@@ -7,6 +7,7 @@ from test_basic_combat import opening_facts, start_basic
 from test_encounter_context import load, setup
 from test_gurps_melee import setup as melee_setup
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.rules.conformance import BASELINE_ID
 from wayfarer.engine.simulation.campaign.party import migrate as migrate_party
 from wayfarer.engine.simulation.combat.spatial import (
@@ -22,7 +23,6 @@ from wayfarer.engine.simulation.combat.spatial import (
 )
 from wayfarer.engine.simulation.hex_geometry import Cell, Hex, HexBattlefield, Pose
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.combat import (
     BasicJoinPlacement,
     CombatService,

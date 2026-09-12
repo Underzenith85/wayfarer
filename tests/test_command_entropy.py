@@ -14,12 +14,12 @@ from test_actions import actor_setup, campaign, engine, resource_seed, world
 from test_tactical import setup as hex_setup
 from test_wave14 import Table
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.rules.checks import RecordedDice, draw_dice
 from wayfarer.engine.rules.randomness import RNG_ALGORITHM, SeededRandom
 from wayfarer.engine.simulation.actions import Inspect, Wait
 from wayfarer.engine.simulation.events import action_result
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.combat import (
     CombatContext,

@@ -6,6 +6,7 @@ import pytest
 from test_mundane_trait_runtime import prepare as prepare_traits
 from test_social_dispatch import prepare
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.character.compiler import Purchase
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.fright import FrightEffect
@@ -15,7 +16,6 @@ from wayfarer.engine.simulation.actors import build
 from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.health.fright import TimedFright, effects, public_id, save
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore

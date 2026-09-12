@@ -2,6 +2,7 @@
 
 import json
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.magic.spell_transitions import (
     SpellExecutionContext as SpellExecutionContext,
 )
@@ -34,7 +35,6 @@ from wayfarer.engine.simulation.magic.spells import (
     event_id,
 )
 from wayfarer.errors import AuthorizationError, ValidationError
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService

@@ -9,15 +9,22 @@ from typing import Literal
 
 from pydantic import Field
 
-from wayfarer import validation
+from wayfarer import contracts, validation
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.rules.randomness import RNG_ALGORITHM
 from wayfarer.engine.simulation.action_engine.engine import ActionEngine
-from wayfarer.engine.simulation.events import EngineEvent, campaign_document, digest, document, fold
-from wayfarer.models import Campaign, CommandReceipt, Record
+from wayfarer.engine.simulation.events import EngineEvent, digest, document
+from wayfarer.models import Record
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.replay import execute_recorded
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-from wayfarer.persistence.events import CommandRecord, StoredEvent, payload_digest
+from wayfarer.persistence.events import (
+    CommandRecord,
+    StoredEvent,
+    campaign_document,
+    fold,
+    payload_digest,
+)
 from wayfarer.persistence.replay import ReplayCheck, require_configuration, verify_commands
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -54,7 +61,7 @@ class FixtureCommand(Record):
             resulting_revision=self.resulting_revision,
             payload_hash=payload_digest({"input": self.command_input}),
             rules_version=before["rules"],
-            event=CommandReceipt(action=validation.event_action(self.action), outcome=""),
+            event=CommandReceipt(action=contracts.event_action(self.action), outcome=""),
             state_after=after,
             entropy_seed=self.seed,
             rng_algorithm=RNG_ALGORITHM,
@@ -133,7 +140,7 @@ class FixtureExecutor:
 async def verify_fixture(
     fixture: ReplayFixture, engine: ActionEngine, directory: Path
 ) -> tuple[ReplayCheck, ...]:
-    initial = validation.campaign(validation.decode(fixture.initial_json))
+    initial = contracts.campaign(validation.decode(fixture.initial_json))
     # Verify against the actual bound engine, not just the fixture's own pin.
     bound = PlayService(AsyncSQLiteStore(directory / "unused.sqlite"), engine).for_campaign(initial)
     bound._load(initial)
@@ -167,7 +174,7 @@ async def regenerate(
     fixture: ReplayFixture, engine: ActionEngine, directory: Path
 ) -> ReplayFixture:
     """Keep original inputs and seeds; update only events and digests."""
-    before = validation.campaign(validation.decode(fixture.initial_json))
+    before = contracts.campaign(validation.decode(fixture.initial_json))
     require_configuration(before, fixture.configuration_digest)
     executor = FixtureExecutor(engine, directory)
     commands: list[FixtureCommand] = []

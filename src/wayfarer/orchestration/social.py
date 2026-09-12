@@ -8,6 +8,7 @@ from dataclasses import dataclass
 
 from pydantic import ValidationError as SchemaError
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.rules.traits.mundane.runtime import Check
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.social.social import (
@@ -19,7 +20,6 @@ from wayfarer.engine.simulation.social.social import (
     apply_social,
 )
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService

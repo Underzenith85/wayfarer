@@ -53,12 +53,12 @@ async def test_durable_replay_reports_legacy_and_detects_tampering(
         await verify_commands(initial, records, stream, configuration_digest="different-rules")
     corrupt = dict(records[0].state_after)
     corrupt["hp"] = 999
-    from wayfarer import validation
+    from wayfarer import contracts
 
     with pytest.raises(ValidationError, match="Snapshot"):
         await verify_commands(
             initial,
-            [replace(records[0], state_after=validation.campaign(corrupt))],
+            [replace(records[0], state_after=contracts.campaign(corrupt))],
             stream,
             configuration_digest=configuration,
         )

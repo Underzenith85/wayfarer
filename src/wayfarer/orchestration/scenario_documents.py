@@ -13,6 +13,7 @@ from dataclasses import asdict
 from pydantic import TypeAdapter
 from pydantic import ValidationError as SchemaError
 
+from wayfarer.contracts import Campaign
 from wayfarer.engine.character.power import CharacterProposal, PowerReview, PowerReviewer
 from wayfarer.engine.rules.catalog import CampaignRules, ImplementationStatus
 from wayfarer.engine.rules.effects import Effect
@@ -40,7 +41,6 @@ from wayfarer.engine.simulation.campaign.scenario_document import (
 )
 from wayfarer.engine.simulation.campaign.studio import ScenarioGraph, StudioFinding
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
-from wayfarer.models import Campaign
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.studio import ScenarioStudio
 

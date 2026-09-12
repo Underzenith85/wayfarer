@@ -8,6 +8,7 @@ from test_fright_builds import install
 from test_gurps_melee import setup
 from test_social_completion import with_aftermath
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.fright import FrightEffect
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
@@ -17,7 +18,6 @@ from wayfarer.engine.simulation.health.fatigue import ContinueExertion, apply_fa
 from wayfarer.engine.simulation.health.fright import effects
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.combat import ChooseDefense, CombatService, TakeCombatTurn
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore

@@ -6,6 +6,7 @@ import json
 
 from pydantic import ValidationError as SchemaError
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.combat.commands import (
     COMBAT_ADAPTER,
@@ -23,7 +24,6 @@ from wayfarer.engine.simulation.combat.commands import (
 )
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.combat.context import (
     CombatContext,
     _bind_combat_command,

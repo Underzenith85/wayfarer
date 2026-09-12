@@ -7,6 +7,7 @@ import json
 from pydantic import Field
 from pydantic import ValidationError as SchemaError
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.character.compiler import CharacterDraft, ValidatedBuild, pool_limits
 from wayfarer.engine.character.power import CharacterProposal
 from wayfarer.engine.character.statistics import RuntimePool, carry_over
@@ -30,7 +31,7 @@ from wayfarer.engine.simulation.campaign.encounter_context import (
 from wayfarer.engine.simulation.campaign.scenes import ActorScene
 from wayfarer.engine.simulation.resources import Pool
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, CommandReceipt, Id, Record
+from wayfarer.models import Id, Record
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 

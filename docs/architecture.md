@@ -11,19 +11,22 @@ implicit checkout imports, or global pip dependencies are required.
 
 | Package | Owns | Permitted internal dependencies |
 | --- | --- | --- |
-| `models`, `validation`, `errors` | The `Record` entity contract, shared typed contracts, runtime structural schemas and typed failures | Models |
+| `models`, `validation`, `errors` | The `Record` entity contract, its scalar aliases, the vocabulary the engine emits and payloads embed (`Character`, `ValidationResult`, `Roll`, `RulesReference`), runtime structural schemas and typed failures | Models |
+| `contracts` | Application payloads: the campaign envelope, `Message`, `CommandReceipt`, committed and replayed turns, and their parsers | Kernel |
 | `engine.rules` | Closed demo catalog and checks | Kernel, rules |
 | `engine.character` | Character draft validation, preset, and profile-selected attribute/secondary statistics | Kernel, rules, character |
 | `engine.simulation` | Scenario validation and state transitions | Kernel, rules, character, simulation, world |
 | `certification` | Release accounting over engine evidence; reads the source tree | Kernel, rules, simulation |
-| `persistence` | SQLite schema, transactions and storage | Kernel |
-| `orchestration` | LLM adapter, intent, application use cases | Engine packages, persistence |
-| `transport` | HTTP routes and bundled static UI | Orchestration and read-only engine APIs |
+| `persistence` | SQLite schema, transactions, storage and the stream fold | Kernel, contracts, engine event and scenario-pin readers |
+| `orchestration` | LLM adapter, intent, application use cases | Kernel, contracts, engine packages, persistence |
+| `transport` | HTTP routes and bundled static UI | Contracts, orchestration and read-only engine APIs |
 | `cli` | Configuration and server composition | Orchestration, transport |
 
 The engine lives under one directory, `src/wayfarer/engine/`, holding `rules/`,
 `character/`, `simulation/` and `world.py`. The kernel (`models.py`,
 `validation.py`, `errors.py`) stays beside it because every layer depends on it.
+`contracts.py` is not kernel: it holds the payloads persistence stores,
+orchestration commits and transport serves, and the engine never imports it.
 Certification is deliberately outside the engine: it reads ledgers and source
 files, which the engine never does.
 
@@ -495,3 +498,27 @@ fatigue-collapsed defender whose injury record remains unincapacitated. The latt
 also retains an unresolved attack. Both finish with `incapacitation` after their
 command resolves. Existing five fixture families regenerate unchanged; the new
 cases are required by the release gate. No engine version bump is involved.
+
+### The kernel and the application contracts (#566)
+
+`models.py` is the entity kernel: `Record`, the scalar aliases, and the typed
+vocabulary the engine emits and application payloads embed. `Character` and
+`ValidationResult` are the character builder's input and verdict, `Roll` is the
+demo check's projection, and `RulesReference` with `RulesPackagePin` is the rules
+pin the catalog produces and a campaign carries. They stay in the kernel because
+the engine produces them and `validation.py` parses them; neither may reach above
+the engine to find them.
+
+`contracts.py` holds what the engine has no business knowing: the campaign
+envelope, `Message`, `EventAction`, `CommandReceipt`, `PublicCampaign`, the
+committed and replayed turn results, and their parsers (`campaign`, `message`,
+`event_action`). Persistence, orchestration and transport share it.
+
+The engine reads a campaign checkpoint only as a plain mapping. `events.document`
+digests it and `events.command_events` takes the receipt's family as a string;
+`scenario_references.boundary` and `verify` read the pin fields by name. Folding
+the stream back into a typed envelope is persistence's job
+(`persistence.events.fold`), since the typed envelope is what it stores. The
+architecture gate states the kernel explicitly, checks that the kernel imports
+only itself, that `models.py` declares exactly the kernel vocabulary, and that no
+engine module imports `contracts`.

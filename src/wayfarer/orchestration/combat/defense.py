@@ -36,7 +36,6 @@ def _defend(
     previous = encounter
     selected_defense = command.defense
     if engine.rules.gurps_equipment is not None:
-        from wayfarer.engine.simulation.actors import exertion
         from wayfarer.engine.simulation.combat.melee.resolution import resolve_melee
 
         pending = encounter.pending_defense
@@ -46,7 +45,10 @@ def _defend(
             or command.defense not in pending.allowed
         ):
             raise ValidationError("Defense is not available to this actor")
-        from wayfarer.engine.simulation.combat.melee.defense import validate_defense_choices
+        from wayfarer.engine.simulation.combat.melee.defense import (
+            exert_defense,
+            validate_defense_choices,
+        )
 
         validate_defense_choices(
             play.rules_context,
@@ -59,46 +61,16 @@ def _defend(
             parry_mode_id=command.parry_mode_id,
             second_parry_mode_id=command.second_parry_mode_id,
         )
-        if selected_defense != "none":
-            state, allowed = exertion(play.rules_context, state, command.actor_id, command.id)
-            if not allowed:
-                selected_defense = "none"
-        from wayfarer.engine.simulation.combat.objects.combat import worn_stress
-
-        state, encounter = worn_stress(
+        state, encounter, selected_defense = exert_defense(
             play.rules_context,
             state,
             encounter,
             command.actor_id,
             command.id,
+            selected_defense,
+            command.item_id,
+            parry_mode_id=command.parry_mode_id,
         )
-        if selected_defense != "none":
-            from wayfarer.engine.simulation.combat.melee.defense import defense_value
-            from wayfarer.engine.simulation.combat.objects.combat import defense_stress
-
-            participant = next(p for p in encounter.participants if p.actor_id == command.actor_id)
-            _, used = defense_value(
-                play.rules_context,
-                state,
-                participant,
-                selected_defense,
-                command.item_id,
-                parry_mode_id=command.parry_mode_id,
-            )
-            state, encounter = defense_stress(
-                play.rules_context,
-                state,
-                encounter,
-                command.actor_id,
-                command.id,
-                None if used in ("left-hand", "right-hand") else used,
-            )
-            if (
-                used
-                and used not in ("left-hand", "right-hand")
-                and not any(i.id == used and i.ready for i in state.resources.items)
-            ):
-                selected_defense = "none"
         state, encounter, injury = resolve_melee(
             play.rules_context,
             state,

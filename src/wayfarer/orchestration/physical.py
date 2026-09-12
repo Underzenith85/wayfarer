@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.movement.physical import PhysicalCommand as PhysicalCommand
 from wayfarer.engine.simulation.movement.physical import PhysicalContext as PhysicalContext
 from wayfarer.engine.simulation.movement.physical import PhysicalResult as PhysicalResult
@@ -11,7 +12,6 @@ from wayfarer.engine.simulation.movement.physical import PhysicalRoute as Physic
 from wayfarer.engine.simulation.movement.physical import RouteResolver as RouteResolver
 from wayfarer.engine.simulation.movement.physical import reduce_physical as reduce_physical
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 

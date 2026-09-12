@@ -13,6 +13,7 @@ from collections.abc import Callable
 
 from pydantic import ValidationError as SchemaError
 
+from wayfarer.contracts import Campaign
 from wayfarer.engine.rules.catalog import reference
 from wayfarer.engine.rules.checks import RandomSource
 from wayfarer.engine.rules.profiles import ProfileRegistry, RegisteredProfile
@@ -29,7 +30,6 @@ from wayfarer.engine.simulation.campaign.profiles import (
 )
 from wayfarer.engine.simulation.campaign.setup import Setup
 from wayfarer.errors import AuthorizationError, ConflictError, NotFoundError, ValidationError
-from wayfarer.models import Campaign
 from wayfarer.orchestration.advancement import (
     AdvancementService,
     ApplyMigration,

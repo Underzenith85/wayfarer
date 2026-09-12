@@ -10,13 +10,13 @@ from typing import Literal
 from pydantic import Field, TypeAdapter
 from pydantic import ValidationError as SchemaError
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.actions import ActionCommand, PlayState
 from wayfarer.engine.simulation.campaign.adjudication import expire_rulings
 from wayfarer.engine.simulation.campaign.scenes import ActorScene, JournalEntry, Scene, SceneEvent
 from wayfarer.engine.simulation.resources import Advance
 from wayfarer.engine.world import EntityKind
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 

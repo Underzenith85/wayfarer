@@ -7,7 +7,7 @@ import pytest
 from test_actions import campaign, engine
 from test_v1_api import api as api
 
-from wayfarer.models import Campaign, CommandReceipt, TurnResult
+from wayfarer.contracts import Campaign, CommandReceipt, TurnResult
 from wayfarer.orchestration import entropy
 from wayfarer.orchestration.clock import CommandInstant
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore

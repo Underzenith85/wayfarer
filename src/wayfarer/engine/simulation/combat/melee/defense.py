@@ -7,7 +7,7 @@ from decimal import Decimal
 from wayfarer.engine.rules.effects import DerivedValue
 from wayfarer.engine.rules.tables.combat import minimum_strength_penalty
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.actors import build, catalog, fatigue_ready, level
+from wayfarer.engine.simulation.actors import build, catalog, exertion, fatigue_ready, level
 from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.entangle import defense_penalty as entangle_defense_penalty
@@ -305,6 +305,46 @@ def defense_value(
     return DerivedValue(
         f"defense:{selected}:{skill}", Decimal(score + bonus + penalty), ()
     ), selected_item
+
+
+def exert_defense(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    actor_id: str,
+    command_id: str,
+    selected: Defense,
+    item_id: str | None,
+    *,
+    parry_mode_id: str | None = None,
+) -> tuple[PlayState, Encounter, Defense]:
+    """Spend the defender's effort and equipment; either failing leaves no active defense.
+
+    B426: a defender whose exertion fails is too spent to defend and takes the blow.
+    Worn protection is stressed whether or not they defend. The implement chosen
+    for a parry or block is stressed by that use, and one that breaks under it
+    defends with nothing. A hand is not an implement and never breaks here.
+    """
+    from wayfarer.engine.simulation.combat.objects.combat import defense_stress, worn_stress
+
+    if selected != "none":
+        state, allowed = exertion(runtime, state, actor_id, command_id)
+        if not allowed:
+            selected = "none"
+    state, encounter = worn_stress(runtime, state, encounter, actor_id, command_id)
+    if selected == "none":
+        return state, encounter, "none"
+    participant = next(p for p in encounter.participants if p.actor_id == actor_id)
+    _, used = defense_value(
+        runtime, state, participant, selected, item_id, parry_mode_id=parry_mode_id
+    )
+    bare = used in ("left-hand", "right-hand")
+    state, encounter = defense_stress(
+        runtime, state, encounter, actor_id, command_id, None if bare else used
+    )
+    if used and not bare and not any(i.id == used and i.ready for i in state.resources.items):
+        return state, encounter, "none"
+    return state, encounter, selected
 
 
 def validate_defense_choices(

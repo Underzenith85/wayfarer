@@ -8,12 +8,13 @@ from typing import Literal
 
 from pydantic import Field, TypeAdapter
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.character.power import Approval, CharacterProposal
 from wayfarer.engine.rules.catalog import CampaignPolicy
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.director import AuthorDraft
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
-from wayfarer.models import Campaign, CommandReceipt, Id, Record
+from wayfarer.models import Id, Record
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.advancement import _refreshed
 from wayfarer.orchestration.entropy import commit_command

@@ -6,10 +6,10 @@ import hashlib
 import hmac
 from dataclasses import dataclass
 
+from wayfarer.contracts import Campaign
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.resources import wire_weight
-from wayfarer.models import Campaign
 from wayfarer.orchestration.play import PlayService
 
 from .common import Fault, Obj, encoded, validate

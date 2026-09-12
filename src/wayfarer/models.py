@@ -1,13 +1,18 @@
-"""Shared typed contracts: the entity base class and the legacy demo records.
+"""The entity kernel: the ``Record`` base class and the vocabulary the engine emits.
 
 Entities are frozen, strict, closed records. Every state transition returns a new
 record; verbs live in engines and functions, never on the entity itself.
 Runtime validation remains at the service boundary.
+
+The typed dictionaries here are engine vocabulary that application payloads
+embed: a character draft and its verdict, a demo roll, and the rules pin a
+campaign carries. The payloads themselves (the campaign envelope, receipts and
+turn results) are :mod:`wayfarer.contracts`, which the engine never imports.
 """
 
 from __future__ import annotations
 
-from typing import Annotated, Literal, NotRequired, TypedDict
+from typing import Annotated, Literal, TypedDict
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -33,45 +38,20 @@ class Character(TypedDict):
     traits: list[str]
 
 
+class ValidationResult(TypedDict):
+    valid: bool
+    errors: list[str]
+    spent: int
+    remaining: int
+    levels: dict[str, int]
+
+
 class Roll(TypedDict):
     dice: list[int]
     total: int
     target: int
     success: bool
     critical: Literal["success", "failure"] | None
-
-
-class Message(TypedDict):
-    role: str
-    text: str
-    roll: NotRequired[Roll | None]
-    action: NotRequired[str]
-    flavor: NotRequired[str]
-
-
-class Campaign(TypedDict):
-    id: str
-    revision: int
-    rules: str
-    rules_ref: NotRequired[RulesReference]
-    resources_json: NotRequired[str]
-    play_json: NotRequired[str]
-    setup_json: NotRequired[str]
-    scenario_document_json: NotRequired[str]
-    scenario_reference_json: NotRequired[str]
-    scenario_graph_json: NotRequired[str]
-    combat_rules_json: NotRequired[str]
-    character: Character
-    scenario: dict[str, str]
-    hp: int
-    fp: int
-    minutes: int
-    location: str
-    inventory: list[str]
-    discoveries: list[str]
-    flags: list[str]
-    complete: bool
-    messages: list[Message]
 
 
 class RulesPackagePin(TypedDict):
@@ -85,62 +65,3 @@ class RulesReference(TypedDict):
     packages: list[RulesPackagePin]
     policy_id: str
     policy_version: int
-
-
-EventAction = Literal[
-    "legacy",
-    "resource",
-    "v1-membership",
-    "typed-action",
-    "power-approval",
-    "request_ruling",
-    "decide_ruling",
-    "execute_ruling",
-    "evaluate_ruling",
-    "combat",
-    "advancement",
-    "rules-migration",
-    "encounter-scenes",
-    "scene",
-    "objectives",
-    "noncombat",
-    "party",
-    "npc",
-    "recovery",
-    "director",
-    "workshop",
-    "setup",
-]
-
-
-class CommandReceipt(TypedDict):
-    """Command family and typed result; exact input and dice have their own owners."""
-
-    action: EventAction
-    outcome: str
-
-
-class ValidationResult(TypedDict):
-    valid: bool
-    errors: list[str]
-    spent: int
-    remaining: int
-    levels: dict[str, int]
-
-
-class PublicCampaign(Campaign):
-    validation: ValidationResult
-
-
-class CommittedTurn(TypedDict):
-    kind: Literal["committed"]
-    state: Campaign
-    event: CommandReceipt
-
-
-class ReplayedTurn(TypedDict):
-    kind: Literal["replayed"]
-    state: Campaign
-
-
-type TurnResult = CommittedTurn | ReplayedTurn

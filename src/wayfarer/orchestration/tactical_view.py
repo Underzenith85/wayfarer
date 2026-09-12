@@ -202,7 +202,7 @@ def preview(
         "move_and_attack",
         "feint",
     ):
-        from wayfarer.engine.simulation.combat.melee.modes import mode
+        from wayfarer.engine.simulation.combat.melee.modes import mode, mode_reach
 
         selected = mode(
             play.rules_context, state, command.actor_id, command.item_id, command.mode_id
@@ -212,7 +212,7 @@ def preview(
                 encounter,
                 next(
                     p for p in encounter.participants if p.actor_id == command.actor_id
-                ).model_copy(update={"reach": max(selected.reach)}),
+                ).model_copy(update={"reach": mode_reach(selected)}),
             )
     result, _, _ = engine.take_turn(
         encounter,

@@ -9,6 +9,35 @@ from pathlib import Path
 
 import wayfarer
 
+# The kernel every layer may import. ``contracts`` is deliberately absent: the
+# application payloads it holds sit above the engine (#566).
+KERNEL = frozenset({"models", "validation", "errors"})
+KERNEL_VOCABULARY = frozenset(
+    {
+        "Record",
+        "Id",
+        "Count",
+        "Tick",
+        "Character",
+        "ValidationResult",
+        "Roll",
+        "RulesPackagePin",
+        "RulesReference",
+    }
+)
+APPLICATION_PAYLOADS = frozenset(
+    {
+        "Message",
+        "Campaign",
+        "EventAction",
+        "CommandReceipt",
+        "PublicCampaign",
+        "CommittedTurn",
+        "ReplayedTurn",
+        "TurnResult",
+    }
+)
+
 REDUCER_MODULES = (
     "combat",
     "physical",
@@ -377,14 +406,19 @@ class ArchitectureTests(unittest.TestCase):
                     )
 
     def test_domain_imports_are_independent(self) -> None:
-        """The engine depends inward only: on its own domains and the shared kernel."""
+        """The engine depends inward only: on its own domains and the shared kernel.
+
+        The kernel is exactly ``models``, ``validation`` and ``errors``. The campaign
+        envelope, receipts and turn results in ``contracts`` are application payloads,
+        so an engine module that reaches them fails here.
+        """
         package = Path(wayfarer.__file__).parent
         allowed = {
             "rules": {"rules"},
             "character": {"rules", "character"},
             "simulation": {"rules", "character", "simulation", "world"},
         }
-        kernel = {"models", "validation", "errors"}
+        kernel = KERNEL
         forbidden = {"sqlite3", "http", "urllib", "socket", "requests", "httpx", "openai", "os"}
         for domain, dependencies in allowed.items():
             for source in (package / "engine" / domain).rglob("*.py"):
@@ -410,7 +444,48 @@ class ArchitectureTests(unittest.TestCase):
                             if parts[1] == "engine":
                                 self.assertIn(parts[2], dependencies)
                             else:
-                                self.assertIn(parts[1], kernel)
+                                self.assertIn(parts[1], kernel, f"{source} reaches past the kernel")
+
+    def test_kernel_and_contracts_keep_their_line(self) -> None:
+        """The kernel imports only itself; contracts embed it; the engine never reads them.
+
+        ``models`` declares the entity contract and the vocabulary the engine emits,
+        ``contracts`` declares the payloads the application carries, and neither the
+        kernel nor any engine module imports ``contracts``.
+        """
+        package = Path(wayfarer.__file__).parent
+
+        def declared(source: Path) -> set[str]:
+            names: set[str] = set()
+            for node in ast.parse(source.read_text()).body:
+                if isinstance(node, ast.ClassDef):
+                    names.add(node.name)
+                elif isinstance(node, ast.TypeAlias) and isinstance(node.name, ast.Name):
+                    names.add(node.name.id)
+                elif isinstance(node, ast.Assign):
+                    names |= {t.id for t in node.targets if isinstance(t, ast.Name)}
+            return names
+
+        def imported(source: Path) -> set[str]:
+            modules: set[str] = set()
+            for node in ast.walk(ast.parse(source.read_text())):
+                if isinstance(node, ast.Import):
+                    modules |= {alias.name for alias in node.names}
+                elif isinstance(node, ast.ImportFrom):
+                    modules.add(node.module or "")
+                    if node.module == "wayfarer":
+                        modules |= {f"wayfarer.{alias.name}" for alias in node.names}
+            return {m for m in modules if m.startswith("wayfarer")}
+
+        self.assertEqual(declared(package / "models.py"), set(KERNEL_VOCABULARY))
+        self.assertTrue(APPLICATION_PAYLOADS <= declared(package / "contracts.py"))
+        for name in KERNEL:
+            for module in imported(package / f"{name}.py"):
+                with self.subTest(kernel=name, module=module):
+                    self.assertIn(module.split(".")[1], KERNEL)
+        for source in (package / "engine").rglob("*.py"):
+            with self.subTest(source=source):
+                self.assertNotIn("wayfarer.contracts", imported(source))
 
     def test_engine_does_not_import_entropy(self) -> None:
         """Randomness and clocks enter below orchestration only through explicit values."""
@@ -635,10 +710,11 @@ assert 'wayfarer.engine.simulation.rules_context' not in sys.modules
 
 
 def test_prototype_resolver_and_transcript_writers_are_retired() -> None:
-    from wayfarer import models
+    from wayfarer import contracts, models
     from wayfarer.orchestration.service import GameService
 
     assert not (Path(wayfarer.__file__).parent / "engine/simulation/resolution.py").exists()
     assert not hasattr(GameService, "turn") and not hasattr(GameService, "interpret")
-    assert not hasattr(models, "Action") and not hasattr(models, "Event")
-    assert set(models.CommandReceipt.__annotations__) == {"action", "outcome"}
+    for module in (models, contracts):
+        assert not hasattr(module, "Action") and not hasattr(module, "Event")
+    assert set(contracts.CommandReceipt.__annotations__) == {"action", "outcome"}

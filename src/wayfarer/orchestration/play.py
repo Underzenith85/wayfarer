@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 from pydantic import Field
 from pydantic import ValidationError as SchemaError
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.character.compiler import pool_limits
 from wayfarer.engine.character.power import Approval
 from wayfarer.engine.character.traits.physical import physical_traits
@@ -34,7 +35,7 @@ from wayfarer.engine.simulation.resources import Pool, ResourceState
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.engine.world import World
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, CommandReceipt, Record
+from wayfarer.models import Record
 from wayfarer.orchestration.entropy import CommandRandom, commit_command
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore

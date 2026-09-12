@@ -9,6 +9,7 @@ import pytest
 from test_gurps_melee import setup as melee_setup
 from test_statistics import BASIC, LITE
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.gurps_checks import replay_success
 from wayfarer.engine.simulation.actions import PlayState
@@ -22,7 +23,6 @@ from wayfarer.engine.simulation.combat.unarmed.records import (
 )
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.combat import (
     ChooseDefense,
     CombatService,

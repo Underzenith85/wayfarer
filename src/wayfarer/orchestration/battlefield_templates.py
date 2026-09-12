@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 from typing import TYPE_CHECKING
 
+from wayfarer.contracts import Campaign
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.advancement import MigrationEntry
 from wayfarer.engine.simulation.campaign.scenario_document import digest_json
@@ -14,7 +15,6 @@ from wayfarer.engine.simulation.combat.commands import MigrateEncounterHex
 from wayfarer.engine.simulation.combat.profiles import CombatRules
 from wayfarer.engine.simulation.hex_geometry import HexBattlefield
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign
 from wayfarer.orchestration.sessions import REGISTRY
 
 if TYPE_CHECKING:
@@ -203,7 +203,7 @@ async def migrate_embedded_maps(
 ) -> Campaign:
     import json
 
-    from wayfarer.models import CommandReceipt
+    from wayfarer.contracts import CommandReceipt
     from wayfarer.orchestration.entropy import commit_command
 
     play = play.for_campaign(await play.store.read(cid))

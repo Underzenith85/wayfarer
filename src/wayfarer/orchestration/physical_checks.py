@@ -10,6 +10,7 @@ from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from typing import Literal
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.traits.physical import Sense
 from wayfarer.engine.simulation.actions import PlayState
@@ -18,7 +19,6 @@ from wayfarer.engine.simulation.health.condition_checks import check_modifiers, 
 from wayfarer.engine.simulation.health.physical_traits import physical_traits
 from wayfarer.engine.simulation.resources import Command, ResourceEvent
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 

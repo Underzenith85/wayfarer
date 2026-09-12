@@ -7,6 +7,7 @@ import json
 from typing import TYPE_CHECKING, Literal
 
 from wayfarer import validation
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.rules.social.social_hooks import Reputation, Standing
 from wayfarer.engine.rules.traits.mundane.runtime import Audience
 from wayfarer.engine.simulation.actions import ActionCommand, PlayState
@@ -19,7 +20,6 @@ from wayfarer.engine.simulation.campaign.npcs import (
 )
 from wayfarer.engine.simulation.resources import Consume
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.persistence.events import CommandOrigin
 

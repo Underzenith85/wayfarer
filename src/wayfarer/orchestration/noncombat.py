@@ -5,13 +5,14 @@ from __future__ import annotations
 import json
 from typing import Literal
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.rules.checks import Modifier, Outcome, success_check
 from wayfarer.engine.simulation.actions import ActionCommand, PlayState
 from wayfarer.engine.simulation.health.condition_checks import definition_modifiers
 from wayfarer.engine.simulation.resources import Advance
 from wayfarer.engine.simulation.social.noncombat import NoncombatEncounter
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Campaign, CommandReceipt, Id
+from wayfarer.models import Id
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
 

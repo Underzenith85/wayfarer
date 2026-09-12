@@ -3,12 +3,17 @@
 Mechanical facts and private state changes share an ordered stream. State changes
 are explicit path operations, not replacement campaign snapshots. Only the latter
 are folded; facts are independently consumable and declare their own audience.
+
+The campaign envelope reaches this module as a JSON mapping. Its typed shape is an
+application contract that persistence and orchestration own; the engine only
+digests it and reads the play checkpoint it carries.
 """
 
 from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Mapping
 from copy import deepcopy
 from typing import Annotated, Literal
 
@@ -26,7 +31,7 @@ from wayfarer.engine.simulation.health.injury import InjuryResult
 from wayfarer.engine.simulation.magic.spells import SpellEvent
 from wayfarer.engine.simulation.resources import ResourceEvent
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, CommandReceipt, Record
+from wayfarer.models import Record
 
 
 class CampaignAudience(Record):
@@ -167,7 +172,7 @@ def digest(value: object) -> str:
     ).hexdigest()
 
 
-def document(campaign: Campaign) -> dict[str, JsonValue]:
+def document(campaign: Mapping[str, object]) -> dict[str, JsonValue]:
     value = JSON_ADAPTER.validate_json(json.dumps(campaign))
     assert isinstance(value, dict)
     # These are encoded records in the legacy campaign envelope, not opaque text.
@@ -175,14 +180,6 @@ def document(campaign: Campaign) -> dict[str, JsonValue]:
         if isinstance(value.get(key), str):
             value[key] = JSON_ADAPTER.validate_json(str(value[key]))
     return value
-
-
-def campaign_document(value: dict[str, JsonValue]) -> Campaign:
-    value = deepcopy(value)
-    for key in ("play_json", "resources_json"):
-        if key in value and not isinstance(value[key], str):
-            value[key] = json.dumps(value[key], separators=(",", ":"), ensure_ascii=False)
-    return validation.campaign(value)
 
 
 def changes(
@@ -249,10 +246,6 @@ def fold_document(
     return value
 
 
-def fold(campaign: Campaign, events: list[EngineEvent]) -> Campaign:
-    return campaign_document(fold_document(document(campaign), events, scope="campaign"))
-
-
 def fold_play(state: PlayState, events: list[EngineEvent]) -> PlayState:
     value = JSON_ADAPTER.validate_json(state.model_dump_json())
     assert isinstance(value, dict)
@@ -316,7 +309,7 @@ def play_facts(before: PlayState, after: PlayState, actor_id: str) -> list[Engin
 
 
 def command_events(
-    before: Campaign, after: Campaign, event: CommandReceipt, actor_id: str
+    before: Mapping[str, object], after: Mapping[str, object], action: str, actor_id: str
 ) -> list[EngineEvent]:
     old, new = document(before), document(after)
     result: list[EngineEvent] = [
@@ -327,20 +320,20 @@ def command_events(
     audience: EventAudience = GMAudience()
     legacy_maps = False
     if "play_json" in before:
-        legacy = validation.mapping(validation.decode(before["play_json"]))
+        legacy = validation.mapping(validation.decode(validation.string(before["play_json"])))
         legacy_maps = any(
             isinstance(item, dict) and item.get("hex_battlefield") is not None
             for item in validation.sequence(legacy.get("encounters", []))
         )
     if "play_json" in before and "play_json" in after and not legacy_maps:
         first, last = (
-            PlayState.model_validate_json(before["play_json"]),
-            PlayState.model_validate_json(after["play_json"]),
+            PlayState.model_validate_json(validation.string(before["play_json"])),
+            PlayState.model_validate_json(validation.string(after["play_json"])),
         )
         if actor_id in {a.actor_id for a in last.actors}:
             audience = ActorAudience(actor_ids=(actor_id,))
         result.extend(play_facts(first, last, actor_id))
-    result.append(CommandApplied(audience=audience, actor_id=actor_id, action=event["action"]))
+    result.append(CommandApplied(audience=audience, actor_id=actor_id, action=action))
     result.append(ProjectionRefresh())
     return result
 

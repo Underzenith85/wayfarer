@@ -8,13 +8,13 @@ from collections.abc import Callable
 from dataclasses import dataclass, replace
 from decimal import Decimal
 
+from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.character.statistics import encumbrance
 from wayfarer.engine.rules.types.hazard import HazardSchedule, HazardSpec
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.health.hazards import HazardCommand, HazardResult, apply_hazard
 from wayfarer.engine.simulation.resources import decimal_weight
 from wayfarer.errors import ValidationError
-from wayfarer.models import Campaign, CommandReceipt
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.medical import _build, _value
 from wayfarer.orchestration.play import PlayService
