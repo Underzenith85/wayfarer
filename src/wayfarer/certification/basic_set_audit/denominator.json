@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "baseline_id": "gurps-4e-characters-3p-2008+campaigns-4p-2008",
+  "ledger_counts": {
+    "sections": 711,
+    "traits": 487,
+    "modifiers": 87
+  },
+  "legacy_inventory_count": 1761,
+  "identity_sha256": "74bfba824df081f26cfb031b5eef186d11c2be1eec5da6091c407a65b719479a"
+}
