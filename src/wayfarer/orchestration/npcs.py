@@ -25,7 +25,7 @@ from wayfarer.engine.simulation.campaign.npcs import (
     NPCSocialStanding,
     NPCSocialTrigger,
 )
-from wayfarer.engine.simulation.health.fright import blocked, requires_adjudication
+from wayfarer.engine.simulation.health.fright_state import blocked, requires_adjudication
 from wayfarer.engine.simulation.resources import Consume
 from wayfarer.engine.simulation.social.social import SocialCommand, SocialContext, SocialDisclosure
 from wayfarer.errors import ConflictError, ValidationError

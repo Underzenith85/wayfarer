@@ -3,34 +3,16 @@
 import hashlib
 from typing import Literal
 
-from wayfarer.engine.rules.types.object import GroundPosition
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import movement
 from wayfarer.engine.simulation.combat.encounter import Encounter
+from wayfarer.engine.simulation.equipment.retrieval_state import RetrievalTask, tasks
 from wayfarer.engine.simulation.hex_geometry import Hex
-from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
+from wayfarer.engine.simulation.resources import ResourceEvent
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.models import Record
 
-
-class RetrievalTask(Record):
-    id: str
-    actor_id: str
-    item_id: str
-    landing: GroundPosition
-    location_id: str
-    due: int
-    status: Literal["pending", "completed", "cancelled"] = "pending"
-
-
-def tasks(resources: ResourceState) -> tuple[RetrievalTask, ...]:
-    latest: dict[str, RetrievalTask] = {}
-    for event in resources.events:
-        if event.id.startswith("equipment-retrieval:"):
-            task = RetrievalTask.model_validate_json(event.kind)
-            latest[task.id] = task
-    return tuple(latest.values())
+__all__ = ("RetrievalTask", "tasks")
 
 
 def retrieve(

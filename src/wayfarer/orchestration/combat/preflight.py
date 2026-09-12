@@ -21,7 +21,8 @@ from wayfarer.engine.simulation.combat.commands import (
     TypedCombatCommand,
 )
 from wayfarer.engine.simulation.combat.explosions import blasts
-from wayfarer.engine.simulation.health.fright import can_defend, maneuver_allowed
+from wayfarer.engine.simulation.health.fright import maneuver_allowed
+from wayfarer.engine.simulation.health.fright_state import can_defend
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat.context import CombatContext, encounter_for
 from wayfarer.orchestration.recovery import guard

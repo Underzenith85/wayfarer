@@ -29,7 +29,7 @@ from wayfarer.engine.simulation.combat.explosions import blasts
 from wayfarer.engine.simulation.combat.explosions import guard as blast_guard
 from wayfarer.engine.simulation.equipment.repairs import tasks
 from wayfarer.engine.simulation.health.fright import advance
-from wayfarer.engine.simulation.health.fright import effects as fright_effects
+from wayfarer.engine.simulation.health.fright_state import effects as fright_effects
 from wayfarer.engine.simulation.health.medical.rest import accrue_rest
 from wayfarer.engine.simulation.magic.backfires import backfires
 from wayfarer.engine.simulation.resources import (

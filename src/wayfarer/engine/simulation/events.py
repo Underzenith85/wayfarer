@@ -25,7 +25,7 @@ from wayfarer.engine.simulation.actions import ActionResult, PlayState
 from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.campaign.scenes import SceneEvent
 from wayfarer.engine.simulation.combat.encounter import CombatResult
-from wayfarer.engine.simulation.health.fright import TimedFright
+from wayfarer.engine.simulation.health.fright_state import TimedFright
 from wayfarer.engine.simulation.health.hazards import HazardResult
 from wayfarer.engine.simulation.health.injury import InjuryResult
 from wayfarer.engine.simulation.magic.spells import SpellEvent

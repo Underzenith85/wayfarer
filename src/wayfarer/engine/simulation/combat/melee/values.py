@@ -21,8 +21,8 @@ from wayfarer.engine.simulation.combat.tactical import pose
 from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode, inventory_load
 from wayfarer.engine.simulation.health.fatigue import fatigue_value
-from wayfarer.engine.simulation.health.fright import can_defend
-from wayfarer.engine.simulation.health.fright import stunned as fright_stunned
+from wayfarer.engine.simulation.health.fright_state import can_defend
+from wayfarer.engine.simulation.health.fright_state import stunned as fright_stunned
 from wayfarer.engine.simulation.health.hit_locations import disabled
 from wayfarer.engine.simulation.health.injury import impaired_movement
 from wayfarer.engine.simulation.magic.effects import require_not_dazed
