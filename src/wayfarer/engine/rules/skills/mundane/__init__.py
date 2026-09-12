@@ -26,6 +26,9 @@ from wayfarer.engine.rules.skills.mundane.arts import PROCEDURES as ARTS_PROCEDU
 from wayfarer.engine.rules.skills.mundane.knowledge import PROCEDURES as KNOWLEDGE_PROCEDURES
 from wayfarer.engine.rules.skills.mundane.medicine import PROCEDURES as MEDICINE_PROCEDURES
 from wayfarer.engine.rules.skills.mundane.melee import PROCEDURES as MELEE_PROCEDURES
+from wayfarer.engine.rules.skills.mundane.physical_outdoors import (
+    PROCEDURES as PHYSICAL_OUTDOOR_PROCEDURES,
+)
 from wayfarer.engine.rules.skills.mundane.ranged import PROCEDURES as RANGED_PROCEDURES
 from wayfarer.engine.rules.skills.mundane.ranged import ranged_scope
 from wayfarer.engine.rules.skills.mundane.schema import (
@@ -94,6 +97,7 @@ BINDINGS = (
     KNOWLEDGE_PROCEDURES,
     MEDICINE_PROCEDURES,
     MELEE_PROCEDURES,
+    PHYSICAL_OUTDOOR_PROCEDURES,
     RANGED_PROCEDURES,
     SOCIAL_PROCEDURES,
     TECHNIQUE_PROCEDURES,

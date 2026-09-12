@@ -205,6 +205,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.combat.technique_procedures` | no | yes | partial | #340; [parent-specific combat technique procedures](gurps-mundane-skills.md#combat-technique-procedures-340) |
 | `gurps.skills.knowledge_investigation` | no | yes | partial | #341; [knowledge, academic and investigation procedures](gurps-mundane-skills.md#knowledge-and-investigation-procedures-341) |
 | `gurps.skills.medicine_mental` | no | yes | partial | #342; [medicine and mental procedures](gurps-mundane-skills.md#medicine-and-mental-procedures-342) |
+| `gurps.skills.physical_outdoors` | no | yes | partial | #343; [physical, outdoor and animal procedures](gurps-mundane-skills.md#physical-outdoor-and-animal-procedures-343) |
 | `gurps.equipment.weapon_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; source audit pending) |
 | `gurps.equipment.armor_profiles` | yes | yes | partial | #101 (typed schema and inventory adapter; source audit pending) |
 | `gurps.equipment.catalog` | yes | yes | partial | #114 |

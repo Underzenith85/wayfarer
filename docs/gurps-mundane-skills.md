@@ -51,11 +51,11 @@ also verifies names, pages and owners against the supernatural catalog.
 
 | Accounting group | Rows | Decision |
 | --- | ---: | --- |
-| Structured candidate definitions | 80 | Unsupported; runtime or campaign-context blockers remain. |
-| Bound runtime procedures | 396 | Includes the executable arts/trades, combat, technique, knowledge/investigation, and medicine/mental rows from #338–#342. Open families remain nondispatchable until a concrete specialty is selected. |
+| Structured candidate definitions | 14 | Unsupported; runtime or campaign-context blockers remain. |
+| Bound runtime procedures | 462 | Includes the executable arts/trades, combat, technique, knowledge/investigation, medicine/mental, and physical/outdoor rows from #338–#343. Open families remain nondispatchable until a concrete specialty is selected. |
 | Contextual records | 28 | 23 B230-233 technique templates and five open families (#336). Not rollable skills, so they record a shape rather than a definition. No row is left recording nothing at all. |
 | Transferred cinematic/supernatural skills | 28 | Owned by #242/#243 and source audit #191. |
-| **Total accounted records** | **532** | **504 inventory rows plus 28 transferred rows; 364 inventory rows are available.** |
+| **Total accounted records** | **532** | **504 inventory rows plus 28 transferred rows; 427 inventory rows are available.** |
 
 ## Arts, crafts and trade procedures (#338)
 
@@ -623,11 +623,35 @@ services. The prerelease engine and package versions remain unchanged.
 Evidence is in `tests/test_medicine_mental_procedures.py` and the frozen mundane
 source inventory.
 
+## Physical, outdoor and animal procedures (#343)
+
+All 44 assigned source entries now have item-specific execution contracts. The
+Meteorology, Navigation and Survival families expand to 27 concrete specialties,
+for 70 reconciled rows in total. Physical feats and their four parent-bound
+techniques route to the existing physical movement boundary; overland, airborne,
+water and assisted travel route to movement. Survival, free-fall, breathing,
+parachuting and fishing outcomes route to hazards. Animal handling, riding,
+packing, teamster work and mounting use the existing mount-operation boundary,
+while field knowledge, tracking, scrounging, sport contests and thrown actions
+retain distinct owning services and outcomes.
+
+Animal Handling, Naturalist, Riding, Sports and Teamster require an explicit
+source subject. Family roots reject execution until a concrete specialty is
+selected, and Lifesaving, Rope Up, Scaling and Slip Handcuffs require their
+recorded parent skill and parent-relative level. Unknown-until-later field
+searches, required route/equipment/environment context, modifier vocabularies,
+contest resistance and exact profile selection fail closed before dice. Results
+are replayable receipts and do not duplicate stateful movement or health
+reducers. The prerelease engine and package versions remain unchanged.
+
+Evidence is in `tests/test_physical_outdoor_procedures.py` and the frozen mundane
+source inventory.
+
 ## Validation and runtime contract
 
 Unsupported candidates in this package have no runtime hooks. `require_available`
 rejects unknown IDs, blocked rows and unsupported definitions even if their
-blocker list is mistakenly cleared; the 364 available rows have both a concrete
+blocker list is mistakenly cleared; the 427 available rows have both a concrete
 implementation and no remaining blocker. Scenario/character/LLM validation
 therefore cannot turn catalog presence alone into playable mechanics.
 
