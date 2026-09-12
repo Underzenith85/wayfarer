@@ -103,6 +103,7 @@ async def setup(
     extra_scheduled: tuple[Scheduled, ...] = (),
     start_encounter: bool = True,
     aware_of: tuple[str, ...] = (),
+    placements: tuple[Placement, ...] | None = None,
 ) -> tuple[str, PlayService]:
     equipment = EquipmentCatalog(
         profile_id=profile,
@@ -679,7 +680,8 @@ async def setup(
                 encounter_id="fight",
                 battlefield_id="dock",
                 ranged_situations=ranged_scene,
-                placements=(
+                placements=placements
+                or (
                     Placement(actor_id="a", position=GridPoint(x=0, y=0), facing="east"),
                     Placement(actor_id="b", position=GridPoint(x=1, y=0), facing="west"),
                     *(

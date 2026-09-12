@@ -24,6 +24,7 @@ def contract(version: int = 1) -> str:
     # v2 command fields cannot drift the reviewed v1 document.
     if version == 1:
         schemas.pop("BasicMove", None)
+        schemas.pop("SprayTarget", None)
     schemas["TacticalError"] = {
         "type": "object",
         "required": ["code", "error"],

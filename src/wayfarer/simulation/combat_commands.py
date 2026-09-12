@@ -19,6 +19,7 @@ from wayfarer.simulation.combat import (
     Placement,
     Posture,
     RangedSituation,
+    SprayTarget,
 )
 from wayfarer.simulation.hex_geometry import Hex, HexBattlefield, HexFacing, Pose
 from wayfarer.simulation.maneuvers import AttackOption, DefenseOption, WaitTrigger
@@ -71,6 +72,9 @@ class TakeCombatTurn(CombatCommand):
     target_id: str | None = None
     mode_id: str | None = None
     shots: int = Field(default=1, ge=1)
+    spray_targets: tuple[SprayTarget, ...] = Field(
+        default=(), max_length=19, exclude_if=lambda value: not value
+    )
     reload_ammunition_id: str | None = None
     unload_ammunition: bool = Field(default=False, exclude_if=lambda v: not v)
     fast_draw: bool = Field(default=False, exclude_if=lambda v: not v)

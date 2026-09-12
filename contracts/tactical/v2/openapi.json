@@ -1126,6 +1126,63 @@
         "title": "RetrieveEquipment",
         "type": "object"
       },
+      "SprayTarget": {
+        "additionalProperties": false,
+        "description": "A declared additional target in one B409 spraying-fire sweep.",
+        "properties": {
+          "target_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Target Id",
+            "type": "string"
+          },
+          "shots": {
+            "minimum": 1,
+            "title": "Shots",
+            "type": "integer"
+          },
+          "hit_location": {
+            "anyOf": [
+              {
+                "enum": [
+                  "torso",
+                  "vitals",
+                  "skull",
+                  "face",
+                  "neck",
+                  "groin",
+                  "left-arm",
+                  "right-arm",
+                  "left-leg",
+                  "right-leg",
+                  "left-hand",
+                  "right-hand",
+                  "left-foot",
+                  "right-foot",
+                  "left-eye",
+                  "right-eye"
+                ],
+                "type": "string"
+              },
+              {
+                "const": "random",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Hit Location"
+          }
+        },
+        "required": [
+          "target_id",
+          "shots"
+        ],
+        "title": "SprayTarget",
+        "type": "object"
+      },
       "TacticalActivity": {
         "additionalProperties": false,
         "properties": {
@@ -1611,6 +1668,15 @@
             "minimum": 1,
             "title": "Shots",
             "type": "integer"
+          },
+          "spray_targets": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/SprayTarget"
+            },
+            "maxItems": 19,
+            "title": "Spray Targets",
+            "type": "array"
           },
           "reload_ammunition_id": {
             "anyOf": [
