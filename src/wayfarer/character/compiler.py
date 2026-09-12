@@ -405,6 +405,15 @@ class CharacterCompiler:
                             )
 
                             cost = validate_sensory_trait(definition, amount, options)
+                        elif any(
+                            hook.startswith("mental-spirit-trait:")
+                            for hook in metadata.runtime_hooks
+                        ):
+                            from wayfarer.rules.mental_spirit_traits import (
+                                validate_purchase as validate_mental_spirit_trait,
+                            )
+
+                            cost = validate_mental_spirit_trait(definition, amount, options)
                         else:
                             cost = trait_cost(cost, amount, options, metadata)
                         if any(hook.startswith("ability:") for hook in metadata.runtime_hooks):
