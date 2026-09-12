@@ -7,8 +7,9 @@ from wayfarer.engine.rules.conformance import BASELINE_ID
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.tables.ranged import range_penalty
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import build, level
 from wayfarer.engine.simulation.combat.combat import CombatEngine, Defense, Encounter, InjuryTrace
-from wayfarer.engine.simulation.combat.melee import build, defense_value, level
+from wayfarer.engine.simulation.combat.melee import defense_value
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.magic.area_fire import armor

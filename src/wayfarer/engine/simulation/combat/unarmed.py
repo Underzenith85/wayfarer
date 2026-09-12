@@ -18,6 +18,14 @@ from wayfarer.engine.rules.tables.combat import strong_damage_bonus
 from wayfarer.engine.rules.tables.unarmed import UNARMED_SKILLS, unarmed_critical_miss
 from wayfarer.engine.rules.types.location import Hand, HumanLocation
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import (
+    build,
+    catalog,
+    exertion,
+    fatigue_ready,
+    injury_turn,
+    movement,
+)
 from wayfarer.engine.simulation.combat.combat import (
     BasicSpatialContext,
     Combatant,
@@ -29,15 +37,7 @@ from wayfarer.engine.simulation.combat.combat import (
     move_basic,
 )
 from wayfarer.engine.simulation.combat.maneuvers import ManeuverState, WaitInterrupt, WaitTrigger
-from wayfarer.engine.simulation.combat.melee import (
-    build,
-    catalog,
-    defense_value,
-    exertion,
-    fatigue_ready,
-    injury_turn,
-    movement,
-)
+from wayfarer.engine.simulation.combat.melee import defense_value
 from wayfarer.engine.simulation.combat.objects.locations import unavailable_hand
 from wayfarer.engine.simulation.combat.unarmed_records import (
     BASIC,

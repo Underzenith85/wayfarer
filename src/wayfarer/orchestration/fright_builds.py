@@ -15,8 +15,8 @@ from wayfarer.engine.character.compiler import CharacterDraft, ValidatedBuild, p
 from wayfarer.engine.character.traits.physical import physical_traits
 from wayfarer.engine.rules.catalog import DefinitionKind
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import build
 from wayfarer.engine.simulation.campaign.adjudication import expire_rulings
-from wayfarer.engine.simulation.combat.melee import build
 from wayfarer.engine.simulation.health.fright import TimedFright, effects, public_id, save
 from wayfarer.engine.simulation.resources import Command, ResourceState
 from wayfarer.errors import ConflictError, ValidationError

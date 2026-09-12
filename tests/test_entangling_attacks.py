@@ -18,8 +18,8 @@ from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.skills.mundane.ranged import definitions, require_mode
 from wayfarer.engine.rules.types.entangle import Entanglement, EntangleSpec
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import movement
 from wayfarer.engine.simulation.combat.combat import Combatant, RangedSituation
-from wayfarer.engine.simulation.combat.melee import movement
 from wayfarer.engine.simulation.equipment.catalog import Damage, RangedMode
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.play import PlayService

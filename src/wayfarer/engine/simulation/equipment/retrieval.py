@@ -43,7 +43,7 @@ def retrieve(
     stage: Literal["start", "finish", "cancel"],
     task_id: str | None,
 ) -> tuple[PlayState, RetrievalTask]:
-    from wayfarer.engine.simulation.combat.melee import movement
+    from wayfarer.engine.simulation.actors import movement
 
     task = next((t for t in tasks(state.resources) if t.id == task_id), None)
     if stage != "start":

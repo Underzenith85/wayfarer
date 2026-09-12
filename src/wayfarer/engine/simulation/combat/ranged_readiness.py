@@ -43,7 +43,7 @@ def reload(
     *,
     validate_only: bool,
 ) -> ResourceState:
-    from wayfarer.engine.simulation.combat.melee import build, catalog
+    from wayfarer.engine.simulation.actors import build, catalog
     from wayfarer.engine.simulation.combat.ranged import validate_rated_strength
     from wayfarer.engine.simulation.combat.thrown.flight import position
 
@@ -295,7 +295,7 @@ def interrupted_draws(
     encounter: Encounter,
 ) -> ResourceState:
     """B382: a dropped, stunned, unbalanced or fallen bow must be drawn again."""
-    from wayfarer.engine.simulation.combat.melee import catalog
+    from wayfarer.engine.simulation.actors import catalog
 
     rules = runtime.rules.combat
     if rules is None or rules.gurps_equipment is None:

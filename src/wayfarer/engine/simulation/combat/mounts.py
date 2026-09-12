@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 def assign_crew(
     runtime: RulesContext, state: PlayState, encounter: Encounter, command: TakeCombatTurn
 ) -> ResourceState:
-    from wayfarer.engine.simulation.combat.melee import catalog
+    from wayfarer.engine.simulation.actors import catalog
 
     if command.item_id is None:
         raise ValidationError("Serving a mount requires the mounted weapon")

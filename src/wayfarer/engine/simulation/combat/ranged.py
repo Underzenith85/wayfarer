@@ -61,7 +61,7 @@ def declare(
     if not situations:
         return encounter
     if runtime.rules.combat and runtime.rules.combat.gurps_equipment is not None:
-        from wayfarer.engine.simulation.combat.melee import catalog
+        from wayfarer.engine.simulation.actors import catalog
 
         catalog(runtime)
     keys = [(s.attacker_id, s.defender_id) for s in situations]
@@ -488,7 +488,7 @@ def unload_weapon(
     runtime: RulesContext, state: PlayState, command: TakeCombatTurn
 ) -> ResourceState:
     """Release a removable magazine's reservation; no rounds are minted or spent."""
-    from wayfarer.engine.simulation.combat.melee import catalog
+    from wayfarer.engine.simulation.actors import catalog
 
     equipment = catalog(runtime)
     if equipment.profile_id != "gurps-basic-set-4e-2004":
@@ -525,7 +525,7 @@ def unload_weapon(
 def reload_weapon(
     runtime: RulesContext, state: PlayState, command: TakeCombatTurn, *, validate_only: bool = False
 ) -> ResourceState:
-    from wayfarer.engine.simulation.combat.melee import catalog
+    from wayfarer.engine.simulation.actors import catalog
 
     equipment = catalog(runtime)
     item = next((i for i in state.resources.items if i.id == command.item_id), None)
@@ -556,7 +556,7 @@ def reload_weapon(
         raise ValidationError("This weapon has no explicit readiness protocol")
     reload_seconds = weapon.reload_seconds
     if weapon.rated_strength is not None:
-        from wayfarer.engine.simulation.combat.melee import build
+        from wayfarer.engine.simulation.actors import build
 
         stats = build(runtime, state, command.actor_id).statistics
         assert stats is not None
@@ -644,7 +644,7 @@ def _schedule_lingering_fire(
     import json
 
     from wayfarer.engine.rules.types.hazard import HazardSchedule, HazardSpec
-    from wayfarer.engine.simulation.combat.melee import build
+    from wayfarer.engine.simulation.actors import build
     from wayfarer.engine.simulation.health.hazards import HazardCommand, apply_hazard
     from wayfarer.engine.simulation.magic.area_fire import armor
 
@@ -727,7 +727,8 @@ def prepare(
     hit_location: HitLocation | None,
     target_item_id: str | None = None,
 ) -> Encounter:
-    from wayfarer.engine.simulation.combat.melee import build, catalog, defense_value
+    from wayfarer.engine.simulation.actors import build, catalog
+    from wayfarer.engine.simulation.combat.melee import defense_value
 
     pending = encounter.pending_defense
     assert pending is not None
@@ -887,7 +888,7 @@ def expend(
     catcher_id: str | None = None,
     hand: str | None = None,
 ) -> tuple[PlayState, Encounter]:
-    from wayfarer.engine.simulation.combat.melee import catalog
+    from wayfarer.engine.simulation.actors import catalog
 
     pending = encounter.pending_defense
     assert pending is not None
@@ -950,13 +951,9 @@ def resolve(
     second_parry_mode_id: str | None = None,
     catch_thrown: bool = False,
 ) -> tuple[PlayState, Encounter, InjuryTrace]:
+    from wayfarer.engine.simulation.actors import build, catalog, level
     from wayfarer.engine.simulation.combat.maneuver_transitions import distracted
-    from wayfarer.engine.simulation.combat.melee import (
-        build,
-        catalog,
-        defense_value,
-        level,
-    )
+    from wayfarer.engine.simulation.combat.melee import defense_value
     from wayfarer.engine.simulation.combat.thrown.flight import position
 
     original_resources = state.resources

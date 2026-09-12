@@ -47,7 +47,7 @@ def validate_target(
     location: HitLocation | None,
 ) -> None:
     """Reject unsupported location intent before consciousness/exertion dice."""
-    from wayfarer.engine.simulation.combat.melee import catalog
+    from wayfarer.engine.simulation.actors import catalog
 
     attacker = next((p for p in encounter.participants if p.actor_id == attacker_id), None)
     defender = next((p for p in encounter.participants if p.actor_id == defender_id), None)
@@ -119,7 +119,7 @@ def validate_posture(state: PlayState, actor_id: str, posture: Posture | None) -
 
 
 def _validate_bindings(runtime: RulesContext, state: PlayState, participant: Combatant) -> None:
-    from wayfarer.engine.simulation.combat.melee import catalog
+    from wayfarer.engine.simulation.actors import catalog
 
     items = {
         i.id: i
@@ -169,7 +169,7 @@ def bind_ready_hand(
             raise ValidationError("Ready requires an explicit usable hand after crippling")
         return encounter
     hands: tuple[Hand, ...] = ("left-hand", "right-hand") if hand == "both" else (hand,)
-    from wayfarer.engine.simulation.combat.melee import catalog
+    from wayfarer.engine.simulation.actors import catalog
 
     item = next(i for i in state.resources.items if i.id == item_id)
     shield = next(
@@ -220,7 +220,7 @@ def settle_crippling(
     runtime: RulesContext, state: PlayState, encounter: Encounter, command_id: str
 ) -> PlayState:
     """B422: roll duration once at combat end, saved inside the combat CAS."""
-    from wayfarer.engine.simulation.combat.melee import build
+    from wayfarer.engine.simulation.actors import build
 
     resources = state.resources
     for participant in encounter.participants:

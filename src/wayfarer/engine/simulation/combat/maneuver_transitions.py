@@ -6,9 +6,10 @@ from typing import TYPE_CHECKING
 
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import build, catalog, level
 from wayfarer.engine.simulation.combat.combat import CombatEngine, Encounter
 from wayfarer.engine.simulation.combat.maneuvers import attack_modifier
-from wayfarer.engine.simulation.combat.melee import build, catalog, level, mode
+from wayfarer.engine.simulation.combat.melee import mode
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.errors import ValidationError

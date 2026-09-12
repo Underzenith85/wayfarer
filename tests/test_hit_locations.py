@@ -20,7 +20,8 @@ from wayfarer.engine.rules.types.location import (
     deafened,
     disabled_locations,
 )
-from wayfarer.engine.simulation.combat.melee import defense_value, mode, movement
+from wayfarer.engine.simulation.actors import movement
+from wayfarer.engine.simulation.combat.melee import defense_value, mode
 from wayfarer.engine.simulation.equipment.catalog import DamageType
 from wayfarer.engine.simulation.health.hit_locations import attack_penalty, select_location
 from wayfarer.engine.simulation.health.injury import (

@@ -280,7 +280,7 @@ def social_occurrence(
         ReactionModifier,
         influence_procedure,
     )
-    from wayfarer.engine.simulation.combat.melee import build
+    from wayfarer.engine.simulation.actors import build
     from wayfarer.engine.simulation.social.social import (
         SocialCommand,
         SocialContext,

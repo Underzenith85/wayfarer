@@ -13,7 +13,7 @@ from typing import Literal
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.traits.physical import Sense
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.combat.melee import build
+from wayfarer.engine.simulation.actors import build
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers, definition_modifiers
 from wayfarer.engine.simulation.health.physical_traits import physical_traits
 from wayfarer.engine.simulation.resources import Command, ResourceEvent

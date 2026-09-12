@@ -28,7 +28,7 @@ from wayfarer.models import Record
 
 
 def effective_entry(runtime: RulesContext, item: Item) -> EquipmentProfile:
-    from wayfarer.engine.simulation.combat.melee import catalog
+    from wayfarer.engine.simulation.actors import catalog
 
     if item.firearm_failure is not None and item.firearm_failure.kind in (
         "destroyed",
@@ -137,7 +137,7 @@ def critical_breakage(
     defender_item: str | None,
     parrying: bool,
 ) -> tuple[PlayState, Encounter, tuple[int, ...], bool]:
-    from wayfarer.engine.simulation.combat.melee import catalog
+    from wayfarer.engine.simulation.actors import catalog
 
     pending = encounter.pending_defense
     assert pending is not None
@@ -237,7 +237,7 @@ def intercepting_shield(
     rapid_fire: bool = False,
 ) -> str | None:
     """B484: the DB must change an ordinary failed defense into success."""
-    from wayfarer.engine.simulation.combat.melee import catalog
+    from wayfarer.engine.simulation.actors import catalog
     from wayfarer.engine.simulation.combat.objects.locations import item_hands
     from wayfarer.engine.simulation.health.hit_locations import disabled
 
@@ -323,7 +323,7 @@ def shield_damage(
 
 def target_modifier(runtime: RulesContext, state: PlayState, actor_id: str, item_id: str) -> int:
     """B400 weapon sizes; other equipped targets require a pinned SM (B483)."""
-    from wayfarer.engine.simulation.combat.melee import catalog
+    from wayfarer.engine.simulation.actors import catalog
 
     item = next((i for i in state.resources.items if i.id == item_id), None)
     if item is None or item.owner_id != actor_id or (not item.equipped and not item.ground):
@@ -386,7 +386,7 @@ def weapon_target(runtime: RulesContext, state: PlayState, item_id: str | None) 
     """B401 restricts defenses for weapon targets, including ranged weapons."""
     if item_id is None:
         return False
-    from wayfarer.engine.simulation.combat.melee import catalog
+    from wayfarer.engine.simulation.actors import catalog
 
     item = next(i for i in state.resources.items if i.id == item_id)
     return any(e.definition_id == item.definition_id and e.modes for e in catalog(runtime).entries)
@@ -401,7 +401,7 @@ def defense_stress(
     item_id: str | None,
 ) -> tuple[PlayState, Encounter]:
     """Stress the selected implement and shields that contribute defense bonus."""
-    from wayfarer.engine.simulation.combat.melee import catalog
+    from wayfarer.engine.simulation.actors import catalog
 
     entries = {e.definition_id: e for e in catalog(runtime).entries}
     pending = encounter.pending_defense
@@ -533,7 +533,7 @@ def worn_stress(
     command_id: str,
 ) -> tuple[PlayState, Encounter]:
     """Worn protection is in use even while its wearer does not attack."""
-    from wayfarer.engine.simulation.combat.melee import catalog
+    from wayfarer.engine.simulation.actors import catalog
 
     armor = {e.definition_id for e in catalog(runtime).entries if e.armor is not None}
     return stress(

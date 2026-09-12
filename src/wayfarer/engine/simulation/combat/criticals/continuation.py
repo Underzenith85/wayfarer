@@ -34,7 +34,7 @@ class Continuation(Record):
 def context(
     runtime: RulesContext, state: PlayState, encounter: Encounter, critical_id: str
 ) -> CriticalMiss:
-    from wayfarer.engine.simulation.combat.melee import build, catalog
+    from wayfarer.engine.simulation.actors import build, catalog
 
     saved = load_critical(state.resources, critical_id)
     if (
@@ -133,7 +133,7 @@ def continue_critical(
             )
             if saved.table_total == 6:
                 basic //= 2
-            from wayfarer.engine.simulation.combat.melee import build
+            from wayfarer.engine.simulation.actors import build
 
             stats = build(runtime, state, saved.subject_id).statistics
             assert stats is not None

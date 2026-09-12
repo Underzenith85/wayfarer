@@ -123,7 +123,7 @@ def service(
     validate_only: bool = False,
 ) -> ResourceState:
     from wayfarer.engine.rules.types.skill import ControllingAttribute
-    from wayfarer.engine.simulation.combat.melee import build, catalog, level
+    from wayfarer.engine.simulation.actors import build, catalog, level
     from wayfarer.engine.simulation.combat.objects.locations import unavailable_hand
     from wayfarer.engine.simulation.health.hit_locations import disabled
 

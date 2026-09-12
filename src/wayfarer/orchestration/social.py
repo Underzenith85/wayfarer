@@ -50,7 +50,7 @@ def bind_trait_modifiers(
     if actor is None or actor.approval is None:
         context.bind_trait_modifiers(())
         return
-    from wayfarer.engine.simulation.combat.melee import build
+    from wayfarer.engine.simulation.actors import build
 
     approved = build(play.rules_context, state, command.actor_id)
     definitions = play.engine.reviewer.compiler.definitions
@@ -84,7 +84,7 @@ def bind_skill_conditions(
         context.bind_trait_modifiers(())
         return
     from wayfarer.engine.character.traits.social import skill_conditions
-    from wayfarer.engine.simulation.combat.melee import build
+    from wayfarer.engine.simulation.actors import build
 
     approved = build(play.rules_context, state, command.actor_id)
     definitions = play.engine.reviewer.compiler.definitions
@@ -113,7 +113,7 @@ def dispatch(
         from wayfarer.engine.simulation.health.fright import validate_subject
 
         validate_subject(before.resources, command.subject_id, profile_id)
-        from wayfarer.engine.simulation.combat.melee import build
+        from wayfarer.engine.simulation.actors import build
 
         if not any(a.actor_id == command.subject_id for a in before.actors):
             raise ValidationError("Fright requires an approved character")

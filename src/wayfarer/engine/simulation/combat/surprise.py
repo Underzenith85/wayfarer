@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from wayfarer.engine.rules.checks import draw_dice
 from wayfarer.engine.rules.traits.physical import SurpriseState
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.combat.melee import build
+from wayfarer.engine.simulation.actors import build
 from wayfarer.engine.simulation.health.physical_traits import physical_traits
 from wayfarer.engine.simulation.resources import Command, ResourceEvent
 from wayfarer.engine.simulation.rules_context import RulesContext

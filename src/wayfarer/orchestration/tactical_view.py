@@ -9,9 +9,10 @@ from itertools import product
 from pydantic import Field
 
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import movement
 from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.combat.combat import BasicSpatialContext, Encounter, Maneuver
-from wayfarer.engine.simulation.combat.melee import movement, prepare_attack
+from wayfarer.engine.simulation.combat.melee import prepare_attack
 from wayfarer.engine.simulation.combat.ranged import validate_command
 from wayfarer.engine.simulation.combat.tactical import TacticalTrace, pose
 from wayfarer.engine.simulation.combat.tactical_transitions import prepare_defense

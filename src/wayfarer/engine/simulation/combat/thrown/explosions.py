@@ -35,7 +35,7 @@ def schedule_payload(
     shots_fired: int,
     critical: int,
 ) -> tuple[PlayState, Encounter, bool]:
-    from wayfarer.engine.simulation.combat.melee import catalog
+    from wayfarer.engine.simulation.actors import catalog
     from wayfarer.engine.simulation.combat.thrown.flight import position
 
     pending = encounter.pending_defense
@@ -156,7 +156,8 @@ def resolve_blast(
     environment: str,
 ) -> tuple[PlayState, Encounter, int]:
     from wayfarer.engine.rules.tables.ranged import range_penalty
-    from wayfarer.engine.simulation.combat.melee import catalog, defense_value, movement
+    from wayfarer.engine.simulation.actors import catalog, movement
+    from wayfarer.engine.simulation.combat.melee import defense_value
     from wayfarer.engine.simulation.combat.thrown.flight import position
     from wayfarer.engine.simulation.combat.unarmed import hurt
     from wayfarer.engine.simulation.equipment.objects import DamageObject, apply_object

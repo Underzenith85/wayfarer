@@ -6,8 +6,8 @@ import json
 from wayfarer.engine.rules.types.hazard import HazardSchedule, HazardSpec
 from wayfarer.engine.simulation.abilities import damage_resistance
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import build
 from wayfarer.engine.simulation.combat.combat import CombatEngine, GridPoint
-from wayfarer.engine.simulation.combat.melee import build
 from wayfarer.engine.simulation.health.hazards import HazardCommand, apply_hazard
 from wayfarer.engine.simulation.hex_geometry import Hex
 from wayfarer.engine.simulation.magic.spells import active_spells

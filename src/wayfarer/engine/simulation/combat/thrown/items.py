@@ -136,7 +136,7 @@ def declare_landing(
     landing: GroundPosition,
     command_id: str,
 ) -> ResourceState:
-    from wayfarer.engine.simulation.combat.melee import catalog
+    from wayfarer.engine.simulation.actors import catalog
 
     if catalog(runtime).profile_id != "gurps-basic-set-4e-2004":
         raise ValidationError("Thrown landing requires the exact Basic Set profile")
@@ -177,8 +177,8 @@ def declare_landing(
 def recover(
     runtime: RulesContext, state: PlayState, encounter: Encounter, command: TakeCombatTurn
 ) -> PlayState:
+    from wayfarer.engine.simulation.actors import build, catalog
     from wayfarer.engine.simulation.combat.explosions import guard as blast_guard
-    from wayfarer.engine.simulation.combat.melee import build, catalog
     from wayfarer.engine.simulation.combat.thrown.flight import position
     from wayfarer.engine.simulation.combat.unarmed import free_hands
 
@@ -247,7 +247,8 @@ def undo_recovery(
 def validate_catch(
     runtime: RulesContext, state: PlayState, encounter: Encounter, command: ChooseDefense
 ) -> None:
-    from wayfarer.engine.simulation.combat.melee import catalog, mode
+    from wayfarer.engine.simulation.actors import catalog
+    from wayfarer.engine.simulation.combat.melee import mode
     from wayfarer.engine.simulation.combat.unarmed import free_hands
     from wayfarer.engine.simulation.equipment.catalog import RangedMode
 

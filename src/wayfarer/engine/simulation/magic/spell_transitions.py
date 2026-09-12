@@ -251,7 +251,7 @@ def advance_cast_turn(
     *,
     turn_started: bool = False,
 ) -> PlayState:
-    from wayfarer.engine.simulation.combat.melee import injury_turn
+    from wayfarer.engine.simulation.actors import injury_turn
 
     if not turn_started:
         before_hp = next(p for p in state.resources.pools if p.id == "hp:" + command.actor_id)
@@ -440,7 +440,8 @@ def _release_missile(
     encounter: Encounter,
     turn_started: bool,
 ) -> PlayState:
-    from wayfarer.engine.simulation.combat.melee import defense_value, injury_turn
+    from wayfarer.engine.simulation.actors import injury_turn
+    from wayfarer.engine.simulation.combat.melee import defense_value
 
     if context.target_id == command.actor_id:
         raise ValidationError("Missile release requires another participant")
@@ -548,7 +549,7 @@ def reduce_spell(
             validate_only=True,
         )
         if encounter.wait_interrupt is None:
-            from wayfarer.engine.simulation.combat.melee import injury_turn
+            from wayfarer.engine.simulation.actors import injury_turn
 
             began = injury_turn(
                 runtime, before, command.actor_id, command.id, start=True, do_nothing=False

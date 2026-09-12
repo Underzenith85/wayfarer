@@ -25,12 +25,7 @@ def repair(
     task_id: str | None,
     preview: bool = False,
 ) -> tuple[PlayState, RepairTask]:
-    from wayfarer.engine.simulation.combat.melee import (
-        build,
-        catalog,
-        fatigue_ready,
-        level,
-    )
+    from wayfarer.engine.simulation.actors import build, catalog, fatigue_ready, level
 
     if catalog(runtime).profile_id != "gurps-basic-set-4e-2004":
         raise ValidationError("Repairs require the exact Basic Set profile")

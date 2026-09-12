@@ -35,6 +35,7 @@ from wayfarer.engine.rules.types.skill import (
 )
 from wayfarer.engine.simulation.action_engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules, ActorSetup
+from wayfarer.engine.simulation.actors import movement
 from wayfarer.engine.simulation.campaign.scenes import Scene, SceneRules
 from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
 from wayfarer.engine.simulation.combat.combat import (
@@ -45,7 +46,7 @@ from wayfarer.engine.simulation.combat.combat import (
     Placement,
     RangedSituation,
 )
-from wayfarer.engine.simulation.combat.melee import defense_value, movement
+from wayfarer.engine.simulation.combat.melee import defense_value
 from wayfarer.engine.simulation.equipment.catalog import (
     LITE_EQUIPMENT,
     LITE_SOURCE,

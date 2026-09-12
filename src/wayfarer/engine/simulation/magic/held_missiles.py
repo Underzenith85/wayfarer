@@ -3,7 +3,7 @@
 from wayfarer.engine.rules.checks import draw_dice
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.combat.melee import build
+from wayfarer.engine.simulation.actors import build
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.magic.area_fire import armor

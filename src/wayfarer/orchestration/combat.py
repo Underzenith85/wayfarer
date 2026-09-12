@@ -436,7 +436,7 @@ def _start_encounter(
     for placement in command.placements:
         actor = actor_map[placement.actor_id]
         if engine.rules.gurps_equipment is not None:
-            from wayfarer.engine.simulation.combat.melee import fatigue_ready
+            from wayfarer.engine.simulation.actors import fatigue_ready
 
             if not fatigue_ready(state, actor.actor_id):
                 raise ValidationError("Exhausted actor cannot start combat")
@@ -520,7 +520,7 @@ def _start_basic_encounter(
     for actor_id in command.participant_ids:
         actor = actor_map[actor_id]
         if engine.rules.gurps_equipment is not None:
-            from wayfarer.engine.simulation.combat.melee import fatigue_ready
+            from wayfarer.engine.simulation.actors import fatigue_ready
 
             if not fatigue_ready(state, actor.actor_id):
                 raise ValidationError("Exhausted actor cannot start combat")
@@ -1577,11 +1577,7 @@ def _begin_turn(
     reaction = context.reaction
     resources = state.resources
     hp = next(p for p in state.resources.pools if p.id == "hp:" + command.actor_id)
-    from wayfarer.engine.simulation.combat.melee import (
-        exertion,
-        injury_turn,
-        movement,
-    )
+    from wayfarer.engine.simulation.actors import exertion, injury_turn, movement
 
     participant = next(p for p in encounter.participants if p.actor_id == command.actor_id)
     encounter = engine._replace(
@@ -1747,7 +1743,7 @@ def _prepare_attack_turn(
     if command_for_turn.maneuver not in ATTACK_MANEUVERS:
         return None
     if command_for_turn.suppression_zones:
-        from wayfarer.engine.simulation.combat.melee import injury_turn
+        from wayfarer.engine.simulation.actors import injury_turn
         from wayfarer.engine.simulation.combat.ranged import prepare_suppression_fire
 
         state, encounter = prepare_suppression_fire(
@@ -1833,14 +1829,14 @@ def _after_turn(
     resources: ResourceState,
     result: CombatResult,
 ) -> CombatStep:
-    from wayfarer.engine.simulation.combat.melee import injury_turn
+    from wayfarer.engine.simulation.actors import injury_turn
 
     play = context.play
     engine = context.engine
     initial_state = context.initial_state
     reaction = context.reaction
     if command_for_turn.second_item_id is not None and result.code != "combat.wait_triggered":
-        from wayfarer.engine.simulation.combat.melee import build as build_character
+        from wayfarer.engine.simulation.actors import build as build_character
 
         compiled = build_character(play.rules_context, state, command.actor_id)
         if any(purchase.definition_id == "trait:ambidexterity" for purchase in compiled.purchases):
@@ -2068,7 +2064,8 @@ def _defend(
     previous = encounter
     selected_defense = command.defense
     if engine.rules.gurps_equipment is not None:
-        from wayfarer.engine.simulation.combat.melee import exertion, resolve_melee
+        from wayfarer.engine.simulation.actors import exertion
+        from wayfarer.engine.simulation.combat.melee import resolve_melee
 
         pending = encounter.pending_defense
         if (
@@ -2144,7 +2141,7 @@ def _defend(
             else None,
             catch_thrown=command.catch_thrown,
         )
-        from wayfarer.engine.simulation.combat.melee import injury_turn
+        from wayfarer.engine.simulation.actors import injury_turn
 
         attacker = next(p for p in encounter.participants if p.actor_id == pending.attacker_id)
         if (
@@ -2254,7 +2251,7 @@ def _settle_combat(
         and encounter.pending_unarmed is None
         and encounter.status == "active"
     ):
-        from wayfarer.engine.simulation.combat.melee import fatigue_ready
+        from wayfarer.engine.simulation.actors import fatigue_ready
 
         conscious = {
             p.id.removeprefix("hp:")

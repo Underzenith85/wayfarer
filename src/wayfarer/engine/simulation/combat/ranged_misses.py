@@ -17,7 +17,7 @@ def resolve_miss(
     parry_item: str | None = None,
     parry_mode_id: str | None = None,
 ) -> tuple[PlayState, Encounter, CriticalLimbResult, str | None]:
-    from wayfarer.engine.simulation.combat.melee import catalog
+    from wayfarer.engine.simulation.actors import catalog
 
     if catalog(runtime).profile_id != "gurps-basic-set-4e-2004":
         raise ValidationError("Ranged critical misses require the exact Basic Set profile")

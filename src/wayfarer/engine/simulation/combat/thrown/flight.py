@@ -70,7 +70,8 @@ class FlightResult(Record):
 def resolve_flight(
     runtime: RulesContext, state: PlayState, encounter: Encounter, table: tuple[int, ...]
 ) -> tuple[PlayState, Encounter, tuple[int, ...]]:
-    from wayfarer.engine.simulation.combat.melee import build, catalog, mode
+    from wayfarer.engine.simulation.actors import build, catalog
+    from wayfarer.engine.simulation.combat.melee import mode
     from wayfarer.engine.simulation.combat.objects.combat import synchronize
 
     pending = encounter.pending_defense

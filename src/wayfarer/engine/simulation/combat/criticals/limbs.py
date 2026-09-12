@@ -46,7 +46,7 @@ def resolve_limb(
     defender_mode_id: str | None = None,
 ) -> tuple[PlayState, Encounter, CriticalLimbResult]:
     """Missing anatomy/grips/mode preserves the exact original blocker, before dice."""
-    from wayfarer.engine.simulation.combat.melee import build, catalog
+    from wayfarer.engine.simulation.actors import build, catalog
 
     result = CriticalLimbResult.model_validate({"table_rolls": (table,)})
     if sum(table) not in (5, 6, 15):

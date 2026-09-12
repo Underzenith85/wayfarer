@@ -15,10 +15,10 @@ from wayfarer.engine.simulation.abilities import (
 )
 from wayfarer.engine.simulation.ability_types import AbilityCommand, AbilityEvent, AbilityOutcome
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import injury_turn
 from wayfarer.engine.simulation.campaign.party import synchronous
 from wayfarer.engine.simulation.combat.combat import Encounter
 from wayfarer.engine.simulation.combat.maneuvers import ManeuverState
-from wayfarer.engine.simulation.combat.melee import injury_turn
 from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
 from wayfarer.engine.simulation.resources import Advance
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
