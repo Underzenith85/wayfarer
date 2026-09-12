@@ -29,7 +29,6 @@ COMBAT: Final = "gurps.vehicles.combat"
 # The issues this audit split its residual scope into. A closed owner cannot
 # hold a blocker, which is why #120 and #207 are superseded rather than cited.
 SUPERSEDED: Final = (120, 207)
-AIR_MOVEMENT_OWNER: Final = 393
 WATER_CASUALTY_OWNER: Final = 394
 SPACE_MOVEMENT_OWNER: Final = 395
 MOUNTED_OWNER: Final = 396
@@ -119,12 +118,7 @@ _MODES: Final = (
         "air",
         "B394-B395, B430-B432, B468-B469",
         ALL_CONCERNS,
-        {
-            "vertical flight and climbing or diving trajectories": AIR_MOVEMENT_OWNER,
-            "a stall or dive continuing across turns, and the fall itself": AIR_MOVEMENT_OWNER,
-            "airborne drift": AIR_MOVEMENT_OWNER,
-            "terrain-relative air-crash consequences": AIR_MOVEMENT_OWNER,
-        },
+        {},
     ),
     # A spacecraft can lose control and can collide, but it cannot travel: there
     # is no drag to brake against, so `safe_deceleration` rejects it outright.

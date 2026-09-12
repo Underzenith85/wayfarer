@@ -22,6 +22,7 @@ from wayfarer.simulation.resources import ResourceEngine, ResourceState
 from wayfarer.simulation.transport import apply_transport
 from wayfarer.simulation.vehicle_collisions import collision_exchange, passenger_injury
 from wayfarer.simulation.vehicle_commands import (
+    ResolveAirAftermath,
     ResolveVehicleEjection,
     VehicleControl,
     VehicleImpact,
@@ -128,6 +129,96 @@ def test_b466_ground_cruising_speed_tables_and_road_bound_cap() -> None:
     assert ground_cruising_speed(60, 3, "ground-tracked", "very-bad") == 9
     assert ground_cruising_speed(60, 3, "ground-walking", "very-bad") == 12
     assert ground_cruising_speed(60, 3, "ground-wheeled", "good") == 75
+
+
+def test_authored_vertical_flight_uses_the_three_dimensional_terrain_clearance() -> None:
+    engine, state = fixture(locomotion="air", speed=3, altitude=10)
+    climbed = apply_transport(
+        engine,
+        state,
+        maneuver(3, (0, 0, 0), end_altitude=13),
+        system=True,
+        board=map_fixture(),
+    )
+    assert (climbed.transports[0].q, climbed.transports[0].altitude) == (3, 13)
+    ridge = map_fixture().model_copy(
+        update={
+            "cells": tuple(
+                c.model_copy(update={"elevation": 9}) if c.position == Hex(q=1, r=0) else c
+                for c in map_fixture().cells
+            )
+        }
+    )
+    with pytest.raises(ValidationError, match="intersects terrain"):
+        apply_transport(
+            engine,
+            state,
+            maneuver(3, (0, 0, 0), end_altitude=7),
+            system=True,
+            board=ridge,
+        )
+
+
+def test_air_drift_and_continuing_dive_are_persisted_turn_aftermath() -> None:
+    engine, drifting = fixture(
+        locomotion="air", speed=3, altitude=20, status="drifting", remaining_points=3
+    )
+    drift = ResolveAirAftermath(id="drift", actor_id="a", expected_revision=0, transport_id="ride")
+    displaced = apply_transport(
+        engine, drifting, drift, system=True, board=map_fixture(), health={"a": 12}
+    )
+    assert (displaced.transports[0].q, displaced.transports[0].status) == (3, "controlled")
+    assert (
+        apply_transport(
+            engine, displaced, drift, system=True, board=map_fixture(), health={"a": 12}
+        )
+        == displaced
+    )
+
+    engine, diving = fixture(locomotion="air", speed=3, top_speed=10, altitude=25, status="diving")
+    descended = apply_transport(
+        engine,
+        diving,
+        drift.model_copy(update={"id": "fall"}),
+        system=True,
+        board=map_fixture(),
+        health={"a": 12},
+    )
+    assert (
+        descended.transports[0].altitude,
+        descended.transports[0].vertical_speed,
+        descended.transports[0].status,
+    ) == (15, 10, "diving")
+    recovered = apply_transport(
+        engine,
+        descended,
+        VehicleControl(
+            id="recover", actor_id="a", expected_revision=1, transport_id="ride", skill=12
+        ),
+        system=True,
+        rng=RecordedDice([2, 2, 2]),
+    )
+    assert (recovered.transports[0].status, recovered.transports[0].vertical_speed) == (
+        "controlled",
+        0,
+    )
+
+
+def test_stall_fall_reaches_terrain_and_uses_existing_collision_reducers() -> None:
+    engine, state = fixture(locomotion="air", speed=3, top_speed=10, altitude=4, status="stalled")
+    crashed = apply_transport(
+        engine,
+        state,
+        ResolveAirAftermath(id="air-crash", actor_id="a", expected_revision=0, transport_id="ride"),
+        system=True,
+        board=map_fixture(),
+        health={"a": 12},
+        rng=RecordedDice([1] * 12),
+    )
+    assert crashed.transports[0].altitude == 0
+    assert crashed.transports[0].status in ("crashed", "ejection-pending")
+    body = next(i for i in crashed.items if i.id == state.transports[0].body_id)
+    assert body.condition is not None and body.condition.hp < 30
     assert (
         ground_cruising_speed(60, 3, "ground-wheeled", "average", road_bound=True, on_road=False)
         == 6
@@ -289,7 +380,7 @@ def test_level_flight_and_water_depth_paths(
 @pytest.mark.parametrize(
     "mode,rolls,status,speed,altitude",
     [
-        ("air", [5, 4, 4], "controlled", 10, 95),
+        ("air", [5, 4, 4], "drifting", 10, 95),
         ("air", [6, 6, 6], "diving", 20, 100),
         ("water", [6, 6, 6], "sinking", 20, 100),
         ("underwater", [5, 4, 4], "drifting", 20, 105),
@@ -654,6 +745,14 @@ def test_air_recovery_unsinkable_capsize_and_low_speed_stall() -> None:
         ),
     ]:
         engine, state = fixture(**setup)
+        if state.transports[0].status in ("diving", "stalled"):
+            state = state.model_copy(
+                update={
+                    "transports": (
+                        state.transports[0].model_copy(update={"aftermath_turn": state.game_time}),
+                    )
+                }
+            )
         command = VehicleControl(
             id="check", actor_id="a", expected_revision=0, transport_id="ride", skill=skill
         )
@@ -715,7 +814,7 @@ def test_operation_matrix_does_not_advertise_unimplemented_navigation() -> None:
 
 
 def test_failed_air_recovery_cannot_fish_for_another_roll_in_same_second() -> None:
-    engine, initial = fixture(locomotion="air", status="diving", altitude=100)
+    engine, initial = fixture(locomotion="air", status="diving", altitude=100, aftermath_turn=0)
     command = VehicleControl(
         id="recover", actor_id="a", expected_revision=0, transport_id="ride", skill=12
     )
