@@ -533,9 +533,33 @@ action-scoped predicates completed by #476. The `conditional-or-skill-defaults`,
 
 ## Validation and runtime contract
 
+## Combat skill procedures (#339)
+
+All 56 rows assigned to #339 are bound to a named split-engine service and an
+item-specific outcome. The 22 table weapon skills validate melee equipment
+modes before play; Brawling validates the blackjack row; Shield maps the legacy
+ordinary-shield wire value to its concrete Shield specialty. Boxing, Brawling,
+Karate, Judo, Sumo Wrestling and Wrestling dispatch through the unarmed and
+grappling service. Cloak and Parry Missile Weapons use active defense, the eight
+Fast-Draw specialties use readiness, and Soldier, Stage Combat, Tactics and the
+three Strategy specialties use their noncombat or tactical procedure.
+
+The Fast-Draw, Shield and Strategy families cannot be rolled directly. Combat
+Art, Combat Sport and Melee Weapon remain contextual families because the source
+lets the player select a subject rather than giving a finite list. Their
+concrete children inherit source metadata; no generic family roll is invented.
+Mode authoring fails closed for a wrong profile, family, grip, fencing class,
+parry class or unbalanced construction. Existing Lite equipment remains on its
+own profile contract. The prerelease engine and package versions are unchanged.
+
+Independent coverage is in `tests/test_melee_skill_procedures.py`; source rows
+remain pinned by the mundane inventory and selected Characters printing.
+
+## Validation and runtime contract
+
 Unsupported candidates in this package have no runtime hooks. `require_available`
 rejects unknown IDs, blocked rows and unsupported definitions even if their
-blocker list is mistakenly cleared; the 209 available rows have both a concrete
+blocker list is mistakenly cleared; the 314 available rows have both a concrete
 implementation and no remaining blocker. Scenario/character/LLM validation
 therefore cannot turn catalog presence alone into playable mechanics.
 

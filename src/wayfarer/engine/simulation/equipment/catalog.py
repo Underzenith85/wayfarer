@@ -22,6 +22,8 @@ from wayfarer.engine.character.statistics import (
 )
 from wayfarer.engine.rules.catalog import DefinitionKind, RulesPackage
 from wayfarer.engine.rules.conformance import require_capabilities
+from wayfarer.engine.rules.skills.mundane.melee import require_mode as require_melee_mode
+from wayfarer.engine.rules.skills.mundane.melee import require_shield
 from wayfarer.engine.rules.skills.mundane.ranged import require_mode
 from wayfarer.engine.rules.types.entangle import EntangleSpec
 from wayfarer.engine.rules.types.explosion import ExplosionSpec
@@ -345,6 +347,23 @@ def require_skill_procedure(profile_id: str, mode: MeleeMode | RangedMode) -> No
         spraying=isinstance(mode, RangedMode) and mode.sprayer is not None,
         launched=isinstance(mode, RangedMode) and mode.launcher is not None,
     )
+    if isinstance(mode, MeleeMode) and profile_id == "gurps-basic-set-4e-2004":
+        parry = mode.parry
+        require_melee_mode(
+            profile_id,
+            mode.skill_id,
+            ranged=False,
+            hands=mode.hands,
+            parry=parry is not None,
+            fencing=parry.fencing if parry is not None else False,
+            unbalanced=parry.unbalanced if parry is not None else False,
+        )
+
+
+def require_shield_procedure(profile_id: str, shield: Shield | None) -> None:
+    """Keep profile dispatch out of the catalog's already-large validator."""
+    if shield is not None and profile_id == "gurps-basic-set-4e-2004":
+        require_shield(profile_id, shield.skill_id)
 
 
 class Armor(Record):
@@ -537,6 +556,7 @@ class EquipmentCatalog(Record):
                     ammo = entries.get(mode.ammunition_id)
                     if ammo is None or not ammo.ammunition:
                         raise ValueError("Missing or non-ammunition reference")
+            require_shield_procedure(self.profile_id, entry.shield)
         return self
 
     def bind(self, packages: tuple[RulesPackage, ...]) -> tuple[EquipmentSpec, ...]:
