@@ -875,6 +875,23 @@ export interface components {
        */
       equipment: components["schemas"]["EquipmentView"][];
     };
+    /** BasicJoinPlacement */
+    BasicJoinPlacement: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: "basic";
+      /** Facts */
+      facts: (
+        | components["schemas"]["DistanceSpatialFact"]
+        | components["schemas"]["ReachSpatialFact"]
+        | components["schemas"]["VisibilitySpatialFact"]
+        | components["schemas"]["CoverSpatialFact"]
+        | components["schemas"]["ObstacleSpatialFact"]
+        | components["schemas"]["RetreatSpatialFact"]
+      )[];
+    };
     /**
      * BlastResponse
      * @description GM declares chosen defenses and scene cover before any blast dice.
@@ -961,6 +978,24 @@ export interface components {
        */
       stage: "migrate" | "resume";
     };
+    /** CoverSpatialFact */
+    CoverSpatialFact: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: "cover";
+      /** Subject Id */
+      subject_id: string;
+      /** Object Id */
+      object_id: string;
+      /**
+       * Cover
+       * @enum {string}
+       */
+      cover: "none" | "partial" | "full";
+      provenance: components["schemas"]["SpatialProvenance"];
+    };
     /** DeclareThrownLanding */
     DeclareThrownLanding: {
       /** Id */
@@ -979,6 +1014,21 @@ export interface components {
       /** Item Id */
       item_id: string;
       landing: components["schemas"]["GroundPosition"];
+    };
+    /** DistanceSpatialFact */
+    DistanceSpatialFact: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: "distance";
+      /** Subject Id */
+      subject_id: string;
+      /** Object Id */
+      object_id: string;
+      /** Yards */
+      yards: number;
+      provenance: components["schemas"]["SpatialProvenance"];
     };
     /**
      * HexBattlefield
@@ -1022,11 +1072,65 @@ export interface components {
       /** Stairs */
       stairs?: components["schemas"]["Stairway"][];
     };
+    /** HexJoinPlacement */
+    HexJoinPlacement: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: "hex";
+      position: components["schemas"]["Hex"];
+      /**
+       * Facing
+       * @enum {integer}
+       */
+      facing: 0 | 1 | 2 | 3 | 4 | 5;
+    };
     /** HexPlacement */
     HexPlacement: {
       /** Actor Id */
       actor_id: string;
       pose: components["schemas"]["Pose"];
+    };
+    /** JoinEncounter */
+    JoinEncounter: {
+      /** Id */
+      id: string;
+      /** Actor Id */
+      actor_id: string;
+      /** Expected Revision */
+      expected_revision: number;
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: "join_encounter";
+      /** Encounter Id */
+      encounter_id: string;
+      /**
+       * Joining Actor Id
+       * @default null
+       */
+      joining_actor_id: string | null;
+      /**
+       * Placement
+       * @default null
+       */
+      placement:
+        | (
+            | components["schemas"]["BasicJoinPlacement"]
+            | components["schemas"]["SquareJoinPlacement"]
+            | components["schemas"]["HexJoinPlacement"]
+          )
+        | null;
+      /** @default null */
+      position: components["schemas"]["GridPoint"] | null;
+      /**
+       * Facing
+       * @default north
+       * @enum {string}
+       */
+      facing: "north" | "east" | "south" | "west";
     };
     /** MigrateEncounterHex */
     MigrateEncounterHex: {
@@ -1046,6 +1150,21 @@ export interface components {
       battlefield: components["schemas"]["HexBattlefield"];
       /** Placements */
       placements: components["schemas"]["HexPlacement"][];
+    };
+    /** ObstacleSpatialFact */
+    ObstacleSpatialFact: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: "obstacle";
+      /** Subject Id */
+      subject_id: string;
+      /** Object Id */
+      object_id: string;
+      /** Blocked */
+      blocked: boolean;
+      provenance: components["schemas"]["SpatialProvenance"];
     };
     /** Pose */
     Pose: {
@@ -1067,6 +1186,24 @@ export interface components {
         | "crawling"
         | "sitting"
         | "lying";
+    };
+    /** ReachSpatialFact */
+    ReachSpatialFact: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: "reach";
+      /** Subject Id */
+      subject_id: string;
+      /** Object Id */
+      object_id: string;
+      /**
+       * Relation
+       * @enum {string}
+       */
+      relation: "close" | "reachable" | "separated";
+      provenance: components["schemas"]["SpatialProvenance"];
     };
     /** ResolveChokeEffects */
     ResolveChokeEffects: {
@@ -1121,6 +1258,58 @@ export interface components {
        */
       environment: "air" | "water" | "vacuum";
     };
+    /** RetreatSpatialFact */
+    RetreatSpatialFact: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: "retreat";
+      /** Subject Id */
+      subject_id: string;
+      /** Object Id */
+      object_id: string;
+      /** Feasible */
+      feasible: boolean;
+      provenance: components["schemas"]["SpatialProvenance"];
+    };
+    /**
+     * SpatialProvenance
+     * @description Trusted origin and lifetime for an authoritative mapless assertion.
+     */
+    SpatialProvenance: {
+      /**
+       * Source
+       * @enum {string}
+       */
+      source: "scenario" | "gm-adjudication" | "engine-derived";
+      /** Source Id */
+      source_id: string;
+      /** Declared By */
+      declared_by: string;
+      /** Declared Revision */
+      declared_revision: number;
+      /**
+       * Invalidated Revision
+       * @default null
+       */
+      invalidated_revision: number | null;
+    };
+    /** SquareJoinPlacement */
+    SquareJoinPlacement: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: "square";
+      position: components["schemas"]["GridPoint"];
+      /**
+       * Facing
+       * @default north
+       * @enum {string}
+       */
+      facing: "north" | "east" | "south" | "west";
+    };
     /**
      * Stairway
      * @description Authored traversable edge, not permission to climb or jump a cliff.
@@ -1128,6 +1317,21 @@ export interface components {
     Stairway: {
       start: components["schemas"]["Hex"];
       end: components["schemas"]["Hex"];
+    };
+    /** VisibilitySpatialFact */
+    VisibilitySpatialFact: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      kind: "visibility";
+      /** Subject Id */
+      subject_id: string;
+      /** Object Id */
+      object_id: string;
+      /** Visible */
+      visible: boolean;
+      provenance: components["schemas"]["SpatialProvenance"];
     };
     /** TacticalRequestV2 */
     TacticalRequestV2: {
@@ -1143,7 +1347,8 @@ export interface components {
         | components["schemas"]["RetrieveEquipment"]
         | components["schemas"]["ContinueCriticalMiss"]
         | components["schemas"]["DeclareThrownLanding"]
-        | components["schemas"]["ResolveWeaponExplosion"];
+        | components["schemas"]["ResolveWeaponExplosion"]
+        | components["schemas"]["JoinEncounter"];
     };
     TacticalError: {
       code: string;

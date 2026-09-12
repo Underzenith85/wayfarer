@@ -13,6 +13,7 @@ from wayfarer.orchestration.combat import (
     CombatService,
     ContinueCriticalMiss,
     DeclareThrownLanding,
+    JoinEncounter,
     MigrateEncounterHex,
     RepairEquipment,
     ResolveChokeEffects,
@@ -62,6 +63,7 @@ class TacticalRequestV2(Record):
         | ContinueCriticalMiss
         | DeclareThrownLanding
         | ResolveWeaponExplosion
+        | JoinEncounter
     ) = Field(discriminator="kind")
 
 
@@ -141,6 +143,11 @@ async def execute(request: web.Request) -> web.Response:
     ):
         if member.role != "gm":
             raise ValidationError("Migration requires GM authority")
+    elif isinstance(command, JoinEncounter):
+        if command.joining_actor_id is not None and member.role != "gm":
+            raise ValidationError("GM admission requires GM authority")
+        if encounter.spatial_kind != "hex":
+            raise ValidationError("Tactical reinforcement requires a hex encounter")
     else:
         if encounter.spatial_kind != "hex" or command.actor_id not in encounter.turn_order:
             raise ValidationError("Tactical encounter is unavailable")

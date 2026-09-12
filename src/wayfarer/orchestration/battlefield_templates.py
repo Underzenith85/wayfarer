@@ -76,18 +76,32 @@ def prepare(
     encounter = next((e for e in state.encounters if e.id == command.encounter_id), None)
     if encounter is None:
         raise ValidationError("Unknown encounter")
-    old = next((b for b in rules.battlefields if b.id == encounter.battlefield_id), None)
-    if old is None:
-        raise ValidationError("Encounter references an unknown template")
-    if command.battlefield.id != old.id:
-        raise ValidationError("Map migration must name the current battlefield")
-    if command.battlefield.location_id not in ("unbound", old.location_id):
+    if encounter.spatial_kind == "basic":
+        scenes = play.engine.rules.scenes
+        scene = (
+            next((s for s in scenes.scenes if s.id == encounter.scene_id), None) if scenes else None
+        )
+        if scene is None:
+            raise ValidationError("Basic map escalation requires its authored scene")
+        location_id = scene.location_id
+        source_template_id = None
+        if command.battlefield.source_template_id is not None:
+            raise ValidationError("Basic map escalation has no source battlefield template")
+    else:
+        old = next((b for b in rules.battlefields if b.id == encounter.battlefield_id), None)
+        if old is None:
+            raise ValidationError("Encounter references an unknown template")
+        if command.battlefield.id != old.id:
+            raise ValidationError("Map migration must name the current battlefield")
+        location_id = old.location_id
+        source_template_id = old.id
+    if command.battlefield.location_id not in ("unbound", location_id):
         raise ValidationError("Map migration cannot change the encounter location")
     board = command.battlefield.model_copy(
         update={
-            "id": template_id(command.battlefield, old.location_id),
-            "location_id": old.location_id,
-            "source_template_id": old.id,
+            "id": template_id(command.battlefield, location_id),
+            "location_id": location_id,
+            "source_template_id": source_template_id,
         }
     )
     existing = next((b for b in rules.battlefields if b.id == board.id), None)
@@ -103,7 +117,7 @@ def prepare(
         revision=state.revision + 1,
         from_digest=play.engine.digest,
         to_digest=rebound.engine.digest,
-        reason="Move hex battlefield template into CombatRules",
+        reason="Escalate encounter to an owned hex battlefield template",
     )
     state = state.model_copy(
         update={

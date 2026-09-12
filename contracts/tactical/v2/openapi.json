@@ -2119,6 +2119,61 @@
         "title": "TacticalSnapshotV2",
         "type": "object"
       },
+      "BasicJoinPlacement": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "const": "basic",
+            "default": "basic",
+            "title": "Kind",
+            "type": "string"
+          },
+          "facts": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "cover": "#/components/schemas/CoverSpatialFact",
+                  "distance": "#/components/schemas/DistanceSpatialFact",
+                  "obstacle": "#/components/schemas/ObstacleSpatialFact",
+                  "reach": "#/components/schemas/ReachSpatialFact",
+                  "retreat": "#/components/schemas/RetreatSpatialFact",
+                  "visibility": "#/components/schemas/VisibilitySpatialFact"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/DistanceSpatialFact"
+                },
+                {
+                  "$ref": "#/components/schemas/ReachSpatialFact"
+                },
+                {
+                  "$ref": "#/components/schemas/VisibilitySpatialFact"
+                },
+                {
+                  "$ref": "#/components/schemas/CoverSpatialFact"
+                },
+                {
+                  "$ref": "#/components/schemas/ObstacleSpatialFact"
+                },
+                {
+                  "$ref": "#/components/schemas/RetreatSpatialFact"
+                }
+              ]
+            },
+            "maxItems": 1000,
+            "minItems": 1,
+            "title": "Facts",
+            "type": "array"
+          }
+        },
+        "required": [
+          "facts"
+        ],
+        "title": "BasicJoinPlacement",
+        "type": "object"
+      },
       "BlastResponse": {
         "additionalProperties": false,
         "description": "GM declares chosen defenses and scene cover before any blast dice.",
@@ -2272,6 +2327,49 @@
         "title": "ContinueCriticalMiss",
         "type": "object"
       },
+      "CoverSpatialFact": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "const": "cover",
+            "default": "cover",
+            "title": "Kind",
+            "type": "string"
+          },
+          "subject_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "object_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Object Id",
+            "type": "string"
+          },
+          "cover": {
+            "enum": [
+              "none",
+              "partial",
+              "full"
+            ],
+            "title": "Cover",
+            "type": "string"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/SpatialProvenance"
+          }
+        },
+        "required": [
+          "subject_id",
+          "object_id",
+          "cover",
+          "provenance"
+        ],
+        "title": "CoverSpatialFact",
+        "type": "object"
+      },
       "DeclareThrownLanding": {
         "additionalProperties": false,
         "properties": {
@@ -2323,6 +2421,46 @@
           "landing"
         ],
         "title": "DeclareThrownLanding",
+        "type": "object"
+      },
+      "DistanceSpatialFact": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "const": "distance",
+            "default": "distance",
+            "title": "Kind",
+            "type": "string"
+          },
+          "subject_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "object_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Object Id",
+            "type": "string"
+          },
+          "yards": {
+            "maximum": 10000,
+            "minimum": 0,
+            "title": "Yards",
+            "type": "number"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/SpatialProvenance"
+          }
+        },
+        "required": [
+          "subject_id",
+          "object_id",
+          "yards",
+          "provenance"
+        ],
+        "title": "DistanceSpatialFact",
         "type": "object"
       },
       "HexBattlefield": {
@@ -2405,6 +2543,38 @@
         "title": "HexBattlefield",
         "type": "object"
       },
+      "HexJoinPlacement": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "const": "hex",
+            "default": "hex",
+            "title": "Kind",
+            "type": "string"
+          },
+          "position": {
+            "$ref": "#/components/schemas/Hex"
+          },
+          "facing": {
+            "enum": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "title": "Facing",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "position",
+          "facing"
+        ],
+        "title": "HexJoinPlacement",
+        "type": "object"
+      },
       "HexPlacement": {
         "additionalProperties": false,
         "properties": {
@@ -2423,6 +2593,114 @@
           "pose"
         ],
         "title": "HexPlacement",
+        "type": "object"
+      },
+      "JoinEncounter": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "kind": {
+            "const": "join_encounter",
+            "default": "join_encounter",
+            "title": "Kind",
+            "type": "string"
+          },
+          "encounter_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Encounter Id",
+            "type": "string"
+          },
+          "joining_actor_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Joining Actor Id"
+          },
+          "placement": {
+            "anyOf": [
+              {
+                "discriminator": {
+                  "mapping": {
+                    "basic": "#/components/schemas/BasicJoinPlacement",
+                    "hex": "#/components/schemas/HexJoinPlacement",
+                    "square": "#/components/schemas/SquareJoinPlacement"
+                  },
+                  "propertyName": "kind"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/BasicJoinPlacement"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SquareJoinPlacement"
+                  },
+                  {
+                    "$ref": "#/components/schemas/HexJoinPlacement"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Placement"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GridPoint"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "facing": {
+            "default": "north",
+            "enum": [
+              "north",
+              "east",
+              "south",
+              "west"
+            ],
+            "title": "Facing",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "expected_revision",
+          "encounter_id"
+        ],
+        "title": "JoinEncounter",
         "type": "object"
       },
       "MigrateEncounterHex": {
@@ -2481,6 +2759,44 @@
         "title": "MigrateEncounterHex",
         "type": "object"
       },
+      "ObstacleSpatialFact": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "const": "obstacle",
+            "default": "obstacle",
+            "title": "Kind",
+            "type": "string"
+          },
+          "subject_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "object_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Object Id",
+            "type": "string"
+          },
+          "blocked": {
+            "title": "Blocked",
+            "type": "boolean"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/SpatialProvenance"
+          }
+        },
+        "required": [
+          "subject_id",
+          "object_id",
+          "blocked",
+          "provenance"
+        ],
+        "title": "ObstacleSpatialFact",
+        "type": "object"
+      },
       "Pose": {
         "additionalProperties": false,
         "properties": {
@@ -2518,6 +2834,49 @@
           "facing"
         ],
         "title": "Pose",
+        "type": "object"
+      },
+      "ReachSpatialFact": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "const": "reach",
+            "default": "reach",
+            "title": "Kind",
+            "type": "string"
+          },
+          "subject_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "object_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Object Id",
+            "type": "string"
+          },
+          "relation": {
+            "enum": [
+              "close",
+              "reachable",
+              "separated"
+            ],
+            "title": "Relation",
+            "type": "string"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/SpatialProvenance"
+          }
+        },
+        "required": [
+          "subject_id",
+          "object_id",
+          "relation",
+          "provenance"
+        ],
+        "title": "ReachSpatialFact",
         "type": "object"
       },
       "ResolveChokeEffects": {
@@ -2662,6 +3021,127 @@
         "title": "ResolveWeaponExplosion",
         "type": "object"
       },
+      "RetreatSpatialFact": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "const": "retreat",
+            "default": "retreat",
+            "title": "Kind",
+            "type": "string"
+          },
+          "subject_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "object_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Object Id",
+            "type": "string"
+          },
+          "feasible": {
+            "title": "Feasible",
+            "type": "boolean"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/SpatialProvenance"
+          }
+        },
+        "required": [
+          "subject_id",
+          "object_id",
+          "feasible",
+          "provenance"
+        ],
+        "title": "RetreatSpatialFact",
+        "type": "object"
+      },
+      "SpatialProvenance": {
+        "additionalProperties": false,
+        "description": "Trusted origin and lifetime for an authoritative mapless assertion.",
+        "properties": {
+          "source": {
+            "enum": [
+              "scenario",
+              "gm-adjudication",
+              "engine-derived"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "source_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Source Id",
+            "type": "string"
+          },
+          "declared_by": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Declared By",
+            "type": "string"
+          },
+          "declared_revision": {
+            "minimum": 0,
+            "title": "Declared Revision",
+            "type": "integer"
+          },
+          "invalidated_revision": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Invalidated Revision"
+          }
+        },
+        "required": [
+          "source",
+          "source_id",
+          "declared_by",
+          "declared_revision"
+        ],
+        "title": "SpatialProvenance",
+        "type": "object"
+      },
+      "SquareJoinPlacement": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "const": "square",
+            "default": "square",
+            "title": "Kind",
+            "type": "string"
+          },
+          "position": {
+            "$ref": "#/components/schemas/GridPoint"
+          },
+          "facing": {
+            "default": "north",
+            "enum": [
+              "north",
+              "east",
+              "south",
+              "west"
+            ],
+            "title": "Facing",
+            "type": "string"
+          }
+        },
+        "required": [
+          "position"
+        ],
+        "title": "SquareJoinPlacement",
+        "type": "object"
+      },
       "Stairway": {
         "additionalProperties": false,
         "description": "Authored traversable edge, not permission to climb or jump a cliff.",
@@ -2680,6 +3160,44 @@
         "title": "Stairway",
         "type": "object"
       },
+      "VisibilitySpatialFact": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "const": "visibility",
+            "default": "visibility",
+            "title": "Kind",
+            "type": "string"
+          },
+          "subject_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "object_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Object Id",
+            "type": "string"
+          },
+          "visible": {
+            "title": "Visible",
+            "type": "boolean"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/SpatialProvenance"
+          }
+        },
+        "required": [
+          "subject_id",
+          "object_id",
+          "visible",
+          "provenance"
+        ],
+        "title": "VisibilitySpatialFact",
+        "type": "object"
+      },
       "TacticalRequestV2": {
         "additionalProperties": false,
         "properties": {
@@ -2689,6 +3207,7 @@
                 "choose_defense": "#/components/schemas/ChooseDefense",
                 "continue_critical_miss": "#/components/schemas/ContinueCriticalMiss",
                 "declare_thrown_landing": "#/components/schemas/DeclareThrownLanding",
+                "join_encounter": "#/components/schemas/JoinEncounter",
                 "migrate_encounter_hex": "#/components/schemas/MigrateEncounterHex",
                 "repair_equipment": "#/components/schemas/RepairEquipment",
                 "resolve_choke_effects": "#/components/schemas/ResolveChokeEffects",
@@ -2733,6 +3252,9 @@
               },
               {
                 "$ref": "#/components/schemas/ResolveWeaponExplosion"
+              },
+              {
+                "$ref": "#/components/schemas/JoinEncounter"
               }
             ],
             "title": "Command"
