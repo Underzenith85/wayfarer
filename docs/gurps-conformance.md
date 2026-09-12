@@ -199,7 +199,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.campaign.traps` | no | yes | verified | #501; [authored trap branches](gurps-campaign-administration.md) |
 | `gurps.projects.invention` | no | yes | verified | #524; [ordinary persisted invention lifecycle](gurps-inventions.md) |
 | `gurps.world.law` | no | yes | verified | #502; [jurisdictions, legality, and enforcement](gurps-law.md) |
-| `gurps.social.skill_procedures` | no | yes | partial | #345; [bound social skill procedures and their transferred rows](gurps-mundane-skills.md); remaining #353, #366, #367, #368, #369, #370 |
+| `gurps.social.skill_procedures` | no | yes | partial | #345 parent audit complete; [16 executable headline rows and explicit transfers](gurps-mundane-skills.md#social-procedures-345); residual #353, #366–#370 |
 | `gurps.skills.arts_trades` | no | yes | partial | #338; [task-specific arts, crafts and trade procedures](gurps-mundane-skills.md#arts-crafts-and-trade-procedures-338) |
 | `gurps.combat.melee_weapon_skills` | no | yes | partial | #339; [bound melee, unarmed, defense and tactical skill procedures](gurps-mundane-skills.md#combat-skill-procedures-339) |
 | `gurps.combat.technique_procedures` | no | yes | partial | #340; [parent-specific combat technique procedures](gurps-mundane-skills.md#combat-technique-procedures-340) |
