@@ -245,10 +245,15 @@ def test_bolas_and_net_are_dispatched_with_their_recorded_mechanics() -> None:
         assert entry.definition is not None and entry.definition.skill is not None
         assert entry.definition.skill.reference == page
         assert entry.definition.skill.difficulty.value == difficulty
-        # B181/B211 record no attribute default for either row.
-        assert entry.definition.skill.defaults == ()
-    # #354 is discharged; only the defaults blocker still names a child.
+    bolas = entries["skill:bolas"].definition
+    net = entries["skill:net"].definition
+    assert bolas is not None and bolas.skill is not None
+    assert net is not None and net.skill is not None
+    assert bolas.skill.defaults == ()
+    assert [(default.target, default.modifier) for default in net.skill.defaults] == [
+        ("skill:cloak", -5)
+    ]
+    # #354 and the defaults gaps are discharged.
     assert entries["skill:bolas"].owners == (344,)
-    # #336 split conditional defaults into #383, which now owns the base.
-    assert entries["skill:net"].blocker_owners["conditional-or-skill-defaults"] == (383, 362)
+    assert entries["skill:net"].blocker_owners == {}
     assert 354 not in {i for e in entries.values() for i in e.followup_issues}

@@ -138,9 +138,9 @@ def test_mundane_skill_rows_carry_item_level_owners_and_certification_state() ->
         336,
         345,
         366,
-        383,
         385,
+        476,
     )
     assert next(r for r in rows if r.id == "skill:bow").blockers == (112, 336, 344)
-    assert next(r for r in rows if r.id == "skill:net").blockers == (112, 336, 344, 362, 383)
+    assert next(r for r in rows if r.id == "skill:net").blockers == (112, 336, 344, 362)
     assert next(r for r in rows if r.id == "skill:broadsword").blockers == (103, 112, 336, 339)

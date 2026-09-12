@@ -70,36 +70,33 @@ def test_tl_defaults_fail_closed_then_select_the_best_satisfied_edge() -> None:
     assert pistol.default_conditions[0].kind is DefaultConditionKind.MATCHING_TECHNOLOGY_LEVEL
 
 
-def test_only_unavailable_default_targets_remain_blocked() -> None:
+def test_previously_unavailable_default_targets_are_recorded() -> None:
     blocked = {
         identifier
         for identifier, procedure in PROCEDURES.items()
         if CONDITIONAL_DEFAULTS in procedure.transferred
     }
-    assert blocked == {
-        "skill:net",
-        "skill:thrown-weapon-dart",
-        "skill:thrown-weapon-shuriken",
-    }
+    assert blocked == set()
     published = {
         identifier for identifier, scope in ranged_scope() if scope.id == "unrecorded-default"
     }
     assert published == blocked
 
     entries = {entry.id: entry for entry in inventory()}
-    for identifier in blocked:
-        entry = entries[identifier]
-        assert entry.blocker_owners[CONDITIONAL_DEFAULTS] == (383, 362)
-        assert {383, 362} <= set(entry.followup_issues)
+    net = entries["skill:net"].definition
+    assert net is not None and net.skill is not None
+    assert [(d.target, d.modifier) for d in net.skill.defaults] == [("skill:cloak", -5)]
+    for identifier in ("skill:thrown-weapon-dart", "skill:thrown-weapon-shuriken"):
+        definition = entries[identifier].definition
+        assert definition is not None and definition.skill is not None
+        assert [(d.target, d.modifier) for d in definition.skill.defaults] == [
+            ("attribute:dx", -4),
+            ("skill:throwing", -2),
+        ]
 
 
 def test_remaining_gaps_reach_the_certification_report() -> None:
     scope = audit_report()["transferred_procedure_scope"]
     assert isinstance(scope, list)
     gaps = [row for row in scope if row["id"] == "unrecorded-default"]
-    assert {row["skill"] for row in gaps} == {
-        "skill:net",
-        "skill:thrown-weapon-dart",
-        "skill:thrown-weapon-shuriken",
-    }
-    assert all(row["owner_issue"] == 362 and row["detail"] for row in gaps)
+    assert gaps == []

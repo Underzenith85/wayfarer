@@ -12,6 +12,7 @@ Identifier = Annotated[str, Field(pattern=r"^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$")]
 Blocker = Literal[
     "combat-procedure",
     "conditional-or-skill-defaults",
+    "contextual-default-procedure",
     "family-specialty-expansion",
     "prerequisite-procedure",
     "runtime-procedure",

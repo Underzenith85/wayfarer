@@ -40,7 +40,7 @@ def test_inventory_and_references() -> None:
     } <= ids
     assert len(entries) > 180
     # Physics and Research become available once their acquisition context is explicit.
-    assert audit_report()["available"] == 92
+    assert audit_report()["available"] == 174
     assert all(e.followup_issues for e in entries)
     RulesCatalog((candidate_package(),))
     assert candidate_package().digest == candidate_package().digest
@@ -251,7 +251,7 @@ def test_structural_classes_are_recorded_and_completely_sampled() -> None:
         # B176/B219 Astronomy needs a trained prerequisite and a TL.
         "skill:astronomy": {"attribute-default", "prerequisite", "technology-level"},
         # B176 Area Knowledge takes a campaign-scoped place, not a closed list.
-        "skill:area-knowledge": {"attribute-default", "variable-family"},
+        "skill:area-knowledge": {"attribute-default", "skill-default", "variable-family"},
         # B192: distinct suit skill with all numeric defaults.
         "skill:vacc-suit": {
             "attribute-default",
@@ -336,11 +336,8 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     # children that own them, instead of resolving them into its own number.
     assert entries["skill:bow"].owners == (344,)
     assert entries["skill:bolas"].owners == (344,)
-    # #336 split its remaining contextual work into concrete children, so a
-    # blocker names the residual that owns it, plus any child a procedure split.
-    assert entries["skill:net"].blocker_owners == {
-        "conditional-or-skill-defaults": (383, 362),
-    }
+    # B211's Cloak-5 alternative is now recorded, retiring both default gaps.
+    assert entries["skill:net"].blocker_owners == {}
     assert entries["skill:guns"].owners == (344,)
     assert entries["skill:artillery"].owners == (344,)
     assert entries["skill:spear-thrower"].owners == (344,)
@@ -368,10 +365,10 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         368,
         369,
         370,
-        383,
         384,
         385,
         390,
+        476,
     )
     with pytest.raises(ValidationError, match="outside the selected profile"):
         coverage_blockers("gurps-lite-4e-2004")
@@ -400,10 +397,10 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         368,
         369,
         370,
-        383,
         384,
         385,
         390,
+        476,
     ]
     assert report["runtime_owner_unassigned"] == 0
     assert report["implementation_counts"] == {
@@ -426,9 +423,6 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
         "skill:performance",
         "skill:public-speaking",
         "skill:teaching",
-        # #362 now publishes only rows whose default target is unavailable.
-        "skill:thrown-weapon-dart",
-        "skill:net",
     } <= published
     assert all(row["owner_issue"] in (362, 368, 369, 370, 398) and row["detail"] for row in scope)
     counts = report["structural_class_counts"]

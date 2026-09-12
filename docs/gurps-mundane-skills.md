@@ -51,17 +51,17 @@ also verifies names, pages and owners against the supernatural catalog.
 
 | Accounting group | Rows | Decision |
 | --- | ---: | --- |
-| Structured candidate definitions | 176 | Unsupported; source/runtime blockers remain. |
-| Bound runtime procedures | 233 | Implemented and dispatched by #344 (12), #345 (16), #346 (83), #356 (83) and the TL-indexed and crew-served ranged rows (#354, #355, #357). Of all inventory rows, 92 currently have no remaining blocker. |
+| Structured candidate definitions | 243 | Unsupported; runtime or campaign-context blockers remain. |
+| Bound runtime procedures | 233 | Implemented and dispatched by #344 (12), #345 (16), #346 (83), #356 (83) and the TL-indexed and crew-served ranged rows (#354, #355, #357). Of all inventory rows, 174 currently have no remaining blocker. |
 | Contextual records | 28 | 23 B230-233 technique templates and five open families (#336). Not rollable skills, so they record a shape rather than a definition. No row is left recording nothing at all. |
 | Transferred cinematic/supernatural skills | 28 | Owned by #242/#243 and source audit #191. |
-| **Total accounted records** | **532** | **504 inventory rows plus 28 transferred rows; 92 inventory rows are available.** |
+| **Total accounted records** | **532** | **504 inventory rows plus 28 transferred rows; 174 inventory rows are available.** |
 
 This revision fills the previously empty Aerobatics, Aquabatics, crewman, suit
 and weapon entries; records Weather Sense as a TL-dependent Meteorology alias;
 and accounts for Brain Hacking, Melee Weapon and every named technique. B208–B209
-weapon defaults include category cross-defaults. The scope of Force Sword's
-"any sword" default remains explicitly blocked. Brain Hacking's cross-package
+weapon defaults include category cross-defaults. Force Sword's nine applicable
+sword-family alternatives are now explicit. Brain Hacking's cross-package
 prerequisite, variable families and context-sensitive definitions remain blocked.
 
 The candidate package now owns its numeric data instead of inheriting it from
@@ -71,15 +71,15 @@ is not converted into an ordinary DX skill.
 
 | Structural class | Rows |
 | --- | ---: |
-| `attribute-default` | 323 |
-| `skill-default` | 71 |
-| `no-default` | 62 |
-| `technology-level` | 227 |
-| `required-specialty` | 166 |
-| `unexpanded-specialty` | 59 |
+| `attribute-default` | 377 |
+| `skill-default` | 281 |
+| `no-default` | 43 |
+| `technology-level` | 252 |
+| `required-specialty` | 233 |
+| `unexpanded-specialty` | 24 |
 | `listing-only` | 28 |
 | `technique-template` | 24 |
-| `variable-family` | 9 |
+| `variable-family` | 28 |
 | `alternative-prerequisite` | 3 |
 | `technique` | 6 |
 | `prerequisite` | 25 |
@@ -89,10 +89,10 @@ is not converted into an ordinary DX skill.
 Classes overlap, and a class describes what a row records structurally while
 `implementation` describes its certification state: the 28 `listing-only` rows
 record no rollable definition, and 28 of them are `contextual` because they do
-record a technique template or an open family. Four of the nine `variable-family`
-rows do carry a definition: B180 Biology is IQ/VH whichever planet type it
-covers, so those rows record the numbers and leave only the subject open. `no-default` means no default is
-recorded, not a claim that conditional defaults have been exhaustively verified. Fixtures sample every
+record a technique template or an open family. Twenty-three of the 28 `variable-family`
+rows carry a definition: B180 Biology is IQ/VH whichever planet type it
+covers, so those rows record the numbers and leave only the subject open. `no-default` means the
+selected printing records no default for that row. Fixtures sample every
 class with independently stated source expectations.
 
 ## Remaining ownership
@@ -106,7 +106,8 @@ retained where previously recorded, but they do not replace the active owners.
 | --- | --- |
 | #336 | Complete. The contextual shapes landed; everything it could not settle without the artifact or campaign state names one of the four children below. |
 | #382 | Reconciled: the supplied Characters third printing is the selected source artifact. |
-| #383 | Conditional skill defaults and the remaining alternative prerequisites. |
+| #383 | Complete. Static and typed conditional defaults, remaining alternative prerequisites, and the Force Sword audit are recorded. |
+| #476 | Campaign- and action-scoped default predicates that cannot be represented by matching TL, matching specialty, or required equipment. |
 | #384 | Complete. `/TL` purchases record TL explicitly, profiles activating those skills require an explicit campaign TL, and cinematic templates name and enforce their optional-rule selections. |
 | #385 | Complete. All open and finite specialty families are recorded; Motion-Picture Camera is explicitly transferred to its open Photography parent work in #338. |
 | #338 | Arts, crafts and trade procedures. |
@@ -116,7 +117,7 @@ retained where previously recorded, but they do not replace the active owners.
 | #342 | Medicine and mental procedures. |
 | #343 | Physical, outdoor and animal procedures. |
 | #344 | Ranged combat skill procedures; see below for what it bound and what it transferred. |
-| #362 | Ranged defaults whose target is not yet dispatched: Net, Thrown Weapon (Dart), and Thrown Weapon (Shuriken). |
+| #362 | Complete. Net, Thrown Weapon (Dart), and Thrown Weapon (Shuriken) retain defaults to inactive targets without activating those targets. |
 | #345 | Social skill procedures; see below for what it bound and what it transferred. |
 | #346 | Technology, science and vehicle procedures; see below for what it bound and what it transferred. |
 | #353 | Conditional and alternative mundane skill defaults and prerequisites. |
@@ -151,9 +152,9 @@ equipment catalog is built and again when a mode is selected in play.
 | `skill:sling` | B221, DX/H, DX-6 | Implemented. Launcher with a pinned missile. |
 | `skill:blowpipe` | B180, DX/H, DX-6 | Implemented. Launcher with a pinned missile. Poisoned ammunition is an ammunition mechanic, not part of this skill. |
 | `skill:thrown-weapon` | B226, DX/E, DX-4 | Family expanded into seven concrete specialties (Axe/Mace, Dart, Harpoon, Knife, Shuriken, Spear, Stick) and never dispatched itself. |
-| `skill:thrown-weapon-*` | B226, DX/E, DX-4 | Implemented. Harpoon and Spear record their mutual and spear-thrower defaults. Dart and Shuriken remain #362 until Throwing is dispatched. The projectile is the item; it leaves active inventory and is retained in `expended_items`. |
+| `skill:thrown-weapon-*` | B226, DX/E, DX-4 | Implemented. Harpoon and Spear record their mutual and spear-thrower defaults; Dart and Shuriken record Throwing-2. The projectile is the item; it leaves active inventory and is retained in `expended_items`. |
 | `skill:bolas` | B181, DX/A | Implemented. A landed throw binds the target; the binding, not the damage, is the outcome. |
-| `skill:net` | B211, DX/H | Implemented. Cross-skill defaults remain with #362. |
+| `skill:net` | B211, DX/H | Implemented with its Cloak-5 default. |
 | `skill:spear-thrower` | B222, DX/A, DX-5 or Thrown Weapon (Spear)-4 | Implemented. A separate held launcher improves the throw and is not consumed. |
 | `skill:guns` | B198, DX/E, DX-4 | Family expanded into eight concrete specialties (Pistol, Rifle, Shotgun, Submachine Gun, Light Machine Gun, Musket, Grenade Launcher, Light Anti-Armor Weapon); never dispatched itself. |
 | `skill:beam-weapons` | B179, DX/E, DX-4 | Family expanded into three concrete specialties (Pistol, Rifle, Projector); never dispatched itself. |
@@ -260,7 +261,7 @@ record, and ranged dispatch hook the adapter never carried. The fireball channel
 accepts either, so the existing spell adapter remains valid.
 Evidence is in `tests/test_innate_attack_specialties.py`.
 
-### Ranged defaults (#362)
+### Ranged defaults (#362/#383)
 
 The ranged audit records the exact B178-B179, B198-B199, B201, B205, B211,
 B222, and B226 relationships. Reciprocal specialties resolve from purchased
@@ -269,12 +270,12 @@ from feeding around a cycle, while final learned levels may still support
 one-way defaults outside that component. TL-indexed edges require matching,
 explicit skill TL facts and otherwise fail closed.
 
-Three rows remain blocked. Net depends on Cloak, while Thrown Weapon (Dart) and
-Thrown Weapon (Shuriken) depend on Throwing; those target skills are not yet
-dispatched by their #339 and #343 procedure groups. These rows continue to emit
-`unrecorded-default` scope under #383/#362 rather than exposing a reference the
-active package cannot satisfy. `tests/test_ranged_default_gaps.py` pins the
-source relationships, conditional selection, and this residual set.
+Net's Cloak-5 default and the Throwing-2 defaults for Thrown Weapon (Dart) and
+Thrown Weapon (Shuriken) are recorded even though Cloak and Throwing are not
+active in the ranged package. The compiler ignores an unavailable target and
+uses it normally once present, so source truth does not activate an unsupported
+procedure. `tests/test_ranged_default_gaps.py` pins these relationships and
+conditional selection.
 
 A binding may only resolve or keep the blockers the inventory recorded, and its
 numbers must be the recorded ones: `inventory()` raises on either drift, and on
@@ -387,7 +388,7 @@ receipt. Typed acquisition prerequisites now distinguish trained skills,
 purchased definitions, and derived capabilities; technology-level thresholds
 apply only when the campaign reaches the stated TL. Firm requirements and
 alternative groups fail closed both in compilation and direct procedure use.
-Conditional defaults remain owned by #383.
+Defaults needing campaign- or action-specific predicates name #476.
 
 Every bound vehicle row also records `gurps.vehicles.movement`, which is still
 `partial`; #358 must verify it before live play may offer those rows. The
@@ -427,8 +428,8 @@ no second engine exists, and a family row is still refused before dice.
 
 The mechanics of a specialty are its family's: same attribute, same difficulty,
 same recorded defaults, same page. A specialty that rolled against different
-numbers would be a different skill. Cross-specialty defaults are not implemented
-and keep naming #383. Engineer's Mathematics (Applied) requirement at TL5+ is
+numbers would be a different skill. Finite cross-specialty defaults are recorded
+with matching-TL and matching-specialty predicates where required. Engineer's Mathematics (Applied) requirement at TL5+ is
 enforced for the family and every concrete specialty; Engineer (Materials)
 additionally accepts Chemistry or Metallurgy as its source-listed alternative
 group.
@@ -478,8 +479,8 @@ along with the compiler behaviour and every recorded template and family.
 
 What this issue could not settle is split into concrete children, each owning
 specific blockers rather than a share of a general one. **#382** selected the
-supplied printing and is resolved; **#383** owns conditional defaults and the
-remaining alternative prerequisites, **#384** (complete) technology-level
+supplied printing and is resolved; **#383** completed conditional defaults and
+the remaining alternative prerequisites, **#384** (complete) technology-level
 context and optional-rule selection, and **#385** (complete) specialty-family
 expansion. Nineteen of #385's families explicitly name their campaign-scoped
 subject rather than treating source examples as an exhaustive list; its finite
@@ -505,15 +506,16 @@ technology procedure adapter derives its operator from those server-approved
 facts. Dual-Weapon Attack and Whirlwind Attack name separate optional-rule IDs
 and refuse expansion unless the registered profile selected the matching one.
 Empty conditions are omitted from canonical package JSON, preserving existing
-pins, and this prerelease change does not increment an engine or package version. The
-source-backed conditional-default migration remains open under #383; the
-`prerequisite-procedure` blocker class is empty after the B168-B223 audit.
+pins, and this prerelease change does not increment an engine or package version.
+All source-representable defaults are recorded; 76 campaign- or action-scoped
+rows name #476. The `conditional-or-skill-defaults`, `weapon-default-audit`, and
+`prerequisite-procedure` blocker classes are empty.
 
 ## Validation and runtime contract
 
 Unsupported candidates in this package have no runtime hooks. `require_available`
 rejects unknown IDs, blocked rows and unsupported definitions even if their
-blocker list is mistakenly cleared; the 92 available rows have both a concrete
+blocker list is mistakenly cleared; the 174 available rows have both a concrete
 implementation and no remaining blocker. Scenario/character/LLM validation
 therefore cannot turn catalog presence alone into playable mechanics.
 

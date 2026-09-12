@@ -1,0 +1,65 @@
+{
+  "source": "GURPS Basic Set: Characters, Fourth Edition, third printing (February 2008)",
+  "cases": [
+    {
+      "id": "skill:architecture",
+      "reference": "B176",
+      "defaults": [
+        ["attribute:iq", -5, []],
+        ["skill:engineer-civil", -4, ["matching-technology-level"]]
+      ]
+    },
+    {
+      "id": "skill:bioengineering-cloning",
+      "reference": "B180",
+      "defaults": [
+        ["skill:bioengineering-genetic-engineering", -4, ["matching-technology-level"]],
+        ["skill:bioengineering-tissue-engineering", -4, ["matching-technology-level"]],
+        ["skill:biology", -5, ["matching-technology-level"]]
+      ]
+    },
+    {
+      "id": "skill:electronics-operation-communications",
+      "reference": "B189",
+      "exact": false,
+      "defaults": [
+        ["skill:electronics-repair-communications", -5, ["matching-technology-level", "matching-specialty"]]
+      ]
+    },
+    {
+      "id": "skill:force-sword",
+      "reference": "B208",
+      "defaults": [
+        ["skill:broadsword", -3, []],
+        ["skill:jitte-sai", -3, []],
+        ["skill:knife", -3, []],
+        ["skill:shortsword", -3, []],
+        ["skill:two-handed-sword", -3, []],
+        ["skill:main-gauche", -3, []],
+        ["skill:rapier", -3, []],
+        ["skill:saber", -3, []],
+        ["skill:smallsword", -3, []]
+      ]
+    },
+    {
+      "id": "skill:net",
+      "reference": "B211",
+      "defaults": [
+        ["skill:cloak", -5, []]
+      ]
+    },
+    {
+      "id": "skill:religious-ritual",
+      "reference": "B217",
+      "defaults": [
+        ["skill:ritual-magic", -6, ["matching-specialty"]],
+        ["skill:theology", -4, ["matching-specialty"]]
+      ]
+    }
+  ],
+  "contextual_residuals": {
+    "skill:area-knowledge": [476],
+    "skill:shadowing": [476],
+    "skill:savoir-faire": [476]
+  }
+}
