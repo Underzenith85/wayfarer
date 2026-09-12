@@ -12,7 +12,6 @@ from wayfarer.engine.simulation.combat.encounter import (
     CombatResult,
     Encounter,
     PendingDefense,
-    basic_distance,
     basic_reachable,
     basic_visible,
     move_basic,
@@ -21,7 +20,6 @@ from wayfarer.engine.simulation.combat.maneuvers import (
     ATTACK_MANEUVERS,
     AttackOption,
     DefenseOption,
-    ManeuverState,
     WaitInterrupt,
     WaitTrigger,
 )
@@ -29,9 +27,9 @@ from wayfarer.engine.simulation.combat.spatial import (
     BasicSpatialContext,
 )
 from wayfarer.engine.simulation.combat.tactical import move_hex, sight
+from wayfarer.engine.simulation.combat.turn_commitment import prepare as prepare_commitment
 from wayfarer.engine.simulation.combat.vocabulary import Facing, Maneuver, Posture
 from wayfarer.engine.simulation.hex_geometry import Hex, HexFacing
-from wayfarer.engine.simulation.magic.spells import active_spells
 from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 
@@ -424,197 +422,23 @@ def apply_turn(
     if step_timing == "after" and maneuver != "attack":
         raise ValidationError("Post-attack movement requires Attack")
     if engine.rules.gurps_equipment is not None:
-        old = participant.maneuver_state
-        if participant.last_maneuver != "evaluate":
-            old = old.model_copy(update={"evaluate_target_id": None, "evaluate_bonus": 0})
-        if participant.last_maneuver != "feint":
-            old = old.model_copy(update={"feint_target_id": None, "feint_penalty": 0})
-        commitment = ManeuverState()
-        if maneuver in ATTACK_MANEUVERS or maneuver == "feint":
-            commitment = commitment.model_copy(
-                update={
-                    "aim_item_id": old.aim_item_id,
-                    "aim_target_id": old.aim_target_id,
-                    "aim_mode_id": old.aim_mode_id,
-                    "aim_seconds": old.aim_seconds if participant.last_maneuver == "aim" else 0,
-                    "aim_accuracy": old.aim_accuracy,
-                    "aim_braced": old.aim_braced,
-                    "aim_sight_bonus": old.aim_sight_bonus,
-                    "evaluate_target_id": old.evaluate_target_id,
-                    "evaluate_bonus": old.evaluate_bonus,
-                    "feint_target_id": old.feint_target_id,
-                    "feint_penalty": old.feint_penalty,
-                    "stop_thrust_damage_bonus": old.stop_thrust_damage_bonus,
-                }
-            )
-        if maneuver == "all_out_attack":
-            if attack_option is None:
-                raise ValidationError("Choose an All-Out Attack option")
-            commitment = commitment.model_copy(
-                update={
-                    "defense_forbidden": True,
-                    "attack_bonus": 4 if attack_option == "determined" else 0,
-                    "strong": attack_option == "strong",
-                    "attacks_remaining": int(attack_option == "double"),
-                    "second_attack_item_id": second_item_id,
-                    "second_attack_target_id": second_target_id,
-                    "second_attack_mode_id": second_mode_id,
-                }
-            )
-            if attack_option == "double":
-                if second_target_id not in (None, target_id):
-                    raise ValidationError("All-Out Attack (Double) attacks the same foe")
-                if second_item_id is not None:
-                    hands = {item: hand for item, hand in participant.hand_bindings}
-                    if (
-                        second_item_id == item_id
-                        or second_item_id not in participant.ready_item_ids
-                        or item_id not in hands
-                        or second_item_id not in hands
-                        or hands[item_id] == hands[second_item_id]
-                    ):
-                        raise ValidationError("Double requires two distinct ready one-hand weapons")
-                    commitment = commitment.model_copy(
-                        update={
-                            "second_attack_target_id": target_id,
-                            "attack_bonus": -4 if hands[item_id] == "left-hand" else 0,
-                            "second_attack_penalty": -4
-                            if hands[second_item_id] == "left-hand"
-                            else 0,
-                        }
-                    )
-            elif any(v is not None for v in (second_item_id, second_target_id, second_mode_id)):
-                raise ValidationError("Second attack choices require All-Out Attack (Double)")
-        if maneuver == "move_and_attack":
-            commitment = commitment.model_copy(
-                update={"attack_bonus": -4, "attack_cap": 9, "parry_forbidden": True}
-            )
-        if maneuver in ATTACK_MANEUVERS:
-            commitment = commitment.model_copy(
-                update={
-                    "aim_item_id": old.aim_item_id,
-                    "aim_target_id": old.aim_target_id,
-                    "aim_mode_id": old.aim_mode_id,
-                    "aim_seconds": old.aim_seconds if participant.last_maneuver == "aim" else 0,
-                    "aim_accuracy": old.aim_accuracy,
-                    "aim_braced": old.aim_braced,
-                    "aim_sight_bonus": old.aim_sight_bonus,
-                    "evaluate_target_id": old.evaluate_target_id,
-                    "evaluate_bonus": old.evaluate_bonus,
-                    "feint_target_id": old.feint_target_id,
-                    "feint_penalty": old.feint_penalty,
-                    "stop_thrust_damage_bonus": old.stop_thrust_damage_bonus,
-                }
-            )
-        if maneuver == "concentrate":
-            commitment = commitment.model_copy(
-                update={
-                    "concentrating": True,
-                    "concentration_seconds": old.concentration_seconds + 1
-                    if old.concentrating
-                    else 1,
-                }
-            )
-        if maneuver == "all_out_defense":
-            if defense_option is None:
-                raise ValidationError("Choose the enhanced active defense")
-            commitment = commitment.model_copy(update={"enhanced_defense": defense_option})
-        if maneuver == "wait":
-            if (
-                wait_trigger is None
-                or wait_trigger.actor_id == actor_id
-                or (
-                    wait_trigger.actor_id is not None
-                    and wait_trigger.actor_id not in encounter.turn_order
-                )
-            ):
-                raise ValidationError("Wait requires an observable other combatant trigger")
-
-            held_missile = any(
-                effect.actor_id == actor_id
-                and effect.spell_id == "fireball"
-                and effect.execute_effects
-                and wait_trigger.item_id
-                == "spell:" + hashlib.sha256(effect.cast_id.encode()).hexdigest()
-                for effect in active_spells(resources)
-            )
-            if held_missile and (
-                wait_trigger.reaction != "attack" or wait_trigger.mode_id is not None
-            ):
-                raise ValidationError("Held missile Wait supports its declared release only")
-            if (
-                wait_trigger.unarmed is None
-                and wait_trigger.item_id not in participant.ready_item_ids
-                and wait_trigger.reaction != "ready"
-                and not held_missile
-            ):
-                raise ValidationError("Wait attack requires a ready weapon")
-            if (
-                wait_trigger.reaction != "ready"
-                and wait_trigger.reaction_target_id not in encounter.turn_order
-            ):
-                raise ValidationError("Wait attack requires a declared target")
-            if (wait_trigger.reaction == "all_out_attack") != (
-                wait_trigger.attack_option is not None
-            ):
-                raise ValidationError("Wait All-Out Attack requires its option in advance")
-            if wait_trigger.zone:
-                if encounter.spatial_kind != "hex":
-                    raise ValidationError("Wait zones require an explicit hex battlefield")
-                cells = {
-                    (cell.position.q, cell.position.r)
-                    for cell in engine.require_hex(encounter).cells
-                }
-                if not set(wait_trigger.zone) <= cells:
-                    raise ValidationError("Wait zone is outside the battlefield")
-            if wait_trigger.stop_thrust:
-                if basic:
-                    raise ValidationError("Basic stop thrust requires explicit GM adjudication")
-                if (
-                    wait_trigger.actor_id is None
-                    or wait_trigger.reaction_target_id != wait_trigger.actor_id
-                ):
-                    raise ValidationError("Stop thrust requires one declared charging foe")
-            commitment = commitment.model_copy(update={"wait": wait_trigger})
-        if maneuver in ("evaluate", "aim", "feint"):
-            target = next((p for p in encounter.participants if p.actor_id == target_id), None)
-            if target is None or target.actor_id == actor_id:
-                raise ValidationError("Maneuver requires another combatant target")
-            reach = participant.reach + (
-                participant.movement_allowance if maneuver == "evaluate" else 0
-            )
-            if (
-                maneuver != "aim"
-                and (
-                    basic_distance(encounter, participant.actor_id, target.actor_id)
-                    if basic
-                    else engine.distance(participant.position, target.position)
-                )
-                > reach
-            ):
-                raise ValidationError("Maneuver target is outside melee reach")
-            if maneuver == "evaluate":
-                commitment = commitment.model_copy(
-                    update={
-                        "evaluate_target_id": target_id,
-                        "evaluate_bonus": min(3, old.evaluate_bonus + 1)
-                        if old.evaluate_target_id == target_id
-                        else 1,
-                    }
-                )
-            elif maneuver == "aim":
-                if item_id not in participant.ready_item_ids:
-                    raise ValidationError("Aim requires a ready ranged weapon")
-                commitment = commitment.model_copy(
-                    update={
-                        "aim_item_id": item_id,
-                        "aim_target_id": target_id,
-                        "aim_seconds": min(3, old.aim_seconds + 1)
-                        if (old.aim_item_id, old.aim_target_id) == (item_id, target_id)
-                        else 1,
-                    }
-                )
-        participant = participant.model_copy(update={"maneuver_state": commitment})
+        participant = prepare_commitment(
+            engine,
+            encounter,
+            participant,
+            resources,
+            actor_id=actor_id,
+            maneuver=maneuver,
+            item_id=item_id,
+            target_id=target_id,
+            attack_option=attack_option,
+            defense_option=defense_option,
+            wait_trigger=wait_trigger,
+            second_item_id=second_item_id,
+            second_target_id=second_target_id,
+            second_mode_id=second_mode_id,
+            basic=basic,
+        )
         step_maneuvers = {
             "attack",
             "aim",
