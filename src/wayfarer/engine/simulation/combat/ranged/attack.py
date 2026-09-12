@@ -8,9 +8,10 @@ from wayfarer.engine.rules.types.location import HitLocation
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog
 from wayfarer.engine.simulation.combat.encounter import Encounter
+from wayfarer.engine.simulation.combat.equipment_entry import weapon_target
 from wayfarer.engine.simulation.combat.firearm_transitions import validate_attack
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
-from wayfarer.engine.simulation.combat.objects.combat import target_geometry, weapon_target
+from wayfarer.engine.simulation.combat.objects.combat import target_geometry
 from wayfarer.engine.simulation.combat.objects.locations import validate_target
 from wayfarer.engine.simulation.combat.ranged.situation import situation
 from wayfarer.engine.simulation.combat.ranged.strength import validate_rated_strength

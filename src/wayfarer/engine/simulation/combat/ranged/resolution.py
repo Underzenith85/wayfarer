@@ -28,6 +28,7 @@ from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.entangle import attack_penalty as entangle_attack_penalty
 from wayfarer.engine.simulation.combat.entangle import bind as entangle_bind
+from wayfarer.engine.simulation.combat.equipment_effects import defense_stress
 from wayfarer.engine.simulation.combat.firearm_transitions import (
     before_attack,
     roll_malfunction,
@@ -42,7 +43,6 @@ from wayfarer.engine.simulation.combat.maneuver_transitions import distracted
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
 from wayfarer.engine.simulation.combat.objects.combat import (
     damage_target,
-    defense_stress,
     intercepted_projectiles,
     shield_damage,
     target_geometry,

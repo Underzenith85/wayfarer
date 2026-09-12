@@ -263,7 +263,7 @@ async def test_ground_projectile_uses_item_distance_and_zero_speed(tmp_path: Pat
                 )
             }
         )
-        from wayfarer.engine.simulation.combat.objects.combat import synchronize
+        from wayfarer.engine.simulation.combat.equipment_effects import synchronize
 
         state = state.model_copy(
             update={

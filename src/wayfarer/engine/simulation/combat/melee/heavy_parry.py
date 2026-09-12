@@ -10,9 +10,9 @@ from wayfarer.engine.rules.types.object import residual_definition
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.combat.critical import Die
 from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
+from wayfarer.engine.simulation.combat.equipment_effects import synchronize
 from wayfarer.engine.simulation.combat.equipment_entry import effective_entry
 from wayfarer.engine.simulation.combat.melee.modes import heavy_parry_weight
-from wayfarer.engine.simulation.combat.objects.combat import synchronize
 from wayfarer.engine.simulation.equipment.catalog import EquipmentProfile
 from wayfarer.engine.simulation.resources import Item, ResourceEvent
 from wayfarer.engine.simulation.rules_context import RulesContext

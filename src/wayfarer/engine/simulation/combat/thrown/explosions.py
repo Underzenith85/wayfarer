@@ -16,10 +16,10 @@ from wayfarer.engine.simulation.actors import catalog, movement
 from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
+from wayfarer.engine.simulation.combat.equipment_effects import synchronize
 from wayfarer.engine.simulation.combat.explosions import BlastRecord, blasts, save
 from wayfarer.engine.simulation.combat.firearms import spend_rounds
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
-from wayfarer.engine.simulation.combat.objects.combat import synchronize
 from wayfarer.engine.simulation.combat.thrown.flight import position
 from wayfarer.engine.simulation.combat.unarmed.injury import hurt
 from wayfarer.engine.simulation.equipment.catalog import RangedMode

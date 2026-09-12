@@ -21,6 +21,7 @@ from wayfarer.engine.simulation.combat.critical import IncomingWound
 from wayfarer.engine.simulation.combat.criticals.context import capture_critical
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.entangle import attack_penalty as entangle_attack_penalty
+from wayfarer.engine.simulation.combat.equipment_effects import defense_stress, synchronize
 from wayfarer.engine.simulation.combat.maneuver_transitions import distracted
 from wayfarer.engine.simulation.combat.maneuvers import attack_modifier
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
@@ -28,11 +29,9 @@ from wayfarer.engine.simulation.combat.melee.heavy_parry import resolve_heavy_pa
 from wayfarer.engine.simulation.combat.melee.modes import mode
 from wayfarer.engine.simulation.combat.objects.combat import (
     critical_breakage,
-    defense_stress,
     intercepting_shield,
     shield_damage,
     shock,
-    synchronize,
     target_modifier,
 )
 from wayfarer.engine.simulation.combat.objects.locations import from_behind, unavailable_hand

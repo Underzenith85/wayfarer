@@ -12,8 +12,10 @@ from wayfarer.engine.simulation.combat.combat_height import defense_height
 from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.entangle import defense_penalty as entangle_defense_penalty
-from wayfarer.engine.simulation.combat.equipment_entry import effective_entry
+from wayfarer.engine.simulation.combat.equipment_effects import defense_stress, worn_stress
+from wayfarer.engine.simulation.combat.equipment_entry import effective_entry, weapon_target
 from wayfarer.engine.simulation.combat.maneuvers import ATTACK_MANEUVERS
+from wayfarer.engine.simulation.combat.melee.heavy_parry import require_breakage
 from wayfarer.engine.simulation.combat.melee.modes import heavy_parry_weight, mode
 from wayfarer.engine.simulation.combat.objects.locations import item_hands
 from wayfarer.engine.simulation.combat.tactical import pose
@@ -82,10 +84,6 @@ def defense_value(
         ),
         None,
     )
-    # deferred: melee.defense -> objects.combat -> melee.defense.
-    # Scoring a defense reads the item being defended with; damaging an item reads the
-    # defense that failed to stop it.
-    from wayfarer.engine.simulation.combat.objects.combat import weapon_target
 
     if object_target and next(i for i in state.resources.items if i.id == object_target).ground:
         raise ValidationError("Unheld objects have no active defense")
@@ -265,12 +263,6 @@ def defense_value(
                     if incoming_weight > compiled.statistics.basic_lift * 1000 * weapon_mode.hands:
                         continue
                     if 0 < 3 * entry.weight_millipounds <= incoming_weight:
-                        # deferred: melee.defense -> melee.heavy_parry -> objects.combat -> melee.defense.
-                        # Heavy-parry breakage still synchronizes equipment through object combat.
-                        from wayfarer.engine.simulation.combat.melee.heavy_parry import (
-                            require_breakage,
-                        )
-
                         try:
                             require_breakage(entry, item)
                         except ValidationError:
@@ -333,8 +325,6 @@ def exert_defense(
     for a parry or block is stressed by that use, and one that breaks under it
     defends with nothing. A hand is not an implement and never breaks here.
     """
-    # deferred: melee.defense -> objects.combat -> melee.defense, as above.
-    from wayfarer.engine.simulation.combat.objects.combat import defense_stress, worn_stress
 
     if selected != "none":
         state, allowed = exertion(runtime, state, actor_id, command_id)
