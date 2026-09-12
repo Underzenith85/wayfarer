@@ -392,8 +392,8 @@ def test_verified_vehicle_movement_allows_skill_activation() -> None:
 def test_implemented_rows_reach_the_audit_report() -> None:
     report = audit_report()
     counts = cast(dict[str, int], report["implementation_counts"])
-    # #339 adds 53 concrete combat rows to the prior total.
-    assert counts["implemented"] == 345
+    # #340 adds its two concrete combat techniques to the prior total.
+    assert counts["implemented"] == 347
     rows = {entry.id: entry for entry in inventory()}
     assert rows["skill:vacc-suit"].dispatch == "hazard.exposure"
     assert rows["skill:driving-automobile"].dispatch == "transport.vehicle-control"

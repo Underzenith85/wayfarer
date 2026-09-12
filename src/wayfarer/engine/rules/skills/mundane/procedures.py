@@ -202,7 +202,11 @@ class ProcedureResult:
         return self.rounds.winner == "actor"
 
 
-def _target(procedure: Procedure, performer: Performer) -> int:
+def _target(
+    procedure: Procedure,
+    performer: Performer,
+    optional_rules: frozenset[str],
+) -> int:
     template = procedure.template
     spec = procedure.spec()
     technique = spec.technique if spec else None
@@ -211,10 +215,17 @@ def _target(procedure: Procedure, performer: Performer) -> int:
     if performer.parent_level is None or performer.parent_skill_id is None:
         raise ValidationError(f"Technique requires an explicit parent: {procedure.id}")
     if template is not None:
-        valid_parent = performer.parent_skill_id in template.parents or (
-            template.parent_family is not None
-            and performer.parent_skill_id.startswith(template.parent_family + "-")
-        )
+        if template.optional_rule is not None and template.optional_rule not in optional_rules:
+            raise ValidationError(f"Technique requires optional rule: {template.optional_rule}")
+        family_parent = False
+        if template.parent_family == "skill:melee-weapon":
+            # The source family is semantic, not an identifier prefix.  Reuse
+            # #339's closed set of executable melee weapon skills.
+            # deferred: procedures -> melee -> procedures while resolving a template family.
+            from wayfarer.engine.rules.skills.mundane.melee import WEAPON_CLASSES
+
+            family_parent = performer.parent_skill_id in WEAPON_CLASSES
+        valid_parent = performer.parent_skill_id in template.parents or family_parent
         floor = performer.parent_level + template.default_modifier
         ceiling = performer.parent_level + template.maximum_modifier
     else:
@@ -257,6 +268,7 @@ def attempt(
     *,
     rng: RandomSource,
     profile_id: str = PROFILE,
+    optional_rules: frozenset[str] = frozenset(),
 ) -> ProcedureResult:
     """Execute a catalog-selected procedure and return a replayable receipt."""
     procedure = require_procedure(procedures, performer.skill_id, profile_id=profile_id)
@@ -278,7 +290,7 @@ def attempt(
         Modifier(value, reason, profile_id, "basic-set", ModifierKind.SITUATIONAL)
         for reason, value in situation.modifiers.items()
     )
-    target = _target(procedure, performer)
+    target = _target(procedure, performer, optional_rules)
     if target < 1:
         raise ValidationError(f"Effective skill must be positive: {procedure.id}")
     check: CheckTrace | None = None

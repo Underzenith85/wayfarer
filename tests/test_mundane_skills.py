@@ -39,8 +39,8 @@ def test_inventory_and_references() -> None:
         "skill:arm-lock-judo",
     } <= ids
     assert len(entries) > 180
-    # #338-#339 add bound procedures without changing a package pin.
-    assert audit_report()["available"] == 314
+    # #338-#340 add bound procedures without changing a package pin.
+    assert audit_report()["available"] == 316
     assert all(e.followup_issues for e in entries)
     RulesCatalog((candidate_package(),))
     assert candidate_package().digest == candidate_package().digest
@@ -402,11 +402,11 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     ]
     assert report["runtime_owner_unassigned"] == 0
     assert report["implementation_counts"] == {
-        # #339 binds 53 concrete combat rows. Its three open/dynamic rows stay
-        # contextual even though their procedure families are accounted for.
+        # #340 binds two concrete techniques; its 18 templates stay contextual
+        # even though every parent-relative procedure is accounted for.
         "contextual": 28,
-        "implemented": 345,
-        "unsupported": 131,
+        "implemented": 347,
+        "unsupported": 129,
     }
     # A bound row can still leave part of its entry to another issue; that gap is
     # published rather than folded into the blocker list.

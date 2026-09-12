@@ -555,11 +555,33 @@ own profile contract. The prerelease engine and package versions are unchanged.
 Independent coverage is in `tests/test_melee_skill_procedures.py`; source rows
 remain pinned by the mundane inventory and selected Characters printing.
 
+## Combat technique procedures (#340)
+
+All 20 B230-232 combat techniques now name their exact parent-relative target,
+split combat service, context, modifier vocabulary and observable effect. Arm
+Lock (Judo) and Kicking (Karate) are concrete catalog definitions; the other 18
+remain templates because purchasing the same technique against different parent
+skills creates distinct character abilities. The open Melee Weapon parent is
+resolved against #339's executable weapon-class registry, not by string prefix
+or by accepting arbitrary skills.
+
+Unarmed strikes and controls dispatch through the existing unarmed/grappling
+service; weapon techniques use melee attack or active defense; Horse Archery
+uses ranged attack; Feint uses tactical resolution. Quick and regular contests
+produce replayable receipts where the technique opposes another actor. Dual-
+Weapon Attack and Whirlwind Attack reject execution until their named optional
+rule is explicitly selected. Wrong parents, levels outside the recorded default
+and maximum, missing context, unknown modifiers, and wrong profiles fail before
+dice. The prerelease engine and package versions remain unchanged.
+
+Evidence is in `tests/test_combat_technique_procedures.py`, alongside the frozen
+template and optional-rule metadata tests.
+
 ## Validation and runtime contract
 
 Unsupported candidates in this package have no runtime hooks. `require_available`
 rejects unknown IDs, blocked rows and unsupported definitions even if their
-blocker list is mistakenly cleared; the 314 available rows have both a concrete
+blocker list is mistakenly cleared; the 316 available rows have both a concrete
 implementation and no remaining blocker. Scenario/character/LLM validation
 therefore cannot turn catalog presence alone into playable mechanics.
 
