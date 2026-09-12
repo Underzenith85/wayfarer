@@ -309,6 +309,9 @@ class AsyncSQLiteStore:
     async def duplicate(self, cid: str, request_id: str, text: str) -> Campaign | None:
         db = await self._connect()
         try:
+            # Both receipt tables and the replayed state must share one snapshot.
+            # Otherwise a commit between reads can masquerade as a legacy conflict.
+            await db.execute("BEGIN")
             return await self._duplicate(db, cid, request_id, text)
         finally:
             await db.close()
