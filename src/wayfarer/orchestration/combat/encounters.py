@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from decimal import Decimal
+
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import fatigue_ready
 from wayfarer.engine.simulation.campaign.encounter_context import bind_scene, validate_contexts
@@ -39,7 +41,8 @@ def _start_encounter(
         p.actor_id not in actor_map for p in command.placements
     ):
         raise ValidationError("Encounter placements require unique play actors")
-    initiatives: dict[str, int] = {}
+    initiatives: dict[str, Decimal | int] = {}
+    dexterities: dict[str, int] = {}
     pools = {pool.id: pool for pool in state.resources.pools}
     for placement in command.placements:
         actor = actor_map[placement.actor_id]
@@ -60,7 +63,17 @@ def _start_encounter(
             actor_id=actor.actor_id,
         )
         values = {value.target: int(value.value) for value in build.sheet.values}
-        initiatives[actor.actor_id] = values["attribute:dx"]
+        initiatives[actor.actor_id] = (
+            next(
+                value.value
+                for value in build.sheet.values
+                if value.target == "secondary:basic-speed"
+            )
+            if engine.rules.gurps_equipment is not None
+            else values["attribute:dx"]
+        )
+        if engine.rules.gurps_equipment is not None:
+            dexterities[actor.actor_id] = values["attribute:dx"]
     encounter = engine.start(
         command.encounter_id,
         command.battlefield_id,
@@ -69,6 +82,7 @@ def _start_encounter(
         state.world,
         resources,
         frozenset(actor_map),
+        dexterities=dexterities,
         allegiances=command.allegiances,
         oppositions=command.oppositions,
         automatic_completion=command.automatic_completion,
@@ -120,7 +134,8 @@ def _start_basic_encounter(
         for fact in command.facts
     ):
         raise ValidationError("Initial basic facts require scoped scenario provenance")
-    initiatives: dict[str, int] = {}
+    initiatives: dict[str, Decimal | int] = {}
+    dexterities: dict[str, int] = {}
     pools = {pool.id: pool for pool in state.resources.pools}
     for actor_id in command.participant_ids:
         actor = actor_map[actor_id]
@@ -141,7 +156,17 @@ def _start_basic_encounter(
             actor_id=actor.actor_id,
         )
         values = {value.target: int(value.value) for value in build.sheet.values}
-        initiatives[actor.actor_id] = values["attribute:dx"]
+        initiatives[actor.actor_id] = (
+            next(
+                value.value
+                for value in build.sheet.values
+                if value.target == "secondary:basic-speed"
+            )
+            if engine.rules.gurps_equipment is not None
+            else values["attribute:dx"]
+        )
+        if engine.rules.gurps_equipment is not None:
+            dexterities[actor.actor_id] = values["attribute:dx"]
     encounter = engine.start_basic(
         command.encounter_id,
         command.participant_ids,
@@ -150,6 +175,7 @@ def _start_basic_encounter(
         state.world,
         resources,
         frozenset(actor_map),
+        dexterities=dexterities,
         allegiances=command.allegiances,
         oppositions=command.oppositions,
         automatic_completion=command.automatic_completion,

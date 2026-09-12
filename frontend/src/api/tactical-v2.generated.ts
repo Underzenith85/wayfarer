@@ -630,7 +630,21 @@ export interface components {
        * Posture
        * @default null
        */
-      posture: ("standing" | "kneeling" | "prone") | null;
+      posture:
+        | (
+            | "standing"
+            | "crouching"
+            | "kneeling"
+            | "crawling"
+            | "sitting"
+            | "prone"
+          )
+        | null;
+      /**
+       * Crouch
+       * @default null
+       */
+      crouch: ("before" | "after" | "rise") | null;
       /**
        * Item Id
        * @default null

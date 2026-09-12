@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Literal
 
 Facing = Literal["north", "east", "south", "west"]
-Posture = Literal["standing", "kneeling", "prone"]
+Posture = Literal["standing", "crouching", "kneeling", "crawling", "sitting", "prone"]
 Maneuver = Literal[
     "do_nothing",
     "move",

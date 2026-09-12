@@ -208,9 +208,14 @@ def _summon(
         else GridPoint(x=choice.position[0], y=choice.position[1])
     )
     actor = next(a for a in state.actors if a.actor_id == target_id)
+    exact_gurps = bool(
+        context.runtime.combat is not None
+        and context.runtime.combat.rules.gurps_equipment is not None
+    )
     participant = Combatant(
         actor_id=target_id,
-        initiative=compiled.statistics.dx,
+        initiative=(compiled.statistics.basic_speed if exact_gurps else compiled.statistics.dx),
+        initiative_dx=compiled.statistics.dx if exact_gurps else 0,
         facing="north",
         reach=1,
         movement_allowance=compiled.statistics.basic_move,
@@ -225,11 +230,15 @@ def _summon(
             i.id for i in resources.items if i.owner_id == target_id and i.ready and i.equipped
         ),
     )
-    encounter = encounter.add_participant(participant).model_copy(
-        update={
-            "turn_order": encounter.turn_order + (target_id,),
-        }
+    encounter = encounter.add_participant(participant)
+    order = tuple(
+        p.actor_id
+        for p in sorted(
+            encounter.participants,
+            key=lambda p: (-p.initiative, -p.initiative_dx, p.actor_id),
+        )
     )
+    encounter = encounter.model_copy(update={"turn_order": order})
     state = state.model_copy(
         update={
             "encounters": tuple(encounter if e.id == encounter.id else e for e in state.encounters)

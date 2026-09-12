@@ -6048,7 +6048,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 505,
+      "completion_owner": 506,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": null,
@@ -6066,13 +6066,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "tests/test_combat_timing.py"
       ],
-      "completion_owner": 505,
+      "historical_owners": [
+        191,
+        505
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:characters:b324:combat-lite",
@@ -6090,13 +6094,17 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "tests/test_gurps_maneuvers.py"
       ],
-      "completion_owner": 505,
+      "historical_owners": [
+        191,
+        505
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:characters:b324:combat-lite",
@@ -6120,7 +6128,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 505,
+      "completion_owner": 506,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:characters:b324:combat-lite",
@@ -6144,7 +6152,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 505,
+      "completion_owner": 506,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:characters:b324:combat-lite",
@@ -6168,7 +6176,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 505,
+      "completion_owner": 506,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:characters:b324:combat-lite",
@@ -6192,7 +6200,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 505,
+      "completion_owner": 506,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:characters:b324:combat-lite",
@@ -6216,7 +6224,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 505,
+      "completion_owner": 515,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:characters:b324:combat-lite",
@@ -6240,7 +6248,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 505,
+      "completion_owner": 516,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:characters:b324:combat-lite",
@@ -6264,7 +6272,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 505,
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": null,
@@ -6288,7 +6296,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 505,
+      "completion_owner": 495,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": null,
@@ -7248,7 +7256,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 505,
+      "completion_owner": 506,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": null,
@@ -7266,13 +7274,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_combat_timing.py"
       ],
-      "completion_owner": 505,
+      "historical_owners": [
+        191,
+        505
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b361:11-combat",
@@ -7290,13 +7303,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_combat_timing.py"
       ],
-      "completion_owner": 505,
+      "historical_owners": [
+        191,
+        505
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b361:11-combat",
@@ -7314,13 +7332,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_combat_timing.py"
       ],
-      "completion_owner": 505,
+      "historical_owners": [
+        191,
+        505
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b362:maneuvers",
@@ -7338,13 +7361,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_combat_timing.py"
       ],
-      "completion_owner": 505,
+      "historical_owners": [
+        191,
+        505
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b362:maneuvers",
@@ -7362,13 +7390,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_combat_timing.py"
       ],
-      "completion_owner": 505,
+      "historical_owners": [
+        191,
+        505
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b362:maneuvers",
@@ -7386,13 +7419,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_combat_timing.py"
       ],
-      "completion_owner": 505,
+      "historical_owners": [
+        191,
+        505
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b362:maneuvers",
@@ -7410,13 +7448,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_combat_timing.py"
       ],
-      "completion_owner": 505,
+      "historical_owners": [
+        191,
+        505
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b362:maneuvers",
@@ -7434,13 +7477,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_combat_timing.py"
       ],
-      "completion_owner": 505,
+      "historical_owners": [
+        191,
+        505
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b362:maneuvers",
@@ -7482,13 +7530,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_combat_timing.py"
       ],
-      "completion_owner": 505,
+      "historical_owners": [
+        191,
+        505
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b362:maneuvers",
@@ -7578,13 +7631,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_combat_timing.py"
       ],
-      "completion_owner": 505,
+      "historical_owners": [
+        191,
+        505
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b362:maneuvers",
@@ -7602,13 +7660,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_combat_timing.py"
       ],
-      "completion_owner": 505,
+      "historical_owners": [
+        191,
+        505
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b362:maneuvers",
@@ -7626,13 +7689,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_combat_timing.py"
       ],
-      "completion_owner": 505,
+      "historical_owners": [
+        191,
+        505
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b362:maneuvers",
@@ -7650,13 +7718,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_combat_timing.py"
       ],
-      "completion_owner": 505,
+      "historical_owners": [
+        191,
+        505
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b361:11-combat",
@@ -7674,13 +7747,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_combat_timing.py"
       ],
-      "completion_owner": 505,
+      "historical_owners": [
+        191,
+        505
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b366:movement-and-combat",
@@ -7698,13 +7776,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_combat_timing.py"
       ],
-      "completion_owner": 505,
+      "historical_owners": [
+        191,
+        505
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b366:movement-and-combat",
@@ -7722,13 +7805,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_combat_timing.py"
       ],
-      "completion_owner": 505,
+      "historical_owners": [
+        191,
+        505
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b366:movement-and-combat",
@@ -7746,13 +7834,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_combat_timing.py"
       ],
-      "completion_owner": 505,
+      "historical_owners": [
+        191,
+        505
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b366:movement-and-combat",
@@ -7770,13 +7863,18 @@
         "gurps-basic-set-4e-2004"
       ],
       "disposition": "required",
-      "implementation": "absent",
-      "source_review": "pending",
-      "evidence_paths": [],
-      "historical_owners": [
-        191
+      "implementation": "verified",
+      "source_review": "reviewed",
+      "evidence_paths": [
+        "docs/gurps-basic-combat.md",
+        "tests/test_gurps_maneuvers.py",
+        "tests/test_combat_timing.py"
       ],
-      "completion_owner": 505,
+      "historical_owners": [
+        191,
+        505
+      ],
+      "completion_owner": 191,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b366:movement-and-combat",
@@ -7872,7 +7970,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 505,
+      "completion_owner": 506,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b368:melee-attacks",
@@ -7896,7 +7994,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 505,
+      "completion_owner": 506,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b368:melee-attacks",
@@ -8040,7 +8138,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 505,
+      "completion_owner": 506,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b373:defending",
@@ -8064,7 +8162,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 505,
+      "completion_owner": 506,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b373:defending",
@@ -8088,7 +8186,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 505,
+      "completion_owner": 506,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b373:defending",
@@ -8112,7 +8210,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 505,
+      "completion_owner": 506,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b373:defending",
@@ -8232,7 +8330,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 505,
+      "completion_owner": 506,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b376:damage-and-injury",
@@ -8280,7 +8378,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 505,
+      "completion_owner": 506,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b376:damage-and-injury",
@@ -8304,7 +8402,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 505,
+      "completion_owner": 506,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b376:damage-and-injury",
@@ -8328,7 +8426,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 505,
+      "completion_owner": 506,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b376:damage-and-injury",
@@ -8400,7 +8498,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 505,
+      "completion_owner": 506,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b361:11-combat",
@@ -8424,7 +8522,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 505,
+      "completion_owner": 506,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b380:critical-hits-and-misses",
@@ -8448,7 +8546,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 505,
+      "completion_owner": 506,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b380:critical-hits-and-misses",
@@ -8472,7 +8570,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 505,
+      "completion_owner": 506,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b380:critical-hits-and-misses",
@@ -8496,7 +8594,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 505,
+      "completion_owner": 506,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b361:11-combat",
@@ -8520,7 +8618,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 505,
+      "completion_owner": 506,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b381:other-actions-in-combat",
@@ -8544,7 +8642,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 505,
+      "completion_owner": 506,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b381:other-actions-in-combat",
@@ -8568,7 +8666,7 @@
       "historical_owners": [
         191
       ],
-      "completion_owner": 505,
+      "completion_owner": 506,
       "capability_id": "gurps.combat.maneuvers",
       "runtime_binding": null,
       "parent_id": "section:campaigns:b381:other-actions-in-combat",

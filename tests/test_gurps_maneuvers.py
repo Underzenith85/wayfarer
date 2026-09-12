@@ -6,12 +6,71 @@ import pytest
 from test_gurps_melee import setup
 
 from wayfarer.engine.rules.checks import RecordedDice
+from wayfarer.engine.rules.tables.combat import (
+    MovementPermission,
+    full_turn_maneuver,
+    maneuver_move_allowance,
+    maneuver_permission,
+)
+from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.encounter import CombatResult
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
+from wayfarer.engine.simulation.combat.vocabulary import Defense, Maneuver
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat import CombatService, ResumeInterruptedTurn, TakeCombatTurn
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
+
+
+@pytest.mark.parametrize(
+    ("maneuver", "movement", "attacks", "defenses", "concentration", "full_turn"),
+    [
+        ("do_nothing", "none", 0, ("dodge", "parry", "block"), False, False),
+        ("move", "full", 0, ("dodge", "parry", "block"), False, False),
+        ("change_posture", "none", 0, ("dodge", "parry", "block"), False, False),
+        ("aim", "step", 0, ("dodge", "parry", "block"), False, True),
+        ("evaluate", "step", 0, ("dodge", "parry", "block"), False, False),
+        ("attack", "step", 1, ("dodge", "parry", "block"), False, False),
+        ("feint", "step", 0, ("dodge", "parry", "block"), False, False),
+        ("all_out_attack", "half", 2, (), False, False),
+        ("move_and_attack", "full", 1, ("dodge", "block"), False, False),
+        ("all_out_defense", "step", 0, ("dodge", "parry", "block"), False, False),
+        ("concentrate", "step", 0, ("dodge", "parry", "block"), True, True),
+        ("ready", "step", 0, ("dodge", "parry", "block"), False, False),
+        ("wait", "triggered", 0, ("dodge", "parry", "block"), False, False),
+    ],
+)
+def test_maneuver_permission_table(
+    maneuver: Maneuver,
+    movement: MovementPermission,
+    attacks: int,
+    defenses: tuple[Defense, ...],
+    concentration: bool,
+    full_turn: bool,
+) -> None:
+    permission = maneuver_permission(maneuver)
+    assert (
+        permission.movement,
+        permission.attacks,
+        permission.defenses,
+        permission.concentration,
+        permission.full_turn,
+    ) == (movement, attacks, defenses, concentration, full_turn)
+
+
+def test_maneuver_movement_composes_move_posture_and_option() -> None:
+    assert maneuver_move_allowance("attack", 11, "standing") == 2
+    assert maneuver_move_allowance("move", 6, "crouching") == 4
+    assert maneuver_move_allowance("move", 6, "kneeling") == 2
+    assert maneuver_move_allowance("move", 6, "crawling") == 2
+    assert maneuver_move_allowance("move", 6, "prone") == 1
+    assert maneuver_move_allowance("move", 6, "sitting") == 0
+    assert maneuver_move_allowance("all_out_attack", 7, "standing") == 3
+    assert maneuver_move_allowance("all_out_defense", 7, "standing", increased_dodge=True) == 3
+    assert maneuver_move_allowance("all_out_defense", 7, "standing") == 1
+    assert full_turn_maneuver("aim")
+    assert full_turn_maneuver("concentrate")
+    assert full_turn_maneuver("all_out_attack", suppression_fire=True)
 
 
 async def turn(
@@ -88,6 +147,8 @@ async def test_evaluate_stacks_expires_and_survives_defense(tmp_path: Path) -> N
     play.rng = RecordedDice([4, 4, 4, 2])
     result = await defend(cid, play, "b")
     assert result.injury is not None and result.injury.attack.effective_target == 16
+    actor = (play._load(await play.store.read(cid))).encounters[0].participants[0]
+    assert actor.maneuver_state.evaluate_bonus == 0
     await turn(cid, play, "b", "do_nothing")
     await turn(cid, play, "a", "do_nothing")
     actor = (play._load(await play.store.read(cid))).encounters[0].participants[0]
@@ -119,6 +180,8 @@ async def test_feint_independent_margins(tmp_path: Path) -> None:
     result = await defend(cid, play, "b", "parry", item_id="sword-b")
     assert result.injury is not None and result.injury.defense is not None
     assert result.injury.defense.effective_target == 7  # 13 // 2 + 3 + shield DB 1 - 3
+    actor = (play._load(await play.store.read(cid))).encounters[0].participants[0]
+    assert actor.maneuver_state.feint_penalty == 0
 
 
 async def test_all_out_double_is_two_durable_attacks_one_turn(tmp_path: Path) -> None:
@@ -201,10 +264,16 @@ async def test_concentrate_defense_distraction(tmp_path: Path) -> None:
     cid, play = await setup(tmp_path)
     await turn(cid, play, "a", "concentrate")
     await turn(cid, play, "b", "attack", item_id="sword-b", target_id="a", mode_id="swing")
-    play.rng = RecordedDice([4, 4, 4, 2, 2, 2, 4, 4, 4])
+    assert isinstance(play.store, AsyncSQLiteStore)
+    play = PlayService(
+        AsyncSQLiteStore(play.store.path),
+        play.engine,
+        rng=RecordedDice([4, 4, 4, 2, 2, 2, 4, 4, 4]),
+    )
     await defend(cid, play, "a", "parry")
     actor = (play._load(await play.store.read(cid))).encounters[0].participants[0]
     assert not actor.maneuver_state.concentrating
+    assert await play.store.read(cid) == await play.store.replay(cid)
 
 
 async def test_illegal_aim_melee_and_overlong_step_leave_state(tmp_path: Path) -> None:
@@ -353,3 +422,53 @@ async def test_second_defense_unavailable_rejects_before_attack_roll(tmp_path: P
     with pytest.raises(ValidationError, match="Double"):
         await defend(cid, play, "b", "parry", second_defense="dodge")
     assert play._load(await play.store.read(cid)) == before
+
+
+async def test_ordinary_attack_rejects_a_second_maneuver_before_mutation(tmp_path: Path) -> None:
+    cid, play = await setup(tmp_path)
+    before = play._load(await play.store.read(cid))
+    play.rng = RecordedDice([])
+    with pytest.raises(ValidationError, match=r"All-Out Attack \(Double\)"):
+        await turn(
+            cid,
+            play,
+            "a",
+            "attack",
+            item_id="sword-a",
+            target_id="b",
+            mode_id="swing",
+            second_target_id="b",
+        )
+    assert play._load(await play.store.read(cid)) == before
+
+
+async def test_crouch_is_free_and_attack_after_crouch_survives_defense_pause(
+    tmp_path: Path,
+) -> None:
+    cid, play = await setup(tmp_path)
+    await turn(cid, play, "a", "move", destination={"x": 0, "y": 3}, crouch="before")
+    actor = (play._load(await play.store.read(cid))).encounters[0].participants[0]
+    assert isinstance(actor.position, GridPoint)
+    assert actor.posture == "crouching" and actor.position.y == 3
+    await turn(cid, play, "b", "do_nothing")
+    await turn(cid, play, "a", "do_nothing", crouch="rise")
+    actor = (play._load(await play.store.read(cid))).encounters[0].participants[0]
+    assert actor.posture == "standing"
+
+    attack_path = tmp_path / "attack"
+    attack_path.mkdir()
+    cid, play = await setup(attack_path)
+    await turn(
+        cid,
+        play,
+        "a",
+        "attack",
+        item_id="sword-a",
+        target_id="b",
+        mode_id="swing",
+        crouch="after",
+    )
+    play.rng = RecordedDice([5, 5, 5])
+    await defend(cid, play, "b")
+    actor = (play._load(await play.store.read(cid))).encounters[0].participants[0]
+    assert actor.posture == "crouching"

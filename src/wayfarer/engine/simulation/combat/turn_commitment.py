@@ -233,6 +233,10 @@ def prepare(
     basic: bool,
 ) -> Combatant:
     """Return the participant with the maneuver's lasting commitments recorded."""
+    if any(v is not None for v in (second_item_id, second_target_id, second_mode_id)) and not (
+        maneuver == "all_out_attack" and attack_option == "double"
+    ):
+        raise ValidationError("A second attack requires All-Out Attack (Double)")
     commitment = _carried_state(participant, maneuver)
     if maneuver == "all_out_attack":
         commitment = _all_out_attack(

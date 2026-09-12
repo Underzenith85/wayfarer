@@ -829,7 +829,10 @@
               {
                 "enum": [
                   "standing",
+                  "crouching",
                   "kneeling",
+                  "crawling",
+                  "sitting",
                   "prone"
                 ],
                 "type": "string"

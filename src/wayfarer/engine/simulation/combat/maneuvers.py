@@ -11,6 +11,7 @@ from wayfarer.models import Id, Record
 ATTACK_MANEUVERS = frozenset({"attack", "all_out_attack", "move_and_attack"})
 AttackOption = Literal["determined", "strong", "double", "feint", "suppression"]
 DefenseOption = Literal["dodge", "parry", "block", "double"]
+CrouchAction = Literal["before", "after", "rise"]
 
 
 class WaitTrigger(Record):
@@ -92,6 +93,26 @@ class ManeuverState(Record):
         # Aim/Evaluate/Feint survive until the next maneuver is selected, not
         # merely until that turn starts. Wait alone expires at turn start.
         return self.model_copy(update={"wait": None})
+
+    def consume_attack_setup(self) -> ManeuverState:
+        """Consume Aim, Evaluate, Feint and stop-thrust benefits after one attack maneuver."""
+        return self.model_copy(
+            update={
+                "aim_item_id": None,
+                "aim_target_id": None,
+                "aim_seconds": 0,
+                "aim_accuracy": 0,
+                "aim_mode_id": None,
+                "aim_braced": False,
+                "aim_sight_bonus": 0,
+                "evaluate_target_id": None,
+                "evaluate_bonus": 0,
+                "feint_target_id": None,
+                "feint_penalty": 0,
+                "feint_rolls": (),
+                "stop_thrust_damage_bonus": 0,
+            }
+        )
 
 
 class WaitInterrupt(Record):

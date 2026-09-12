@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 from typing import TYPE_CHECKING
 
+from wayfarer.engine.rules.tables.combat import maneuver_move_allowance
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.encounter import (
     CombatResult,
@@ -121,7 +122,9 @@ def choose_defense(
         second_item = commitment.second_attack_item_id or pending.weapon_id
         second_target = commitment.second_attack_target_id or pending.defender_id
         if second_item not in attacker.ready_item_ids:
-            commitment = commitment.model_copy(update={"attacks_remaining": 0})
+            commitment = commitment.model_copy(
+                update={"attacks_remaining": 0}
+            ).consume_attack_setup()
             attacker = attacker.model_copy(update={"maneuver_state": commitment})
             encounter = engine._replace(encounter, attacker)
             encounter = engine._advance(encounter)
@@ -174,14 +177,23 @@ def choose_defense(
                 for p in encounter.participants
                 if p.actor_id != attacker.actor_id and isinstance(p.position, GridPoint)
             }
-            limit = max(1, (attacker.movement_allowance + 9) // 10)
+            limit = maneuver_move_allowance("attack", attacker.movement_allowance, attacker.posture)
             destination = pending.post_attack_destination or attacker.position
+            if destination in occupied:
+                raise ValidationError("Post-attack step cannot end in an occupied position")
+            blockers = {
+                p.position
+                for p in encounter.participants
+                if p.actor_id != attacker.actor_id
+                and isinstance(p.position, GridPoint)
+                and encounter.blocks_passage(attacker.actor_id, p.actor_id)
+            }
             if not engine._reachable(
                 engine.battlefields[encounter.battlefield_id],
                 attacker.position,
                 destination,
                 limit,
-                occupied,
+                blockers,
             ):
                 raise ValidationError("Post-attack step is no longer available")
             attacker = attacker.model_copy(
@@ -196,6 +208,12 @@ def choose_defense(
                 raise ValidationError("Post-attack posture step is invalid")
             attacker = attacker.model_copy(update={"posture": pending.post_attack_posture})
             encounter = engine._replace(encounter, attacker)
+        if pending.post_attack_crouch:
+            attacker = attacker.model_copy(update={"posture": "crouching"})
+        attacker = attacker.model_copy(
+            update={"maneuver_state": attacker.maneuver_state.consume_attack_setup()}
+        )
+        encounter = engine._replace(encounter, attacker)
         encounter = engine._advance(encounter)
     return (
         encounter,

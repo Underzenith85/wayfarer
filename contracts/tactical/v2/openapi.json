@@ -1635,7 +1635,10 @@
               {
                 "enum": [
                   "standing",
+                  "crouching",
                   "kneeling",
+                  "crawling",
+                  "sitting",
                   "prone"
                 ],
                 "type": "string"
@@ -1646,6 +1649,23 @@
             ],
             "default": null,
             "title": "Posture"
+          },
+          "crouch": {
+            "anyOf": [
+              {
+                "enum": [
+                  "before",
+                  "after",
+                  "rise"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Crouch"
           },
           "item_id": {
             "anyOf": [

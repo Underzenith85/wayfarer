@@ -14,6 +14,12 @@ from pydantic import Field, model_validator
 from pydantic.config import JsonDict
 
 from wayfarer.engine.rules.conformance import BASELINE_ID
+from wayfarer.engine.rules.tables.combat import (
+    posture_move_allowance,
+)
+from wayfarer.engine.rules.tables.combat import (
+    step_allowance as basic_step_allowance,
+)
 from wayfarer.errors import ValidationError
 from wayfarer.models import Id, Record
 
@@ -156,23 +162,12 @@ class Movement(Record):
 
 
 def step_allowance(move: int) -> int:
-    if type(move) is not int or move < 0:
-        raise ValidationError("Move must be a nonnegative integer")
-    return max(1, (move + 9) // 10)
+    return basic_step_allowance(move)
 
 
 def posture_move(move: int, posture: HexPosture) -> int:
     """B367/B387: crouching 2/3 Move; crawling 1/3; kneeling 1/3."""
-    step_allowance(move)  # shared validation
-    if posture == "standing":
-        return move
-    if posture == "crouching":
-        return move * 2 // 3
-    if posture in ("kneeling", "crawling"):
-        return move // 3
-    if posture in ("sitting", "lying"):
-        return 0
-    raise ValidationError("Unknown posture")
+    return posture_move_allowance(move, "prone" if posture == "lying" else posture)
 
 
 def _occupancy(battlefield: HexBattlefield, occupants: tuple[Occupant, ...]) -> None:

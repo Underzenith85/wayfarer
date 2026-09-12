@@ -15,6 +15,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Final
 
+from wayfarer.engine.rules.tables.combat import maneuver_move_allowance
 from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
 from wayfarer.engine.simulation.combat.commands import BasicMove
 from wayfarer.engine.simulation.combat.encounter import Combatant, Encounter
@@ -111,25 +112,35 @@ def move_square(declared: Declaration) -> Outcome:
         raise ValidationError("Move requires only a destination and optional facing")
     limit = (
         engine.rules.prone_movement_allowance
-        if participant.posture == "prone"
-        else participant.movement_allowance
+        if engine.rules.gurps_equipment is None and participant.posture == "prone"
+        else maneuver_move_allowance(
+            declared.maneuver, participant.movement_allowance, participant.posture
+        )
     )
     if not isinstance(participant.position, GridPoint):
         raise ValidationError("Square movement requires square coordinates")
-    occupied = {
+    all_occupied = {
         p.position
         for p in declared.encounter.participants
         if p.actor_id != declared.actor_id and isinstance(p.position, GridPoint)
     }
+    blockers = {
+        p.position
+        for p in declared.encounter.participants
+        if p.actor_id != declared.actor_id
+        and isinstance(p.position, GridPoint)
+        and declared.encounter.blocks_passage(declared.actor_id, p.actor_id)
+    }
     battlefield = declared.battlefield
+    if destination in all_occupied:
+        raise ValidationError("Combat movement cannot end in an occupied position")
     if (
         not isinstance(battlefield, Battlefield)
         or destination.x >= battlefield.width
         or destination.y >= battlefield.height
         or destination in battlefield.blocked
-        or destination in occupied
         or engine.distance(participant.position, destination) > limit
-        or not engine._reachable(battlefield, participant.position, destination, limit, occupied)
+        or not engine._reachable(battlefield, participant.position, destination, limit, blockers)
     ):
         raise ValidationError("Combat movement exceeds allowance or terrain constraints")
     return _taken(declared, position=destination, facing=declared.facing or participant.facing)
@@ -180,11 +191,15 @@ def change_posture(declared: Declaration) -> Outcome:
         and posture == "standing"
     ):
         raise ValidationError("Rise from prone to kneeling before standing")
-    if posture is None or any(
-        v is not None
-        for v in (declared.destination, declared.facing, declared.item_id, declared.target_id)
+    if (
+        posture in (None, "crouching")
+        or posture == participant.posture
+        or any(
+            v is not None
+            for v in (declared.destination, declared.facing, declared.item_id, declared.target_id)
+        )
     ):
-        raise ValidationError("Posture maneuver requires exactly one posture")
+        raise ValidationError("Posture maneuver requires exactly one new non-crouching posture")
     return _taken(declared, posture=posture)
 
 

@@ -8,6 +8,7 @@ protection and injury atomically when that choice resumes.
 from __future__ import annotations
 
 import hashlib
+from decimal import Decimal
 from math import sqrt
 from typing import TYPE_CHECKING, Literal
 
@@ -23,6 +24,7 @@ from wayfarer.engine.simulation.combat.encounter import (
 )
 from wayfarer.engine.simulation.combat.maneuvers import (
     AttackOption,
+    CrouchAction,
     DefenseOption,
     WaitTrigger,
 )
@@ -188,7 +190,10 @@ class CombatEngine:
             raise ValidationError("Invalid encounter participants or turn order")
         expected_order = tuple(
             p.actor_id
-            for p in sorted(encounter.participants, key=lambda p: (-p.initiative, p.actor_id))
+            for p in sorted(
+                encounter.participants,
+                key=lambda p: (-p.initiative, -p.initiative_dx, p.actor_id),
+            )
         )
         if encounter.turn_order != expected_order:
             raise ValidationError("Turn order does not match initiative")
@@ -404,11 +409,12 @@ class CombatEngine:
         encounter_id: str,
         battlefield_id: str,
         placements: tuple[Placement, ...],
-        initiatives: dict[str, int],
+        initiatives: dict[str, Decimal | int],
         world: World,
         resources: ResourceState,
         actor_ids: frozenset[str],
         *,
+        dexterities: dict[str, int] | None = None,
         allegiances: tuple[CombatAllegiance, ...] = (),
         oppositions: tuple[SideOpposition, ...] = (),
         automatic_completion: bool = False,
@@ -418,6 +424,7 @@ class CombatEngine:
             Combatant(
                 actor_id=p.actor_id,
                 initiative=initiatives[p.actor_id],
+                initiative_dx=(dexterities or {}).get(p.actor_id, 0),
                 position=p.position,
                 facing=p.facing,
                 hex_facing=p.hex_facing,
@@ -460,7 +467,10 @@ class CombatEngine:
                 ),
             )
         order = tuple(
-            p.actor_id for p in sorted(participants, key=lambda p: (-p.initiative, p.actor_id))
+            p.actor_id
+            for p in sorted(
+                participants, key=lambda p: (-p.initiative, -p.initiative_dx, p.actor_id)
+            )
         )
         encounter = Encounter(
             darkness_penalty=self.battlefields[battlefield_id].darkness_penalty,
@@ -487,11 +497,12 @@ class CombatEngine:
         encounter_id: str,
         participant_ids: tuple[str, ...],
         facts: tuple[BasicSpatialFact, ...],
-        initiatives: dict[str, int],
+        initiatives: dict[str, Decimal | int],
         world: World,
         resources: ResourceState,
         actor_ids: frozenset[str],
         *,
+        dexterities: dict[str, int] | None = None,
         allegiances: tuple[CombatAllegiance, ...] = (),
         oppositions: tuple[SideOpposition, ...] = (),
         automatic_completion: bool = False,
@@ -501,6 +512,7 @@ class CombatEngine:
             Combatant(
                 actor_id=actor_id,
                 initiative=initiatives[actor_id],
+                initiative_dx=(dexterities or {}).get(actor_id, 0),
                 reach=self.rules.default_reach,
                 movement_allowance=self.rules.movement_allowance,
                 ready_item_ids=tuple(
@@ -514,7 +526,10 @@ class CombatEngine:
             for actor_id in participant_ids
         )
         order = tuple(
-            p.actor_id for p in sorted(participants, key=lambda p: (-p.initiative, p.actor_id))
+            p.actor_id
+            for p in sorted(
+                participants, key=lambda p: (-p.initiative, -p.initiative_dx, p.actor_id)
+            )
         )
         encounter = Encounter(
             id=encounter_id,
@@ -696,6 +711,7 @@ class CombatEngine:
         destination: GridPoint | None = None,
         facing: Facing | None = None,
         posture: Posture | None = None,
+        crouch: CrouchAction | None = None,
         item_id: str | None = None,
         target_id: str | None = None,
         command_id: str,
@@ -723,6 +739,7 @@ class CombatEngine:
             destination=destination,
             facing=facing,
             posture=posture,
+            crouch=crouch,
             item_id=item_id,
             target_id=target_id,
             command_id=command_id,
@@ -753,6 +770,7 @@ class CombatEngine:
         destination: GridPoint | None = None,
         facing: Facing | None = None,
         posture: Posture | None = None,
+        crouch: CrouchAction | None = None,
         item_id: str | None = None,
         target_id: str | None = None,
         attack_option: AttackOption | None = None,
@@ -779,6 +797,7 @@ class CombatEngine:
             destination=destination,
             facing=facing,
             posture=posture,
+            crouch=crouch,
             item_id=item_id,
             target_id=target_id,
             attack_option=attack_option,

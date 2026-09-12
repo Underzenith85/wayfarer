@@ -225,6 +225,7 @@ describe("Tactical panel", () => {
       destination: null,
       facing: null,
       posture: null,
+      crouch: null,
       item_id: null,
       target_id: null,
       mode_id: null,

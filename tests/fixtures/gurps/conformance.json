@@ -5575,6 +5575,71 @@
       "prototype_divergence": null,
       "evidence_kind": "boundary",
       "provenance": "Independent source-entered ramming, mounted-ranged, cover, subsystem and stress fixtures."
+    },
+    {
+      "id": "basic-combat-maneuver-permission-matrix",
+      "capability_id": "gurps.combat.maneuvers",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B363-B366",
+      "input": {
+        "maneuvers": 13,
+        "dimensions": ["movement", "attacks", "defenses", "concentration", "full-turn"]
+      },
+      "expected": {
+        "complete_rows": 13,
+        "ordinary_maneuvers_per_turn": 1,
+        "supported_multiple_attack_exception": "all-out-attack-double"
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "independent-table",
+      "provenance": "Independent permission matrix checked against Campaigns fourth printing.",
+      "test": "tests/test_gurps_maneuvers.py::test_maneuver_permission_table"
+    },
+    {
+      "id": "basic-combat-step-posture-movement",
+      "capability_id": "gurps.combat.maneuvers",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B363, B367-B368",
+      "input": {
+        "move": 6,
+        "postures": ["standing", "crouching", "kneeling", "crawling", "sitting", "lying"]
+      },
+      "expected": {
+        "step_at_move_11": 2,
+        "crouching_move": 4,
+        "kneeling_move": 2,
+        "lying_move": 1,
+        "sitting_move": 0
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "independent-numeric-case",
+      "provenance": "Independent movement expectations checked against Campaigns fourth printing.",
+      "test": "tests/test_gurps_maneuvers.py::test_maneuver_movement_composes_move_posture_and_option"
+    },
+    {
+      "id": "basic-combat-turn-sequence-speed-dx",
+      "capability_id": "gurps.combat.maneuvers",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B362-B363",
+      "input": {
+        "basic_speeds": ["5.25", "5.25"],
+        "dx": [10, 11]
+      },
+      "expected": {
+        "first_dx": 11,
+        "seconds_per_complete_cycle": 1,
+        "order_persists": true
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "independent-sequence",
+      "provenance": "Independent turn-order and clock expectations checked against Campaigns fourth printing.",
+      "test": "tests/test_combat_timing.py::test_turn_order_uses_basic_speed_then_dx_and_stays_fixed"
     }
   ]
 }
