@@ -20,7 +20,13 @@ import pytest
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.conformance import BASELINE_ID
 from wayfarer.engine.rules.skills.mundane import PROFILE, inventory, source_index
-from wayfarer.engine.rules.skills.mundane.technology import (
+from wayfarer.engine.rules.skills.mundane.technology.attempts import (
+    Operator,
+    Situation,
+    attempt,
+    require_task,
+)
+from wayfarer.engine.rules.skills.mundane.technology.inventory import (
     ELECTRONICS_SPECIALTIES,
     MECHANIC_FAMILIES,
     OPEN_FAMILIES,
@@ -28,10 +34,6 @@ from wayfarer.engine.rules.skills.mundane.technology import (
     REPAIRABLE_ELECTRONICS,
     SCIENCE_FAMILIES,
     VEHICLE_FAMILIES,
-    Operator,
-    Situation,
-    attempt,
-    require_task,
 )
 from wayfarer.errors import ValidationError
 

@@ -12,7 +12,7 @@ from wayfarer.engine.character.power import CharacterProposal, PowerPolicy, Powe
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.profiles import DEFAULT_REGISTRY
 from wayfarer.engine.rules.social.gurps_social import ReactionModifier, influence_roll
-from wayfarer.engine.simulation.action_engine import ActionEngine
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, PlayState
 from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.campaign.npcs import NPCSocialRules

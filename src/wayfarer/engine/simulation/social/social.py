@@ -8,12 +8,11 @@ from dataclasses import asdict, dataclass
 from typing import Literal
 
 from wayfarer.engine.rules.checks import Modifier, RandomSource
-from wayfarer.engine.rules.skills.mundane.social import (
+from wayfarer.engine.rules.skills.mundane.social.attempts import SocialSkillContext, resolve
+from wayfarer.engine.rules.skills.mundane.social.inventory import (
     Resolution,
-    SocialSkillContext,
     effect_ids,
     require_procedure,
-    resolve,
 )
 from wayfarer.engine.rules.social.gurps_social import (
     DEFAULT_INFLUENCE_CONDITIONS,

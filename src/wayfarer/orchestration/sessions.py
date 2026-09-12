@@ -10,7 +10,8 @@ from dataclasses import dataclass
 from weakref import WeakKeyDictionary, WeakValueDictionary
 
 from wayfarer.engine.character.power import PowerReviewer
-from wayfarer.engine.simulation.action_engine import ActionEngine, _configuration_digest
+from wayfarer.engine.simulation.action_engine.digest import _configuration_digest
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules
 from wayfarer.engine.simulation.resources import ResourceEngine
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore

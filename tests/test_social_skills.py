@@ -10,21 +10,20 @@ import pytest
 from wayfarer.engine.rules.checks import ModifierKind, RecordedDice
 from wayfarer.engine.rules.conformance import CAPABILITIES
 from wayfarer.engine.rules.skills.mundane import inventory
-from wayfarer.engine.rules.skills.mundane.social import (
+from wayfarer.engine.rules.skills.mundane.social.attempts import SocialSkillContext, resolve
+from wayfarer.engine.rules.skills.mundane.social.inventory import (
     CONDITIONS,
     DISPATCH,
     PROCEDURES,
     VOICE,
     Resolution,
     SocialProcedure,
-    SocialSkillContext,
     Verdict,
     definitions,
     effect_ids,
     procedure,
     procedures,
     require_procedure,
-    resolve,
     supported,
     unsupported_scope,
 )
@@ -630,7 +629,7 @@ def test_the_registry_rejects_an_incoherent_procedure(
     """The declared table is validated at import, not trusted because it is code."""
     from dataclasses import replace
 
-    from wayfarer.engine.rules.skills.mundane.social import _validate
+    from wayfarer.engine.rules.skills.mundane.social.inventory import _validate
 
     entry = procedure("skill:acting")
     with pytest.raises(ValidationError, match=message):

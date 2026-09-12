@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 from test_actions import Dice, actor_setup, campaign, engine, resource_seed, world
 
-from wayfarer.engine.simulation.action_engine import ActionEngine
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import Inspect
 from wayfarer.engine.simulation.campaign.scenes import (
     Discovery,

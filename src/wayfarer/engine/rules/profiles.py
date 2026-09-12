@@ -38,7 +38,7 @@ from wayfarer.engine.rules.gurps_equipment_manifest import (
 from wayfarer.engine.rules.magic import gurps_magic
 from wayfarer.engine.rules.skills import gurps_skills
 from wayfarer.engine.rules.skills.mundane import ranged as ranged_skills
-from wayfarer.engine.rules.skills.mundane import social as social_skills
+from wayfarer.engine.rules.skills.mundane.social import inventory as social_skills
 from wayfarer.errors import ValidationError
 from wayfarer.models import RulesReference
 

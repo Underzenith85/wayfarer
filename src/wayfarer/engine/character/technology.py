@@ -1,7 +1,7 @@
 """Trusted adapters from approved character builds to technology procedures."""
 
 from wayfarer.engine.character.compiler import ValidatedBuild
-from wayfarer.engine.rules.skills.mundane.technology import Operator
+from wayfarer.engine.rules.skills.mundane.technology.attempts import Operator
 from wayfarer.errors import ValidationError
 
 

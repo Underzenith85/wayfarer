@@ -6,7 +6,7 @@ import pytest
 from test_actions import actor_setup, campaign, engine, resource_seed, world
 
 from wayfarer.engine.character.compiler import Purchase
-from wayfarer.engine.simulation.action_engine import ActionEngine
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.advancement import (
     AdvanceCharacter,

@@ -33,7 +33,7 @@ from wayfarer.engine.rules.types.skill import (
     SkillDefault,
     SkillSpec,
 )
-from wayfarer.engine.simulation.action_engine import ActionEngine
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules, ActorSetup
 from wayfarer.engine.simulation.actors import movement
 from wayfarer.engine.simulation.campaign.scenes import Scene, SceneRules

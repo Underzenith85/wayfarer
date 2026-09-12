@@ -16,7 +16,7 @@ from pydantic import ValidationError as SchemaError
 from wayfarer.engine.rules.catalog import reference
 from wayfarer.engine.rules.checks import RandomSource
 from wayfarer.engine.rules.profiles import ProfileRegistry, RegisteredProfile
-from wayfarer.engine.simulation.action_engine import ActionEngine
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.advancement import BuildDiff, MigrationEntry
 from wayfarer.engine.simulation.campaign.profiles import (

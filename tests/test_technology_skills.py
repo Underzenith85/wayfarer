@@ -24,15 +24,14 @@ from wayfarer.engine.rules.conformance import BASELINE_ID
 from wayfarer.engine.rules.effects import DerivedValue
 from wayfarer.engine.rules.profiles import GURPS_BASIC_PROFILE
 from wayfarer.engine.rules.skills.mundane import PROFILE, audit_report, inventory
-from wayfarer.engine.rules.skills.mundane.technology import (
-    PROCEDURES,
+from wayfarer.engine.rules.skills.mundane.technology.attempts import (
     Operator,
     Situation,
     attempt,
-    definitions,
     replay,
     require_task,
 )
+from wayfarer.engine.rules.skills.mundane.technology.inventory import PROCEDURES, definitions
 from wayfarer.errors import ValidationError
 
 FIXTURE = Path("tests/fixtures/gurps/technology_skills.json")

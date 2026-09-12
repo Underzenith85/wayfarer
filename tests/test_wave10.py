@@ -10,7 +10,7 @@ import pytest
 from test_actions import Dice, actor_setup, campaign, resource_seed
 from test_scenes import configured
 
-from wayfarer.engine.simulation.action_engine import ActionEngine
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import PlayState, Wait
 from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.campaign.npcs import NPCAction, NPCPlan, NPCRules

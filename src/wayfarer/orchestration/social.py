@@ -74,7 +74,7 @@ def bind_skill_conditions(
     owns what each one is worth. An initiator without an approved build asserts
     nothing extra, and a resolver still cannot supply a trait modifier itself.
     """
-    from wayfarer.engine.rules.skills.mundane.social import Resolution, require_procedure
+    from wayfarer.engine.rules.skills.mundane.social.inventory import Resolution, require_procedure
 
     if context.procedure_id is None:
         raise ValidationError("Social skill dispatch requires a declared procedure")

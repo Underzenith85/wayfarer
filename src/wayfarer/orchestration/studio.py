@@ -12,7 +12,7 @@ from pydantic import ValidationError as SchemaError
 
 from wayfarer.engine.character.power import PowerReviewer
 from wayfarer.engine.rules.catalog import CampaignPolicy
-from wayfarer.engine.simulation.action_engine import ActionEngine
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActorSetup, CheckRule
 from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.campaign.scenes import Scene, SceneExit

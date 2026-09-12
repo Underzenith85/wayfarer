@@ -28,7 +28,7 @@ from wayfarer.engine.rules.conformance import CoverageStatus, capability, profil
 from wayfarer.engine.rules.gurps_characters import source
 
 # The same shape #345 publishes, so one report field carries both groups.
-from wayfarer.engine.rules.skills.mundane.social import UnsupportedScope
+from wayfarer.engine.rules.skills.mundane.social.inventory import UnsupportedScope
 from wayfarer.engine.rules.skills.mundane.source_defaults import (
     recorded_blockers,
     recorded_defaults,

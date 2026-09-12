@@ -339,7 +339,7 @@ def social_occurrence(
     elif trigger.kind == "skill":
         # #345: the authored trigger names the procedure and the circumstances;
         # the initiator's approved level and the subject's Will come from builds.
-        from wayfarer.engine.rules.skills.mundane.social import require_procedure
+        from wayfarer.engine.rules.skills.mundane.social.inventory import require_procedure
 
         procedure = require_procedure(profile_id, trigger.skill_id)
         if not any(a.actor_id == actor_id for a in state.actors):

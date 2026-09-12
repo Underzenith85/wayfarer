@@ -12,7 +12,7 @@ from hypothesis import strategies as st
 from pydantic import ValidationError as SchemaError
 from test_actions import Dice, actor_setup, campaign, engine, resource_seed, seed, world
 
-from wayfarer.engine.simulation.action_engine import ActionEngine
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionResult, PlayState, Social, Wait
 from wayfarer.engine.simulation.campaign.adjudication import Ruling, RulingAlternative, RulingPolicy
 from wayfarer.engine.simulation.events import action_result

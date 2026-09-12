@@ -17,7 +17,7 @@ from wayfarer.engine.rules.catalog import reference
 from wayfarer.engine.rules.checks import RandomSource
 from wayfarer.engine.rules.types.injury import InjuryStatus
 from wayfarer.engine.rules.types.recovery import FatigueStatus
-from wayfarer.engine.simulation.action_engine import ActionEngine
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import (
     ACTION_ADAPTER,
     ActionResult,

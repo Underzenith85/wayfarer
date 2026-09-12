@@ -22,7 +22,7 @@ from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.magic.gurps_magic import definitions
 from wayfarer.engine.rules.magic.protocols import MagicItemBinding
 from wayfarer.engine.rules.magic.spell_catalog import projectile_definition
-from wayfarer.engine.simulation.action_engine import ActionEngine
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, Wait
 from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
 from wayfarer.engine.simulation.combat.profiles import CombatRules

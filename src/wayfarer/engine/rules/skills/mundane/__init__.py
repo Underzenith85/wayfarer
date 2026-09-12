@@ -31,10 +31,14 @@ from wayfarer.engine.rules.skills.mundane.schema import (
     InventoryRow,
     SourceIndex,
 )
-from wayfarer.engine.rules.skills.mundane.social import PROCEDURES as SOCIAL_PROCEDURES
-from wayfarer.engine.rules.skills.mundane.social import unsupported_scope as social_scope
-from wayfarer.engine.rules.skills.mundane.technology import PROCEDURES as TECHNOLOGY_PROCEDURES
-from wayfarer.engine.rules.skills.mundane.technology import unsupported_scope as technology_scope
+from wayfarer.engine.rules.skills.mundane.social.inventory import PROCEDURES as SOCIAL_PROCEDURES
+from wayfarer.engine.rules.skills.mundane.social.inventory import unsupported_scope as social_scope
+from wayfarer.engine.rules.skills.mundane.technology.inventory import (
+    PROCEDURES as TECHNOLOGY_PROCEDURES,
+)
+from wayfarer.engine.rules.skills.mundane.technology.inventory import (
+    unsupported_scope as technology_scope,
+)
 from wayfarer.engine.rules.types.skill import ControllingAttribute as A
 from wayfarer.engine.rules.types.skill import (
     DefaultCondition,

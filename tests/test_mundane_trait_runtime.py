@@ -29,7 +29,7 @@ from wayfarer.engine.rules.social.gurps_social import ReactionModifier
 from wayfarer.engine.rules.traits.base import TraitOptions
 from wayfarer.engine.rules.traits.mundane import PROFILE
 from wayfarer.engine.rules.traits.mundane.runtime import Audience, Check
-from wayfarer.engine.simulation.action_engine import ActionEngine
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, PlayState
 from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.resources import Owner, ResourceEngine, ResourceState

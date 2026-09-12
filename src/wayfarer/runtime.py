@@ -8,7 +8,7 @@ from wayfarer.config import Settings
 from wayfarer.engine.character.compiler import CharacterCompiler, CharacterDraft, Purchase
 from wayfarer.engine.character.power import CharacterProposal, PowerPolicy, PowerReviewer
 from wayfarer.engine.rules.profiles import DEFAULT_REGISTRY, PROTOTYPE_PROFILE, RegisteredProfile
-from wayfarer.engine.simulation.action_engine import ActionEngine
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules, ActorSetup
 from wayfarer.engine.simulation.campaign.objectives import Objective, ObjectiveRules, Predicate
 from wayfarer.engine.simulation.campaign.party import PartyRules

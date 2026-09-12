@@ -11,7 +11,7 @@ from pydantic import Field
 
 from wayfarer import validation
 from wayfarer.engine.rules.randomness import RNG_ALGORITHM
-from wayfarer.engine.simulation.action_engine import ActionEngine
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.events import EngineEvent, campaign_document, digest, document, fold
 from wayfarer.models import Campaign, CommandReceipt, Record
 from wayfarer.orchestration.play import PlayService

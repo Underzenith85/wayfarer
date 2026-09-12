@@ -8,7 +8,7 @@ import pytest
 from pydantic import ValidationError as SchemaError
 from test_actions import actor_setup, campaign, engine, world
 
-from wayfarer.engine.simulation.action_engine import ActionEngine
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import PlayState, Wait
 from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
 from wayfarer.engine.simulation.combat.encounter import Encounter

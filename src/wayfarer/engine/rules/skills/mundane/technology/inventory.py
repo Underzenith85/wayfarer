@@ -17,8 +17,7 @@ defaults, alternative prerequisites and the frozen-source context.
 Two modifiers belong to the procedure itself: the B168 technology-level
 difference and the B169 familiarity penalty. Handling reaches only a procedure
 that actually steers. A dispatched vehicle row additionally names
-`gurps.vehicles.movement`, which #358 must verify before live play may offer it.
-"""
+`gurps.vehicles.movement`, which #358 must verify before live play may offer it."""
 
 from __future__ import annotations
 
@@ -29,15 +28,9 @@ from types import MappingProxyType
 from typing import Final
 
 from wayfarer.engine.rules.catalog import DefinitionKind, ImplementationStatus, RuleDefinition
-from wayfarer.engine.rules.checks import CheckTrace, Modifier, ModifierKind, RandomSource
-from wayfarer.engine.rules.conformance import (
-    BASELINE_ID,
-    CAPABILITIES,
-    CoverageStatus,
-    require_capabilities,
-)
+from wayfarer.engine.rules.conformance import CAPABILITIES, CoverageStatus
 from wayfarer.engine.rules.gurps_characters import source
-from wayfarer.engine.rules.gurps_checks import RepeatedAttemptPolicy, replay_success, success_roll
+from wayfarer.engine.rules.gurps_checks import RepeatedAttemptPolicy
 from wayfarer.engine.rules.skills.mundane.source_defaults import (
     recorded_blockers,
     recorded_defaults,
@@ -56,39 +49,66 @@ from wayfarer.engine.rules.types.skill import (
 from wayfarer.errors import ValidationError
 
 PROFILE: Final = "gurps-basic-set-4e-2004"
+
+
 OWNER: Final = 346
+
+
 SPECIALTY_OWNER: Final = 356
+
+
 ARTS_OWNER: Final = 338
+
+
 CONTEXT_OWNER: Final = 336
-# #336 split its remaining contextual work into concrete children; conditional
-# defaults and alternative prerequisites are owned by #383.
+
+
 CONDITIONAL_OWNER: Final = 383
+
+
 CAPABILITY_OWNER: Final = 358
-# A family whose specialty is a campaign subject rather than a listed one is
-# expanded here but dispatched by #390.
+
+
 OPEN_SUBJECT_OWNER: Final = 390
 
+
 RUNTIME_PROCEDURE: Final = "runtime-procedure"
+
+
 SPECIALTY_EXPANSION: Final = "specialty-expansion"
+
+
 TECHNIQUE_EXPANSION: Final = "technique-expansion"
+
+
 CONDITIONAL_DEFAULTS: Final = "conditional-or-skill-defaults"
+
+
 CONTEXTUAL_DEFAULTS: Final = "contextual-default-procedure"
+
+
 PREREQUISITE_PROCEDURE: Final = "prerequisite-procedure"
+
+
 TECHNOLOGY_LEVEL: Final = "technology-level-context"
+
 
 CHECK_CAPABILITIES: Final = (
     "gurps.check.success",
     "gurps.check.margin",
     "gurps.check.critical",
 )
-# B169 familiarity: an unfamiliar vehicle, model or piece of equipment of a kind
-# you do know is a flat penalty, never a refusal to roll.
+
+
 FAMILIARITY_PENALTY: Final = -2
-# B168 technology level: using a TL-tagged skill at another TL costs one point of
-# effective skill per level of difference, in either direction.
+
+
 TECHNOLOGY_LEVEL_PENALTY: Final = -1
+
+
 VEHICLE_ACTIVATION: Final = ("gurps.vehicles.movement",)
-# Contextual blockers this issue does not close; the source review owns them.
+
+
 CONTEXT: Final = MappingProxyType(
     {
         CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,),
@@ -153,7 +173,8 @@ CONTROL: Final = TaskClass(
     handling=True,
     activation=VEHICLE_ACTIVATION,
 )
-# B185 Crewman holds a rated station; it never steers, so it carries no Handling.
+
+
 STATION: Final = TaskClass(
     Dispatch.VEHICLE_CONTROL,
     Effect.CREW_STATION,
@@ -161,12 +182,16 @@ STATION: Final = TaskClass(
     "station-held",
     activation=VEHICLE_ACTIVATION,
 )
+
+
 SEAL: Final = TaskClass(
     Dispatch.HAZARD_EXPOSURE,
     Effect.SEAL,
     RepeatedAttemptPolicy.HAZARDOUS_FAILURE,
     "seal-held",
 )
+
+
 REPAIR: Final = TaskClass(
     Dispatch.OBJECT_REPAIR,
     Effect.REPAIR,
@@ -197,8 +222,6 @@ def _study(unit: str = "finding", cap: int = 0) -> TaskClass:
     )
 
 
-# A bounded research finding: the shape every science row that simply learns
-# something shares. Naming it once keeps those rows from drifting apart.
 ANALYSIS: Final = _study()
 
 
@@ -314,8 +337,6 @@ def _skills(*pairs: tuple[str, int]) -> tuple[SkillDefault, ...]:
     return tuple(SkillDefault(f"skill:{target}", modifier) for target, modifier in pairs)
 
 
-# --- Vehicle families and their concrete specialties --------------------------
-
 VEHICLE_FAMILIES: Final = {
     "boating": (
         "Boating",
@@ -402,6 +423,8 @@ VEHICLE_FAMILIES: Final = {
         {},
     ),
 }
+
+
 EXPLOSIVES_SPECIALTIES: Final = (
     ("demolition", "Demolition", "charge-placed"),
     ("explosive-ordnance-disposal", "Explosive Ordnance Disposal", "device-disarmed"),
@@ -554,25 +577,23 @@ def _task(
     )
 
 
-# --- Discipline-keyed families (#356) -----------------------------------------
-
-# B199 Hazardous Materials keeps a dangerous substance contained rather than
-# learning anything, so it resolves through the exposure service the suits use.
 CONTAINMENT: Final = TaskClass(
     Dispatch.HAZARD_EXPOSURE,
     Effect.SEAL,
     RepeatedAttemptPolicy.HAZARDOUS_FAILURE,
     "containment-held",
 )
-# A recall roll answers "what do you already know"; the margin adds detail, but
-# a topic only holds so much, so the yield is capped rather than unbounded.
+
+
 BRIEFING: Final = _study("news-item", cap=3)
+
+
 DESIGN: Final = _study("design-step")
+
+
 READOUT: Final = _study("reading")
 
-# B189 and B190 key both electronics rows to the same equipment families. Only
-# the repair row adds Computers: B184 Computer Operation is the skill that uses a
-# computer, so operating one is never an Electronics Operation specialty.
+
 ELECTRONICS_SPECIALTIES: Final = (
     ("communications", "Communications"),
     ("electronic-warfare", "Electronic Warfare"),
@@ -584,14 +605,13 @@ ELECTRONICS_SPECIALTIES: Final = (
     ("sonar", "Sonar"),
     ("surveillance", "Surveillance"),
 )
+
+
 REPAIRABLE_ELECTRONICS: Final = tuple(
     sorted((*ELECTRONICS_SPECIALTIES, ("computers", "Computers")))
 )
 
-# Families the source enumerates: family -> (title, page, difficulty, defaults,
-# task, specialties, contextual blockers this issue does not close). Every
-# specialty shares the family's attribute, difficulty and defaults; a specialty
-# that rolled against different numbers would be a different skill.
+
 SCIENCE_FAMILIES: Final = {
     "bioengineering": (
         "Bioengineering",
@@ -689,17 +709,14 @@ SCIENCE_FAMILIES: Final = {
         {CONDITIONAL_DEFAULTS: (CONDITIONAL_OWNER,)},
     ),
 }
-# B207 keys a Mechanic specialty to a machine type, and a machine type normally
-# corresponds to a vehicle-operation specialty, so the expansion is generated
-# from the specialties this module already records rather than authored a second
-# time. Shiphandling is a command skill rather than vehicle operation, so it
-# contributes no machine type of its own.
+
+
 MECHANIC_FAMILIES: Final = ("boating", "driving", "piloting", "submarine")
-# A muscle-powered hull carries no machinery for a Mechanic to work on.
+
+
 MECHANIC_EXCLUDED: Final = frozenset({"boating-unpowered"})
-# Families whose specialty axis is a world, a planet type, a species or a region.
-# That axis is campaign data rather than a Basic Set listing, so the row records
-# the axis and #390 owns the procedure that instantiates a named subject.
+
+
 OPEN_FAMILIES: Final = {
     "biology": ("Biology", 180, D.VERY_HARD, _attribute(A.IQ, -6), "one planet type"),
     "disguise": ("Disguise", 187, D.AVERAGE, _attribute(A.IQ, -5), "one species or culture"),
@@ -1252,7 +1269,8 @@ def _recorded(entry: TechnologyProcedure) -> TechnologyProcedure:
 
 
 _ROWS: Final = tuple(_recorded(entry) for entry in _DECLARED_ROWS)
-# Every listed technology row, plus the concrete specialties this issue expands.
+
+
 PROCEDURES: Final = MappingProxyType({entry.id: entry for entry in _ROWS})
 
 
@@ -1261,8 +1279,6 @@ def definitions() -> tuple[RuleDefinition, ...]:
     return tuple(entry.definition() for entry in _ROWS if entry.dispatchable)
 
 
-# What each activation capability would have to cover before a bound row may be
-# offered in play. The registry decides whether it is covered; this only says why.
 ACTIVATION_DETAIL: Final = MappingProxyType(
     {
         "gurps.vehicles.movement": (
@@ -1289,209 +1305,3 @@ def unsupported_scope() -> tuple[tuple[str, UnsupportedScope], ...]:
                 raise ValidationError(f"Activation blocker names no scope: {identifier}")
             scope.append((entry.id, UnsupportedScope(identifier, detail, CAPABILITY_OWNER)))
     return tuple(scope)
-
-
-# --- Execution ----------------------------------------------------------------
-
-
-@dataclass(frozen=True, slots=True)
-class Operator:
-    """Trusted server description of the character attempting a procedure.
-
-    ``level`` is the character's effective skill as the character service already
-    computed it, never a client claim. ``parent_level`` is the level of a
-    technique's parent skill and is required for a technique row; where that
-    parent is a family, it is the level of the concrete specialty the character
-    actually holds, because that is what B230 measures the technique against.
-    """
-
-    skill_id: str
-    level: int
-    technology_level: int
-    trained: frozenset[str] = frozenset()
-    parent_level: int | None = None
-    purchased_definitions: frozenset[str] = frozenset()
-    capabilities: frozenset[str] = frozenset()
-
-
-@dataclass(frozen=True, slots=True)
-class Situation:
-    """The authoritative situation the attempt happens in."""
-
-    technology_level: int
-    familiar: bool = True
-    handling: int = 0
-    situational: tuple[Modifier, ...] = ()
-
-
-@dataclass(frozen=True, slots=True)
-class ProcedureResult:
-    """One executed attempt, ready for the service named by ``dispatch``."""
-
-    procedure_id: str
-    reference: str
-    dispatch: Dispatch
-    effect: Effect
-    policy: RepeatedAttemptPolicy
-    check: CheckTrace
-    units: int
-    unit: str
-    hazard: bool
-    activation_blockers: tuple[str, ...]
-
-    @property
-    def succeeded(self) -> bool:
-        return self.check.outcome.succeeded
-
-
-def require_task(profile_id: str, skill_id: str) -> TechnologyProcedure:
-    """Fail closed before dice when a row is a family, unbound or off-profile."""
-    entry = PROCEDURES.get(skill_id)
-    if entry is None:
-        raise ValidationError(f"Skill is outside the technology procedures: {skill_id}")
-    if profile_id != PROFILE:
-        raise ValidationError(f"Technology skill requires the exact Basic Set profile: {skill_id}")
-    if entry.specialties:
-        raise ValidationError(
-            f"Technology skill family requires a concrete specialty: {skill_id}: "
-            + ", ".join(entry.specialties)
-        )
-    if not entry.dispatchable:
-        raise ValidationError(
-            f"Technology skill procedure is unsupported: {skill_id}: "
-            + ", ".join(
-                f"{blocker} (" + ", ".join(f"#{issue}" for issue in owners) + ")"
-                for blocker, owners in entry.transferred.items()
-            )
-        )
-    return entry
-
-
-def _modifier(value: int, reason: str, kind: ModifierKind) -> Modifier:
-    return Modifier(value, reason, PROFILE, BASELINE_ID, kind)
-
-
-def technology_level_modifier(operator: Operator, situation: Situation) -> Modifier | None:
-    """B168: one point of effective skill per level of TL difference, either way."""
-    difference = abs(operator.technology_level - situation.technology_level)
-    if difference == 0:
-        return None
-    return _modifier(
-        TECHNOLOGY_LEVEL_PENALTY * difference,
-        "technology-level-difference",
-        ModifierKind.SITUATIONAL,
-    )
-
-
-def technique_target(entry: TechnologyProcedure, operator: Operator) -> int:
-    """B230: a technique starts at its parent's default and is capped above it."""
-    technique = entry.technique
-    assert technique is not None
-    if operator.parent_level is None:
-        raise ValidationError(f"Technique requires its parent skill level: {entry.id}")
-    floor = operator.parent_level + technique.default_modifier
-    ceiling = operator.parent_level + technique.maximum_modifier
-    if not floor <= operator.level <= ceiling:
-        raise ValidationError(f"Technique level outside its parent-specific range: {entry.id}")
-    return operator.level
-
-
-def _modifiers(
-    entry: TechnologyProcedure, operator: Operator, situation: Situation
-) -> tuple[Modifier, ...]:
-    assert entry.task is not None
-    modifiers: list[Modifier] = []
-    recorded = technology_level_modifier(operator, situation)
-    if recorded is not None:
-        modifiers.append(recorded)
-    if not situation.familiar:
-        modifiers.append(
-            _modifier(FAMILIARITY_PENALTY, "unfamiliar-equipment", ModifierKind.EQUIPMENT)
-        )
-    if situation.handling:
-        if not entry.task.handling:
-            raise ValidationError(f"Handling does not apply to {entry.id}")
-        modifiers.append(_modifier(situation.handling, "vehicle-handling", ModifierKind.EQUIPMENT))
-    modifiers.extend(situation.situational)
-    return tuple(modifiers)
-
-
-def _result(entry: TechnologyProcedure, check: CheckTrace) -> ProcedureResult:
-    assert entry.task is not None
-    return ProcedureResult(
-        entry.id,
-        entry.reference,
-        entry.task.dispatch,
-        entry.task.effect,
-        entry.task.policy,
-        check,
-        entry.task.units(check.margin) if check.outcome.succeeded else 0,
-        entry.task.unit,
-        hazard=entry.task.policy is RepeatedAttemptPolicy.HAZARDOUS_FAILURE
-        and not check.outcome.succeeded,
-        activation_blockers=entry.activation_blockers,
-    )
-
-
-def attempt(
-    operator: Operator,
-    situation: Situation,
-    *,
-    rng: RandomSource,
-    profile_id: str = PROFILE,
-) -> ProcedureResult:
-    """Execute one attempt at the procedure bound to the operator's skill.
-
-    Fails closed on an unbound or family row, an untrained prerequisite, a
-    technique outside its parent-specific range, a steering modifier on a
-    procedure that does not steer, and any check capability the profile has not
-    verified.
-    """
-    entry = require_task(profile_id, operator.skill_id)
-    require_capabilities(profile_id, CHECK_CAPABILITIES)
-    base = technique_target(entry, operator) if entry.technique else operator.level
-    if base < 1:
-        raise ValidationError(f"Effective skill must be positive: {entry.id}")
-
-    def acquisition_satisfied(prerequisite: SkillPrerequisite) -> bool:
-        if (
-            prerequisite.minimum_technology_level is not None
-            and operator.technology_level < prerequisite.minimum_technology_level
-        ):
-            return True
-        return (
-            prerequisite.target in operator.trained
-            if prerequisite.kind is PrerequisiteKind.TRAINED_SKILL
-            else prerequisite.target in operator.purchased_definitions
-            if prerequisite.kind is PrerequisiteKind.PURCHASED_DEFINITION
-            else prerequisite.target in operator.capabilities
-        )
-
-    missing = [
-        prerequisite.target
-        for prerequisite in entry.prerequisites
-        if not acquisition_satisfied(prerequisite)
-    ]
-    missing.extend(
-        "/".join(prerequisite.target for prerequisite in group.alternatives)
-        for group in entry.prerequisite_groups
-        if not any(acquisition_satisfied(prerequisite) for prerequisite in group.alternatives)
-    )
-    if missing:
-        raise ValidationError(
-            f"Untrained prerequisite for {entry.id}: {', '.join(sorted(missing))}"
-        )
-    return _result(
-        entry, success_roll(profile_id, base, _modifiers(entry, operator, situation), rng=rng)
-    )
-
-
-def replay(result: ProcedureResult) -> ProcedureResult:
-    """Re-score a recorded attempt without rolling; receipts must be reproducible."""
-    entry = PROCEDURES.get(result.procedure_id)
-    if entry is None or not entry.dispatchable:
-        raise ValidationError(f"Recorded procedure is no longer bound: {result.procedure_id}")
-    check = replay_success(result.check)
-    if check != result.check:
-        raise ValidationError(f"Replay diverged from the recorded receipt: {result.procedure_id}")
-    return _result(entry, check)

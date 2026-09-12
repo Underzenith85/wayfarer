@@ -14,7 +14,7 @@ from test_gurps_melee import setup as melee_setup
 from test_reinforcements import escalation
 from test_scenes import configured
 
-from wayfarer.engine.simulation.action_engine import ActionEngine
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import Inspect, Wait
 from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.campaign.objectives import (

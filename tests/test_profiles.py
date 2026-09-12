@@ -36,7 +36,7 @@ from wayfarer.engine.rules.profiles import (
     RegisteredProfile,
 )
 from wayfarer.engine.rules.skills import gurps_skills
-from wayfarer.engine.simulation.action_engine import ActionEngine
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules, CheckRule, PlayState
 from wayfarer.engine.simulation.campaign.profiles import MigrateProfile, ProfileSelection
 from wayfarer.engine.simulation.campaign.setup import CreateSetup, SetupCommand

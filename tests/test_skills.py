@@ -494,7 +494,7 @@ def test_effects_propagate_to_defaults_and_techniques_without_double_application
 
 def test_actual_action_accepts_unpurchased_default_and_uses_per() -> None:
     from wayfarer.engine.character.power import CharacterProposal, PowerPolicy, PowerReviewer
-    from wayfarer.engine.simulation.action_engine import ActionEngine
+    from wayfarer.engine.simulation.action_engine.engine import ActionEngine
     from wayfarer.engine.simulation.actions import (
         ActionRules,
         ActorSetup,

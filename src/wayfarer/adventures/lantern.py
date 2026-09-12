@@ -18,7 +18,7 @@ from wayfarer.engine.rules.catalog import (
     RuleDefinition,
     RulesCatalog,
 )
-from wayfarer.engine.simulation.action_engine import ActionEngine
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, CheckRule
 from wayfarer.engine.simulation.campaign.npcs import NPCAction, NPCPlan, NPCRules
 from wayfarer.engine.simulation.campaign.objectives import (

@@ -14,7 +14,7 @@ from wayfarer.engine.rules.catalog import RulesCatalog
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.types.injury import InjuryStatus
 from wayfarer.engine.rules.types.recovery import FatigueStatus, ProfileId
-from wayfarer.engine.simulation.action_engine import ActionEngine
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, PlayState
 from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.resources import Owner, ResourceEngine, ResourceState

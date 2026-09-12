@@ -82,7 +82,7 @@ async def test_missing_template_fails_closed_and_geometry_is_pinned(tmp_path: Pa
     rules = play.engine.rules.combat
     assert rules is not None
     board = play.rules_context.require_hex(encounter)
-    from wayfarer.engine.simulation.action_engine import ActionEngine
+    from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 
     modified = board.model_copy(update={"darkness_penalty": -1})
     combat = rules.model_copy(

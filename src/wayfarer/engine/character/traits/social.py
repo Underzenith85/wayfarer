@@ -11,7 +11,7 @@ from collections.abc import Mapping
 from wayfarer.engine.character.compiler import ValidatedBuild
 from wayfarer.engine.character.traits.background import background_traits
 from wayfarer.engine.rules.catalog import ImplementationStatus, RuleDefinition
-from wayfarer.engine.rules.skills.mundane.social import VOICE, procedure
+from wayfarer.engine.rules.skills.mundane.social.inventory import VOICE, procedure
 from wayfarer.engine.rules.social.gurps_social import ReactionModifier
 from wayfarer.engine.rules.social.social_hooks import Reputation, Standing, validate_standing
 from wayfarer.engine.rules.traits.mundane.runtime import (

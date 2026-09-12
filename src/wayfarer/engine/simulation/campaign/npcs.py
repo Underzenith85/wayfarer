@@ -4,7 +4,7 @@ from typing import Literal, Self
 
 from pydantic import Field, model_validator
 
-from wayfarer.engine.rules.skills.mundane.social import CONDITIONS, PROCEDURES
+from wayfarer.engine.rules.skills.mundane.social.inventory import CONDITIONS, PROCEDURES
 from wayfarer.engine.rules.social.gurps_social import influence_procedure
 from wayfarer.engine.rules.social.social_hooks import Appearance, Recognition, ReputationScope
 from wayfarer.errors import ValidationError

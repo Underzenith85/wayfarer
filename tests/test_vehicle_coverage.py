@@ -11,7 +11,7 @@ import pytest
 
 from wayfarer.engine.rules.conformance import CAPABILITIES, CoverageStatus, capability
 from wayfarer.engine.rules.skills.mundane import inventory
-from wayfarer.engine.rules.skills.mundane.technology import PROCEDURES, unsupported_scope
+from wayfarer.engine.rules.skills.mundane.technology.inventory import PROCEDURES, unsupported_scope
 from wayfarer.engine.rules.types.vehicle_capabilities import VEHICLE_OPERATIONS
 from wayfarer.engine.rules.types.vehicle_coverage import (
     ALL_CONCERNS,

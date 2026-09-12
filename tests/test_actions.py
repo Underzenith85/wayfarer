@@ -27,7 +27,7 @@ from wayfarer.engine.rules.catalog import (
     RulesCatalog,
     reference,
 )
-from wayfarer.engine.simulation.action_engine import ActionEngine
+from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import (
     ActionResult,
     ActionRules,
