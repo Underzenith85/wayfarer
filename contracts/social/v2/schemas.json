@@ -2262,9 +2262,17 @@
             "$ref": "#/$defs/wayfarer__simulation__gurps_equipment__Provenance"
           },
           "weight_millipounds": {
-            "minimum": 0,
-            "title": "Weight Millipounds",
-            "type": "integer"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "format": "fraction",
+                "type": "string"
+              }
+            ],
+            "ge": 0,
+            "title": "Weight Millipounds"
           },
           "price": {
             "anyOf": [
@@ -2277,6 +2285,10 @@
               },
               {
                 "type": "integer"
+              },
+              {
+                "format": "fraction",
+                "type": "string"
               }
             ],
             "ge": 0,
@@ -5876,6 +5888,12 @@
           "shots": {
             "minimum": 1,
             "title": "Shots",
+            "type": "integer"
+          },
+          "chamber_capacity": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Chamber Capacity",
             "type": "integer"
           },
           "reload_seconds": {

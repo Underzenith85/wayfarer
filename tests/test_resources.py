@@ -4,6 +4,7 @@ import asyncio
 import os
 import uuid
 from dataclasses import replace
+from fractions import Fraction
 from pathlib import Path
 
 import pytest
@@ -32,6 +33,7 @@ from wayfarer.rules.catalog import (
 from wayfarer.simulation.resources import (
     COMMAND_ADAPTER,
     Advance,
+    AmmunitionLoad,
     Consume,
     Equip,
     EquipmentSpec,
@@ -143,6 +145,43 @@ def test_split_transfer_consume_and_exact_retry() -> None:
             result,
             Consume(id="stale", actor_id="a", expected_revision=0, item_id="arrows", quantity=1),
         )
+
+
+def test_fractional_ammunition_mass_is_exact_and_reserved() -> None:
+    reducer = engine()
+    reducer.specs["arrow"] = reducer.specs["arrow"].model_copy(
+        update={"unit_weight": Fraction(400, 9)}
+    )
+    before = seed(9).model_copy(
+        update={
+            "owners": (
+                Owner(actor_id="a", capacity=1000, definitions=("skill:stealth",)),
+                Owner(actor_id="b", capacity=100),
+            ),
+            "ammunition_loads": (
+                AmmunitionLoad(
+                    weapon_id="sword",
+                    mode_id="shot",
+                    ammunition_item_id="arrows",
+                    rounds=9,
+                ),
+            ),
+        }
+    )
+    reducer.validate(before)
+    assert reducer.carried_weight(before, "a") == 407
+
+    after = before.model_copy(
+        update={
+            "items": tuple(
+                item.model_copy(update={"quantity": 8}) if item.id == "arrows" else item
+                for item in before.items
+            ),
+            "ammunition_loads": (before.ammunition_loads[0].model_copy(update={"rounds": 8}),),
+        }
+    )
+    reducer.validate(after)
+    assert reducer.carried_weight(after, "a") == Fraction(3263, 9)
 
 
 @pytest.mark.parametrize("amount", [True, "1", 1.5, 0, -1])

@@ -5,6 +5,7 @@ explicit review data for the selected later-printing profile.
 """
 
 from decimal import Decimal
+from fractions import Fraction
 from typing import Literal, cast
 
 from pydantic import Field
@@ -201,6 +202,7 @@ def firearm(
     action: Literal["muzzleloader", "breechloader", "revolver", "repeating"],
     *,
     reload_protocol: Literal["magazine", "per-round"] = "magazine",
+    chamber_capacity: int = 0,
 ) -> RangedMode:
     """Construct one independently transcribed B278 conventional-firearm row."""
     return RangedMode(
@@ -220,6 +222,7 @@ def firearm(
         maximum_range=maximum_range,
         rate_of_fire=rate_of_fire,
         shots=shots,
+        chamber_capacity=chamber_capacity,
         reload_seconds=reload_seconds,
         reload_protocol=reload_protocol,
         bulk=bulk,
@@ -959,9 +962,8 @@ MUSCLE_POWERED_AMMUNITION = tuple(
     )
 )
 
-# B278: rows whose printed shot capacity and ammunition-load weight can both be
-# represented without rounding. Chambered "+1" capacities and fractional
-# millipounds remain ledgered omissions instead of being flattened.
+# B278: capacity preserves the printed chamber separately from the magazine;
+# ammunition mass remains an exact rational number of millipounds.
 FIREARMS = (
     ranged_weapon(
         "flintlock-pistol-51",
@@ -1070,6 +1072,60 @@ FIREARMS = (
         ),
     ),
     ranged_weapon(
+        "auto-pistol-45-tl6",
+        278,
+        6,
+        300,
+        2400,
+        firearm(
+            "shot",
+            "pistol",
+            6,
+            2,
+            0,
+            "pi+",
+            2,
+            175,
+            1700,
+            3,
+            8,
+            3,
+            10,
+            -2,
+            3,
+            "auto-pistol-45-tl6-round",
+            "repeating",
+            chamber_capacity=1,
+        ),
+    ),
+    ranged_weapon(
+        "auto-pistol-9mm-tl6",
+        278,
+        6,
+        350,
+        2000,
+        firearm(
+            "shot",
+            "pistol",
+            6,
+            2,
+            2,
+            "pi",
+            2,
+            150,
+            1850,
+            3,
+            9,
+            3,
+            9,
+            -2,
+            2,
+            "auto-pistol-9mm-tl6-round",
+            "repeating",
+            chamber_capacity=1,
+        ),
+    ),
+    ranged_weapon(
         "snub-revolver-38",
         278,
         6,
@@ -1113,6 +1169,8 @@ FIREARM_AMMUNITION = tuple(
         ("derringer-41-round", 5, 1, 50),
         ("revolver-36-round", 5, Decimal("0.8"), 40),
         ("snub-revolver-38-round", 6, Decimal("0.8"), 40),
+        ("auto-pistol-45-tl6-round", 6, Decimal("1.5"), 75),
+        ("auto-pistol-9mm-tl6-round", 6, Fraction(8, 9), Fraction(400, 9)),
     )
 )
 

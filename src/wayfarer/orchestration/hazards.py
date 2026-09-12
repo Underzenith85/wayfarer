@@ -17,6 +17,7 @@ from wayfarer.orchestration.play import PlayService
 from wayfarer.rules.hazard_types import HazardSchedule, HazardSpec
 from wayfarer.simulation.actions import PlayState
 from wayfarer.simulation.hazards import HazardCommand, HazardResult, apply_hazard
+from wayfarer.simulation.resources import decimal_weight
 
 
 @dataclass(frozen=True)
@@ -139,7 +140,7 @@ class HazardService:
                             load = encumbrance(
                                 context.spec.profile_id,
                                 build.statistics.basic_lift,
-                                Decimal(
+                                decimal_weight(
                                     play.engine.resources.carried_weight(
                                         before.resources, command.actor_id
                                     )
@@ -159,7 +160,7 @@ class HazardService:
                         load = encumbrance(
                             context.spec.profile_id,
                             build.statistics.basic_lift,
-                            Decimal(
+                            decimal_weight(
                                 play.engine.resources.carried_weight(
                                     before.resources, command.actor_id
                                 )

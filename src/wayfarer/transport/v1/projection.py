@@ -10,6 +10,7 @@ from wayfarer.models import Campaign
 from wayfarer.orchestration.play import PlayService
 from wayfarer.simulation.access import CampaignMember
 from wayfarer.simulation.actions import PlayState
+from wayfarer.simulation.resources import wire_weight
 
 from .common import Fault, Obj, encoded, validate
 
@@ -177,7 +178,7 @@ class Projector:
                         "name": i.definition_id,
                         "description": i.definition_id,
                         "quantity": i.quantity,
-                        "unit_weight_grams": spec.unit_weight * self.weight_grams,
+                        "unit_weight_grams": wire_weight(spec.unit_weight * self.weight_grams),
                         "location": "confiscated"
                         if held
                         else "equipped"
@@ -203,8 +204,10 @@ class Projector:
                 {
                     "actor_id": aid,
                     "items": sorted(items, key=lambda i: str(i["id"])),
-                    "total_weight_grams": play.engine.resources.carried_weight(state.resources, aid)
-                    * self.weight_grams,
+                    "total_weight_grams": wire_weight(
+                        play.engine.resources.carried_weight(state.resources, aid)
+                        * self.weight_grams
+                    ),
                     "encumbrance": "Not supplied by the current engine projection",
                 },
             )

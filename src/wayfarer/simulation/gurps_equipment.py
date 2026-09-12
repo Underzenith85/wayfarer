@@ -5,6 +5,7 @@ this explicit adapter, never the prototype's unspecified integer units.
 """
 
 from decimal import Decimal
+from fractions import Fraction
 from typing import Annotated, Literal, Self
 
 from pydantic import Field, model_validator
@@ -29,11 +30,17 @@ from wayfarer.rules.mount_types import MountSpec
 from wayfarer.rules.object_types import ObjectProfile
 from wayfarer.rules.readiness_types import ProjectileReadiness
 from wayfarer.rules.spray_types import SprayerSpec
-from wayfarer.simulation.resources import EquipmentSpec, ResourceEngine, ResourceState
+from wayfarer.simulation.resources import (
+    EquipmentSpec,
+    ExactWeight,
+    ResourceEngine,
+    ResourceState,
+    decimal_weight,
+)
 
 Nonnegative = Annotated[int, Field(ge=0)]
 Positive = Annotated[int, Field(ge=1)]
-Money = Annotated[Decimal | int, Field(ge=0, allow_inf_nan=False)]
+Money = Annotated[Decimal | int | Fraction, Field(ge=0, allow_inf_nan=False)]
 DamageType = Literal["cr", "cut", "imp", "pi-", "pi", "pi+", "pi++", "burn", "cor", "tox", "fat"]
 Location = HumanLocation | Literal["arms", "hands", "legs", "feet", "eyes"]
 
@@ -108,6 +115,7 @@ class RangedMode(Record):
     maximum_range: Annotated[Decimal | int, Field(gt=0, allow_inf_nan=False)]
     rate_of_fire: Positive = 1
     shots: Positive
+    chamber_capacity: Nonnegative = Field(default=0, exclude_if=lambda value: value == 0)
     reload_seconds: Nonnegative
     reload_protocol: Literal["magazine", "per-round"] = Field(
         default="magazine", exclude_if=lambda v: v == "magazine"
@@ -135,6 +143,10 @@ class RangedMode(Record):
 
     @model_validator(mode="after")
     def valid_range(self) -> Self:
+        if self.chamber_capacity > self.shots:
+            raise ValueError("Chamber capacity cannot exceed total shots")
+        if self.chamber_capacity and self.firearm is None:
+            raise ValueError("Chamber capacity requires explicit firearm facts")
         if self.catchable and (not self.thrown or self.hands != 1):
             raise ValueError("Catching requires a one-handed thrown weapon")
         if self.readiness is not None:
@@ -287,7 +299,7 @@ class Shield(Record):
 class EquipmentProfile(Record):
     definition_id: Id
     provenance: Provenance
-    weight_millipounds: Nonnegative
+    weight_millipounds: ExactWeight
     price: Money
     technology_level: Nonnegative
     slot: Id | None = None
@@ -525,7 +537,7 @@ def inventory_load(
     expected = {entry.definition_id: entry.inventory_spec() for entry in catalog.entries}
     if engine.specs != expected:
         raise ValidationError("Inventory must use the exact profile specs and millipound units")
-    pounds = Decimal(engine.carried_weight(state, actor_id)) / 1000
+    pounds = decimal_weight(engine.carried_weight(state, actor_id)) / 1000
     level = encumbrance(catalog.profile_id, statistics.basic_lift, pounds)
     return Load(
         weight_pounds=pounds,

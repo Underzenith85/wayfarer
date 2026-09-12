@@ -1,6 +1,7 @@
 """B484-485 repairs in the campaign CAS, using approved skills and owned supplies."""
 
 import hashlib
+from fractions import Fraction
 from typing import Literal
 
 from wayfarer.errors import ConflictError, ValidationError
@@ -118,15 +119,15 @@ def repair(
             if part_entry is None or part_entry.price <= 0 or supplies is None:
                 raise ValidationError("Major repair requires priced, owned spare parts")
             # Preflight the maximum cost before RNG; insufficient supplies cannot fish for a cheaper roll.
-            maximum = int((entry.price * 6 + part_entry.price * 10 - 1) // (part_entry.price * 10))
+            entry_price = Fraction(entry.price)
+            part_price = Fraction(part_entry.price)
+            maximum = int((entry_price * 6 + part_price * 10 - 1) // (part_price * 10))
             if supplies.quantity < maximum:
                 raise ValidationError(
                     "Major repair requires supplies covering the maximum parts cost"
                 )
             parts_die = 6 if preview else draw_dice(runtime.rng, 1)[0]
-            quantity = int(
-                (entry.price * parts_die + part_entry.price * 10 - 1) // (part_entry.price * 10)
-            )
+            quantity = int((entry_price * parts_die + part_price * 10 - 1) // (part_price * 10))
             if quantity:
                 resources = runtime.resources.apply(
                     resources,
