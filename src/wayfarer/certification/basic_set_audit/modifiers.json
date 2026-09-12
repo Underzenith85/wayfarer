@@ -1,0 +1,2099 @@
+{
+  "schema_version": 1,
+  "ledger_type": "modifiers",
+  "baseline_id": "gurps-4e-characters-3p-2008+campaigns-4p-2008",
+  "source_sha256": {
+    "characters-third": "872b5fece8f4013bf46825b397ef52b52c865fa2879f4544f055d9b6caecf47e",
+    "campaigns-fourth": "79cff8f75b91b4ba72e7947320bf98e184515e60108bda0f0891d379b3c96e80"
+  },
+  "rows": [
+    {
+      "id": "modifier:enhancement:accurate",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Accurate",
+      "printed_page": 102,
+      "list_page": 300,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+5%/level"
+    },
+    {
+      "id": "modifier:enhancement:affects-insubstantial",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Affects Insubstantial",
+      "printed_page": 102,
+      "list_page": 300,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+20%"
+    },
+    {
+      "id": "modifier:enhancement:affects-substantial",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Affects Substantial",
+      "printed_page": 102,
+      "list_page": 300,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+40%"
+    },
+    {
+      "id": "modifier:enhancement:area-effect",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Area Effect",
+      "printed_page": 102,
+      "list_page": 300,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+50%/level"
+    },
+    {
+      "id": "modifier:enhancement:armor-divisor",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Armor Divisor",
+      "printed_page": 102,
+      "list_page": 300,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:enhancement:aura",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Aura",
+      "printed_page": 102,
+      "list_page": 300,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+80%"
+    },
+    {
+      "id": "modifier:enhancement:based-on-different-attribute",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Based on (Different Attribute)",
+      "printed_page": 102,
+      "list_page": 300,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+20%"
+    },
+    {
+      "id": "modifier:enhancement:blood-agent",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Blood Agent",
+      "printed_page": 102,
+      "list_page": 300,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+100%"
+    },
+    {
+      "id": "modifier:enhancement:cone",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Cone",
+      "printed_page": 103,
+      "list_page": 300,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:enhancement:contact-agent",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Contact Agent",
+      "printed_page": 103,
+      "list_page": 300,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+150%"
+    },
+    {
+      "id": "modifier:enhancement:cosmic",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Cosmic",
+      "printed_page": 103,
+      "list_page": 300,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:enhancement:cyclic",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Cyclic",
+      "printed_page": 103,
+      "list_page": 300,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:enhancement:damage-modifiers",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Damage Modifiers",
+      "printed_page": 104,
+      "list_page": 300,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:enhancement:delay",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Delay",
+      "printed_page": 105,
+      "list_page": 300,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:enhancement:double-blunt-trauma-dbt",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Double Blunt Trauma (dbt)",
+      "printed_page": 104,
+      "list_page": 300,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+20%"
+    },
+    {
+      "id": "modifier:enhancement:double-knockback-dkb",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Double Knockback (dkb)",
+      "printed_page": 104,
+      "list_page": 300,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+20%"
+    },
+    {
+      "id": "modifier:enhancement:drifting",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Drifting",
+      "printed_page": 105,
+      "list_page": 300,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+20%"
+    },
+    {
+      "id": "modifier:enhancement:explosion-exp",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Explosion (exp)",
+      "printed_page": 104,
+      "list_page": 300,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+50%/level"
+    },
+    {
+      "id": "modifier:enhancement:extended-duration",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Extended Duration",
+      "printed_page": 105,
+      "list_page": 300,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:enhancement:follow-up",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Follow-Up",
+      "printed_page": 105,
+      "list_page": 300,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:enhancement:fragmentation-frag",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Fragmentation (frag)",
+      "printed_page": 104,
+      "list_page": 300,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+15%/die"
+    },
+    {
+      "id": "modifier:enhancement:guided",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Guided",
+      "printed_page": 105,
+      "list_page": 300,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+50%"
+    },
+    {
+      "id": "modifier:enhancement:hazard",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Hazard",
+      "printed_page": 104,
+      "list_page": 300,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:enhancement:homing",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Homing",
+      "printed_page": 105,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:enhancement:incendiary-inc",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Incendiary (inc)",
+      "printed_page": 105,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+10%"
+    },
+    {
+      "id": "modifier:enhancement:increased-range",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Increased Range",
+      "printed_page": 106,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+10%/level"
+    },
+    {
+      "id": "modifier:enhancement:jet",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Jet",
+      "printed_page": 106,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+0%"
+    },
+    {
+      "id": "modifier:enhancement:link",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Link",
+      "printed_page": 106,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "or +20%"
+    },
+    {
+      "id": "modifier:enhancement:low-signature",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Low Signature",
+      "printed_page": 106,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+10%"
+    },
+    {
+      "id": "modifier:enhancement:malediction",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Malediction",
+      "printed_page": 106,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:enhancement:mobile",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Mobile",
+      "printed_page": 107,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+40%/level"
+    },
+    {
+      "id": "modifier:enhancement:no-signature",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "No Signature",
+      "printed_page": 106,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+20%"
+    },
+    {
+      "id": "modifier:enhancement:overhead",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Overhead",
+      "printed_page": 107,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+30%"
+    },
+    {
+      "id": "modifier:enhancement:persistent",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Persistent",
+      "printed_page": 107,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+40%"
+    },
+    {
+      "id": "modifier:enhancement:radiation-rad",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Radiation (rad)",
+      "printed_page": 105,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "or +100%"
+    },
+    {
+      "id": "modifier:enhancement:ranged",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Ranged",
+      "printed_page": 107,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+40%"
+    },
+    {
+      "id": "modifier:enhancement:rapid-fire",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Rapid Fire",
+      "printed_page": 108,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:enhancement:reduced-fatigue-cost",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Reduced Fatigue Cost",
+      "printed_page": 108,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+20%/level"
+    },
+    {
+      "id": "modifier:enhancement:reduced-time",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Reduced Time",
+      "printed_page": 108,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+20%/level"
+    },
+    {
+      "id": "modifier:enhancement:respiratory-agent",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Respiratory Agent",
+      "printed_page": 108,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+50%"
+    },
+    {
+      "id": "modifier:enhancement:selective-area",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Selective Area",
+      "printed_page": 108,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+20%"
+    },
+    {
+      "id": "modifier:enhancement:selectivity",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Selectivity",
+      "printed_page": 108,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+10%"
+    },
+    {
+      "id": "modifier:enhancement:sense-based",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Sense-Based",
+      "printed_page": 109,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:enhancement:side-effect",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Side Effect",
+      "printed_page": 109,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:enhancement:surge-sur",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Surge (sur)",
+      "printed_page": 105,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+20%"
+    },
+    {
+      "id": "modifier:enhancement:symptoms",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Symptoms",
+      "printed_page": 109,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:enhancement:underwater",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Underwater",
+      "printed_page": 109,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+20%"
+    },
+    {
+      "id": "modifier:enhancement:variable",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Variable",
+      "printed_page": 109,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "+5%"
+    },
+    {
+      "id": "modifier:enhancement:wall",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Wall",
+      "printed_page": 109,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "enhancement",
+      "listed_value": "or +60%"
+    },
+    {
+      "id": "modifier:limitation:accessibility",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Accessibility",
+      "printed_page": 110,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:limitation:always-on",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Always On",
+      "printed_page": 110,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:limitation:armor-divisor",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Armor Divisor",
+      "printed_page": 110,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:limitation:blood-agent",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Blood Agent",
+      "printed_page": 110,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "-40%"
+    },
+    {
+      "id": "modifier:limitation:bombardment",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Bombardment",
+      "printed_page": 111,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:gadget-limitation:breakable",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Breakable",
+      "printed_page": 117,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "gadget-limitation",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:gadget-limitation:can-be-stolen",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Can Be Stolen",
+      "printed_page": 117,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "gadget-limitation",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:limitation:contact-agent",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Contact Agent",
+      "printed_page": 111,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "-30%"
+    },
+    {
+      "id": "modifier:limitation:costs-fatigue",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Costs Fatigue",
+      "printed_page": 111,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:limitation:damage-limitations",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Damage Limitations",
+      "printed_page": 111,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:limitation:dissipation",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Dissipation",
+      "printed_page": 112,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "-50%"
+    },
+    {
+      "id": "modifier:limitation:emanation",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Emanation",
+      "printed_page": 112,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "-20%"
+    },
+    {
+      "id": "modifier:limitation:emergencies-only",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Emergencies Only",
+      "printed_page": 112,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "-30%"
+    },
+    {
+      "id": "modifier:limitation:extra-recoil",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Extra Recoil",
+      "printed_page": 112,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "-10%/level"
+    },
+    {
+      "id": "modifier:limitation:full-power-in-emergencies-only",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Full Power in Emergencies Only",
+      "printed_page": 112,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "-20%"
+    },
+    {
+      "id": "modifier:limitation:inaccurate",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Inaccurate",
+      "printed_page": 112,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "-5%/level"
+    },
+    {
+      "id": "modifier:limitation:limited-use",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Limited Use",
+      "printed_page": 112,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:limitation:melee-attack",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Melee Attack",
+      "printed_page": 112,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:limitation:mitigator",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Mitigator",
+      "printed_page": 112,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:limitation:no-blunt-trauma-nbt",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "No Blunt Trauma (nbt)",
+      "printed_page": 111,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "-20%"
+    },
+    {
+      "id": "modifier:limitation:no-knockback-nkb",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "No Knockback (nkb)",
+      "printed_page": 111,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "-10%"
+    },
+    {
+      "id": "modifier:limitation:no-wounding-nw",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "No Wounding (nw)",
+      "printed_page": 111,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "-50%"
+    },
+    {
+      "id": "modifier:limitation:nuisance-effect",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Nuisance Effect",
+      "printed_page": 112,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:limitation:onset",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Onset",
+      "printed_page": 113,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:limitation:pact",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Pact",
+      "printed_page": 113,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:limitation:preparation-required",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Preparation Required",
+      "printed_page": 114,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:limitation:reduced-range",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Reduced Range",
+      "printed_page": 115,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "-10%/level"
+    },
+    {
+      "id": "modifier:limitation:resistible",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Resistible",
+      "printed_page": 115,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:limitation:sense-based",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Sense-Based",
+      "printed_page": 115,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:limitation:takes-extra-time",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Takes Extra Time",
+      "printed_page": 115,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "-10%/level"
+    },
+    {
+      "id": "modifier:limitation:takes-recharge",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Takes Recharge",
+      "printed_page": 115,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:limitation:temporary-disadvantage",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Temporary Disadvantage",
+      "printed_page": 115,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:limitation:trigger",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Trigger",
+      "printed_page": 115,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:limitation:unconscious-only",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Unconscious Only",
+      "printed_page": 115,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "-20%"
+    },
+    {
+      "id": "modifier:limitation:uncontrollable",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Uncontrollable",
+      "printed_page": 116,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "or -30%"
+    },
+    {
+      "id": "modifier:gadget-limitation:unique",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Unique",
+      "printed_page": 117,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "gadget-limitation",
+      "listed_value": "-25%"
+    },
+    {
+      "id": "modifier:limitation:unreliable",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Unreliable",
+      "printed_page": 116,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "Variable"
+    },
+    {
+      "id": "modifier:limitation:untrainable",
+      "row_kind": "catalog-item",
+      "source_id": "characters-third",
+      "title": "Untrainable",
+      "printed_page": 116,
+      "list_page": 301,
+      "profile_membership": [
+        "gurps-basic-set-4e-2004"
+      ],
+      "disposition": "required",
+      "implementation": "absent",
+      "source_review": "pending",
+      "evidence_paths": [],
+      "historical_owners": [
+        100
+      ],
+      "completion_owner": 497,
+      "capability_id": "gurps.character.ability_modifiers",
+      "runtime_binding": null,
+      "parent_id": null,
+      "classification": "limitation",
+      "listed_value": "-40%"
+    }
+  ]
+}

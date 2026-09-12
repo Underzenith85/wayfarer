@@ -13,6 +13,7 @@ from typing import Final, Literal, cast
 
 from wayfarer.certification.source_audit import InventoryItem, inventory
 from wayfarer.certification.source_audit import report as source_audit_report
+from wayfarer.certification.source_ledgers import ledger_rollups, load_source_ledgers
 from wayfarer.engine.rules.conformance import CAPABILITIES, PROFILES, CoverageStatus
 from wayfarer.engine.rules.profiles import DEFAULT_REGISTRY, RegisteredProfile
 from wayfarer.errors import ValidationError
@@ -22,7 +23,7 @@ PROFILE_ID: Final = "gurps-basic-set-4e-2004"
 
 @dataclass(frozen=True, slots=True)
 class CertificationBlocker:
-    kind: Literal["source", "capability", "inventory", "profile"]
+    kind: Literal["source", "ledger", "capability", "inventory", "profile"]
     identifier: str
     detail: str
     owner_issue: int | None = None
@@ -38,6 +39,9 @@ class CertificationReport:
     required_capabilities: int
     verified_capabilities: int
     required_inventory_items: int
+    source_ledger_rows: int
+    required_source_ledger_rows: int
+    source_ledger_rollups: dict[str, dict[str, int]]
     blockers: tuple[CertificationBlocker, ...]
 
     @property
@@ -54,6 +58,9 @@ class CertificationReport:
             "required_capabilities": self.required_capabilities,
             "verified_capabilities": self.verified_capabilities,
             "required_inventory_items": self.required_inventory_items,
+            "source_ledger_rows": self.source_ledger_rows,
+            "required_source_ledger_rows": self.required_source_ledger_rows,
+            "source_ledger_rollups": self.source_ledger_rollups,
             "certified": self.certified,
             "blockers": [asdict(blocker) for blocker in self.blockers],
         }
@@ -80,11 +87,27 @@ def evaluate(root: Path) -> CertificationReport:
     selected = _latest_registered_profile()
     audit = source_audit_report(root)
     audit_blockers = cast(tuple[str, ...], audit["blockers"])
+    source_ledgers = load_source_ledgers(root)
+    ledger_by_id = {row.id: row for row in source_ledgers.rows}
     source_baseline = cast(str, audit["baseline_id"])
     source_complete = cast(bool, audit["audit_complete"])
     blockers: list[CertificationBlocker] = []
 
     for identifier in audit_blockers:
+        if identifier.startswith("ledger:"):
+            row = ledger_by_id[identifier.removeprefix("ledger:")]
+            blockers.append(
+                CertificationBlocker(
+                    kind="ledger",
+                    identifier=row.id,
+                    detail=(
+                        f"disposition={row.disposition}; implementation={row.implementation}; "
+                        f"source_review={row.source_review}"
+                    ),
+                    owner_issue=row.completion_owner,
+                )
+            )
+            continue
         blockers.append(
             CertificationBlocker(
                 kind="source",
@@ -156,6 +179,11 @@ def evaluate(root: Path) -> CertificationReport:
             for identifier in required_capabilities
         ),
         required_inventory_items=len(required_inventory),
+        source_ledger_rows=len(source_ledgers.rows),
+        required_source_ledger_rows=sum(
+            row.disposition == "required" for row in source_ledgers.rows
+        ),
+        source_ledger_rollups=ledger_rollups(source_ledgers.rows),
         blockers=tuple(blockers),
     )
 

@@ -11,6 +11,12 @@ from typing import Literal
 from pydantic import ConfigDict, Field
 
 from wayfarer.certification.equipment_audit import rows as equipment_audit_rows
+from wayfarer.certification.source_ledgers import (
+    ledger_blockers,
+    ledger_rollups,
+    load_source_ledgers,
+    validate_source_ledgers,
+)
 from wayfarer.engine.rules.conformance import BASELINE_ID, CAPABILITIES, PROFILES
 from wayfarer.engine.rules.profiles import (
     GURPS_CAMPAIGNS_PACKAGE,
@@ -286,6 +292,8 @@ def validate(root: Path, manifest: Manifest) -> None:
     # The two vehicle rows are derived from a per-mode audit rather than set by
     # hand, so the release pipeline checks that derivation here (#358).
     validate_coverage()
+    source_ledgers = load_source_ledgers(root)
+    validate_source_ledgers(source_ledgers, inventory(), frozenset(CAPABILITIES))
 
 
 def blockers(manifest: Manifest) -> tuple[str, ...]:
@@ -299,12 +307,23 @@ def blockers(manifest: Manifest) -> tuple[str, ...]:
 def report(root: Path) -> dict[str, object]:
     manifest = load(root)
     validate(root, manifest)
+    source_ledgers = load_source_ledgers(root)
+    ledger_rows = source_ledgers.rows
+    all_blockers = (
+        *blockers(manifest),
+        *(f"ledger:{row.id}" for row in ledger_blockers(ledger_rows)),
+    )
     return {
         "baseline_id": manifest.baseline_id,
-        "audit_complete": not blockers(manifest),
-        "blockers": blockers(manifest),
+        "audit_complete": not all_blockers,
+        "blockers": all_blockers,
         "sources": [s.model_dump() for s in manifest.sources],
         "scopes": [s.model_dump() for s in manifest.scopes],
         "inventory": [asdict(i) for i in inventory()],
         "fixtures": [f.model_dump() for f in manifest.fixtures],
+        "source_ledgers": {
+            name: [row.model_dump() for row in rows]
+            for name, rows in source_ledgers.by_type.items()
+        },
+        "source_ledger_rollups": ledger_rollups(ledger_rows),
     }
