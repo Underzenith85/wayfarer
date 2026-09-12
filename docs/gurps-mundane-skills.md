@@ -577,11 +577,34 @@ dice. The prerelease engine and package versions remain unchanged.
 Evidence is in `tests/test_combat_technique_procedures.py`, alongside the frozen
 template and optional-rule metadata tests.
 
+## Knowledge and investigation procedures (#341)
+
+All 27 assigned rows now have item-specific execution contracts. Accounting,
+Administration, Economics, Finance and Market Analysis use the live campaign
+administration boundary; Law uses the live jurisdiction/law boundary; academic
+skills acquire source-pinned knowledge. Body Language, Detect Lies and Gambling
+are opposed social procedures. Observation, Search, Shadowing and Stealth use
+investigation or movement contests, while Speed-Reading records reading
+progress. Outcomes name facts, findings, margins or progress rather than a
+generic “skill check” result.
+
+The nine source-defined subject families require an explicit subject selection
+before dice: Anthropology, Area Knowledge, Expert Skill, Hidden Lore, History,
+Law, Philosophy, Religious Ritual and Theology. Knowledge and searches use the
+unknown-until-later retry policy where a failed roll must not reveal whether the
+answer exists. Missing scene evidence, unknown modifier axes, absent contest
+resistance, wrong profiles and omitted subjects fail closed. The existing
+campaign services remain the state-owning implementations; this layer only
+binds skill semantics to them. No prerelease engine or package version changes.
+
+Evidence is in `tests/test_knowledge_investigation_procedures.py` and the frozen
+mundane source inventory.
+
 ## Validation and runtime contract
 
 Unsupported candidates in this package have no runtime hooks. `require_available`
 rejects unknown IDs, blocked rows and unsupported definitions even if their
-blocker list is mistakenly cleared; the 316 available rows have both a concrete
+blocker list is mistakenly cleared; the 343 available rows have both a concrete
 implementation and no remaining blocker. Scenario/character/LLM validation
 therefore cannot turn catalog presence alone into playable mechanics.
 
