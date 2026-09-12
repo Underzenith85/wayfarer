@@ -6,11 +6,15 @@ from typing import TYPE_CHECKING, Literal
 from wayfarer.engine.rules.checks import CheckTrace, Outcome, RecordedDice, draw_dice
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.types.firearm import FirearmFailure
+from wayfarer.engine.rules.types.skill import ControllingAttribute
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import build, catalog, level
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.firearms import spend_rounds
+from wayfarer.engine.simulation.combat.objects.locations import unavailable_hand
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
+from wayfarer.engine.simulation.health.hit_locations import disabled
 from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
 from wayfarer.errors import ValidationError
 from wayfarer.models import Record
@@ -122,10 +126,6 @@ def service(
     *,
     validate_only: bool = False,
 ) -> ResourceState:
-    from wayfarer.engine.rules.types.skill import ControllingAttribute
-    from wayfarer.engine.simulation.actors import build, catalog, level
-    from wayfarer.engine.simulation.combat.objects.locations import unavailable_hand
-    from wayfarer.engine.simulation.health.hit_locations import disabled
 
     equipment = catalog(runtime)
     if equipment.profile_id != "gurps-basic-set-4e-2004":

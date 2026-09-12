@@ -4,21 +4,25 @@ No item instances live here. Inventory weights use thousandths of a pound in
 this explicit adapter, never the prototype's unspecified integer units.
 """
 
+from __future__ import annotations
+
 from decimal import Decimal
 from fractions import Fraction
-from typing import Annotated, Literal, Self
+from typing import TYPE_CHECKING, Annotated, Literal, Self
 
 from pydantic import Field, model_validator
 
 from wayfarer.engine.character.statistics import (
     CharacterStatistics,
     Encumbrance,
+    damage,
     encumbered_dodge,
     encumbered_move,
     encumbrance,
 )
 from wayfarer.engine.rules.catalog import DefinitionKind, RulesPackage
 from wayfarer.engine.rules.conformance import require_capabilities
+from wayfarer.engine.rules.skills.mundane.ranged import require_mode
 from wayfarer.engine.rules.types.entangle import EntangleSpec
 from wayfarer.engine.rules.types.explosion import ExplosionSpec
 from wayfarer.engine.rules.types.firearm import FirearmSpec
@@ -31,12 +35,14 @@ from wayfarer.engine.rules.types.spray import SprayerSpec
 from wayfarer.engine.simulation.resources import (
     EquipmentSpec,
     ExactWeight,
-    ResourceEngine,
     ResourceState,
     decimal_weight,
 )
 from wayfarer.errors import ValidationError
 from wayfarer.models import Id, Record
+
+if TYPE_CHECKING:
+    from wayfarer.engine.simulation.resource_engine import ResourceEngine
 
 Nonnegative = Annotated[int, Field(ge=0)]
 Positive = Annotated[int, Field(ge=1)]
@@ -318,7 +324,6 @@ def require_skill_procedure(profile_id: str, mode: MeleeMode | RangedMode) -> No
     concrete open issue that owns it, so authoring, scenario, character and LLM
     validators cannot turn an accounted-for skill into a mechanic.
     """
-    from wayfarer.engine.rules.skills.mundane.ranged import require_mode
 
     rated = mode.rated_strength if isinstance(mode, RangedMode) else None
     require_mode(
@@ -526,7 +531,6 @@ class EquipmentCatalog(Record):
                 if isinstance(mode, RangedMode) and mode.rated_strength is not None:
                     if self.profile_id != "gurps-basic-set-4e-2004":
                         raise ValueError("Rated weapon ST requires the exact Basic Set profile")
-                    from wayfarer.engine.character.statistics import damage
 
                     damage(self.profile_id, mode.rated_strength.st)
                 if isinstance(mode, RangedMode) and mode.ammunition_id is not None:

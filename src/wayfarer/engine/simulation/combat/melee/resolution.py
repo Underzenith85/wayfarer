@@ -14,25 +14,48 @@ from wayfarer.engine.rules.effects import DerivedValue
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.tables.combat import minimum_strength_penalty, strong_damage_bonus
 from wayfarer.engine.rules.types.location import HumanLocation
+from wayfarer.engine.simulation.abilities import damage_resistance
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, level
+from wayfarer.engine.simulation.combat.critical import IncomingWound
+from wayfarer.engine.simulation.combat.criticals.context import capture_critical
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.entangle import attack_penalty as entangle_attack_penalty
+from wayfarer.engine.simulation.combat.maneuver_transitions import distracted
 from wayfarer.engine.simulation.combat.maneuvers import attack_modifier
 from wayfarer.engine.simulation.combat.melee.defense import defense_value
+from wayfarer.engine.simulation.combat.melee.heavy_parry import resolve_heavy_parry
 from wayfarer.engine.simulation.combat.melee.modes import mode
+from wayfarer.engine.simulation.combat.objects.combat import (
+    critical_breakage,
+    defense_stress,
+    intercepting_shield,
+    shield_damage,
+    shock,
+    synchronize,
+    target_modifier,
+)
+from wayfarer.engine.simulation.combat.objects.locations import from_behind, unavailable_hand
 from wayfarer.engine.simulation.combat.profiles import InjuryTrace
+from wayfarer.engine.simulation.combat.ranged.resolution import resolve
+from wayfarer.engine.simulation.combat.tactical import height_effect
+from wayfarer.engine.simulation.combat.thrown.flight import position, resolve_flight
 from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
+from wayfarer.engine.simulation.equipment.objects import DamageObject, apply_object
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.fatigue import fatigue_value
 from wayfarer.engine.simulation.health.hit_locations import (
     attack_penalty,
+    disabled,
+    location_special_effects,
     missing_location,
     part,
     select_location,
+    torso_near_miss,
 )
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
+from wayfarer.engine.simulation.magic.missiles import resolve as resolve_spell
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
 
@@ -53,16 +76,12 @@ def resolve_melee(
     pending = encounter.pending_defense
     assert pending is not None
     if pending.spell_cast_id is not None:
-        from wayfarer.engine.simulation.magic.missiles import resolve as resolve_spell
-
         return resolve_spell(
             runtime, state, encounter, selected, item_id, second_defense, second_item_id
         )
     equipment = catalog(runtime)
     weapon = mode(runtime, state, pending.attacker_id, pending.weapon_id, pending.mode_id)
     if isinstance(weapon, RangedMode):
-        from wayfarer.engine.simulation.combat.ranged.resolution import resolve
-
         return resolve(
             runtime,
             state,
@@ -131,12 +150,9 @@ def resolve_melee(
             weapon.minimum_st, fatigue_value(attacker_fp, attack_build.statistics.st)
         )
     )
-    from wayfarer.engine.simulation.combat.objects.combat import shock
 
     attack_target -= shock(state, pending.weapon_id)
     if pending.target_item_id:
-        from wayfarer.engine.simulation.combat.objects.combat import target_modifier
-
         attack_target += target_modifier(
             runtime, state, pending.defender_id, pending.target_item_id
         )
@@ -144,11 +160,9 @@ def resolve_melee(
     attack_target -= (
         4 if attacker.posture == "prone" else 2 if attacker.posture == "kneeling" else 0
     )
-    from wayfarer.engine.simulation.health.hit_locations import disabled
 
     eyes = disabled(state.resources, pending.attacker_id) & {"left-eye", "right-eye"}
     attack_target -= 6 if len(eyes) == 2 else 1 if eyes else 0
-    from wayfarer.engine.simulation.combat.tactical import height_effect
 
     height = height_effect(
         encounter,
@@ -201,10 +215,6 @@ def resolve_melee(
     )
     defense = None
     second_trace = None
-    from wayfarer.engine.simulation.health.hit_locations import (
-        location_special_effects,
-        torso_near_miss,
-    )
 
     near_miss = torso_near_miss(pending.hit_location, attack)
     if near_miss:
@@ -234,7 +244,6 @@ def resolve_melee(
     ):
         critical_dice = draw_dice(runtime.rng, 3)
         blocked = f"basic-critical-miss:{sum(critical_dice)}"
-    from wayfarer.engine.simulation.combat.objects.combat import intercepting_shield
 
     if hit and attack.outcome is not Outcome.CRITICAL_SUCCESS and defense_derived is not None:
         defense = success_roll(equipment.profile_id, int(defense_derived.value), rng=runtime.rng)
@@ -249,8 +258,6 @@ def resolve_melee(
             and intercepting_shield(runtime, state, encounter, defense, require_durable=False)
             is None
         ):
-            from wayfarer.engine.simulation.combat.melee.heavy_parry import resolve_heavy_parry
-
             assert defense_item is not None
             state, defender, parry_dice, stopped = resolve_heavy_parry(
                 runtime, state, encounter, defender, defense_item
@@ -308,8 +315,6 @@ def resolve_melee(
         critical_dice = draw_dice(runtime.rng, 3)
         critical = sum(critical_dice)
     if hit and defense is not None and second_derived is not None and blocked is None:
-        from wayfarer.engine.simulation.combat.objects.combat import defense_stress
-
         state, encounter = defense_stress(
             runtime,
             state,
@@ -356,8 +361,6 @@ def resolve_melee(
             and intercepting_shield(runtime, state, encounter, second_trace, require_durable=False)
             is None
         ):
-            from wayfarer.engine.simulation.combat.melee.heavy_parry import resolve_heavy_parry
-
             assert second_item is not None
             state, defender, parry_dice, stopped = resolve_heavy_parry(
                 runtime, state, encounter, defender, second_item
@@ -405,8 +408,6 @@ def resolve_melee(
             critical_dice = draw_dice(runtime.rng, 3)
             blocked = f"basic-critical-miss:{sum(critical_dice)}:attacker"
     if blocked and blocked.startswith("basic-critical-miss:"):
-        from wayfarer.engine.simulation.combat.criticals.limbs import resolve_limb
-
         encounter = encounter.model_copy(
             update={
                 "participants": tuple(
@@ -416,6 +417,11 @@ def resolve_melee(
             }
         )
         parry_miss = blocked.endswith(":defender")
+        # deferred: patch seam, not a cycle.  test_critical_continuation replaces
+        # criticals.limbs.resolve_limb with the pre-migration adapter, which a
+        # module-level binding here would resolve past.
+        from wayfarer.engine.simulation.combat.criticals.limbs import resolve_limb
+
         state, encounter, limb = resolve_limb(
             runtime,
             state,
@@ -442,8 +448,6 @@ def resolve_melee(
             blocked = f"basic-critical-miss:{sum(critical_dice)}{suffix}"
             hit = parry_miss and sum(critical_dice) in (7, 8, 9, 10, 11, 12, 13, 14, 16)
     if blocked and blocked.startswith("basic-critical-miss:"):
-        from wayfarer.engine.simulation.combat.objects.combat import critical_breakage
-
         parrying = blocked.endswith(":defender")
         state, encounter, object_dice, resolved = critical_breakage(
             runtime,
@@ -460,8 +464,6 @@ def resolve_melee(
         attacker = next(p for p in encounter.participants if p.actor_id == attacker.actor_id)
         defender = next(p for p in encounter.participants if p.actor_id == defender.actor_id)
     if hit and pending.hit_location:
-        from wayfarer.engine.simulation.combat.objects.locations import from_behind
-
         location, location_dice = select_location(
             "torso" if near_miss else pending.hit_location,
             rng=runtime.rng,
@@ -476,8 +478,6 @@ def resolve_melee(
     )
     critical_eye = False
     if head and critical in (6, 7) and location in ("face", "skull"):
-        from wayfarer.engine.simulation.combat.objects.locations import from_behind
-
         if from_behind(attacker, defender) or (hp.injury.tolerance and hp.injury.tolerance.no_eyes):
             critical = 4
         else:
@@ -497,7 +497,6 @@ def resolve_melee(
     adds += attacker.maneuver_state.stop_thrust_damage_bonus
     if attacker.maneuver_state.strong:
         adds += strong_damage_bonus(dice_count)
-    from wayfarer.engine.simulation.combat.objects.combat import shield_damage
 
     shield_hit = intercepting_shield(runtime, state, encounter, second_trace or defense)
     maximum = critical in ((3, 15) if head else (6, 15)) or (
@@ -558,7 +557,6 @@ def resolve_melee(
         ),
         default=0,
     )
-    from wayfarer.engine.simulation.abilities import damage_resistance
 
     if runtime.rules.abilities is not None:
         resistance += damage_resistance(
@@ -573,9 +571,6 @@ def resolve_melee(
         and (entries[i.definition_id].modes or entries[i.definition_id].shield)
     )
     if hit and pending.target_item_id:
-        from wayfarer.engine.simulation.combat.objects.combat import synchronize
-        from wayfarer.engine.simulation.equipment.objects import DamageObject, apply_object
-
         resources, object_result = apply_object(
             runtime.resources,
             state.resources,
@@ -722,8 +717,6 @@ def resolve_melee(
             number == 14
             and (weapon.damage.basis != "swing" or subject.actor_id == defender.actor_id)
         ):
-            from wayfarer.engine.simulation.combat.thrown.flight import position
-
             state = state.model_copy(
                 update={
                     "resources": state.resources.model_copy(
@@ -763,8 +756,6 @@ def resolve_melee(
             }
         )
     if blocked and sum(critical_dice) == 14 and not blocked.endswith(":defender"):
-        from wayfarer.engine.simulation.combat.thrown.flight import resolve_flight
-
         state, encounter, flight_dice = resolve_flight(runtime, state, encounter, critical_dice)
         effect_dice += flight_dice
         updated_hp = next(p for p in state.resources.pools if p.id == hp.id)
@@ -774,10 +765,6 @@ def resolve_melee(
         blocked = None
         encounter = encounter.model_copy(update={"blocked_reason": None})
     if blocked and blocked.startswith("basic-critical-miss:"):
-        from wayfarer.engine.simulation.combat.critical import IncomingWound
-        from wayfarer.engine.simulation.combat.criticals.context import capture_critical
-        from wayfarer.engine.simulation.combat.objects.locations import from_behind
-
         incoming = (
             IncomingWound(
                 actor_id=defender.actor_id,
@@ -833,7 +820,6 @@ def resolve_melee(
         effect_dice=effect_dice,
         lasting_injury_ids=lasting_ids,
     )
-    from wayfarer.engine.simulation.combat.maneuver_transitions import distracted
 
     encounter = distracted(
         runtime,
@@ -871,7 +857,6 @@ def resolve_melee(
                 )
             }
         )
-    from wayfarer.engine.simulation.combat.objects.locations import unavailable_hand
 
     attacker_status = next(
         p.injury for p in state.resources.pools if p.id == f"hp:{actor.actor_id}"

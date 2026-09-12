@@ -12,6 +12,9 @@ from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, exertion
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
+from wayfarer.engine.simulation.combat.maneuver_transitions import distracted
+from wayfarer.engine.simulation.combat.maneuvers import attack_modifier
+from wayfarer.engine.simulation.combat.tactical import height_effect
 from wayfarer.engine.simulation.combat.unarmed.defense import parry_candidates, unarmed_defense
 from wayfarer.engine.simulation.combat.unarmed.fighters import (
     encumbrance_level,
@@ -33,6 +36,7 @@ from wayfarer.engine.simulation.combat.unarmed.records import (
     striking_bonus,
 )
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
+from wayfarer.engine.simulation.health.hit_locations import torso_near_miss
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
@@ -116,7 +120,6 @@ def defend(
             "left-leg": 2,
             "right-leg": 2,
         }[pending.location]
-    from wayfarer.engine.simulation.combat.maneuvers import attack_modifier
 
     if actor.maneuver_state.feint_target_id == target.actor_id:
         defenses = [
@@ -129,8 +132,6 @@ def defend(
             for v, h in defenses
         ]
     if encounter.spatial_kind == "hex":
-        from wayfarer.engine.simulation.combat.tactical import height_effect
-
         value += height_effect(
             encounter,
             actor,
@@ -152,7 +153,6 @@ def defend(
     attack = success_roll(
         BASIC, value, check_modifiers(state.resources, actor.actor_id, "dx"), rng=runtime.rng
     )
-    from wayfarer.engine.simulation.health.hit_locations import torso_near_miss
 
     near_miss = pending.action in ("punch", "kick") and torso_near_miss(pending.location, attack)
     resolved_location = "torso" if near_miss else pending.location
@@ -257,7 +257,6 @@ def defend(
                     "maneuver_state": target.maneuver_state.model_copy(update={"defended": True})
                 }
             )
-            from wayfarer.engine.simulation.combat.maneuver_transitions import distracted
 
             encounter = CombatEngine._replace(encounter, target)
             encounter = distracted(

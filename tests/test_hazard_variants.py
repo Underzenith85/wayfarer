@@ -492,13 +492,8 @@ async def test_antibiotics_consume_one_bound_dose_and_never_stack(
     )
     from wayfarer.engine.simulation.action_engine.engine import ActionEngine
     from wayfarer.engine.simulation.actions import ActionRules, ActorSetup
-    from wayfarer.engine.simulation.resources import (
-        EquipmentSpec,
-        Item,
-        Owner,
-        ResourceEngine,
-        ResourceState,
-    )
+    from wayfarer.engine.simulation.resource_engine import ResourceEngine
+    from wayfarer.engine.simulation.resources import EquipmentSpec, Item, Owner, ResourceState
 
     profile = "gurps-basic-set-4e-2004"
     base = profile_package(profile)
@@ -594,7 +589,8 @@ async def test_temperature_and_survival_are_consumed_by_hazard_service(tmp_path:
     from wayfarer.engine.rules.traits.mundane.runtime import SUPPORTED_HOOKS
     from wayfarer.engine.simulation.action_engine.engine import ActionEngine
     from wayfarer.engine.simulation.actions import ActionRules, ActorSetup
-    from wayfarer.engine.simulation.resources import Owner, ResourceEngine, ResourceState
+    from wayfarer.engine.simulation.resource_engine import ResourceEngine
+    from wayfarer.engine.simulation.resources import Owner, ResourceState
 
     profile = "gurps-basic-set-4e-2004"
     package = combined_package()

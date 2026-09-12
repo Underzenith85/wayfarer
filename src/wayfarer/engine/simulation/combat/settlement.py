@@ -6,6 +6,7 @@ The fewer-than-two stopping policy is separate from these rules (issue #568).
 """
 
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import fatigue_ready
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.rules_context import RulesContext
@@ -28,7 +29,6 @@ def combat_ready(state: PlayState, actor_id: str, *, gurps: bool) -> bool:
         raise ValidationError("Combat requires explicit GURPS fatigue state", reference=fp_id)
     if hp.injury.profile_id != fp.fatigue.profile_id:
         raise ValidationError("Combat requires matching HP and FP profiles", reference=fp_id)
-    from wayfarer.engine.simulation.actors import fatigue_ready
 
     return not hp.injury.incapacitated and fatigue_ready(state, actor_id)
 

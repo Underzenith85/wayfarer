@@ -9,6 +9,7 @@ from pydantic import Field
 
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.actions import (
+    ACTION_ADAPTER,
     ActionCommand,
     Inspect,
     PlayState,
@@ -16,6 +17,7 @@ from wayfarer.engine.simulation.actions import (
     UseItem,
     Wait,
 )
+from wayfarer.engine.simulation.campaign.encounter_context import activity_for
 from wayfarer.engine.simulation.campaign.party import (
     ActivityReceipt,
     PendingEffect,
@@ -25,11 +27,13 @@ from wayfarer.engine.simulation.campaign.party import (
     migrate,
 )
 from wayfarer.engine.simulation.events import action_result
+from wayfarer.engine.simulation.health.recovery_guard import guard
 from wayfarer.engine.simulation.resources import Advance, Transfer
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.noncombat import NoncombatCommand, NoncombatService
+from wayfarer.orchestration.npcs import due_times
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.scenes import SceneService, TravelScene
 
@@ -151,7 +155,6 @@ class PartyService:
         if not state.party.groups:
             return state
         frontier = min(g.ready_through for g in state.party.groups)
-        from wayfarer.orchestration.npcs import due_times
 
         times = sorted(
             {q.due for q in state.party.queue if q.due <= frontier}
@@ -234,8 +237,6 @@ class PartyService:
                 code = "activity.resolved"
                 try:
                     if activity.family == "action":
-                        from wayfarer.engine.simulation.actions import ACTION_ADAPTER
-
                         action = ACTION_ADAPTER.validate_json(activity.command_json).model_copy(
                             update={"expected_revision": revision - 1}
                         )
@@ -260,6 +261,8 @@ class PartyService:
                             }
                         )
                     elif activity.family == "recovery":
+                        # deferred: party <-> recovery.  flush replays queued recovery commands and
+                        # recovery flushes the party after a finish.
                         from wayfarer.orchestration.recovery import RecoveryCommand, RecoveryService
 
                         state = RecoveryService(self.play).finish(
@@ -294,7 +297,6 @@ class PartyService:
         return state
 
     def reduce(self, state: PlayState, command: PartyCommand) -> PlayState:
-        from wayfarer.orchestration.recovery import guard
 
         guard(state, command.actor_id, command.kind)
         state = migrate(state)
@@ -302,7 +304,6 @@ class PartyService:
         groups = state.party.groups
         if command.kind not in ("pause_group", "resume_group") and group.paused:
             raise ConflictError("Subgroup is explicitly paused")
-        from wayfarer.engine.simulation.campaign.encounter_context import activity_for
 
         context = activity_for(state, command.actor_id)
         in_combat = context.group_encounter is not None

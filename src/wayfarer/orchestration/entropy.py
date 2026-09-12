@@ -13,6 +13,7 @@ from wayfarer.errors import ValidationError
 from wayfarer.orchestration.clock import CommandInstant, capture_instant
 from wayfarer.orchestration.origins import current_origin
 from wayfarer.orchestration.replay_inputs import recorded_command
+from wayfarer.orchestration.sessions import REGISTRY
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.events import (
     CommandEntropy,
@@ -58,7 +59,6 @@ async def commit_command(
     instant: CommandInstant | None = None,
     origin: CommandOrigin | None = None,
 ) -> TurnResult:
-    from wayfarer.orchestration.sessions import REGISTRY
 
     async with REGISTRY.serialized(store, cid):
         return await _commit_serialized(

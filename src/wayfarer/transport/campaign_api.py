@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hmac
 import json
 import re
 import time
@@ -15,16 +14,26 @@ from aiohttp import web
 from pydantic import Field
 
 from wayfarer.config import Settings
+from wayfarer.engine.character.power import CharacterProposal
 from wayfarer.engine.rules.catalog import reference
 from wayfarer.engine.rules.profiles import DEFAULT_REGISTRY
-from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
-from wayfarer.errors import AuthenticationError, AuthorizationError, ValidationError, WayfarerError
+from wayfarer.engine.simulation.actions import ActorSetup
+from wayfarer.engine.simulation.campaign.studio import GenerationBrief, ScenarioGraph
+from wayfarer.errors import (
+    AuthorizationError,
+    ConflictError,
+    ValidationError,
+    WayfarerError,
+)
 from wayfarer.models import Record
 from wayfarer.orchestration.access import CampaignAccess
+from wayfarer.orchestration.advancement import AdvanceCharacter, AdvancementService, GrantPoints
 from wayfarer.orchestration.codex import ProviderStatus
 from wayfarer.orchestration.director import DirectorService
 from wayfarer.orchestration.provider_runtime import provider_runtime
 from wayfarer.orchestration.providers import Orchestrator
+from wayfarer.orchestration.setup import SetupService
+from wayfarer.orchestration.studio import ScenarioStudio
 from wayfarer.orchestration.workshop import DraftCommand, WorkshopService
 from wayfarer.orchestration.workshop_options import (
     CharacterPreviewRequest,
@@ -38,6 +47,23 @@ from wayfarer.orchestration.workshop_options import (
     preview_profile,
     profile_option,
 )
+from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
+from wayfarer.transport.common import (
+    ACCESS_KEY,
+    MAX_BODY,
+    ORCHESTRATOR_KEY,
+    TOKENS_KEY,
+    _identity,
+    _json,
+)
+from wayfarer.transport.setup_api import LEGACY_KEY
+from wayfarer.transport.setup_api import generate as generate_setup
+from wayfarer.transport.setup_api import install as install_setup
+from wayfarer.transport.tactical_api import install as install_tactical
+from wayfarer.transport.v1.http import install
+from wayfarer.transport.v1.keys import TOKENS
+from wayfarer.transport.v1.live import CONNECTIONS
+from wayfarer.transport.v1.provider import bind_provider
 
 # The single-page application's own entry routes. Each view is addressable
 # bare and per campaign, so a bookmarked or shared link resolves to the app,
@@ -52,32 +78,9 @@ def _entry_document(path: str) -> bool:
     return path in FRONTEND_ROUTES or CAMPAIGN_ROUTE.fullmatch(path) is not None
 
 
-ORCHESTRATOR_KEY = web.AppKey("campaign-orchestrator", Orchestrator)
 PROVIDER_STATUS_KEY = web.AppKey("provider-status", deque[ProviderStatus])
 
-MAX_BODY = 32_000
-ACCESS_KEY = web.AppKey("campaign-access", CampaignAccess)
-TOKENS_KEY = web.AppKey("campaign-tokens", dict[str, str])
 LIMITS_KEY = web.AppKey("campaign-limits", dict[str, tuple[float, int]])
-
-
-def _identity(request: web.Request) -> str:
-    value = request.headers.get("Authorization", "")
-    prefix = "Bearer "
-    if not value.startswith(prefix):
-        raise AuthenticationError("Bearer authentication required")
-    supplied = value[len(prefix) :]
-    identity = next(
-        (
-            principal
-            for token, principal in request.app[TOKENS_KEY].items()
-            if hmac.compare_digest(token, supplied)
-        ),
-        None,
-    )
-    if identity is None:
-        raise AuthenticationError("Invalid bearer credential")
-    return identity
 
 
 @web.middleware
@@ -113,17 +116,6 @@ async def boundary(
     response.headers["X-Request-ID"] = request_id
     response.headers["Cache-Control"] = "no-store"
     return response
-
-
-async def _json(request: web.Request) -> dict[str, object]:
-    if request.content_type != "application/json" or (
-        request.content_length is not None and request.content_length > MAX_BODY
-    ):
-        raise ValidationError("Invalid JSON request")
-    value = await request.json()
-    if not isinstance(value, dict) or not all(isinstance(key, str) for key in value):
-        raise ValidationError("JSON object required")
-    return value
 
 
 async def health(_: web.Request) -> web.Response:
@@ -205,16 +197,11 @@ class GenerateDraftRequest(Record):
 
 
 async def generate_scenario_draft(request: web.Request) -> web.Response:
-    from wayfarer.engine.simulation.actions import ActorSetup
-    from wayfarer.engine.simulation.campaign.studio import GenerationBrief
-    from wayfarer.orchestration.studio import ScenarioStudio
 
     access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
     state = access.play._load(await access.play.store.read(request.match_info["cid"]))
     principal = _identity(request)
     if access._member(state, principal).role != "gm":
-        from wayfarer.errors import AuthorizationError
-
         raise AuthorizationError("Scenario generation requires GM")
     raw = await _json(request)
     command = DraftCommand.model_validate_json(json.dumps(raw.get("command")))
@@ -313,7 +300,6 @@ async def workshop_reviews(request: web.Request) -> web.Response:
     member = access._member(state, _identity(request))
     if member.role != "gm" or member.principal_id not in access.play.engine.reviewer.gm_ids:
         raise AuthorizationError("Workshop review requires campaign GM")
-    from wayfarer.engine.character.power import CharacterProposal
 
     controlled = {a for m in state.members if m.role == "player" for a in m.actor_ids}
     result = WorkshopReviewQueue(
@@ -342,7 +328,6 @@ async def workshop_reviews(request: web.Request) -> web.Response:
 
 
 async def workshop_grant(request: web.Request) -> web.Response:
-    from wayfarer.orchestration.advancement import AdvancementService, GrantPoints
 
     access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
     cid, principal = request.match_info["cid"], _identity(request)
@@ -373,7 +358,6 @@ async def workshop_profile_preview(request: web.Request) -> web.Response:
 
 
 async def workshop_advance(request: web.Request) -> web.Response:
-    from wayfarer.orchestration.advancement import AdvanceCharacter, AdvancementService
 
     access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
     cid = request.match_info["cid"]
@@ -412,8 +396,6 @@ class ActivateScenarioRequest(Record):
 
 
 async def activate_scenario(request: web.Request) -> web.Response:
-    from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
-    from wayfarer.orchestration.studio import ScenarioStudio
 
     access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
     cid = request.match_info["cid"]
@@ -421,14 +403,10 @@ async def activate_scenario(request: web.Request) -> web.Response:
     principal = _identity(request)
     member = access._member(state, principal)
     if member.role != "gm":
-        from wayfarer.errors import AuthorizationError
-
         raise AuthorizationError("Scenario activation requires GM")
     body = ActivateScenarioRequest.model_validate(await _json(request))
     draft = WorkshopService(access)._get(state, request.match_info["did"], principal)
     if draft.kind != "scenario" or draft.revision != body.expected_draft_revision:
-        from wayfarer.errors import ConflictError
-
         raise ConflictError("Scenario draft changed")
     graph = ScenarioGraph.model_validate_json(draft.content_json)
     seed = (await access.play.store.read(cid)).copy()
@@ -448,14 +426,10 @@ async def activate_scenario(request: web.Request) -> web.Response:
 
 
 async def validate_scenario(request: web.Request) -> web.Response:
-    from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
-    from wayfarer.orchestration.studio import ScenarioStudio
 
     access = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
     state = access.play._load(await access.play.store.read(request.match_info["cid"]))
     if access._member(state, _identity(request)).role != "gm":
-        from wayfarer.errors import AuthorizationError
-
         raise AuthorizationError("Scenario authoring requires GM")
     graph = ScenarioGraph.model_validate_json(json.dumps(await _json(request)))
     report = ScenarioStudio(access.play).validate(graph)
@@ -480,15 +454,8 @@ def create_campaign_app(
     app[ACCESS_KEY] = play
     app[TOKENS_KEY] = dict(tokens)
     app[LIMITS_KEY] = {}
-    from wayfarer.transport.tactical_api import install as install_tactical
-
     install_tactical(app)
-    from wayfarer.orchestration.setup import SetupService
-    from wayfarer.transport.setup_api import install as install_setup
-
     install_setup(app, SetupService(play, engine_controls=legacy_routes), scenario_templates)
-    from wayfarer.transport.setup_api import LEGACY_KEY
-
     app[LEGACY_KEY] = legacy_routes
     if frontend_dir is not None:
 
@@ -518,9 +485,6 @@ def create_campaign_app(
                 web.post("/campaigns/{cid}/drafts/{did}/activate-scenario", activate_scenario),
             ]
         )
-    from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
-    from wayfarer.transport.v1.http import TOKENS, install
-    from wayfarer.transport.v1.live import CONNECTIONS
 
     if v1_ledger_path is None:
         if not isinstance(play.play.store, AsyncSQLiteStore):
@@ -543,8 +507,6 @@ def create_campaign_app(
         await v1.close()
 
     if settings is not None:
-        from wayfarer.transport.setup_api import generate as generate_setup
-
         app.router.add_post("/setups/{cid}/generate", generate_setup)
         app[PROVIDER_STATUS_KEY] = deque(maxlen=256)
 
@@ -555,7 +517,6 @@ def create_campaign_app(
                 application[ORCHESTRATOR_KEY] = Orchestrator(
                     play, provider, timeout=min(settings.model_timeout_seconds, 300.0), attempts=1
                 )
-                from wayfarer.transport.v1.provider import bind_provider
 
                 bind_provider(v1, application[ORCHESTRATOR_KEY])
                 yield

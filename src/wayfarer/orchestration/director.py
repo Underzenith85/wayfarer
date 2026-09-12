@@ -17,6 +17,7 @@ from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.director import DirectorTurn
 from wayfarer.errors import AuthorizationError, ConflictError, ProviderError, ValidationError
 from wayfarer.orchestration.entropy import commit_command
+from wayfarer.orchestration.party import PartyCommand
 from wayfarer.orchestration.providers import (
     Intent,
     Narration,
@@ -195,8 +196,6 @@ class DirectorService:
                 "approach_noncombat",
             )
         ):
-            from wayfarer.orchestration.party import PartyCommand
-
             queued_command = json.loads(turn.command_json)
             turn = turn.model_copy(
                 update={
@@ -268,8 +267,6 @@ class DirectorService:
             "travel_scene",
             "approach_noncombat",
         ):
-            from wayfarer.orchestration.party import PartyCommand
-
             command = PartyCommand(
                 id=str(command["id"]),
                 actor_id=actor_id,

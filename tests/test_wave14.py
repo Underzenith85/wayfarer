@@ -13,7 +13,7 @@ from wayfarer.adventures.runtime import application
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
 from wayfarer.orchestration.setup import SetupService
-from wayfarer.transport.campaign_api import ACCESS_KEY
+from wayfarer.transport.common import ACCESS_KEY
 from wayfarer.transport.setup_api import SETUP_KEY
 
 
@@ -468,7 +468,7 @@ async def test_reference_generated_fixture_uses_public_generation_and_persists(
     from reference_provider import ReferenceProvider
 
     from wayfarer.orchestration.providers import Orchestrator
-    from wayfarer.transport.campaign_api import ORCHESTRATOR_KEY
+    from wayfarer.transport.common import ORCHESTRATOR_KEY
     from wayfarer.transport.setup_api import generate
 
     app = application(tmp_path / "generated.sqlite", {"alice-token": "alice"})

@@ -23,6 +23,7 @@ from wayfarer.models import Record
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.medical import _build
 from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.recovery import guard
 
 
 class HazardCareCommand(Command):
@@ -80,7 +81,6 @@ class HazardCareService:
                 )
             ):
                 raise ValidationError("Care requires available, co-located noncombat actors")
-            from wayfarer.orchestration.recovery import guard
 
             guard(before, command.actor_id, context.kind)
             hp = next(p for p in before.resources.pools if p.id == "hp:" + command.actor_id)

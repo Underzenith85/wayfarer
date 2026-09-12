@@ -7,18 +7,30 @@ from dataclasses import asdict, replace
 
 from wayfarer.engine.simulation.actions import ACTION_ADAPTER, PlayState
 from wayfarer.engine.simulation.campaign.access import CampaignMember, StreamEvent
+from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
 from wayfarer.engine.simulation.combat.engine import hex_template
 from wayfarer.engine.simulation.combat.profiles import CombatRules
+from wayfarer.engine.simulation.health.fright import projection as fright_projection
 from wayfarer.engine.simulation.resources import wire_weight
-from wayfarer.errors import AuthorizationError, ConflictError, NotFoundError, ValidationError
+from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.orchestration.combat import COMBAT_ADAPTER, CombatService
+from wayfarer.orchestration.encounter_scenes import EncounterSceneService, MigrateEncounterScenes
+from wayfarer.orchestration.fright import FrightDecision, FrightService
+from wayfarer.orchestration.fright_builds import FrightBuildService
 from wayfarer.orchestration.medical import EnvironmentResolver
+from wayfarer.orchestration.membership import member_for, require_control
 from wayfarer.orchestration.noncombat import NoncombatCommand, NoncombatService
+from wayfarer.orchestration.npcs import NPCProposal, NPCService
 from wayfarer.orchestration.objectives import ObjectiveCommand, ObjectiveService
 from wayfarer.orchestration.origins import origin_scope
 from wayfarer.orchestration.party import PartyCommand, PartyService
 from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.player_medical import PlayerRecoveryCommand
+from wayfarer.orchestration.player_medical import choices as medical_choices
+from wayfarer.orchestration.player_medical import execute as execute_medical
+from wayfarer.orchestration.recovery import RecoveryCommand, RecoveryService, guard
 from wayfarer.orchestration.scenes import SCENE_ADAPTER, SceneService
+from wayfarer.orchestration.tactical_view import legacy_encounter
 from wayfarer.persistence.events import CommandOrigin
 
 
@@ -37,18 +49,12 @@ class CampaignAccess:
 
     @staticmethod
     def _member(state: PlayState, principal_id: str) -> CampaignMember:
-        member = next((item for item in state.members if item.principal_id == principal_id), None)
-        if member is None:
-            # Avoid disclosing whether an inaccessible campaign exists.
-            raise NotFoundError("Campaign not found")
-        return member
+        return member_for(state, principal_id)
 
     @staticmethod
     def _projection(
         state: PlayState, member: CampaignMember, rules: CombatRules | None = None
     ) -> dict[str, object]:
-        from wayfarer.engine.simulation.health.fright import projection as fright_projection
-        from wayfarer.orchestration.tactical_view import legacy_encounter
 
         if member.role == "gm":
             return {
@@ -252,7 +258,6 @@ class CampaignAccess:
             )
             if scene.id == cursor.scene_id
         )
-        from wayfarer.orchestration.recovery import RecoveryCommand, RecoveryService
 
         choices: list[dict[str, object]] = []
         recovery = RecoveryService(self.play)
@@ -285,8 +290,6 @@ class CampaignAccess:
                         }
                     )
         projection["recovery_choices"] = choices
-
-        from wayfarer.orchestration.player_medical import choices as medical_choices
 
         medical, medical_tasks, _private = medical_choices(
             self.play, state, member.actor_ids, self.medical_environment
@@ -353,7 +356,6 @@ class CampaignAccess:
         if state.lifecycle != "active":
             raise ConflictError("Resume an active campaign before acting")
         kind = value.get("kind")
-        from wayfarer.orchestration.recovery import guard
 
         if (
             isinstance(value.get("actor_id"), str)
@@ -378,23 +380,14 @@ class CampaignAccess:
                 "propose_fright_build",
                 "approve_fright_build",
             ):
-                from wayfarer.orchestration.fright_builds import FrightBuildService
-
                 await FrightBuildService(self.play).execute(cid, value, principal_id=principal_id)
             elif kind in ("care", "panic-response"):
-                from wayfarer.orchestration.fright import FrightDecision, FrightService
-
                 await FrightService(self.play).execute(
                     cid,
                     FrightDecision.model_validate_json(raw),
                     authenticated_gm_id=principal_id,
                 )
             elif kind == "migrate_encounter_scenes":
-                from wayfarer.orchestration.encounter_scenes import (
-                    EncounterSceneService,
-                    MigrateEncounterScenes,
-                )
-
                 migration = MigrateEncounterScenes.model_validate_json(raw)
                 if member.role != "gm":
                     raise AuthorizationError("Encounter scene migration requires GM authority")
@@ -403,9 +396,6 @@ class CampaignAccess:
                     cid, migration, authenticated_gm_id=migration.actor_id
                 )
             elif kind == "gurps_recovery":
-                from wayfarer.orchestration.player_medical import PlayerRecoveryCommand
-                from wayfarer.orchestration.player_medical import execute as execute_medical
-
                 player_recovery = PlayerRecoveryCommand.model_validate_json(raw)
                 self._control(member, player_recovery.actor_id)
                 await execute_medical(
@@ -416,6 +406,8 @@ class CampaignAccess:
                     environment=self.medical_environment,
                 )
             elif kind in ("request_ruling", "decide_ruling", "execute_ruling"):
+                # deferred: access -> adjudication -> play -> npcs -> providers -> access.
+                # The provider needs an access handle to answer a director's question.
                 from wayfarer.orchestration.adjudication import RULING_ADAPTER, AdjudicationService
 
                 ruling = RULING_ADAPTER.validate_json(raw)
@@ -424,16 +416,12 @@ class CampaignAccess:
                     cid, ruling, authenticated_actor_id=ruling.actor_id
                 )
             elif kind in ("apply_setback", "choose_recovery"):
-                from wayfarer.orchestration.recovery import RecoveryCommand, RecoveryService
-
                 recovery_command = RecoveryCommand.model_validate_json(raw)
                 self._control(member, recovery_command.actor_id)
                 await RecoveryService(self.play).execute(
                     cid, recovery_command, authenticated_actor_id=recovery_command.actor_id
                 )
             elif kind == "propose_npc":
-                from wayfarer.orchestration.npcs import NPCProposal, NPCService
-
                 proposal = NPCProposal.model_validate_json(raw)
                 self._control(member, proposal.actor_id)
                 await NPCService(self.play).propose(
@@ -453,7 +441,6 @@ class CampaignAccess:
                 "migrate_encounter_basic",
             ):
                 combat = COMBAT_ADAPTER.validate_json(raw)
-                from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
 
                 campaign = await self.play.store.read(cid)
                 graph = (
@@ -508,11 +495,7 @@ class CampaignAccess:
 
     @staticmethod
     def _control(member: CampaignMember, actor_id: str) -> None:
-        if not (
-            (member.role == "player" and actor_id in member.actor_ids)
-            or (member.role == "gm" and actor_id == member.principal_id)
-        ):
-            raise AuthorizationError("Principal cannot control this actor")
+        require_control(member, actor_id)
 
     async def events(
         self, cid: str, *, principal_id: str, after: int = 0, limit: int = 100

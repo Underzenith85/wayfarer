@@ -5,6 +5,7 @@ from typing import Literal
 
 from wayfarer.engine.rules.types.object import GroundPosition
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import movement
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.hex_geometry import Hex
 from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
@@ -43,7 +44,6 @@ def retrieve(
     stage: Literal["start", "finish", "cancel"],
     task_id: str | None,
 ) -> tuple[PlayState, RetrievalTask]:
-    from wayfarer.engine.simulation.actors import movement
 
     task = next((t for t in tasks(state.resources) if t.id == task_id), None)
     if stage != "start":

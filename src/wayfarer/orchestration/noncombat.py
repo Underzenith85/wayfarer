@@ -8,7 +8,9 @@ from typing import Literal
 from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.rules.checks import Modifier, Outcome, success_check
 from wayfarer.engine.simulation.actions import ActionCommand, PlayState
+from wayfarer.engine.simulation.campaign.party import synchronous
 from wayfarer.engine.simulation.health.condition_checks import definition_modifiers
+from wayfarer.engine.simulation.health.recovery_guard import guard
 from wayfarer.engine.simulation.resources import Advance
 from wayfarer.engine.simulation.social.noncombat import NoncombatEncounter
 from wayfarer.errors import ConflictError, ValidationError
@@ -30,7 +32,6 @@ class NoncombatService:
     def reduce(
         self, state: PlayState, command: NoncombatCommand, *, advance_time: bool = True
     ) -> PlayState:
-        from wayfarer.orchestration.recovery import guard
 
         guard(state, command.actor_id, command.kind)
         rules = self.play.engine.rules.noncombat
@@ -212,8 +213,6 @@ class NoncombatService:
         def resolve(campaign: Campaign) -> CommandReceipt:
             current = self.play._load(campaign)
             if command.kind == "approach_noncombat":
-                from wayfarer.engine.simulation.campaign.party import synchronous
-
                 synchronous(current, command.actor_id)
             state = self.reduce(current, command)
             if state.party.groups:

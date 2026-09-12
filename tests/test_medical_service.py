@@ -14,7 +14,8 @@ from wayfarer.engine.rules.types.recovery import FatigueStatus
 from wayfarer.engine.simulation.action_engine.engine import ActionEngine
 from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, Move, Wait
 from wayfarer.engine.simulation.health.medical.commands import BeginRecovery, FinishRecovery
-from wayfarer.engine.simulation.resources import Owner, ResourceEngine, ResourceState
+from wayfarer.engine.simulation.resource_engine import ResourceEngine
+from wayfarer.engine.simulation.resources import Owner, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.medical import CareEnvironment, MedicalService
 from wayfarer.orchestration.play import PlayService

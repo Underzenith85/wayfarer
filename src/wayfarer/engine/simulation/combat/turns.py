@@ -28,8 +28,10 @@ from wayfarer.engine.simulation.combat.maneuvers import (
 from wayfarer.engine.simulation.combat.spatial import (
     BasicSpatialContext,
 )
+from wayfarer.engine.simulation.combat.tactical import move_hex, sight
 from wayfarer.engine.simulation.combat.vocabulary import Facing, Maneuver, Posture
 from wayfarer.engine.simulation.hex_geometry import Hex, HexFacing
+from wayfarer.engine.simulation.magic.spells import active_spells
 from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 
@@ -154,8 +156,6 @@ def take_turn(
                 stop_thrust = stop_candidate and waiter.reach > before_actor.reach
                 observable = True
                 if original.spatial_kind == "hex":
-                    from wayfarer.engine.simulation.combat.tactical import sight
-
                     observable = sight(
                         result[0], waiter, after_actor, board=engine.hex_map(result[0])
                     )
@@ -314,8 +314,6 @@ def apply_turn(
     ):
         raise ValidationError("A post-attack step requires movement, facing, or posture")
     if deferred_step and encounter.spatial_kind == "hex":
-        from wayfarer.engine.simulation.combat.tactical import move_hex
-
         if destination is not None or facing is not None:
             raise ValidationError("Hex encounters require explicit hex paths and facings")
         if posture is not None and (hex_path or hex_facing is not None):
@@ -358,8 +356,6 @@ def apply_turn(
     ):
         raise ValidationError("A posture step only switches standing and kneeling")
     if encounter.spatial_kind == "hex" and not deferred_step:
-        from wayfarer.engine.simulation.combat.tactical import move_hex
-
         if destination is not None or facing is not None:
             raise ValidationError("Hex encounters require explicit hex paths and facings")
         if posture is not None and hex_path:
@@ -533,7 +529,6 @@ def apply_turn(
                 )
             ):
                 raise ValidationError("Wait requires an observable other combatant trigger")
-            from wayfarer.engine.simulation.magic.spells import active_spells
 
             held_missile = any(
                 effect.actor_id == actor_id

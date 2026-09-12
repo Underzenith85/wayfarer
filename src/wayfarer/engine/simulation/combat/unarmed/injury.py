@@ -9,15 +9,25 @@ from wayfarer.engine.rules.checks import CheckTrace, draw_dice
 from wayfarer.engine.rules.gurps_checks import success_roll
 from wayfarer.engine.rules.tables.unarmed import unarmed_critical_miss
 from wayfarer.engine.rules.types.location import HumanLocation
+from wayfarer.engine.simulation.abilities import damage_resistance
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog
-from wayfarer.engine.simulation.combat.encounter import Encounter
+from wayfarer.engine.simulation.combat.encounter import Encounter, PendingDefense
 from wayfarer.engine.simulation.combat.engine import CombatEngine
+from wayfarer.engine.simulation.combat.maneuver_transitions import distracted
+from wayfarer.engine.simulation.combat.melee.modes import mode
+from wayfarer.engine.simulation.combat.ranged.misses import resolve_miss
 from wayfarer.engine.simulation.combat.unarmed.fighters import fighter, skill_value
 from wayfarer.engine.simulation.combat.unarmed.records import BASIC, PendingUnarmed
-from wayfarer.engine.simulation.equipment.catalog import DamageType
+from wayfarer.engine.simulation.equipment.catalog import DamageType, MeleeMode
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
-from wayfarer.engine.simulation.health.injury import Wound, apply_injury
+from wayfarer.engine.simulation.health.hit_locations import armor_resistance
+from wayfarer.engine.simulation.health.injury import (
+    DisableLocation,
+    Wound,
+    apply_injury,
+    apply_location_effect,
+)
 
 if TYPE_CHECKING:
     from wayfarer.engine.simulation.rules_context import RulesContext
@@ -31,7 +41,6 @@ def armor_dr(
     *,
     rigid_only: bool = False,
 ) -> int:
-    from wayfarer.engine.simulation.health.hit_locations import armor_resistance
 
     entries = {e.definition_id: e for e in catalog(runtime).entries}
     resistance = armor_resistance(
@@ -46,8 +55,6 @@ def armor_dr(
         rigid_only=rigid_only,
     )
     if runtime.rules.abilities is not None:
-        from wayfarer.engine.simulation.abilities import damage_resistance
-
         resistance += damage_resistance(
             state.resources, actor_id, build_revision=build(runtime, state, actor_id).revision
         )
@@ -130,7 +137,6 @@ def hurt(
         }
     )
     encounter = CombatEngine._replace(encounter, target)
-    from wayfarer.engine.simulation.combat.maneuver_transitions import distracted
 
     encounter = distracted(
         runtime,
@@ -160,9 +166,6 @@ def critical_miss(
 
     """
     if hand not in (None, "left-hand", "right-hand"):
-        from wayfarer.engine.simulation.combat.encounter import PendingDefense
-        from wayfarer.engine.simulation.combat.ranged.misses import resolve_miss
-
         # The shared weapon reducer needs the pending transaction identity, not
         # an invented weapon for the bare-limbed attack. This adapter is local;
         # the durable pause remains PendingUnarmed throughout the transaction.
@@ -200,9 +203,6 @@ def critical_miss(
     checks: tuple[CheckTrace, ...] = ()
     dice: tuple[int, ...] = ()
     if rule.effect in ("strain", "self-hit"):
-        from wayfarer.engine.simulation.equipment.catalog import MeleeMode
-        from wayfarer.engine.simulation.health.injury import DisableLocation, apply_location_effect
-
         if rule.effect == "self-hit" and actor_id == pending.actor_id:
             opponent = fighter(encounter, pending.target_id)
             impaling_modes = tuple(
@@ -366,8 +366,6 @@ def armed_parry_injury(
     mode_id: str | None,
 ) -> tuple[PlayState, Encounter, tuple[CheckTrace, ...], tuple[int, ...]]:
     """B376: a separate weapon-skill check, never a second defended attack."""
-    from wayfarer.engine.simulation.combat.melee.modes import mode
-    from wayfarer.engine.simulation.equipment.catalog import MeleeMode
 
     weapon = mode(runtime, state, pending.target_id, item_id, mode_id)
     assert isinstance(weapon, MeleeMode)

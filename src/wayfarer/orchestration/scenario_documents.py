@@ -19,6 +19,7 @@ from wayfarer.engine.rules.catalog import CampaignRules, ImplementationStatus
 from wayfarer.engine.rules.effects import Effect
 from wayfarer.engine.simulation.actions import ActorSetup
 from wayfarer.engine.simulation.campaign.access import CampaignMember
+from wayfarer.engine.simulation.campaign.npcs import NPCSocialRules
 from wayfarer.engine.simulation.campaign.scenario_document import (
     Capability,
     Compatibility,
@@ -38,6 +39,11 @@ from wayfarer.engine.simulation.campaign.scenario_document import (
 )
 from wayfarer.engine.simulation.campaign.scenario_document import (
     parse_document as parse_document,
+)
+from wayfarer.engine.simulation.campaign.social_policy import (
+    SocialPortableGraph,
+    SocialScenarioDocument,
+    parse_graph,
 )
 from wayfarer.engine.simulation.campaign.studio import ScenarioGraph, StudioFinding
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
@@ -139,11 +145,6 @@ def adapt_graph(
     """
     raw = graph.model_dump(mode="json", exclude={"actors"})
     raw["actions"] = graph.runtime_rules().model_dump(mode="json")
-    from wayfarer.engine.simulation.campaign.npcs import NPCSocialRules
-    from wayfarer.engine.simulation.campaign.social_policy import (
-        SocialPortableGraph,
-        SocialScenarioDocument,
-    )
 
     social = isinstance(graph.npcs, NPCSocialRules)
     portable = (SocialPortableGraph if social else PortableGraph).model_validate_json(
@@ -218,7 +219,6 @@ def bind_party(
     )
     raw = document.graph.model_dump(mode="json")
     raw["actors"] = [a.model_dump(mode="json") for a in actors]
-    from wayfarer.engine.simulation.campaign.social_policy import parse_graph
 
     return parse_graph(json.dumps(raw))
 

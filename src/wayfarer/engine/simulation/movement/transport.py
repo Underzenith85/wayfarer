@@ -5,8 +5,10 @@ Trusted internal commands only. Live-play integration and remaining modes are
 explicit coverage blockers; this is not a player-authored damage interface.
 """
 
+from __future__ import annotations
+
 import hashlib
-from typing import Annotated, Literal
+from typing import TYPE_CHECKING, Annotated, Literal
 
 from pydantic import Field
 
@@ -24,6 +26,8 @@ from wayfarer.engine.simulation.equipment.objects import DamageObject, apply_obj
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury, impaired_movement
 from wayfarer.engine.simulation.hex_geometry import DIRECTIONS, Hex, HexBattlefield, neighbor
+from wayfarer.engine.simulation.movement.transport_validation import validate_transport
+from wayfarer.engine.simulation.movement.vehicles.collisions import collision_dice
 from wayfarer.engine.simulation.movement.vehicles.commands import (
     DamageVehicle,
     NavigateSpace,
@@ -40,14 +44,11 @@ from wayfarer.engine.simulation.movement.vehicles.commands import (
     VehicleSkid,
 )
 from wayfarer.engine.simulation.movement.vehicles.resolution import resolve_vehicle
-from wayfarer.engine.simulation.resources import (
-    Command,
-    Receipt,
-    ResourceEngine,
-    ResourceEvent,
-    ResourceState,
-)
+from wayfarer.engine.simulation.resources import Command, Receipt, ResourceEvent, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
+
+if TYPE_CHECKING:
+    from wayfarer.engine.simulation.resource_engine import ResourceEngine
 
 
 class Drive(Command):
@@ -97,18 +98,6 @@ TransportCommand = Annotated[
 ]
 
 
-def collision_dice(hp: int, speed: int, *, hard: bool = False) -> tuple[int, int]:
-    """B430-431, exact rounding including the sub-die bands and hard obstacles."""
-    if hp <= 0 or speed < 0:
-        raise ValidationError("Collision requires positive HP and nonnegative speed")
-    units = hp * speed * (2 if hard else 1)
-    if units == 0:
-        return 0, 0
-    if units < 100:
-        return 1, -3 if units <= 25 else -2 if units <= 50 else -1
-    return (units + 50) // 100, 0
-
-
 def _damage(hp: int, speed: int, rng: RandomSource) -> int:
     count, adds = collision_dice(hp, speed, hard=True)
     return max(0, sum(rng.randbelow(6) + 1 for _ in range(count)) + adds)
@@ -116,26 +105,6 @@ def _damage(hp: int, speed: int, rng: RandomSource) -> int:
 
 def _id(command: Command, suffix: str) -> str:
     return "transport:" + hashlib.sha256((command.id + ":" + suffix).encode()).hexdigest()
-
-
-def validate_transport(engine: ResourceEngine, state: ResourceState, t: Transport) -> None:
-    """Explicit scenario activation validator. No inferred migration from catalog listings."""
-    if t.locomotion == "ground-mount" and t.body_id not in engine.actors:
-        raise ValidationError("Mount must be a world actor")
-    passengers = t.occupants + t.overboard + tuple(e.actor_id for e in t.pending_ejections)
-    if not set(passengers) <= engine.actors:
-        raise ValidationError("Unknown transport occupant")
-    for actor in passengers + ((t.body_id,) if t.locomotion == "ground-mount" else ()):
-        pool = next((p for p in state.pools if p.id == "hp:" + actor), None)
-        if pool is None or pool.injury is None or pool.injury.profile_id != t.profile_id:
-            raise ValidationError("Transport actors require matching explicit injury profiles")
-    if t.locomotion != "ground-mount":
-        item = next((i for i in state.items if i.id == t.body_id), None)
-        spec = engine.specs.get(item.definition_id) if item else None
-        if item is None or item.condition is None or spec is None or spec.durability is None:
-            raise ValidationError("Vehicle requires an initialized authoritative durability item")
-        if spec.durability.profile_id != t.profile_id or item.owner_id != t.operator_id:
-            raise ValidationError("Vehicle profile or operator custody mismatch")
 
 
 def apply_transport(

@@ -451,7 +451,7 @@ async def test_v1_reads_activated_runtime_and_rejects_paused_actions(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     from wayfarer.transport.v1.common import obj
-    from wayfarer.transport.v1.http import SERVICE
+    from wayfarer.transport.v1.keys import SERVICE
 
     setup = service(tmp_path)
     cid = await ready(setup)

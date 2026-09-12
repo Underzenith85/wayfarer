@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import fatigue_ready
+from wayfarer.engine.simulation.campaign.encounter_context import bind_scene, validate_contexts
 from wayfarer.engine.simulation.combat.commands import (
     ChooseDefense,
     StartBasicEncounter,
@@ -12,7 +14,14 @@ from wayfarer.engine.simulation.combat.commands import (
     TypedCombatCommand,
 )
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter, basic_visible
+from wayfarer.engine.simulation.combat.melee.modes import mode
+from wayfarer.engine.simulation.combat.objects.locations import bind_initial_hands
+from wayfarer.engine.simulation.combat.ranged.situation import declare
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext, CoverSpatialFact
+from wayfarer.engine.simulation.combat.tactical_transitions import prepare_defense
+from wayfarer.engine.simulation.combat.unarmed.fighters import guard_control
+from wayfarer.engine.simulation.combat.visibility import visible_actors
+from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat.context import CombatContext, CombatStep, encounter_for
 
@@ -35,8 +44,6 @@ def _start_encounter(
     for placement in command.placements:
         actor = actor_map[placement.actor_id]
         if engine.rules.gurps_equipment is not None:
-            from wayfarer.engine.simulation.actors import fatigue_ready
-
             if not fatigue_ready(state, actor.actor_id):
                 raise ValidationError("Exhausted actor cannot start combat")
         hp = pools.get(f"hp:{actor.actor_id}")
@@ -63,19 +70,14 @@ def _start_encounter(
         resources,
         frozenset(actor_map),
     )
-    from wayfarer.engine.simulation.campaign.encounter_context import bind_scene
 
     if play.engine.rules.scenes is not None or command.scene_id is not None:
         encounter = bind_scene(encounter, play.engine.rules.scenes, engine.rules, command.scene_id)
     if engine.rules.gurps_equipment is not None:
-        from wayfarer.engine.simulation.combat.objects.locations import bind_initial_hands
-
         encounter = bind_initial_hands(play.rules_context, state, encounter)
-    from wayfarer.engine.simulation.combat.ranged.situation import declare
 
     encounter = declare(play.rules_context, encounter, command.ranged_situations)
     encounters = state.encounters + (encounter,)
-    from wayfarer.engine.simulation.campaign.encounter_context import validate_contexts
 
     validate_contexts(
         state.model_copy(update={"encounters": encounters}),
@@ -119,8 +121,6 @@ def _start_basic_encounter(
     for actor_id in command.participant_ids:
         actor = actor_map[actor_id]
         if engine.rules.gurps_equipment is not None:
-            from wayfarer.engine.simulation.actors import fatigue_ready
-
             if not fatigue_ready(state, actor.actor_id):
                 raise ValidationError("Exhausted actor cannot start combat")
         hp = pools.get(f"hp:{actor.actor_id}")
@@ -147,18 +147,13 @@ def _start_basic_encounter(
         resources,
         frozenset(actor_map),
     )
-    from wayfarer.engine.simulation.campaign.encounter_context import bind_scene
 
     encounter = bind_scene(encounter, play.engine.rules.scenes, engine.rules, command.scene_id)
     if engine.rules.gurps_equipment is not None:
-        from wayfarer.engine.simulation.combat.objects.locations import bind_initial_hands
-
         encounter = bind_initial_hands(play.rules_context, state, encounter)
-    from wayfarer.engine.simulation.combat.ranged.situation import declare
 
     encounter = declare(play.rules_context, encounter, command.ranged_situations)
     encounters = state.encounters + (encounter,)
-    from wayfarer.engine.simulation.campaign.encounter_context import validate_contexts
 
     validate_contexts(
         state.model_copy(update={"encounters": encounters}),
@@ -186,12 +181,8 @@ def _prepare_encounter(
     engine = context.engine
     encounter = encounter_for(state, command.encounter_id)
     if play.engine.rules.scenes is not None:
-        from wayfarer.engine.simulation.campaign.encounter_context import bind_scene
-
         encounter = bind_scene(encounter, play.engine.rules.scenes, engine.rules)
     if encounter.spatial_kind == "hex" and isinstance(command, (TakeCombatTurn, TakeUnarmedTurn)):
-        from wayfarer.orchestration.tactical_view import visible_actors
-
         if command.target_id is not None and command.target_id not in visible_actors(
             state, encounter, command.actor_id, board=play.rules_context.hex_map(encounter)
         ):
@@ -233,18 +224,13 @@ def _prepare_encounter(
                     encounter, command.actor_id, actor_id
                 ):
                     raise ValidationError("Target is unavailable")
-    from wayfarer.engine.simulation.combat.unarmed.fighters import guard_control
 
     guard_control(encounter, command, state)
-    from wayfarer.engine.simulation.combat.tactical_transitions import prepare_defense
 
     if isinstance(command, ChooseDefense):
         if encounter.pending_unarmed is None and (
             command.parry_mode_id is not None or command.second_parry_mode_id is not None
         ):
-            from wayfarer.engine.simulation.combat.melee.modes import mode
-            from wayfarer.engine.simulation.equipment.catalog import MeleeMode, RangedMode
-
             pending = encounter.pending_defense
             if (
                 engine.rules.gurps_equipment is None

@@ -566,7 +566,8 @@ async def test_provider_stale_timeout_and_cancellation(tmp_path: Path) -> None:
 
 async def test_combat_barrier_long_investigation_and_reinforcement_arrival(tmp_path: Path) -> None:
     from wayfarer.engine.rules.catalog import PROTOTYPE_PACKAGE, RulesCatalog
-    from wayfarer.engine.simulation.resources import ResourceEngine, ResourceState
+    from wayfarer.engine.simulation.resource_engine import ResourceEngine
+    from wayfarer.engine.simulation.resources import ResourceState
     from wayfarer.engine.world import Entity, EntityKind
     from wayfarer.orchestration.combat import JoinEncounter
 

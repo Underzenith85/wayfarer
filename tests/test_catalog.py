@@ -17,7 +17,7 @@ from wayfarer.config import Settings
 from wayfarer.orchestration.catalog import GeneratedScenarioGraph
 from wayfarer.orchestration.providers import Orchestrator, ProviderReply, ProviderRequest, Usage
 from wayfarer.runtime import create_runtime_app, starting_scenario
-from wayfarer.transport.campaign_api import ACCESS_KEY, ORCHESTRATOR_KEY
+from wayfarer.transport.common import ACCESS_KEY, ORCHESTRATOR_KEY
 from wayfarer.transport.setup_api import SETUP_KEY
 
 PREFIX = "/authoring/v1/scenarios"

@@ -37,6 +37,7 @@ from wayfarer.orchestration.advancement import (
     _diff,
 )
 from wayfarer.orchestration.play import PlayService
+from wayfarer.orchestration.scenario_documents import parse_document
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.postgres import AsyncPostgresStore
 
@@ -213,8 +214,6 @@ class ProfileMigrations:
                 )
         document = campaign.get("scenario_document_json")
         if document is not None:
-            from wayfarer.orchestration.scenario_documents import parse_document
-
             pinned = parse_document(document)
             if pinned.compatibility.rules != target.rules:
                 found.append(

@@ -18,6 +18,7 @@ from wayfarer.engine.simulation.equipment.catalog import EquipmentCatalog, inven
 from wayfarer.engine.simulation.health.fatigue import ContinueExertion, apply_fatigue, fatigue_value
 from wayfarer.engine.simulation.health.hit_locations import disabled, part
 from wayfarer.engine.simulation.health.injury import InjuryTurn, apply_injury, impaired_movement
+from wayfarer.engine.simulation.magic.backfires import clear_stun, mental_stun, refund_due
 from wayfarer.engine.simulation.rules_context import RulesContext
 from wayfarer.errors import ValidationError
 
@@ -101,7 +102,6 @@ def injury_turn(
     hp = next(p for p in state.resources.pools if p.id == f"hp:{actor_id}")
     if hp.injury is None or hp.injury.profile_id != compiled.statistics.profile_id:
         raise ValidationError("GURPS injury requires explicit migration")
-    from wayfarer.engine.simulation.magic.backfires import clear_stun, mental_stun, refund_due
 
     resources = state.resources
     if start:

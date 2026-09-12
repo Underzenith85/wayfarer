@@ -41,7 +41,8 @@ from wayfarer.engine.simulation.movement.vehicles.motion import (
     ground_cruising_speed,
     safe_deceleration,
 )
-from wayfarer.engine.simulation.resources import Pool, ResourceEngine, ResourceState
+from wayfarer.engine.simulation.resource_engine import ResourceEngine
+from wayfarer.engine.simulation.resources import Pool, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.resources import ResourceService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore

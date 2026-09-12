@@ -653,7 +653,8 @@ async def test_downtime_advancement_reuses_compiler_and_earned_point_balance(
     tmp_path: Path,
 ) -> None:
     from wayfarer.engine.character.compiler import Purchase
-    from wayfarer.orchestration.advancement import AdvancementService, GrantPoints, _balance
+    from wayfarer.orchestration.advancement import AdvancementService, GrantPoints
+    from wayfarer.orchestration.builds import banked_points as _balance
 
     proposal = actor_setup().proposal
     draft = proposal.draft.model_copy(

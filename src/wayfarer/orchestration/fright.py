@@ -6,8 +6,8 @@ from wayfarer.contracts import Campaign, CommandReceipt
 from wayfarer.engine.simulation.health.fright_transitions import FrightDecision as FrightDecision
 from wayfarer.engine.simulation.health.fright_transitions import apply_decision
 from wayfarer.errors import ValidationError
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.entropy import commit_command
+from wayfarer.orchestration.membership import member_for
 from wayfarer.orchestration.play import PlayService
 
 
@@ -21,9 +21,7 @@ class FrightService:
         except ValueError as exc:
             raise ValidationError("Invalid fright decision") from exc
         play = self.play.for_campaign(await self.play.store.read(cid))
-        member = CampaignAccess(play)._member(
-            play._load(await play.store.read(cid)), authenticated_gm_id
-        )
+        member = member_for(play._load(await play.store.read(cid)), authenticated_gm_id)
         if member.role != "gm" or authenticated_gm_id not in play.engine.reviewer.gm_ids:
             raise ValidationError("Fright decisions require director authority")
         payload = json.dumps(

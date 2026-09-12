@@ -9,11 +9,14 @@ from collections.abc import Mapping
 from wayfarer.engine.rules.catalog import RuleDefinition
 from wayfarer.engine.rules.checks import Modifier
 from wayfarer.engine.simulation.resources import ResourceState
+from wayfarer.errors import ValidationError
 
 
 def check_modifiers(
     state: ResourceState, actor_id: str, attribute: str, *, defensive: bool = False
 ) -> tuple[Modifier, ...]:
+    # deferred: condition_checks -> fright -> fatigue -> condition_checks.
+    # The fright ledger reads fatigue, which reads the checks defined here.
     from wayfarer.engine.simulation.health.fright import aftermath_modifiers, effects
 
     result = aftermath_modifiers(state, actor_id)
@@ -56,6 +59,7 @@ def definition_modifiers(
 
 
 def retching_penalty(state: ResourceState, actor_id: str) -> int:
+    # deferred: condition_checks -> fright -> fatigue -> condition_checks, as above.
     from wayfarer.engine.simulation.health.fright import effects
 
     return (
@@ -69,7 +73,6 @@ def retching_penalty(state: ResourceState, actor_id: str) -> int:
 
 
 def require_hazard_capacity(state: ResourceState, actor_id: str, kind: str) -> None:
-    from wayfarer.errors import ValidationError
 
     for hazard in state.hazards:
         if hazard.actor_id != actor_id or hazard.affliction_until <= state.game_time:

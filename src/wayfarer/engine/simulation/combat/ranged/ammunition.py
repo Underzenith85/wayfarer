@@ -5,9 +5,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import build, catalog
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
+from wayfarer.engine.simulation.combat.firearms import spend_rounds
+from wayfarer.engine.simulation.combat.ranged.readiness import reload, unload
 from wayfarer.engine.simulation.combat.ranged.strength import validate_rated_strength
+from wayfarer.engine.simulation.combat.thrown.items import landed
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
 from wayfarer.engine.simulation.health.fatigue import fatigue_value
 from wayfarer.engine.simulation.resources import AmmunitionLoad, ResourceState
@@ -22,7 +26,6 @@ def unload_weapon(
     runtime: RulesContext, state: PlayState, command: TakeCombatTurn
 ) -> ResourceState:
     """Release a removable magazine's reservation; no rounds are minted or spent."""
-    from wayfarer.engine.simulation.actors import catalog
 
     equipment = catalog(runtime)
     if equipment.profile_id != "gurps-basic-set-4e-2004":
@@ -40,8 +43,6 @@ def unload_weapon(
     entry = next(e for e in equipment.entries if e.definition_id == item.definition_id)
     weapon = next((m for m in entry.modes if m.id == loaded.mode_id), None)
     if isinstance(weapon, RangedMode) and weapon.readiness is not None:
-        from wayfarer.engine.simulation.combat.ranged.readiness import unload
-
         return unload(state, command, weapon)
     if not isinstance(weapon, RangedMode) or weapon.reload_protocol != "magazine":
         raise ValidationError("Individual-round unloading requires its own timing protocol")
@@ -59,7 +60,6 @@ def unload_weapon(
 def reload_weapon(
     runtime: RulesContext, state: PlayState, command: TakeCombatTurn, *, validate_only: bool = False
 ) -> ResourceState:
-    from wayfarer.engine.simulation.actors import catalog
 
     equipment = catalog(runtime)
     item = next((i for i in state.resources.items if i.id == command.item_id), None)
@@ -83,15 +83,11 @@ def reload_weapon(
     if item.firearm_failure is not None:
         raise ValidationError("Service the firearm failure before reloading")
     if weapon.readiness is not None:
-        from wayfarer.engine.simulation.combat.ranged.readiness import reload
-
         return reload(runtime, state, command, weapon, validate_only=validate_only)
     if command.fast_draw or command.cocking_aid_id is not None:
         raise ValidationError("This weapon has no explicit readiness protocol")
     reload_seconds = weapon.reload_seconds
     if weapon.rated_strength is not None:
-        from wayfarer.engine.simulation.actors import build
-
         stats = build(runtime, state, command.actor_id).statistics
         assert stats is not None
         fp = next(p for p in state.resources.pools if p.id == f"fp:{command.actor_id}")
@@ -161,7 +157,6 @@ def expend(
     catcher_id: str | None = None,
     hand: str | None = None,
 ) -> tuple[PlayState, Encounter]:
-    from wayfarer.engine.simulation.actors import catalog
 
     pending = encounter.pending_defense
     assert pending is not None
@@ -169,8 +164,6 @@ def expend(
     if weapon.thrown:
         item = next(i for i in resources.items if i.id == pending.weapon_id)
         if catalog(runtime).profile_id == "gurps-basic-set-4e-2004":
-            from wayfarer.engine.simulation.combat.thrown.items import landed
-
             resources, encounter = landed(
                 runtime, state, encounter, item, hit=hit, catcher_id=catcher_id, hand=hand
             )
@@ -201,8 +194,6 @@ def expend(
             ),
         )
     else:
-        from wayfarer.engine.simulation.combat.firearms import spend_rounds
-
         resources = spend_rounds(
             resources, pending.weapon_id, pending.shots if shots is None else shots
         )

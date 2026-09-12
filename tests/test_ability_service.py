@@ -23,7 +23,8 @@ from wayfarer.engine.simulation.actions import ActionRules, ActorSetup, Wait
 from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
 from wayfarer.engine.simulation.combat.profiles import CombatRules
 from wayfarer.engine.simulation.combat.spatial import Placement
-from wayfarer.engine.simulation.resources import Pool, ResourceEngine
+from wayfarer.engine.simulation.resource_engine import ResourceEngine
+from wayfarer.engine.simulation.resources import Pool
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.orchestration.abilities import AbilityService
 from wayfarer.orchestration.access import CampaignAccess

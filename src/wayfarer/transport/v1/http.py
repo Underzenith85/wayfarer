@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hmac
 import ipaddress
 import json
 import secrets
@@ -12,27 +11,31 @@ from functools import partial
 from pathlib import Path
 
 from aiohttp import web
+from jsonschema import Draft202012Validator
 
 from wayfarer.errors import WayfarerError
 from wayfarer.orchestration.play import PlayService
 
-from .common import OPENAPI, Fault, Obj, array, encoded, obj, uid, validate
+from .common import (
+    HTTP,
+    OPENAPI,
+    REGISTRY,
+    Fault,
+    Obj,
+    array,
+    encoded,
+    obj,
+    uid,
+    validate,
+)
+from .invitations import invitation
+from .keys import NO_ORIGIN, ORIGINS, SERVICE, TOKENS, identity
+from .live import live
 from .service import V1Service
 
-SERVICE = web.AppKey("v1-service", V1Service)
-TOKENS = web.AppKey("v1-tokens", dict[str, str])
-ORIGINS = web.AppKey("v1-origins", frozenset[str])
-NO_ORIGIN = web.AppKey("v1-no-origin", bool)
 LIMITS = web.AppKey("v1-limits", dict[str, tuple[float, int]])
 IDENTITY = web.RequestKey("v1-identity", str)
 REQUEST_ID = web.RequestKey("v1-request-id", str)
-
-
-def identity(tokens: dict[str, str], credential: str) -> str:
-    for key, principal in tokens.items():
-        if hmac.compare_digest(key, credential):
-            return principal
-    raise Fault(401, "unauthenticated")
 
 
 def response(value: Obj, request_id: str, status: int = 200) -> web.Response:
@@ -165,10 +168,6 @@ async def route(
     service = request.app[SERVICE]
     principal, request_id = request[IDENTITY], request[REQUEST_ID]
     for value in request.match_info.values():
-        from jsonschema import Draft202012Validator
-
-        from .common import HTTP, REGISTRY
-
         if not Draft202012Validator(
             {"$ref": f"{HTTP['$id']}#/$defs/Id"}, registry=REGISTRY
         ).is_valid(value):
@@ -196,8 +195,6 @@ async def route(
         )
         status = 200 if operation == "cancelAction" else 202
     elif operation in ("createInvitation", "redeemInvitation"):
-        from .invitations import invitation
-
         result = await invitation(
             service, principal, cid, request.path, data, redeem=operation == "redeemInvitation"
         )
@@ -364,7 +361,5 @@ def install(
                     replies=replies,
                 ),
             )
-    from .live import live
-
     app.router.add_get("/api/v1/live", live)
     return service

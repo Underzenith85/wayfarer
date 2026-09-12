@@ -24,12 +24,9 @@ from wayfarer.engine.simulation.health.recovery_guard import captive as captive
 from wayfarer.engine.simulation.health.recovery_guard import guard as guard
 from wayfarer.engine.simulation.resources import Consume, Transfer, Unequip
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.orchestration.advancement import (
-    AdvanceCharacter,
-    AdvancementService,
-    _balance,
-    _build,
-)
+from wayfarer.orchestration.advancement import AdvanceCharacter, AdvancementService
+from wayfarer.orchestration.builds import banked_points as _balance
+from wayfarer.orchestration.builds import canonical_build as _build
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.party import PartyService
 from wayfarer.orchestration.play import PlayService

@@ -58,13 +58,8 @@ from wayfarer.engine.simulation.equipment.catalog import (
 )
 from wayfarer.engine.simulation.health.fatigue import FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.hex_geometry import HexBattlefield
-from wayfarer.engine.simulation.resources import (
-    Item,
-    Owner,
-    ResourceEngine,
-    ResourceState,
-    Scheduled,
-)
+from wayfarer.engine.simulation.resource_engine import ResourceEngine
+from wayfarer.engine.simulation.resources import Item, Owner, ResourceState, Scheduled
 from wayfarer.engine.world import World
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat import (

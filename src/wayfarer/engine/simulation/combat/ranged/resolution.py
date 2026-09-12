@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import replace
 from typing import TYPE_CHECKING, cast
 
+from wayfarer.engine.character.statistics import damage as strength_damage
 from wayfarer.engine.rules.checks import Outcome, draw_dice
 from wayfarer.engine.rules.effects import DerivedValue
 from wayfarer.engine.rules.gurps_checks import success_roll
@@ -20,27 +21,60 @@ from wayfarer.engine.rules.tables.ranged import (
 )
 from wayfarer.engine.rules.types.location import HumanLocation
 from wayfarer.engine.rules.types.spray import Stream
+from wayfarer.engine.simulation.abilities import damage_resistance
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.actors import build, catalog, level
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.entangle import attack_penalty as entangle_attack_penalty
 from wayfarer.engine.simulation.combat.entangle import bind as entangle_bind
+from wayfarer.engine.simulation.combat.firearm_transitions import (
+    before_attack,
+    roll_malfunction,
+    set_failure,
+)
+from wayfarer.engine.simulation.combat.firearms import (
+    MalfunctionRecord,
+    save_malfunction,
+    spend_rounds,
+)
+from wayfarer.engine.simulation.combat.maneuver_transitions import distracted
+from wayfarer.engine.simulation.combat.melee.defense import defense_value
+from wayfarer.engine.simulation.combat.objects.combat import (
+    damage_target,
+    defense_stress,
+    intercepted_projectiles,
+    shield_damage,
+    target_geometry,
+    target_modifier,
+)
+from wayfarer.engine.simulation.combat.objects.locations import from_behind
 from wayfarer.engine.simulation.combat.profiles import InjuryTrace
 from wayfarer.engine.simulation.combat.ranged.ammunition import expend
+from wayfarer.engine.simulation.combat.ranged.critical import RangedCritical, save_ranged_critical
 from wayfarer.engine.simulation.combat.ranged.lingering_fire import _schedule_lingering_fire
+from wayfarer.engine.simulation.combat.ranged.misses import resolve_miss
 from wayfarer.engine.simulation.combat.ranged.situation import situation
 from wayfarer.engine.simulation.combat.ranged.strength import validate_rated_strength
+from wayfarer.engine.simulation.combat.thrown.explosions import schedule_payload
+from wayfarer.engine.simulation.combat.thrown.flight import position
+from wayfarer.engine.simulation.combat.unarmed.injury import critical_miss
+from wayfarer.engine.simulation.combat.unarmed.records import PendingUnarmed
 from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.fatigue import fatigue_value
 from wayfarer.engine.simulation.health.hit_locations import (
     attack_penalty,
+    disabled,
+    location_special_effects,
     missing_location,
     part,
     select_location,
+    torso_near_miss,
 )
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
+from wayfarer.engine.simulation.hex_geometry import Hex
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
@@ -61,10 +95,6 @@ def resolve(
     second_parry_mode_id: str | None = None,
     catch_thrown: bool = False,
 ) -> tuple[PlayState, Encounter, InjuryTrace]:
-    from wayfarer.engine.simulation.actors import build, catalog, level
-    from wayfarer.engine.simulation.combat.maneuver_transitions import distracted
-    from wayfarer.engine.simulation.combat.melee.defense import defense_value
-    from wayfarer.engine.simulation.combat.thrown.flight import position
 
     original_resources = state.resources
     pending = encounter.pending_defense
@@ -78,8 +108,6 @@ def resolve(
     original_target = target
     geometry = encounter
     if pending.target_item_id:
-        from wayfarer.engine.simulation.combat.objects.combat import target_geometry
-
         geometry = target_geometry(runtime, state, encounter, pending.target_item_id)
     scene = situation(
         runtime,
@@ -150,8 +178,6 @@ def resolve(
     if pending.laser_sight and scene.laser_visible_to_firer:
         attack_target += 1
     if pending.target_item_id:
-        from wayfarer.engine.simulation.combat.objects.combat import target_modifier
-
         attack_target += (
             target_modifier(runtime, state, target.actor_id, pending.target_item_id)
             - scene.size_modifier
@@ -160,7 +186,6 @@ def resolve(
     attack_target -= actor_hp.injury.shock if actor_hp.injury else 0
     if actor_hp.injury and pending.suppression_zone_id is None:
         attack_target += actor_hp.injury.physical_traits.darkness(encounter.darkness_penalty)
-    from wayfarer.engine.simulation.health.hit_locations import disabled
 
     eyes = disabled(state.resources, actor.actor_id) & {"left-eye", "right-eye"}
     if eyes:
@@ -209,11 +234,6 @@ def resolve(
             defense_value_ = DerivedValue(defense_value_.target, defense_value_.value - penalty, ())
         if second_defense == "parry" and second_value is not None:
             second_value = DerivedValue(second_value.target, second_value.value - penalty, ())
-    from wayfarer.engine.simulation.combat.firearm_transitions import (
-        before_attack,
-        roll_malfunction,
-        set_failure,
-    )
 
     state = state.model_copy(
         update={"resources": before_attack(state.resources, pending.weapon_id, weapon)}
@@ -242,10 +262,6 @@ def resolve(
         attack = replace(attack, rule_id="gurps.combat.ranged_attack")
         if attack.outcome is Outcome.CRITICAL_FAILURE and attack.total < 17:
             attack = replace(attack, outcome=Outcome.FAILURE)
-    from wayfarer.engine.simulation.health.hit_locations import (
-        location_special_effects,
-        torso_near_miss,
-    )
 
     near_miss = bool(shots_fired) and torso_near_miss(pending.hit_location, attack)
     effective_shots_fired = (
@@ -286,8 +302,6 @@ def resolve(
         if defense.outcome is Outcome.CRITICAL_FAILURE and selected == "dodge":
             target = target.model_copy(update={"posture": "prone"})
     if hits and defense is not None and not defense.outcome.succeeded and second_value is not None:
-        from wayfarer.engine.simulation.combat.objects.combat import defense_stress
-
         state, encounter = defense_stress(
             runtime,
             state,
@@ -337,7 +351,6 @@ def resolve(
             target = target.model_copy(update={"block_used": True})
         if second_trace.outcome is Outcome.CRITICAL_FAILURE and second_defense == "dodge":
             target = target.model_copy(update={"posture": "prone"})
-    from wayfarer.engine.simulation.combat.objects.combat import intercepted_projectiles
 
     shield_hit, shield_impacts = intercepted_projectiles(
         runtime,
@@ -401,9 +414,6 @@ def resolve(
     miss_effect_dice: tuple[int, ...] = ()
     miss_lasting_ids: tuple[str, ...] = ()
     if blocked and parry_item in ("left-hand", "right-hand"):
-        from wayfarer.engine.simulation.combat.unarmed.injury import critical_miss
-        from wayfarer.engine.simulation.combat.unarmed.records import PendingUnarmed
-
         encounter = CombatEngine._replace(encounter, target)
         state, encounter, checks, dice, handled = critical_miss(
             runtime,
@@ -426,8 +436,6 @@ def resolve(
         blocked = None if handled else "ranged-critical-unarmed-parry"
         target = next(p for p in encounter.participants if p.actor_id == target.actor_id)
     elif blocked:
-        from wayfarer.engine.simulation.combat.ranged.misses import resolve_miss
-
         # Preserve defense counters/posture before applying consequences to the defender.
         encounter = CombatEngine._replace(encounter, target)
         state, encounter, miss, blocked = resolve_miss(
@@ -478,7 +486,6 @@ def resolve(
             hand=caught_hand,
         )
     target = next(p for p in encounter.participants if p.actor_id == target.actor_id)
-    from wayfarer.engine.simulation.combat.thrown.explosions import schedule_payload
 
     state, encounter, payload_attack = schedule_payload(
         runtime,
@@ -516,8 +523,6 @@ def resolve(
     location: HumanLocation | None = None
     location_dice: tuple[int, ...] = ()
     if hits and pending.hit_location:
-        from wayfarer.engine.simulation.combat.objects.locations import from_behind
-
         location, location_dice = select_location(
             "torso" if near_miss else pending.hit_location,
             rng=runtime.rng,
@@ -538,8 +543,6 @@ def resolve(
     lasting_ids: tuple[str, ...] = miss_lasting_ids
     effect_dice: tuple[int, ...] = miss_effect_dice
     if critical and head and blocked is None:
-        from wayfarer.engine.simulation.combat.objects.locations import from_behind
-
         if critical in (6, 7) and location in ("face", "skull"):
             if from_behind(actor, target) or (
                 hp.injury and hp.injury.tolerance and hp.injury.tolerance.no_eyes
@@ -576,14 +579,12 @@ def resolve(
         )
 
     dr_bonus = 0
-    from wayfarer.engine.simulation.abilities import damage_resistance
 
     if runtime.rules.abilities is not None:
         dr_bonus = damage_resistance(
             state.resources, target.actor_id, build_revision=defender_build.revision
         )
     environmental_dr = scene.beam_environment_dr if weapon.beam_environment_dr else 0
-    from wayfarer.engine.simulation.hex_geometry import Hex
 
     vehicle_cover = max(
         (
@@ -605,8 +606,6 @@ def resolve(
     expression = stats.swing if weapon.damage.basis == "swing" else stats.thrust
     range_st = st
     if weapon.rated_strength is not None:
-        from wayfarer.engine.character.statistics import damage as strength_damage
-
         range_st = weapon.rated_strength.st
         expression = strength_damage(equipment.profile_id, range_st)[0]
     count = (weapon.damage.dice or expression.dice) * close_projectile_multiplier
@@ -632,8 +631,6 @@ def resolve(
     )
     for index in range(impacts if blocked is None else 0):
         if index and pending.hit_location == "random":
-            from wayfarer.engine.simulation.combat.objects.locations import from_behind
-
             location, location_dice = select_location(
                 "random",
                 rng=runtime.rng,
@@ -677,7 +674,6 @@ def resolve(
                 if scene.distance <= acceleration.medium_max_yards
                 else 1
             )
-        from wayfarer.engine.simulation.combat.objects.combat import damage_target, shield_damage
 
         if pending.target_item_id:
             state, encounter, object_result = damage_target(
@@ -930,8 +926,6 @@ def resolve(
         per_hit_location_dice=tuple(hit_location_dice) if effective_shots > 1 else (),
     )
     if failure is not None:
-        from wayfarer.engine.simulation.combat.firearms import MalfunctionRecord, save_malfunction
-
         state = state.model_copy(
             update={
                 "resources": save_malfunction(
@@ -982,8 +976,6 @@ def resolve(
         and weapon.firearm.action == "single-use"
         and (shots_fired or failure and failure.kind == "dud")
     ):
-        from wayfarer.engine.simulation.combat.firearms import spend_rounds
-
         spent_resources = state.resources
         if failure and failure.kind == "dud":
             spent_resources = spend_rounds(spent_resources, pending.weapon_id, 1)
@@ -1004,11 +996,6 @@ def resolve(
             }
         )
     if critical_table:
-        from wayfarer.engine.simulation.combat.ranged.critical import (
-            RangedCritical,
-            save_ranged_critical,
-        )
-
         state = state.model_copy(
             update={
                 "resources": save_ranged_critical(

@@ -32,7 +32,7 @@ from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
 from wayfarer.persistence.events import CommandEntropy
 from wayfarer.persistence.postgres import AsyncPostgresStore
-from wayfarer.transport.campaign_api import ACCESS_KEY
+from wayfarer.transport.common import ACCESS_KEY
 
 
 def test_seeded_random_is_repeatable_for_dice_and_arbitrary_bounds() -> None:

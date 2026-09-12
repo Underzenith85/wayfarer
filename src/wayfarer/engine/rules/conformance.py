@@ -123,6 +123,10 @@ def require_verified(capability_id: str) -> Capability:
             f"Rules capability is not verified: {capability_id} ({result.status.value})"
         )
     if capability_id in ("gurps.magic.spellcasting", "gurps.supernatural.abilities"):
+        # deferred: conformance -> supernatural -> catalog -> traits.base -> conformance.
+        # require_verified must apply the family check itself: test_supernatural_inventory
+        # asserts conformance.require_verified(family) rejects a promoted family flag, and
+        # the supernatural audit needs this module's coverage vocabulary to describe itself.
         from wayfarer.engine.rules.supernatural import require_family
 
         require_family(capability_id)

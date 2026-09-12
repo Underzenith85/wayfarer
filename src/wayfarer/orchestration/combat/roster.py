@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from wayfarer.engine.simulation.actions import PlayState
+from wayfarer.engine.simulation.campaign.party import Subgroup, group_for
 from wayfarer.engine.simulation.combat.commands import (
     BasicJoinPlacement,
     EndEncounter,
@@ -18,11 +19,13 @@ from wayfarer.engine.simulation.combat.encounter import (
     CombatWithdrawal,
     Encounter,
 )
+from wayfarer.engine.simulation.combat.objects.locations import bind_initial_hands
 from wayfarer.engine.simulation.combat.spatial import (
     BasicSpatialContext,
     BasicSpatialFact,
     HexSpatialContext,
 )
+from wayfarer.engine.simulation.combat.tactical import sight
 from wayfarer.engine.simulation.combat.withdrawal import (
     require_basic_escape,
     require_hex_escape,
@@ -40,7 +43,6 @@ def _join(
     engine = context.engine
     resources = state.resources
     assert isinstance(command, JoinEncounter)
-    from wayfarer.engine.simulation.campaign.party import group_for
 
     if (
         encounter.status != "active"
@@ -209,12 +211,8 @@ def _join(
             update={"party": state.party.model_copy(update={"groups": groups})}
         )
     if engine.rules.gurps_equipment is not None:
-        from wayfarer.engine.simulation.combat.objects.locations import bind_initial_hands
-
         encounter = bind_initial_hands(play.rules_context, state, encounter)
     if isinstance(placement, HexJoinPlacement):
-        from wayfarer.engine.simulation.combat.tactical import sight
-
         joined = next(p for p in encounter.participants if p.actor_id == joining_actor_id)
         board = play.rules_context.require_hex(encounter)
         if not any(
@@ -288,8 +286,6 @@ def _withdraw(
         )
     else:
         raise ValidationError("Square withdrawal needs explicit adjudication")
-
-    from wayfarer.engine.simulation.campaign.party import Subgroup, group_for
 
     if not state.party.groups:
         raise ValidationError("Withdrawal requires shared-time party state")

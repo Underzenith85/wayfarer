@@ -14,7 +14,8 @@ from wayfarer.engine.simulation.campaign.objectives import Objective, ObjectiveR
 from wayfarer.engine.simulation.campaign.party import PartyRules
 from wayfarer.engine.simulation.campaign.scenes import Scene, SceneExit, SceneRules
 from wayfarer.engine.simulation.campaign.studio import GenerationBrief, ScenarioGraph
-from wayfarer.engine.simulation.resources import Owner, ResourceEngine, ResourceState
+from wayfarer.engine.simulation.resource_engine import ResourceEngine
+from wayfarer.engine.simulation.resources import Owner, ResourceState
 from wayfarer.engine.world import Connection, Entity, EntityKind, World
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.profiles import ProfileRuntime

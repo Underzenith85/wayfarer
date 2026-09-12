@@ -1,6 +1,8 @@
 """Version-two vehicle dispatch under the existing transport transaction."""
 
-from typing import Literal
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Literal
 
 from wayfarer.engine.rules.checks import RandomSource
 from wayfarer.engine.rules.types.hazard import HazardSchedule, HazardSpec
@@ -23,8 +25,11 @@ from wayfarer.engine.simulation.movement.vehicles.motion import (
     footprint,
 )
 from wayfarer.engine.simulation.movement.vehicles.operations import registry
-from wayfarer.engine.simulation.resources import ResourceEngine, ResourceState
+from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.errors import ValidationError
+
+if TYPE_CHECKING:
+    from wayfarer.engine.simulation.resource_engine import ResourceEngine
 
 
 def water_hazard(

@@ -37,6 +37,12 @@ from wayfarer.engine.rules.catalog import (
 )
 from wayfarer.engine.rules.effects import DerivedValue, Effect, EffectEvaluator, MechanicalTarget
 from wayfarer.engine.rules.gurps_characters import SIZE_MODIFIER_DEFINITION_ID, STATISTICS_V2_HOOK
+from wayfarer.engine.rules.magic.gurps_magic import (
+    PREREQUISITES,
+    magery_level,
+    validate_definitions,
+)
+from wayfarer.engine.rules.supernatural.abilities import validate_purchase as validate_ability
 from wayfarer.engine.rules.traits import registry as trait_registry
 from wayfarer.engine.rules.traits.base import TraitOptions
 from wayfarer.engine.rules.traits.base import cost as trait_cost
@@ -204,7 +210,6 @@ class CharacterCompiler:
                     )
                 if (STATISTICS_V2_HOOK in actual.hooks) != (revision == 2):
                     raise ValidationError("Pinned packages mix statistics revisions")
-        from wayfarer.engine.rules.magic.gurps_magic import validate_definitions
 
         validate_definitions(statistics_profile, self.definitions)
         self.skills = (
@@ -389,10 +394,6 @@ class CharacterCompiler:
                             else trait_cost(cost, amount, options, metadata)
                         )
                         if any(hook.startswith("ability:") for hook in metadata.runtime_hooks):
-                            from wayfarer.engine.rules.supernatural.abilities import (
-                                validate_purchase as validate_ability,
-                            )
-
                             validate_ability(definition, amount, options)
                     except ValidationError as exc:
                         error("trait.invalid", i, str(exc))
@@ -547,8 +548,6 @@ class CharacterCompiler:
                 },
             }
             skill_evaluator = EffectEvaluator(tuple(MechanicalTarget(k) for k in self.skills.specs))
-
-            from wayfarer.engine.rules.magic.gurps_magic import PREREQUISITES, magery_level
 
             magery = max(0, magery_level({p.definition_id: p.amount for p in draft.purchases}))
             mana_magery = selected_purchase.get("advantage:magery")

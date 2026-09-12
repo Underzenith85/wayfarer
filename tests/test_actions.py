@@ -46,12 +46,12 @@ from wayfarer.engine.simulation.actions import (
 )
 from wayfarer.engine.simulation.campaign.scenario import scenario
 from wayfarer.engine.simulation.events import action_result
+from wayfarer.engine.simulation.resource_engine import ResourceEngine
 from wayfarer.engine.simulation.resources import (
     EquipmentSpec,
     Item,
     Owner,
     Pool,
-    ResourceEngine,
     ResourceState,
     Scheduled,
 )

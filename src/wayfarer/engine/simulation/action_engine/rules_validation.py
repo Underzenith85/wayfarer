@@ -2,22 +2,29 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from wayfarer.engine.character.power import PowerReviewer
 from wayfarer.engine.rules.catalog import DefinitionKind, ImplementationStatus
+from wayfarer.engine.rules.magic.gurps_magic import validate_definitions
+from wayfarer.engine.rules.magic.spell_catalog import projectile_definition
+from wayfarer.engine.rules.skills.mundane.ranged import PROCEDURES as RANGED_PROCEDURES
+from wayfarer.engine.rules.supernatural.abilities import definition as ability_definition
+from wayfarer.engine.rules.supernatural.abilities import metadata, validate_binding
+from wayfarer.engine.rules.traits.base import TraitOptions
 from wayfarer.engine.simulation.ability_types import AbilityRules
 from wayfarer.engine.simulation.actions import ActionRules, CheckRule, PlayState
 from wayfarer.engine.simulation.combat.profiles import CombatRules
 from wayfarer.engine.simulation.magic.bindings import SpellRules
-from wayfarer.engine.simulation.resources import ResourceEngine
 from wayfarer.engine.world import EntityKind
 from wayfarer.errors import ValidationError
+
+if TYPE_CHECKING:
+    from wayfarer.engine.simulation.resource_engine import ResourceEngine
 
 
 def _validate_spell_rules(reviewer: PowerReviewer, spells: SpellRules) -> None:
     """Spell channels bind to pinned training definitions of the compiled profile."""
-    from wayfarer.engine.rules.magic.gurps_magic import validate_definitions
-    from wayfarer.engine.rules.magic.spell_catalog import projectile_definition
-    from wayfarer.engine.rules.skills.mundane.ranged import PROCEDURES as RANGED_PROCEDURES
 
     definitions = reviewer.compiler.definitions
     validate_definitions(reviewer.compiler.statistics_profile, definitions)
@@ -38,9 +45,6 @@ def _validate_spell_rules(reviewer: PowerReviewer, spells: SpellRules) -> None:
 
 def _validate_ability_rules(reviewer: PowerReviewer, abilities: AbilityRules) -> None:
     """Ability runtime metadata, cost and status must match the pinned catalog."""
-    from wayfarer.engine.rules.supernatural.abilities import definition as ability_definition
-    from wayfarer.engine.rules.supernatural.abilities import metadata, validate_binding
-    from wayfarer.engine.rules.traits.base import TraitOptions
 
     definitions = reviewer.compiler.definitions
     if reviewer.compiler.statistics_profile != abilities.profile_id:

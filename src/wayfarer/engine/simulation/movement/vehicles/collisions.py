@@ -1,6 +1,9 @@
 """B430-432 collision exchange and occupant injury on authoritative object/HP reducers."""
 
+from __future__ import annotations
+
 import hashlib
+from typing import TYPE_CHECKING
 
 from wayfarer.engine.rules.checks import RandomSource
 from wayfarer.engine.rules.types.transport import Transport
@@ -8,8 +11,23 @@ from wayfarer.engine.rules.types.vehicle import PassengerEjection, PassengerProt
 from wayfarer.engine.simulation.equipment.objects import DamageObject, apply_object
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
 from wayfarer.engine.simulation.movement.vehicles.commands import VehicleImpact, VehicleSkid
-from wayfarer.engine.simulation.resources import ResourceEngine, ResourceState
+from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.errors import ValidationError
+
+if TYPE_CHECKING:
+    from wayfarer.engine.simulation.resource_engine import ResourceEngine
+
+
+def collision_dice(hp: int, speed: int, *, hard: bool = False) -> tuple[int, int]:
+    """B430-431, exact rounding including the sub-die bands and hard obstacles."""
+    if hp <= 0 or speed < 0:
+        raise ValidationError("Collision requires positive HP and nonnegative speed")
+    units = hp * speed * (2 if hard else 1)
+    if units == 0:
+        return 0, 0
+    if units < 100:
+        return 1, -3 if units <= 25 else -2 if units <= 50 else -1
+    return (units + 50) // 100, 0
 
 
 def collision_exchange(
@@ -19,8 +37,6 @@ def collision_exchange(
 
     B432: slower/struck body cannot inflict more dice than faster/striking body.
     """
-    from wayfarer.engine.simulation.movement.transport import collision_dice
-
     if min(hp, target_hp) <= 0 or min(speed, target_speed) < 0:
         raise ValidationError("Invalid collision body facts")
     if angle == "head-on":
@@ -110,8 +126,6 @@ def impact_actor(
     rng: RandomSource,
 ) -> tuple[ResourceState, Transport]:
     """Resolve a skidding vehicle striking one declared stationary actor (B430-B432)."""
-    from wayfarer.engine.simulation.movement.transport import collision_dice
-
     if target_actor_id in vehicle.occupants or target_actor_id not in health:
         raise ValidationError("Skid collision requires a distinct compiled target actor")
     target_pool = next((p for p in state.pools if p.id == "hp:" + target_actor_id), None)
@@ -256,8 +270,6 @@ def impact(
     health: dict[str, int],
     rng: RandomSource,
 ) -> tuple[ResourceState, tuple[Transport, ...]]:
-    from wayfarer.engine.simulation.movement.transport import collision_dice
-
     vehicles = (t,) if target is None else (t, target)
     if any(v.locomotion == "ground-mount" for v in vehicles):
         raise ValidationError("Mounted collision requires #396 rider separation")

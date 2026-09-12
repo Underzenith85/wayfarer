@@ -18,14 +18,8 @@ from wayfarer.engine.simulation.equipment.objects import (
     initialize_object,
     object_hp,
 )
-from wayfarer.engine.simulation.resources import (
-    Advance,
-    Equip,
-    ResourceEngine,
-    ResourceState,
-    Transfer,
-    Unequip,
-)
+from wayfarer.engine.simulation.resource_engine import ResourceEngine
+from wayfarer.engine.simulation.resources import Advance, Equip, ResourceState, Transfer, Unequip
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.resources import ResourceService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore

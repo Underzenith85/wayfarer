@@ -12,6 +12,7 @@ from math import sqrt
 from typing import TYPE_CHECKING, Literal
 
 from wayfarer.engine.simulation.combat.battlefield import Battlefield, GridPoint
+from wayfarer.engine.simulation.combat.defense import choose_defense
 from wayfarer.engine.simulation.combat.encounter import (
     Combatant,
     CombatResult,
@@ -35,20 +36,26 @@ from wayfarer.engine.simulation.combat.spatial import (
     SpatialContext,
     SquareActorPlacement,
     SquareSpatialContext,
+    point_distance,
 )
 from wayfarer.engine.simulation.combat.suppression import (
     ActiveSuppressionZone,
     PendingSuppressionAttack,
 )
+from wayfarer.engine.simulation.combat.tactical import validate_hex_encounter
+from wayfarer.engine.simulation.combat.turns import apply_turn, take_turn
+from wayfarer.engine.simulation.combat.unarmed.records import validate_control
 from wayfarer.engine.simulation.combat.vocabulary import Defense, Facing, Maneuver, Posture
 from wayfarer.engine.simulation.hex_geometry import Hex, HexBattlefield, HexFacing
-from wayfarer.engine.simulation.resources import ResourceEngine, ResourceState
+from wayfarer.engine.simulation.magic.spells import active_spells
+from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.engine.world import EntityKind, World
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
     from wayfarer.engine.simulation.actions import PlayState
     from wayfarer.engine.simulation.combat.commands import BasicMove
+    from wayfarer.engine.simulation.resource_engine import ResourceEngine
 
 
 class CombatEngine:
@@ -63,13 +70,7 @@ class CombatEngine:
 
     @staticmethod
     def distance(left: GridPoint | Hex, right: GridPoint | Hex) -> int:
-        if isinstance(left, Hex) and isinstance(right, Hex):
-            from wayfarer.engine.simulation.hex_geometry import distance
-
-            return distance(left, right)
-        if not isinstance(left, GridPoint) or not isinstance(right, GridPoint):
-            raise ValidationError("Coordinate systems require explicit migration")
-        return abs(left.x - right.x) + abs(left.y - right.y)
+        return point_distance(left, right)
 
     @staticmethod
     def _inside_suppression(point: Hex, zone: ActiveSuppressionZone) -> bool:
@@ -192,8 +193,6 @@ class CombatEngine:
         if encounter.turn_order != expected_order:
             raise ValidationError("Turn order does not match initiative")
         if encounter.spatial_kind == "hex":
-            from wayfarer.engine.simulation.combat.tactical import validate_hex_encounter
-
             validate_hex_encounter(
                 encounter, self.rules.gurps_equipment, board=self.hex_map(encounter)
             )
@@ -283,7 +282,6 @@ class CombatEngine:
             )
             if encounter.status == "active" and participant.ready_item_ids != expected_ready:
                 raise ValidationError("Combat readiness disagrees with inventory")
-        from wayfarer.engine.simulation.combat.unarmed.records import validate_control
 
         validate_control(
             encounter,
@@ -317,8 +315,6 @@ class CombatEngine:
             suppression_pause = pending.suppression_zone_id is not None
             spell_weapon = False
             if pending.spell_cast_id is not None:
-                from wayfarer.engine.simulation.magic.spells import active_spells
-
                 spell_weapon = any(
                     e.execute_effects
                     and e.spell_id == "fireball"
@@ -687,7 +683,6 @@ class CombatEngine:
         spatial_revision: int | None = None,
         suppression_fire: bool = False,
     ) -> tuple[Encounter, ResourceState, CombatResult]:
-        from wayfarer.engine.simulation.combat.turns import take_turn
 
         return take_turn(
             self,
@@ -742,7 +737,6 @@ class CombatEngine:
         basic_move: BasicMove | None = None,
         suppression_fire: bool = False,
     ) -> tuple[Encounter, ResourceState, CombatResult]:
-        from wayfarer.engine.simulation.combat.turns import apply_turn
 
         return apply_turn(
             self,
@@ -773,7 +767,6 @@ class CombatEngine:
     def choose_defense(
         self, encounter: Encounter, *, actor_id: str, selected: Defense
     ) -> tuple[Encounter, CombatResult]:
-        from wayfarer.engine.simulation.combat.defense import choose_defense
 
         return choose_defense(self, encounter, actor_id=actor_id, selected=selected)
 

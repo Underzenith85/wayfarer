@@ -33,13 +33,8 @@ from wayfarer.engine.simulation.campaign.studio import GenerationBrief, Scenario
 from wayfarer.engine.simulation.combat.battlefield import Battlefield
 from wayfarer.engine.simulation.combat.profiles import AttackProfile, CombatConsequence, CombatRules
 from wayfarer.engine.simulation.health.recovery import RecoveryOption, RecoveryRules, SetbackRule
-from wayfarer.engine.simulation.resources import (
-    EquipmentSpec,
-    Item,
-    Owner,
-    ResourceEngine,
-    ResourceState,
-)
+from wayfarer.engine.simulation.resource_engine import ResourceEngine
+from wayfarer.engine.simulation.resources import EquipmentSpec, Item, Owner, ResourceState
 from wayfarer.engine.simulation.social.noncombat import Approach, NoncombatRule, NoncombatRules
 from wayfarer.engine.world import (
     Commitment,

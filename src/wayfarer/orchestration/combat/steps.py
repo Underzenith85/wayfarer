@@ -13,6 +13,7 @@ from wayfarer.engine.simulation.combat.commands import (
     TypedCombatCommand,
 )
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
+from wayfarer.engine.simulation.combat.tactical_transitions import finish_defense
 from wayfarer.orchestration.combat.context import CombatContext, CombatStep
 from wayfarer.orchestration.combat.defense import _defend
 from wayfarer.orchestration.combat.encounters import (
@@ -71,8 +72,6 @@ def reduce_combat(
         encounter = _prepare_encounter(state, command, context)
         step = _COMBAT_STEPS[command.kind](state, command, encounter, context)
         if isinstance(command, ChooseDefense):
-            from wayfarer.engine.simulation.combat.tactical_transitions import finish_defense
-
             step = replace(
                 step,
                 encounter=finish_defense(

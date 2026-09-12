@@ -13,6 +13,7 @@ from pydantic import Field, model_validator
 from wayfarer.engine.rules.checks import CheckTrace, Modifier, RandomSource
 from wayfarer.engine.rules.gurps_checks import Contestant, quick_contest, regular_contest_round
 from wayfarer.engine.rules.types.location import Hand
+from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
 from wayfarer.engine.simulation.resources import ResourceState
 from wayfarer.errors import ValidationError
 from wayfarer.models import Id, Record
@@ -189,7 +190,6 @@ def contest(
 
 
 def validate_control(encounter: Encounter, resources: ResourceState, *, basic: bool) -> None:
-    from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
 
     mapless = isinstance(encounter.spatial, BasicSpatialContext)
     if not basic and (

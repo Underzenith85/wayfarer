@@ -7,7 +7,7 @@ from wayfarer.engine.rules.supernatural.abilities import fatigue_cost, validate_
 from wayfarer.engine.rules.supernatural.ability_types import AbilitySpec
 from wayfarer.engine.rules.traits.base import TraitOptions
 from wayfarer.engine.rules.types.hazard import require_hazards_settled
-from wayfarer.engine.rules.types.recovery import interrupt_tasks
+from wayfarer.engine.rules.types.recovery import interrupt_tasks, require_settled
 from wayfarer.engine.simulation.abilities import (
     AbilityContext,
     apply_ability,
@@ -66,8 +66,6 @@ def _prepare_ability(
     values = {v.target: int(v.value) for v in build.sheet.values}
     channel = next((c for c in rules.channels if c.id == command.channel_id), None)
     if channel is not None and command.kind != "cancel":
-        from wayfarer.engine.rules.types.recovery import require_settled
-
         require_settled(
             state.resources.recovery_tasks,
             frozenset({channel.target_id}),

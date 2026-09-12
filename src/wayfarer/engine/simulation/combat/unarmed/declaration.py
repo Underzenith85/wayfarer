@@ -17,6 +17,7 @@ from wayfarer.engine.simulation.combat.encounter import (
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.maneuvers import WaitInterrupt, WaitTrigger
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext
+from wayfarer.engine.simulation.combat.tactical import attack_geometry, occupants, pose, sight
 from wayfarer.engine.simulation.combat.unarmed.fighters import (
     encumbrance_level,
     fighter,
@@ -24,7 +25,8 @@ from wayfarer.engine.simulation.combat.unarmed.fighters import (
     skill_value,
 )
 from wayfarer.engine.simulation.combat.unarmed.records import require_basic
-from wayfarer.engine.simulation.health.hit_locations import disabled
+from wayfarer.engine.simulation.health.hit_locations import disabled, require_location
+from wayfarer.engine.simulation.hex_geometry import movement as hex_movement
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:
@@ -124,7 +126,6 @@ def validate_action(
         hp = next(p for p in state.resources.pools if p.id == f"hp:{participant.actor_id}")
         if hp.injury is None or hp.injury.anatomy != "human":
             raise ValidationError("Unarmed combat requires explicit living-human anatomy")
-    from wayfarer.engine.simulation.health.hit_locations import require_location
 
     target_hp = next(p for p in state.resources.pools if p.id == f"hp:{target.actor_id}")
     assert target_hp.injury is not None
@@ -164,7 +165,6 @@ def validate_action(
         if actor.posture == "prone":
             raise ValidationError("Prone close-combat entry requires crawling integration")
     distance = 0 if command.enter_close_combat else separation
-    from wayfarer.engine.simulation.combat.tactical import attack_geometry
 
     if command.action in ("punch", "kick", "grapple", "arm_lock"):
         attack_geometry(
@@ -178,9 +178,6 @@ def validate_action(
             board=runtime.hex_map(encounter),
         )
         if command.enter_close_combat and encounter.spatial_kind == "hex":
-            from wayfarer.engine.simulation.combat.tactical import occupants, pose
-            from wayfarer.engine.simulation.hex_geometry import movement as hex_movement
-
             hex_movement(
                 runtime.require_hex(encounter),
                 pose(actor),
@@ -369,8 +366,6 @@ def interrupt_wait(
                 raise ValidationError("A stop thrust against close-combat entry is unsupported")
             continue
         if encounter.spatial_kind == "hex":
-            from wayfarer.engine.simulation.combat.tactical import sight
-
             if not sight(moved, waiter, entered, board=runtime.hex_map(moved)):
                 continue
         elif encounter.spatial_kind == "basic" and not basic_visible(

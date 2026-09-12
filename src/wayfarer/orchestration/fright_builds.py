@@ -21,9 +21,9 @@ from wayfarer.engine.simulation.campaign.adjudication import expire_rulings
 from wayfarer.engine.simulation.health.fright import TimedFright, effects, public_id, save
 from wayfarer.engine.simulation.resources import Command, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.advancement import _refreshed
 from wayfarer.orchestration.entropy import commit_command
+from wayfarer.orchestration.membership import member_for, require_control
 from wayfarer.orchestration.play import PlayService
 
 
@@ -143,10 +143,9 @@ class FrightBuildService:
         except ValueError as exc:
             raise ValidationError("Invalid fright build command") from exc
         play = self.play.for_campaign(await self.play.store.read(cid))
-        access = CampaignAccess(play)
-        member = access._member(play._load(await play.store.read(cid)), principal_id)
+        member = member_for(play._load(await play.store.read(cid)), principal_id)
         if member.role != "gm":
-            access._control(member, command.actor_id)
+            require_control(member, command.actor_id)
         elif principal_id not in play.engine.reviewer.gm_ids:
             raise ValidationError("Fright build proposals require a configured director")
         if isinstance(command, ApproveFrightBuild) and (
