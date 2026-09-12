@@ -9609,7 +9609,6 @@
     "tl_required": false,
     "blockers": [
       "runtime-procedure",
-      "specialty-expansion",
       "conditional-or-skill-defaults"
     ],
     "issues": [
@@ -9619,7 +9618,11 @@
       383,
       385
     ],
-    "procedure_owner": 343
+    "procedure_owner": 343,
+    "variable": {
+      "subject": "one campaign planet",
+      "determination": "chosen-with-subject"
+    }
   },
   {
     "id": "navigation",
@@ -11251,7 +11254,6 @@
     "tl_required": false,
     "blockers": [
       "runtime-procedure",
-      "specialty-expansion",
       "conditional-or-skill-defaults"
     ],
     "issues": [
@@ -11263,7 +11265,11 @@
       383,
       385
     ],
-    "procedure_owner": 345
+    "procedure_owner": 345,
+    "variable": {
+      "subject": "one culture or social group",
+      "determination": "chosen-with-subject"
+    }
   },
   {
     "id": "scaling",
