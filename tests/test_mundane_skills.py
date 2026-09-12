@@ -431,7 +431,7 @@ def test_excluded_skills_remain_owned_by_the_catalog_that_carries_them() -> None
     """Exclusion is a transfer with named owners, never a silent removal."""
     rows = {e.id: e for e in transferred_exclusions()}
     assert len(rows) == 28
-    assert rows["alchemy"].owners == (243, 191)
+    assert rows["alchemy"].owners == (191,)
     assert rows["zen-archery"].owners == (191,)
     assert all(row.reason and row.page for row in rows.values())
 
@@ -443,7 +443,7 @@ def test_exclusion_owner_drift_is_a_coverage_failure(monkeypatch: pytest.MonkeyP
     monkeypatch.setattr(module, "exclusions", lambda: rows[1:])
     with pytest.raises(ValidationError, match="owning catalog differ"):
         transferred_exclusions()
-    renamed = rows[0].model_copy(update={"owners": (191,)})
+    renamed = rows[0].model_copy(update={"owners": (243, 191)})
     monkeypatch.setattr(module, "exclusions", lambda: (renamed, *rows[1:]))
     with pytest.raises(ValidationError, match="owner drift"):
         transferred_exclusions()

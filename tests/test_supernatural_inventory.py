@@ -163,6 +163,7 @@ def test_every_entry_has_concrete_runtime_and_source_blockers_and_real_evidence(
                 240,
                 241,
                 242,
+                243,
             }
         ),
     }
@@ -280,7 +281,7 @@ def test_transferred_skills_and_source_audit_use_the_complete_owner_inventory() 
     assert {(e.name, e.page) for e in inventory().entries if e.kind == "skill"} == {
         (e.name, e.page) for e in exclusions()
     }
-    assert lookup("skill:alchemy").blockers == (243, 191)
+    assert lookup("skill:alchemy").blockers == (191,)
     assert lookup("skill:zen-archery").blockers == (191,)
     owned = [e for e in source_inventory() if e.id.startswith("supernatural/")]
     assert len(owned) == 334
