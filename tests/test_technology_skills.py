@@ -20,7 +20,7 @@ import pytest
 from wayfarer.engine.character.compiler import DerivedSheet, PurchasedEntry, ValidatedBuild
 from wayfarer.engine.character.technology import operator_from_build
 from wayfarer.engine.rules.checks import Modifier, ModifierKind, RecordedDice
-from wayfarer.engine.rules.conformance import BASELINE_ID
+from wayfarer.engine.rules.conformance import BASELINE_ID, CAPABILITIES, CoverageStatus
 from wayfarer.engine.rules.effects import DerivedValue
 from wayfarer.engine.rules.profiles import GURPS_BASIC_PROFILE
 from wayfarer.engine.rules.skills.mundane import PROFILE, audit_report, inventory
@@ -173,6 +173,16 @@ def test_listed_scope_is_completely_accounted_for() -> None:
             assert entry.implementation == "implemented"
             assert procedure.implemented
         assert entry.available is (entry.dispatch is not None and not entry.blockers)
+
+
+def test_issue_346_owner_inventory_and_capability_are_complete() -> None:
+    """All rows retained by the parent are implemented after bounded child work."""
+    rows = [row for row in inventory() if row.procedure_owner == 346]
+    assert len(rows) == 83
+    assert all(row.bound and not row.blockers for row in rows)
+    assert all(row.implementation == "implemented" for row in rows)
+    declared = CAPABILITIES["gurps.skills.technology_vehicles"]
+    assert declared.status is CoverageStatus.PARTIAL and declared.owner_issue == 346
 
 
 def test_a_binding_may_only_resolve_or_keep_the_recorded_blockers() -> None:

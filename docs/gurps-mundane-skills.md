@@ -381,6 +381,13 @@ Runtime behaviour is described in [the social runtime](gurps-social-runtime.md).
 
 ## Technology, science and vehicle procedures (#346)
 
+The parent inventory is complete: all 83 rows retained under #346 are bound,
+implemented and blocker-free, and the family publishes the dedicated
+`gurps.skills.technology_vehicles` capability. Motion-Picture Camera is now
+implemented by #338, and #356 completed the finite discipline-keyed expansions;
+the four player-named Biology, Disguise, Geography and Geology families remain
+explicitly transferred to #390 rather than being invented here.
+
 `rules/mundane_skills/technology.py` is the only place a listed technology row
 becomes executable. A row is implemented when the module binds it to a service
 that already resolves it, declares the exact task it governs, and produces a
@@ -410,8 +417,8 @@ this group are all refused before dice by `technology.require_task`.
 | `skill:mathematics-*` `skill:physics` `skill:physics-acoustics` and the other information rows | B176–B217 | Implemented. The margin decides how much is learned, capped where the task is a single object. |
 | `skill:electrician` | B189, IQ/A, IQ-5 | Implemented. Repair progress scales with the margin. |
 | `skill:no-landing-extraction` | B233 | Implemented. Bought against the concrete Piloting specialty flown, so it carries that control dispatch. |
-| `skill:motion-picture-camera` | B233 | Transferred to #338; its parent Photography belongs to that group, and a parent with no dispatch cannot lend one. |
-| `skill:bioengineering` `skill:biology` `skill:current-affairs` `skill:disguise` `skill:electronics-operation` `skill:electronics-repair` `skill:engineer` `skill:geography` `skill:geology` `skill:hazardous-materials` `skill:mechanic` `skill:paleontology` | B180–B212 | Transferred to #356; their specialty axis is a discipline, not a vehicle class, so expanding them here would be a guess. See below for what #356 then bound. |
+| `skill:motion-picture-camera` | B233 | Implemented by #338 against its Photography parent and noncombat approach dispatch. |
+| `skill:bioengineering` `skill:biology` `skill:current-affairs` `skill:disguise` `skill:electronics-operation` `skill:electronics-repair` `skill:engineer` `skill:geography` `skill:geology` `skill:hazardous-materials` `skill:mechanic` `skill:paleontology` | B180–B212 | Reconciled through #356. Finite discipline-keyed expansions are implemented; Biology, Disguise, Geography and Geology retain their player-named subject transfer to #390. |
 
 Two modifiers belong to the procedure: the B168 technology-level difference (one
 point of effective skill per level, either direction) and the B169 familiarity
