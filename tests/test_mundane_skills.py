@@ -2,6 +2,7 @@
 
 import json
 from dataclasses import replace
+from pathlib import Path
 
 import pytest
 from pydantic import ValidationError as SchemaError
@@ -249,8 +250,8 @@ def test_structural_classes_are_recorded_and_completely_sampled() -> None:
         "skill:arm-lock-judo": {"no-default", "technique"},
         # B176/B219 Astronomy needs a trained prerequisite and a TL.
         "skill:astronomy": {"attribute-default", "prerequisite", "technology-level"},
-        # B176 Area Knowledge requires a specialty this inventory does not expand.
-        "skill:area-knowledge": {"attribute-default", "unexpanded-specialty"},
+        # B176 Area Knowledge takes a campaign-scoped place, not a closed list.
+        "skill:area-knowledge": {"attribute-default", "variable-family"},
         # B192: distinct suit skill with all numeric defaults.
         "skill:vacc-suit": {
             "attribute-default",
@@ -263,6 +264,22 @@ def test_structural_classes_are_recorded_and_completely_sampled() -> None:
     }
     for identifier, classes in expected.items():
         assert {c.value for c in entries[identifier].structural_classes} == classes
+
+
+def test_open_specialty_axes_match_the_independent_source_fixture() -> None:
+    """#385 records campaign subjects without pretending examples form a closed list."""
+    fixture = json.loads(Path("tests/fixtures/gurps/open_specialty_families.json").read_text())
+    assert fixture["owner"] == 385
+    entries = {entry.id: entry for entry in inventory()}
+    for identifier, (reference, subject) in fixture["families"].items():
+        entry = entries[identifier]
+        assert entry.reference == reference
+        assert entry.variable is not None
+        assert entry.variable.subject == subject
+        assert entry.variable.determination == "chosen-with-subject"
+        assert "specialty-expansion" not in entry.blockers
+        assert StructuralClass.VARIABLE_FAMILY in entry.structural_classes
+        assert StructuralClass.UNEXPANDED_SPECIALTY not in entry.structural_classes
     sampled = {c for e in entries.values() for c in e.structural_classes}
     assert sampled == set(StructuralClass)
     assert all(e.structural_classes for e in entries.values())

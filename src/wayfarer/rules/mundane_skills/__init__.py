@@ -195,7 +195,11 @@ class SkillAudit:
                 )
             if spec.technique is not None:
                 found.add(StructuralClass.TECHNIQUE)
-        if self.specialty_required and (spec is None or spec.specialty is None):
+        if (
+            self.specialty_required
+            and self.variable is None
+            and (spec is None or spec.specialty is None)
+        ):
             found.add(StructuralClass.UNEXPANDED_SPECIALTY)
         if self.tl_required:
             found.add(StructuralClass.TECHNOLOGY_LEVEL)

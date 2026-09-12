@@ -198,8 +198,7 @@
     "specialty_required": true,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "specialty-expansion"
+      "runtime-procedure"
     ],
     "issues": [
       112,
@@ -207,7 +206,11 @@
       343,
       385
     ],
-    "procedure_owner": 343
+    "procedure_owner": 343,
+    "variable": {
+      "subject": "one category of animals",
+      "determination": "chosen-with-subject"
+    }
   },
   {
     "id": "anthropology",
@@ -225,7 +228,6 @@
     "tl_required": false,
     "blockers": [
       "runtime-procedure",
-      "specialty-expansion",
       "conditional-or-skill-defaults"
     ],
     "issues": [
@@ -235,7 +237,11 @@
       383,
       385
     ],
-    "procedure_owner": 341
+    "procedure_owner": 341,
+    "variable": {
+      "subject": "one species",
+      "determination": "chosen-with-subject"
+    }
   },
   {
     "id": "aquabatics",
@@ -342,7 +348,6 @@
     "tl_required": false,
     "blockers": [
       "runtime-procedure",
-      "specialty-expansion",
       "conditional-or-skill-defaults"
     ],
     "issues": [
@@ -352,7 +357,11 @@
       383,
       385
     ],
-    "procedure_owner": 341
+    "procedure_owner": 341,
+    "variable": {
+      "subject": "one geographic area",
+      "determination": "chosen-with-subject"
+    }
   },
   {
     "id": "arm-lock",
@@ -644,8 +653,7 @@
     "specialty_required": true,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "specialty-expansion"
+      "runtime-procedure"
     ],
     "issues": [
       112,
@@ -653,7 +661,11 @@
       338,
       385
     ],
-    "procedure_owner": 338
+    "procedure_owner": 338,
+    "variable": {
+      "subject": "one art form",
+      "determination": "chosen-with-subject"
+    }
   },
   {
     "id": "astronomy",
@@ -1918,7 +1930,6 @@
     "tl_required": false,
     "blockers": [
       "runtime-procedure",
-      "specialty-expansion",
       "conditional-or-skill-defaults"
     ],
     "issues": [
@@ -1928,7 +1939,11 @@
       383,
       385
     ],
-    "procedure_owner": 338
+    "procedure_owner": 338,
+    "variable": {
+      "subject": "one category of art or luxury item",
+      "determination": "chosen-with-subject"
+    }
   },
   {
     "id": "cooking",
@@ -4221,8 +4236,7 @@
     "specialty_required": true,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "specialty-expansion"
+      "runtime-procedure"
     ],
     "issues": [
       112,
@@ -4230,7 +4244,11 @@
       341,
       385
     ],
-    "procedure_owner": 341
+    "procedure_owner": 341,
+    "variable": {
+      "subject": "one field of cross-disciplinary expertise",
+      "determination": "chosen-with-subject"
+    }
   },
   {
     "id": "explosives",
@@ -5050,8 +5068,7 @@
     "specialty_required": true,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "specialty-expansion"
+      "runtime-procedure"
     ],
     "issues": [
       112,
@@ -5059,7 +5076,11 @@
       338,
       385
     ],
-    "procedure_owner": 338
+    "procedure_owner": 338,
+    "variable": {
+      "subject": "one game, sport, league, or tournament ruleset",
+      "determination": "chosen-with-subject"
+    }
   },
   {
     "id": "gardening",
@@ -6567,8 +6588,7 @@
     "specialty_required": true,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "specialty-expansion"
+      "runtime-procedure"
     ],
     "issues": [
       112,
@@ -6576,7 +6596,11 @@
       341,
       385
     ],
-    "procedure_owner": 341
+    "procedure_owner": 341,
+    "variable": {
+      "subject": "one body of secret knowledge",
+      "determination": "chosen-with-subject"
+    }
   },
   {
     "id": "hiking",
@@ -6618,8 +6642,7 @@
     "specialty_required": true,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "specialty-expansion"
+      "runtime-procedure"
     ],
     "issues": [
       112,
@@ -6627,7 +6650,11 @@
       341,
       385
     ],
-    "procedure_owner": 341
+    "procedure_owner": 341,
+    "variable": {
+      "subject": "one region across eras, or one era and broad subject",
+      "determination": "chosen-with-subject"
+    }
   },
   {
     "id": "hobby-skill",
@@ -7409,8 +7436,7 @@
     "specialty_required": true,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "specialty-expansion"
+      "runtime-procedure"
     ],
     "issues": [
       112,
@@ -7418,7 +7444,11 @@
       341,
       385
     ],
-    "procedure_owner": 341
+    "procedure_owner": 341,
+    "variable": {
+      "subject": "one regional field or specialized body of law",
+      "determination": "chosen-with-subject"
+    }
   },
   {
     "id": "leadership",
@@ -9548,7 +9578,6 @@
     "tl_required": false,
     "blockers": [
       "runtime-procedure",
-      "specialty-expansion",
       "conditional-or-skill-defaults"
     ],
     "issues": [
@@ -9558,7 +9587,11 @@
       383,
       385
     ],
-    "procedure_owner": 338
+    "procedure_owner": 338,
+    "variable": {
+      "subject": "one musical instrument",
+      "determination": "chosen-with-subject"
+    }
   },
   {
     "id": "naturalist",
@@ -10062,8 +10095,7 @@
     "specialty_required": true,
     "tl_required": false,
     "blockers": [
-      "runtime-procedure",
-      "specialty-expansion"
+      "runtime-procedure"
     ],
     "issues": [
       112,
@@ -10071,7 +10103,11 @@
       341,
       385
     ],
-    "procedure_owner": 341
+    "procedure_owner": 341,
+    "variable": {
+      "subject": "one school of philosophy",
+      "determination": "chosen-with-subject"
+    }
   },
   {
     "id": "photography",
@@ -10216,7 +10252,6 @@
     "tl_required": true,
     "blockers": [
       "runtime-procedure",
-      "specialty-expansion",
       "conditional-or-skill-defaults"
     ],
     "issues": [
@@ -10227,7 +10262,11 @@
       384,
       385
     ],
-    "procedure_owner": 342
+    "procedure_owner": 342,
+    "variable": {
+      "subject": "one species",
+      "determination": "chosen-with-subject"
+    }
   },
   {
     "id": "pickpocket",
@@ -11001,7 +11040,6 @@
     "tl_required": false,
     "blockers": [
       "runtime-procedure",
-      "specialty-expansion",
       "conditional-or-skill-defaults"
     ],
     "issues": [
@@ -11011,7 +11049,11 @@
       383,
       385
     ],
-    "procedure_owner": 341
+    "procedure_owner": 341,
+    "variable": {
+      "subject": "one religion",
+      "determination": "chosen-with-subject"
+    }
   },
   {
     "id": "research",
@@ -11091,7 +11133,6 @@
     "tl_required": false,
     "blockers": [
       "runtime-procedure",
-      "specialty-expansion",
       "conditional-or-skill-defaults"
     ],
     "issues": [
@@ -11101,7 +11142,11 @@
       383,
       385
     ],
-    "procedure_owner": 343
+    "procedure_owner": 343,
+    "variable": {
+      "subject": "one riding animal",
+      "determination": "chosen-with-subject"
+    }
   },
   {
     "id": "rope-up",
@@ -12666,7 +12711,6 @@
     "tl_required": false,
     "blockers": [
       "runtime-procedure",
-      "specialty-expansion",
       "conditional-or-skill-defaults"
     ],
     "issues": [
@@ -12676,7 +12720,11 @@
       383,
       385
     ],
-    "procedure_owner": 343
+    "procedure_owner": 343,
+    "variable": {
+      "subject": "one draft-animal team",
+      "determination": "chosen-with-subject"
+    }
   },
   {
     "id": "theology",
@@ -12694,7 +12742,6 @@
     "tl_required": false,
     "blockers": [
       "runtime-procedure",
-      "specialty-expansion",
       "conditional-or-skill-defaults"
     ],
     "issues": [
@@ -12704,7 +12751,11 @@
       383,
       385
     ],
-    "procedure_owner": 341
+    "procedure_owner": 341,
+    "variable": {
+      "subject": "one religion",
+      "determination": "chosen-with-subject"
+    }
   },
   {
     "id": "throwing",
