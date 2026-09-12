@@ -34,10 +34,10 @@ from wayfarer.engine.rules.social.social_hooks import (
 from wayfarer.engine.rules.traits.base import TraitOptions, TraitRules
 from wayfarer.engine.rules.traits.mundane.runtime import DEFAULT_AUDIENCE, Audience
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
-from wayfarer.engine.simulation.health.fright import (
+from wayfarer.engine.simulation.health.fright import recover
+from wayfarer.engine.simulation.health.fright_state import (
     aftermath_modifiers,
     blocked,
-    recover,
     requires_adjudication,
 )
 from wayfarer.engine.simulation.health.physical_traits import physical_traits

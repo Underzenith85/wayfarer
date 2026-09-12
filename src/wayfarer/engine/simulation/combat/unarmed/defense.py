@@ -18,8 +18,8 @@ from wayfarer.engine.simulation.combat.unarmed.fighters import (
 )
 from wayfarer.engine.simulation.combat.unarmed.records import GrappleLocation
 from wayfarer.engine.simulation.equipment.catalog import MeleeMode
-from wayfarer.engine.simulation.health.fright import can_defend
-from wayfarer.engine.simulation.health.fright import stunned as fright_stunned
+from wayfarer.engine.simulation.health.fright_state import can_defend
+from wayfarer.engine.simulation.health.fright_state import stunned as fright_stunned
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:

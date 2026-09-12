@@ -74,7 +74,7 @@ from wayfarer.engine.simulation.events import (
     play_events,
 )
 from wayfarer.engine.simulation.health.condition_checks import definition_modifiers
-from wayfarer.engine.simulation.health.fright import blocked, requires_adjudication
+from wayfarer.engine.simulation.health.fright_state import blocked, requires_adjudication
 from wayfarer.engine.simulation.magic.bindings import validate_channels as validate_spell_channels
 from wayfarer.engine.simulation.magic.effects import dazed, lighting_penalty
 from wayfarer.engine.simulation.magic.enchanting import validate_projects as validate_enchantments

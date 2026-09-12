@@ -4,7 +4,8 @@ from wayfarer.engine.rules.types.recovery import require_settled
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.combat.explosions import guard as blast_guard
 from wayfarer.engine.simulation.equipment.repairs import tasks
-from wayfarer.engine.simulation.health.fright import blocked, requires_adjudication
+from wayfarer.engine.simulation.equipment.retrieval_state import tasks as retrievals
+from wayfarer.engine.simulation.health.fright_state import blocked, requires_adjudication
 from wayfarer.engine.simulation.health.recovery import Captivity
 from wayfarer.engine.simulation.magic.backfires import backfires
 from wayfarer.engine.simulation.magic.effects import require_not_dazed
@@ -25,10 +26,6 @@ def captive(state: PlayState, actor_id: str) -> Captivity | None:
 def guard(state: PlayState, actor_id: str, kind: str, *, allow_fright: bool = False) -> None:
     if kind not in ("resolve_weapon_explosion", "declare_thrown_landing"):
         blast_guard(state.resources)
-    # deferred: recovery_guard is a noun and equipment.retrieval is a verb, so
-    # test_engine_nouns_do_not_import_verbs rejects this at module level.
-    from wayfarer.engine.simulation.equipment.retrieval import tasks as retrievals
-
     if kind not in ("question", "wait", "retrieve_equipment") and any(
         t.actor_id == actor_id and t.status == "pending" for t in retrievals(state.resources)
     ):
