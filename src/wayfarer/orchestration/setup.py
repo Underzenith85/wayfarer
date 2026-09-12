@@ -13,10 +13,8 @@ from wayfarer.engine.rules.catalog import reference
 from wayfarer.engine.simulation.actions import ActorSetup, PlayState
 from wayfarer.engine.simulation.campaign.access import CampaignMember
 from wayfarer.engine.simulation.campaign.continuation import AdventureSnapshot
-from wayfarer.engine.simulation.campaign.scenario_document import (
-    PregeneratedCharacter,
-    PublishedRevision,
-)
+from wayfarer.engine.simulation.campaign.scenario_document import PregeneratedCharacter
+from wayfarer.engine.simulation.campaign.scenario_loading import PublishedRevision
 from wayfarer.engine.simulation.campaign.scenario_references import boundary, verify
 from wayfarer.engine.simulation.campaign.setup import CreateSetup, Seat, Setup, SetupCommand
 from wayfarer.engine.simulation.campaign.studio import ScenarioGraph

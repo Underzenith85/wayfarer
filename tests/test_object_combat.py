@@ -400,3 +400,45 @@ async def test_cheap_weapon_breaks_on_parry_drop_exception(tmp_path: Path) -> No
     assert item.condition and item.condition.disabled and not item.condition.destroyed
     assert result.injury and result.injury.adjudication_required is None
     assert result.injury.injury == 7  # Failed parry still admits the incoming 5 cutting damage.
+
+
+async def test_duplicate_lookup_uses_one_snapshot_during_concurrent_commit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import json
+
+    import aiosqlite
+
+    from wayfarer.errors import ConflictError
+
+    cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004")
+    await attack(cid, play)
+    assert isinstance(play.store, AsyncSQLiteStore)
+    # WAL lets the writer finish while the lookup retains its read snapshot.
+    async with aiosqlite.connect(play.store.path) as db:
+        await db.execute("PRAGMA journal_mode=WAL")
+    command = choice()
+    payload = json.dumps(
+        {"operation": "combat", "command": command.model_dump(mode="json")},
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    play.rng = RecordedDice([3, 3, 3, 1])
+    close = aiosqlite.Cursor.close
+    committed = False
+
+    async def commit_between_reads(cursor: aiosqlite.Cursor) -> None:
+        nonlocal committed
+        columns = tuple(column[0] for column in cursor.description or ())
+        await close(cursor)
+        if not committed and columns == ("payload_hash", "resulting_revision"):
+            committed = True
+            await CombatService(play).execute(cid, command, authenticated_actor_id="b")
+
+    monkeypatch.setattr(aiosqlite.Cursor, "close", commit_between_reads)
+    assert await play.store.duplicate(cid, command.id, payload) is None
+    assert committed
+    # A fresh lookup sees the committed command, and still rejects different input.
+    assert await play.store.duplicate(cid, command.id, payload) == await play.store.read(cid)
+    with pytest.raises(ConflictError, match="different input"):
+        await play.store.duplicate(cid, command.id, payload + " ")

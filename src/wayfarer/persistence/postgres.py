@@ -8,7 +8,7 @@ import psycopg
 
 from wayfarer import contracts, validation
 from wayfarer.contracts import Campaign, CommandReceipt, TurnResult
-from wayfarer.engine.simulation.campaign.scenario_document import ScenarioBoundary
+from wayfarer.engine.simulation.campaign.scenario_loading import ScenarioBoundary
 from wayfarer.engine.simulation.events import (
     EVENT_ADAPTER,
     EngineEvent,

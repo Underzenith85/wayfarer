@@ -8,8 +8,8 @@ from wayfarer.engine.simulation.campaign.scenario_document import (
     DocumentReport,
     DraftRevision,
     PregeneratedCharacter,
-    PublishedRevision,
 )
+from wayfarer.engine.simulation.campaign.scenario_loading import PublishedRevision
 from wayfarer.engine.simulation.campaign.studio import GenerationBrief
 from wayfarer.models import Id, Record
 

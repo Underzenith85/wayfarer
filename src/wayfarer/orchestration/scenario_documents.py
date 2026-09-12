@@ -32,14 +32,12 @@ from wayfarer.engine.simulation.campaign.scenario_document import (
     PregeneratedCharacter,
     Provenance,
     PublicBrief,
-    PublishedRevision,
     ScenarioDocument,
     ScenarioDocumentBase,
     digest_json,
 )
-from wayfarer.engine.simulation.campaign.scenario_document import (
-    parse_document as parse_document,
-)
+from wayfarer.engine.simulation.campaign.scenario_loading import PublishedRevision
+from wayfarer.engine.simulation.campaign.scenario_loading import parse_document as parse_document
 from wayfarer.engine.simulation.campaign.social_policy import (
     SocialPortableGraph,
     SocialScenarioDocument,

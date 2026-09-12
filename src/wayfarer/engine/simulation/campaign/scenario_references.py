@@ -8,11 +8,8 @@ import json
 from collections.abc import Mapping
 
 from wayfarer import validation
-from wayfarer.engine.simulation.campaign.scenario_document import (
-    ScenarioBoundary,
-    digest_json,
-    parse_document,
-)
+from wayfarer.engine.simulation.campaign.scenario_document import digest_json
+from wayfarer.engine.simulation.campaign.scenario_loading import ScenarioBoundary, parse_document
 from wayfarer.errors import ValidationError
 
 

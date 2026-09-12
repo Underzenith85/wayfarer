@@ -1,12 +1,8 @@
 """Attach immutable scenario identities at activation and continuation boundaries."""
 
 from wayfarer.contracts import Campaign
-from wayfarer.engine.simulation.campaign.scenario_document import (
-    PublishedRevision,
-    ScenarioBoundary,
-    ScenarioReference,
-    digest_json,
-)
+from wayfarer.engine.simulation.campaign.scenario_document import ScenarioReference, digest_json
+from wayfarer.engine.simulation.campaign.scenario_loading import PublishedRevision, ScenarioBoundary
 from wayfarer.engine.simulation.campaign.scenario_references import boundary
 from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
 

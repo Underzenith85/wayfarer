@@ -16,9 +16,9 @@ from wayfarer.engine.simulation.campaign.scenario_document import (
     DraftRevision,
     PlayerScenarioExport,
     PublicBrief,
-    PublishedRevision,
     ScenarioDocument,
 )
+from wayfarer.engine.simulation.campaign.scenario_loading import PublishedRevision
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError
 from wayfarer.orchestration.access import CampaignAccess
 from wayfarer.orchestration.play import PlayService
