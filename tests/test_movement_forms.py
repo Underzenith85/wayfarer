@@ -3,11 +3,11 @@
 from dataclasses import replace
 
 import pytest
-from test_statistics import gurps_draft, profile_package
+from test_statistics import gurps_draft
+from trait_support import approved_build, options, trait_compiler
 
 from wayfarer.engine.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
 from wayfarer.engine.character.traits.movement_forms import movement_forms
-from wayfarer.engine.rules.catalog import CampaignPolicy, CampaignRules, PackagePin, RulesCatalog
 from wayfarer.engine.rules.supernatural import inventory
 from wayfarer.engine.rules.traits.base import TraitOptions
 from wayfarer.engine.rules.traits.movement_forms import (
@@ -80,48 +80,11 @@ EXPECTED_COSTS = {
 
 
 def compiler() -> CharacterCompiler:
-    base = profile_package(PROFILE)
-    movement = movement_package()
-    combined = replace(
-        base,
-        id="package:test-movement-forms",
-        version="1.0.0",
-        definitions=base.definitions + movement.definitions,
-    )
-    policy = CampaignPolicy(
-        "policy:movement-forms",
-        1,
-        10000,
-        10000,
-        20,
-        20,
-        frozenset(source.id for source in combined.sources),
-        allow_supernatural=True,
-    )
-    rules = CampaignRules(
-        combined.edition,
-        (PackagePin(combined.id, combined.version, combined.digest),),
-        policy.id,
-        policy.version,
-    )
-    return CharacterCompiler(
-        RulesCatalog((combined,)),
-        rules,
-        policy,
-        statistics_profile=PROFILE,
-        trait_runtime_hooks=RUNTIME_HOOKS,
-    )
+    return trait_compiler("movement-forms", PROFILE, movement_package(), hooks=RUNTIME_HOOKS)
 
 
 def approved(*purchases: Purchase) -> tuple[ValidatedBuild, CharacterCompiler]:
-    engine = compiler()
-    result = engine.compile(gurps_draft(*purchases))
-    assert result.build is not None, result.diagnostics
-    return result.build, engine
-
-
-def options(**values: str | int | bool) -> TraitOptions:
-    return TraitOptions(parameters=tuple(values.items()))
+    return approved_build(compiler(), *purchases)
 
 
 def test_registry_accounts_for_every_bounded_issue_entry_and_source_cost() -> None:

@@ -1,15 +1,12 @@
 """Independent Jumper, Snatcher, and Warp expectations, Characters B64-99."""
 
-from dataclasses import replace
-
 import pytest
-from test_statistics import gurps_draft, profile_package
+from test_statistics import gurps_draft
+from trait_support import approved_build, options, trait_compiler
 
 from wayfarer.engine.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
 from wayfarer.engine.character.traits.world_travel import world_travel_traits
-from wayfarer.engine.rules.catalog import CampaignPolicy, CampaignRules, PackagePin, RulesCatalog
 from wayfarer.engine.rules.supernatural import inventory
-from wayfarer.engine.rules.traits.base import TraitOptions
 from wayfarer.engine.rules.traits.world_travel import BINDINGS, PROFILE, RUNTIME_HOOKS
 from wayfarer.engine.rules.traits.world_travel import package as world_travel_package
 from wayfarer.engine.simulation.resources import Pool, ResourceState
@@ -25,47 +22,14 @@ from wayfarer.errors import ConflictError, ValidationError
 EXPECTED = {"advantage:jumper": 100, "advantage:snatcher": 80, "advantage:warp": 100}
 
 
-def options(**values: str | int | bool) -> TraitOptions:
-    return TraitOptions(parameters=tuple(values.items()))
-
-
 def compiler() -> CharacterCompiler:
-    base, travel = profile_package(PROFILE), world_travel_package()
-    combined = replace(
-        base,
-        id="package:test-world-travel-traits",
-        definitions=base.definitions + travel.definitions,
-    )
-    policy = CampaignPolicy(
-        "policy:world-travel-traits",
-        1,
-        10000,
-        10000,
-        20,
-        20,
-        frozenset(source.id for source in combined.sources),
-        allow_supernatural=True,
-    )
-    rules = CampaignRules(
-        combined.edition,
-        (PackagePin(combined.id, combined.version, combined.digest),),
-        policy.id,
-        policy.version,
-    )
-    return CharacterCompiler(
-        RulesCatalog((combined,)),
-        rules,
-        policy,
-        statistics_profile=PROFILE,
-        trait_runtime_hooks=RUNTIME_HOOKS,
+    return trait_compiler(
+        "world-travel-traits", PROFILE, world_travel_package(), hooks=RUNTIME_HOOKS
     )
 
 
 def approved(purchase: Purchase) -> tuple[ValidatedBuild, CharacterCompiler]:
-    engine = compiler()
-    result = engine.compile(gurps_draft(purchase))
-    assert result.build is not None, result.diagnostics
-    return result.build, engine
+    return approved_build(compiler(), purchase)
 
 
 def test_registry_and_inventory_account_for_all_three_entries() -> None:

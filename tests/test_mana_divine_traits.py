@@ -1,13 +1,11 @@
 """Independent mana/divine expectations, Characters B66-68/B77/B143/B235."""
 
-from dataclasses import replace
-
 import pytest
-from test_statistics import gurps_draft, profile_package
+from test_statistics import gurps_draft
+from trait_support import approved_build, trait_compiler
 
 from wayfarer.engine.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
 from wayfarer.engine.character.traits.mana_divine import mana_divine_traits
-from wayfarer.engine.rules.catalog import CampaignPolicy, CampaignRules, PackagePin, RulesCatalog
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.supernatural import inventory
 from wayfarer.engine.rules.traits.base import TraitOptions
@@ -53,42 +51,11 @@ def magery_options(
 
 
 def compiler() -> CharacterCompiler:
-    base, mana = profile_package(PROFILE), mana_package()
-    combined = replace(
-        base,
-        id="package:test-mana-divine-traits",
-        definitions=base.definitions + mana.definitions,
-    )
-    policy = CampaignPolicy(
-        "policy:mana-divine-traits",
-        1,
-        10000,
-        10000,
-        20,
-        20,
-        frozenset(source.id for source in combined.sources),
-        allow_supernatural=True,
-    )
-    rules = CampaignRules(
-        combined.edition,
-        (PackagePin(combined.id, combined.version, combined.digest),),
-        policy.id,
-        policy.version,
-    )
-    return CharacterCompiler(
-        RulesCatalog((combined,)),
-        rules,
-        policy,
-        statistics_profile=PROFILE,
-        trait_runtime_hooks=RUNTIME_HOOKS,
-    )
+    return trait_compiler("mana-divine-traits", PROFILE, mana_package(), hooks=RUNTIME_HOOKS)
 
 
 def approved(*purchases: Purchase) -> tuple[ValidatedBuild, CharacterCompiler]:
-    engine = compiler()
-    result = engine.compile(gurps_draft(*purchases))
-    assert result.build is not None, result.diagnostics
-    return result.build, engine
+    return approved_build(compiler(), *purchases)
 
 
 def test_registry_and_inventory_account_for_exact_family() -> None:

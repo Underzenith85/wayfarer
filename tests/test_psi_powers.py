@@ -1,13 +1,11 @@
 """Independent psionic power expectations, Characters B254-257."""
 
-from dataclasses import replace
-
 import pytest
-from test_statistics import gurps_draft, profile_package
+from test_statistics import gurps_draft
+from trait_support import approved_build, trait_compiler
 
 from wayfarer.engine.character.compiler import CharacterCompiler, Purchase, ValidatedBuild
 from wayfarer.engine.character.traits.psi_powers import PsiAllocation, PsiLoadout, psi_powers
-from wayfarer.engine.rules.catalog import CampaignPolicy, CampaignRules, PackagePin, RulesCatalog
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.rules.supernatural import inventory
 from wayfarer.engine.rules.traits.attack_defense import RUNTIME_HOOKS as ATTACK_HOOKS
@@ -46,44 +44,19 @@ POWER_IDS = {
 
 
 def compiler() -> CharacterCompiler:
-    base = profile_package(PROFILE)
-    packages = (attack_package(), mental_package(), travel_package(), psi_package())
-    combined = replace(
-        base,
-        id="package:test-psi-powers",
-        definitions=base.definitions
-        + tuple(definition for package in packages for definition in package.definitions),
-    )
-    policy = CampaignPolicy(
-        "policy:psi-powers",
-        1,
-        10000,
-        10000,
-        20,
-        20,
-        frozenset(source.id for source in combined.sources),
-        allow_supernatural=True,
-    )
-    rules = CampaignRules(
-        combined.edition,
-        (PackagePin(combined.id, combined.version, combined.digest),),
-        policy.id,
-        policy.version,
-    )
-    return CharacterCompiler(
-        RulesCatalog((combined,)),
-        rules,
-        policy,
-        statistics_profile=PROFILE,
-        trait_runtime_hooks=RUNTIME_HOOKS | ATTACK_HOOKS | MENTAL_HOOKS | TRAVEL_HOOKS,
+    return trait_compiler(
+        "psi-powers",
+        PROFILE,
+        attack_package(),
+        mental_package(),
+        travel_package(),
+        psi_package(),
+        hooks=RUNTIME_HOOKS | ATTACK_HOOKS | MENTAL_HOOKS | TRAVEL_HOOKS,
     )
 
 
 def approved(*purchases: Purchase) -> tuple[ValidatedBuild, CharacterCompiler]:
-    engine = compiler()
-    result = engine.compile(gurps_draft(*purchases))
-    assert result.build is not None, result.diagnostics
-    return result.build, engine
+    return approved_build(compiler(), *purchases)
 
 
 def loadout(build: ValidatedBuild, *allocations: PsiAllocation) -> PsiLoadout:
