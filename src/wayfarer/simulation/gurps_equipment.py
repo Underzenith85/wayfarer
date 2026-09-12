@@ -102,6 +102,12 @@ class RatedStrength(Record):
     st: Positive
 
 
+class MultipleProjectiles(Record):
+    """B409 projectile multiplier printed after a weapon's shell RoF."""
+
+    projectiles_per_shot: Annotated[int, Field(ge=2)]
+
+
 class RangedMode(Record):
     kind: Literal["ranged"] = "ranged"
     id: Id
@@ -140,6 +146,9 @@ class RangedMode(Record):
     launcher: LauncherSpec | None = Field(default=None, exclude_if=lambda value: value is None)
     firearm: FirearmSpec | None = Field(default=None, exclude_if=lambda v: v is None)
     readiness: ProjectileReadiness | None = Field(default=None, exclude_if=lambda v: v is None)
+    multiple_projectiles: MultipleProjectiles | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
     @model_validator(mode="after")
     def valid_range(self) -> Self:
@@ -147,6 +156,14 @@ class RangedMode(Record):
             raise ValueError("Chamber capacity cannot exceed total shots")
         if self.chamber_capacity and self.firearm is None:
             raise ValueError("Chamber capacity requires explicit firearm facts")
+        if self.multiple_projectiles is not None and (
+            self.thrown
+            or self.range_basis != "yards"
+            or self.half_damage_range is None
+            or self.damage.basis != "fixed"
+            or self.damage.damage_type not in ("pi-", "pi", "pi+", "pi++")
+        ):
+            raise ValueError("Multiple projectiles require fixed piercing damage and 1/2D range")
         if self.catchable and (not self.thrown or self.hands != 1):
             raise ValueError("Catching requires a one-handed thrown weapon")
         if self.readiness is not None:

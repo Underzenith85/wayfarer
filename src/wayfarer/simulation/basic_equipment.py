@@ -23,6 +23,7 @@ from wayfarer.simulation.gurps_equipment import (
     EquipmentProfile,
     Location,
     MeleeMode,
+    MultipleProjectiles,
     Parry,
     Provenance,
     RangedMode,
@@ -202,9 +203,10 @@ def firearm(
     ammunition_id: str,
     action: Literal["muzzleloader", "breechloader", "revolver", "repeating"],
     *,
+    hands: Literal[1, 2] = 1,
     reload_protocol: Literal["magazine", "per-round"] = "magazine",
     chamber_capacity: int = 0,
-    hands: Literal[1, 2] = 1,
+    projectiles_per_shot: int | None = None,
 ) -> RangedMode:
     """Construct one independently transcribed B278-279 conventional-firearm row."""
     return RangedMode(
@@ -234,6 +236,11 @@ def firearm(
             technology_level=tl,
             action=action,
             armoury_skill_id="skill:armoury-small-arms",
+        ),
+        multiple_projectiles=(
+            None
+            if projectiles_per_shot is None
+            else MultipleProjectiles(projectiles_per_shot=projectiles_per_shot)
         ),
     )
 
@@ -1266,6 +1273,122 @@ FIREARMS = (
         ),
         unsupported=("conditional-one-handed-firearm",),
     ),
+    ranged_weapon(
+        "blunderbuss-8g",
+        279,
+        4,
+        150,
+        12000,
+        firearm(
+            "shot",
+            "shotgun",
+            4,
+            1,
+            0,
+            "pi",
+            1,
+            15,
+            100,
+            1,
+            1,
+            15,
+            11,
+            -5,
+            1,
+            "blunderbuss-8g-round",
+            "muzzleloader",
+            hands=2,
+            projectiles_per_shot=9,
+        ),
+    ),
+    ranged_weapon(
+        "double-shotgun-10g",
+        279,
+        5,
+        450,
+        9900,
+        firearm(
+            "shot",
+            "shotgun",
+            5,
+            1,
+            2,
+            "pi",
+            3,
+            50,
+            125,
+            2,
+            2,
+            3,
+            11,
+            -5,
+            1,
+            "double-shotgun-10g-round",
+            "breechloader",
+            hands=2,
+            reload_protocol="per-round",
+            projectiles_per_shot=9,
+        ),
+    ),
+    ranged_weapon(
+        "pump-shotgun-12g",
+        279,
+        6,
+        240,
+        7300,
+        firearm(
+            "shot",
+            "shotgun",
+            6,
+            1,
+            1,
+            "pi",
+            3,
+            50,
+            125,
+            2,
+            5,
+            3,
+            10,
+            -5,
+            1,
+            "pump-shotgun-12g-round",
+            "repeating",
+            hands=2,
+            reload_protocol="per-round",
+            projectiles_per_shot=9,
+        ),
+    ),
+    ranged_weapon(
+        "auto-shotgun-12g",
+        279,
+        7,
+        950,
+        7550,
+        firearm(
+            "shot",
+            "shotgun",
+            7,
+            1,
+            1,
+            "pi",
+            3,
+            50,
+            125,
+            3,
+            7,
+            3,
+            10,
+            -5,
+            1,
+            "auto-shotgun-12g-round",
+            "repeating",
+            hands=2,
+            chamber_capacity=1,
+            reload_protocol="per-round",
+            projectiles_per_shot=9,
+        ),
+    ),
 )
 
 # B279 ordinary repeating rifles without R/B annotations or exotic footnotes.
@@ -1517,6 +1640,23 @@ LONG_GUN_AMMUNITION = tuple(
     )
 )
 
+SHOTGUN_AMMUNITION = tuple(
+    EquipmentProfile(
+        definition_id="equipment:" + identifier,
+        provenance=source(279),
+        weight_millipounds=weight,
+        price=price,
+        technology_level=tl,
+        ammunition=True,
+    )
+    for identifier, tl, price, weight in (
+        ("blunderbuss-8g-round", 4, Decimal("2.6"), 130),
+        ("double-shotgun-10g-round", 5, 1, 50),
+        ("pump-shotgun-12g-round", 6, Decimal("2.8"), 140),
+        ("auto-shotgun-12g-round", 7, Fraction(17, 7), Fraction(850, 7)),
+    )
+)
+
 # B283: complete rigid, unsplit body-armor rows without special footnotes.
 ARMOR = tuple(
     EquipmentProfile(
@@ -1599,6 +1739,7 @@ BASIC_EQUIPMENT = EquipmentCatalog(
         + REPEATING_RIFLES
         + FIREARM_AMMUNITION
         + LONG_GUN_AMMUNITION
+        + SHOTGUN_AMMUNITION
         + ARMOR
         + SHIELDS
         + ORDINARY

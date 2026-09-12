@@ -17,9 +17,26 @@ def range_penalty(yards: float) -> int:
 
 
 def rapid_fire_bonus(shots: int) -> int:
-    """B373 rapid-fire bonus, deliberately bounded to the supported non-shotgun RoF <= 100."""
+    """B373 rapid-fire bonus, bounded to the currently supported effective RoF <= 100."""
     return next(
         bonus
         for limit, bonus in ((4, 0), (8, 1), (12, 2), (16, 3), (24, 4), (49, 5), (99, 6), (100, 7))
         if shots <= limit
     )
+
+
+def multiple_projectile_attack(
+    shots: int,
+    projectiles_per_shot: int,
+    distance_yards: float,
+    half_damage_range: float,
+) -> tuple[int, int]:
+    """Return B409 effective RoF and close-range damage/DR multiplier.
+
+    ``shots`` always remains the number of shells consumed. At less than 10%
+    of 1/2D the projectiles have not dispersed, so the shell is one hit whose
+    damage expression and target DR share the same multiplier.
+    """
+    if distance_yards < half_damage_range / 10:
+        return shots, projectiles_per_shot // 2
+    return shots * projectiles_per_shot, 1

@@ -78,6 +78,10 @@ FIREARM_ROWS = (
     ("snub-revolver-38", 6, 250, 1500, 1, 2, "pi", 1, 120, 1250, 3, 5, 3, 8, -1, 3),
     ("auto-pistol-45-tl6", 6, 300, 3000, 2, 0, "pi+", 2, 175, 1700, 3, 8, 3, 10, -2, 3),
     ("auto-pistol-9mm-tl6", 6, 350, 2400, 2, 2, "pi", 2, 150, 1850, 3, 9, 3, 9, -2, 2),
+    ("blunderbuss-8g", 4, 150, 12000, 1, 0, "pi", 1, 15, 100, 1, 1, 15, 11, -5, 1),
+    ("double-shotgun-10g", 5, 450, 10000, 1, 2, "pi", 3, 50, 125, 2, 2, 3, 11, -5, 1),
+    ("pump-shotgun-12g", 6, 240, 8000, 1, 1, "pi", 3, 50, 125, 2, 5, 3, 10, -5, 1),
+    ("auto-shotgun-12g", 7, 950, 8400, 1, 1, "pi", 3, 50, 125, 3, 7, 3, 10, -5, 1),
 )
 
 LONG_GUN_ROWS = (
@@ -296,12 +300,13 @@ def test_b278_firearms_preserve_independent_table_columns() -> None:
             recoil,
         ) = row
         entry = entries[key]
+        page = 279 if "shotgun" in key or key.startswith("blunderbuss") else 278
         assert (
             entry.provenance.pages,
             entry.technology_level,
             entry.price,
         ) == (
-            (278,),
+            (page,),
             tl,
             cost,
         )
@@ -324,6 +329,10 @@ def test_b278_firearms_preserve_independent_table_columns() -> None:
             mode.recoil,
         ) == (acc, half, maximum, rof, shots, reload, st, bulk, recoil)
         assert mode.firearm and mode.firearm.technology_level == tl
+        if "shotgun" in key or key.startswith("blunderbuss"):
+            assert mode.hands == 2
+            assert mode.multiple_projectiles is not None
+            assert mode.multiple_projectiles.projectiles_per_shot == 9
         assert mode.ammunition_id is not None
         ammunition = entries[mode.ammunition_id.removeprefix("equipment:")]
         # B270 gives unloaded weight only for Shots 1. For Shots 2+, rebuild
@@ -364,6 +373,10 @@ def test_b278_firearm_ammunition_uses_exact_per_round_units() -> None:
         "snub-revolver-38-round": ("0.8", 40),
         "auto-pistol-45-tl6-round": ("1.5", 75),
         "auto-pistol-9mm-tl6-round": ("8/9", Fraction(400, 9)),
+        "blunderbuss-8g-round": ("2.6", 130),
+        "double-shotgun-10g-round": ("1", 50),
+        "pump-shotgun-12g-round": ("2.8", 140),
+        "auto-shotgun-12g-round": ("17/7", Fraction(850, 7)),
     }
     assert {
         key: (str(entries[key].price), entries[key].weight_millipounds) for key in expected
