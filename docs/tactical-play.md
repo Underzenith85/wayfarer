@@ -111,6 +111,10 @@ command whose response is lost. Test entrypoints are not production routes.
 
 ## Remaining rules coverage
 
+The [mixed group activity matrix](mixed-activity.md) distinguishes the supported
+Basic/hex integration subset, GM-adjudicated spatial facts, unsupported rules and
+unchanged legacy behavior, with executable evidence for each boundary.
+
 This integration does **not** certify or enable the production Basic Set profile.
 Its existing exact-profile capability gates remain fail-closed. The merged core
 PRs satisfy the implementation dependencies for #115; the parent mechanics issues

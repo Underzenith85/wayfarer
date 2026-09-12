@@ -61,9 +61,10 @@ from wayfarer.simulation.gurps_equipment import (
     Shield,
 )
 from wayfarer.simulation.mechanics.gurps_melee import defense_value, movement
-from wayfarer.simulation.resources import Item, Owner, ResourceEngine, ResourceState
+from wayfarer.simulation.resources import Item, Owner, ResourceEngine, ResourceState, Scheduled
 from wayfarer.simulation.scenes import Scene, SceneRules
 from wayfarer.simulation.studio import ScenarioGraph
+from wayfarer.world import World
 
 
 async def setup(
@@ -97,6 +98,11 @@ async def setup(
     power_cell_capacity: int | None = None,
     extra_items: tuple[Item, ...] = (),
     scene_bound: bool = False,
+    runtime_rules: ActionRules | None = None,
+    runtime_world: World | None = None,
+    extra_scheduled: tuple[Scheduled, ...] = (),
+    start_encounter: bool = True,
+    aware_of: tuple[str, ...] = (),
 ) -> tuple[str, PlayService]:
     equipment = EquipmentCatalog(
         profile_id=profile,
@@ -449,7 +455,7 @@ async def setup(
     reviewer = PowerReviewer(
         compiler, PowerPolicy(id="power", version=1, automatic_approval=True), frozenset({"gm"})
     )
-    test_world = world()
+    test_world = runtime_world or world()
     if third_actor:
         test_world = replace(
             test_world,
@@ -470,13 +476,14 @@ async def setup(
         ),
         gurps_equipment=equipment,
     )
-    engine = ActionEngine(
-        reviewer,
-        resources,
-        ActionRules(
+    maximum_wait = 1800 if durability and durability.repair_skill_id else 100
+    selected_rules = (
+        runtime_rules.model_copy(update={"combat": combat, "maximum_wait": maximum_wait})
+        if runtime_rules is not None
+        else ActionRules(
             id="play",
             version=1,
-            maximum_wait=1800 if durability and durability.repair_skill_id else 100,
+            maximum_wait=maximum_wait,
             combat=combat,
             scenes=SceneRules(
                 id="melee-scenes",
@@ -488,7 +495,12 @@ async def setup(
             abilities=AbilityRules(id="defense", version=1, abilities=(ability,))
             if ability_defense
             else None,
-        ),
+        )
+    )
+    engine = ActionEngine(
+        reviewer,
+        resources,
+        selected_rules,
     )
     play = PlayService(AsyncSQLiteStore(tmp_path / "melee.sqlite"), engine)
     initial = campaign(engine)
@@ -517,6 +529,7 @@ async def setup(
     actors = tuple(
         ActorSetup(
             actor_id=a,
+            aware_of=aware_of,
             body=HumanBody(anatomy="human") if human else None,
             held_item_hands=(
                 (f"sword-{a}", "right-hand"),
@@ -595,6 +608,8 @@ async def setup(
         )
     if extra_items:
         seed = seed.model_copy(update={"items": seed.items + extra_items})
+    if extra_scheduled:
+        seed = seed.model_copy(update={"scheduled": seed.scheduled + extra_scheduled})
     if durability is None and critical_breakage is not None:
         seed = seed.model_copy(
             update={
@@ -654,27 +669,28 @@ async def setup(
             }
         )
     await play.create(initial, test_world, seed, actors)
-    await CombatService(play).execute(
-        initial["id"],
-        StartEncounter(
-            id="start",
-            actor_id="gm",
-            expected_revision=0,
-            encounter_id="fight",
-            battlefield_id="dock",
-            ranged_situations=ranged_scene,
-            placements=(
-                Placement(actor_id="a", position=GridPoint(x=0, y=0), facing="east"),
-                Placement(actor_id="b", position=GridPoint(x=1, y=0), facing="west"),
-                *(
-                    (Placement(actor_id="c", position=GridPoint(x=2, y=0), facing="west"),)
-                    if third_actor
-                    else ()
+    if start_encounter:
+        await CombatService(play).execute(
+            initial["id"],
+            StartEncounter(
+                id="start",
+                actor_id="gm",
+                expected_revision=0,
+                encounter_id="fight",
+                battlefield_id="dock",
+                ranged_situations=ranged_scene,
+                placements=(
+                    Placement(actor_id="a", position=GridPoint(x=0, y=0), facing="east"),
+                    Placement(actor_id="b", position=GridPoint(x=1, y=0), facing="west"),
+                    *(
+                        (Placement(actor_id="c", position=GridPoint(x=2, y=0), facing="west"),)
+                        if third_actor
+                        else ()
+                    ),
                 ),
             ),
-        ),
-        authenticated_actor_id="gm",
-    )
+            authenticated_actor_id="gm",
+        )
     return initial["id"], play
 
 
