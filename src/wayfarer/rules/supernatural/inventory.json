@@ -5614,13 +5614,14 @@
         "healing"
       ],
       "blockers": [
-        224,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned healing identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_healing.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6500,13 +6501,14 @@
         "healing"
       ],
       "blockers": [
-        224,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned healing identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_healing.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6721,13 +6723,14 @@
         "healing"
       ],
       "blockers": [
-        224,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned healing identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_healing.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6745,13 +6748,14 @@
         "healing"
       ],
       "blockers": [
-        224,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned healing identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_healing.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6868,13 +6872,14 @@
         "healing"
       ],
       "blockers": [
-        224,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned healing identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_healing.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6964,13 +6969,14 @@
         "healing"
       ],
       "blockers": [
-        224,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned healing identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_healing.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7230,13 +7236,14 @@
         "healing"
       ],
       "blockers": [
-        224,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned healing identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_healing.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
