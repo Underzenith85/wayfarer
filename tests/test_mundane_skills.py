@@ -39,8 +39,8 @@ def test_inventory_and_references() -> None:
         "skill:arm-lock-judo",
     } <= ids
     assert len(entries) > 180
-    # #338-#341 add bound procedures without changing a package pin.
-    assert audit_report()["available"] == 343
+    # #338-#342 add bound procedures without changing a package pin.
+    assert audit_report()["available"] == 364
     assert all(e.followup_issues for e in entries)
     RulesCatalog((candidate_package(),))
     assert candidate_package().digest == candidate_package().digest
@@ -69,7 +69,7 @@ def test_numeric_metadata_and_structural_classes() -> None:
     assert replace(package, definitions=(changed,)).digest != package.digest
 
 
-@pytest.mark.parametrize("id", ["skill:first-aid", "skill:aerobatics", "skill:invented-skill"])
+@pytest.mark.parametrize("id", ["skill:urban-survival", "skill:aerobatics", "skill:invented-skill"])
 def test_model_cannot_turn_inventory_into_available_mechanics(id: str) -> None:
     with pytest.raises(ValidationError):
         require_available(id)
@@ -402,10 +402,10 @@ def test_item_level_owners_stay_visible_in_the_coverage_report() -> None:
     ]
     assert report["runtime_owner_unassigned"] == 0
     assert report["implementation_counts"] == {
-        # #341 binds all 27 knowledge and investigation rows.
+        # #342 binds all 22 medicine and mental rows.
         "contextual": 28,
-        "implemented": 374,
-        "unsupported": 102,
+        "implemented": 396,
+        "unsupported": 80,
     }
     # A bound row can still leave part of its entry to another issue; that gap is
     # published rather than folded into the blocker list.

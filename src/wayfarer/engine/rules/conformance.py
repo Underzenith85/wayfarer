@@ -69,6 +69,7 @@ _CAPABILITIES: Final = (
     Capability("gurps.combat.melee_weapon_skills", False, True, CoverageStatus.PARTIAL, 339),
     Capability("gurps.combat.technique_procedures", False, True, CoverageStatus.PARTIAL, 340),
     Capability("gurps.skills.knowledge_investigation", False, True, CoverageStatus.PARTIAL, 341),
+    Capability("gurps.skills.medicine_mental", False, True, CoverageStatus.PARTIAL, 342),
     Capability("gurps.equipment.weapon_profiles", True, True, CoverageStatus.PARTIAL, 101),
     Capability("gurps.equipment.armor_profiles", True, True, CoverageStatus.PARTIAL, 101),
     Capability("gurps.equipment.catalog", True, True, CoverageStatus.PARTIAL, 114),

@@ -51,11 +51,11 @@ also verifies names, pages and owners against the supernatural catalog.
 
 | Accounting group | Rows | Decision |
 | --- | ---: | --- |
-| Structured candidate definitions | 184 | Unsupported; runtime or campaign-context blockers remain. |
-| Bound runtime procedures | 292 | The prior 233 plus 58 concrete or family arts, crafts and trade rows from #338. Three open or dynamic arts rows also have dispatch but remain contextual rather than manufacturing definitions. |
+| Structured candidate definitions | 80 | Unsupported; runtime or campaign-context blockers remain. |
+| Bound runtime procedures | 396 | Includes the executable arts/trades, combat, technique, knowledge/investigation, and medicine/mental rows from #338–#342. Open families remain nondispatchable until a concrete specialty is selected. |
 | Contextual records | 28 | 23 B230-233 technique templates and five open families (#336). Not rollable skills, so they record a shape rather than a definition. No row is left recording nothing at all. |
 | Transferred cinematic/supernatural skills | 28 | Owned by #242/#243 and source audit #191. |
-| **Total accounted records** | **532** | **504 inventory rows plus 28 transferred rows; 264 inventory rows are available.** |
+| **Total accounted records** | **532** | **504 inventory rows plus 28 transferred rows; 364 inventory rows are available.** |
 
 ## Arts, crafts and trade procedures (#338)
 
@@ -600,11 +600,34 @@ binds skill semantics to them. No prerelease engine or package version changes.
 Evidence is in `tests/test_knowledge_investigation_procedures.py` and the frozen
 mundane source inventory.
 
+## Medicine and mental procedures (#342)
+
+All 20 assigned source entries now have item-specific execution contracts, with
+the Pharmacy family expanded to its Herbal and Synthetic specialties. Diagnosis,
+First Aid, Esoteric Medicine, Pharmacy, Physician, Poisons, Surgery and
+Veterinary hand treatment findings or steps to the existing medical boundary.
+Autohypnosis, Dreaming, Meditation and Mind Block produce mental-state or defense
+results. Brain Hacking, Brainwashing, Erotic Art, Exorcism and Hypnotism use
+opposed social procedures; Physiology and Psychology acquire subject-scoped
+knowledge; Scuba routes exposure-safe equipment use to the hazard boundary.
+
+Physiology and Psychology require explicit source-subject selection, and the
+Pharmacy family rejects execution until a concrete specialty is chosen.
+Diagnosis and the knowledge procedures preserve unknown-until-later retry
+semantics. Required patient, subject, equipment and environmental context,
+contest resistance, modifier vocabularies and exact profile selection all fail
+closed before dice. Results are replayable receipts; stateful treatment,
+knowledge, hazard and social effects remain with their existing authoritative
+services. The prerelease engine and package versions remain unchanged.
+
+Evidence is in `tests/test_medicine_mental_procedures.py` and the frozen mundane
+source inventory.
+
 ## Validation and runtime contract
 
 Unsupported candidates in this package have no runtime hooks. `require_available`
 rejects unknown IDs, blocked rows and unsupported definitions even if their
-blocker list is mistakenly cleared; the 343 available rows have both a concrete
+blocker list is mistakenly cleared; the 364 available rows have both a concrete
 implementation and no remaining blocker. Scenario/character/LLM validation
 therefore cannot turn catalog presence alone into playable mechanics.
 
