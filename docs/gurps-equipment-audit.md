@@ -39,11 +39,12 @@ anchor and record what they leave out:
 | `ammunition` | B275-278 | 12 | alternative missiles, ammunition variants, explosive warheads and power cells |
 | `beam-weapons-b280` | B280 | 3 | every other beam row; the three recorded rows are index facts that cannot be equipped or fired |
 | `body-armor-b283` | B283 | 8 | split-DR, single-facing, flexible, layered and footnoted rows, plus the other armor pages |
+| `shields` | B287 | 4 | duplicate cloak appearances, the unrepresentable force shield, and buckler, material and offensive variants |
 | `general-equipment-b288` | B288 | 10 | every other B288 row and the whole B289 continuation |
 
-The remaining seven sections record **no rows at all**: wealth and legality,
-shields, heavy weapons, split-DR armor, higher-TL variants, weapon accessories
-and the general equipment remainder. Their anchors are recorded as `range-only`,
+The remaining six sections record **no rows at all**: wealth and legality,
+heavy weapons, split-DR armor, higher-TL variants, weapon accessories and the
+general equipment remainder. Their anchors are recorded as `range-only`,
 meaning B264-289 as a range that nobody has reconciled item by item. A
 `range-only` anchor is a coverage gap, not a page citation.
 
@@ -52,10 +53,11 @@ per-round ammunition mass as an exact rational number of millipounds. This
 allows the TL6 9mm automatic pistol's 0.4-pound, nine-round load to remain
 exactly `400/9` millipounds per round without inventing a rounded unit value.
 
-One structural consequence remains recorded rather than smoothed over: no
-audited row is a shield. B275-278 now provide direct ranged cases for rated ST,
-accuracy, ST-multiplied and absolute range, reload timing, shots, rate of fire,
-recoil, bulk, firearm action and missile references.
+The four ordinary B287 shields now provide direct cases for Shield and
+EquipmentProfile.shield, including exact DB, cost, weight, DR and HP columns.
+B275-278 provide direct ranged cases for rated ST, accuracy, ST-multiplied and
+absolute range, reload timing, shots, rate of fire, recoil, bulk, firearm action
+and missile references.
 
 ## Footnotes and special gear behaviour
 
@@ -92,11 +94,10 @@ Every field of `Provenance`, `Damage`, `Parry`, `MeleeMode`, `RangedMode`,
 source anchor and either its executable coverage or an explicit gap. Adding or
 removing a schema field without updating the ledger fails the audit.
 
-All 111 records are `pending`. Nothing has been reconciled against an inspected
-printing, so no field, unit or numeric sample is source-verified, and
+All field records remain `pending` until the exhaustive #191 reconciliation, so
 `gurps.equipment.weapon_profiles` and `gurps.equipment.armor_profiles` stay
-partial. Four fields have no direct case at all: `MeleeMode.kind`,
-`RangedMode.kind`, `Shield.skill_id` and `EquipmentProfile.shield`.
+partial. The shield skill and profile fields now have direct B287 cases;
+`MeleeMode.kind` and `RangedMode.kind` still have none.
 
 Weights are thousandths of a pound throughout, including container capacity;
 prices are dollars and retain fractional values for the B276 ten-cent missiles.

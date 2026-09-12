@@ -27,6 +27,7 @@ from wayfarer.simulation.gurps_equipment import (
     Provenance,
     RangedMode,
     RatedStrength,
+    Shield,
 )
 from wayfarer.simulation.objects import object_hp
 
@@ -1197,6 +1198,29 @@ ARMOR = tuple(
     )
 )
 
+# B287: ordinary shield rows. Durability uses the table's explicit DR/HP
+# columns rather than deriving HP from weight. Cloaks are the same physical
+# rows already recorded on B276; the superscience force shield cannot fit the
+# integer TL or finite-HP schema and remains an explicit audit omission.
+SHIELDS = tuple(
+    EquipmentProfile(
+        definition_id=identifier,
+        provenance=source(287),
+        technology_level=tl,
+        weight_millipounds=weight,
+        price=price,
+        slot="shield",
+        shield=Shield(skill_id="skill:shield", defense_bonus=db),
+        durability=ObjectProfile(construction="homogenous", hp=hp, dr=dr, ht=12),
+    )
+    for identifier, tl, db, price, weight, dr, hp in (
+        ("equipment:light-shield", 0, 1, 25, 2000, 5, 20),
+        ("equipment:small-shield", 0, 1, 40, 8000, 6, 30),
+        ("equipment:medium-shield", 1, 2, 60, 15000, 7, 40),
+        ("equipment:large-shield", 1, 3, 90, 25000, 9, 60),
+    )
+)
+
 # B288: inventory facts. Behavioral requirements keep special tools out of active
 # packages until their mechanics are integrated; no invented skill/effect hooks.
 ORDINARY = tuple(
@@ -1232,6 +1256,7 @@ BASIC_EQUIPMENT = EquipmentCatalog(
         + FIREARMS
         + FIREARM_AMMUNITION
         + ARMOR
+        + SHIELDS
         + ORDINARY
     ),
 )
