@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.simulation.combat import (
     BasicSpatialContext,
+    Combatant,
     CombatEngine,
     CoverSpatialFact,
     DistanceSpatialFact,
@@ -16,10 +17,18 @@ from wayfarer.simulation.combat import (
     ObstacleSpatialFact,
     ReachSpatialFact,
     RetreatSpatialFact,
+    SpatialProvenance,
     VisibilitySpatialFact,
     move_basic,
 )
-from wayfarer.simulation.hex_geometry import RetreatContext, can_retreat, distance, neighbor
+from wayfarer.simulation.hex_geometry import (
+    HexBattlefield,
+    Occupant,
+    RetreatContext,
+    can_retreat,
+    distance,
+    neighbor,
+)
 from wayfarer.simulation.tactical import (
     defense_adjustment,
     occupants,
@@ -30,7 +39,11 @@ from wayfarer.simulation.tactical import (
 
 if TYPE_CHECKING:
     from wayfarer.simulation.actions import PlayState
-    from wayfarer.simulation.combat_commands import ChooseDefense, MigrateEncounterHex
+    from wayfarer.simulation.combat_commands import (
+        ChooseDefense,
+        MigrateEncounterBasic,
+        MigrateEncounterHex,
+    )
     from wayfarer.simulation.rules_context import RulesContext
 
 
@@ -178,6 +191,195 @@ def _validate_basic_escalation(
                     break
             if fact.feasible != feasible:
                 raise ValidationError("Hex placement contradicts authoritative Basic retreat")
+
+
+def migrate_basic(
+    runtime: RulesContext,
+    state: PlayState,
+    encounter: Encounter,
+    command: MigrateEncounterBasic,
+) -> Encounter:
+    """Derive a lossless Basic projection of a representable hex encounter."""
+    if encounter.spatial_kind != "hex" or encounter.status != "active":
+        raise ConflictError("Basic conversion requires an active hex encounter")
+    scenes = runtime.rules.scenes
+    if (
+        encounter.scene_id is None
+        or scenes is None
+        or not any(scene.id == encounter.scene_id for scene in scenes.scenes)
+    ):
+        raise ValidationError("Basic conversion requires the encounter's authored scene")
+    board = runtime.require_hex(encounter)
+    rules = runtime.rules.combat
+    validate_hex_encounter(encounter, rules.gurps_equipment if rules else None, board=board)
+    if (
+        board.darkness_penalty
+        or board.stairs
+        or any(
+            cell.blocked
+            or cell.extra_cost
+            or cell.opaque_height
+            or cell.elevation
+            or cell.elevation_inches
+            for cell in board.cells
+        )
+    ):
+        raise ValidationError(
+            "Consequential tactical terrain cannot be represented in Basic combat"
+        )
+    if encounter.wait_interrupt is not None:
+        raise ConflictError("Resolve the interrupted Wait before Basic conversion")
+    pending = encounter.pending_defense
+    if pending is not None and (
+        pending.post_attack_hex_path or pending.post_attack_facing is not None
+    ):
+        raise ConflictError("Resolve the pending hex movement before Basic conversion")
+    if any(
+        item.ground is not None and item.ground.encounter_id == encounter.id
+        for item in state.resources.items
+    ):
+        raise ValidationError("Grounded equipment prevents Basic conversion")
+    from wayfarer.simulation.explosions import blasts
+    from wayfarer.simulation.spells import active_spells
+
+    if any(
+        not blast.resolved and blast.encounter_id == encounter.id
+        for blast in blasts(state.resources)
+    ):
+        raise ValidationError("Resolve spatial explosions before Basic conversion")
+    if any(
+        effect.encounter_id == encounter.id and effect.position is not None
+        for effect in active_spells(state.resources)
+    ):
+        raise ValidationError("Positioned spell effects prevent Basic conversion")
+    provenance = SpatialProvenance(
+        source="engine-derived",
+        source_id=command.id,
+        declared_by=command.actor_id,
+        declared_revision=command.expected_revision,
+    )
+    participants = tuple(
+        actor.model_copy(update={"position": None, "hex_facing": None})
+        for actor in encounter.participants
+    )
+    actors = {actor.actor_id: actor for actor in encounter.participants}
+    close_pairs = {tuple(sorted(pair)) for pair in encounter.close_pairs}
+    occupied = occupants(encounter)
+    facts: list[
+        DistanceSpatialFact
+        | ReachSpatialFact
+        | VisibilitySpatialFact
+        | CoverSpatialFact
+        | ObstacleSpatialFact
+        | RetreatSpatialFact
+    ] = []
+    for index, subject_id in enumerate(encounter.turn_order):
+        subject = actors[subject_id]
+        for object_id in encounter.turn_order[index + 1 :]:
+            object_actor = actors[object_id]
+            separation = distance(pose(subject).position, pose(object_actor).position)
+            facts.append(
+                DistanceSpatialFact(
+                    subject_id=subject_id,
+                    object_id=object_id,
+                    yards=separation,
+                    provenance=provenance,
+                )
+            )
+            for left, right in ((subject, object_actor), (object_actor, subject)):
+                pair = tuple(sorted((left.actor_id, right.actor_id)))
+                facts.extend(
+                    (
+                        ReachSpatialFact(
+                            subject_id=left.actor_id,
+                            object_id=right.actor_id,
+                            relation=(
+                                "close"
+                                if pair in close_pairs
+                                else "reachable"
+                                if separation <= left.reach
+                                else "separated"
+                            ),
+                            provenance=provenance,
+                        ),
+                        VisibilitySpatialFact(
+                            subject_id=left.actor_id,
+                            object_id=right.actor_id,
+                            visible=sight(encounter, left, right, board=board),
+                            provenance=provenance,
+                        ),
+                        CoverSpatialFact(
+                            subject_id=left.actor_id,
+                            object_id=right.actor_id,
+                            cover="none",
+                            provenance=provenance,
+                        ),
+                        ObstacleSpatialFact(
+                            subject_id=left.actor_id,
+                            object_id=right.actor_id,
+                            blocked=False,
+                            provenance=provenance,
+                        ),
+                        RetreatSpatialFact(
+                            subject_id=left.actor_id,
+                            object_id=right.actor_id,
+                            feasible=_hex_retreat_feasible(
+                                state, encounter, left, right, board, occupied
+                            ),
+                            provenance=provenance,
+                        ),
+                    )
+                )
+    result = encounter.model_copy(
+        update={
+            "spatial_context": BasicSpatialContext(facts=tuple(facts)),
+            "participants": participants,
+        }
+    )
+    assert runtime.combat is not None
+    runtime.combat.validate(
+        result,
+        state.world,
+        state.resources,
+        frozenset(actor.actor_id for actor in state.actors),
+    )
+    return result
+
+
+def _hex_retreat_feasible(
+    state: PlayState,
+    encounter: Encounter,
+    subject: Combatant,
+    object_actor: Combatant,
+    board: HexBattlefield,
+    occupied: tuple[Occupant, ...],
+) -> bool:
+    """Return whether the current exact pose has any legal retreat hex."""
+    hp = next(p for p in state.resources.pools if p.id == f"hp:{subject.actor_id}")
+    context = RetreatContext(
+        already_retreated=subject.retreat_used,
+        stunned=bool(hp.injury and hp.injury.stunned),
+        grappled=subject.grappled
+        or subject.pinned
+        or any(grip.holder_id == subject.actor_id for grip in encounter.grips),
+        maneuver_allows_retreat=not subject.maneuver_state.defense_forbidden,
+    )
+    for direction in range(6):
+        try:
+            destination = neighbor(pose(subject).position, direction)
+            board.cell(destination)
+        except ValidationError, ValueError:
+            continue
+        if can_retreat(
+            board,
+            pose(subject),
+            pose(object_actor).position,
+            destination,
+            context=context,
+            occupants=occupied,
+        ):
+            return True
+    return False
 
 
 def prepare_defense(

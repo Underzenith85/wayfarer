@@ -36,8 +36,28 @@ scene- and subgroup-validated.
 
 [Reinforcement admission and Basic-to-hex escalation](combat-reinforcements.md)
 are implemented by #326. Tactical controls are owned by #327. Hex-to-Basic
-conversion and withdrawals are owned by #329 and #330; those reverse or departure
-paths continue to reject until their separate contracts are implemented.
+conversion is implemented by #329; withdrawals remain owned by #330.
+
+## Hex-to-Basic conversion
+
+`MigrateEncounterBasic` is an explicit GM command at an active, authored scene.
+It derives distance plus both directions of reach, visibility, cover, obstacle and
+retreat facts from the current exact poses. Same-hex close-combat pairs remain
+`close`, and grips and other nonspatial encounter state remain unchanged. The
+derived facts identify the conversion command and revision as their provenance.
+
+Conversion is lossless rather than a request to hide the map. It accepts a flat,
+fully traversable battlefield with no darkness or movement surcharge. Authored
+blocking/opaque/elevated terrain, stairs, grounded equipment, unresolved spatial
+explosions, positioned spell effects, interrupted Waits and pending post-attack
+hex movement reject explicitly. A pending defense without queued hex movement is
+preserved exactly; conversion does not recompute its allowed defenses or refresh
+any participant's defense usage.
+
+The map template remains in the rules configuration for other encounters, while
+the converted encounter owns only Basic facts and no serialized poses. A later
+Basic-to-hex command must again supply every pose and pass the normal consistency
+checks. Retry, restart and replay use the same command receipt and campaign CAS.
 
 ## Source boundary
 

@@ -14,6 +14,7 @@ from wayfarer.orchestration.combat import (
     ContinueCriticalMiss,
     DeclareThrownLanding,
     JoinEncounter,
+    MigrateEncounterBasic,
     MigrateEncounterHex,
     RepairEquipment,
     ResolveChokeEffects,
@@ -31,6 +32,7 @@ from wayfarer.orchestration.tactical_view import (
     snapshot,
     visible_actors,
 )
+from wayfarer.simulation.access import CampaignMember
 from wayfarer.simulation.actions import PlayState
 from wayfarer.transport.campaign_api import ACCESS_KEY, _identity, _json
 from wayfarer.transport.tactical_v1_commands import ChooseDefense as ChooseDefenseV1
@@ -64,6 +66,7 @@ class TacticalRequestV2(Record):
         | DeclareThrownLanding
         | ResolveWeaponExplosion
         | JoinEncounter
+        | MigrateEncounterBasic
     ) = Field(discriminator="kind")
 
 
@@ -77,7 +80,8 @@ async def read(request: web.Request) -> web.Response:
     if request.path.startswith("/api/tactical/v2/"):
         runtime = await request.app[ACCESS_KEY].runtime(request.match_info["cid"])
         state = runtime.play._load(await runtime.play.store.read(request.match_info["cid"]))
-        runtime._control(runtime._member(state, _identity(request)), result.actor_id)
+        member = runtime._member(state, _identity(request))
+        runtime._control(member, result.actor_id)
         result = enrich(
             runtime.play,
             state,
@@ -88,11 +92,44 @@ async def read(request: web.Request) -> web.Response:
                 result.actor_id,
                 include_object_choices=True,
             ),
+            member,
         )
     return web.json_response(result.model_dump(mode="json"))
 
 
-def enrich(play: PlayService, state: PlayState, result: TacticalSnapshot) -> TacticalSnapshotV2:
+def enrich(
+    play: PlayService,
+    state: PlayState,
+    result: TacticalSnapshot,
+    member: CampaignMember | None = None,
+) -> TacticalSnapshotV2:
+    encounter = next(
+        (
+            encounter
+            for encounter in state.encounters
+            if encounter.spatial_kind == "hex" and result.actor_id in encounter.turn_order
+        ),
+        None,
+    )
+    migrations = (
+        [
+            {
+                "label": "Convert to Basic combat",
+                "command": {
+                    "kind": "migrate_encounter_basic",
+                    "id": f"basic:{state.revision}:{encounter.id}",
+                    "actor_id": member.principal_id,
+                    "expected_revision": state.revision,
+                    "encounter_id": encounter.id,
+                },
+            }
+        ]
+        if member is not None
+        and member.role == "gm"
+        and encounter is not None
+        and state.lifecycle == "active"
+        else []
+    )
     return TacticalSnapshotV2.model_validate_json(
         json.dumps(
             {
@@ -101,6 +138,7 @@ def enrich(play: PlayService, state: PlayState, result: TacticalSnapshot) -> Tac
                 "equipment": [
                     v.model_dump(mode="json") for v in equipment_view(play, state, result.actor_id)
                 ],
+                "migrations": migrations,
             }
         )
     )
@@ -132,14 +170,20 @@ async def execute(request: web.Request) -> web.Response:
             include_object_choices=request_type is TacticalRequestV2,
         )
         if request_type is TacticalRequestV2:
-            result = enrich(access.play, state, result)
+            result = enrich(access.play, state, result, member)
         return web.json_response(result.model_dump(mode="json"))
     if state.lifecycle != "active":
         raise ValidationError("Resume the campaign before acting")
     encounter = CombatService._encounter(state, command.encounter_id)
     if isinstance(
         command,
-        (MigrateEncounterHex, ContinueCriticalMiss, DeclareThrownLanding, ResolveWeaponExplosion),
+        (
+            MigrateEncounterHex,
+            MigrateEncounterBasic,
+            ContinueCriticalMiss,
+            DeclareThrownLanding,
+            ResolveWeaponExplosion,
+        ),
     ):
         if member.role != "gm":
             raise ValidationError("Migration requires GM authority")
@@ -186,7 +230,7 @@ async def execute(request: web.Request) -> web.Response:
         include_object_choices=request_type is TacticalRequestV2,
     )
     if request_type is TacticalRequestV2:
-        result = enrich(access.play, state, result)
+        result = enrich(access.play, state, result, member)
     return web.json_response(result.model_dump(mode="json"))
 
 

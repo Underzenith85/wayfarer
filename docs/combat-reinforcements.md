@@ -31,8 +31,8 @@ Escalation changes only the spatial representation. It preserves initiative,
 current turn, round, maneuver and defense history, readiness, injuries and other
 live encounter state. Pending defense/unarmed/Wait interactions, grips and close
 pairs reject rather than being reinterpreted. The existing square-to-hex path is
-unchanged; hex-to-Basic conversion and participant withdrawal remain separately
-owned by #329 and #330.
+unchanged. [Hex-to-Basic conversion](mapless-combat.md#hex-to-basic-conversion) is
+implemented separately by #329; participant withdrawal remains owned by #330.
 
 Both operations use the normal authorized campaign transaction, compare-and-set
 revision, durable receipt, configuration migration and replay paths. Their typed

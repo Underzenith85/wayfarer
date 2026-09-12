@@ -448,6 +448,7 @@ class CampaignAccess:
                 "end_encounter",
                 "join_encounter",
                 "migrate_encounter_hex",
+                "migrate_encounter_basic",
             ):
                 combat = COMBAT_ADAPTER.validate_json(raw)
                 from wayfarer.simulation.studio import ScenarioGraph

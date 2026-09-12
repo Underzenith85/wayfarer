@@ -174,6 +174,11 @@ class MigrateEncounterHex(CombatCommand):
     placements: tuple[HexPlacement, ...] = Field(min_length=2, max_length=100)
 
 
+class MigrateEncounterBasic(CombatCommand):
+    kind: Literal["migrate_encounter_basic"] = "migrate_encounter_basic"
+    encounter_id: Id
+
+
 class BasicJoinPlacement(Record):
     kind: Literal["basic"] = "basic"
     facts: tuple[BasicSpatialFact, ...] = Field(min_length=1, max_length=1000)
@@ -252,7 +257,8 @@ TypedCombatCommand = Annotated[
     | ContinueCriticalMiss
     | DeclareThrownLanding
     | ResolveWeaponExplosion
-    | MigrateEncounterHex,
+    | MigrateEncounterHex
+    | MigrateEncounterBasic,
     # Migration is explicit and uses the same receipt and CAS as combat commands.
     Field(discriminator="kind"),
 ]
