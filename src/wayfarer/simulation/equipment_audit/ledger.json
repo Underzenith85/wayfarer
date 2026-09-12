@@ -229,9 +229,17 @@
         "blunderbuss-8g",
         "double-shotgun-10g",
         "pump-shotgun-12g",
-        "auto-shotgun-12g"
+        "auto-shotgun-12g",
+        "revolver-38",
+        "auto-pistol-9mm-tl7",
+        "holdout-pistol-380",
+        "revolver-357m",
+        "revolver-44m",
+        "auto-pistol-44m",
+        "auto-pistol-40",
+        "machine-pistol-9mm"
       ],
-      "omitted_rows": "Seven B278 pistol rows, eleven ordinary B279 musket/rifle rows and all four B279 shotgun rows are recorded with distinct chamber capacity and exact rational ammunition mass. The long guns fail closed until the ST-conditioned one-hand exception is typed. Other pistol and SMG rows, musket rests, bipods, gyroc acceleration, smartguns, integral launchers, and automatic-only and high-cyclic RoF remain unresolved.",
+      "omitted_rows": "Fifteen B278 handgun/one-handed machine-pistol rows, eleven ordinary B279 musket/rifle rows and all four B279 shotgun rows are recorded with distinct chamber capacity and exact rational ammunition mass. The long guns fail closed until the ST-conditioned one-hand exception is typed. Gyroc acceleration, smartguns, full-auto-only fire, two-handed SMGs, musket rests, bipods and integral launchers remain unresolved.",
       "mechanics": [
         "malfunction",
         "shotgun-multiple-projectiles",
@@ -273,9 +281,17 @@
         "blunderbuss-8g-round",
         "double-shotgun-10g-round",
         "pump-shotgun-12g-round",
-        "auto-shotgun-12g-round"
+        "auto-shotgun-12g-round",
+        "revolver-38-round",
+        "auto-pistol-9mm-tl7-round",
+        "holdout-pistol-380-round",
+        "revolver-357m-round",
+        "revolver-44m-round",
+        "auto-pistol-44m-round",
+        "auto-pistol-40-round",
+        "machine-pistol-9mm-round"
       ],
-      "omitted_rows": "B275-276 ordinary missiles and twenty-two B278-279 firearm rounds are recorded with exact rational dollar and pound values. Alternate missiles, remaining firearm rounds, ammunition variants, explosive warheads and power cells remain unresolved.",
+      "omitted_rows": "B275-276 ordinary missiles and thirty firearm/shotgun rounds from B278-279 are recorded with exact rational dollar and pound values. Alternate missiles, remaining firearm rounds, ammunition variants, explosive warheads and power cells remain unresolved.",
       "mechanics": [
         "ammunition-variants",
         "power-cell-charges"
