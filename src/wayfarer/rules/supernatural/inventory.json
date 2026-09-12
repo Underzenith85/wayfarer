@@ -5690,13 +5690,14 @@
         "water"
       ],
       "blockers": [
-        226,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_air.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -5836,13 +5837,14 @@
         "air"
       ],
       "blockers": [
-        226,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_air.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6183,13 +6185,14 @@
         "earth"
       ],
       "blockers": [
-        226,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_air.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6800,13 +6803,14 @@
         "air"
       ],
       "blockers": [
-        226,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_air.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6996,13 +7000,14 @@
         "air"
       ],
       "blockers": [
-        226,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_air.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7143,13 +7148,14 @@
         "air"
       ],
       "blockers": [
-        226,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_air.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7192,13 +7198,14 @@
         "air"
       ],
       "blockers": [
-        226,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_air.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7483,13 +7490,14 @@
         "air"
       ],
       "blockers": [
-        226,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_air.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7679,13 +7687,14 @@
         "air"
       ],
       "blockers": [
-        226,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_air.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7875,13 +7884,14 @@
         "air"
       ],
       "blockers": [
-        226,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned air identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_air.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
