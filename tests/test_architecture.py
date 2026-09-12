@@ -445,6 +445,60 @@ class ArchitectureTests(unittest.TestCase):
             with self.subTest(source=source):
                 self.assertEqual([type(node) for node in tree.body], [ast.Expr])
 
+    def test_modules_import_in_one_order(self) -> None:
+        """No module-level import cycle: a package must be importable from any entry.
+
+        Type checking resolves a cycle happily; the interpreter does not, so this
+        looks at what every module pays for on import, excluding TYPE_CHECKING
+        blocks and deferred imports inside function bodies.
+        """
+        package = Path(wayfarer.__file__).parent
+        graph: dict[str, set[str]] = {}
+        for source in package.rglob("*.py"):
+            parts = source.relative_to(package.parent).with_suffix("").parts
+            if parts[-1] == "__init__":
+                parts = parts[:-1]
+            tree = ast.parse(source.read_text())
+            deferred = {
+                node
+                for parent in ast.walk(tree)
+                if isinstance(parent, (ast.FunctionDef, ast.AsyncFunctionDef))
+                or (isinstance(parent, ast.If) and "TYPE_CHECKING" in ast.unparse(parent.test))
+                for node in ast.walk(parent)
+            }
+            edges: set[str] = set()
+            for node in ast.walk(tree):
+                if node in deferred:
+                    continue
+                if isinstance(node, ast.ImportFrom) and (node.module or "").startswith("wayfarer"):
+                    assert node.module is not None
+                    edges.add(node.module)
+                elif isinstance(node, ast.Import):
+                    edges |= {a.name for a in node.names if a.name.startswith("wayfarer")}
+            graph[".".join(parts)] = edges
+
+        colour: dict[str, int] = {}
+        path: list[str] = []
+
+        def walk(module: str) -> None:
+            colour[module] = 1
+            path.append(module)
+            for imported in sorted(graph.get(module, set())):
+                if imported not in graph:
+                    continue
+                if colour.get(imported) == 1:
+                    cycle = path[path.index(imported) :] + [imported]
+                    self.fail("Import cycle: " + " -> ".join(cycle))
+                if colour.get(imported, 0) == 0:
+                    walk(imported)
+            path.pop()
+            colour[module] = 2
+
+        sys.setrecursionlimit(10000)
+        for module in sorted(graph):
+            if colour.get(module, 0) == 0:
+                walk(module)
+
     def test_engine_nouns_do_not_import_verbs(self) -> None:
         """A verb resolves mechanics with RulesContext; the nouns it reads never import one.
 

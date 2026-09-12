@@ -19,8 +19,7 @@ from wayfarer.engine.simulation.combat.commands import (
     TypedCombatCommand,
 )
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.orchestration.combat.context import CombatContext
-from wayfarer.orchestration.combat.service import CombatService
+from wayfarer.orchestration.combat.context import CombatContext, encounter_for
 
 
 def _prepare_command(
@@ -40,7 +39,7 @@ def _prepare_command(
     resuming = False
     reaction = False
     if isinstance(command, ResumeInterruptedTurn):
-        paused = CombatService._encounter(state, command.encounter_id)
+        paused = encounter_for(state, command.encounter_id)
         interrupt = paused.wait_interrupt
         if interrupt is None or not interrupt.ready or interrupt.actor_id != command.actor_id:
             raise ConflictError("No interrupted turn is ready for this actor")
@@ -107,7 +106,7 @@ def _prepare_command(
         )
         resuming = not unarmed_turn
     elif isinstance(command, TakeCombatTurn):
-        paused = CombatService._encounter(state, command.encounter_id)
+        paused = encounter_for(state, command.encounter_id)
         reaction = (
             paused.wait_interrupt is not None
             and paused.wait_interrupt.waiter_id == command.actor_id
@@ -153,7 +152,7 @@ def _prepare_command(
         ):
             affected.add(command.target_id)
         elif isinstance(command, ChooseDefense):
-            selected_encounter = CombatService._encounter(state, command.encounter_id)
+            selected_encounter = encounter_for(state, command.encounter_id)
             if selected_encounter.pending_unarmed is not None:
                 affected.update(
                     (

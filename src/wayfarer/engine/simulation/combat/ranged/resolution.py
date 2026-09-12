@@ -28,7 +28,8 @@ from wayfarer.engine.simulation.combat.entangle import bind as entangle_bind
 from wayfarer.engine.simulation.combat.profiles import InjuryTrace
 from wayfarer.engine.simulation.combat.ranged.ammunition import expend
 from wayfarer.engine.simulation.combat.ranged.lingering_fire import _schedule_lingering_fire
-from wayfarer.engine.simulation.combat.ranged.situation import situation, validate_rated_strength
+from wayfarer.engine.simulation.combat.ranged.situation import situation
+from wayfarer.engine.simulation.combat.ranged.strength import validate_rated_strength
 from wayfarer.engine.simulation.combat.vocabulary import Defense
 from wayfarer.engine.simulation.equipment.catalog import RangedMode
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers

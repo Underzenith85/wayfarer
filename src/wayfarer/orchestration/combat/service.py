@@ -24,7 +24,11 @@ from wayfarer.engine.simulation.combat.commands import (
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
 from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign, CommandReceipt
-from wayfarer.orchestration.combat.context import CombatContext, _bind_combat_command
+from wayfarer.orchestration.combat.context import (
+    CombatContext,
+    _bind_combat_command,
+    encounter_for,
+)
 from wayfarer.orchestration.combat.steps import reduce_combat
 from wayfarer.orchestration.entropy import commit_command
 from wayfarer.orchestration.play import PlayService
@@ -49,10 +53,7 @@ class CombatService:
 
     @staticmethod
     def _encounter(state: PlayState, encounter_id: str) -> Encounter:
-        encounter = next((e for e in state.encounters if e.id == encounter_id), None)
-        if encounter is None:
-            raise ValidationError("Unknown encounter")
-        return encounter
+        return encounter_for(state, encounter_id)
 
     async def execute(
         self, cid: str, value: object, *, authenticated_actor_id: str

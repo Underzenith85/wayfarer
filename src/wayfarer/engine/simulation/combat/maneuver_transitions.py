@@ -39,9 +39,7 @@ def observe(
             raise ValidationError("Aim requires one selected ranged mode")
         aimed_mode = modes[0]
         if aimed_mode.rated_strength is not None:
-            from wayfarer.engine.simulation.combat.ranged.situation import (
-                validate_rated_strength,
-            )
+            from wayfarer.engine.simulation.combat.ranged.strength import validate_rated_strength
             from wayfarer.engine.simulation.health.fatigue import fatigue_value
 
             stats = build(runtime, state, actor.actor_id).statistics

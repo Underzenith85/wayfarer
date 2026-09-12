@@ -9,8 +9,17 @@ from wayfarer.engine.simulation.combat.commands import MigrateEncounterHex, Type
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.resources import ResourceState
+from wayfarer.errors import ValidationError
 from wayfarer.models import Campaign
 from wayfarer.orchestration.play import PlayService
+
+
+def encounter_for(state: PlayState, encounter_id: str) -> Encounter:
+    """The named encounter in this checkpoint, or a validation failure."""
+    encounter = next((e for e in state.encounters if e.id == encounter_id), None)
+    if encounter is None:
+        raise ValidationError("Unknown encounter")
+    return encounter
 
 
 @dataclass(frozen=True)

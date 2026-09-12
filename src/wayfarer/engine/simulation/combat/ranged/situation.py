@@ -249,12 +249,3 @@ def validate_command(
         if command.maneuver != "ready":
             raise ValidationError("Reload requires a Ready maneuver")
         reload_weapon(runtime, state, command, validate_only=True)
-
-
-def validate_rated_strength(profile_id: str, weapon: RangedMode, st: int) -> None:
-    if weapon.rated_strength is None:
-        return
-    if profile_id != "gurps-basic-set-4e-2004":
-        raise ValidationError("Rated weapon ST requires the exact Basic Set profile")
-    if weapon.rated_strength.kind == "bow" and weapon.rated_strength.st > st:
-        raise ValidationError("Bow ST exceeds the wielder's effective ST")

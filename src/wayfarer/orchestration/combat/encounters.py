@@ -14,8 +14,7 @@ from wayfarer.engine.simulation.combat.commands import (
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter, basic_visible
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext, CoverSpatialFact
 from wayfarer.errors import ConflictError, ValidationError
-from wayfarer.orchestration.combat.context import CombatContext, CombatStep
-from wayfarer.orchestration.combat.service import CombatService
+from wayfarer.orchestration.combat.context import CombatContext, CombatStep, encounter_for
 
 
 def _start_encounter(
@@ -185,7 +184,7 @@ def _prepare_encounter(
 ) -> Encounter:
     play = context.play
     engine = context.engine
-    encounter = CombatService._encounter(state, command.encounter_id)
+    encounter = encounter_for(state, command.encounter_id)
     if play.engine.rules.scenes is not None:
         from wayfarer.engine.simulation.campaign.encounter_context import bind_scene
 

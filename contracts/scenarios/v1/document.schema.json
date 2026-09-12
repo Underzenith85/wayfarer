@@ -1965,7 +1965,7 @@
           "type": "string"
         },
         "provenance": {
-          "$ref": "#/$defs/wayfarer__simulation__gurps_equipment__Provenance"
+          "$ref": "#/$defs/wayfarer__engine__simulation__equipment__catalog__Provenance"
         },
         "weight_millipounds": {
           "anyOf": [
@@ -7431,50 +7431,7 @@
       "title": "World",
       "type": "object"
     },
-    "wayfarer__simulation__gurps_equipment__Provenance": {
-      "additionalProperties": false,
-      "properties": {
-        "source_id": {
-          "maxLength": 200,
-          "minLength": 1,
-          "title": "Source Id",
-          "type": "string"
-        },
-        "edition": {
-          "enum": [
-            "August 2004, Rev. 07/12/04",
-            "Fourth Edition, third printing (February 2008)",
-            "Fourth Edition, third printing (2008)"
-          ],
-          "title": "Edition",
-          "type": "string"
-        },
-        "pages": {
-          "items": {
-            "minimum": 1,
-            "type": "integer"
-          },
-          "minItems": 1,
-          "title": "Pages",
-          "type": "array"
-        },
-        "errata": {
-          "maxLength": 200,
-          "minLength": 1,
-          "title": "Errata",
-          "type": "string"
-        }
-      },
-      "required": [
-        "source_id",
-        "edition",
-        "pages",
-        "errata"
-      ],
-      "title": "Provenance",
-      "type": "object"
-    },
-    "wayfarer__simulation__scenario_document__Provenance": {
+    "wayfarer__engine__simulation__campaign__scenario_document__Provenance": {
       "additionalProperties": false,
       "properties": {
         "kind": {
@@ -7538,6 +7495,49 @@
       ],
       "title": "Provenance",
       "type": "object"
+    },
+    "wayfarer__engine__simulation__equipment__catalog__Provenance": {
+      "additionalProperties": false,
+      "properties": {
+        "source_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Source Id",
+          "type": "string"
+        },
+        "edition": {
+          "enum": [
+            "August 2004, Rev. 07/12/04",
+            "Fourth Edition, third printing (February 2008)",
+            "Fourth Edition, third printing (2008)"
+          ],
+          "title": "Edition",
+          "type": "string"
+        },
+        "pages": {
+          "items": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "minItems": 1,
+          "title": "Pages",
+          "type": "array"
+        },
+        "errata": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Errata",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "edition",
+        "pages",
+        "errata"
+      ],
+      "title": "Provenance",
+      "type": "object"
     }
   },
   "additionalProperties": false,
@@ -7568,7 +7568,7 @@
       "$ref": "#/$defs/PublicBrief"
     },
     "provenance": {
-      "$ref": "#/$defs/wayfarer__simulation__scenario_document__Provenance"
+      "$ref": "#/$defs/wayfarer__engine__simulation__campaign__scenario_document__Provenance"
     },
     "compatibility": {
       "$ref": "#/$defs/Compatibility"
