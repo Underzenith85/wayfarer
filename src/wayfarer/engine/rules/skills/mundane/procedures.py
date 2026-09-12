@@ -28,6 +28,7 @@ from wayfarer.engine.rules.gurps_checks import (
     replay_success,
     success_roll,
 )
+from wayfarer.engine.rules.skills.mundane.melee_metadata import WEAPON_CLASSES
 from wayfarer.engine.rules.skills.mundane.source_defaults import (
     recorded_blockers,
     recorded_reference,
@@ -221,9 +222,6 @@ def _target(
         if template.parent_family == "skill:melee-weapon":
             # The source family is semantic, not an identifier prefix.  Reuse
             # #339's closed set of executable melee weapon skills.
-            # deferred: procedures -> melee -> procedures while resolving a template family.
-            from wayfarer.engine.rules.skills.mundane.melee import WEAPON_CLASSES
-
             family_parent = performer.parent_skill_id in WEAPON_CLASSES
         valid_parent = performer.parent_skill_id in template.parents or family_parent
         floor = performer.parent_level + template.default_modifier
