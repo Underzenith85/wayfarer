@@ -204,9 +204,12 @@ class SkillCompiler:
                 ):
                     raise SkillError("skill.technique", "Unsupported technique definition")
                 refs.add(technique.parent)
+            if any(ref not in self.specs or self.specs[ref].technique is not None for ref in refs):
+                raise SkillError(
+                    "skill.reference", f"Missing or unsupported skill reference: {key}"
+                )
             if any(
-                ref not in self.specs or self.specs[ref].technique is not None
-                for ref in refs | default_refs
+                ref in self.specs and self.specs[ref].technique is not None for ref in default_refs
             ):
                 raise SkillError(
                     "skill.reference", f"Missing or unsupported skill reference: {key}"
@@ -223,7 +226,7 @@ class SkillCompiler:
             key: {
                 default.target
                 for default in spec.defaults
-                if default.target not in ControllingAttribute
+                if default.target not in ControllingAttribute and default.target in self.specs
             }
             for key, spec in self.specs.items()
         }
@@ -238,7 +241,7 @@ class SkillCompiler:
                 if current in visited:
                     continue
                 visited.add(current)
-                pending.extend(default_graph[current] - visited)
+                pending.extend(default_graph.get(current, set()) - visited)
             return False
 
         # Within a reciprocal component, only the purchased native level is a

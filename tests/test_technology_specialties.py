@@ -178,7 +178,9 @@ def test_each_specialty_rolls_against_its_own_family_numbers() -> None:
                 parent.attribute,
                 parent.difficulty,
             )
-            assert specialty.defaults == parent.defaults
+            # Concrete specialties add their finite family cross-defaults while
+            # retaining every default declared by the open family row.
+            assert set(parent.defaults) <= set(specialty.defaults)
             assert specialty.page == parent.page
 
 

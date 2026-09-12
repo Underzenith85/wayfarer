@@ -50,8 +50,17 @@ from wayfarer.rules.skill_types import (
     VariableFamily,
 )
 
-# Prerequisites recorded here whose target another catalog owns (B182).
-CROSS_PACKAGE = frozenset({"skill:computer-hacking"})
+# Skill references recorded here whose target another catalog owns.
+CROSS_PACKAGE = frozenset(
+    {
+        "skill:alchemy",
+        "skill:computer-hacking",
+        # B213 Pharmacy (Herbal) and B217 Religious Ritual retain real
+        # defaults into entries owned by the supernatural catalog.
+        "skill:herb-lore",
+        "skill:ritual-magic",
+    }
+)
 PROFILE = "gurps-basic-set-4e-2004"
 SOURCE = source(PROFILE)
 OWNER = 112
@@ -61,9 +70,7 @@ CONTEXT_OWNER = 336
 # the one that owns it instead of resolving into the context owner.
 CONTEXT_RESIDUALS = MappingProxyType(
     {
-        "conditional-or-skill-defaults": (383,),
-        "prerequisite-procedure": (383,),
-        "weapon-default-audit": (383,),
+        "contextual-default-procedure": (476,),
         "technology-level-context": (384,),
         "optional-rule-selection": (384,),
         "specialty-expansion": (385,),
@@ -526,10 +533,14 @@ def validate_inventory(entries: tuple[SkillAudit, ...]) -> None:
             if not implemented and entry.definition.status is not ImplementationStatus.UNSUPPORTED:
                 raise ValidationError(f"Provisional definition must be unsupported: {entry.id}")
             spec = entry.definition.skill
-            allowed_targets = identifiers | {a.value for a in A}
+            allowed_targets = identifiers | cross_package | {a.value for a in A}
             if any(d.target not in allowed_targets or d.target == entry.id for d in spec.defaults):
                 raise ValidationError(f"Invalid default references for {entry.id}")
-            references = tuple(d.target for d in spec.defaults if d.target.startswith("skill:"))
+            references = tuple(
+                d.target
+                for d in spec.defaults
+                if d.target.startswith("skill:") and d.target not in cross_package
+            )
             # A prerequisite another catalog owns resolves there, not here.
             references += tuple(
                 p.target

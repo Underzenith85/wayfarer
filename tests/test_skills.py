@@ -322,8 +322,9 @@ def test_definitions_allow_default_cycles_but_reject_acquisition_cycles() -> Non
     a = definition("a", SkillSpec(A.DX, D.AVERAGE, "B173", (SkillDefault("b", -2),)))
     b = definition("b", SkillSpec(A.DX, D.AVERAGE, "B173", (SkillDefault("a", -2),)))
     assert skill_engine(a, b).reciprocal_defaults == frozenset({("a", "b"), ("b", "a")})
-    with pytest.raises(SkillError, match="reference"):
-        skill_engine(a)
+    # A source-recorded default may point into an inactive package. It remains
+    # unavailable until that target definition is supplied.
+    assert skill_engine(a).compile({}, attrs()) == ()
     prerequisite_a = definition(
         "a", SkillSpec(A.DX, D.AVERAGE, "B173", prerequisites=(SkillPrerequisite("b"),))
     )

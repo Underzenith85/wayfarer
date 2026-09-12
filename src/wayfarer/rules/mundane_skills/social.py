@@ -26,7 +26,7 @@ published by :func:`unsupported_scope`, never silently omitted.
 """
 
 from collections.abc import Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from enum import StrEnum
 from types import MappingProxyType
 from typing import Final
@@ -53,6 +53,10 @@ from wayfarer.rules.gurps_social import (
     influence_procedure,
     influence_roll,
 )
+from wayfarer.rules.mundane_skills.source_defaults import (
+    recorded_blockers,
+    recorded_defaults,
+)
 from wayfarer.rules.skill_types import ControllingAttribute as A
 from wayfarer.rules.skill_types import Difficulty as D
 from wayfarer.rules.skill_types import SkillDefault, SkillSpec
@@ -66,6 +70,7 @@ DISPATCH: Final = "social.skill-procedure"
 RUNTIME_PROCEDURE: Final = "runtime-procedure"
 SPECIALTY_EXPANSION: Final = "specialty-expansion"
 CONDITIONAL_DEFAULTS: Final = "conditional-or-skill-defaults"
+CONTEXTUAL_DEFAULTS: Final = "contextual-default-procedure"
 
 # Owning issues for the parts of an entry these procedures do not carry.
 SPECIALTIES_ISSUE: Final = 366
@@ -300,7 +305,7 @@ def _unopposed(
     )
 
 
-_ROWS: Final = (
+_DECLARED_ROWS: Final = (
     SocialProcedure(
         "skill:acting",
         "Acting",
@@ -683,6 +688,23 @@ def _validate(rows: tuple[SocialProcedure, ...]) -> MappingProxyType[str, Social
     return MappingProxyType(registry)
 
 
+def _recorded(entry: SocialProcedure) -> SocialProcedure:
+    """Reconcile procedure bindings with the source-owned default record."""
+    transferred = dict(entry.transferred)
+    resolved = tuple(item for item in entry.resolved if item != CONDITIONAL_DEFAULTS)
+    if CONDITIONAL_DEFAULTS in entry.resolved or CONDITIONAL_DEFAULTS in transferred:
+        transferred.pop(CONDITIONAL_DEFAULTS, None)
+        if CONTEXTUAL_DEFAULTS in recorded_blockers(entry.id):
+            transferred[CONTEXTUAL_DEFAULTS] = (476,)
+    return replace(
+        entry,
+        defaults=recorded_defaults(entry.id),
+        resolved=tuple(dict.fromkeys(resolved)),
+        transferred=MappingProxyType(transferred),
+    )
+
+
+_ROWS: Final = tuple(_recorded(entry) for entry in _DECLARED_ROWS)
 PROCEDURES: Final = _validate(_ROWS)
 """Every listed social row, bound or transferred, keyed by its pinned skill ID."""
 

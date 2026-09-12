@@ -425,5 +425,7 @@ def test_bound_definitions_are_not_yet_carried_by_a_package_pin() -> None:
         for default in definition.skill.defaults
         if default.target.startswith("skill:")
     }
-    # B192 Diving Suit defaults from Scuba, which the physical-outdoors group owns.
-    assert sorted(referenced - set(bound)) == ["skill:scuba"]
+    # Source defaults may point into another procedure group without activating it.
+    external = referenced - set(bound)
+    assert {"skill:alchemy", "skill:scuba", "skill:strategy-space"} <= external
+    assert len(external) == 33

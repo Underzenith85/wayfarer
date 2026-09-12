@@ -379,9 +379,7 @@ def test_no_row_is_left_recording_nothing_at_all() -> None:
 def test_every_remaining_contextual_blocker_names_a_concrete_child() -> None:
     """#336 keeps nothing: each blocker it split names the issue that owns it."""
     assert dict(CONTEXT_RESIDUALS) == {
-        "conditional-or-skill-defaults": (383,),
-        "prerequisite-procedure": (383,),
-        "weapon-default-audit": (383,),
+        "contextual-default-procedure": (476,),
         "technology-level-context": (384,),
         "optional-rule-selection": (384,),
         "specialty-expansion": (385,),

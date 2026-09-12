@@ -23,7 +23,7 @@ that actually steers. A dispatched vehicle row additionally names
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from enum import StrEnum
 from types import MappingProxyType
 from typing import Final
@@ -39,6 +39,10 @@ from wayfarer.rules.conformance import (
 )
 from wayfarer.rules.gurps_characters import source
 from wayfarer.rules.gurps_checks import RepeatedAttemptPolicy, replay_success, success_roll
+from wayfarer.rules.mundane_skills.source_defaults import (
+    recorded_blockers,
+    recorded_defaults,
+)
 from wayfarer.rules.skill_types import ControllingAttribute as A
 from wayfarer.rules.skill_types import Difficulty as D
 from wayfarer.rules.skill_types import (
@@ -68,6 +72,7 @@ RUNTIME_PROCEDURE: Final = "runtime-procedure"
 SPECIALTY_EXPANSION: Final = "specialty-expansion"
 TECHNIQUE_EXPANSION: Final = "technique-expansion"
 CONDITIONAL_DEFAULTS: Final = "conditional-or-skill-defaults"
+CONTEXTUAL_DEFAULTS: Final = "contextual-default-procedure"
 PREREQUISITE_PROCEDURE: Final = "prerequisite-procedure"
 TECHNOLOGY_LEVEL: Final = "technology-level-context"
 
@@ -824,7 +829,7 @@ def _science_rows() -> tuple[TechnologyProcedure, ...]:
     return tuple(rows)
 
 
-_ROWS: Final = (
+_DECLARED_ROWS: Final = (
     *_vehicle_rows(),
     # B185 Crewman: the family row and the four concrete stations it expands into.
     TechnologyProcedure(
@@ -1228,6 +1233,25 @@ _ROWS: Final = (
     # is recorded as an open family, because a list would be an invention.
     *_science_rows(),
 )
+
+
+def _recorded(entry: TechnologyProcedure) -> TechnologyProcedure:
+    """Reconcile a task binding with the source-owned default record."""
+    transferred = dict(entry.transferred)
+    resolved = tuple(item for item in entry.resolved if item != CONDITIONAL_DEFAULTS)
+    if CONDITIONAL_DEFAULTS in entry.resolved or CONDITIONAL_DEFAULTS in transferred:
+        transferred.pop(CONDITIONAL_DEFAULTS, None)
+        if CONTEXTUAL_DEFAULTS in recorded_blockers(entry.id):
+            transferred[CONTEXTUAL_DEFAULTS] = (476,)
+    return replace(
+        entry,
+        defaults=recorded_defaults(entry.id),
+        resolved=tuple(dict.fromkeys(resolved)),
+        transferred=MappingProxyType(transferred),
+    )
+
+
+_ROWS: Final = tuple(_recorded(entry) for entry in _DECLARED_ROWS)
 # Every listed technology row, plus the concrete specialties this issue expands.
 PROCEDURES: Final = MappingProxyType({entry.id: entry for entry in _ROWS})
 

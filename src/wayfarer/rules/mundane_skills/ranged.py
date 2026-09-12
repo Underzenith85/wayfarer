@@ -15,7 +15,7 @@ Attack specialties, #362 cross-specialty and conditional defaults.
 """
 
 from collections.abc import Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from types import MappingProxyType
 from typing import Final, Literal
 
@@ -30,6 +30,10 @@ from wayfarer.rules.gurps_characters import source
 
 # The same shape #345 publishes, so one report field carries both groups.
 from wayfarer.rules.mundane_skills.social import UnsupportedScope
+from wayfarer.rules.mundane_skills.source_defaults import (
+    recorded_blockers,
+    recorded_defaults,
+)
 from wayfarer.rules.skill_types import ControllingAttribute as A
 from wayfarer.rules.skill_types import (
     DefaultCondition,
@@ -49,6 +53,7 @@ DISPATCH: Final = "combat.ranged-attack"
 RUNTIME_PROCEDURE: Final = "runtime-procedure"
 SPECIALTY_EXPANSION: Final = "specialty-expansion"
 CONDITIONAL_DEFAULTS: Final = "conditional-or-skill-defaults"
+CONTEXTUAL_DEFAULTS: Final = "contextual-default-procedure"
 TECHNOLOGY_LEVEL: Final = "technology-level-context"
 Hands = Literal[1, 2]
 MATCHING_TL: Final = (DefaultCondition(DefaultConditionKind.MATCHING_TECHNOLOGY_LEVEL),)
@@ -342,7 +347,7 @@ THROWN_SPECIALTIES: Final = (
     _thrown("stick", "Stick"),
 )
 
-_ROWS: Final = (
+_DECLARED_ROWS: Final = (
     # Muscle-powered launchers: a pinned missile, one shot, no recoil ladder.
     RangedProcedure(
         "skill:bow",
@@ -858,6 +863,25 @@ _ROWS: Final = (
         resolved=(RUNTIME_PROCEDURE,),
     ),
 )
+
+
+def _recorded(entry: RangedProcedure) -> RangedProcedure:
+    """Reconcile a combat binding with the source-owned default record."""
+    transferred = dict(entry.transferred)
+    resolved = tuple(item for item in entry.resolved if item != CONDITIONAL_DEFAULTS)
+    if CONDITIONAL_DEFAULTS in entry.resolved or CONDITIONAL_DEFAULTS in transferred:
+        transferred.pop(CONDITIONAL_DEFAULTS, None)
+        if CONTEXTUAL_DEFAULTS in recorded_blockers(entry.id):
+            transferred[CONTEXTUAL_DEFAULTS] = (476,)
+    return replace(
+        entry,
+        defaults=recorded_defaults(entry.id),
+        resolved=tuple(dict.fromkeys(resolved)),
+        transferred=MappingProxyType(transferred),
+    )
+
+
+_ROWS: Final = tuple(_recorded(entry) for entry in _DECLARED_ROWS)
 # Every listed ranged combat row, plus the concrete specialties this issue expands.
 PROCEDURES: Final = MappingProxyType({entry.id: entry for entry in _ROWS})
 
