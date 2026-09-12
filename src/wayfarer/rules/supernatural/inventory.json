@@ -6592,13 +6592,14 @@
         "communication-empathy"
       ],
       "blockers": [
-        232,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned communication empathy identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_communication_empathy.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -6967,13 +6968,14 @@
         "communication-empathy"
       ],
       "blockers": [
-        232,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned communication empathy identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_communication_empathy.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7441,13 +7443,14 @@
         "communication-empathy"
       ],
       "blockers": [
-        232,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned communication empathy identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_communication_empathy.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7465,13 +7468,14 @@
         "communication-empathy"
       ],
       "blockers": [
-        232,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned communication empathy identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_communication_empathy.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
@@ -7864,13 +7868,14 @@
         "communication-empathy"
       ],
       "blockers": [
-        232,
         191
       ],
       "source": "characters-third",
-      "status": "absent",
-      "supported_subset": "",
-      "evidence": [],
+      "status": "partial",
+      "supported_subset": "Pinned communication empathy identity, page, learning definition, private check, authority, replay and restart semantics.",
+      "evidence": [
+        "tests/test_spell_communication_empathy.py"
+      ],
       "members": [],
       "talent_cost": null,
       "power_modifier": null,
