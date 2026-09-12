@@ -22,8 +22,8 @@ from wayfarer.errors import (
 )
 from wayfarer.models import Record
 from wayfarer.orchestration.catalog import ScenarioCatalog
-from wayfarer.orchestration.scenario_documents import adapt_graph
-from wayfarer.transport.campaign_api import _identity
+from wayfarer.orchestration.scenario_documents import ScenarioDocuments, adapt_graph
+from wayfarer.transport.campaign_api import ORCHESTRATOR_KEY, _identity
 from wayfarer.transport.setup_api import TEMPLATES_KEY
 
 KEY = web.AppKey("scenario-catalog", ScenarioCatalog)
@@ -75,8 +75,6 @@ async def read(request: web.Request) -> web.Response:
     if request.path.endswith("/export"):
         return web.Response(text=value.revision.draft.content_json, content_type="application/json")
     if request.path.endswith("/preview"):
-        from wayfarer.orchestration.scenario_documents import ScenarioDocuments
-
         if value.revision.published is None:
             raise ValidationError("Preview requires a published revision")
         return web.json_response(
@@ -103,7 +101,6 @@ async def instantiate(request: web.Request) -> web.Response:
 
 
 async def _generate(app: web.Application, principal: str, job_id: str) -> None:
-    from wayfarer.transport.campaign_api import ORCHESTRATOR_KEY
 
     service = app[KEY]
     try:
@@ -140,7 +137,6 @@ def _start(app: web.Application, principal: str, job: ScenarioGenerationJob) -> 
 
 
 async def create_generation(request: web.Request) -> web.Response:
-    from wayfarer.transport.campaign_api import ORCHESTRATOR_KEY
 
     if ORCHESTRATOR_KEY not in request.app:
         raise ProviderError("Scenario generation is unavailable; choose a template or manual draft")
@@ -184,7 +180,6 @@ class RetryRequest(Record):
 
 
 async def retry_generation(request: web.Request) -> web.Response:
-    from wayfarer.transport.campaign_api import ORCHESTRATOR_KEY
 
     if ORCHESTRATOR_KEY not in request.app:
         raise ProviderError("Scenario generation is unavailable; saved drafts remain editable")

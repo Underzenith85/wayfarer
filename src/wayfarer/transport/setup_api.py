@@ -8,8 +8,11 @@ from wayfarer.engine.simulation.campaign.profiles import ProfileSelection
 from wayfarer.engine.simulation.campaign.setup import CreateSetup, SetupCommand
 from wayfarer.engine.simulation.campaign.studio import ScenarioGraph
 from wayfarer.errors import AuthorizationError, ValidationError
+from wayfarer.orchestration.catalog import ScenarioCatalog
 from wayfarer.orchestration.profiles import ProfileMigrations
 from wayfarer.orchestration.setup import SetupService
+from wayfarer.orchestration.workshop_options import CharacterPreviewRequest, preview_character
+from wayfarer.transport.campaign_api import ORCHESTRATOR_KEY, TOKENS_KEY, _identity, _json
 
 SETUP_KEY = web.AppKey("setup-service", SetupService)
 MIGRATIONS_KEY = web.AppKey("profile-migrations", ProfileMigrations)
@@ -18,7 +21,6 @@ TEMPLATES_KEY = web.AppKey("setup-templates", tuple[ScenarioGraph, ...])
 
 
 async def session(request: web.Request) -> web.Response:
-    from wayfarer.transport.campaign_api import ORCHESTRATOR_KEY, _identity
 
     return web.json_response(
         {
@@ -30,13 +32,11 @@ async def session(request: web.Request) -> web.Response:
 
 
 async def listing(request: web.Request) -> web.Response:
-    from wayfarer.transport.campaign_api import _identity
 
     return web.json_response(await request.app[SETUP_KEY].listing(principal_id=_identity(request)))
 
 
 async def create(request: web.Request) -> web.Response:
-    from wayfarer.transport.campaign_api import _identity, _json
 
     result = await request.app[SETUP_KEY].create(
         CreateSetup.model_validate_json(json.dumps(await _json(request))),
@@ -46,7 +46,6 @@ async def create(request: web.Request) -> web.Response:
 
 
 async def read(request: web.Request) -> web.Response:
-    from wayfarer.transport.campaign_api import _identity
 
     return web.json_response(
         await request.app[SETUP_KEY].read(
@@ -56,7 +55,6 @@ async def read(request: web.Request) -> web.Response:
 
 
 async def execute(request: web.Request) -> web.Response:
-    from wayfarer.transport.campaign_api import _identity, _json
 
     result = await request.app[SETUP_KEY].execute(
         request.match_info["cid"],
@@ -73,7 +71,6 @@ async def templates(request: web.Request) -> web.Response:
 
 async def profiles(request: web.Request) -> web.Response:
     """Registered rules profiles; unsupported ones list their unverified capabilities."""
-    from wayfarer.transport.campaign_api import _identity
 
     _identity(request)
     runtime = request.app[SETUP_KEY].profiles
@@ -82,8 +79,6 @@ async def profiles(request: web.Request) -> web.Response:
 
 
 async def character_preview(request: web.Request) -> web.Response:
-    from wayfarer.orchestration.workshop_options import CharacterPreviewRequest, preview_character
-    from wayfarer.transport.campaign_api import _identity, _json
 
     service = request.app[SETUP_KEY]
     campaign = await service.play.store.read(request.match_info["cid"])
@@ -106,7 +101,6 @@ def _migrations(request: web.Request) -> ProfileMigrations:
 
 
 async def migration_preview(request: web.Request) -> web.Response:
-    from wayfarer.transport.campaign_api import _identity
 
     query = request.query
     if "profile_id" not in query or "version" not in query:
@@ -124,7 +118,6 @@ async def migration_preview(request: web.Request) -> web.Response:
 
 
 async def migrate(request: web.Request) -> web.Response:
-    from wayfarer.transport.campaign_api import _identity, _json
 
     principal = _identity(request)
     entry = await _migrations(request).apply(
@@ -137,8 +130,6 @@ async def migrate(request: web.Request) -> web.Response:
 def install(app: web.Application, service: SetupService, graphs: tuple[ScenarioGraph, ...]) -> None:
     app[SETUP_KEY] = service
     app[TEMPLATES_KEY] = graphs
-    from wayfarer.orchestration.catalog import ScenarioCatalog
-    from wayfarer.transport.campaign_api import TOKENS_KEY
     from wayfarer.transport.catalog_api import install as install_catalog
 
     install_catalog(app, ScenarioCatalog(service, frozenset(app[TOKENS_KEY].values())))
@@ -161,7 +152,6 @@ def install(app: web.Application, service: SetupService, graphs: tuple[ScenarioG
 
 
 async def generate(request: web.Request) -> web.Response:
-    from wayfarer.transport.campaign_api import ORCHESTRATOR_KEY, _identity, _json
 
     result = await request.app[SETUP_KEY].generate(
         request.match_info["cid"],
