@@ -152,6 +152,13 @@ authoritative services. Accounting completion does not certify those procedures.
 
 ## Ranged combat procedures (#344)
 
+The parent inventory is complete: all 14 headline entries and their concrete
+specialty expansions reconcile to 51 bound, implemented rows with no remaining
+row blocker. The bounded child work for entangling attacks, TL-indexed weapons,
+mounts and crews, streams, launcher-assisted throws, innate attacks and ranged
+defaults is incorporated below. Broader combat effects explicitly published to
+other owners do not make an executable skill row unavailable.
+
 `rules/mundane_skills/ranged.py` is the only place a listed ranged combat row
 becomes executable. A row is implemented when the module binds it to the ranged
 dispatch that already resolves it (`orchestration/gurps_ranged`), declares the

@@ -224,7 +224,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.combat.aim` | yes | yes | partial | #104/#152; target-bound accumulation, disruption, bracing and typed fixed/variable scopes; broader ranged resolution #106/#173 |
 | `gurps.combat.ammunition` | yes | yes | partial | #106; [reservations, rated crossbow timing and reload conservation](gurps-ranged.md); #173 adds opt-in per-round loading and magazine unloading; #286 adds [typed projectile readiness and authored round unloading](gurps-projectile-readiness.md); certification remains partial |
 | `gurps.combat.rapid_fire` | no | yes | partial | #106; [burst, Dodge and burst-critical resolution](gurps-ranged.md); remaining #173 |
-| `gurps.combat.ranged_weapon_skills` | no | yes | partial | #344; [bound ranged combat skill procedures and their transferred rows](gurps-mundane-skills.md); remaining #354, #355, #357, #359, #360, #361, #362 |
+| `gurps.combat.ranged_weapon_skills` | no | yes | partial | #344 row-complete; [all 51 reconciled ranged rows and residual cross-system scope](gurps-mundane-skills.md#ranged-combat-procedures-344) |
 | `gurps.combat.unarmed` | yes | yes | partial | #108, #176; [unarmed critical effects, defenses, declared Wait reactions and remaining integrations](gurps-unarmed.md) |
 | `gurps.combat.grappling` | yes | yes | partial | #108, #176; [durable grips, Wait while engaged and remaining integrations](gurps-unarmed.md) |
 | `gurps.tactical.hex_movement` | no | yes | partial | #105; #329 adds lossless [hex-to-Basic conversion](mapless-combat.md#hex-to-basic-conversion) for representable battlefields |
