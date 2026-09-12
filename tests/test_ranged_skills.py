@@ -264,6 +264,14 @@ def test_no_listed_row_is_left_transferred() -> None:
         assert set(procedure.blockers) <= {CONDITIONAL_DEFAULTS}, identifier
 
 
+def test_issue_344_owner_inventory_is_complete() -> None:
+    """The parent stays complete after all bounded ranged child work lands."""
+    rows = [row for row in inventory() if row.procedure_owner == 344]
+    assert len(rows) == 51
+    assert all(row.bound and not row.blockers for row in rows)
+    assert all(row.implementation == "implemented" for row in rows)
+
+
 def test_family_and_out_of_class_weapons_are_refused_before_dice() -> None:
     def check(identifier: str, **changes: object) -> str:
         fields: dict[str, object] = {
