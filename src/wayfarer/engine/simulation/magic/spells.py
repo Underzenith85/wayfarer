@@ -36,13 +36,19 @@ from wayfarer.engine.simulation.magic.backfires import (
 )
 from wayfarer.engine.simulation.magic.backfires import require_settled as backfires_settled
 from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
+from wayfarer.engine.simulation.magic.spell_state import SpellEffect as SpellEffect
+from wayfarer.engine.simulation.magic.spell_state import SpellEvent as SpellEvent
+from wayfarer.engine.simulation.magic.spell_state import SpellId as SpellId
+from wayfarer.engine.simulation.magic.spell_state import SpellResult as SpellResult
+from wayfarer.engine.simulation.magic.spell_state import active_spells as active_spells
+from wayfarer.engine.simulation.magic.spell_state import break_daze
+from wayfarer.engine.simulation.magic.spell_state import event_id as event_id
+from wayfarer.engine.simulation.magic.spell_state import latest as latest
 from wayfarer.engine.simulation.resources import Command, Receipt, ResourceEvent, ResourceState
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.models import Id, Record
 
 PROFILE: Literal["gurps-basic-set-4e-2004"] = "gurps-basic-set-4e-2004"
-PREFIX = "spell:"
-SpellId = Literal["light", "daze", "fireball", "create-fire"]
 
 
 class SpellSpec(Record):
@@ -154,112 +160,6 @@ class SpellCommand(Command):
     energy: int = Field(default=1, ge=1, le=100, exclude_if=lambda value: value == 1)
     hp_energy: int = Field(default=0, ge=0, le=1000, exclude_if=lambda value: value == 0)
     position: tuple[int, int] | None = Field(default=None, exclude_if=lambda value: value is None)
-
-
-class SpellEffect(Record):
-    cast_id: Id
-    actor_id: Id
-    target_id: Id
-    spell_id: SpellId
-    build_revision: Id
-    phase: Literal["casting", "active", "ended"]
-    started_at: int
-    ready_at: int
-    expires_at: int | None = None
-    skill: int
-    cost: int
-    maintenance: int
-    hp_at_start: int
-    radius: int = 1
-    energy: int = 1
-    distracted: bool = False
-    execute_effects: bool = False
-    location_id: str | None = None
-    encounter_id: str | None = None
-    position: tuple[int, int] | None = None
-    geometry: Literal["square", "hex"] = "square"
-    light_radius: int = Field(default=2, ge=0, le=100)
-    light_penalty: int = Field(default=-3, ge=-9, le=0)
-    concentration_seconds: int = 1
-    missile_seconds: int = 1
-    hp_energy: int = 0
-    execution_version: Literal[1, 2] = 1
-    required_turns: int | None = None
-    concentrating: bool = False
-    reversed: bool = False
-    ceremonial: CeremonialPlan | None = Field(default=None, exclude_if=lambda value: value is None)
-    ceremonial_ht: tuple[tuple[Id, int], ...] = Field(
-        default=(), exclude_if=lambda value: not value
-    )
-    area: AreaSelection | None = Field(default=None, exclude_if=lambda value: value is None)
-
-
-class SpellResult(Record):
-    outcome: Literal[
-        "casting",
-        "active",
-        "failed",
-        "resisted",
-        "cancelled",
-        "interrupted",
-        "critical-failure",
-        "released",
-        "remembered",
-        "forgotten",
-    ]
-    energy_spent: int = 0
-    hp_spent: int = Field(default=0, exclude_if=lambda value: value == 0)
-    checks: tuple[CheckTrace, ...] = ()
-
-
-class SpellEvent(Record):
-    effect: SpellEffect
-    result: SpellResult
-
-
-def event_id(command_id: str) -> str:
-    return PREFIX + hashlib.sha256(command_id.encode()).hexdigest()
-
-
-def latest(state: ResourceState) -> dict[str, SpellEffect]:
-    found: dict[str, SpellEffect] = {}
-    for event in state.events:
-        if event.id.startswith(PREFIX):
-            effect = SpellEvent.model_validate_json(event.kind).effect
-            found[effect.cast_id] = effect
-    return found
-
-
-def active_spells(state: ResourceState) -> tuple[SpellEffect, ...]:
-    return tuple(
-        e
-        for e in latest(state).values()
-        if e.phase == "active" and (e.expires_at is None or state.game_time < e.expires_at)
-    )
-
-
-def interrupt_spells(
-    state: ResourceState, actor_id: str, command_id: str, *, distraction: bool = False
-) -> ResourceState:
-    events = []
-    for effect in latest(state).values():
-        if effect.actor_id != actor_id or effect.phase != "casting":
-            continue
-        effect = effect.model_copy(
-            update={"distracted": True} if distraction else {"phase": "ended"}
-        )
-        record = SpellEvent(
-            effect=effect, result=SpellResult(outcome="casting" if distraction else "interrupted")
-        )
-        events.append(
-            ResourceEvent(
-                id=event_id(command_id + ":interrupt:" + effect.cast_id),
-                at=state.game_time,
-                target_id=actor_id,
-                kind=record.model_dump_json(),
-            )
-        )
-    return state.model_copy(update={"events": state.events + tuple(events)})
 
 
 def cost_reduction(skill: int) -> int:
@@ -800,10 +700,6 @@ def apply_spell(
             rng=rng,
         )
     if outcome == "resisted":
-        # deferred: spells -> effects -> spells.
-        # Casting can break a daze, and a daze is an effect of a cast spell.
-        from wayfarer.engine.simulation.magic.effects import break_daze
-
         state = break_daze(state, context.target_id, command.id)
     state = state.model_copy(
         update={

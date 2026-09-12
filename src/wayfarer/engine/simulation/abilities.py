@@ -8,6 +8,9 @@ from wayfarer.engine.rules.gurps_checks import Contestant, resistance_roll, succ
 from wayfarer.engine.rules.supernatural.abilities import PROFILE, fatigue_cost, validate_binding
 from wayfarer.engine.rules.tables.ranged import range_penalty
 from wayfarer.engine.rules.traits.base import TraitOptions
+from wayfarer.engine.simulation.ability_state import PREFIX
+from wayfarer.engine.simulation.ability_state import effects as effects
+from wayfarer.engine.simulation.ability_state import history as history
 from wayfarer.engine.simulation.ability_types import (
     AbilityChannel,
     AbilityCommand,
@@ -20,11 +23,11 @@ from wayfarer.engine.simulation.ability_types import (
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers, retching_penalty
 from wayfarer.engine.simulation.health.fatigue import ContinueExertion, FatigueCost, apply_fatigue
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
+from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
+from wayfarer.engine.simulation.magic.spell_state import interrupt_spells
 from wayfarer.engine.simulation.resources import ResourceEvent, ResourceState
 from wayfarer.engine.world import World
 from wayfarer.errors import ConflictError, ValidationError
-
-PREFIX = "ability:"
 
 
 def internal_id(command_id: str, purpose: str = "result") -> str:
@@ -48,26 +51,6 @@ def record(resources: ResourceState, command: AbilityCommand, event: AbilityEven
     )
 
 
-def history(resources: ResourceState) -> tuple[tuple[int, AbilityEvent], ...]:
-    return tuple(
-        (e.at, AbilityEvent.model_validate_json(e.kind))
-        for e in resources.events
-        if e.id.startswith(PREFIX)
-    )
-
-
-def effects(resources: ResourceState) -> tuple[AbilityEffect, ...]:
-    latest: dict[tuple[str, str], AbilityEffect] = {}
-    for _, event in history(resources):
-        if event.effect:
-            latest[event.actor_id, event.ability_id] = event.effect
-    return tuple(
-        e
-        for e in latest.values()
-        if e.active and (e.expires_at is None or resources.game_time < e.expires_at)
-    )
-
-
 def damage_resistance(
     resources: ResourceState, actor_id: str, *, build_revision: str | None = None
 ) -> int:
@@ -86,10 +69,6 @@ def interrupt_concentration(
     resources: ResourceState, actor_id: str, command_id: str, *, distraction: bool = False
 ) -> ResourceState:
     """Other maneuvers abandon concentration; an active defense needs Will-3."""
-    # deferred: abilities -> magic.spells -> magic.concentration -> abilities.
-    # An ability can interrupt a spell, and concentration is itself an ability.
-    from wayfarer.engine.simulation.magic.spells import interrupt_spells
-
     resources = interrupt_spells(resources, actor_id, command_id, distraction=distraction)
     additions = []
     for effect in effects(resources):
@@ -187,9 +166,6 @@ def apply_ability(
     if resources.revision != command.expected_revision:
         raise ConflictError("Ability revision changed")
     if command.kind in ("activate", "analyze"):
-        # deferred: abilities -> magic.concentration -> abilities, as above.
-        from wayfarer.engine.simulation.magic.concentration import require_idle_concentration
-
         require_idle_concentration(resources, command.actor_id)
     validate_binding(spec, context.level, context.options)
     if command.ability_id != spec.definition_id:
