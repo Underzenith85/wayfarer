@@ -91,8 +91,6 @@ def move_vehicle(
 ) -> Transport:
     if t.status != "controlled":
         raise ValidationError("Resolve vehicle control consequences before movement")
-    if t.locomotion == "ground-mount":
-        raise ValidationError("Mounted maneuvers remain owned by #396")
     if board.profile_id != t.profile_id:
         raise ValidationError("Vehicle and map rules profiles differ")
     if command.end_speed > t.top_speed:
@@ -277,12 +275,14 @@ def control_vehicle(
     ht: int,
     modifiers: tuple[Modifier, ...] = (),
 ) -> Transport:
-    if t.locomotion == "ground-mount":
-        raise ValidationError("Mount control uses Riding and the mounted loss table")
     recovering = t.locomotion == "air" and t.status in ("diving", "stalled")
     if t.status not in ("controlled", "control-required") and not recovering:
         raise ValidationError("Vehicle has unresolved control aftermath")
-    target = command.skill + t.handling + command.modifier - (5 if recovering else 0)
+    target = (
+        command.skill + command.modifier + t.mount_riding_penalty
+        if t.locomotion == "ground-mount"
+        else command.skill + t.handling + command.modifier - (5 if recovering else 0)
+    )
     check = evaluate_success(
         target,
         modifiers,
@@ -314,7 +314,40 @@ def control_vehicle(
     else:
         severe = check.outcome == Outcome.CRITICAL_FAILURE or -check.margin > t.stability
         changes.update(aim_lost=True, attack_penalty=min(-1, check.margin))
-        if t.locomotion.startswith("ground-"):
+        if t.locomotion == "ground-mount":
+            loss_dice: list[int] = []
+            total = 4
+            while total == 4:
+                pair = (rng.randbelow(6) + 1, rng.randbelow(6) + 1)
+                loss_dice.extend(pair)
+                total = sum(pair)
+            traces.append(
+                VehicleTrace(
+                    command_id=command.id,
+                    reason="mount-loss-table",
+                    actor_id=t.body_id,
+                    dice=tuple(loss_dice),
+                    target=total,
+                )
+            )
+            changes["mount_loss_total"] = total
+            if total == 2:
+                changes.update(status="rider-separated", rider_fall_yards=3)
+            elif total == 3:
+                changes.update(status="rider-separated", rider_fall_yards=2)
+            elif total in (6, 7):
+                changes.update(status="exhausted", speed=min(2, t.speed))
+            elif total in (8, 9):
+                changes.update(
+                    status="controlled", mount_riding_penalty=max(-20, t.mount_riding_penalty - 1)
+                )
+            elif total == 11:
+                changes.update(status="control-required", mount_riding_penalty=-3)
+            elif total == 12:
+                changes.update(status="mount-fallen", rider_fall_yards=3, mount_fall_yards=2)
+            else:
+                changes["status"] = "control-required"
+        elif t.locomotion.startswith("ground-"):
             changes["status"] = "crashed" if severe else "skidding"
             if severe:
                 changes["skid_thirds"] = t.speed

@@ -211,9 +211,7 @@ def test_mechanic_is_derived_from_the_vehicle_specialties_not_authored_again() -
     assert PROCEDURES["skill:mechanic-motorboat"].dispatch == "object.repair"
     # Repairing a machine needs no vehicle-movement capability of its own.
     assert require_task(PROFILE, "skill:mechanic-motorboat").activation_blockers == ()
-    assert require_task(PROFILE, "skill:boating-motorboat").activation_blockers == (
-        "gurps.vehicles.movement",
-    )
+    assert require_task(PROFILE, "skill:boating-motorboat").activation_blockers == ()
 
 
 def test_the_two_electronics_rows_share_their_families_except_computers() -> None:

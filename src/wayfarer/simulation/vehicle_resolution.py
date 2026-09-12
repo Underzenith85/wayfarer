@@ -1,5 +1,6 @@
 """Version-two vehicle dispatch under the existing transport transaction."""
 
+from decimal import Decimal
 from fractions import Fraction
 from math import ceil
 from typing import Literal
@@ -8,6 +9,7 @@ from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.rules.checks import RandomSource
 from wayfarer.rules.gurps_checks import success_roll
 from wayfarer.rules.hazard_types import HazardSchedule, HazardSpec, require_hazards_settled
+from wayfarer.rules.physical import falling_damage
 from wayfarer.rules.ranged_tables import range_penalty
 from wayfarer.rules.recovery_types import require_settled
 from wayfarer.rules.transport_types import Transport
@@ -15,7 +17,7 @@ from wayfarer.rules.vehicle_capabilities import VEHICLE_OPERATIONS
 from wayfarer.rules.vehicle_types import VehicleTrace, WaterOccupantCheck
 from wayfarer.simulation.condition_checks import check_modifiers
 from wayfarer.simulation.hex_geometry import Hex, HexBattlefield, neighbor
-from wayfarer.simulation.injury import Wound, apply_injury
+from wayfarer.simulation.injury import Wound, apply_injury, impaired_movement
 from wayfarer.simulation.objects import DamageObject, apply_object
 from wayfarer.simulation.resources import ResourceEngine, ResourceState
 from wayfarer.simulation.vehicle_collisions import (
@@ -28,6 +30,7 @@ from wayfarer.simulation.vehicle_collisions import (
 from wayfarer.simulation.vehicle_commands import (
     NavigateSpace,
     ResolveAirAftermath,
+    ResolveMountSeparation,
     ResolveVehicleEjection,
     ResolveWaterAftermath,
     UpgradeVehicle,
@@ -44,6 +47,7 @@ VehicleCommand = (
     | ResolveAirAftermath
     | ResolveWaterAftermath
     | NavigateSpace
+    | ResolveMountSeparation
     | VehicleControl
     | VehicleImpact
     | VehicleManeuver
@@ -124,11 +128,10 @@ def resolve_vehicle(
         )
     if t.mechanics_version != 2:
         raise ValidationError("Vehicle command requires explicit transport version 2 migration")
-    if t.locomotion == "ground-mount":
-        raise ValidationError("Version-two vehicle commands do not implement mounted combat")
     if command.kind not in VEHICLE_OPERATIONS[t.locomotion]:
         raise ValidationError("Vehicle operation requires an unsupported navigation adapter")
-    durability(engine, state, t.body_id)
+    if t.locomotion != "ground-mount":
+        durability(engine, state, t.body_id)
     occupied |= frozenset(
         cell
         for vehicle in state.transports
@@ -147,10 +150,19 @@ def resolve_vehicle(
     if isinstance(command, VehicleManeuver):
         if t.last_turn == state.game_time:
             raise ConflictError("Vehicle already moved this second")
-        item = next(i for i in state.items if i.id == t.body_id)
-        assert item.condition is not None
-        if item.condition.disabled or item.condition.hp <= 0:
-            raise ValidationError("Vehicle requires damage/stress resolution before movement")
+        item = next((i for i in state.items if i.id == t.body_id), None)
+        if t.locomotion == "ground-mount":
+            mount_pool = next(p for p in state.pools if p.id == "hp:" + t.body_id)
+            if command.end_speed > impaired_movement(mount_pool, t.acceleration):
+                raise ValidationError("Mount speed exceeds its current ordinary movement")
+            profile_ht = 10
+        else:
+            assert item is not None and item.condition is not None
+            if item.condition.disabled or item.condition.hp <= 0:
+                raise ValidationError("Vehicle requires damage/stress resolution before movement")
+            profile = engine.specs[item.definition_id].durability
+            assert profile is not None
+            profile_ht = profile.ht
         if t.subhex_thirds:
             raise ValidationError("Fractional skid endpoint requires tactical pose reconciliation")
         if board is None:
@@ -161,8 +173,6 @@ def resolve_vehicle(
             if v.id != t.id and v.altitude == t.altitude
             for c in footprint(v)
         )
-        profile = engine.specs[item.definition_id].durability
-        assert profile is not None
         affected = (
             move_vehicle(
                 t,
@@ -170,14 +180,17 @@ def resolve_vehicle(
                 board,
                 occupied | other_cells,
                 rng,
-                profile.ht,
+                profile_ht,
                 check_modifiers(state, t.operator_id, "dx"),
             ).model_copy(update={"last_turn": state.game_time}),
         )
     elif isinstance(command, VehicleControl):
-        item = next(i for i in state.items if i.id == t.body_id)
-        profile = engine.specs[item.definition_id].durability
-        assert profile is not None
+        profile_ht = 10
+        if t.locomotion != "ground-mount":
+            item = next(i for i in state.items if i.id == t.body_id)
+            profile = engine.specs[item.definition_id].durability
+            assert profile is not None
+            profile_ht = profile.ht
         deck = t.open_cabin and t.locomotion == "water"
         if deck and (
             board is None
@@ -193,7 +206,7 @@ def resolve_vehicle(
         if recovering and t.recovery_turn == state.game_time:
             raise ConflictError("Air recovery already attempted this second")
         controlled = control_vehicle(
-            t, command, rng, profile.ht, check_modifiers(state, t.operator_id, "dx")
+            t, command, rng, profile_ht, check_modifiers(state, t.operator_id, "dx")
         )
         if recovering:
             controlled = controlled.model_copy(update={"recovery_turn": state.game_time})
@@ -324,6 +337,97 @@ def resolve_vehicle(
                     }
                 ),
             )
+    elif isinstance(command, ResolveMountSeparation):
+        mounted_collision = bool(command.collision_speed)
+        if t.locomotion != "ground-mount" or (
+            not mounted_collision and t.status not in ("rider-separated", "mount-fallen")
+        ):
+            raise ValidationError("Mount has no pending rider separation")
+        if mounted_collision and t.status != "controlled":
+            raise ValidationError("Mounted collision requires a controlled, attached pair")
+        if health is None or any(a not in health for a in (t.operator_id, t.body_id)):
+            raise ValidationError("Mount separation requires compiled rider and mount HT")
+        rider_yards = t.rider_fall_yards
+        riding_trace: VehicleTrace | None = None
+        if t.status == "mount-fallen":
+            if command.riding_skill is None:
+                raise ValidationError("A falling mount requires the rider's compiled Riding skill")
+            riding = success_roll(
+                t.profile_id,
+                max(1, command.riding_skill - 2 + t.mount_riding_penalty),
+                check_modifiers(state, t.operator_id, "dx"),
+                rng=rng,
+            )
+            rider_yards = 2 if riding.outcome.succeeded else 3
+            riding_trace = VehicleTrace(
+                command_id=command.id,
+                reason="mount-fall-riding",
+                actor_id=t.operator_id,
+                dice=riding.dice,
+                target=riding.effective_target,
+                margin=riding.margin,
+            )
+        elif command.riding_skill is not None:
+            raise ValidationError("Riding follow-up only applies when the mount falls")
+        from wayfarer.simulation.transport import collision_dice
+
+        traces: list[VehicleTrace] = []
+        for actor, yards in (
+            (t.operator_id, rider_yards),
+            (t.body_id, t.mount_fall_yards),
+        ):
+            if not yards and not mounted_collision:
+                continue
+            pool = next(p for p in state.pools if p.id == "hp:" + actor)
+            damage, dice = roll_damage(
+                collision_dice(pool.maximum, command.collision_speed, hard=True)
+                if mounted_collision
+                else falling_damage(pool.maximum, Decimal(yards)),
+                rng,
+            )
+            state, result = apply_injury(
+                state,
+                Wound(
+                    id=internal_id(command.id, "fall:" + actor),
+                    actor_id=actor,
+                    expected_revision=state.revision,
+                    basic_damage=damage,
+                    resistance=0,
+                    damage_type="cr",
+                    injury_source="area",
+                ),
+                ht=health[actor],
+                rng=rng,
+                system=True,
+            )
+            traces.append(
+                VehicleTrace(
+                    command_id=command.id,
+                    reason="mount-separation-collision"
+                    if mounted_collision
+                    else "mount-separation-fall",
+                    actor_id=actor,
+                    dice=dice,
+                    basic_damage=damage,
+                    injury=result.injury,
+                )
+            )
+        affected = (
+            t.model_copy(
+                update={
+                    "occupants": (),
+                    "status": "crashed",
+                    "speed": 0,
+                    "rider_fall_yards": 0,
+                    "mount_fall_yards": 0,
+                    "traces": (
+                        *t.traces,
+                        *((riding_trace,) if riding_trace is not None else ()),
+                        *traces,
+                    ),
+                }
+            ),
+        )
     elif isinstance(command, ResolveAirAftermath):
         if t.locomotion != "air" or t.status not in ("drifting", "diving", "stalled"):
             raise ValidationError("Aircraft has no pending motion aftermath")

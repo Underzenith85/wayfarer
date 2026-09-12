@@ -101,6 +101,13 @@ class NavigateSpace(Command):
     miles_per_hex: int = Field(default=0, ge=0, le=1000000000)
 
 
+class ResolveMountSeparation(Command):
+    kind: Literal["vehicle-resolve-mount-separation"] = "vehicle-resolve-mount-separation"
+    transport_id: str
+    riding_skill: int | None = Field(default=None, ge=1, le=50)
+    collision_speed: int = Field(default=0, ge=0, le=1000000000)
+
+
 class UpgradeVehicle(Command):
     kind: Literal["vehicle-upgrade-v2"] = "vehicle-upgrade-v2"
     transport_id: str

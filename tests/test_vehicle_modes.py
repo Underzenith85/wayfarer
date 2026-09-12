@@ -28,6 +28,7 @@ from wayfarer.simulation.vehicle_collisions import collision_exchange, passenger
 from wayfarer.simulation.vehicle_commands import (
     NavigateSpace,
     ResolveAirAftermath,
+    ResolveMountSeparation,
     ResolveVehicleEjection,
     ResolveWaterAftermath,
     VehicleControl,
@@ -45,6 +46,12 @@ def fixture(**changes: object) -> tuple[ResourceEngine, ResourceState]:
         {**state.transports[0].model_dump(), "mechanics_version": 2, "occupants": ("a",), **changes}
     )
     return engine, state.model_copy(update={"transports": (t,)})
+
+
+def mount_fixture(**changes: object) -> tuple[ResourceEngine, ResourceState]:
+    engine, state = legacy_fixture(mount=True)
+    mount = state.transports[0].model_copy(update={"mechanics_version": 2, **changes})
+    return engine, state.model_copy(update={"transports": (mount,)})
 
 
 def map_fixture(
@@ -135,6 +142,10 @@ def test_b466_ground_cruising_speed_tables_and_road_bound_cap() -> None:
     assert ground_cruising_speed(60, 3, "ground-tracked", "very-bad") == 9
     assert ground_cruising_speed(60, 3, "ground-walking", "very-bad") == 12
     assert ground_cruising_speed(60, 3, "ground-wheeled", "good") == 75
+    assert (
+        ground_cruising_speed(60, 3, "ground-wheeled", "average", road_bound=True, on_road=False)
+        == 6
+    )
 
 
 def test_authored_vertical_flight_uses_the_three_dimensional_terrain_clearance() -> None:
@@ -418,10 +429,83 @@ def test_space_collision_over_exact_dice_bound_rejects_before_randomness() -> No
             health={"a": 12},
             rng=RecordedDice([]),
         )
-    assert (
-        ground_cruising_speed(60, 3, "ground-wheeled", "average", road_bound=True, on_road=False)
-        == 6
+
+
+def test_mount_is_a_creature_behind_the_transport_adapter_and_moves_on_basic_move() -> None:
+    engine, state = mount_fixture()
+    moved = apply_transport(
+        engine,
+        state,
+        maneuver(3, (0, 0, 0)),
+        system=True,
+        board=map_fixture(),
     )
+    assert (moved.transports[0].q, moved.transports[0].speed) == (3, 3)
+    assert state.transports[0].body_id in engine.actors
+    assert all(i.id != state.transports[0].body_id for i in state.items)
+
+
+def test_failed_riding_uses_mount_loss_table_then_separates_and_injures_rider() -> None:
+    engine, state = mount_fixture(speed=3)
+    lost = apply_transport(
+        engine,
+        state,
+        VehicleControl(
+            id="riding", actor_id="a", expected_revision=0, transport_id="ride", skill=12
+        ),
+        system=True,
+        rng=RecordedDice([6, 6, 6, 1, 1]),
+    )
+    assert (lost.transports[0].status, lost.transports[0].mount_loss_total) == (
+        "rider-separated",
+        2,
+    )
+    separated = apply_transport(
+        engine,
+        lost,
+        ResolveMountSeparation(
+            id="separate", actor_id="a", expected_revision=1, transport_id="ride"
+        ),
+        system=True,
+        health={"a": 12, "b": 12},
+        rng=RecordedDice([1, 1]),
+    )
+    assert separated.transports[0].occupants == ()
+    assert separated.transports[0].status == "crashed"
+    assert next(p for p in separated.pools if p.id == "hp:a").current < 10
+    assert (
+        apply_transport(
+            engine,
+            separated,
+            ResolveMountSeparation(
+                id="separate", actor_id="a", expected_revision=1, transport_id="ride"
+            ),
+            system=True,
+            health={"a": 12, "b": 12},
+            rng=RecordedDice([]),
+        )
+        == separated
+    )
+
+
+def test_mounted_collision_separates_and_injures_both_creatures() -> None:
+    engine, state = mount_fixture(speed=5)
+    separated = apply_transport(
+        engine,
+        state,
+        ResolveMountSeparation(
+            id="mount-impact",
+            actor_id="a",
+            expected_revision=0,
+            transport_id="ride",
+            collision_speed=5,
+        ),
+        system=True,
+        health={"a": 12, "b": 12},
+        rng=RecordedDice([1, 1]),
+    )
+    assert [p.current for p in separated.pools] == [9, 9]
+    assert separated.transports[0].status == "crashed"
 
 
 def test_authored_slope_costs_and_automatic_terrain_control_loss() -> None:
@@ -1000,15 +1084,16 @@ def test_upgrade_is_explicit_atomic_and_replayable() -> None:
         apply_transport(engine, initial, command)
 
 
-def test_operation_matrix_does_not_advertise_unimplemented_navigation() -> None:
+def test_operation_matrix_advertises_completed_movement_and_pending_combat() -> None:
     from wayfarer.rules.conformance import CoverageStatus, capability
     from wayfarer.rules.vehicle_capabilities import VEHICLE_OPERATIONS
 
     assert "vehicle-maneuver" not in VEHICLE_OPERATIONS["space"]
-    assert not VEHICLE_OPERATIONS["ground-mount"]
+    assert "vehicle-maneuver" in VEHICLE_OPERATIONS["ground-mount"]
+    assert "vehicle-resolve-mount-separation" in VEHICLE_OPERATIONS["ground-mount"]
     assert "vehicle-rollover" in VEHICLE_OPERATIONS["ground-tracked"]
     assert "vehicle-rollover" not in VEHICLE_OPERATIONS["water"]
-    assert capability("gurps.vehicles.movement").status == CoverageStatus.PARTIAL
+    assert capability("gurps.vehicles.movement").status == CoverageStatus.VERIFIED
     assert capability("gurps.vehicles.combat").status == CoverageStatus.PARTIAL
 
 

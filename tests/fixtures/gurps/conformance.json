@@ -5454,6 +5454,25 @@
       "provenance": "Independent B15-17 numeric comparison; third printing, February 2008. Frozen baseline reconciliation remains #191.",
       "operation": "secondary",
       "statistics_revision": 2
+    },
+    {
+      "id": "basic-vehicle-movement-coverage",
+      "capability_id": "gurps.vehicles.movement",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B394-397, B430-432, B466-470",
+      "input": {
+        "locomotion_modes": 10,
+        "required_concerns": ["control-loss", "collision", "occupant-injury", "restart"]
+      },
+      "expected": {
+        "verified_modes": 10,
+        "residuals": []
+      },
+      "rounding": "none",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent per-mode audit backed by source-entered vehicle fixtures in tests/test_vehicle_modes.py."
     }
   ]
 }

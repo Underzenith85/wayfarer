@@ -374,11 +374,9 @@ def test_only_a_dispatched_row_carries_its_hook() -> None:
         PROCEDURES["skill:driving"].definition()
 
 
-def test_the_capability_registry_gates_activation_not_the_procedure() -> None:
-    """A vehicle row executes and is tested; #358 still gates offering it in play."""
-    assert require_task(PROFILE, "skill:driving-automobile").activation_blockers == (
-        "gurps.vehicles.movement",
-    )
+def test_verified_vehicle_movement_allows_skill_activation() -> None:
+    """Completed vehicle mechanics allow their source-entered skills in play."""
+    assert require_task(PROFILE, "skill:driving-automobile").activation_blockers == ()
     assert require_task(PROFILE, "skill:research").activation_blockers == ()
     rows = {entry.id: entry for entry in inventory()}
     assert 358 in rows["skill:driving-automobile"].followup_issues

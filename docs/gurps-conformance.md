@@ -225,7 +225,7 @@ Status and implementation ownership mirror `CAPABILITIES`. None is certified. Re
 | `gurps.world.environmental_hazards` | yes | yes | partial | #110; [persistent exposure schedules](gurps-hazards.md) |
 | `gurps.magic.spellcasting` | no | yes | partial | #117/#171; approved builds, representative effects; remaining variants below |
 | `gurps.supernatural.abilities` | no | yes | partial | #118 representative execution complete; exhaustive audit #119 |
-| `gurps.vehicles.movement` | no | yes | partial | #358; [vehicle operation audit](gurps-vehicles.md); ground, air, water, and space complete in #392-#395, remaining #396 |
+| `gurps.vehicles.movement` | no | yes | verified | #358; [vehicle operation audit](gurps-vehicles.md); all ten modes complete in #392-#396 |
 | `gurps.vehicles.combat` | no | yes | partial | #358; [vehicle operation audit](gurps-vehicles.md); remaining #397 |
 
 Profile registration and explicit migration (#96) are infrastructure, not
@@ -992,14 +992,12 @@ closed after landing a ground slice and #207 closed after expanding the modes,
 so both capability rows are owned by #358 from here, and their status is derived
 from the audit rather than hand-set. The five non-mounted ground modes qualify
 after #392, air qualifies after #393, and water/underwater qualify after #394.
-Space qualifies after #395; `ground-mount` carries no version-two operation
-(#396). Vehicle combat remains
-partial under #397. The audit rejects a declared status or owner that
+Space qualifies after #395 and creature-backed mounted operation qualifies after
+#396, so vehicle movement is verified. Vehicle combat remains partial under
+#397. The audit rejects a declared status or owner that
 disagrees with it. The #346 vehicle skill procedures publish
-`gurps.vehicles.movement` as an activation blocker through
-`mundane_skills.technology.unsupported_scope`, reported as
-`unverified_activation_scope`, so the scenario, character and LLM validators see
-the gap rather than inferring support. Evidence is in
+`gurps.vehicles.movement` as an activation dependency, but the verified row is
+not reported by `mundane_skills.technology.unsupported_scope`. Evidence is in
 `tests/test_vehicle_coverage.py`.
 
 ### Version-two vehicle operations (#207)
