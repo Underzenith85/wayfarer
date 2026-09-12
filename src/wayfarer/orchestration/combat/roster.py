@@ -9,11 +9,13 @@ from wayfarer.engine.simulation.combat.commands import (
     EndEncounter,
     HexJoinPlacement,
     JoinEncounter,
+    SetEncounterOpposition,
     SquareJoinPlacement,
     TypedCombatCommand,
     WithdrawEncounter,
 )
 from wayfarer.engine.simulation.combat.encounter import (
+    CombatAllegiance,
     Combatant,
     CombatResult,
     CombatWithdrawal,
@@ -36,6 +38,18 @@ from wayfarer.orchestration.combat.context import CombatContext, CombatStep
 from wayfarer.orchestration.play import PlayService
 
 
+def _reinforcement_allegiance(
+    encounter: Encounter, command: JoinEncounter, actor_id: str
+) -> CombatAllegiance | None:
+    if command.neutral and command.side_id is not None:
+        raise ValidationError("Reinforcement cannot be both neutral and assigned to a side")
+    if not encounter.allegiances:
+        return None
+    if command.side_id is None and not command.neutral:
+        raise ValidationError("Explicit opposition requires a reinforcement allegiance")
+    return CombatAllegiance(actor_id=actor_id, side_id=command.side_id)
+
+
 def _join(
     state: PlayState, command: TypedCombatCommand, encounter: Encounter, context: CombatContext
 ) -> CombatStep:
@@ -53,6 +67,7 @@ def _join(
     ):
         raise ConflictError("Reinforcements join between resolved combat stages")
     joining_actor_id = command.joining_actor_id or command.actor_id
+    joining_allegiance = _reinforcement_allegiance(encounter, command, joining_actor_id)
     if joining_actor_id in encounter.turn_order:
         raise ConflictError("Actor already participates")
     prior_withdrawal = next(
@@ -180,6 +195,13 @@ def _join(
             }
         )
     encounter = encounter.add_participant(participant)
+    if joining_allegiance is not None:
+        encounter = encounter.set_opposition(
+            allegiances=encounter.allegiances + (joining_allegiance,),
+            oppositions=encounter.oppositions,
+            completion_policy=encounter.completion_policy,
+            reinforcements_expected=encounter.reinforcements_expected,
+        )
     joined_participants = encounter.participants
     order = tuple(
         p.actor_id for p in sorted(joined_participants, key=lambda p: (-p.initiative, p.actor_id))
@@ -253,6 +275,38 @@ def _end(
     return CombatStep(state, encounter, resources, result)
 
 
+def _set_opposition(
+    state: PlayState, command: TypedCombatCommand, encounter: Encounter, context: CombatContext
+) -> CombatStep:
+    """Apply an authoritative allegiance/lifecycle declaration at a resolved boundary."""
+    assert isinstance(command, SetEncounterOpposition)
+    if (
+        encounter.status != "active"
+        or encounter.pending_defense is not None
+        or encounter.pending_unarmed is not None
+        or encounter.wait_interrupt is not None
+        or encounter.blocked_reason
+    ):
+        raise ConflictError("Opposition can change only between resolved combat stages")
+    encounter = encounter.set_opposition(
+        allegiances=command.allegiances,
+        oppositions=command.oppositions,
+        completion_policy=command.completion_policy,
+        reinforcements_expected=command.reinforcements_expected,
+    )
+    return CombatStep(
+        state,
+        encounter,
+        state.resources,
+        CombatResult(
+            encounter_id=encounter.id,
+            code="combat.opposition_changed",
+            round=encounter.round,
+            current_actor_id=encounter.current_actor_id,
+        ),
+    )
+
+
 def _withdraw(
     state: PlayState, command: TypedCombatCommand, encounter: Encounter, context: CombatContext
 ) -> CombatStep:
@@ -322,7 +376,12 @@ def _withdraw(
             turn_index = removed_index
     else:
         turn_index = encounter.turn_index - int(removed_index < encounter.turn_index)
-    completed = len(order) == 1
+    allegiances = tuple(
+        allegiance
+        for allegiance in encounter.allegiances
+        if allegiance.actor_id != command.actor_id
+    )
+    legacy_completion = encounter.completion_policy == "legacy" and len(order) == 1
     encounter = encounter.model_copy(
         update={
             "participants": others,
@@ -330,8 +389,9 @@ def _withdraw(
             "turn_index": turn_index,
             "round": round_number,
             "spatial_context": spatial,
-            "status": "completed" if completed else "active",
-            "completion_reason": "withdrawal" if completed else None,
+            "status": "completed" if legacy_completion else "active",
+            "completion_reason": "withdrawal" if legacy_completion else None,
+            "allegiances": allegiances,
             "close_pairs": tuple(
                 pair for pair in encounter.close_pairs if command.actor_id not in pair
             ),

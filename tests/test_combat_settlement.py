@@ -7,8 +7,13 @@ from test_gurps_melee import attack, choice, setup
 
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.simulation.actions import PlayState
-from wayfarer.engine.simulation.combat.commands import TakeCombatTurn
-from wayfarer.engine.simulation.combat.settlement import combat_ready, settle_encounter
+from wayfarer.engine.simulation.combat.commands import SetEncounterOpposition, TakeCombatTurn
+from wayfarer.engine.simulation.combat.encounter import CombatAllegiance, SideOpposition
+from wayfarer.engine.simulation.combat.settlement import (
+    combat_ready,
+    remaining_opposition,
+    settle_encounter,
+)
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat.context import CombatContext
 from wayfarer.orchestration.combat.steps import reduce_combat
@@ -48,6 +53,28 @@ def condition(state: PlayState, actor: str, kind: str) -> PlayState:
     )
 
 
+def allegiance_policy(
+    state: PlayState,
+    sides: dict[str, str | None],
+    pairs: tuple[tuple[str, str], ...],
+    *,
+    automatic: bool = True,
+    reinforcements_expected: bool = False,
+) -> PlayState:
+    encounter = state.encounters[0].model_copy(
+        update={
+            "allegiances": tuple(
+                CombatAllegiance(actor_id=actor_id, side_id=side_id)
+                for actor_id, side_id in sides.items()
+            ),
+            "oppositions": tuple(SideOpposition(side_ids=pair) for pair in pairs),
+            "completion_policy": "automatic" if automatic else "gm",
+            "reinforcements_expected": reinforcements_expected,
+        }
+    )
+    return state.model_copy(update={"encounters": (encounter,)})
+
+
 @pytest.mark.parametrize(
     ("kind", "ready"),
     [
@@ -66,7 +93,12 @@ def condition(state: PlayState, actor: str, kind: str) -> PlayState:
 )
 async def test_basic_set_eligibility(tmp_path: Path, kind: str, ready: bool) -> None:
     cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004")
-    state = condition(play._load(await play.store.read(cid)), "b", kind)
+    state = allegiance_policy(
+        play._load(await play.store.read(cid)),
+        {"a": "heroes", "b": "foes"},
+        (("foes", "heroes"),),
+    )
+    state = condition(state, "b", kind)
     play.rng = RecordedDice([])
     assert combat_ready(state, "b", gurps=True) is ready
     settled = settle_encounter(play.rules_context, state, state.encounters[0])
@@ -81,7 +113,13 @@ async def test_both_commands_settle_fatigue_and_skip_initiative(
     cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004", third_actor=third_actor)
     if defense:
         await attack(cid, play)
-    state = condition(play._load(await play.store.read(cid)), "b", "collapsed")
+    state = play._load(await play.store.read(cid))
+    state = allegiance_policy(
+        state,
+        {"a": "heroes", "b": "foes", **({"c": "foes"} if third_actor else {})},
+        (("foes", "heroes"),),
+    )
+    state = condition(state, "b", "collapsed")
     play.rng = RecordedDice([3, 3, 3, 1]) if defense else RecordedDice([])
     command = (
         choice()
@@ -100,7 +138,7 @@ async def test_both_commands_settle_fatigue_and_skip_initiative(
     if third_actor:
         assert encounter.current_actor_id == "c"
     else:
-        assert encounter.completion_reason == "incapacitation"
+        assert encounter.completion_reason == "opposition_incapacitated"
         assert not result.available
 
 
@@ -138,6 +176,106 @@ async def test_pending_defense_is_preserved_even_when_only_one_fighter_is_ready(
     encounter = state.encounters[0]
     assert encounter.pending_defense is not None
     assert settle_encounter(play.rules_context, state, encounter) is encounter
+
+
+async def test_two_allied_survivors_complete_when_the_opposed_side_falls(tmp_path: Path) -> None:
+    cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004", third_actor=True)
+    state = play._load(await play.store.read(cid))
+    state = allegiance_policy(
+        state,
+        {"a": "heroes", "b": "foes", "c": "heroes"},
+        (("foes", "heroes"),),
+    )
+    state = condition(state, "b", "unconscious")
+    settled = settle_encounter(play.rules_context, state, state.encounters[0])
+    assert settled.status == "completed"
+    assert settled.completion_reason == "opposition_incapacitated"
+
+
+async def test_neutral_survivor_does_not_keep_defeated_opposition_active(tmp_path: Path) -> None:
+    cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004", third_actor=True)
+    state = play._load(await play.store.read(cid))
+    state = allegiance_policy(
+        state,
+        {"a": "heroes", "b": "foes", "c": None},
+        (("foes", "heroes"),),
+    )
+    state = condition(state, "b", "collapsed")
+    settled = settle_encounter(play.rules_context, state, state.encounters[0])
+    assert settled.status == "completed"
+
+
+async def test_no_survivors_has_distinct_completion_reason(tmp_path: Path) -> None:
+    cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004")
+    state = play._load(await play.store.read(cid))
+    state = allegiance_policy(
+        state,
+        {"a": "heroes", "b": "foes"},
+        (("foes", "heroes"),),
+    )
+    state = condition(condition(state, "a", "unconscious"), "b", "collapsed")
+    settled = settle_encounter(play.rules_context, state, state.encounters[0])
+    assert settled.status == "completed"
+    assert settled.completion_reason == "no_combatants_ready"
+
+
+async def test_two_remaining_sides_continue_when_they_are_still_opposed(tmp_path: Path) -> None:
+    cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004", third_actor=True)
+    state = play._load(await play.store.read(cid))
+    state = allegiance_policy(
+        state,
+        {"a": "alpha", "b": "beta", "c": "gamma"},
+        (("alpha", "beta"), ("alpha", "gamma"), ("beta", "gamma")),
+    )
+    state = condition(state, "b", "unconscious")
+    ready = frozenset({"a", "c"})
+    assert remaining_opposition(state.encounters[0], ready)
+    assert settle_encounter(play.rules_context, state, state.encounters[0]).status == "active"
+
+
+@pytest.mark.parametrize(
+    ("automatic", "reinforcements_expected"),
+    [(False, False), (True, True)],
+)
+async def test_gm_policy_or_expected_reinforcements_keep_combat_timing(
+    tmp_path: Path, automatic: bool, reinforcements_expected: bool
+) -> None:
+    cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004")
+    state = play._load(await play.store.read(cid))
+    state = allegiance_policy(
+        state,
+        {"a": "heroes", "b": "foes"},
+        (("foes", "heroes"),),
+        automatic=automatic,
+        reinforcements_expected=reinforcements_expected,
+    )
+    state = condition(state, "b", "unconscious")
+    assert settle_encounter(play.rules_context, state, state.encounters[0]).status == "active"
+
+
+async def test_changed_allegiance_removes_remaining_opposition(tmp_path: Path) -> None:
+    cid, play = await setup(tmp_path, "gurps-basic-set-4e-2004")
+    state = play._load(await play.store.read(cid))
+    after, result = reduce_combat(
+        state,
+        SetEncounterOpposition(
+            id="change-sides",
+            actor_id="a",
+            expected_revision=state.revision,
+            encounter_id="fight",
+            allegiances=(
+                CombatAllegiance(actor_id="a", side_id="heroes"),
+                CombatAllegiance(actor_id="b", side_id="heroes"),
+            ),
+            oppositions=(SideOpposition(side_ids=("foes", "heroes")),),
+            completion_policy="automatic",
+        ),
+        CombatContext(play, state),
+    )
+    settled = after.encounters[0]
+    assert settled.status == "completed"
+    assert settled.completion_reason == "opposition_resolved"
+    assert result.code == "combat.opposition_changed"
 
 
 async def test_prototype_missing_injury_uses_explicit_hp_policy(tmp_path: Path) -> None:

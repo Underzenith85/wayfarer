@@ -114,6 +114,25 @@ class CombatWithdrawal(Record):
     group_id: Id
 
 
+class CombatAllegiance(Record):
+    """One participant's explicit encounter side; ``None`` is neutral."""
+
+    actor_id: Id
+    side_id: Id | None = None
+
+
+class SideOpposition(Record):
+    """An undirected hostile relationship between two encounter sides."""
+
+    side_ids: tuple[Id, Id]
+
+    @model_validator(mode="after")
+    def canonical_pair(self) -> SideOpposition:
+        if self.side_ids[0] >= self.side_ids[1]:
+            raise ValueError("Opposition sides must be distinct and canonically ordered")
+        return self
+
+
 class PendingDefense(Record):
     id: Id
     attacker_id: Id
@@ -224,14 +243,20 @@ class Encounter(Record):
     suppression_zones: tuple[ActiveSuppressionZone, ...] = Field(
         default=(), exclude_if=lambda value: not value
     )
+    allegiances: tuple[CombatAllegiance, ...] = Field(
+        default=(), exclude_if=lambda value: not value
+    )
+    oppositions: tuple[SideOpposition, ...] = Field(default=(), exclude_if=lambda value: not value)
+    completion_policy: Literal["legacy", "gm", "automatic"] = Field(
+        default="legacy", exclude_if=lambda value: value == "legacy"
+    )
+    reinforcements_expected: bool = Field(default=False, exclude_if=lambda value: not value)
 
     @model_validator(mode="after")
     def validate_scene_version(self) -> Encounter:
         if (self.version == 2) != (self.scene_id is not None):
             raise ValueError("Scene-bound encounters require version 2 and a scene ID")
         context_was_serialized = self.spatial_context is not None
-        if self.status == "active" and len(self.participants) < 2:
-            raise ValueError("Active encounters require at least two participants")
         context = self.spatial
         if not isinstance(context, BasicSpatialContext):
             participants = {p.actor_id: p for p in self.participants}
@@ -257,6 +282,17 @@ class Encounter(Record):
             p.runtime_position is not None or p.hex_facing is not None for p in self.participants
         ):
             raise ValueError("Basic combatants cannot retain exact mapped poses")
+        actors = {p.actor_id for p in self.participants}
+        allegiance_actors = [a.actor_id for a in self.allegiances]
+        if self.allegiances and (
+            set(allegiance_actors) != actors or len(allegiance_actors) != len(actors)
+        ):
+            raise ValueError("Explicit allegiance must classify every participant once")
+        pairs = [opposition.side_ids for opposition in self.oppositions]
+        if len(set(pairs)) != len(pairs):
+            raise ValueError("Opposition pairs must be unique")
+        if self.completion_policy == "automatic" and not self.oppositions:
+            raise ValueError("Automatic completion requires explicit opposition")
         return self
 
     @property
@@ -381,6 +417,25 @@ class Encounter(Record):
                 "spatial_context": context,
             }
         )
+
+    def set_opposition(
+        self,
+        *,
+        allegiances: tuple[CombatAllegiance, ...],
+        oppositions: tuple[SideOpposition, ...],
+        completion_policy: Literal["legacy", "gm", "automatic"],
+        reinforcements_expected: bool,
+    ) -> Encounter:
+        """Replace the GM-owned lifecycle policy as one validated transition."""
+        updated = self.model_copy(
+            update={
+                "allegiances": allegiances,
+                "oppositions": oppositions,
+                "completion_policy": completion_policy,
+                "reinforcements_expected": reinforcements_expected,
+            }
+        )
+        return Encounter.model_validate(updated.model_dump(mode="python"))
 
     @model_serializer(mode="wrap")
     def serialize_context_owned_spatial_state(

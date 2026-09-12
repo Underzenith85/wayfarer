@@ -32,7 +32,7 @@ from wayfarer.orchestration.combat.handlers import (
 )
 from wayfarer.orchestration.combat.migration import _declare_basic_facts, _migrate, _migrate_basic
 from wayfarer.orchestration.combat.preflight import _prepare_command
-from wayfarer.orchestration.combat.roster import _end, _join, _withdraw
+from wayfarer.orchestration.combat.roster import _end, _join, _set_opposition, _withdraw
 from wayfarer.orchestration.combat.settlement import _finish_combat, _settle_combat
 from wayfarer.orchestration.combat.turns import _take_turn
 
@@ -50,6 +50,7 @@ _COMBAT_STEPS: dict[
     "resolve_choke_effects": _choke,
     "take_unarmed_turn": _unarmed,
     "join_encounter": _join,
+    "set_encounter_opposition": _set_opposition,
     "withdraw_encounter": _withdraw,
     "end_encounter": _end,
     "take_combat_turn": _take_turn,
