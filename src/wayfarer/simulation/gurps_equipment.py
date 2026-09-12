@@ -108,6 +108,29 @@ class MultipleProjectiles(Record):
     projectiles_per_shot: Annotated[int, Field(ge=2)]
 
 
+class RocketAcceleration(Record):
+    """Explicit distance bands for an accelerating projectile such as B278 gyroc."""
+
+    close_max_yards: Positive
+    close_damage_divisor: Annotated[int, Field(ge=2)]
+    medium_max_yards: Positive
+    medium_damage_divisor: Annotated[int, Field(ge=2)]
+
+    @model_validator(mode="after")
+    def ordered_bands(self) -> Self:
+        if self.medium_max_yards <= self.close_max_yards:
+            raise ValueError("Rocket acceleration bands must be increasing")
+        return self
+
+
+class SmartgunSpec(Record):
+    """B278 smartgun facts; never inferred from TL or an equipment name."""
+
+    laser_sight_bonus: Literal[1] = 1
+    service_bonus: Literal[1] = 1
+    access_controlled: Literal[True] = True
+
+
 class RangedMode(Record):
     kind: Literal["ranged"] = "ranged"
     id: Id
@@ -150,6 +173,11 @@ class RangedMode(Record):
     multiple_projectiles: MultipleProjectiles | None = Field(
         default=None, exclude_if=lambda value: value is None
     )
+    rocket_acceleration: RocketAcceleration | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+    smartgun: SmartgunSpec | None = Field(default=None, exclude_if=lambda value: value is None)
+    beam_environment_dr: bool = Field(default=False, exclude_if=lambda value: not value)
 
     @model_validator(mode="after")
     def valid_range(self) -> Self:
@@ -169,6 +197,19 @@ class RangedMode(Record):
             or self.damage.damage_type not in ("pi-", "pi", "pi+", "pi++")
         ):
             raise ValueError("Multiple projectiles require fixed piercing damage and 1/2D range")
+        if self.rocket_acceleration is not None and (
+            self.thrown
+            or self.range_basis != "yards"
+            or self.half_damage_range is not None
+            or self.damage.basis != "fixed"
+            or self.firearm is None
+            or self.firearm.action != "repeating"
+        ):
+            raise ValueError("Rocket acceleration requires a ranged repeating projectile")
+        if self.beam_environment_dr and (
+            self.firearm is None or self.firearm.action != "beam" or not self.damage.tight_beam
+        ):
+            raise ValueError("Environmental beam DR requires explicit tight-beam construction")
         if self.catchable and (not self.thrown or self.hands != 1):
             raise ValueError("Catching requires a one-handed thrown weapon")
         if self.readiness is not None:
@@ -384,6 +425,9 @@ class EquipmentProfile(Record):
                 or self.power_cell_capacity
             ),
             power_cell_capacity=self.power_cell_capacity,
+            smartgun=any(
+                isinstance(mode, RangedMode) and mode.smartgun is not None for mode in self.modes
+            ),
             durability=self.durability,
             container_capacity=self.container_capacity_millipounds,
             slot=self.slot,

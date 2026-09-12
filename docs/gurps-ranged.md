@@ -18,6 +18,7 @@ specified numeric expectations, not a claim of source certification.
 | Reload | Ready plus `reload_ammunition_id` and `mode_id` advances the catalog's reload timer; partial progress survives interruptions/restarts. Ordinary Ready never creates ammunition. Legacy catalogs retain magazine loading. Basic catalogs may explicitly select `per-round`: each completed timer reserves one round; firing available rounds cancels unfinished round-loading work. |
 | Unload | Basic Ready with `unload_ammunition=true` releases a magazine reservation, including interrupted reload progress. It is separate from loading, allowing a later source switch; owned inventory quantities never change. Individual-round unloading rejects pending its own timing protocol. |
 | Ammunition | Loaded rounds reserve a specific owned inventory stack. Reserved rounds retain weight and cannot be consumed or transferred out from under the load. Firing consumes every declared shot, including misses, exactly once. Empty stacks and exhausted reservations are removed together. |
+| Gyrocs and beams | The selected B278 15mm Gyroc Pistol divides rolled damage by three at 1–2 yards and by two at 3–10 yards. The B280 Laser Pistol uses an individual 400-charge cell and adds authored smoke, fog, rain or cloud attenuation as DR. Both enforce smartgun authorization. Its laser sight gives +1 to hit only when the firer sees the dot and +1 to Dodge only when the target sees it. |
 | Thrown weapons | The individual item leaves active inventory and is retained in `expended_items`; Ready cannot recreate it. Battlefield recovery is not yet exposed. |
 | Rapid fire | Basic-only integer shot counts up to the mode's RoF. The B373 RoF bonus continues without an artificial 100-shot ceiling; recoil and attack margin determine hits, and Dodge margin removes individual hits. An automatic-only mode enforces one-quarter of full RoF, rounded up, or all remaining rounds when fewer remain. Each remaining hit has separate damage dice, DR and injury reduction. A critical attack roll is undefended, and its margin still bounds how many of the declared shots hit. |
 | Defenses | Firearms permit Dodge; explicitly blockable projectiles and thrown weapons also permit Block. Basic thrown projectiles also permit armed Parry at -1, or -2 for items of at most one pound, with ordinary repeated-Parry restrictions. Unsupported defense selections reject before dice; bare-handed catching remains unavailable. |
@@ -138,3 +139,9 @@ up front and fail closed without exact hex geometry.
 #286 adds [opt-in projectile readiness](gurps-projectile-readiness.md): typed
 preparation/drawing/cocking, exact ammunition Fast-Draw specialties, and authored
 individual-round unloading. Legacy catalogs retain their existing protocols.
+
+The B278/B280 higher-TL slice is covered by `tests/test_higher_tl_weapons.py`.
+Power-cell recharge is engine-authorized, capacity-bounded and source-stamped;
+ordinary unload/reload supplies cell switching while preserving each cell's
+identity and charge. Electrolaser and Blaster remain selection-blocked until
+their linked-affliction and surge behavior exists.

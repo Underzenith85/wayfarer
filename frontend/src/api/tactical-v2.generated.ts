@@ -662,6 +662,11 @@ export interface components {
        */
       suppression_zones: components["schemas"]["SuppressionZone"][];
       /**
+       * Laser Sight
+       * @default false
+       */
+      laser_sight: boolean;
+      /**
        * Reload Ammunition Id
        * @default null
        */
@@ -1406,6 +1411,21 @@ export interface components {
        * @default 0
        */
       size_modifier: number;
+      /**
+       * Beam Environment Dr
+       * @default 0
+       */
+      beam_environment_dr: number;
+      /**
+       * Laser Visible To Firer
+       * @default false
+       */
+      laser_visible_to_firer: boolean;
+      /**
+       * Laser Visible To Target
+       * @default false
+       */
+      laser_visible_to_target: boolean;
     };
     /** ReachSpatialFact */
     ReachSpatialFact: {

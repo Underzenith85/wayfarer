@@ -230,6 +230,7 @@ describe("Tactical panel", () => {
       shots: 1,
       spray_targets: [],
       suppression_zones: [],
+      laser_sight: false,
       reload_ammunition_id: null,
       unload_ammunition: false,
       fast_draw: false,

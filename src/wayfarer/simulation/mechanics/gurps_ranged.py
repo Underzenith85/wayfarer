@@ -366,6 +366,19 @@ def validate_command(
         raise ValidationError("Suppression fire requires one immobile mapped All-Out Attack")
     if command.attack_option == "suppression" and not command.suppression_zones:
         raise ValidationError("Suppression fire requires at least one declared zone")
+    if command.laser_sight:
+        from wayfarer.simulation.mechanics.gurps_melee import mode
+
+        selected = mode(runtime, state, command.actor_id, command.item_id or "", command.mode_id)
+        if command.maneuver not in ATTACK_MANEUVERS or not isinstance(selected, RangedMode):
+            raise ValidationError("Laser sight requires a ranged attack")
+        if selected.smartgun is None or selected.smartgun.laser_sight_bonus != 1:
+            raise ValidationError("Selected weapon has no explicit laser sight")
+        if command.target_id is None:
+            raise ValidationError("Laser sight requires a target")
+        scene = situation(runtime, encounter, command.actor_id, command.target_id, selected)
+        if not scene.laser_visible_to_firer:
+            raise ValidationError("Firer cannot see the laser sight dot")
     if command.recover_thrown_item:
         if (
             command.maneuver != "ready"
@@ -1016,6 +1029,8 @@ def resolve(
         # A mount bears the weapon, so the firer's own ST is not what limits it.
         - (0 if weapon.mount is not None else minimum_strength_penalty(weapon.minimum_st, st))
     )
+    if pending.laser_sight and scene.laser_visible_to_firer:
+        attack_target += 1
     if pending.target_item_id:
         from wayfarer.simulation.mechanics.object_combat import target_modifier
 
@@ -1063,6 +1078,11 @@ def resolve(
         second_item_id,
         parry_mode_id=second_parry_mode_id,
     )
+    if pending.laser_sight and scene.laser_visible_to_target:
+        if selected == "dodge" and defense_value_ is not None:
+            defense_value_ = DerivedValue(defense_value_.target, defense_value_.value + 1, ())
+        if second_defense == "dodge" and second_value is not None:
+            second_value = DerivedValue(second_value.target, second_value.value + 1, ())
     if weapon.thrown:
         thrown_item = next(i for i in state.resources.items if i.id == pending.weapon_id)
         entry = next(e for e in equipment.entries if e.definition_id == thrown_item.definition_id)
@@ -1437,7 +1457,8 @@ def resolve(
         dr_bonus = damage_resistance(
             state.resources, target.actor_id, build_revision=defender_build.revision
         )
-    dr = (armor_dr() + dr_bonus) * close_projectile_multiplier
+    environmental_dr = scene.beam_environment_dr if weapon.beam_environment_dr else 0
+    dr = (armor_dr() + dr_bonus + environmental_dr) * close_projectile_multiplier
     first_location, first_location_dice, first_dr = location, location_dice, dr
     hit_resistances: list[int] = []
     hit_locations: list[HumanLocation | None] = []
@@ -1508,6 +1529,15 @@ def resolve(
         )
         if half:
             damage //= 2
+        acceleration = weapon.rocket_acceleration
+        if acceleration is not None:
+            damage //= (
+                acceleration.close_damage_divisor
+                if scene.distance <= acceleration.close_max_yards
+                else acceleration.medium_damage_divisor
+                if scene.distance <= acceleration.medium_max_yards
+                else 1
+            )
         from wayfarer.simulation.mechanics.object_combat import damage_target, shield_damage
 
         if pending.target_item_id:

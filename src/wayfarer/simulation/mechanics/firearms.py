@@ -188,6 +188,8 @@ def service(
         if definition.skill is None or definition.skill.attribute != ControllingAttribute.DX:
             raise ValidationError("IQ-based firearm service requires a DX-based weapon skill")
         target = int(level(compiled, weapon.skill_id).value) - stats.dx + stats.iq
+    if weapon.smartgun is not None:
+        target += weapon.smartgun.service_bonus
     if failure.kind == "misfire" and command.firearm_service_skill == "armoury":
         target += 2
     elif (

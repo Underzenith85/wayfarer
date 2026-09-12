@@ -522,6 +522,7 @@ class PendingDefense(Record):
         default=None, exclude_if=lambda value: value is None
     )
     interrupted_actor_id: Id | None = Field(default=None, exclude_if=lambda value: value is None)
+    laser_sight: bool = Field(default=False, exclude_if=lambda value: not value)
     spell_cast_id: str | None = Field(default=None, exclude_if=lambda value: value is None)
     post_attack_destination: GridPoint | None = None
     post_attack_square_facing: Facing | None = None
@@ -548,6 +549,9 @@ class RangedSituation(Record):
     distance_yards: float | None = Field(default=None, gt=0, allow_inf_nan=False)
     speed_yards_per_second: float = Field(default=0, ge=0, allow_inf_nan=False)
     size_modifier: int = 0
+    beam_environment_dr: int = Field(default=0, ge=0, exclude_if=lambda value: value == 0)
+    laser_visible_to_firer: bool = Field(default=False, exclude_if=lambda value: not value)
+    laser_visible_to_target: bool = Field(default=False, exclude_if=lambda value: not value)
 
     @property
     def distance(self) -> float:

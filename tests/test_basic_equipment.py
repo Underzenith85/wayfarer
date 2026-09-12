@@ -208,7 +208,7 @@ SHIELD_ROWS = (
         ("insulated-sleeping-bag", 7, 100, 15000),
         ("laptop", 8, 1500, 3000),
         ("electrolaser-pistol", 9, 1800, 2200),
-        ("laser-pistol", 10, 2800, 3300),
+        ("laser-pistol", 10, 2800, 2800),
         ("blaster-pistol", 11, 2200, 1600),
     ],
 )

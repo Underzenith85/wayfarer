@@ -35,7 +35,7 @@ LITE = "gurps-lite-4e-2004"
 def test_selected_row_provenance_anchors() -> None:
     """Every audited row carries the same third-printing provenance and a page in scope."""
     entries = catalog_entries()
-    assert len(entries) == len(BASIC_EQUIPMENT.entries) + len(ULTRATECH_INDEX) == 161
+    assert len(entries) == len(BASIC_EQUIPMENT.entries) + len(ULTRATECH_INDEX) == 164
     for entry in entries.values():
         provenance = entry.provenance
         assert provenance.source_id == "sjg:gurps-basic-set-4e-2004"
@@ -113,10 +113,15 @@ def test_field_provenance_tracks_the_whole_equipment_schema() -> None:
 def test_selection_rejects_unsupported_and_unknown_equipment() -> None:
     allowed = supported_equipment(BASIC)
     assert "equipment:broadsword" in allowed
-    assert "equipment:laser-pistol" not in allowed
-    assert validate_selection(BASIC, ("equipment:broadsword",)) == {"equipment:broadsword"}
-    with pytest.raises(ValidationError, match="power-cell-charges"):
-        validate_selection(BASIC, ("equipment:broadsword", "equipment:laser-pistol"))
+    assert "equipment:laser-pistol" in allowed
+    assert "equipment:laser-pistol-cell" in allowed
+    assert "equipment:gyroc-pistol-15mm" in allowed
+    assert validate_selection(BASIC, ("equipment:broadsword", "equipment:laser-pistol")) == {
+        "equipment:broadsword",
+        "equipment:laser-pistol",
+    }
+    with pytest.raises(ValidationError, match="surge"):
+        validate_selection(BASIC, ("equipment:broadsword", "equipment:blaster-pistol"))
     with pytest.raises(ValidationError, match="outside the selected-table audit"):
         validate_selection(BASIC, ("equipment:invented-blade",))
     assert require_supported("equipment:broadsword").definition_id == "equipment:broadsword"
@@ -157,8 +162,8 @@ def test_audited_catalogs_do_not_bind_to_pinned_packages() -> None:
 def test_audit_report_names_blockers_without_claiming_completeness() -> None:
     report = audit_report(ROOT)
     assert report["audit_complete"] is False
-    assert report["selected_rows"] == 161
-    assert report["supported_rows"] == 103
+    assert report["selected_rows"] == 164
+    assert report["supported_rows"] == 107
     assert report["sections_audited"] == 0
     assert isinstance(report["blockers"], list) and report["blockers"]
     assert report["footnotes_without_evidence"] == []
@@ -195,7 +200,7 @@ def test_schema_drift_and_missing_evidence_are_rejected() -> None:
         validate(trimmed)
 
     unblocked = tuple(s.model_copy(update={"mechanics": ()}) for s in current.sections)
-    footnotes = tuple(f for f in current.footnotes if f.id != "power-cell-charges")
+    footnotes = tuple(f for f in current.footnotes if f.id != "surge")
     with pytest.raises(ValidationError, match="no unsupported disposition"):
         validate(current.model_copy(update={"sections": unblocked, "footnotes": footnotes}))
 

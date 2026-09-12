@@ -229,6 +229,12 @@ def mode(
     if len(modes) != 1:
         raise ValidationError("Select exactly one supported weapon mode")
     selected = modes[0]
+    if (
+        isinstance(selected, RangedMode)
+        and selected.smartgun is not None
+        and actor_id not in item.authorized_actor_ids
+    ):
+        raise ValidationError("Smartgun electronic access denies this actor")
     if selected.damage.damage_type == "fat" or (
         selected.damage.armor_divisor != 1
         and catalog(runtime).profile_id != "gurps-basic-set-4e-2004"
