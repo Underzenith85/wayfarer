@@ -13,6 +13,7 @@ from wayfarer.engine.simulation.combat.commands import (
 )
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter, basic_visible
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialContext, CoverSpatialFact
+from wayfarer.engine.simulation.combat.visibility import visible_actors
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat.context import CombatContext, CombatStep, encounter_for
 
@@ -190,8 +191,6 @@ def _prepare_encounter(
 
         encounter = bind_scene(encounter, play.engine.rules.scenes, engine.rules)
     if encounter.spatial_kind == "hex" and isinstance(command, (TakeCombatTurn, TakeUnarmedTurn)):
-        from wayfarer.orchestration.tactical_view import visible_actors
-
         if command.target_id is not None and command.target_id not in visible_actors(
             state, encounter, command.actor_id, board=play.rules_context.hex_map(encounter)
         ):

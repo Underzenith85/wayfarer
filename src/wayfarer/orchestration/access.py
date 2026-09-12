@@ -19,6 +19,7 @@ from wayfarer.orchestration.origins import origin_scope
 from wayfarer.orchestration.party import PartyCommand, PartyService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.orchestration.scenes import SCENE_ADAPTER, SceneService
+from wayfarer.orchestration.tactical_view import legacy_encounter
 from wayfarer.persistence.events import CommandOrigin
 
 
@@ -48,7 +49,6 @@ class CampaignAccess:
         state: PlayState, member: CampaignMember, rules: CombatRules | None = None
     ) -> dict[str, object]:
         from wayfarer.engine.simulation.health.fright import projection as fright_projection
-        from wayfarer.orchestration.tactical_view import legacy_encounter
 
         if member.role == "gm":
             return {
