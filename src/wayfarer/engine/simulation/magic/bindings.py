@@ -95,11 +95,6 @@ class SpellRules(Record):
             )
             if channel.ceremonial and channel.ceremonial.leader_id != channel.actor_id:
                 raise ValueError("Ceremonial channel leader must be its caster")
-            if channel.magic_item_id is not None and not any(
-                item.item_id == channel.magic_item_id and item.spell_id == channel.spell_id
-                for item in self.magic_items
-            ):
-                raise ValueError("Magic-item channel requires a matching binding")
         return self
 
 

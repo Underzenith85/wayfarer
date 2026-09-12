@@ -32,6 +32,7 @@ from wayfarer.engine.simulation.action_engine.rules_validation import (
     _index_checks,
     _validate_ability_rules,
     _validate_check_rules,
+    _validate_enchanting_rules,
     _validate_gurps_equipment,
     _validate_spell_rules,
     _validate_world_references,
@@ -76,6 +77,7 @@ from wayfarer.engine.simulation.health.condition_checks import definition_modifi
 from wayfarer.engine.simulation.health.fright import blocked, requires_adjudication
 from wayfarer.engine.simulation.magic.bindings import validate_channels as validate_spell_channels
 from wayfarer.engine.simulation.magic.effects import dazed, lighting_penalty
+from wayfarer.engine.simulation.magic.enchanting import validate_projects as validate_enchantments
 from wayfarer.engine.simulation.projects.inventions import validate_projects
 from wayfarer.engine.simulation.resources import Advance, Consume
 from wayfarer.engine.simulation.social.noncombat import validate_state as validate_noncombat_state
@@ -100,6 +102,8 @@ class ActionEngine:
             _validate_spell_rules(reviewer, rules.spells)
         if rules.abilities is not None:
             _validate_ability_rules(reviewer, rules.abilities)
+        if rules.enchanting is not None:
+            _validate_enchanting_rules(reviewer, resources, rules.enchanting)
         _validate_check_rules(reviewer, resources, rules)
         self.combat = CombatEngine(rules.combat, resources) if rules.combat is not None else None
         self.campaign = CampaignProcedureEngine(
@@ -147,6 +151,15 @@ class ActionEngine:
         )
         validate_law(rules.law, state.law, frozenset(fact.id for fact in state.world.facts))
         validate_projects(state.resources.inventions, rules.inventions, state.resources.game_time)
+        validate_enchantments(
+            state.resources.enchantment_projects,
+            rules.enchanting,
+            state.resources.game_time,
+            item_ids=frozenset(item.id for item in state.resources.items),
+            binding_ids=frozenset(
+                binding.id for item in state.resources.items for binding in item.enchantments
+            ),
+        )
         validate_members(state)
         if len({e.id for e in state.encounters}) != len(state.encounters):
             raise ValidationError("Duplicate encounter ID")

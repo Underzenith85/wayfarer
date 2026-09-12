@@ -122,6 +122,29 @@
       "provenance": "Independent phase and preflight boundary entered from the selected fourth printing."
     },
     {
+      "id": "basic-enchanting-project-lifecycle",
+      "capability_id": "gurps.magic.items",
+      "profile": "gurps-basic-set-4e-2004",
+      "source_id": "sjg:basic-set-campaigns-4e-2004",
+      "reference": "B480-B482, Enchanting and Magic Items",
+      "input": {
+        "method": "slow-and-sure",
+        "energy_required": 4,
+        "enchanters": 2,
+        "interrupted_after_mage_days": 1
+      },
+      "expected": {
+        "credited_energy": 2,
+        "make_up_mage_days": 2,
+        "completion_is_exactly_once": true,
+        "activation_charge_cost": 1
+      },
+      "rounding": "ceil",
+      "prototype_divergence": null,
+      "evidence_kind": "boundary",
+      "provenance": "Independent lifecycle, interruption and activation boundary entered from the selected fourth printing."
+    },
+    {
       "id": "basic-control-rating-legality",
       "capability_id": "gurps.world.law",
       "profile": "gurps-basic-set-4e-2004",

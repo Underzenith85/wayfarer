@@ -2973,6 +2973,18 @@
       "owner": 396
     },
     {
+      "id": "basic-enchanting-project-lifecycle",
+      "sha256": "897a28f409af205f8885761ae5309b228619417025d1d7c3e8146a0172ecd4d2",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_enchanting_projects.py::test_slow_project_interrupt_resume_restart_and_compile_item",
+        "tests/test_enchanting_projects.py::test_item_activation_blocks_missing_family_and_spends_one_charge"
+      ],
+      "owner": 526
+    },
+    {
       "id": "basic-vehicle-combat-coverage",
       "sha256": "7b5c4db39f6fe0318d4d735dd1469f5df8033783eaee6bebb7ed03e1843eb332",
       "status": "compared",

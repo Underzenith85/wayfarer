@@ -13,6 +13,7 @@ from typing import Annotated, Literal
 from pydantic import Field, TypeAdapter, model_validator
 
 from wayfarer.engine.rules.effects import Effect
+from wayfarer.engine.rules.magic.protocols import MagicItemInstance
 from wayfarer.engine.rules.types.electronics import ElectronicsSuite
 from wayfarer.engine.rules.types.firearm import FirearmFailure
 from wayfarer.engine.rules.types.hazard import (
@@ -32,6 +33,7 @@ from wayfarer.engine.rules.types.recovery import (
     RecoveryTask,
 )
 from wayfarer.engine.rules.types.transport import Transport
+from wayfarer.engine.simulation.magic.enchanting import EnchantmentProject
 from wayfarer.engine.simulation.projects.inventions import InventionProject
 from wayfarer.models import Count, Id, Record, Tick
 
@@ -85,6 +87,7 @@ class Item(Record):
     authorized_actor_ids: tuple[Id, ...] = Field(default=(), exclude_if=lambda value: not value)
     # Everyone currently serving a mounted weapon, the gunner included (#357).
     mount_crew: tuple[Id, ...] = Field(default=(), exclude_if=lambda v: not v)
+    enchantments: tuple[MagicItemInstance, ...] = Field(default=(), exclude_if=lambda v: not v)
 
 
 class Owner(Record):
@@ -171,6 +174,9 @@ class ResourceState(Record):
     transports: tuple[Transport, ...] = Field(default=(), exclude_if=lambda v: not v)
     object_results: tuple[ObjectResult, ...] = Field(default=(), exclude_if=lambda v: not v)
     inventions: tuple[InventionProject, ...] = Field(default=(), exclude_if=lambda v: not v)
+    enchantment_projects: tuple[EnchantmentProject, ...] = Field(
+        default=(), exclude_if=lambda v: not v
+    )
 
     @model_validator(mode="after")
     def validate_recovery_tasks(self) -> ResourceState:

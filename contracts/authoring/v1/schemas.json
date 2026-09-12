@@ -1724,6 +1724,17 @@
               }
             ],
             "default": null
+          },
+          "enchanting": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/EnchantingRules"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           }
         },
         "required": [
@@ -3612,6 +3623,459 @@
         "title": "ElectronicsSuite",
         "type": "object"
       },
+      "EnchantingRules": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          },
+          "profile_id": {
+            "const": "gurps-basic-set-4e-2004",
+            "default": "gurps-basic-set-4e-2004",
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "recipes": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/EnchantmentRecipe"
+            },
+            "title": "Recipes",
+            "type": "array"
+          },
+          "offers": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/MagicItemOffer"
+            },
+            "title": "Offers",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "version"
+        ],
+        "title": "EnchantingRules",
+        "type": "object"
+      },
+      "EnchantmentInterruption": {
+        "additionalProperties": false,
+        "properties": {
+          "command_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Command Id",
+            "type": "string"
+          },
+          "at": {
+            "minimum": 0,
+            "title": "At",
+            "type": "integer"
+          },
+          "credited_energy": {
+            "minimum": 0,
+            "title": "Credited Energy",
+            "type": "integer"
+          },
+          "lost_seconds": {
+            "minimum": 0,
+            "title": "Lost Seconds",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "command_id",
+          "at",
+          "credited_energy",
+          "lost_seconds"
+        ],
+        "title": "EnchantmentInterruption",
+        "type": "object"
+      },
+      "EnchantmentMaterial": {
+        "additionalProperties": false,
+        "properties": {
+          "definition_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Definition Id",
+            "type": "string"
+          },
+          "quantity": {
+            "minimum": 1,
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "definition_id",
+          "quantity"
+        ],
+        "title": "EnchantmentMaterial",
+        "type": "object"
+      },
+      "EnchantmentProject": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "owner_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Owner Id",
+            "type": "string"
+          },
+          "recipe_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Recipe Id",
+            "type": "string"
+          },
+          "target_item_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Target Item Id",
+            "type": "string"
+          },
+          "enchanter_ids": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Enchanter Ids",
+            "type": "array"
+          },
+          "status": {
+            "default": "active",
+            "enum": [
+              "active",
+              "interrupted",
+              "abandoned",
+              "completed",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "energy_completed": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Energy Completed",
+            "type": "integer"
+          },
+          "delay_seconds": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Delay Seconds",
+            "type": "integer"
+          },
+          "materials_spent": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/EnchantmentMaterial"
+            },
+            "title": "Materials Spent",
+            "type": "array"
+          },
+          "active_work": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/EnchantmentWork"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "interruptions": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/EnchantmentInterruption"
+            },
+            "title": "Interruptions",
+            "type": "array"
+          },
+          "check": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/CheckTrace"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "magic_item_binding_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Magic Item Binding Id"
+          }
+        },
+        "required": [
+          "id",
+          "owner_id",
+          "recipe_id",
+          "target_item_id",
+          "enchanter_ids"
+        ],
+        "title": "EnchantmentProject",
+        "type": "object"
+      },
+      "EnchantmentRecipe": {
+        "additionalProperties": false,
+        "description": "GM-authored item recipe; values are data, never inferred spell formulas.",
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "spell_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Spell Id",
+            "type": "string"
+          },
+          "effect_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Effect Id",
+            "type": "string"
+          },
+          "method": {
+            "enum": [
+              "quick-and-dirty",
+              "slow-and-sure"
+            ],
+            "title": "Method",
+            "type": "string"
+          },
+          "energy_required": {
+            "minimum": 1,
+            "title": "Energy Required",
+            "type": "integer"
+          },
+          "target_definition_ids": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Target Definition Ids",
+            "type": "array"
+          },
+          "workspace_definition_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Workspace Definition Id",
+            "type": "string"
+          },
+          "materials": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/EnchantmentMaterial"
+            },
+            "title": "Materials",
+            "type": "array"
+          },
+          "mana": {
+            "default": "normal",
+            "enum": [
+              "none",
+              "low",
+              "normal",
+              "high",
+              "very-high"
+            ],
+            "title": "Mana",
+            "type": "string"
+          },
+          "runtime_spell_id": {
+            "anyOf": [
+              {
+                "enum": [
+                  "light",
+                  "daze",
+                  "fireball",
+                  "create-fire"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Runtime Spell Id"
+          },
+          "runtime_family": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Runtime Family"
+          },
+          "activation": {
+            "default": "cast",
+            "enum": [
+              "cast",
+              "always-on"
+            ],
+            "title": "Activation",
+            "type": "string"
+          },
+          "requires_magery": {
+            "default": false,
+            "title": "Requires Magery",
+            "type": "boolean"
+          },
+          "power_reduction": {
+            "default": 0,
+            "maximum": 100,
+            "minimum": 0,
+            "title": "Power Reduction",
+            "type": "integer"
+          },
+          "maximum_charges": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Maximum Charges"
+          },
+          "maintenance_energy": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Maintenance Energy",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "spell_id",
+          "effect_id",
+          "method",
+          "energy_required",
+          "target_definition_ids",
+          "workspace_definition_id"
+        ],
+        "title": "EnchantmentRecipe",
+        "type": "object"
+      },
+      "EnchantmentWork": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "start": {
+            "minimum": 0,
+            "title": "Start",
+            "type": "integer"
+          },
+          "due": {
+            "exclusiveMinimum": 0,
+            "title": "Due",
+            "type": "integer"
+          },
+          "enchanter_ids": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Enchanter Ids",
+            "type": "array"
+          },
+          "contributions": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/EnergyContribution"
+            },
+            "title": "Contributions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "start",
+          "due",
+          "enchanter_ids"
+        ],
+        "title": "EnchantmentWork",
+        "type": "object"
+      },
+      "EnergyContribution": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "fp": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Fp",
+            "type": "integer"
+          },
+          "hp": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Hp",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "actor_id"
+        ],
+        "title": "EnergyContribution",
+        "type": "object"
+      },
       "EnforcementProcedure": {
         "additionalProperties": false,
         "properties": {
@@ -5163,6 +5627,14 @@
             },
             "title": "Inventions",
             "type": "array"
+          },
+          "enchantment_projects": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/EnchantmentProject"
+            },
+            "title": "Enchantment Projects",
+            "type": "array"
           }
         },
         "title": "InitialResources",
@@ -5926,6 +6398,14 @@
             },
             "title": "Mount Crew",
             "type": "array"
+          },
+          "enchantments": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/MagicItemInstance"
+            },
+            "title": "Enchantments",
+            "type": "array"
           }
         },
         "required": [
@@ -6274,6 +6754,205 @@
           "power"
         ],
         "title": "MagicItemBinding",
+        "type": "object"
+      },
+      "MagicItemInstance": {
+        "additionalProperties": false,
+        "description": "Completed, provenance-bearing enchantment attached to a concrete item.",
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "item_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Item Id",
+            "type": "string"
+          },
+          "spell_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Spell Id",
+            "type": "string"
+          },
+          "power": {
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Power",
+            "type": "integer"
+          },
+          "power_reduction": {
+            "default": 0,
+            "maximum": 100,
+            "minimum": 0,
+            "title": "Power Reduction",
+            "type": "integer"
+          },
+          "requires_magery": {
+            "default": false,
+            "title": "Requires Magery",
+            "type": "boolean"
+          },
+          "always_on": {
+            "default": false,
+            "title": "Always On",
+            "type": "boolean"
+          },
+          "project_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Project Id",
+            "type": "string"
+          },
+          "recipe_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Recipe Id",
+            "type": "string"
+          },
+          "effect_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Effect Id",
+            "type": "string"
+          },
+          "activation": {
+            "default": "cast",
+            "enum": [
+              "cast",
+              "always-on"
+            ],
+            "title": "Activation",
+            "type": "string"
+          },
+          "runtime_family": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Runtime Family"
+          },
+          "owner_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Owner Id",
+            "type": "string"
+          },
+          "created_at": {
+            "minimum": 0,
+            "title": "Created At",
+            "type": "integer"
+          },
+          "method": {
+            "enum": [
+              "quick-and-dirty",
+              "slow-and-sure"
+            ],
+            "title": "Method",
+            "type": "string"
+          },
+          "maximum_charges": {
+            "anyOf": [
+              {
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Maximum Charges"
+          },
+          "charges": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Charges"
+          },
+          "maintenance_energy": {
+            "default": 0,
+            "minimum": 0,
+            "title": "Maintenance Energy",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "item_id",
+          "spell_id",
+          "power",
+          "project_id",
+          "recipe_id",
+          "effect_id",
+          "owner_id",
+          "created_at",
+          "method"
+        ],
+        "title": "MagicItemInstance",
+        "type": "object"
+      },
+      "MagicItemOffer": {
+        "additionalProperties": false,
+        "description": "Campaign economy data; Basic Set examples are not a global market.",
+        "properties": {
+          "id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "recipe_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Recipe Id",
+            "type": "string"
+          },
+          "price": {
+            "minimum": 0,
+            "title": "Price",
+            "type": "integer"
+          },
+          "availability": {
+            "enum": [
+              "common",
+              "restricted",
+              "rare",
+              "unavailable"
+            ],
+            "title": "Availability",
+            "type": "string"
+          },
+          "market_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Market Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "recipe_id",
+          "price",
+          "availability",
+          "market_id"
+        ],
+        "title": "MagicItemOffer",
         "type": "object"
       },
       "MaterialRequirement": {
