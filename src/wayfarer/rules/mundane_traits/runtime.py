@@ -28,6 +28,7 @@ Appearance = Literal[
     "very-handsome",
     "transcendent",
 ]
+AppearanceOption = Literal["ordinary", "androgynous", "impressive"]
 Perception = Literal["perceptible", "audible", "status"]
 SELF_CONTROL_HOOK: Final = "trait.self_control"
 
@@ -48,6 +49,9 @@ class Audience:
     classes: tuple[str, ...] = ()
     visible: bool = True
     appearance_applicable: bool = True
+    appearance_resentment: bool = False
+    same_culture: bool = True
+    nuisance_interest: bool = False
     observer_status: int = 0
     status_disposition: Literal["friendly", "neutral", "angry", "resentful"] = "neutral"
 
@@ -80,17 +84,30 @@ class ReactionBinding:
         }[self.perception]
 
 
+@dataclass(frozen=True, slots=True)
+class AppearanceBinding:
+    level: Appearance
+    option: AppearanceOption = "ordinary"
+    universal: bool = False
+    off_the_shelf: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class ReputationBinding:
+    level: int
+    scope: Literal["everyone", "large-class", "small-class"] = "everyone"
+    recognition: Literal["always", "sometimes", "occasionally"] = "always"
+    classes: tuple[str, ...] = ()
+
+
 REACTION_BINDINGS: Final = MappingProxyType(
     {
         "trait:charisma": ReactionBinding(
             "trait.social_modifiers", 1, "perceptible", ("reaction", "influence"), 41
         ),
-        # Voice also modifies several influence skills. That skill bonus is not
-        # implemented, so this binding stays out of influence rolls entirely
-        # rather than approximating the unimplemented half.
-        "trait:voice": ReactionBinding(
-            "trait.voice", 2, "audible", ("reaction",), 97, ("voice-influence-skill-bonus",)
-        ),
+        # Influence-skill procedures own the B97 +2 and approved builds assert
+        # their audible condition through character.social_traits.
+        "trait:voice": ReactionBinding("trait.voice", 2, "audible", ("reaction",), 97),
         "trait:status": ReactionBinding(
             "trait.status",
             1,
@@ -107,18 +124,48 @@ REACTION_BINDINGS: Final = MappingProxyType(
         ),
     }
 )
-APPEARANCE_BINDINGS: Final[MappingProxyType[str, Appearance]] = MappingProxyType(
+APPEARANCE_BINDINGS: Final[MappingProxyType[str, AppearanceBinding]] = MappingProxyType(
     {
-        f"trait:appearance-{level}": level
-        for level in ("hideous", "ugly", "unattractive", "average", "attractive", "handsome")
+        f"trait:appearance-{level}": AppearanceBinding(level)
+        for level in (
+            "horrific",
+            "monstrous",
+            "hideous",
+            "ugly",
+            "unattractive",
+            "average",
+            "attractive",
+            "handsome",
+            "very-handsome",
+            "transcendent",
+        )
+    }
+    | {
+        f"trait:appearance-{level}-{option}": AppearanceBinding(level, option)
+        for level in ("handsome", "very-handsome", "transcendent")
+        for option in ("androgynous", "impressive")
+    }
+    | {
+        f"trait:appearance-{level}-universal": AppearanceBinding(level, "ordinary", True)
+        for level in ("attractive", "handsome", "very-handsome", "transcendent")
+    }
+    | {
+        f"trait:appearance-{level}-off-the-shelf": AppearanceBinding(level, "ordinary", False, True)
+        for level in ("handsome", "very-handsome", "transcendent")
     }
 )
 # These selected constructions are recognized by everyone, always (B26-28).
 # Restricted audiences and recognition frequency are separate constructions.
 REPUTATION_BINDINGS: Final = MappingProxyType(
     {
-        "trait:reputation-bravery": 1,
-        "trait:reputation-cruelty": -1,
+        "trait:reputation-bravery": ReputationBinding(1),
+        "trait:reputation-cruelty": ReputationBinding(-1),
+        "trait:reputation-bravery-guild-sometimes": ReputationBinding(
+            2, "large-class", "sometimes", ("guild",)
+        ),
+        "trait:reputation-cruelty-guild-occasionally": ReputationBinding(
+            -2, "small-class", "occasionally", ("guild",)
+        ),
     }
 )
 STANDING_HOOKS: Final = frozenset({"trait.appearance", "trait.reputation"})

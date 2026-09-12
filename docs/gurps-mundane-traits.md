@@ -1,10 +1,10 @@
 # Mundane trait and template inventory (#113)
 
-The separate candidate package contains 65 selected mundane/background records
+The separate candidate package contains 87 selected mundane/background records
 for the default finite campaign vocabulary. They include advantages,
 disadvantages, perks, quirks, wealth, status, rank, additional spoken/written
-languages, cultural familiarity, five relationship constructions, seven
-appearance levels and two specific reputations. Each record identifies numeric
+languages, cultural familiarity, five relationship constructions, 23
+appearance constructions and four specific reputations. Each record identifies numeric
 costs, exclusions, effect dependencies, source pages and manual obligations.
 Changing identity vocabulary changes the package digest; an identity never
 supplies a formula or arbitrary cost.
@@ -21,19 +21,19 @@ totals or manufacture activation approvals.
 ## Executable effects and coverage matrix
 
 Construction cost and executable effect stay separate. `mundane_traits.runtime`
-binds effects to existing authoritative services. Fifty-six of 69 records have
-selected runtime bindings through candidate 0.5.0; this does not certify every
+binds effects to existing authoritative services. Seventy-five of 87 records have
+selected runtime bindings through candidate 0.6.0; this does not certify every
 rule or variant of those traits.
 
 | Selected records | Bound effect | Reference | Remaining owner |
 | --- | --- | --- | --- |
 | Charisma | +1 reaction/influence per level, when perceived | B41 | #191 source reconciliation |
-| Voice | +2 reaction when heard | B97 | #335 influence-skill bonus |
+| Voice | +2 reaction when heard and +2 in seven social-skill procedures | B97 | #191 source reconciliation |
 | Status, Low Status | Relative observer reaction plus purchased/free level | B28 | #191 source reconciliation |
 | Wealth, Rank, language and culture | Starting assets, free Status, rank form, comprehension and familiarity | B23-30 | #191 source reconciliation |
 | Bad Temper, Curious, Overconfidence | Approved self-control rating roll | B120-121, B124, B129, B148 | #333 consequences beyond the roll |
-| Hideous, Ugly, Unattractive, Average, Attractive, Handsome | Appearance reactions, including Handsome's attraction split | B21 | #191; additional constructions #335 |
-| Reputation (Bravery), Reputation (Cruelty) | +1/-1 reaction per purchased level, maximum four; everyone, always | B26-28 | #191; restricted/uncertain constructions #335 |
+| Appearance levels and selected variants | Sight/race, split/flat, Universal, Off-the-Shelf, resentment and nuisance effects | B21 | #191 source reconciliation |
+| Selected Reputation constructions | Level, affected class, recognition frequency and durable recognition | B26-28 | #191 source reconciliation |
 
 Appearance and reputation come from approved purchases and implemented pinned
 hooks. The existing standing resolver supplies values; the existing transactional
@@ -45,19 +45,20 @@ An unrelated authored source can coexist, including hidden reputation data.
 
 Appearance requires sight and an observer whose race is affected; hearing a
 character alone is insufficient. Charisma and Voice retain their own audiences.
-Very Handsome is priced but unavailable because its resentment and nuisance
-consequences are not implemented. Reputation records name concrete details;
-these two selected constructions do not approximate class-scoped prices or
-recognition-frequency discounts.
+Very Handsome and Transcendent include their resentment and nuisance
+consequences. Variant bindings are exact, so their options cannot leak into an
+ordinary Handsome purchase. Reputation records name concrete details; the two
+new selected constructions retain their class, recognition frequency and
+stage-by-stage rounded price.
 
-The other 13 records remain unavailable. Every record carries source owner #191;
+The other 12 records remain unavailable. Every record carries source owner #191;
 concrete runtime follow-ups are exported directly to the source audit:
 
 | Follow-up | Selected outstanding scope |
 | --- | --- |
 | #333 | Remaining manual obligations and incomplete relationship constructions |
 | #334 | Completed by candidate 0.5.0 |
-| #335 | Appearance and reputation variants; Voice influence-skill bonuses |
+| #335 | Completed by candidate 0.6.0 |
 
 These follow-ups block remaining #113 gameplay coverage and #122 certification.
 The inventory is a selected construction inventory, not an exhaustive Basic Set
@@ -167,3 +168,21 @@ Talent raises a purchased form by one level without changing its purchased
 cost. Same-race Cultural Familiarity costs 1 point and alien familiarity has a
 separate 2-point construction in the identity-bound package. Independent tests
 for every interaction are in `tests/test_background_traits.py` (B23-30).
+
+## Appearance, Reputation and Voice variants (#335)
+
+Candidate version **0.6.0** adds purchased Horrific, Monstrous and Transcendent
+appearance; Androgynous and Impressive flat-reaction constructions; Universal
+and Off-the-Shelf variants; and the resentment and nuisance consequences of
+Very Handsome and Transcendent. These details are part of the exact binding and
+cannot silently activate through an ordinary Handsome purchase.
+
+Selected class-scoped, uncertain-recognition reputations carry their affected
+class, level and frequency in the catalog binding. Construction discounts round
+down at each required stage. A recognition result is reused for the same
+person/group across later social triggers and remains in the private durable
+event history; replay does not reroll. Voice's +2 remains owned by the seven
+pinned social-skill procedures and is asserted only by an audible approved
+purchase. Independent evidence is in
+`tests/test_appearance_reputation_variants.py` and `tests/test_social_skills.py`
+(B21, B26-28 and B97).

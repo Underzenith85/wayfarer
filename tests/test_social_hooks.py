@@ -207,7 +207,13 @@ def test_hooks_and_build_bindings_do_not_share_a_reaction_source() -> None:
         "trait.status",
     }
     fields = set(Standing.__dataclass_fields__)
-    assert fields == {"appearance", "reputations"}
+    assert fields == {
+        "appearance",
+        "reputations",
+        "appearance_option",
+        "universal_appearance",
+        "off_the_shelf_appearance",
+    }
     trace = standing_modifiers(
         PROFILE, Standing("handsome"), Audience(attracted=True), rng=RecordedDice([])
     )
