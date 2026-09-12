@@ -29,7 +29,7 @@ VEHICLE_OPERATIONS = MappingProxyType(
         "water": WATER,
         "underwater": WATER,
         "air": AIR,
-        "space": frozenset({"vehicle-control", "vehicle-impact"}),
+        "space": frozenset({"vehicle-control", "vehicle-impact", "vehicle-space-navigation"}),
         "ground-mount": frozenset(),
     }
 )

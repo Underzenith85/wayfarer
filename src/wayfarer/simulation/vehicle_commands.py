@@ -40,8 +40,8 @@ class VehicleImpact(Command):
     surface: Literal["hard", "soft"] = "hard"
     # Speed lost is adjudicated by the authoritative collision caller. B432
     # specifies lost velocity, not a universal rule that both vehicles stop.
-    speed_after: int = Field(default=0, ge=0, le=100)
-    target_speed_after: int = Field(default=0, ge=0, le=100)
+    speed_after: int = Field(default=0, ge=0, le=1000000000)
+    target_speed_after: int = Field(default=0, ge=0, le=1000000000)
     protection: tuple[PassengerProtection, ...] = ()
 
 
@@ -90,6 +90,15 @@ class ResolveWaterAftermath(Command):
     waterline: int | None = None
     leak_damage: int = Field(default=0, ge=0, le=100)
     occupants: tuple[WaterOccupantCheck, ...] = ()
+
+
+class NavigateSpace(Command):
+    kind: Literal["vehicle-space-navigation"] = "vehicle-space-navigation"
+    transport_id: str
+    action: Literal["burn", "coast"]
+    target_speed: int = Field(ge=0, le=1000000000)
+    course: tuple[HexFacing, ...] = Field(default=(), max_length=100)
+    miles_per_hex: int = Field(default=0, ge=0, le=1000000000)
 
 
 class UpgradeVehicle(Command):

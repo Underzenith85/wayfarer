@@ -22,10 +22,11 @@ from wayfarer.rules.vehicle_types import (
     WaterOccupantCheck,
 )
 from wayfarer.simulation.hex_geometry import Cell, Hex, HexBattlefield
-from wayfarer.simulation.resources import ResourceEngine, ResourceState
+from wayfarer.simulation.resources import Pool, ResourceEngine, ResourceState
 from wayfarer.simulation.transport import apply_transport
 from wayfarer.simulation.vehicle_collisions import collision_exchange, passenger_injury
 from wayfarer.simulation.vehicle_commands import (
+    NavigateSpace,
     ResolveAirAftermath,
     ResolveVehicleEjection,
     ResolveWaterAftermath,
@@ -350,6 +351,73 @@ def test_underwater_stress_leak_damages_hull_and_starts_pressure_exposure() -> N
     assert after.condition is not None and after.condition.hp < before.condition.hp
     assert (leaking.transports[0].status, leaking.transports[0].leak_rate) == ("sinking", 5)
     assert leaking.hazards[0].spec.kind == "pressure"
+
+
+def test_space_burn_consumes_delta_v_and_scaled_coast_uses_b466_time() -> None:
+    engine, state = fixture(
+        locomotion="space", speed=0, top_speed=200000, space_acceleration_tenths_g=15
+    )
+    delta_id = "delta-v:" + state.transports[0].body_id
+    state = state.model_copy(
+        update={"pools": (*state.pools, Pool(id=delta_id, current=200000, maximum=200000))}
+    )
+    burned = apply_transport(
+        engine,
+        state,
+        NavigateSpace(
+            id="burn",
+            actor_id="a",
+            expected_revision=0,
+            transport_id="ride",
+            action="burn",
+            target_speed=90000,
+        ),
+        system=True,
+    )
+    assert burned.transports[0].speed == 90000
+    assert burned.transports[0].space_elapsed_seconds == 6000
+    assert next(p for p in burned.pools if p.id == delta_id).current == 110000
+    restarted = ResourceState.model_validate_json(burned.model_dump_json()).model_copy(
+        update={"game_time": 1}
+    )
+    coasted = apply_transport(
+        engine,
+        restarted,
+        NavigateSpace(
+            id="coast",
+            actor_id="a",
+            expected_revision=1,
+            transport_id="ride",
+            action="coast",
+            target_speed=90000,
+            course=(0,),
+            miles_per_hex=250000,
+        ),
+        system=True,
+        board=map_fixture(),
+    )
+    assert coasted.transports[0].q == 1
+    assert coasted.transports[0].space_elapsed_seconds == 11000
+    assert next(p for p in coasted.pools if p.id == delta_id).current == 110000
+
+
+def test_space_collision_over_exact_dice_bound_rejects_before_randomness() -> None:
+    engine, state = fixture(locomotion="space", speed=1000000000, top_speed=1)
+    with pytest.raises(ValidationError, match="bounded exact-dice"):
+        apply_transport(
+            engine,
+            state,
+            VehicleImpact(
+                id="orbital-impact",
+                actor_id="a",
+                expected_revision=0,
+                transport_id="ride",
+                angle="immovable",
+            ),
+            system=True,
+            health={"a": 12},
+            rng=RecordedDice([]),
+        )
     assert (
         ground_cruising_speed(60, 3, "ground-wheeled", "average", road_bound=True, on_road=False)
         == 6
