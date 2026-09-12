@@ -7,7 +7,7 @@ from pydantic import Field
 from wayfarer.engine.rules.types.location import Hand, HitLocation
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.maneuvers import DefenseOption
-from wayfarer.engine.simulation.combat.unarmed_records import (
+from wayfarer.engine.simulation.combat.unarmed.records import (
     GrappleLocation,
     UnarmedAction,
     UnarmedSkill,

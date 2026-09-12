@@ -5,7 +5,7 @@ from typing import Literal
 from pydantic import Field, model_validator
 
 from wayfarer.engine.rules.checks import CheckTrace
-from wayfarer.engine.simulation.combat.unarmed_records import UnarmedReaction
+from wayfarer.engine.simulation.combat.unarmed.records import UnarmedReaction
 from wayfarer.models import Id, Record
 
 ATTACK_MANEUVERS = frozenset({"attack", "all_out_attack", "move_and_attack"})

@@ -14,7 +14,7 @@ from test_gurps_ranged import load, scene, weapon
 
 from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.simulation.combat.criticals.limbs import CriticalLimbResult
-from wayfarer.engine.simulation.combat.ranged_critical import RangedCritical
+from wayfarer.engine.simulation.combat.ranged.critical import RangedCritical
 from wayfarer.orchestration.combat import ChooseDefense, CombatService
 from wayfarer.orchestration.play import PlayService
 from wayfarer.persistence.async_sqlite import AsyncSQLiteStore
@@ -169,7 +169,7 @@ async def test_typed_breakage_and_resistant_second_roll(
     broken: bool,
 ) -> None:
     from wayfarer.engine.rules.types.object import ObjectCondition, ObjectProfile
-    from wayfarer.engine.simulation.combat.ranged_misses import resolve_miss
+    from wayfarer.engine.simulation.combat.ranged.misses import resolve_miss
 
     ranged = weapon()
     cid, play = await setup(

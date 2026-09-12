@@ -12,7 +12,7 @@ from test_gurps_melee import setup
 from test_gurps_ranged import load, scene, weapon
 
 from wayfarer.engine.rules.checks import Outcome, RecordedDice
-from wayfarer.engine.simulation.combat.ranged_critical import RangedCritical, save_ranged_critical
+from wayfarer.engine.simulation.combat.ranged.critical import RangedCritical, save_ranged_critical
 from wayfarer.engine.simulation.equipment.catalog import Damage
 from wayfarer.errors import ConflictError, ValidationError
 from wayfarer.orchestration.combat import ChooseDefense, CombatService, TakeCombatTurn

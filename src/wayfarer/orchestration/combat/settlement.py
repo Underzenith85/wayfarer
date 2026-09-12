@@ -176,7 +176,7 @@ def _finish_combat(
                 system=True,
                 rng=play.rng,
             )
-    from wayfarer.engine.simulation.combat.ranged_readiness import interrupted_draws
+    from wayfarer.engine.simulation.combat.ranged.readiness import interrupted_draws
 
     resources = interrupted_draws(
         play.rules_context, initial_state, resources, encounter.id, encounter

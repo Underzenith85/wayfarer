@@ -283,7 +283,7 @@ class CombatEngine:
             )
             if encounter.status == "active" and participant.ready_item_ids != expected_ready:
                 raise ValidationError("Combat readiness disagrees with inventory")
-        from wayfarer.engine.simulation.combat.unarmed_records import validate_control
+        from wayfarer.engine.simulation.combat.unarmed.records import validate_control
 
         validate_control(
             encounter,

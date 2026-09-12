@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from wayfarer.engine.simulation.actions import PlayState
 from wayfarer.engine.simulation.actors import build, catalog, fatigue_ready
 from wayfarer.engine.simulation.combat.encounter import CombatResult, Encounter
-from wayfarer.engine.simulation.combat.unarmed_records import Grip, require_basic
+from wayfarer.engine.simulation.combat.unarmed.records import Grip, require_basic
 from wayfarer.errors import ValidationError
 
 if TYPE_CHECKING:

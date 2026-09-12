@@ -28,7 +28,7 @@ from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.maneuvers import WaitInterrupt, WaitTrigger
 from wayfarer.engine.simulation.combat.spatial import Placement
-from wayfarer.engine.simulation.combat.unarmed_records import PendingUnarmed
+from wayfarer.engine.simulation.combat.unarmed.records import PendingUnarmed
 from wayfarer.engine.simulation.resources import Owner
 from wayfarer.engine.world import Entity, EntityKind
 from wayfarer.errors import AuthorizationError, ConflictError, ValidationError

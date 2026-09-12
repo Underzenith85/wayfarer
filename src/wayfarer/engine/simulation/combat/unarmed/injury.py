@@ -14,7 +14,7 @@ from wayfarer.engine.simulation.actors import build, catalog
 from wayfarer.engine.simulation.combat.encounter import Encounter
 from wayfarer.engine.simulation.combat.engine import CombatEngine
 from wayfarer.engine.simulation.combat.unarmed.fighters import fighter, skill_value
-from wayfarer.engine.simulation.combat.unarmed_records import BASIC, PendingUnarmed
+from wayfarer.engine.simulation.combat.unarmed.records import BASIC, PendingUnarmed
 from wayfarer.engine.simulation.equipment.catalog import DamageType
 from wayfarer.engine.simulation.health.condition_checks import check_modifiers
 from wayfarer.engine.simulation.health.injury import Wound, apply_injury
@@ -161,7 +161,7 @@ def critical_miss(
     """
     if hand not in (None, "left-hand", "right-hand"):
         from wayfarer.engine.simulation.combat.encounter import PendingDefense
-        from wayfarer.engine.simulation.combat.ranged_misses import resolve_miss
+        from wayfarer.engine.simulation.combat.ranged.misses import resolve_miss
 
         # The shared weapon reducer needs the pending transaction identity, not
         # an invented weapon for the bare-limbed attack. This adapter is local;

@@ -26,7 +26,7 @@ from wayfarer.engine.simulation.combat.unarmed.injury import (
     drop_held,
     hurt,
 )
-from wayfarer.engine.simulation.combat.unarmed_records import (
+from wayfarer.engine.simulation.combat.unarmed.records import (
     BASIC,
     Grip,
     UnarmedTrace,

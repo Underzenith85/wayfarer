@@ -14,7 +14,7 @@ from wayfarer.engine.simulation.combat.encounter import RangedSituation
 from wayfarer.engine.simulation.combat.maneuvers import AttackOption, DefenseOption, WaitTrigger
 from wayfarer.engine.simulation.combat.spatial import BasicSpatialFact, Placement
 from wayfarer.engine.simulation.combat.suppression import SprayTarget, SuppressionZone
-from wayfarer.engine.simulation.combat.unarmed_records import (
+from wayfarer.engine.simulation.combat.unarmed.records import (
     GrappleLocation,
     UnarmedAction,
     UnarmedSkill,

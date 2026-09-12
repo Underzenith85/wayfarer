@@ -402,7 +402,7 @@ def resolve(
     miss_lasting_ids: tuple[str, ...] = ()
     if blocked and parry_item in ("left-hand", "right-hand"):
         from wayfarer.engine.simulation.combat.unarmed.injury import critical_miss
-        from wayfarer.engine.simulation.combat.unarmed_records import PendingUnarmed
+        from wayfarer.engine.simulation.combat.unarmed.records import PendingUnarmed
 
         encounter = CombatEngine._replace(encounter, target)
         state, encounter, checks, dice, handled = critical_miss(
@@ -426,7 +426,7 @@ def resolve(
         blocked = None if handled else "ranged-critical-unarmed-parry"
         target = next(p for p in encounter.participants if p.actor_id == target.actor_id)
     elif blocked:
-        from wayfarer.engine.simulation.combat.ranged_misses import resolve_miss
+        from wayfarer.engine.simulation.combat.ranged.misses import resolve_miss
 
         # Preserve defense counters/posture before applying consequences to the defender.
         encounter = CombatEngine._replace(encounter, target)
@@ -1004,7 +1004,7 @@ def resolve(
             }
         )
     if critical_table:
-        from wayfarer.engine.simulation.combat.ranged_critical import (
+        from wayfarer.engine.simulation.combat.ranged.critical import (
             RangedCritical,
             save_ranged_critical,
         )

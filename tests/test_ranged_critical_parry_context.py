@@ -14,7 +14,7 @@ from wayfarer.engine.rules.checks import RecordedDice
 from wayfarer.engine.simulation.combat.battlefield import GridPoint
 from wayfarer.engine.simulation.combat.criticals.limbs import CriticalLimbResult
 from wayfarer.engine.simulation.combat.encounter import RangedSituation
-from wayfarer.engine.simulation.combat.ranged_critical import RangedCritical
+from wayfarer.engine.simulation.combat.ranged.critical import RangedCritical
 from wayfarer.engine.simulation.combat.thrown.flight import position, retrieve
 from wayfarer.errors import ValidationError
 from wayfarer.orchestration.combat import ChooseDefense, CombatService

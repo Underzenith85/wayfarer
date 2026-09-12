@@ -39,7 +39,7 @@ from wayfarer.engine.simulation.combat.suppression import (
     PendingSuppressionAttack,
 )
 from wayfarer.engine.simulation.combat.tactical import TacticalTrace
-from wayfarer.engine.simulation.combat.unarmed_records import Grip, PendingUnarmed, UnarmedTrace
+from wayfarer.engine.simulation.combat.unarmed.records import Grip, PendingUnarmed, UnarmedTrace
 from wayfarer.engine.simulation.combat.vocabulary import Defense, Facing, Maneuver, Posture
 from wayfarer.engine.simulation.hex_geometry import Hex, HexFacing
 from wayfarer.errors import ValidationError

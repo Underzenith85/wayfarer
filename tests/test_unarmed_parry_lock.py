@@ -88,7 +88,7 @@ async def test_parry_lock_revalidates_hands_before_dice(tmp_path: Path) -> None:
     cid, play = await setup(tmp_path)
     await parry(cid, play)
     # A later grapple now controls one arm, invalidating the free-hand precondition.
-    from wayfarer.engine.simulation.combat.unarmed_records import Grip
+    from wayfarer.engine.simulation.combat.unarmed.records import Grip
 
     state = await state_of(cid, play)
     encounter = state.encounters[0]

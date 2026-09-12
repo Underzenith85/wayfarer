@@ -56,6 +56,17 @@ def test_roll_uses_injected_randomness() -> None:
     assert checks.roll(2, Lowest())["critical"] == "success"
 
 
+def test_checks_require_injected_randomness() -> None:
+    with pytest.raises(ValidationError, match="explicit random source"):
+        checks.roll(10)
+    with pytest.raises(ValidationError, match="explicit random source"):
+        checks.success_check(
+            10,
+            rules_package="package:test",
+            rules_version="1",
+        )
+
+
 def test_default_rules_pin_is_reproducible_and_activates() -> None:
     DEFAULT_CATALOG.activate(DEFAULT_RULES, DEFAULT_POLICY)
     pin = DEFAULT_RULES.packages[0]

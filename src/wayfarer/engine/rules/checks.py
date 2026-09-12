@@ -1,6 +1,5 @@
 """Server-owned checks, contests, randomness and explanation traces."""
 
-import secrets
 from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import StrEnum
@@ -132,7 +131,7 @@ def success_check(
     base_target: int,
     modifiers: tuple[Modifier, ...] = (),
     *,
-    rng: RandomSource = secrets,
+    rng: RandomSource = NO_RANDOM,
     rules_package: str,
     rules_version: str,
     rule_id: str = "check:success",
@@ -168,7 +167,7 @@ class RecordedDice:
         return next(self._dice, None) is None
 
 
-def roll(target: int, rng: RandomSource = secrets) -> Roll:
+def roll(target: int, rng: RandomSource = NO_RANDOM) -> Roll:
     """Compatibility projection for the existing demo resolution pipeline."""
     trace = success_check(
         target,
