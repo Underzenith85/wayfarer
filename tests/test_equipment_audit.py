@@ -35,7 +35,7 @@ LITE = "gurps-lite-4e-2004"
 def test_selected_row_provenance_anchors() -> None:
     """Every audited row carries the same third-printing provenance and a page in scope."""
     entries = catalog_entries()
-    assert len(entries) == len(BASIC_EQUIPMENT.entries) + len(ULTRATECH_INDEX) == 99
+    assert len(entries) == len(BASIC_EQUIPMENT.entries) + len(ULTRATECH_INDEX) == 103
     for entry in entries.values():
         provenance = entry.provenance
         assert provenance.source_id == "sjg:gurps-basic-set-4e-2004"
@@ -103,6 +103,7 @@ def test_field_provenance_tracks_the_whole_equipment_schema() -> None:
     assert records["Shield.skill_id"].gap is not None
     assert records["EquipmentProfile.shield"].gap is not None
     assert records["RangedMode.bulk"].gap is None
+    assert records["RangedMode.chamber_capacity"].gap is None
     assert records["Parry.modifier"].gap is None
     assert records["MeleeMode.hands"].gap is None
 
@@ -154,8 +155,8 @@ def test_audited_catalogs_do_not_bind_to_pinned_packages() -> None:
 def test_audit_report_names_blockers_without_claiming_completeness() -> None:
     report = audit_report(ROOT)
     assert report["audit_complete"] is False
-    assert report["selected_rows"] == 99
-    assert report["supported_rows"] == 56
+    assert report["selected_rows"] == 103
+    assert report["supported_rows"] == 60
     assert report["sections_audited"] == 0
     assert isinstance(report["blockers"], list) and report["blockers"]
     assert report["footnotes_without_evidence"] == []

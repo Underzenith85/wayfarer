@@ -340,7 +340,10 @@ def heavy_parry_weight(
     modes = tuple(m for m in entry.modes if mode_id is None or m.id == mode_id)
     if not modes or not all(isinstance(m, MeleeMode) for m in modes):
         return None
-    return entry.weight_millipounds or None
+    weight = entry.weight_millipounds
+    if not isinstance(weight, int):
+        raise ValidationError("Melee weapons require integral millipound weight")
+    return weight or None
 
 
 def defense_height_bonus(

@@ -212,9 +212,11 @@
         "wheel-lock-pistol-60",
         "derringer-41",
         "revolver-36",
+        "auto-pistol-45-tl6",
+        "auto-pistol-9mm-tl6",
         "snub-revolver-38"
       ],
-      "omitted_rows": "Five B278 pistol rows whose printed capacities and per-round ammunition weights are exactly representable are recorded. Chambered +1 capacities, rows whose load weight cannot be divided into integral millipounds, gyroc acceleration, smartguns, high-cyclic RoF, two-handed bracing and every B279 rifle/shotgun row remain unresolved.",
+      "omitted_rows": "Seven B278 pistol rows are recorded with distinct chamber capacity and exact rational ammunition mass. Other pistol and SMG rows, gyroc acceleration, smartguns, automatic-only and high-cyclic RoF, two-handed bracing and every B279 rifle/shotgun row remain unresolved.",
       "mechanics": [
         "malfunction",
         "shotgun-multiple-projectiles",
@@ -238,9 +240,11 @@
         "wheel-lock-pistol-60-round",
         "derringer-41-round",
         "revolver-36-round",
+        "auto-pistol-45-tl6-round",
+        "auto-pistol-9mm-tl6-round",
         "snub-revolver-38-round"
       ],
-      "omitted_rows": "B275-276 ordinary missiles and five B278 firearm rounds are recorded with exact fractional dollar and pound values. Alternate missiles, ammunition whose load weight cannot be divided into integral millipounds, ammunition variants, explosive warheads and power cells remain unresolved.",
+      "omitted_rows": "B275-276 ordinary missiles and seven B278 firearm rounds are recorded with exact rational dollar and pound values. Alternate missiles, ammunition variants, explosive warheads and power cells remain unresolved.",
       "mechanics": [
         "ammunition-variants",
         "power-cell-charges"
@@ -1446,6 +1450,19 @@
       "evidence": null,
       "tests": [
         "tests/test_gurps_ranged.py::test_missed_single_shot_restart_and_lost_response_conserve_ammo"
+      ],
+      "gap": null
+    },
+    {
+      "id": "RangedMode.chamber_capacity",
+      "unit": "rounds held outside the magazine",
+      "reference": "B278-279 Shots column, +1 notation",
+      "anchor": "inspected",
+      "status": "pending",
+      "reviewer": null,
+      "evidence": null,
+      "tests": [
+        "tests/test_basic_equipment.py::test_b278_firearms_preserve_independent_table_columns"
       ],
       "gap": null
     },

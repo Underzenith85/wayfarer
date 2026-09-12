@@ -18,6 +18,7 @@ from wayfarer.persistence.events import CommandOrigin
 from wayfarer.simulation.access import CampaignMember, StreamEvent
 from wayfarer.simulation.actions import ACTION_ADAPTER, PlayState
 from wayfarer.simulation.combat import CombatRules, hex_template
+from wayfarer.simulation.resources import wire_weight
 
 
 class CampaignAccess:
@@ -224,7 +225,9 @@ class CampaignAccess:
             {
                 "id": i.id,
                 "name": compiler.definitions[i.definition_id].name,
-                "unit_weight": self.play.engine.resources.specs[i.definition_id].unit_weight,
+                "unit_weight": wire_weight(
+                    self.play.engine.resources.specs[i.definition_id].unit_weight
+                ),
             }
             for i in state.resources.items
             if i.owner_id in member.actor_ids

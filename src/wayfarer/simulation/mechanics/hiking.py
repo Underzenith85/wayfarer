@@ -15,7 +15,7 @@ from wayfarer.simulation.fatigue import fatigue_value
 from wayfarer.simulation.injury import impaired_movement
 from wayfarer.simulation.mechanics.recovery_guard import guard
 from wayfarer.simulation.party import group_for
-from wayfarer.simulation.resources import ResourceEvent
+from wayfarer.simulation.resources import ResourceEvent, decimal_weight
 from wayfarer.simulation.rules_context import RulesContext
 
 
@@ -71,7 +71,7 @@ def group_hiking(
         load = encumbrance(
             stats.profile_id,
             stats.basic_lift,
-            Decimal(runtime.resources.carried_weight(state.resources, member)) / 1000,
+            decimal_weight(runtime.resources.carried_weight(state.resources, member)) / 1000,
         )
         if load is None:
             raise ValidationError("Group member is overloaded")

@@ -116,6 +116,34 @@ async def test_b278_production_revolver_uses_authoritative_burst_failure(tmp_pat
     assert await play.store.read(cid) == await play.store.replay(cid)
 
 
+async def test_b278_chambered_pistol_loads_printed_total_capacity(tmp_path: Path) -> None:
+    mode = production_firearm("equipment:auto-pistol-9mm-tl6")
+    assert (mode.shots, mode.chamber_capacity) == (9, 1)
+    cid, play = await setup(
+        tmp_path,
+        "gurps-basic-set-4e-2004",
+        ranged_mode=mode,
+        ranged_scene=scene(),
+        extra_definitions=definitions(),
+        extra_purchases=(Purchase(definition_id="skill:guns-pistol", amount=4),),
+        campaign_technology_level=6,
+    )
+    for _ in range(3):
+        await turn(
+            cid,
+            play,
+            "a",
+            "ready",
+            item_id="sword-a",
+            mode_id="shot",
+            reload_ammunition_id="ammo-a",
+        )
+        await turn(cid, play, "b", "do_nothing")
+    state = play._load(await play.store.read(cid))
+    assert state.resources.ammunition_loads[0].rounds == 9
+    assert await play.store.read(cid) == await play.store.replay(cid)
+
+
 @pytest.mark.parametrize(
     ("table", "kind", "fired"),
     [

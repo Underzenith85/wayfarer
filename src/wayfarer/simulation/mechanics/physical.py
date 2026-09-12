@@ -42,7 +42,7 @@ from wayfarer.simulation.mechanics.hiking import group_hiking
 from wayfarer.simulation.mechanics.scene_travel import travel_scene
 from wayfarer.simulation.party import migrate, synchronous
 from wayfarer.simulation.physical_traits import physical_traits
-from wayfarer.simulation.resources import Advance, Command, Pool, ResourceEvent
+from wayfarer.simulation.resources import Advance, Command, Pool, ResourceEvent, decimal_weight
 from wayfarer.simulation.rules_context import RulesContext
 
 
@@ -200,7 +200,7 @@ def _prepare(before: PlayState, command: PhysicalCommand, context: PhysicalConte
     load = encumbrance(
         stats.profile_id,
         stats.basic_lift,
-        Decimal(runtime.resources.carried_weight(before.resources, actor.actor_id)) / 1000,
+        decimal_weight(runtime.resources.carried_weight(before.resources, actor.actor_id)) / 1000,
     )
     if load is None:
         raise ValidationError("Physical movement exceeds maximum encumbrance")

@@ -61,13 +61,16 @@ def resolve_heavy_parry(
     else:
         item = next(i for i in state.resources.items if i.id == item_id)
         entry = effective_entry(runtime, item)
-        if entry.weight_millipounds == 0 or weight < 3 * entry.weight_millipounds:
+        weapon_weight = entry.weight_millipounds
+        if not isinstance(weapon_weight, int):
+            raise ValidationError("Parrying weapons require integral millipound weight")
+        if weapon_weight == 0 or weight < 3 * weapon_weight:
             return state, defender, (), True
         require_breakage(entry, item)
         assert entry.parry_quality is not None
         assert entry.durability is not None and item.condition is not None
         quality = {"cheap": 2, "good": 0, "fine": -1, "very-fine": -2}[entry.parry_quality]
-        threshold = weight // entry.weight_millipounds - 1 + quality
+        threshold = weight // weapon_weight - 1 + quality
         die = draw_dice(runtime.rng, 1)[0]
         broken = die <= threshold
         residual = (
@@ -86,7 +89,7 @@ def resolve_heavy_parry(
             item_id=item_id,
             incoming_item_id=pending.weapon_id,
             incoming_weight=weight,
-            weapon_weight=entry.weight_millipounds,
+            weapon_weight=weapon_weight,
             quality=entry.parry_quality,
             breakage_threshold=threshold,
             die=die,

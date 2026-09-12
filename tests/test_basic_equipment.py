@@ -1,5 +1,7 @@
 """Independent selected-row audit: Characters third printing B271-278,280,283,288."""
 
+from fractions import Fraction
+
 import pytest
 from pydantic import ValidationError as SchemaError
 
@@ -74,6 +76,8 @@ FIREARM_ROWS = (
     ("derringer-41", 5, 100, 500, 1, 0, "pi+", 1, 80, 650, 1, 2, 3, 9, -1, 2),
     ("revolver-36", 5, 150, 2500, 2, -1, "pi", 1, 120, 1300, 1, 6, 3, 10, -2, 2),
     ("snub-revolver-38", 6, 250, 1500, 1, 2, "pi", 1, 120, 1250, 3, 5, 3, 8, -1, 3),
+    ("auto-pistol-45-tl6", 6, 300, 3000, 2, 0, "pi+", 2, 175, 1700, 3, 8, 3, 10, -2, 3),
+    ("auto-pistol-9mm-tl6", 6, 350, 2400, 2, 2, "pi", 2, 150, 1850, 3, 9, 3, 9, -2, 2),
 )
 
 
@@ -310,6 +314,18 @@ def test_b278_firearms_preserve_independent_table_columns() -> None:
     assert isinstance(derringer, RangedMode) and derringer.reload_protocol == "per-round"
     assert isinstance(revolver, RangedMode) and revolver.firearm is not None
     assert revolver.firearm.action == "revolver"
+    for key, shots in (("auto-pistol-45-tl6", 8), ("auto-pistol-9mm-tl6", 9)):
+        chambered_mode = entries[key].modes[0]
+        assert isinstance(chambered_mode, RangedMode)
+        assert (
+            chambered_mode.shots,
+            chambered_mode.chamber_capacity,
+            chambered_mode.shots - chambered_mode.chamber_capacity,
+        ) == (
+            shots,
+            1,
+            shots - 1,
+        )
 
 
 def test_b278_firearm_ammunition_uses_exact_per_round_units() -> None:
@@ -322,6 +338,8 @@ def test_b278_firearm_ammunition_uses_exact_per_round_units() -> None:
         "derringer-41-round": ("1", 50),
         "revolver-36-round": ("0.8", 40),
         "snub-revolver-38-round": ("0.8", 40),
+        "auto-pistol-45-tl6-round": ("1.5", 75),
+        "auto-pistol-9mm-tl6-round": ("8/9", Fraction(400, 9)),
     }
     assert {
         key: (str(entries[key].price), entries[key].weight_millipounds) for key in expected

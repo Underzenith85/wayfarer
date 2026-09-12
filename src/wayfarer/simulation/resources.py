@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import hashlib
 from copy import copy
+from decimal import Decimal
+from fractions import Fraction
 from typing import Annotated, Literal
 
 from pydantic import Field, TypeAdapter, model_validator
@@ -32,12 +34,26 @@ from wayfarer.rules.recovery_types import FatigueStatus, RecoveryTask, require_s
 from wayfarer.rules.transport_types import Transport
 from wayfarer.world import EntityKind, World
 
+ExactWeight = Annotated[int | Fraction, Field(ge=0)]
+
+
+def decimal_weight(value: int | Fraction) -> Decimal:
+    """Project an exact rational weight into Decimal arithmetic at the boundary."""
+    if isinstance(value, Fraction):
+        return Decimal(value.numerator) / Decimal(value.denominator)
+    return Decimal(value)
+
+
+def wire_weight(value: int | Fraction) -> int | float:
+    """Return a JSON-number projection without changing authoritative arithmetic."""
+    return float(value) if isinstance(value, Fraction) else value
+
 
 class EquipmentSpec(Record):
     """Trusted server mechanics bound to an implemented pinned catalog entry."""
 
     definition_id: Id
-    unit_weight: int = Field(ge=0)
+    unit_weight: ExactWeight
     stackable: bool = True
     container_capacity: int | None = Field(default=None, ge=0)
     slot: str | None = None
@@ -424,7 +440,7 @@ class ResourceEngine:
                     raise ValidationError("Equipment slot is occupied")
                 occupied[slot] = count
 
-        contents = dict.fromkeys(items, 0)
+        contents: dict[str, int | Fraction] = dict.fromkeys(items, 0)
         for item in state.items:
             weight = self.specs[item.definition_id].unit_weight * item.quantity
             parent_id = item.container_id
@@ -454,8 +470,8 @@ class ResourceEngine:
         if entry.kind == "consequence" and entry.target_id not in self.actors:
             raise ValidationError("Unknown delayed consequence actor")
 
-    def carried_weight(self, state: ResourceState, actor_id: str) -> int:
-        """Integer weight units; callers may feed this into an encumbrance effect."""
+    def carried_weight(self, state: ResourceState, actor_id: str) -> int | Fraction:
+        """Exact weight units; fractional units remain rational through conservation."""
         return sum(
             self.specs[i.definition_id].unit_weight * i.quantity
             for i in state.items

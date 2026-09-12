@@ -35,8 +35,8 @@ anchor and record what they leave out:
 | --- | --- | --- | --- |
 | `melee-weapons-b271` | B271-274 | 45 | non-equipment attacks and rows the typed schema cannot represent without inventing values |
 | `muscle-powered-ranged` | B275-276 | 18 | duplicated thrown modes, special binding damage, launcher/cocking-aid behavior and remaining material/ammunition variants |
-| `firearms` | B278-279 | 5 | chambered capacities, sub-millipound rounds, gyroc acceleration, smartguns, high-cyclic RoF, rifles and shotguns |
-| `ammunition` | B275-278 | 10 | alternative missiles, sub-millipound firearm rounds, ammunition variants, explosive warheads and power cells |
+| `firearms` | B278-279 | 7 | remaining pistols and SMGs, gyroc acceleration, smartguns, automatic-only and high-cyclic RoF, rifles and shotguns |
+| `ammunition` | B275-278 | 12 | alternative missiles, ammunition variants, explosive warheads and power cells |
 | `beam-weapons-b280` | B280 | 3 | every other beam row; the three recorded rows are index facts that cannot be equipped or fired |
 | `body-armor-b283` | B283 | 8 | split-DR, single-facing, flexible, layered and footnoted rows, plus the other armor pages |
 | `general-equipment-b288` | B288 | 10 | every other B288 row and the whole B289 continuation |
@@ -46,6 +46,11 @@ shields, heavy weapons, split-DR armor, higher-TL variants, weapon accessories
 and the general equipment remainder. Their anchors are recorded as `range-only`,
 meaning B264-289 as a range that nobody has reconciled item by item. A
 `range-only` anchor is a coverage gap, not a page citation.
+
+The B278 adapter now preserves chambered `+1` capacity separately and keeps
+per-round ammunition mass as an exact rational number of millipounds. This
+allows the TL6 9mm automatic pistol's 0.4-pound, nine-round load to remain
+exactly `400/9` millipounds per round without inventing a rounded unit value.
 
 One structural consequence remains recorded rather than smoothed over: no
 audited row is a shield. B275-278 now provide direct ranged cases for rated ST,
